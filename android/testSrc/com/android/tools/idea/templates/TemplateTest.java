@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.DOT_XML;
-import static com.android.SdkConstants.FD_TEMPLATES;
-import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
@@ -32,25 +28,31 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERS
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_OUT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SOURCE_PROVIDER_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API_STRING;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT;
 import static com.android.tools.idea.templates.TemplateMetadata.getBuildApiString;
+import static com.android.tools.idea.templates.TemplateTestUtils.addIconsIfNecessary;
+import static com.android.tools.idea.templates.TemplateTestUtils.cleanupProjectFiles;
 import static com.android.tools.idea.templates.TemplateTestUtils.createNewProjectState;
 import static com.android.tools.idea.templates.TemplateTestUtils.createRenderingContext;
 import static com.android.tools.idea.templates.TemplateTestUtils.getDefaultModuleTemplate;
-import static com.android.tools.idea.templates.TemplateTestUtils.getLintIssueMessage;
+import static com.android.tools.idea.templates.TemplateTestUtils.getDefaultValue;
 import static com.android.tools.idea.templates.TemplateTestUtils.getModifiedProjectName;
 import static com.android.tools.idea.templates.TemplateTestUtils.getModuleTemplateForFormFactor;
+import static com.android.tools.idea.templates.TemplateTestUtils.getOption;
+import static com.android.tools.idea.templates.TemplateTestUtils.invokeGradleForProjectDir;
 import static com.android.tools.idea.templates.TemplateTestUtils.isInterestingApiLevel;
+import static com.android.tools.idea.templates.TemplateTestUtils.lintIfNeeded;
+import static com.android.tools.idea.templates.TemplateTestUtils.printSdkInfo;
 import static com.android.tools.idea.templates.TemplateTestUtils.setAndroidSupport;
+import static com.android.tools.idea.templates.TemplateTestUtils.setUpFixtureForProject;
 import static com.android.tools.idea.templates.TemplateTestUtils.validateTemplate;
+import static com.android.tools.idea.templates.TemplateTestUtils.verifyLanguageFiles;
 import static com.android.tools.idea.templates.TemplateTestUtils.verifyLastLoggedUsage;
 import static com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories;
@@ -58,12 +60,9 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.mock;
 
 import com.android.SdkConstants;
-import com.android.annotations.concurrency.UiThread;
-import com.android.annotations.concurrency.WorkerThread;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
@@ -72,7 +71,6 @@ import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
@@ -81,13 +79,10 @@ import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.IdeComponents;
-import com.android.tools.lint.checks.ManifestDetector;
-import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -104,37 +99,20 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.util.ArrayUtil;
-import com.intellij.util.WaitFor;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -181,7 +159,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   /**
    * Whether we should enforce that lint passes cleanly on the projects
    */
-  private static final boolean CHECK_LINT = false; // Needs work on closing projects cleanly
+  static final boolean CHECK_LINT = false; // Needs work on closing projects cleanly
 
   /**
    * Manual sdk version selections
@@ -231,8 +209,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   protected boolean createDefaultProject() {
     // We'll be creating projects manually except for the following tests
     String testName = getName();
-    return testName.equals("testTemplateFormatting")
-           || testName.equals("testCreateGradleWrapper");
+    return testName.equals("testTemplateFormatting") || testName.equals("testCreateGradleWrapper");
   }
 
   @Override
@@ -250,29 +227,16 @@ public class TemplateTest extends AndroidGradleTestCase {
         if (sdkData == null) {
           fail("Couldn't find SDK manager");
         }
-        System.out.println("getTestSdkPath= " + TestUtils.getSdk());
-        System.out.println("getPlatformDir=" + TestUtils.getLatestAndroidPlatform());
-        String location = sdkData.getLocation().getPath();
-        System.out.println("Using SDK at " + location);
-        VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(location);
-        System.out.println("Version check=" + result.getRevision());
-        File file = new File(location);
-        if (!file.exists()) {
-          System.out.println("SDK doesn't exist");
-        }
-        else {
-          File folder = new File(location, FD_TOOLS + File.separator + FD_TEMPLATES);
-          boolean exists = folder.exists();
-          System.out.println("Template folder exists=" + exists + " for " + folder);
-        }
+        printSdkInfo(sdkData.getLocation().getPath());
       }
     }
     // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
-    new IdeComponents(null, getTestRootDisposable()).replaceApplicationService(
-      RepositoryUrlManager.class,
-      new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, OfflineIdeGoogleMavenRepository.INSTANCE, true));
+    new IdeComponents(null, getTestRootDisposable()).replaceApplicationService(RepositoryUrlManager.class,
+                                                                               new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE,
+                                                                                                        OfflineIdeGoogleMavenRepository.INSTANCE,
+                                                                                                        true));
   }
 
   @Override
@@ -884,7 +848,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     new CoverageChecker().testAllTemplatesCovered();
   }
 
-
   //--- Special cases ---
 
   public void testJdk7() throws Exception {
@@ -915,11 +878,8 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   public void testTemplateFormatting() throws Exception {
     Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")).getCanonicalFile());
-    RenderingContext context = createRenderingContext(template,
-                                                      myFixture.getProject(),
-                                                      new File(myFixture.getTempDirPath()),
-                                                      new File("dummy"),
-                                                      ImmutableMap.of());
+    RenderingContext context = createRenderingContext(
+      template, myFixture.getProject(), new File(myFixture.getTempDirPath()), new File("dummy"));
     template.render(context, false);
     FileDocumentManager.getInstance().saveAllDocuments();
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
@@ -1195,12 +1155,12 @@ public class TemplateTest extends AndroidGradleTestCase {
       }
 
       // revert to this one after cycling,
-      Object initial = getDefaultValue(templateState, parameter);
+      Object initial = getDefaultValue(parameter, templateState);
 
       if (parameter.type == Parameter.Type.ENUM) {
         List<Element> options = parameter.getOptions();
         for (Element element : options) {
-          Option option = Option.get(element);
+          Option option = getOption(element);
           String optionId = option.id;
           int optionMinSdk = option.minSdk;
           int optionMinBuildApi = option.minBuild;
@@ -1236,68 +1196,11 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkProject(projectName, projectState, activityState);
   }
 
-  private static Object getDefaultValue(@NotNull TestTemplateWizardState templateState, @NotNull Parameter parameter) {
-    assertNotNull(parameter.id);
-
-    Object initial = templateState.get(parameter.id);
-    if (initial == null) {
-      if (parameter.type == Parameter.Type.BOOLEAN) {
-        return Boolean.valueOf(parameter.initial);
-      }
-      else {
-        return parameter.initial;
-      }
-    }
-    return initial;
-  }
-
-  private static class Option {
-    private final String id;
-    private final int minSdk;
-    private final int minBuild;
-
-    private Option(String id, int minSdk, int minBuild) {
-      this.id = id;
-      this.minSdk = minSdk;
-      this.minBuild = minBuild;
-    }
-
-    private static Option get(Element option) {
-      String optionId = option.getAttribute(ATTR_ID);
-      String minApiString = option.getAttribute(ATTR_MIN_API);
-      int optionMinSdk = 1;
-      if (minApiString != null && !minApiString.isEmpty()) {
-        try {
-          optionMinSdk = Integer.parseInt(minApiString);
-        }
-        catch (NumberFormatException e) {
-          // Templates aren't allowed to contain codenames, should
-          // always be an integer
-          optionMinSdk = 1;
-          fail(e.toString());
-        }
-      }
-      String minBuildApiString = option.getAttribute(ATTR_MIN_BUILD_API);
-      int optionMinBuildApi = 1;
-      if (minBuildApiString != null && !minBuildApiString.isEmpty()) {
-        try {
-          optionMinBuildApi = Integer.parseInt(minBuildApiString);
-        }
-        catch (NumberFormatException e) {
-          // Templates aren't allowed to contain codenames, should
-          // always be an integer
-          optionMinBuildApi = 1;
-          fail(e.toString());
-        }
-      }
-
-      return new Option(optionId, optionMinSdk, optionMinBuildApi);
-    }
-  }
-
-  private void checkProject(@NotNull String projectName,
-                            @NotNull TestNewProjectWizardState projectState,
-                            @Nullable TestTemplateWizardState activityState) throws Exception {
+  private void checkProject(
+    @NotNull String projectName,
+    @NotNull TestNewProjectWizardState projectState,
+    @Nullable TestTemplateWizardState activityState
+  ) throws Exception {
 
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     boolean checkLib = false;
@@ -1349,7 +1252,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     String modifiedProjectName = getModifiedProjectName(projectName, activityState);
 
     moduleState.put(ATTR_MODULE_NAME, modifiedProjectName);
-    setUpFixture(modifiedProjectName);
+    assertNull(myFixture);
+    myFixture = setUpFixtureForProject(modifiedProjectName);
     @NotNull Project project = Objects.requireNonNull(getProject());
     new IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
     AndroidGradleTests.setUpSdks(myFixture, findSdkPath());
@@ -1382,7 +1286,7 @@ public class TemplateTest extends AndroidGradleTestCase {
         verifyLanguageFiles(projectDir, Language.KOTLIN);
       }
 
-      invokeGradle(projectDir);
+      invokeGradleForProjectDir(projectDir);
       lintIfNeeded(project);
     }
     finally {
@@ -1395,124 +1299,6 @@ public class TemplateTest extends AndroidGradleTestCase {
       assertTrue(openProjects.length <= 1); // 1: the project created by default by the test case
 
       cleanupProjectFiles(projectDir);
-    }
-  }
-
-  private void setUpFixture(String projectName) {
-    assertNull(myFixture);
-    IdeaTestFixtureFactory factory = IdeaTestFixtureFactory.getFixtureFactory();
-    TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = factory.createFixtureBuilder(projectName);
-    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-    try {
-      myFixture.setUp();
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e); // should never happen
-    }
-  }
-
-  @UiThread
-  void addIconsIfNecessary(@NotNull TestTemplateWizardState activityState) {
-    if (activityState.getTemplateMetadata() != null && activityState.getTemplateMetadata().getIconName() != null) {
-      File drawableFolder = new File(FileUtil.join(activityState.getString(ATTR_RES_OUT)), FileUtil.join("drawable"));
-      //noinspection ResultOfMethodCallIgnored
-      drawableFolder.mkdirs();
-      String fileName = new StringEvaluator().evaluate(
-        activityState.getTemplateMetadata().getIconName(), activityState.getParameters());
-      File iconFile = new File(drawableFolder, fileName + DOT_XML);
-      File sourceFile = new File(getTestDataPath(), FileUtil.join("drawables", "progress_horizontal.xml"));
-      try {
-        FileUtil.copy(sourceFile, iconFile);
-      }
-      catch (IOException e) {
-        fail(e.getMessage());
-      }
-    }
-  }
-
-  static void verifyLanguageFiles(@NotNull File projectDir, @NotNull Language language) throws IOException {
-    Path rootPath = projectDir.toPath();
-    // Note: Files.walk() stream needs to be closed (or consumed completely), otherwise it will leave locked directories on Windows
-    List<Path> allPaths = Files.walk(rootPath).collect(toList());
-    if (language == Language.KOTLIN) {
-      assertFalse(allPaths.stream().anyMatch(path -> path.toString().endsWith(".java")));
-      assertTrue(allPaths.stream().anyMatch(path -> path.toString().endsWith(".kt")));
-    }
-    else {
-      assertFalse(allPaths.stream().anyMatch(path -> path.toString().endsWith(".kt")));
-      assertTrue(allPaths.stream().anyMatch(path -> path.toString().endsWith(".java")));
-    }
-  }
-
-  private static void invokeGradle(@NotNull File projectRoot) {
-    GradleConnector connector = GradleConnector.newConnector();
-    connector.forProjectDirectory(projectRoot);
-    ((DefaultGradleConnector)connector).daemonMaxIdleTime(10000, TimeUnit.MILLISECONDS);
-    ProjectConnection connection = connector.connect();
-    BuildLauncher buildLauncher = connection.newBuild().forTasks("assembleDebug");
-
-    List<String> commandLineArguments = new ArrayList<>();
-    GradleInitScripts initScripts = GradleInitScripts.getInstance();
-    initScripts.addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
-    buildLauncher.withArguments(ArrayUtil.toStringArray(commandLineArguments));
-    @SuppressWarnings("resource")
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try {
-      buildLauncher.setStandardOutput(baos).setStandardError(baos).run();
-    }
-    //// Use the following commented out code to debug the generated project in case of a failure.
-    catch (Exception e) {
-      //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
-      //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
-      //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
-      String exceptionMessage = "";
-      try {
-        exceptionMessage = baos.toString("UTF-8");
-      }
-      catch (UnsupportedEncodingException uee) {
-        // Never happens
-      }
-      throw new RuntimeException(exceptionMessage, e);
-    }
-    finally {
-      shutDownGradleConnection(connection, projectRoot);
-    }
-  }
-
-  private static void shutDownGradleConnection(@NotNull ProjectConnection connection, @NotNull File projectRoot) {
-    connection.close();
-
-    // Windows work-around: After closing the gradle connection, it's possible that some files (eg local.properties) are locked
-    // for a bit of time. It is also possible that there are Virtual Files that are still synchronizing to the File System, this will
-    // break tear-down, when it tries to delete the project.
-    if (SystemInfo.isWindows) {
-      System.out.println("Windows: Attempting to delete project Root - " + projectRoot);
-      new WaitFor(60000) {
-        @Override
-        protected boolean condition() {
-          if (!FileUtil.delete(projectRoot)) {
-            System.out.println("Windows: delete project Root failed - time = " + System.currentTimeMillis());
-          }
-          return projectRoot.mkdir();
-        }
-      };
-    }
-  }
-
-  private static void lintIfNeeded(@NotNull Project project) {
-    if (CHECK_LINT) {
-      String lintMessage = getLintIssueMessage(project, Severity.INFORMATIONAL, Collections.singleton(ManifestDetector.TARGET_NEWER));
-      if (lintMessage != null) {
-        fail(lintMessage);
-      }
-      // TODO: Check for other warnings / inspections, such as unused imports?
-    }
-  }
-
-  static private void cleanupProjectFiles(@NotNull File projectDir) {
-    if (projectDir.exists()) {
-      FileUtil.delete(projectDir);
-      LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir);
     }
   }
 
