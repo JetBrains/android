@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.UtilKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
@@ -73,7 +74,7 @@ public class GradleProjectImporterTest extends JavaProjectTestCase {
     new IdeComponents(project).replaceProjectService(GradleSettings.class, myGradleSettings);
     assertSame(GradleSettings.getInstance(project), myGradleSettings);
 
-    new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
+    UtilKt.registerServiceInstance(project, GradleProjectInfo.class, myGradleProjectInfo);
 
     myProjectImporter = new GradleProjectImporter(sdkSync, mySyncInvoker, myProjectSetup, projectFolderFactory);
   }
