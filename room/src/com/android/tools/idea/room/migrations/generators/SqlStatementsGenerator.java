@@ -24,11 +24,13 @@ import com.android.tools.idea.room.migrations.json.IndexBundle;
 import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
 import com.android.tools.idea.room.migrations.update.EntityUpdate;
+import com.intellij.openapi.util.InvalidDataException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +46,7 @@ public class SqlStatementsGenerator {
    * @param databaseUpdate the representation of the updates which need to be performed
    */
   @NotNull
-  public static List<String> getUpdateStatements(@NotNull DatabaseUpdate databaseUpdate) {
+  public static List<String> getMigrationStatements(@NotNull DatabaseUpdate databaseUpdate) {
     List<String> updateStatements = new ArrayList<>();
     boolean needsConstraintsCheck = false;
 
@@ -56,7 +58,7 @@ public class SqlStatementsGenerator {
     }
 
     for (EntityUpdate entityUpdate : databaseUpdate.getModifiedEntities().values()) {
-      updateStatements.addAll(getUpdateStatements(entityUpdate));
+      updateStatements.addAll(getMigrationStatements(entityUpdate));
       needsConstraintsCheck |= entityUpdate.foreignKeysWereUpdated();
     }
 
@@ -77,30 +79,23 @@ public class SqlStatementsGenerator {
    * @param entityUpdate the representation of the updates which need to be performed
    */
   @NotNull
-  public static List<String> getUpdateStatements(@NotNull EntityUpdate entityUpdate) {
+  public static List<String> getMigrationStatements(@NotNull EntityUpdate entityUpdate) {
     String tableName = entityUpdate.getTableName();
-    List<FieldBundle> newFields = entityUpdate.getNewFields();
-    List<FieldBundle> modifiedFields = entityUpdate.getModifiedFields();
-    List<FieldBundle> unmodifiedFields = entityUpdate.getUnmodifiedFields();
     ArrayList<String> updateStatements = new ArrayList<>();
 
-     if (entityUpdate.isComplexUpdate()) {
-      List<FieldBundle> initialFields = new ArrayList<>();
-      Stream.of(unmodifiedFields, modifiedFields).forEach(initialFields::addAll);
-
-      List<FieldBundle> currentFields = new ArrayList<>();
-      Stream.of(unmodifiedFields, modifiedFields, newFields).forEach(currentFields::addAll);
-
-      updateStatements.addAll(getComplexTableUpdate(tableName,
-                                                    initialFields,
-                                                    currentFields,
-                                                    entityUpdate.getPrimaryKey(),
-                                                    entityUpdate.getForeignKeys()));
+    if (entityUpdate.isComplexUpdate()) {
+      updateStatements.addAll(getComplexTableUpdate(entityUpdate));
     } else {
-       for (FieldBundle field : newFields) {
-         updateStatements.add(getAddColumnStatement(tableName, field));
-       }
-     }
+      Map<String, FieldBundle> newFields = entityUpdate.getNewFields();
+      for (FieldBundle field : newFields.values()) {
+        updateStatements.add(getAddColumnStatement(tableName, field));
+      }
+
+      Map<FieldBundle, String> valuesForUninitializedFields = entityUpdate.getValuesForUninitializedFields();
+      if (!valuesForUninitializedFields.isEmpty()) {
+        updateStatements.add(getUpdateColumnsValuesStatement(tableName, valuesForUninitializedFields));
+      }
+    }
 
     for (IndexBundle index : entityUpdate.getIndicesToBeDropped()) {
       updateStatements.add(getDropIndexStatement(index));
@@ -119,23 +114,33 @@ public class SqlStatementsGenerator {
    * new format and then transfer to content from te original table to the new one. More information ca be found in the SQLite documentation
    * (https://www.sqlite.org/lang_altertable.html).
    *
-   * @param tableName the table to be updated
-   * @param initialFields the fields the table contained before the update
-   * @param currentFields the fields the table should contain after the update
+   * @param entityUpdate the object which describes the changes which need to be executed
    */
   @NotNull
-  private static List<String> getComplexTableUpdate(@NotNull String tableName,
-                                                    @NotNull List<FieldBundle> initialFields,
-                                                    @NotNull List<FieldBundle> currentFields,
-                                                    @NotNull PrimaryKeyBundle primaryKey,
-                                                    @Nullable List<ForeignKeyBundle> foreignKeys) {
+  private static List<String> getComplexTableUpdate(@NotNull EntityUpdate entityUpdate) {
+    String tableName = entityUpdate.getTableName();
+    List<FieldBundle> allFields = entityUpdate.getAllFields();
     List<String> updateStatements = new ArrayList<>();
     String tempTableName = String.format(TMP_TABLE_NAME_TEMPLATE, tableName);
-    updateStatements.add(getCreateTableStatement(tempTableName, currentFields, primaryKey, foreignKeys));
+    Map<String, String> columnNameToColumnValue = new LinkedHashMap<>();
 
+    for (FieldBundle field : allFields) {
+      String value = getValueForField(field, entityUpdate);
+      if (value == null) {
+        if (columnNeedsUserSpecifiedValue(field)) {
+          throw new InvalidDataException("NOT NULL column without default value or user specified value.");
+        }
+      } else {
+        columnNameToColumnValue.put(getValidName(field.getColumnName()), value);
+      }
+    }
+
+    updateStatements.add(getCreateTableStatement(tempTableName, allFields, entityUpdate.getPrimaryKey(), entityUpdate.getForeignKeys()));
     updateStatements.add(getInsertIntoTableStatement(tempTableName,
-                                                     initialFields,
-                                                     getSelectFromTableStatement(tableName, initialFields)));
+                                                     new ArrayList<>(columnNameToColumnValue.keySet()),
+                                                     getSelectFromTableStatement(
+                                                       tableName,
+                                                       new ArrayList<>(columnNameToColumnValue.values()))));
     updateStatements.add(getDropTableStatement(tableName));
     updateStatements.add(getRenameTableStatement(tempTableName, tableName));
 
@@ -146,12 +151,12 @@ public class SqlStatementsGenerator {
    * Returns the statement which performs the query.
    *
    * @param tableName the name of the table to select from
-   * @param fields the fields to be selected
+   * @param columnNames the names of the columns to be selected
    */
   @NotNull
-  private static String getSelectFromTableStatement(@NotNull String tableName, @NotNull List<FieldBundle> fields) {
+  private static String getSelectFromTableStatement(@NotNull String tableName, @NotNull List<String> columnNames) {
     tableName = getValidName(tableName);
-    StringBuilder statement = new StringBuilder(String.format("SELECT %s\n", getColumnEnumerationFromBundles(fields)));
+    StringBuilder statement = new StringBuilder(String.format("SELECT %s\n", getColumnEnumeration(columnNames)));
     statement.append(String.format("\tFROM %s;", tableName));
 
     return statement.toString();
@@ -161,14 +166,14 @@ public class SqlStatementsGenerator {
    * Returns the statement which performs the insertion.
    *
    * @param tableName the name of the table to insert into
-   * @param fields the fields to insert values into
+   * @param columnNames the names of the columns to insert values into
    * @param values the values to be inserted (could be either the result of another SQL statement or just an enumeration of values)
    */
   @NotNull
-  private static String getInsertIntoTableStatement(@NotNull String tableName, @NotNull List<FieldBundle> fields, @NotNull String values) {
+  private static String getInsertIntoTableStatement(@NotNull String tableName, @NotNull List<String> columnNames, @NotNull String values) {
     tableName = getValidName(tableName);
     StringBuilder statement =
-      new StringBuilder(String.format("INSERT INTO %s (%s)\n\t", tableName, getColumnEnumerationFromBundles(fields)));
+      new StringBuilder(String.format("INSERT INTO %s (%s)\n\t", tableName, getColumnEnumeration(columnNames)));
     statement.append(values);
 
     if (!statement.toString().endsWith(";")) {
@@ -263,7 +268,7 @@ public class SqlStatementsGenerator {
       new StringBuilder(String.format("%s %s", getValidName(field.getColumnName()), field.getAffinity()));
 
     if (field.getDefaultValue() != null) {
-      fieldDescription.append(String.format(" DEFAULT %s", field.getDefaultValue()));
+      fieldDescription.append(String.format(" DEFAULT %s", toSqlStringLiteral(field.getDefaultValue())));
     }
 
     if (field.isNonNull()) {
@@ -317,8 +322,19 @@ public class SqlStatementsGenerator {
   }
 
   @NotNull
-  private static String getColumnEnumerationFromBundles(@NotNull List<FieldBundle> fields) {
-    return fields.stream().map(f -> getValidName(f.getColumnName())).collect(Collectors.joining(", "));
+  private static String getUpdateColumnsValuesStatement(@NotNull String tableName, @NotNull Map<FieldBundle, String> newFieldsValues) {
+    tableName = getValidName(tableName);
+    StringBuilder statement = new StringBuilder(String.format("UPDATE %s\nSET", tableName));
+
+    String valueAssignments =
+      newFieldsValues.keySet().stream()
+        .map(fieldBundle -> String.format("\t%s = %s", fieldBundle.getColumnName(), toSqlStringLiteral(newFieldsValues.get(fieldBundle))))
+        .collect(Collectors.joining(",\n"));
+
+    statement.append(valueAssignments);
+    statement.append(";");
+
+    return statement.toString();
   }
 
   @NotNull
@@ -326,9 +342,40 @@ public class SqlStatementsGenerator {
     return columnNames.stream().map(c -> getValidName(c)).collect(Collectors.joining(", "));
   }
 
+  /**
+   * Formats a string into a valid SQLite string literal by quoting it with simple quotes and escaping any already existing quotes.
+   */
+  @NotNull
+  private static String toSqlStringLiteral(@NotNull String value) {
+    if (value.contains("'")) {
+       value = value.replaceAll("'", "''");
+    }
+
+    return String.format("'%s'", value);
+  }
+
   private static boolean shouldAddAutoIncrementToColumn(@NotNull FieldBundle field, @NotNull PrimaryKeyBundle primaryKey) {
     return primaryKey.isAutoGenerate() &&
            field.getAffinity().toLowerCase(Locale.ENGLISH).equals("integer") &&
            (primaryKey.getColumnNames().size() == 1 && primaryKey.getColumnNames().get(0).equals(field.getColumnName()));
+  }
+
+  @Nullable
+  private static String getValueForField(@NotNull FieldBundle field, @NotNull EntityUpdate entityUpdate) {
+    String userSpecifiedValue = entityUpdate.getValuesForUninitializedFields().get(field);
+    if (userSpecifiedValue != null) {
+      return toSqlStringLiteral(userSpecifiedValue);
+    }
+
+    String columnName = field.getColumnName();
+    if (entityUpdate.getUnmodifiedFields().get(columnName) != null || entityUpdate.getModifiedFields().get(columnName) != null) {
+      return getValidName(columnName);
+    }
+
+    return null;
+  }
+
+  private static boolean columnNeedsUserSpecifiedValue(@NotNull FieldBundle field) {
+    return field.isNonNull() && (field.getDefaultValue() == null || field.getDefaultValue().isEmpty());
   }
 }
