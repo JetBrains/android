@@ -129,6 +129,15 @@ class CpuCaptureStageTest {
   }
 
   @Test
+  fun fullTraceAnalysisAddedByDefault() {
+    val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("basic.trace"))
+    profilers.stage = stage
+    assertThat(stage.analysisModels.size).isEqualTo(1)
+    assertThat(stage.analysisModels[0].name).isEqualTo(CpuCaptureStage.DEFAULT_ANALYSIS_NAME)
+    assertThat(stage.analysisModels[0].tabs).isNotEmpty()
+  }
+
+  @Test
   fun invalidTraceIdReturnsNull() {
     val stage = CpuCaptureStage.create(profilers, "Test", 0)
     assertThat(stage).isNull()
