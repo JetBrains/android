@@ -391,6 +391,23 @@ class SqliteControllerTest : PlatformTestCase() {
     Disposer.isDisposed(sqliteDatabase1)
   }
 
+  fun testTablesAreRemovedWhenDatabasedIsRemoved() {
+    // Prepare
+    val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), false), testSqliteTable))
+    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    sqliteController.openSqliteDatabase(sqliteFile1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    sqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Act
+    sqliteView.viewListeners.first().removeDatabaseActionInvoked(sqliteDatabase1)
+
+    // Assert
+    verify(sqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)))
+  }
+
   fun testUpdateExistingDatabaseAddTables() {
     // Prepare
     val schema = SqliteSchema(emptyList())
