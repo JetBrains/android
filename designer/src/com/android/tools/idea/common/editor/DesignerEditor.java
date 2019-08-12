@@ -124,7 +124,7 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 
-  @Nullable
+  @NotNull
   @Override
   public BackgroundEditorHighlighter getBackgroundHighlighter() {
     // The designer should display components that have problems detected by inspections. Ideally, we'd just get the result
