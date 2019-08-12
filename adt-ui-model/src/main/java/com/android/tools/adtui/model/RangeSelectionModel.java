@@ -15,14 +15,13 @@
  */
 package com.android.tools.adtui.model;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
+public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect> {
 
   public enum Aspect {
     SELECTION,
@@ -43,7 +42,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   private final Range myPreviousSelectionRange;
 
   @NotNull
-  private final List<SelectionListener> myListeners = new ArrayList<>();
+  private final List<RangeSelectionListener> myListeners = new ArrayList<>();
 
   @NotNull
   private final List<DurationDataModel<? extends ConfigurableDurationData>> myConstraints;
@@ -57,9 +56,9 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   private boolean myPostponeSelectionEvent;
 
   @Nullable
-  private Consumer<SelectionListener> myEventToFire;
+  private Consumer<RangeSelectionListener> myEventToFire;
 
-  public SelectionModel(@NotNull Range selection) {
+  public RangeSelectionModel(@NotNull Range selection) {
     mySelectionRange = selection;
     myPreviousSelectionRange = new Range(mySelectionRange);
     mySelectionEnabled = true;
@@ -83,7 +82,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
    * Unlike the {@link Aspect#SELECTION} aspect, this event will not be fired between calls to
    * {@link #beginUpdate()} and {@link #endUpdate()}
    */
-  public void addListener(final SelectionListener listener) {
+  public void addListener(final RangeSelectionListener listener) {
     myListeners.add(listener);
   }
 
@@ -103,7 +102,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     }
   }
 
-  private void notifyEvent(@NotNull Consumer<SelectionListener> event) {
+  private void notifyEvent(@NotNull Consumer<RangeSelectionListener> event) {
     myEventToFire = event;
     fireListeners();
   }
@@ -112,10 +111,10 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     changed(Aspect.SELECTION);
 
     if (mySelectionRange.isEmpty()) {
-      notifyEvent(SelectionListener::selectionCleared);
+      notifyEvent(RangeSelectionListener::selectionCleared);
     }
     else if (myPreviousSelectionRange.isEmpty()) {
-      notifyEvent(SelectionListener::selectionCreated);
+      notifyEvent(RangeSelectionListener::selectionCreated);
     }
     myPreviousSelectionRange.set(mySelectionRange);
   }
@@ -168,7 +167,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
 
     if (result == null) {
       mySelectionRange.clear();
-      notifyEvent(SelectionListener::selectionCreationFailure);
+      notifyEvent(RangeSelectionListener::selectionCreationFailure);
     }
     else {
       Range finalRange = result.getData() != null && result.getData().canSelectPartialRange()
@@ -260,7 +259,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
       return myData;
     }
 
-    public ConstrainedRangeResult(@NotNull Range range, @Nullable ConfigurableDurationData data) {
+    ConstrainedRangeResult(@NotNull Range range, @Nullable ConfigurableDurationData data) {
       myRange = range;
       myData = data;
     }

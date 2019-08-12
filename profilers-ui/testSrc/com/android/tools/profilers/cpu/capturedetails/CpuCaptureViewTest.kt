@@ -22,7 +22,6 @@ import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.Cpu.CpuTraceType.ART
 import com.android.tools.profiler.proto.Cpu.CpuTraceType.ATRACE
 import com.android.tools.profiler.proto.Cpu.CpuTraceType.SIMPLEPERF
 import com.android.tools.profilers.FakeIdeProfilerComponents
@@ -190,7 +189,7 @@ class CpuCaptureViewTest(newPipeline: Boolean) {
       captureTrace(traceContent = CpuProfilerUITestUtils.getTraceContents(CpuProfilerUITestUtils.VALID_TRACE_PATH))
     }
 
-    stageView.stage.selectionModel.apply {
+    stageView.stage.rangeSelectionModel.apply {
       // Simulates the selection creation
       clear()
       set(105.0, 110.0)

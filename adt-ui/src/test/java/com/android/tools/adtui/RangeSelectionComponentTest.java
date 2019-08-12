@@ -15,31 +15,40 @@
  */
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.*;
-import com.android.tools.adtui.swing.FakeKeyboard;
-import com.android.tools.adtui.swing.FakeUi;
-import com.android.tools.adtui.ui.AdtUiCursors;
-import com.intellij.openapi.util.EmptyRunnable;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import javax.swing.*;
-import java.awt.*;
-
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class SelectionComponentTest {
+import com.android.tools.adtui.model.DefaultConfigurableDurationData;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.DurationDataModel;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionListener;
+import com.android.tools.adtui.model.RangeSelectionModel;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.swing.FakeKeyboard;
+import com.android.tools.adtui.swing.FakeUi;
+import com.android.tools.adtui.ui.AdtUiCursors;
+import com.intellij.openapi.util.EmptyRunnable;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+public class RangeSelectionComponentTest {
 
   private static final double DELTA = 1e-3;
 
   @Test
   public void clickingInViewRangeCreatesPointSelectionRange() {
-    SelectionModel model = new SelectionModel(new Range());
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range());
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     assertThat(model.getSelectionRange().isEmpty()).isTrue();
     new FakeUi(component).mouse.click(20, 50);
@@ -50,12 +59,12 @@ public class SelectionComponentTest {
 
   @Test
   public void clickingInViewRangeCreatesSmallSelectionRange() {
-    SelectionModel model = new SelectionModel(new Range());
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100), true);
+    RangeSelectionModel model = new RangeSelectionModel(new Range());
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100), true);
     component.setSize(100, 100);
     assertThat(model.getSelectionRange().isEmpty()).isTrue();
     new FakeUi(component).mouse.click(20, 50);
-    double delta = 100.0 * SelectionComponent.CLICK_RANGE_RATIO;
+    double delta = 100.0 * RangeSelectionComponent.CLICK_RANGE_RATIO;
     assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(20 - delta);
     assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(20 + delta);
     assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
@@ -63,8 +72,8 @@ public class SelectionComponentTest {
 
   @Test
   public void clickingOutsideOfSelectionCreatesNewSelection() {
-    SelectionModel model = new SelectionModel(new Range(20, 40));
-    SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(20, 40));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(20, 120));
     component.setSize(100, 100);
     assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(20);
     assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(40);
@@ -76,8 +85,8 @@ public class SelectionComponentTest {
 
   @Test
   public void pressingEscapeClearsSelection() {
-    SelectionModel model = new SelectionModel(new Range(40, 60));
-    SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(40, 60));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(20, 120));
     component.setSize(100, 100);
     assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(40);
     assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(60);
@@ -89,8 +98,8 @@ public class SelectionComponentTest {
 
   @Test
   public void doubleClickingClearsSelection() throws Exception {
-    SelectionModel model = new SelectionModel(new Range(40, 60));
-    SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(40, 60));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(20, 120));
     component.setSize(100, 100);
     assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(40);
     assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(60);
@@ -107,14 +116,14 @@ public class SelectionComponentTest {
   @Test
   public void selectionModelReceivesMouseClick() {
     int[] event = new int[1];
-    SelectionModel model = new SelectionModel(new Range());
-    model.addListener(new SelectionListener() {
+    RangeSelectionModel model = new RangeSelectionModel(new Range());
+    model.addListener(new RangeSelectionListener() {
       @Override
       public void selectionCreated() {
         event[0]++;
       }
     });
-    SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(20, 120));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(50, 0);
@@ -128,8 +137,8 @@ public class SelectionComponentTest {
     int[] cleared = new int[1];
     int[] created = new int[1];
 
-    SelectionModel model = new SelectionModel(new Range());
-    model.addListener(new SelectionListener() {
+    RangeSelectionModel model = new RangeSelectionModel(new Range());
+    model.addListener(new RangeSelectionListener() {
       @Override
       public void selectionCleared() {
         cleared[0]++;
@@ -140,7 +149,7 @@ public class SelectionComponentTest {
         created[0]++;
       }
     });
-    SelectionComponent component = new SelectionComponent(model, new Range(20, 120));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(20, 120));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
 
@@ -168,8 +177,8 @@ public class SelectionComponentTest {
 
   @Test
   public void canDragMinHandleToLowerValue() {
-    SelectionModel model = new SelectionModel(new Range(10, 20));
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(10, 20));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMinHandleX(model), 0);
@@ -184,8 +193,8 @@ public class SelectionComponentTest {
 
   @Test
   public void canDragMaxHandleToHigherValue() {
-    SelectionModel model = new SelectionModel(new Range(10, 20));
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(10, 20));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMaxHandleX(model), 0);
@@ -200,8 +209,8 @@ public class SelectionComponentTest {
 
   @Test
   public void canDragSelectionToPan() {
-    SelectionModel model = new SelectionModel(new Range(40, 50));
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(40, 50));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(45, 15);
@@ -217,8 +226,8 @@ public class SelectionComponentTest {
 
   @Test
   public void canMakeNewSelectionInSelection() {
-    SelectionModel model = new SelectionModel(new Range(40, 50));
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(40, 50));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(45, 50);
@@ -234,13 +243,13 @@ public class SelectionComponentTest {
 
   @Test
   public void mouseChangesWithConstraints() {
-    SelectionModel model = new SelectionModel(new Range(40, 50));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(40, 50));
     DefaultDataSeries<DefaultConfigurableDurationData> series = new DefaultDataSeries<>();
     RangedSeries<DefaultConfigurableDurationData> ranged = new RangedSeries<>(new Range(0, 100), series);
     DurationDataModel<DefaultConfigurableDurationData> constraint = new DurationDataModel<>(ranged);
     series.add(41, new DefaultConfigurableDurationData(5, true, true));
     model.addConstraint(constraint);
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.moveTo(45, 50);
@@ -251,8 +260,8 @@ public class SelectionComponentTest {
 
   @Test
   public void draggingMinHandleAboveMaxHandleSwapsThem() {
-    SelectionModel model = new SelectionModel(new Range(10, 20));
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(10, 20));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMinHandleX(model), 0);
@@ -267,8 +276,8 @@ public class SelectionComponentTest {
 
   @Test
   public void draggingMaxHandleBelowMinHandleSwapsThem() {
-    SelectionModel model = new SelectionModel(new Range(10, 20));
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(10, 20));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.mouse.press(getMaxHandleX(model), 0);
@@ -283,8 +292,8 @@ public class SelectionComponentTest {
 
   @Test
   public void leftKeyUpdatesModel() {
-    SelectionModel model = new SelectionModel(new Range(10, 20));
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(10, 20));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.keyboard.setFocus(component);
@@ -303,8 +312,8 @@ public class SelectionComponentTest {
 
   @Test
   public void rightKeyUpdatesModel() {
-    SelectionModel model = new SelectionModel(new Range(10, 20));
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(10, 20));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
     ui.keyboard.setFocus(component);
@@ -324,41 +333,41 @@ public class SelectionComponentTest {
 
   @Test
   public void movingMouseChangesCursor() {
-    SelectionModel model = new SelectionModel(new Range(10, 20));
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(10, 20));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
 
     // Moving to min handle should change cursor to east resize cursor.
     ui.mouse.moveTo(getMinHandleX(model), 0);
     assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
-    assertThat(component.getMode()).isEqualTo(SelectionComponent.Mode.ADJUST_MIN);
+    assertThat(component.getMode()).isEqualTo(RangeSelectionComponent.Mode.ADJUST_MIN);
 
     // Moving inside the range should change cursor to default cursor.
     ui.mouse.moveTo(15, 0);
     assertThat(component.getCursor()).isEqualTo(AdtUiCursors.GRABBING);
-    assertThat(component.getMode()).isEqualTo(SelectionComponent.Mode.MOVE);
+    assertThat(component.getMode()).isEqualTo(RangeSelectionComponent.Mode.MOVE);
 
     // Moving inside the range should change cursor to default cursor.
     ui.mouse.moveTo(15, 50);
     assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
-    assertThat(component.getMode()).isEqualTo(SelectionComponent.Mode.CREATE);
+    assertThat(component.getMode()).isEqualTo(RangeSelectionComponent.Mode.CREATE);
 
     // Moving to max handle should change cursor to west resize cursor.
     ui.mouse.moveTo(getMaxHandleX(model), 50);
     assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
-    assertThat(component.getMode()).isEqualTo(SelectionComponent.Mode.ADJUST_MAX);
+    assertThat(component.getMode()).isEqualTo(RangeSelectionComponent.Mode.ADJUST_MAX);
 
     // Moving outside the range should change cursor to default.
     ui.mouse.moveTo(0, 0);
     assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
-    assertThat(component.getMode()).isEqualTo(SelectionComponent.Mode.CREATE);
+    assertThat(component.getMode()).isEqualTo(RangeSelectionComponent.Mode.CREATE);
   }
 
   @Test
   public void creatingNewSelectionChangesCursor() {
-    SelectionModel model = new SelectionModel(new Range(10, 20));
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(10, 20));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
 
@@ -375,7 +384,7 @@ public class SelectionComponentTest {
   public void componentIsNotDrawnIfInvisible() {
     Range selectionRange = new Range (60, 70);
     Range viewRange = new Range(30, 50);
-    SelectionComponent component = new SelectionComponent(new SelectionModel(selectionRange), viewRange);
+    RangeSelectionComponent component = new RangeSelectionComponent(new RangeSelectionModel(selectionRange), viewRange);
     Dimension dimension = new Dimension(100, 100);
     component.setSize(dimension);
     Graphics2D graphics = mock(Graphics2D.class);
@@ -391,8 +400,8 @@ public class SelectionComponentTest {
 
   @Test
   public void repaintIsCalledOnMouseMove() {
-    SelectionModel model = new SelectionModel(new Range(10, 20));
-    SelectionComponent component = new SelectionComponent(model, new Range(0, 100));
+    RangeSelectionModel model = new RangeSelectionModel(new Range(10, 20));
+    RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
     component.setOpaque(false);
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
@@ -406,18 +415,18 @@ public class SelectionComponentTest {
     verify(parent, times(1)).repaint();
   }
 
-  private void shiftAndValidateShift(FakeUi ui, SelectionModel model, FakeKeyboard.Key key, int min, int max) {
+  private static void shiftAndValidateShift(FakeUi ui, RangeSelectionModel model, FakeKeyboard.Key key, int min, int max) {
     ui.keyboard.press(key);
     assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(min);
     assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(max);
     ui.keyboard.release(key);
   }
 
-  private static int getMinHandleX(SelectionModel model) {
-    return (int)model.getSelectionRange().getMin() - (SelectionComponent.HANDLE_WIDTH / 2);
+  private static int getMinHandleX(RangeSelectionModel model) {
+    return (int)model.getSelectionRange().getMin() - (RangeSelectionComponent.HANDLE_WIDTH / 2);
   }
 
-  private static int getMaxHandleX(SelectionModel model) {
-    return (int)model.getSelectionRange().getMax() + (SelectionComponent.HANDLE_WIDTH / 2);
+  private static int getMaxHandleX(RangeSelectionModel model) {
+    return (int)model.getSelectionRange().getMax() + (RangeSelectionComponent.HANDLE_WIDTH / 2);
   }
 }

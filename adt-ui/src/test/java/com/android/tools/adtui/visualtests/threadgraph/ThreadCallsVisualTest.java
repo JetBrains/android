@@ -16,24 +16,36 @@
 
 package com.android.tools.adtui.visualtests.threadgraph;
 
-import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
 import com.android.tools.adtui.chart.hchart.Method;
+import com.android.tools.adtui.model.DefaultHNode;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.Adjustable;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import org.jetbrains.annotations.NotNull;
 
 public class ThreadCallsVisualTest extends VisualTest implements ActionListener {
 
@@ -55,7 +67,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   private Range mTimeSelectionRangeUs;
   private Range mTimeGlobalRangeUs;
 
-  private SelectionComponent mSelector;
+  private RangeSelectionComponent mSelector;
   private AxisComponent mAxis;
 
   @NotNull
@@ -73,8 +85,8 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     mChart = new HTreeChart.Builder<>(null, mTimeSelectionRangeUs, new JavaMethodHRenderer())
       .setOrientation(HTreeChart.Orientation.BOTTOM_UP)
       .build();
-    SelectionModel model = new SelectionModel(mTimeSelectionRangeUs);
-    mSelector = new SelectionComponent(model, mTimeGlobalRangeUs);
+    RangeSelectionModel model = new RangeSelectionModel(mTimeSelectionRangeUs);
+    mSelector = new RangeSelectionComponent(model, mTimeGlobalRangeUs);
   }
 
   @Override
