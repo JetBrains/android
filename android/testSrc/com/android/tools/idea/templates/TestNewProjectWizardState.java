@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.templates.TemplateTestBase.ATTR_CREATE_ACTIVITY;
+import static com.android.tools.idea.templates.TemplateTestBaseKt.ATTR_CREATE_ACTIVITY;
 
 /**
  * Helper class that tracks the Project Wizard State (Project template, plus its Module and Activity State)
