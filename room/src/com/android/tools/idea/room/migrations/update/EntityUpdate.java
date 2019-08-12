@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,10 @@ public class EntityUpdate {
   private Map<String, FieldBundle> deletedFields;
   private Map<String, FieldBundle> newFields;
   private Map<FieldBundle, String> valuesForUninitializedFields;
+  private Map<FieldBundle, String> renamedFields;
   private boolean containsUninitializedNotNullFields;
+  private boolean containsRenamedAndModifiedFields;
+
 
   private List<IndexBundle> unmodifiedIndices;
   private List<IndexBundle> deletedIndices;
@@ -51,7 +55,6 @@ public class EntityUpdate {
   private List<ForeignKeyBundle> foreignKeys;
   private boolean primaryKeyUpdate;
   private boolean foreignKeysUpdate;
-
 
   /**
    * @param oldEntity entity description from an older version of the database
@@ -65,6 +68,7 @@ public class EntityUpdate {
     deletedFields = new HashMap<>();
     modifiedFields = new HashMap<>();
     newFields = new HashMap<>();
+    renamedFields = new HashMap<>();
     valuesForUninitializedFields = new HashMap<>();
     containsUninitializedNotNullFields = false;
 
@@ -136,6 +140,8 @@ public class EntityUpdate {
     } else if (oldEntity.getForeignKeys() == null && newEntity.getForeignKeys() != null) {
       foreignKeysUpdate = true;
     }
+
+    containsRenamedAndModifiedFields = false;
   }
 
   @NotNull
@@ -195,6 +201,45 @@ public class EntityUpdate {
   }
 
   /**
+   * Takes a mapping between names of new columns and user specified default values for them.
+   * This mapping is used in other to populate the pre-existent rows in a table with new NOT NULL columns without default values
+   * specified at creation.
+   */
+  public void setValuesForUninitializedFields(@NotNull Map<FieldBundle, String> valuesForUninitializedFields) {
+    this.valuesForUninitializedFields = valuesForUninitializedFields;
+  }
+
+  @NotNull
+  public Map<FieldBundle, String> getValuesForUninitializedFields() {
+    return valuesForUninitializedFields;
+  }
+
+  /**
+   * Separates the renamed columns from the deleted/newly added columns based on user input.
+   * @param oldToNewNameMapping mapping from the old name of a field to the actual name
+   */
+  public void applyRenameMapping(@NotNull Map<String, String> oldToNewNameMapping) {
+    for (Map.Entry<String, String> columnNames : oldToNewNameMapping.entrySet()) {
+      FieldBundle oldField = deletedFields.remove(columnNames.getKey());
+      FieldBundle newField = newFields.remove(columnNames.getValue());
+
+      if (oldField == null || newField == null) {
+        throw new IllegalArgumentException("Invalid old column name to new column name mapping");
+      }
+
+      if (!isFieldStructureTheSame(oldField, newField)) {
+        containsRenamedAndModifiedFields = true;
+      }
+      renamedFields.put(newField, oldField.getColumnName());
+    }
+  }
+
+  @NotNull
+  public Map<FieldBundle, String> getRenamedFields() {
+    return renamedFields;
+  }
+
+  /**
    * Specifies whether any primary/foreign key constraints were updated.
    */
   public boolean keysWereUpdated() {
@@ -215,20 +260,19 @@ public class EntityUpdate {
    * update. More information ca be found here: https://www.sqlite.org/lang_altertable.html
    */
   public boolean isComplexUpdate() {
-    return !deletedFields.isEmpty() || !modifiedFields.isEmpty() || keysWereUpdated() || containsUninitializedNotNullFields;
+    return !deletedFields.isEmpty() ||
+           !modifiedFields.isEmpty() ||
+           keysWereUpdated() ||
+           containsUninitializedNotNullFields ||
+           containsRenamedAndModifiedFields;
   }
 
   /**
-   * Takes a mapping between names of new columns and user specified default values for them.
-   * This mapping is used in other to populate the pre-existent rows in a table with new NOT NULL columns without default values
-   * specified at creation.
+   * Compares whether two fields have the same attributes (i.e. affinity, not null property, default value).
    */
-  public void setValuesForUninitializedFields(@NotNull Map<FieldBundle, String> valuesForUninitializedFields) {
-    this.valuesForUninitializedFields = valuesForUninitializedFields;
-  }
-
-  @NotNull
-  public Map<FieldBundle, String> getValuesForUninitializedFields() {
-    return valuesForUninitializedFields;
+  private static boolean isFieldStructureTheSame(@NotNull FieldBundle oldField, @NotNull FieldBundle newField) {
+    return oldField.isNonNull() == newField.isNonNull() &&
+           Objects.equals(oldField.getAffinity(), newField.getAffinity()) &&
+           Objects.equals(oldField.getDefaultValue(), newField.getDefaultValue());
   }
 }
