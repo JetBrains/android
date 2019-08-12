@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator;
 
-import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.PSI_ELEMENT;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE;

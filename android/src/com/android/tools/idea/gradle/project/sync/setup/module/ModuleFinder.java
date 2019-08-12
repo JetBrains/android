@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
-import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
