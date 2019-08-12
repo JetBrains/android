@@ -212,7 +212,7 @@ public class Device {
         // We only handle the first return value for now.
         try {
           for (String line : lines) {
-            int pid = Integer.parseInt(line);
+            int pid = Integer.parseInt(line.trim());
             myPidToProcess.computeIfPresent(pid, (ignored, process) -> {
               process.addApplicationId(applicationId);
               return process;
