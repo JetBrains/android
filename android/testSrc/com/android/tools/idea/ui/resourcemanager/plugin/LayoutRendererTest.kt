@@ -71,6 +71,7 @@ class LayoutRendererTest {
     assertThat(image.height).isEqualTo(1024)
   }
 
+  @Ignore("b/135927007")
   @Test
   fun integrationWithProjectResourcesBrowserViewModel() {
     val latch = CountDownLatch(1)
