@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.tools.adtui.ptable.PTableCellEditor;
 import com.android.tools.adtui.ptable.PTableCellEditorProvider;
 import com.android.tools.adtui.ptable.PTableItem;
@@ -24,7 +25,6 @@ import com.android.tools.idea.common.property.editors.PropertyEditors;
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -34,7 +34,7 @@ import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class NlPropertyEditors extends PropertyEditors implements PTableCellEditorProvider{
-  private Project myProject;
+  private final Project myProject;
   private NlTableCellEditor myBooleanEditor;
   private NlTableCellEditor myFlagEditor;
   private NlTableCellEditor myComboEditor;
@@ -48,6 +48,8 @@ public class NlPropertyEditors extends PropertyEditors implements PTableCellEdit
   }
 
   private NlPropertyEditors(@NotNull Project project) {
+    super(project.getMessageBus());
+
     myProject = project;
   }
 
