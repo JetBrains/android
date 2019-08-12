@@ -27,6 +27,7 @@ import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.editor.SmartAutoRefresher
 import com.android.tools.idea.common.editor.SmartRefreshable
+import com.android.tools.idea.common.editor.SourceCodeChangeListener
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -54,22 +55,15 @@ import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiComment
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiTreeChangeAdapter
-import com.intellij.psi.PsiTreeChangeEvent
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
@@ -77,9 +71,6 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.uast.UComment
-import org.jetbrains.uast.getParentOfType
-import org.jetbrains.uast.toUElement
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
 import javax.swing.JPanel
@@ -154,8 +145,8 @@ private class PreviewEditor(private val psiFile: PsiFile,
   private val surface = NlDesignSurface.builder(project, this)
     .setIsPreview(true)
     .showModelNames()
-    .setSceneManagerProvider {
-      surface, model -> NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+    .setSceneManagerProvider { surface, model ->
+      NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
         enableTransparentRendering()
         enableShrinkRendering()
       }
@@ -363,13 +354,13 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
       }
 
     // Update that triggers a preview refresh. It does not trigger a recompile.
-    val refreshPreview = object: Update("refreshPreview") {
+    val refreshPreview = object : Update("refreshPreview") {
       override fun run() {
         previewEditor.refresh()
       }
     }
 
-    val updateNotifications = object: Update("updateNotifications") {
+    val updateNotifications = object : Update("updateNotifications") {
       override fun run() {
         if (composeEditorWithPreview.isModified) {
           EditorNotifications.getInstance(project).updateNotifications(file)
@@ -377,60 +368,16 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
       }
     }
 
-    PsiManager.getInstance(project).addPsiTreeChangeListener(object: PsiTreeChangeAdapter() {
-      fun elementChanged(eventPsiFile: PsiFile?, psiElement: PsiElement?) {
-        if (psiElement == null || eventPsiFile != psiFile) {
-          return
-        }
+    PsiManager.getInstance(project).addPsiTreeChangeListener(SourceCodeChangeListener(psiFile) { psiElement ->
+      val isPreviewElementChange = previewProvider.elementBelongsToPreviewElement(psiElement)
 
-        if (DumbService.isDumb(project)) {
-          return
-        }
-
-        if (PsiTreeUtil.getParentOfType(psiElement, PsiComment::class.java, false) != null) {
-          // Ignore comments
-          return
-        }
-
-        val isPreviewElementChange = if (psiElement != null) {
-          previewProvider.elementBelongsToPreviewElement(psiElement)
-        }
-        else {
-          false
-        }
-
-        if (isPreviewElementChange) {
-          // The change belongs to a PreviewElement declaration. No need to rebuild, we can just refresh
-          modificationQueue.queue(refreshPreview)
-        }
-        else {
-          // Source code was changed, trigger notification update
-          modificationQueue.queue(updateNotifications)
-        }
+      if (isPreviewElementChange) {
+        // The change belongs to a PreviewElement declaration. No need to rebuild, we can just refresh
+        modificationQueue.queue(refreshPreview)
       }
-
-      override fun childAdded(event: PsiTreeChangeEvent) {
-        elementChanged(event.file, event.child?.parent)
-      }
-
-      override fun childRemoved(event: PsiTreeChangeEvent) {
-        elementChanged(event.file, event.child?.parent)
-      }
-
-      override fun childrenChanged(event: PsiTreeChangeEvent) {
-        elementChanged(event.file, event.child?.parent)
-      }
-
-      override fun childReplaced(event: PsiTreeChangeEvent) {
-        elementChanged(event.file, event.child?.parent)
-      }
-
-      override fun childMoved(event: PsiTreeChangeEvent) {
-        elementChanged(event.file, event.child?.parent)
-      }
-
-      override fun propertyChanged(event: PsiTreeChangeEvent) {
-        elementChanged(event.file, event.child?.parent)
+      else {
+        // Source code was changed, trigger notification update
+        modificationQueue.queue(updateNotifications)
       }
     }, composeEditorWithPreview)
 
