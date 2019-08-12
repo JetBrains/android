@@ -18,8 +18,8 @@ package com.android.tools.idea.lang.databinding.reference
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.res.binding.BindingLayoutData
 import com.android.tools.idea.res.binding.BindingLayoutInfo
-import com.android.tools.idea.res.binding.BindingLayoutXml
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClassType
@@ -31,13 +31,17 @@ import com.intellij.psi.xml.XmlTag
  */
 internal class XmlVariableReference(element: PsiElement,
                                     resolveTo: XmlTag,
-                                    private val variable: BindingLayoutXml.Variable,
+                                    private val variable: BindingLayoutData.Variable,
                                     private val layoutInfo: BindingLayoutInfo,
                                     private val module: Module)
   : DbExprReference(element, resolveTo) {
   override val resolvedType: PsiModelClass?
     get() {
-      return DataBindingUtil.getQualifiedType(variable.type, layoutInfo, false)
+      val type = variable.type
+      if (type == null) {
+        return null;
+      }
+      return DataBindingUtil.getQualifiedType(type, layoutInfo.data, false)
         ?.let { name -> resolveType(name) }
         ?.let { psiType -> PsiModelClass(psiType, DataBindingMode.fromPsiElement(element)) }
     }

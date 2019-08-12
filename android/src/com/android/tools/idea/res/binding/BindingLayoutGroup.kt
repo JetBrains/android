@@ -29,7 +29,7 @@ class BindingLayoutGroup(layouts: List<BindingLayoutInfo>) : ModificationTracker
   val mainLayout: BindingLayoutInfo
     // The base info is the one that has the shortest configuration name, e.g. "layout" vs "layout-w600dp"
     // Safe to assume non-null because there should always be at least one layout in a group
-    get() = layouts.minBy { layout -> layout.xml.folderName.length }!!
+    get() = layouts.minBy { layout -> layout.data.file.parent.name.length }!!
 
   /**
    * Forcefully updates all the layouts of the current group (if the passed in list of layouts

@@ -20,9 +20,9 @@ import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.ide.common.resources.stripPrefixFromId
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.res.binding.BindingLayoutInfo
-import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT
-import com.android.tools.idea.res.binding.BindingLayoutInfo.LayoutType.VIEW_BINDING_LAYOUT
+import com.android.tools.idea.res.binding.BindingLayoutType
+import com.android.tools.idea.res.binding.BindingLayoutType.DATA_BINDING_LAYOUT
+import com.android.tools.idea.res.binding.BindingLayoutType.VIEW_BINDING_LAYOUT
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.indexing.DataIndexer
@@ -81,7 +81,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, IndexedLayoutInfo>() {
       }
 
       override fun read(`in`: DataInput): IndexedLayoutInfo {
-        val layoutType = BindingLayoutInfo.LayoutType.values()[readINT(`in`)]
+        val layoutType = BindingLayoutType.values()[readINT(`in`)]
         val importCount = readINT(`in`)
         val variableCount = readINT(`in`)
         val idList = mutableListOf<ViewIdInfo>()
@@ -194,7 +194,7 @@ data class ViewIdInfo(
  */
 data class IndexedLayoutInfo(
   /** Type of layout. */
-  val layoutType: BindingLayoutInfo.LayoutType,
+  val layoutType: BindingLayoutType,
 
   /** Number of data binding import elements. */
   val importCount: Int,

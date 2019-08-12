@@ -255,8 +255,9 @@ class ResourceFolderDataBindingTest {
    */
   private fun assertVariables(vararg expected: Pair<String, String>) {
     val variables = getInfo()
-      .xml
+      .data
       .variables
+      .values
       .map { variable -> variable.name to variable.type }
       .toSet()
     assertEquals(expected.toSet(), variables)
@@ -270,26 +271,28 @@ class ResourceFolderDataBindingTest {
    */
   private fun assertImports(vararg expected: Pair<String, String?>) {
     val imports = getInfo()
-      .xml
-      .imports
-      .map { import -> import.type to import.alias }
-      .toSet()
+        .data
+        .imports
+        .values
+        .map { import -> import.qualifiedName to
+               if (import.isShortNameDerivedFromQualifiedName()) { null } else { import.importedShortName } }
+        .toSet()
     assertEquals(expected.toSet(), imports)
   }
 
   private fun getInfo(): BindingLayoutInfo {
     val appPackage = DataBindingUtil.getGeneratedPackageName(facet)
     return resources.dataBindingResourceFiles
-      .flatMap { group -> group.layouts }
-      .first { layout -> layout.qualifiedName == "$appPackage.databinding.LayoutWithDataBindingBinding" }
+        .flatMap { group -> group.layouts }
+        .first { layout -> layout.qualifiedClassName == "$appPackage.databinding.LayoutWithDataBindingBinding" }
   }
 
   private fun getVariableTag(name: String): XmlTag {
-    val info = getInfo()
-    val variable = info.xml.variables.firstOrNull { it.name == name }
+    val layoutData = getInfo().data
+    val variable = layoutData.variables[name]
     assertNotNull("cannot find variable with name $name", variable)
-    val variableTag = info.psi.findVariableTag(variable!!)
-    assertNotNull("cannot find XML tag for variable with name $name", variableTag)
+    val variableTag = DataBindingUtil.findVariableTag(layoutData, variable!!.name)
+    assertNotNull("Cannot find XML tag for variable with name $name", variableTag)
     return variableTag!!
   }
 
@@ -302,7 +305,7 @@ class ResourceFolderDataBindingTest {
       // Use a file cache that has per-test root directories instead of sharing the system directory.
       // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
       val oldCache = applicationContainer.getComponentInstance(
-        ResourceFolderRepositoryFileCache::class.java.name) as ResourceFolderRepositoryFileCache
+          ResourceFolderRepositoryFileCache::class.java.name) as ResourceFolderRepositoryFileCache
       applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache::class.java.name)
       applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache::class.java.name, newCache)
       return oldCache

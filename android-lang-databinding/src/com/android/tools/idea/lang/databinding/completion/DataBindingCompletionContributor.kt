@@ -140,20 +140,24 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   private fun getDataBindingExpressionFromPosition(element: PsiElement) = element.parent.parent
 
   private fun getFile(element: PsiElement): DbFile {
-    var element = element
-    while (element !is DbFile) {
-      element = element.parent ?: throw IllegalArgumentException()
+    var result = element
+    while (result !is DbFile) {
+      result = result.parent ?: throw IllegalArgumentException()
     }
-    return element
+    return result
   }
 
   private fun autoCompleteVariablesAndUnqualifiedFunctions(file: DbFile, result: CompletionResultSet) {
     autoCompleteUnqualifiedFunctions(result)
 
-    val info = getBindingLayoutInfo(file) ?: return
+    val bindingData = (getBindingLayoutInfo(file) ?: return).data
 
-    val variableTagNamePairs = info.xml.variables.map { variable -> variable.name to info.psi.findVariableTag(variable) }
-    val importTagTypePairs = info.xml.imports.map { import -> import.aliasOrType to info.psi.findImportTag(import) }
+    val variableTagNamePairs = bindingData.variables.values.map { variable ->
+      variable.name to DataBindingUtil.findVariableTag(bindingData, variable.name)
+    }
+    val importTagTypePairs = bindingData.imports.values.map { import ->
+      import.importedShortName to DataBindingUtil.findImportTag(bindingData, import.importedShortName)
+    }
 
     result.addAllElements((variableTagNamePairs + importTagTypePairs).mapNotNull { nameToTag ->
       val xmlTag = nameToTag.second ?: return

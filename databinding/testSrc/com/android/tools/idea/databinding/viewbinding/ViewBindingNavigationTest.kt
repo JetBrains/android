@@ -22,7 +22,7 @@ import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.utils.findClass
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.res.binding.BindingLayoutInfoFile
+import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -93,10 +93,10 @@ class ViewBindingNavigationTest {
     // Additionally, let's verify the behavior of the LightBindingClass's navigation element, for
     // code coverage purposes.
     binding.navigationElement.let { navElement ->
-      assertThat(navElement).isInstanceOf(BindingLayoutInfoFile::class.java)
+      assertThat(navElement).isInstanceOf(BindingLayoutInfo.BindingLayoutInfoFile::class.java)
       assertThat(navElement.containingFile).isSameAs(navElement)
-      // This next cast has to be true or else Java code coverage will crash. More details in the
-      // header docs of BindingLayoutInfoFile
+      // This next cast has to be true or else Java code coverage will crash. More details in
+      // the header docs of BindingLayoutInfoFile.
       val psiClassOwner = navElement.containingFile as PsiClassOwner
       assertThat(psiClassOwner.classes).hasLength(1)
       assertThat(psiClassOwner.classes[0]).isEqualTo(binding)
@@ -109,7 +109,7 @@ class ViewBindingNavigationTest {
     assertThat(editorManager.selectedFiles).isEmpty()
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
-    // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml
+    // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml.
     val binding = fixture
       .findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)!!
       .findFieldByName("testId", false)!!
