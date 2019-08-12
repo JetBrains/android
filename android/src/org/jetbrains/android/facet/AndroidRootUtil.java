@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getOutput;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -383,6 +384,12 @@ public class AndroidRootUtil {
       moduleDirPath = toSystemIndependentName(moduleDirPath);
     }
     return moduleDirPath;
+  }
+
+  @Nullable
+  public static File findModuleRootFolderPath(@NotNull Module module) {
+    File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
+    return moduleFilePath.getParentFile();
   }
 
   @Nullable
