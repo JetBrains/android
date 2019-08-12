@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.ui.resourcechooser
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceVisitor
 import com.android.resources.ResourceType
+import com.android.resources.ResourceVisibility
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.resolveColor
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ImmutableList
 import org.intellij.lang.annotations.MagicConstant
 
 /**
@@ -47,14 +49,15 @@ class ColorResourceModel(configuration: Configuration) {
   init {
     val repoManager = ResourceRepositoryManager.getInstance(configuration.module)
 
-    val projectResourceBuilder = ImmutableList.Builder<ResourceReference>()
-    val libraryResourceBuilder = ImmutableList.Builder<ResourceReference>()
+    val projectResources = ArrayList<ResourceReference>()
+    val libraryResources = ArrayList<ResourceReference>()
     repoManager?.appResources?.accept(object : ResourceVisitor {
       override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
         resourceItem.referenceToSelf.let {
           when {
-            resourceItem.libraryName == null -> projectResourceBuilder.add(it)
-            else -> libraryResourceBuilder.add(it)
+            resourceItem.libraryName == null -> projectResources.add(it)
+            resourceItem !is ResourceItemWithVisibility || resourceItem.visibility == ResourceVisibility.PUBLIC -> libraryResources.add(it)
+            else -> Unit
           }
         }
         return ResourceVisitor.VisitResult.CONTINUE
@@ -63,19 +66,14 @@ class ColorResourceModel(configuration: Configuration) {
       override fun shouldVisitResourceType(resourceType: ResourceType) = resourceType == ResourceType.COLOR
     })
 
-    val frameworkResourceBuilder = ImmutableList.Builder<ResourceReference>()
-    repoManager?.getFrameworkResources(emptySet())?.accept(object : ResourceVisitor {
-      override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
-        resourceItem.referenceToSelf.let { frameworkResourceBuilder.add(it) }
-        return ResourceVisitor.VisitResult.CONTINUE
-      }
+    val frameworkResources = ArrayList<ResourceReference>()
+    repoManager?.getFrameworkResources(emptySet())
+      ?.getPublicResources(ResourceNamespace.ANDROID, ResourceType.COLOR)
+      ?.mapTo(frameworkResources) { it.referenceToSelf }
 
-      override fun shouldVisitResourceType(resourceType: ResourceType) = resourceType == ResourceType.COLOR
-    })
-
-    resourceMaps[Category.PROJECT] = projectResourceBuilder.build()
-    resourceMaps[Category.LIBRARY] = libraryResourceBuilder.build()
-    resourceMaps[Category.FRAMEWORK] = frameworkResourceBuilder.build()
+    resourceMaps[Category.PROJECT] = projectResources.apply { sort() }
+    resourceMaps[Category.LIBRARY] = libraryResources.apply { sort() }
+    resourceMaps[Category.FRAMEWORK] = frameworkResources.apply { sort() }
   }
 
   fun getResourceReference(@MagicConstant(valuesFromClass = Category::class) category: String, filter: String?) =
