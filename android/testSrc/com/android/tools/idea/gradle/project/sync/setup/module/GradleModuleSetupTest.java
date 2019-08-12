@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
