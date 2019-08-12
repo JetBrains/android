@@ -29,7 +29,6 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.collect.Maps
 import com.google.common.collect.Table
 import com.google.common.collect.Tables
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnAction
@@ -81,7 +80,7 @@ import com.intellij.util.xml.GenericDomValue
 import com.intellij.util.xml.WrappingConverter
 import org.jetbrains.android.dom.converters.AndroidResourceReference
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
-import org.jetbrains.android.dom.converters.StyleItemNameConverter
+import org.jetbrains.android.dom.converters.AttrNameConverter
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
@@ -349,7 +348,7 @@ class MigrateToResourceNamespacesProcessor(
               }
             }
           }
-          is StyleItemNameConverter -> {
+          is AttrNameConverter -> {
             val url = domValue.stringValue?.let(ResourceUrl::parseAttrReference) ?: return
             if (url.namespace == null && referenceNeedsRewriting(url.type, url.name)) {
               result += StyleItemUsageInfo(psiElement.parentOfType()!!, url)

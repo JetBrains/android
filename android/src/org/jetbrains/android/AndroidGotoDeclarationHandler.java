@@ -4,7 +4,10 @@ package org.jetbrains.android;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -26,12 +29,30 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
+ *
+ * Cases covered by this handler:
+ * <ul>
+ *  <li>Java resource reference in the form "R.type.name"</li>
+ *  <li>A reference in XML that resolves to a ResourceReferencePsiElement. This requires a custom gotoDeclarationHandler as a resource may
+ *  be declared in multiple locations, however a PsiElement can only have one NavigationElement.</li>
+ * </ul>
  */
 public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
 
   @Nullable
   @Override
   public PsiElement[] getGotoDeclarationTargets(@Nullable PsiElement sourceElement, int offset, Editor editor) {
+    if (sourceElement != null && sourceElement.getLanguage().is(XMLLanguage.INSTANCE)) {
+      PsiElement targetElement =
+        TargetElementUtil.getInstance().findTargetElement(editor, TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED, offset);
+      if (targetElement == null) {
+        return null;
+      }
+      if (targetElement instanceof ResourceReferencePsiElement) {
+        return AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(
+          ((ResourceReferencePsiElement)targetElement).getResourceReference(), sourceElement);
+      }
+    }
     if (!(sourceElement instanceof PsiIdentifier)) {
       return null;
     }
@@ -40,13 +61,14 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     if (file == null) {
       return null;
     }
-    AndroidFacet facet = AndroidFacet.getInstance(file);
-    if (facet == null) {
-      return null;
-    }
 
     PsiReferenceExpression refExp = PsiTreeUtil.getParentOfType(sourceElement, PsiReferenceExpression.class);
     if (refExp == null) {
+      return null;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(file);
+    if (facet == null) {
       return null;
     }
 

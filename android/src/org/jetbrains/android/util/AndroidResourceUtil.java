@@ -66,6 +66,7 @@ import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueXmlHelper;
@@ -567,8 +568,6 @@ public class AndroidResourceUtil {
         final Item item = resources.addItem();
         item.getType().setValue(ID.getName());
         return item;
-      case ATTR:
-        return resources.addAttr();
       case STYLEABLE:
         return resources.addDeclareStyleable();
       default:
@@ -864,9 +863,13 @@ public class AndroidResourceUtil {
 
     writeCommandAction(project, psiFiles.toArray(PsiFile.EMPTY_ARRAY)).withName("Add Resource").run(() -> {
       for (Resources resources : resourcesElements) {
-        final ResourceElement element = addValueResource(resourceType, resources, resourceValue);
-        element.getName().setValue(resourceName);
-        afterAddedProcessor.process(element);
+        if (resourceType.equals(ATTR)) {
+          resources.addAttr().getName().setValue(ResourceReference.attr(ResourceNamespace.TODO(), resourceName));
+        } else {
+          final ResourceElement element = addValueResource(resourceType, resources, resourceValue);
+          element.getName().setValue(resourceName);
+          afterAddedProcessor.process(element);
+        }
       }
     });
 

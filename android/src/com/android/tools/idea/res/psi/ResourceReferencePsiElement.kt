@@ -27,6 +27,8 @@ import com.android.tools.idea.res.getResourceName
 import com.android.tools.idea.res.isValueBased
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.res.resourceNamespace
+import com.intellij.psi.ElementDescriptionLocation
+import com.intellij.psi.ElementDescriptionProvider
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.find.findUsages.FindUsagesHandler
 import com.intellij.psi.PsiElement
@@ -39,6 +41,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
+import com.intellij.usageView.UsageViewTypeLocation
 import com.intellij.refactoring.rename.RenameHandler
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
@@ -89,7 +92,7 @@ data class ResourceReferencePsiElement(
     }
 
     private fun convertAndroidLightField(element: AndroidLightField) : ResourceReferencePsiElement? {
-      if (element.containingClass?.containingClass !is AndroidRClassBase) {
+      if (element.containingClass.containingClass !is AndroidRClassBase) {
         return null
       }
       val resourceClassName = AndroidResourceUtil.getResourceClassName(element) ?: return null
@@ -133,7 +136,22 @@ data class ResourceReferencePsiElement(
 
   override fun isWritable() = false
 
-  override fun getName() = null
+  override fun getContainingFile(): PsiFile? = null
+
+  override fun getName() = resourceReference.name
 
   override fun isEquivalentTo(element: PsiElement) = create(element) == this
+
+  /**
+   * Element description for Android resources.
+   */
+  class ResourceReferencePsiElementDescriptorProvider : ElementDescriptionProvider {
+    override fun getElementDescription(element: PsiElement, location: ElementDescriptionLocation): String? {
+      val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return null
+      return when (location) {
+        is UsageViewTypeLocation -> "${resourceReference.resourceType.displayName} Resource"
+        else -> resourceReference.name
+      }
+    }
+  }
 }
