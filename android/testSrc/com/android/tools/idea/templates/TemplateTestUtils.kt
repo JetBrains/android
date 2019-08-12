@@ -81,6 +81,18 @@ import java.util.concurrent.TimeUnit
 import kotlin.streams.toList
 
 /**
+ * The following templates are known to be broken! We need to work through these and fix them such that tests on them can be re-enabled.
+ */
+internal fun isBroken(templateName: String): Boolean {
+  // See http://b.android.com/253296
+
+  if (SystemInfo.isWindows) {
+    if ("AidlFile" == templateName) return true
+  }
+  return false
+}
+
+/**
  * Is the given api level interesting for testing purposes? This is used to skip gaps,
  * such that we for example only check say api 14, 16, 21, 23, etc -- versions where the **templates** are doing conditional changes.
  *
@@ -352,3 +364,11 @@ internal fun getOption(option: Element): Option {
 }
 
 internal fun getCheckKey(category: String, name: String, createWithProject: Boolean) = "$category:$name:$createWithProject"
+
+internal fun findTemplate(category: String, name: String): File {
+  val templateRootFolder = TemplateManager.getTemplateRootFolder()!!
+  val file = File(templateRootFolder, category + File.separator + name)
+  assertTrue(file.path, file.exists())
+  return file
+}
+
