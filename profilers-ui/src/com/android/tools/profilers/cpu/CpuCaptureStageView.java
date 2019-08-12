@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.DragAndDropList;
+import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.trackgroup.TrackGroup;
@@ -48,6 +49,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     super(view, stage);
     myTrackGroupList = createTrackGroups(stage.getTrackGroupListModel());
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
+    stage.getMinimapModel().getRangeSelectionModel().addDependency(this)
+      .onChange(RangeSelectionModel.Aspect.SELECTION, this::updateTrackGroupList);
     updateComponents();
   }
 
@@ -62,8 +65,14 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   private JComponent createAnalyzingComponents() {
     JPanel container = new JPanel(new BorderLayout());
+    container.add(new CpuCaptureMinimapView(getStage().getMinimapModel()).getComponent(), BorderLayout.NORTH);
     container.add(myTrackGroupList, BorderLayout.CENTER);
     return container;
+  }
+
+  private void updateTrackGroupList() {
+    // Force JList cell renderer to validate.
+    myTrackGroupList.updateUI();
   }
 
   @Override
