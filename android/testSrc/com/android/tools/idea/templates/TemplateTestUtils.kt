@@ -38,9 +38,9 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
-import com.android.tools.idea.templates.TemplateTestBase.ATTR_CREATE_ACTIVITY
-import com.android.tools.idea.templates.TemplateTestBase.CHECK_LINT
-import com.android.tools.idea.templates.TemplateTestBase.TEST_FEWER_API_VERSIONS
+import com.android.tools.idea.templates.TemplateTestBase.Companion.ATTR_CREATE_ACTIVITY
+import com.android.tools.idea.templates.TemplateTestBase.Companion.CHECK_LINT
+import com.android.tools.idea.templates.TemplateTestBase.Companion.TEST_FEWER_API_VERSIONS
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
