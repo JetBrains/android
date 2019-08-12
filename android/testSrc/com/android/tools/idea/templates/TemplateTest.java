@@ -250,22 +250,20 @@ public class TemplateTest extends AndroidGradleTestCase {
         if (sdkData == null) {
           fail("Couldn't find SDK manager");
         }
+        System.out.println("getTestSdkPath= " + TestUtils.getSdk());
+        System.out.println("getPlatformDir=" + TestUtils.getLatestAndroidPlatform());
+        String location = sdkData.getLocation().getPath();
+        System.out.println("Using SDK at " + location);
+        VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(location);
+        System.out.println("Version check=" + result.getRevision());
+        File file = new File(location);
+        if (!file.exists()) {
+          System.out.println("SDK doesn't exist");
+        }
         else {
-          System.out.println("getTestSdkPath= " + TestUtils.getSdk());
-          System.out.println("getPlatformDir=" + TestUtils.getLatestAndroidPlatform());
-          String location = sdkData.getLocation().getPath();
-          System.out.println("Using SDK at " + location);
-          VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(location);
-          System.out.println("Version check=" + result.getRevision());
-          File file = new File(location);
-          if (!file.exists()) {
-            System.out.println("SDK doesn't exist");
-          }
-          else {
-            File folder = new File(location, FD_TOOLS + File.separator + FD_TEMPLATES);
-            boolean exists = folder.exists();
-            System.out.println("Template folder exists=" + exists + " for " + folder);
-          }
+          File folder = new File(location, FD_TOOLS + File.separator + FD_TEMPLATES);
+          boolean exists = folder.exists();
+          System.out.println("Template folder exists=" + exists + " for " + folder);
         }
       }
     }
@@ -896,24 +894,23 @@ public class TemplateTest extends AndroidGradleTestCase {
     AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     assertNotNull(sdkData);
 
-    if (IdeSdks.getInstance().isJdk7Supported(sdkData)) {
-      IAndroidTarget[] targets = sdkData.getTargets();
-      IAndroidTarget target = targets[targets.length - 1];
-      Map<String, Object> overrides = new HashMap<>();
-      overrides.put(ATTR_JAVA_VERSION, "1.7");
-      TestNewProjectWizardState state = createNewProjectState(true, sdkData, getDefaultModuleTemplate());
-
-      // TODO: Allow null activity state!
-      File activity = findTemplate("activities", "BasicActivity");
-      TestTemplateWizardState activityState = state.getActivityTemplateState();
-      assertNotNull(activity);
-      activityState.setTemplateLocation(activity);
-
-      checkApiTarget(19, 19, target, state, "Test17", null, overrides, null);
-    }
-    else {
+    if (!IdeSdks.getInstance().isJdk7Supported(sdkData)) {
       System.out.println("JDK 7 not supported by current SDK manager: not testing");
+      return;
     }
+    IAndroidTarget[] targets = sdkData.getTargets();
+    IAndroidTarget target = targets[targets.length - 1];
+    Map<String, Object> overrides = new HashMap<>();
+    overrides.put(ATTR_JAVA_VERSION, "1.7");
+    TestNewProjectWizardState state = createNewProjectState(true, sdkData, getDefaultModuleTemplate());
+
+    // TODO: Allow null activity state!
+    File activity = findTemplate("activities", "BasicActivity");
+    TestTemplateWizardState activityState = state.getActivityTemplateState();
+    assertNotNull(activity);
+    activityState.setTemplateLocation(activity);
+
+    checkApiTarget(19, 19, target, state, "Test17", null, overrides, ImmutableMap.of());
   }
 
   public void testTemplateFormatting() throws Exception {
@@ -1011,7 +1008,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   private void checkTemplate(File templateFile, boolean createWithProject) throws Exception {
-    checkTemplate(templateFile, createWithProject, null, null);
+    checkTemplate(templateFile, createWithProject, ImmutableMap.of(), ImmutableMap.of());
   }
 
   private void checkTemplate(File templateFile, boolean createWithProject, @NotNull ProjectStateCustomizer customizer) throws Exception {
@@ -1023,8 +1020,8 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   private void checkTemplate(File templateFile,
                              boolean createWithProject,
-                             @Nullable Map<String, Object> overrides,
-                             @Nullable Map<String, Object> projectOverrides) throws Exception {
+                             @NotNull Map<String, Object> overrides,
+                             @NotNull Map<String, Object> projectOverrides) throws Exception {
     if (isBroken(templateFile.getName())) {
       return;
     }
@@ -1064,9 +1061,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
       int lowestSupportedApi = Math.max(lowestMinApiForProject, activityMetadata.getMinSdk());
 
-      for (int minSdk = lowestSupportedApi;
-           minSdk <= SdkVersionInfo.HIGHEST_KNOWN_API;
-           minSdk++) {
+      for (int minSdk = lowestSupportedApi; minSdk <= SdkVersionInfo.HIGHEST_KNOWN_API; minSdk++) {
         // Don't bother checking *every* single minSdk, just pick some interesting ones
         if (!isInterestingApiLevel(minSdk, MANUAL_MIN_API, myApiSensitiveTemplate)) {
           continue;
@@ -1143,8 +1138,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     @NotNull TestNewProjectWizardState projectState,
     @NotNull String projectNameBase,
     @Nullable TestTemplateWizardState activityState,
-    @Nullable Map<String, Object> overrides,
-    @Nullable Map<String, Object> projectOverrides) throws Exception {
+    @NotNull Map<String, Object> overrides,
+    @NotNull Map<String, Object> projectOverrides) throws Exception {
 
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     Boolean createActivity = (Boolean)moduleState.get(ATTR_CREATE_ACTIVITY);
@@ -1177,15 +1172,11 @@ public class TemplateTest extends AndroidGradleTestCase {
       parameters = Iterables.concat(parameters, moduleMetadata.getParameters());
     }
 
-    if (overrides != null) {
-      for (Map.Entry<String, Object> entry : overrides.entrySet()) {
-        templateState.put(entry.getKey(), entry.getValue());
-      }
+    for (Map.Entry<String, Object> entry : overrides.entrySet()) {
+      templateState.put(entry.getKey(), entry.getValue());
     }
-    if (projectOverrides != null) {
-      for (Map.Entry<String, Object> entry : projectOverrides.entrySet()) {
-        moduleState.put(entry.getKey(), entry.getValue());
-      }
+    for (Map.Entry<String, Object> entry : projectOverrides.entrySet()) {
+      moduleState.put(entry.getKey(), entry.getValue());
     }
 
     String projectName;
@@ -1195,7 +1186,6 @@ public class TemplateTest extends AndroidGradleTestCase {
         continue;
       }
 
-      // Skip parameters that don't do much
       if (!COMPREHENSIVE && SKIPPABLE_PARAMETERS.contains(parameter.id)) {
         continue;
       }
@@ -1204,18 +1194,8 @@ public class TemplateTest extends AndroidGradleTestCase {
         continue;
       }
 
-      assertNotNull(parameter.id);
-
-      // The initial (default value); revert to this one after cycling,
-      Object initial = templateState.get(parameter.id);
-      if (initial == null) {
-        if (parameter.type == Parameter.Type.BOOLEAN) {
-          initial = Boolean.valueOf(parameter.initial);
-        }
-        else {
-          initial = parameter.initial;
-        }
-      }
+      // revert to this one after cycling,
+      Object initial = getDefaultValue(templateState, parameter);
 
       if (parameter.type == Parameter.Type.ENUM) {
         List<Element> options = parameter.getOptions();
@@ -1226,9 +1206,7 @@ public class TemplateTest extends AndroidGradleTestCase {
           int optionMinBuildApi = option.minBuild;
           int projectMinApi = moduleState.getInt(ATTR_MIN_API_LEVEL);
           int projectBuildApi = moduleState.getInt(ATTR_BUILD_API);
-          if (projectMinApi >= optionMinSdk &&
-              projectBuildApi >= optionMinBuildApi &&
-              !optionId.equals(initial)) {
+          if (projectMinApi >= optionMinSdk && projectBuildApi >= optionMinBuildApi && !optionId.equals(initial)) {
             templateState.put(parameter.id, optionId);
             projectName = projectNameBase + "_" + parameter.id + "_" + optionId;
             checkProject(projectName, projectState, activityState);
@@ -1256,6 +1234,21 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
     projectName = projectNameBase + "_default";
     checkProject(projectName, projectState, activityState);
+  }
+
+  private static Object getDefaultValue(@NotNull TestTemplateWizardState templateState, @NotNull Parameter parameter) {
+    assertNotNull(parameter.id);
+
+    Object initial = templateState.get(parameter.id);
+    if (initial == null) {
+      if (parameter.type == Parameter.Type.BOOLEAN) {
+        return Boolean.valueOf(parameter.initial);
+      }
+      else {
+        return parameter.initial;
+      }
+    }
+    return initial;
   }
 
   private static class Option {
