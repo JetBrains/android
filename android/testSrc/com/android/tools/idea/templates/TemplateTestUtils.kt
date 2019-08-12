@@ -38,8 +38,9 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
-import com.android.tools.idea.templates.TemplateTest.ATTR_CREATE_ACTIVITY
-import com.android.tools.idea.templates.TemplateTest.TEST_FEWER_API_VERSIONS
+import com.android.tools.idea.templates.TemplateTestBase.ATTR_CREATE_ACTIVITY
+import com.android.tools.idea.templates.TemplateTestBase.CHECK_LINT
+import com.android.tools.idea.templates.TemplateTestBase.TEST_FEWER_API_VERSIONS
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
@@ -316,7 +317,7 @@ internal fun shutDownGradleConnection(connection: ProjectConnection, projectRoot
 }
 
 internal fun lintIfNeeded(project: Project) {
-  if (TemplateTest.CHECK_LINT) {
+  if (CHECK_LINT) {
     val lintMessage = getLintIssueMessage(project, Severity.INFORMATIONAL, setOf(ManifestDetector.TARGET_NEWER))
     if (lintMessage != null) {
       TestCase.fail(lintMessage)
@@ -349,3 +350,5 @@ internal fun getOption(option: Element): Option {
 
   return Option(optionId, optionMinSdk, optionMinBuildApi)
 }
+
+internal fun getCheckKey(category: String, name: String, createWithProject: Boolean) = "$category:$name:$createWithProject"
