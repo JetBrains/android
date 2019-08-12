@@ -183,8 +183,8 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithScrollActivityWithKotlin() {
     checkCreateTemplate("activities", "ScrollActivity", true
-    ) { templateMap: MutableMap<String, Any>, projectMap: Map<String?, Any?>? ->
-      withKotlin.customize(templateMap, projectMap!!)
+    ) { templateMap, projectMap ->
+      withKotlin(templateMap, projectMap)
       templateMap["menuName"] = "menu_scroll_activity"
     }
   }
@@ -484,7 +484,7 @@ open class TemplateTest : TemplateTestBase() {
   fun testNewAidlFolder() {
     myApiSensitiveTemplate = false
     checkCreateTemplate("other", "AidlFolder", false
-    ) { templateMap: MutableMap<String, Any>, _: Map<String?, Any?>? ->
+    ) { templateMap, _ ->
       templateMap["newLocation"] = "foo"
     }
   }
@@ -493,7 +493,7 @@ open class TemplateTest : TemplateTestBase() {
   fun testAndroidManifest() {
     myApiSensitiveTemplate = false
     checkCreateTemplate("other", "AndroidManifest", false
-    ) { t: MutableMap<String, Any>, _: Map<String?, Any?>? ->
+    ) { t, _ ->
       t["newLocation"] = "src/foo/AndroidManifest.xml"
     }
   }
@@ -502,7 +502,7 @@ open class TemplateTest : TemplateTestBase() {
   fun testAssetsFolder() {
     myApiSensitiveTemplate = false
     checkCreateTemplate("other", "AssetsFolder", false
-    ) { templateMap: MutableMap<String, Any>, _: Map<String?, Any?>? ->
+    ) { templateMap, _ ->
       templateMap["newLocation"] = "src/main/assets/"
     }
   }
@@ -511,11 +511,11 @@ open class TemplateTest : TemplateTestBase() {
   fun testJavaAndJniFolder() {
     myApiSensitiveTemplate = false
     checkCreateTemplate("other", "JavaFolder", false
-    ) { t: MutableMap<String, Any>, _: Map<String?, Any?>? ->
+    ) { t, _ ->
       t["newLocation"] = "src/main/java"
     }
     checkCreateTemplate("other", "JniFolder", false
-    ) { t: MutableMap<String, Any>, _: Map<String?, Any?>? ->
+    ) { t, _ ->
       t["newLocation"] = "src/main/jni"
     }
   }
@@ -524,7 +524,7 @@ open class TemplateTest : TemplateTestBase() {
   fun testFontFolder() {
     myApiSensitiveTemplate = false
     checkCreateTemplate("other", "FontFolder", false
-    ) { templateMap: MutableMap<String, Any>, _: Map<String?, Any?>? ->
+    ) { templateMap, _ ->
       templateMap["newLocation"] = "src/main/res/font"
     }
   }
@@ -533,7 +533,7 @@ open class TemplateTest : TemplateTestBase() {
   fun testRawFolder() {
     myApiSensitiveTemplate = false
     checkCreateTemplate("other", "RawFolder", false
-    ) { templateMap: MutableMap<String, Any>, _: Map<String?, Any?>? ->
+    ) { templateMap, _ ->
       templateMap["newLocation"] = "src/main/res/raw"
     }
   }
@@ -542,7 +542,7 @@ open class TemplateTest : TemplateTestBase() {
   fun testXmlFolder() {
     myApiSensitiveTemplate = false
     checkCreateTemplate("other", "XmlFolder", false
-    ) { templateMap: MutableMap<String, Any>, _: Map<String?, Any?>? ->
+    ) { templateMap, _ ->
       templateMap["newLocation"] = "src/main/res/xml"
     }
   }
@@ -551,15 +551,15 @@ open class TemplateTest : TemplateTestBase() {
   fun testRenderSourceFolder() {
     myApiSensitiveTemplate = false
     checkCreateTemplate("other", "RsFolder", false
-    ) { t: MutableMap<String, Any>, _: Map<String?, Any?>? ->
+    ) { t, _ ->
       t["newLocation"] = "src/main/rs"
     }
     checkCreateTemplate("other", "ResFolder", false
-    ) { t: MutableMap<String, Any>, _: Map<String?, Any?>? ->
+    ) { t, _ ->
       t["newLocation"] = "src/main/res"
     }
     checkCreateTemplate("other", "ResourcesFolder", false
-    ) { t: MutableMap<String, Any>, _: Map<String?, Any?>? ->
+    ) { t, _ ->
       t["newLocation"] = "src/main/res"
     }
   }
