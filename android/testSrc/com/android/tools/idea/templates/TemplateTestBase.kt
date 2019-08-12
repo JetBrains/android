@@ -43,6 +43,8 @@ import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.base.Stopwatch
+import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertWithMessage
 import junit.framework.TestCase
 import java.io.File
 
@@ -386,56 +388,50 @@ open class TemplateTestBase : AndroidGradleTestCase() {
   @Retention(AnnotationRetention.RUNTIME)
   @Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
   annotation class TemplateCheck
-
-  companion object {
-    /**
-     * Whether we should run comprehensive tests or not. This flag allows a simple run to just check a small set of
-     * template combinations, and when the flag is set on the build server, a much more comprehensive battery of
-     * checks to be performed.
-     */
-    private val COMPREHENSIVE =
-      System.getProperty("com.android.tools.idea.templates.TemplateTest.COMPREHENSIVE").orEmpty().toBoolean() ||
-      "true".equals(System.getenv("com.android.tools.idea.templates.TemplateTest.COMPREHENSIVE"), true)
-    /**
-     * Whether we should run these tests or not.
-     */
-    @JvmStatic
-    protected val DISABLED =
-      System.getProperty("DISABLE_STUDIO_TEMPLATE_TESTS").orEmpty().toBoolean() ||
-      "true".equals(System.getenv("DISABLE_STUDIO_TEMPLATE_TESTS"), true)
-
-    /**
-     * Whether we should enforce that lint passes cleanly on the projects
-     */
-    internal const val CHECK_LINT = false // Needs work on closing projects cleanly
-
-    /**
-     * Manual sdk version selections
-     */
-    private val MANUAL_BUILD_API = Integer.parseInt(
-      System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_BUILD_API", "-1"))
-    private val MANUAL_MIN_API = Integer.parseInt(
-      System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_MIN_API", "-1"))
-    private val MANUAL_TARGET_API = Integer.parseInt(
-      System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_TARGET_API", "-1"))
-    /**
-     * The following templates parameters are not very interesting (change only one small bit of text etc).
-     * We can skip them when not running in comprehensive mode.
-     * TODO(qumeric): update or remove
-     */
-    private val SKIPPABLE_PARAMETERS = setOf<String>()
-    /**
-     * Flags used to quickly check each template once (for one version), to get
-     * quicker feedback on whether something is broken instead of waiting for
-     * all the versions for each template first
-     */
-    val TEST_FEWER_API_VERSIONS = !COMPREHENSIVE
-    private val TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE
-    private val TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE
-    private val TEST_JUST_ONE_TARGET_SDK_VERSION = !COMPREHENSIVE
-    private var ourValidatedTemplateManager = false
-    // TODO: this is used only in TemplateTest. We should pass this value without changing template values.
-    internal const val ATTR_CREATE_ACTIVITY = "createActivity"
-  }
 }
 
+/**
+ * Whether we should run comprehensive tests or not. This flag allows a simple run to just check a small set of
+ * template combinations, and when the flag is set on the build server, a much more comprehensive battery of
+ * checks to be performed.
+ */
+private val COMPREHENSIVE =
+  System.getProperty("com.android.tools.idea.templates.TemplateTest.COMPREHENSIVE").orEmpty().toBoolean() ||
+  "true".equals(System.getenv("com.android.tools.idea.templates.TemplateTest.COMPREHENSIVE"), true)
+/**
+ * Whether we should run these tests or not.
+ */
+internal val DISABLED =
+  System.getProperty("DISABLE_STUDIO_TEMPLATE_TESTS").orEmpty().toBoolean() ||
+  "true".equals(System.getenv("DISABLE_STUDIO_TEMPLATE_TESTS"), true)
+/**
+ * Whether we should enforce that lint passes cleanly on the projects
+ */
+internal const val CHECK_LINT = false // Needs work on closing projects cleanly
+/**
+ * Manual sdk version selections
+ */
+private val MANUAL_BUILD_API =
+  System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_BUILD_API")?.toIntOrNull() ?: -1
+private val MANUAL_MIN_API =
+  System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_MIN_API")?.toIntOrNull() ?: -1
+private val MANUAL_TARGET_API =
+  System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_TARGET_API")?.toIntOrNull() ?: -1
+/**
+ * The following templates parameters are not very interesting (change only one small bit of text etc).
+ * We can skip them when not running in comprehensive mode.
+ * TODO(qumeric): update or remove
+ */
+private val SKIPPABLE_PARAMETERS = setOf<String>()
+/**
+ * Flags used to quickly check each template once (for one version), to get
+ * quicker feedback on whether something is broken instead of waiting for
+ * all the versions for each template first
+ */
+internal val TEST_FEWER_API_VERSIONS = !COMPREHENSIVE
+private val TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE
+private val TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE
+private val TEST_JUST_ONE_TARGET_SDK_VERSION = !COMPREHENSIVE
+private var ourValidatedTemplateManager = false
+// TODO: this is used only in TemplateTest. We should pass this value without changing template values.
+internal const val ATTR_CREATE_ACTIVITY = "createActivity"
