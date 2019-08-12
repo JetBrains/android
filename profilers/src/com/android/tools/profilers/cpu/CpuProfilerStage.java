@@ -23,9 +23,9 @@ import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.EaseOutModel;
 import com.android.tools.adtui.model.Interpolatable;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionListener;
+import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.SelectionListener;
-import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
@@ -107,7 +107,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final CpuStageLegends myLegends;
   private final DurationDataModel<CpuTraceInfo> myTraceDurations;
   private final EventMonitor myEventMonitor;
-  private final SelectionModel mySelectionModel;
+  private final RangeSelectionModel myRangeSelectionModel;
   private final EaseOutModel myInstructionsEaseOutModel;
   private final CpuProfilerConfigModel myProfilerConfigModel;
   private final CpuFramesModel myFramesModel;
@@ -255,7 +255,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myEventMonitor = new EventMonitor(profilers);
 
-    mySelectionModel = buildSelectionModel(selectionRange);
+    myRangeSelectionModel = buildRangeSelectionModel(selectionRange);
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
@@ -280,13 +280,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   /**
-   * Creates and returns a {@link SelectionModel} given a {@link Range} representing the selection.
+   * Creates and returns a {@link RangeSelectionModel} given a {@link Range} representing the selection.
    */
-  private SelectionModel buildSelectionModel(Range selectionRange) {
-    SelectionModel selectionModel = new SelectionModel(selectionRange);
-    selectionModel.addConstraint(myTraceDurations);
+  private RangeSelectionModel buildRangeSelectionModel(Range selectionRange) {
+    RangeSelectionModel rangeSelectionModel = new RangeSelectionModel(selectionRange);
+    rangeSelectionModel.addConstraint(myTraceDurations);
     if (myIsImportTraceMode) {
-      selectionModel.addListener(new SelectionListener() {
+      rangeSelectionModel.addListener(new RangeSelectionListener() {
         @Override
         public void selectionCreated() {
           getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectRange();
@@ -311,7 +311,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       });
     }
     else {
-      selectionModel.addListener(new SelectionListener() {
+      rangeSelectionModel.addListener(new RangeSelectionListener() {
         @Override
         public void selectionCreated() {
           getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectRange();
@@ -329,7 +329,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         }
       });
     }
-    return selectionModel;
+    return rangeSelectionModel;
   }
 
   public boolean isImportTraceMode() {
@@ -341,8 +341,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   @NotNull
-  public SelectionModel getSelectionModel() {
-    return mySelectionModel;
+  public RangeSelectionModel getRangeSelectionModel() {
+    return myRangeSelectionModel;
   }
 
   @NotNull
@@ -431,7 +431,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     // Asks the parser to interrupt any parsing in progress.
     myCaptureParser.abortParsing();
-    mySelectionModel.clearListeners();
+    myRangeSelectionModel.clearListeners();
     myUpdatableManager.releaseAll();
   }
 

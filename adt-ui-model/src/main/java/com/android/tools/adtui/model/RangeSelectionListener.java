@@ -18,9 +18,9 @@ package com.android.tools.adtui.model;
 import java.util.EventListener;
 
 /**
- * Interface for handling events fired by {@link SelectionModel}.
+ * Interface for handling events fired by {@link RangeSelectionModel}.
  */
-public interface SelectionListener extends EventListener {
+public interface RangeSelectionListener extends EventListener {
   /**
    * Event fired when the user finishes creating a new selection (for example, the moment when the
    * user releases the mouse after dragging a new selection into existence).
@@ -34,7 +34,7 @@ public interface SelectionListener extends EventListener {
   default void selectionCleared() {}
 
   /**
-   * Event fired when the user attemps to create a selection when no duration data is present in
+   * Event fired when the user attempt to create a selection when no duration data is present in
    * the selected range.
    */
   default void selectionCreationFailure() {}

@@ -25,8 +25,8 @@ import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
-import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -59,7 +59,7 @@ import org.jetbrains.annotations.NotNull;
 
 abstract class CpuUsageView extends JBPanel {
   @NotNull protected final CpuProfilerStage myStage;
-  @NotNull protected final SelectionComponent mySelectionComponent;
+  @NotNull protected final RangeSelectionComponent myRangeSelectionComponent;
   @NotNull protected final OverlayComponent myOverlayComponent;
 
   @SuppressWarnings("FieldCanBeLocal")
@@ -73,17 +73,17 @@ abstract class CpuUsageView extends JBPanel {
     // We only show the sparkline if we are over the cpu usage chart. The cpu usage
     // chart is under the overlay component so using the events captured from the overlay
     // component tell us if we are over the right area.
-    mySelectionComponent =
-      new SelectionComponent(myStage.getSelectionModel(), myStage.getStudioProfilers().getTimeline().getViewRange(), true);
-    mySelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    myRangeSelectionComponent =
+      new RangeSelectionComponent(myStage.getRangeSelectionModel(), myStage.getStudioProfilers().getTimeline().getViewRange(), true);
+    myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     // After a capture is set we update the selection to be the length of the capture. The selection we update is on the range
     // instead of the selection model, or selection component. So here we listen to a selection capture event and give focus
     // to the selection component.
     // Note: The selection range is set in CpuProfilerStage::setAndSelectCapture.
     stage.getAspect().addDependency(myObserver)
-         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, mySelectionComponent::requestFocus);
+      .onChange(CpuProfilerAspect.CAPTURE_SELECTION, myRangeSelectionComponent::requestFocus);
 
-    myOverlayComponent = new OverlayComponent(mySelectionComponent);
+    myOverlayComponent = new OverlayComponent(myRangeSelectionComponent);
 
     // |CpuUsageView| does not receive any mouse events, because all mouse events are consumed by |OverlayComponent|
     // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU context menus or other mouse events
@@ -102,7 +102,7 @@ abstract class CpuUsageView extends JBPanel {
    */
   @VisibleForTesting
   boolean shouldShowTooltipSeekComponent() {
-    return mySelectionComponent.shouldShowSeekComponent();
+    return myRangeSelectionComponent.shouldShowSeekComponent();
   }
 
   protected String formatCaptureLabel(@NotNull CpuTraceInfo info) {
@@ -121,7 +121,7 @@ abstract class CpuUsageView extends JBPanel {
       add(createAxisPanel(), new TabularLayout.Constraint(0, 0));
       add(createLegendPanel(), new TabularLayout.Constraint(0, 0));
       add(myOverlayComponent, new TabularLayout.Constraint(0, 0));
-      add(mySelectionComponent, new TabularLayout.Constraint(0, 0));
+      add(myRangeSelectionComponent, new TabularLayout.Constraint(0, 0));
       add(createLineChartPanel(), new TabularLayout.Constraint(0, 0));
     }
 
@@ -228,7 +228,7 @@ abstract class CpuUsageView extends JBPanel {
       // Order is important
       add(createTimeAxisGuide(), new TabularLayout.Constraint(0, 0));
       add(myOverlayComponent, new TabularLayout.Constraint(0, 0));
-      add(mySelectionComponent, new TabularLayout.Constraint(0, 0));
+      add(myRangeSelectionComponent, new TabularLayout.Constraint(0, 0));
       add(createTipPanel(), new TabularLayout.Constraint(0, 0));
       add(createOverlayPanel(), new TabularLayout.Constraint(0, 0));
     }

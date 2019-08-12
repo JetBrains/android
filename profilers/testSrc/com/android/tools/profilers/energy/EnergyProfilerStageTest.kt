@@ -27,7 +27,6 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.idea.protobuf.ByteString
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -144,8 +143,8 @@ class EnergyProfilerStageTest(private val useUnifiedEvents: Boolean) {
   fun hasUserUsedSelection() {
     assertThat(myStage.instructionsEaseOutModel.percentageComplete).isWithin(0f).of(0f)
     assertThat(myStage.hasUserUsedEnergySelection()).isFalse()
-    myStage.selectionModel.setSelectionEnabled(true)
-    myStage.selectionModel.set(0.0, 100.0)
+    myStage.rangeSelectionModel.setSelectionEnabled(true)
+    myStage.rangeSelectionModel.set(0.0, 100.0)
     assertThat(myStage.instructionsEaseOutModel.percentageComplete).isWithin(0f).of(1f)
     assertThat(myStage.hasUserUsedEnergySelection()).isTrue()
   }
@@ -278,16 +277,16 @@ class EnergyProfilerStageTest(private val useUnifiedEvents: Boolean) {
   fun eventsIntersectingWithCreatedSelectionRangeShouldBeTracked() {
     val featureTracker = myStage.studioProfilers.ideServices.featureTracker as FakeFeatureTracker
     assertThat(featureTracker.lastEnergyRangeMetadata).isNull()
-    myStage.selectionModel.setSelectionEnabled(true)
+    myStage.rangeSelectionModel.setSelectionEnabled(true)
 
     // Setting a range that doesn't contain any events shouldn't track anything.
-    myStage.selectionModel.set(50000.0, 100000.0)
+    myStage.rangeSelectionModel.set(50000.0, 100000.0)
     assertThat(featureTracker.lastEnergyRangeMetadata).isNull()
 
     // Clear the range to make sure selectionCreated() will be called next time we set the range.
-    myStage.selectionModel.clear()
+    myStage.rangeSelectionModel.clear()
     // Set the range [500ns, 1500ns], which should return a single EnergyEvent (wake lock) from fakeData that happened at 1000ns
-    myStage.selectionModel.set(0.5, 1.5)
+    myStage.rangeSelectionModel.set(0.5, 1.5)
     val energyRangeMetadata = featureTracker.lastEnergyRangeMetadata!!
     assertThat(energyRangeMetadata.eventCounts).hasSize(1)
     val eventCount = energyRangeMetadata.eventCounts[0]

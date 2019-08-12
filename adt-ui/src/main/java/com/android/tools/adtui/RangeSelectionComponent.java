@@ -16,22 +16,29 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.ui.AdtUiCursors;
 import com.intellij.ui.JBColor;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.util.function.Consumer;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A component for performing/rendering selection.
  */
-public final class SelectionComponent extends AnimatedComponent {
+public final class RangeSelectionComponent extends AnimatedComponent {
 
   // TODO: support using different colors for selection, border and handle
   private static final Color DEFAULT_SELECTION_COLOR = new JBColor(new Color(0x330478DA, true), new Color(0x4C2395F5, true));
@@ -86,7 +93,7 @@ public final class SelectionComponent extends AnimatedComponent {
    * The range being selected.
    */
   @NotNull
-  private final SelectionModel myModel;
+  private final RangeSelectionModel myModel;
 
   @NotNull
   private final Range myViewRange;
@@ -101,11 +108,11 @@ public final class SelectionComponent extends AnimatedComponent {
    */
   private boolean myIsPointSelectionReplaced;
 
-  public SelectionComponent(@NotNull SelectionModel model, @NotNull Range viewRange) {
+  public RangeSelectionComponent(@NotNull RangeSelectionModel model, @NotNull Range viewRange) {
     this(model, viewRange, false);
   }
 
-  public SelectionComponent(@NotNull SelectionModel model, @NotNull Range viewRange, boolean isPointSelectionReplaced) {
+  public RangeSelectionComponent(@NotNull RangeSelectionModel model, @NotNull Range viewRange, boolean isPointSelectionReplaced) {
     myModel = model;
     myViewRange = viewRange;
     myMode = Mode.NONE;
@@ -113,7 +120,7 @@ public final class SelectionComponent extends AnimatedComponent {
     setFocusable(true);
     initListeners();
 
-    myModel.addDependency(myAspectObserver).onChange(SelectionModel.Aspect.SELECTION, this::opaqueRepaint);
+    myModel.addDependency(myAspectObserver).onChange(RangeSelectionModel.Aspect.SELECTION, this::opaqueRepaint);
     myViewRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::opaqueRepaint);
   }
 
@@ -394,7 +401,7 @@ public final class SelectionComponent extends AnimatedComponent {
     drawHandle(g, endXPos, dim.height, -1.0f);
   }
 
-  private void drawHandle(Graphics2D g, float x, float height, float direction) {
+  private static void drawHandle(Graphics2D g, float x, float height, float direction) {
     float up = (height - HANDLE_HEIGHT) * 0.5f;
     float down = (height + HANDLE_HEIGHT) * 0.5f;
     float width = HANDLE_WIDTH * direction;

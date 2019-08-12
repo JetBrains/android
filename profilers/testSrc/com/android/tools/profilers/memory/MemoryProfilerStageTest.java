@@ -751,7 +751,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
       AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true)).build());
-    myStage.getSelectionModel().set(5, 10);
+    myStage.getRangeSelectionModel().set(5, 10);
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
   }
