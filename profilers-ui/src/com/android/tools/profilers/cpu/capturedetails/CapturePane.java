@@ -54,11 +54,15 @@ abstract class CapturePane extends JPanel {
     CaptureDetails.Type.TOP_DOWN, "Top Down",
     CaptureDetails.Type.BOTTOM_UP, "Bottom Up");
 
-  // For Atrace captures names from this map will be used in place of default tab names.
+  // For Atrace captures, names from this map will be used in place of default tab names.
   private static final Map<CaptureDetails.Type, String> ATRACE_TAB_NAMES = ImmutableMap.of(
     CaptureDetails.Type.CALL_CHART, "Trace Events");
 
-  // Some of the tab names may be replaced. This list defines the currently active tab names as
+  // If the render audit flag is enabled, tab names from this map will be added
+  private static final Map<CaptureDetails.Type, String> RENDER_AUDIT_TAB_NAMES = ImmutableMap.of(
+    CaptureDetails.Type.RENDER_AUDIT, "Render Audit");
+
+  // Some of the tab names may be replaced. This list contains the default tabs
   protected final Map<CaptureDetails.Type, String> myTabs = new LinkedHashMap<>(DEFAULT_TAB_NAMES);
 
   @NotNull protected final CpuProfilerStageView myStageView;
@@ -79,6 +83,10 @@ abstract class CapturePane extends JPanel {
     CpuCapture capture = myStageView.getStage().getCapture();
     if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
       myTabs.putAll(ATRACE_TAB_NAMES);
+
+      if (myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isAuditsEnabled()) {
+        myTabs.putAll(RENDER_AUDIT_TAB_NAMES);
+      }
     }
 
     for (String label : myTabs.values()) {
@@ -101,11 +109,11 @@ abstract class CapturePane extends JPanel {
     CaptureDetails details = myStageView.getStage().getCaptureDetails();
     if (details != null) {
       // Update the current selected tab
-      String detailsTypeString = myTabs.get(details.getType());
+      String tabTitle = myTabs.get(details.getType());
       int currentTabIndex = myTabsPanel.getSelectedIndex();
-      if (currentTabIndex < 0 || !myTabsPanel.getTitleAt(currentTabIndex).equals(detailsTypeString)) {
+      if (currentTabIndex < 0 || !myTabsPanel.getTitleAt(currentTabIndex).equals(tabTitle)) {
         for (int i = 0; i < myTabsPanel.getTabCount(); ++i) {
-          if (myTabsPanel.getTitleAt(i).equals(detailsTypeString)) {
+          if (myTabsPanel.getTitleAt(i).equals(tabTitle)) {
             myTabsPanel.setSelectedIndex(i);
             break;
           }
