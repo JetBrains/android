@@ -16,26 +16,45 @@
 
 package com.android.tools.adtui.visualtests.flamegraph;
 
-import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.LineChartModel;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.flamegraph.SampledMethodUsage;
 import com.android.tools.adtui.flamegraph.SampledMethodUsageHRenderer;
+import com.android.tools.adtui.model.DefaultHNode;
+import com.android.tools.adtui.model.LineChartModel;
+import com.android.tools.adtui.model.LongDataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionModel;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import org.jetbrains.annotations.NotNull;
 
 public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
@@ -58,7 +77,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   private Range mTimeSelectionRangeUs;
   private Range mTimeGlobalRangeUs;
 
-  private SelectionComponent mSelector;
+  private RangeSelectionComponent mSelector;
   private AxisComponent mAxis;
 
   private final static int AXIS_SIZE = 20;
@@ -79,8 +98,8 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
     mLineChartModel = new LineChartModel();
     this.mLineChart = new LineChart(mLineChartModel);
-    SelectionModel selection = new SelectionModel(mTimeSelectionRangeUs);
-    this.mSelector = new SelectionComponent(selection, mTimeGlobalRangeUs);
+    RangeSelectionModel selection = new RangeSelectionModel(mTimeSelectionRangeUs);
+    this.mSelector = new RangeSelectionComponent(selection, mTimeGlobalRangeUs);
 
     mChart = new HTreeChart.Builder<>(null, mTimeSelectionRangeUs, new SampledMethodUsageHRenderer())
       .setOrientation(HTreeChart.Orientation.BOTTOM_UP)

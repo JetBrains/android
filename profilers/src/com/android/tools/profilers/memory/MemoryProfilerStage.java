@@ -21,9 +21,9 @@ import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.EaseOutModel;
 import com.android.tools.adtui.model.Interpolatable;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionListener;
+import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.SelectionListener;
-import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
@@ -43,14 +43,12 @@ import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
@@ -138,7 +136,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final MemoryProfilerSelection mySelection;
   private final MemoryProfilerConfiguration myConfiguration;
   private final EventMonitor myEventMonitor;
-  private final SelectionModel mySelectionModel;
+  private final RangeSelectionModel myRangeSelectionModel;
   private final StackTraceModel myAllocationStackTraceModel;
   private final StackTraceModel myDeallocationStackTraceModel;
   private boolean myTrackingAllocations;
@@ -233,10 +231,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     myEventMonitor = new EventMonitor(profilers);
 
-    mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange());
-    mySelectionModel.addConstraint(myAllocationDurations);
-    mySelectionModel.addConstraint(myHeapDumpDurations);
-    mySelectionModel.addListener(new SelectionListener() {
+    myRangeSelectionModel = new RangeSelectionModel(profilers.getTimeline().getSelectionRange());
+    myRangeSelectionModel.addConstraint(myAllocationDurations);
+    myRangeSelectionModel.addConstraint(myHeapDumpDurations);
+    myRangeSelectionModel.addListener(new RangeSelectionListener() {
       @Override
       public void selectionCreated() {
         selectCaptureFromSelectionRange();
@@ -333,12 +331,12 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
-    mySelectionModel.clearListeners();
+    myRangeSelectionModel.clearListeners();
   }
 
   @NotNull
-  public SelectionModel getSelectionModel() {
-    return mySelectionModel;
+  public RangeSelectionModel getRangeSelectionModel() {
+    return myRangeSelectionModel;
   }
 
   @NotNull
@@ -692,7 +690,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     // Synchronize selection with the capture object. Do so only if the capture object is not ongoing.
     if (durationData != null && durationData.getDurationUs() != Long.MAX_VALUE) {
-      // TODO: (revisit) we have an special case in interacting with SelectionModel where if the user tries to select a heap dump that is on
+      // TODO: (revisit) we have an special case in interacting with RangeSelectionModel where if the user tries to select a heap dump that is on
       // top of an ongoing live allocation capture (duration == Long.MAX_VALUE), the live capture would take precedence given it always
       // intersects with the previous selection. Here we clear the previous selection first to avoid said interaction.
       timeline.getSelectionRange().clear();
