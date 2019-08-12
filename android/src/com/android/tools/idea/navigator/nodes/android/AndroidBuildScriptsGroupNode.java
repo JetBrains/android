@@ -39,7 +39,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
-import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
@@ -38,7 +37,6 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
-import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,12 +88,6 @@ public final class GradleProjects {
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {
     return GradleSettings.getInstance(project).isOfflineWork();
-  }
-
-  @Nullable
-  public static File findModuleRootFolderPath(@NotNull Module module) {
-    File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
-    return moduleFilePath.getParentFile();
   }
 
   /**
