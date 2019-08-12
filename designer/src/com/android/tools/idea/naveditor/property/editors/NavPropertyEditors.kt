@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.property.editors
 
 import com.android.SdkConstants.*
+import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.editors.NonEditableEditor
@@ -25,12 +26,10 @@ import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
 import com.intellij.openapi.project.Project
-import com.android.ide.common.rendering.api.AttributeFormat
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
 
-class NavPropertyEditors : PropertyEditors() {
-
+class NavPropertyEditors(project: Project) : PropertyEditors(project.messageBus) {
   override fun resetCachedEditors() {}
 
   override fun create(property: NlProperty): NlComponentEditor {

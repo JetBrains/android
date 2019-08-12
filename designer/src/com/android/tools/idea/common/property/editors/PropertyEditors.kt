@@ -19,16 +19,17 @@ import com.android.tools.idea.common.property.NlProperty
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.messages.MessageBus
 
 /**
  * Facility for providing [NlComponentEditor]s for [NlProperty]s.
  */
-abstract class PropertyEditors : LafManagerListener {
+abstract class PropertyEditors(messageBus: MessageBus) : LafManagerListener {
   init {
     val app = ApplicationManager.getApplication()
     if (!app.isHeadlessEnvironment) {
       @Suppress("LeakingThis")
-      app.messageBus.connect().subscribe(LafManagerListener.TOPIC, this)
+      messageBus.connect().subscribe(LafManagerListener.TOPIC, this)
     }
   }
 
