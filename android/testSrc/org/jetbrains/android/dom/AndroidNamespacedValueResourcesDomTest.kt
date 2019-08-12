@@ -262,7 +262,7 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
     val lookupStrings = myFixture.completeBasic().map { it.lookupString }
     assertThat(lookupStrings).contains("lib:libAttr1")
     assertThat(lookupStrings).contains("lib:libAttr2")
-    assertThat(lookupStrings).doesNotContain("lib:libAttr3")
+    assertThat(lookupStrings).contains("lib:libAttr3")
     assertThat(lookupStrings).contains("android:color")
   }
 

@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.ide.structureView.StructureViewModel;
 import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.util.treeView.smartTree.TreeElement;
@@ -50,6 +52,34 @@ public class StructureViewTest extends AndroidDomTestCase {
                       "  String - test_string\n" +
                       "  Style - SecondStyle\n";
     assertEquals(expected, model.getRoot().toString());
+  }
+
+  public void testResourceStructureNestedAttr() {
+    PsiFile file = myFixture.addFileToProject(
+      "/res/values/styles.xml",
+      "<resources>\n" +
+      "    <attr name=\"testAttr\" format=\"boolean\" />  \n" +
+      "    <style name=\"AppTheme\" parent=\"android:Theme\">\n" +
+      "        <item name=\"testAttr\">false</item>\n" +
+      "    </style>\n" +
+      "    <string name=\"test_string\">Just a string</string>\n" +
+      "    <declare-styleable name=\"testStyleable\">\n" +
+      "        <attr name=\"testAttr\" format=\"boolean\" />\n" +
+      "    </declare-styleable>\n" +
+      "</resources>");
+    assertInstanceOf(file, XmlFile.class);
+    DomFileElement<Resources> element = DomManager.getDomManager(getProject()).getFileElement(((XmlFile)file), Resources.class);
+    assertNotNull(element);
+
+    StructureViewModel model = new ResourceStructureViewBuilder(element).createStructureViewModel(null);
+    String expected = "Resources file 'styles.xml'\n" +
+                      "  Attr - testAttr\n" +
+                      "  Style - AppTheme\n" +
+                      "    Style Item - testAttr\n" +
+                      "  String - test_string\n" +
+                      "  Styleable - testStyleable\n" +
+                      "    Attr - testAttr\n";
+    assertThat(expected).isEqualTo(model.getRoot().toString());
   }
 
   public void testLayoutStructure() throws Exception {

@@ -16,15 +16,16 @@
 
 package org.jetbrains.android.dom.resources;
 
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceUrl;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.converters.StyleItemConverter;
-import org.jetbrains.android.dom.converters.StyleItemNameConverter;
+import org.jetbrains.android.dom.converters.AttrNameConverter;
 
 @Convert(StyleItemConverter.class)
 public interface StyleItem extends AndroidDomElement, GenericDomValue {
   @Required
-  @Convert(StyleItemNameConverter.class)
-  GenericAttributeValue<ResourceUrl> getName();
+  @Convert(AttrNameConverter.class)
+  GenericAttributeValue<ResourceReference> getName();
 }
