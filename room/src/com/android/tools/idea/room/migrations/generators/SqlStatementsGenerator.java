@@ -91,6 +91,12 @@ public class SqlStatementsGenerator {
         updateStatements.add(getAddColumnStatement(tableName, field));
       }
 
+      Map<FieldBundle, String> renamedFields = entityUpdate.getRenamedFields();
+      for (Map.Entry<FieldBundle, String> newFieldToOldNameMapping : renamedFields.entrySet()) {
+        updateStatements
+          .add(getRenameColumnStatement(tableName, newFieldToOldNameMapping.getValue(), newFieldToOldNameMapping.getKey().getColumnName()));
+      }
+
       Map<FieldBundle, String> valuesForUninitializedFields = entityUpdate.getValuesForUninitializedFields();
       if (!valuesForUninitializedFields.isEmpty()) {
         updateStatements.add(getUpdateColumnsValuesStatement(tableName, valuesForUninitializedFields));
@@ -258,6 +264,21 @@ public class SqlStatementsGenerator {
   }
 
   /**
+   * Returns a statement which renames a column of a table.
+   *
+   * @param tableName the name of the table
+   * @param oldColumnName the name of the column to be renamed
+   * @param newColumnName the new name of the column to be renamed
+   */
+  private static String getRenameColumnStatement(@NotNull String tableName, @NotNull String oldColumnName, @NotNull String newColumnName) {
+    tableName = getValidName(tableName);
+    oldColumnName = getValidName(oldColumnName);
+    newColumnName = getValidName(newColumnName);
+
+    return String.format("ALTER TABLE %s RENAME %s TO %s;", tableName, oldColumnName, newColumnName);
+  }
+
+  /**
    * Returns a String containing the full description of the column.
    *
    * @param field the FieldBundle which describes the column
@@ -360,13 +381,25 @@ public class SqlStatementsGenerator {
            (primaryKey.getColumnNames().size() == 1 && primaryKey.getColumnNames().get(0).equals(field.getColumnName()));
   }
 
+  /**
+   * Returns a value to initialize the given column with. First we look for a user defined value. If there is none, we check whether the
+   * column is already present in the table and therefore already has values to be populated with.
+   */
   @Nullable
   private static String getValueForField(@NotNull FieldBundle field, @NotNull EntityUpdate entityUpdate) {
+    // Check for user specified value
     String userSpecifiedValue = entityUpdate.getValuesForUninitializedFields().get(field);
     if (userSpecifiedValue != null) {
       return toSqlStringLiteral(userSpecifiedValue);
     }
 
+    // If the column was renamed, we use the values under the old name
+    String oldColumnName = entityUpdate.getRenamedFields().get(field);
+    if (oldColumnName != null) {
+      return getValidName(oldColumnName);
+    }
+
+    // If the column is present in the table as is, we use the values under its name
     String columnName = field.getColumnName();
     if (entityUpdate.getUnmodifiedFields().get(columnName) != null || entityUpdate.getModifiedFields().get(columnName) != null) {
       return getValidName(columnName);
