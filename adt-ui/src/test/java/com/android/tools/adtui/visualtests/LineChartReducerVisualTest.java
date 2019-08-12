@@ -15,32 +15,42 @@
  */
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineChartReducer;
-import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.LineChartModel;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionModel;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLayeredPane;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
 import java.awt.geom.Path2D;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 // TODO: Add scrolling support to LineCharts
-// TODO: As SelectionComponent used only for zooming mechanism, consider replacing it with only zooming without selection
+// TODO: As RangeSelectionComponent used only for zooming mechanism, consider replacing it with only zooming without selection
 public class LineChartReducerVisualTest extends VisualTest {
   private static final int AXIS_SIZE = 80;
 
@@ -57,7 +67,7 @@ public class LineChartReducerVisualTest extends VisualTest {
   private RangedContinuousSeries myOptimizedSeries;
   private int myVariance = 10;
   private int mySampleSize = 10;
-  private SelectionComponent mySelection;
+  private RangeSelectionComponent mySelection;
   private LineChartModel myOptimizedLineChartModel;
   private ResizingAxisComponentModel myXAxisModel;
 
@@ -84,8 +94,8 @@ public class LineChartReducerVisualTest extends VisualTest {
     myXAxisModel =
       new ResizingAxisComponentModel.Builder(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, "")).build();
     myXAxis = new AxisComponent(myXAxisModel, AxisComponent.AxisOrientation.BOTTOM);
-    SelectionModel selection = new SelectionModel(mySelectionXRange);
-    mySelection = new SelectionComponent(selection, myViewXRange);
+    RangeSelectionModel selection = new RangeSelectionModel(mySelectionXRange);
+    mySelection = new RangeSelectionComponent(selection, myViewXRange);
 
     myData = new DefaultDataSeries<>();
     mySeries = new RangedContinuousSeries("Original", myViewXRange, new Range(0, 0), myData);

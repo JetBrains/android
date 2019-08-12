@@ -16,23 +16,35 @@
 
 package com.android.tools.adtui.visualtests;
 
+import static com.android.tools.adtui.common.AdtUiUtils.GBC_FULL;
+
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
-import com.android.tools.adtui.SelectionComponent;
+import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.DefaultDurationData;
+import com.android.tools.adtui.model.DurationDataModel;
+import com.android.tools.adtui.model.Interpolatable;
+import com.android.tools.adtui.model.LineChartModel;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionModel;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.JBColor;
-import java.awt.event.ItemListener;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridBagLayout;
+import java.awt.Stroke;
 import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -40,8 +52,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.android.tools.adtui.common.AdtUiUtils.GBC_FULL;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
+import org.jetbrains.annotations.NotNull;
 
 public class LineChartVisualTest extends VisualTest {
 
@@ -49,7 +67,7 @@ public class LineChartVisualTest extends VisualTest {
 
   private LineChart mLineChart;
 
-  private SelectionComponent mySelectionComponent;
+  private RangeSelectionComponent myRangeSelectionComponent;
 
   private OverlayComponent myOverlayComponent;
 
@@ -83,9 +101,9 @@ public class LineChartVisualTest extends VisualTest {
 
     List<Updatable> componentsList = new ArrayList<>();
 
-    SelectionModel selection = new SelectionModel(new Range(0, 0));
-    mySelectionComponent = new SelectionComponent(selection, timeGlobalRangeUs);
-    myOverlayComponent = new OverlayComponent(mySelectionComponent);
+    RangeSelectionModel selection = new RangeSelectionModel(new Range(0, 0));
+    myRangeSelectionComponent = new RangeSelectionComponent(selection, timeGlobalRangeUs);
+    myOverlayComponent = new OverlayComponent(myRangeSelectionComponent);
 
     // Add the scene components to the list
     componentsList.add(mAnimatedTimeRange);
@@ -162,7 +180,7 @@ public class LineChartVisualTest extends VisualTest {
     mLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
     layered.setBackground(JBColor.background());
     layered.add(myOverlayComponent, GBC_FULL);
-    layered.add(mySelectionComponent, GBC_FULL);
+    layered.add(myRangeSelectionComponent, GBC_FULL);
     layered.add(mLineChart, GBC_FULL);
 
     final AtomicInteger variance = new AtomicInteger(10);

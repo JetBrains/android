@@ -128,7 +128,7 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.
       myProfilers.getTimeline().adjustRangeCloseToMiddleView(captureRange);
 
       // Finally, we set and select the capture in the MemoryProfilerStage, which should be the current stage of StudioProfilers.
-      stage.getSelectionModel().set(captureRange.getMin(), captureRange.getMax());
+      stage.getRangeSelectionModel().set(captureRange.getMin(), captureRange.getMax());
     }
 
     myProfilers.getIdeServices().getFeatureTracker().trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
