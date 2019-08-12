@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.index
 
-import com.android.tools.idea.res.binding.BindingLayoutInfo
+import com.android.tools.idea.res.binding.BindingLayoutType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
@@ -70,7 +70,7 @@ class BindingXmlIndexTest {
     assertThat(map).hasSize(1)
 
     val layout = map.values.first()
-    assertThat(layout.layoutType).isEqualTo(BindingLayoutInfo.LayoutType.DATA_BINDING_LAYOUT)
+    assertThat(layout.layoutType).isEqualTo(BindingLayoutType.DATA_BINDING_LAYOUT)
     assertThat(layout.importCount).isEqualTo(1)
     assertThat(layout.variableCount).isEqualTo(2)
     assertThat(layout.viewIds).isEmpty()
@@ -86,7 +86,7 @@ class BindingXmlIndexTest {
     val map = BindingXmlIndex().indexer.map(FileContentImpl.createByFile(file))
 
     val layout = map.values.first()
-    assertThat(layout.layoutType).isEqualTo(BindingLayoutInfo.LayoutType.VIEW_BINDING_LAYOUT)
+    assertThat(layout.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
     assertThat(layout.importCount).isEqualTo(0)
     assertThat(layout.variableCount).isEqualTo(0)
     assertThat(layout.viewIds).hasSize(1)
