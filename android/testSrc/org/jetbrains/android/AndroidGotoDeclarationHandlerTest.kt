@@ -66,6 +66,40 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml")
   }
 
+  data class DeclarationDescription(val directoryName: String, val surroundingTagText: String) {
+    companion object {
+      fun createDeclarationDescription(element: PsiElement): DeclarationDescription {
+        return DeclarationDescription(
+          element.containingFile.parent!!.name + "/" + element.containingFile.name,
+          element.parentOfType(XmlTag::class)?.text?.trim() ?: "")
+      }
+    }
+  }
+
+  fun testFrameworkAttrFromXml() {
+    val file = myFixture.addFileToProject(
+      "res/values/attrs.xml",
+      //language=XML
+      """<?xml version="1.0" encoding="utf-8"?>
+      <resources>
+          <attr name="android:text${caret}Style" />
+      </resources>
+      """).virtualFile
+    val declarations = getDeclarationsFrom(file)
+    val listOfDescriptions = declarations.map {
+      DeclarationDescription.createDeclarationDescription(it.navigationElement)
+    }
+    assertThat(listOfDescriptions).containsExactly(
+      DeclarationDescription(
+        "values/attrs.xml",
+        //language=XML
+        """<attr name="textStyle">
+        <flag name="normal" value="0" />
+        <flag name="bold" value="1" />
+        <flag name="italic" value="2" />
+    </attr>""".trim()))
+  }
+
   fun testGotoString() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
@@ -479,7 +513,11 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 
     navigateToElementAtCaretFromDifferentFile()
     assertThat(elementAtCurrentOffset.text).isEqualTo("LibStyle")
-    assertThat(elementAtCaret.parentOfType<XmlAttribute>()!!.text).isEqualTo("""name="LibStyle"""")
+    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text)
+      .isEqualTo("""
+        <style name="LibStyle" parent="ParentStyle">
+            <item name="android:textSize">@dimen/libDimen</item>
+          </style>""".trimIndent())
 
     // ParentStyleConverter:
     moveCaret("""parent="Parent|Style""")
