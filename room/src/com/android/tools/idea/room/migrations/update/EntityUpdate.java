@@ -34,17 +34,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public class EntityUpdate {
   private String tableName;
-  private List<FieldBundle> deletedFields;
-  private List<FieldBundle> newFields;
-  private List<FieldBundle> modifiedFields;
-  private List<FieldBundle> unmodifiedFields;
+
+  private List<FieldBundle> allFields;
+  private Map<String, FieldBundle> unmodifiedFields;
+  private Map<String, FieldBundle> modifiedFields;
+  private Map<String, FieldBundle> deletedFields;
+  private Map<String, FieldBundle> newFields;
+  private Map<FieldBundle, String> valuesForUninitializedFields;
+  private boolean containsUninitializedNotNullFields;
+
+  private List<IndexBundle> unmodifiedIndices;
   private List<IndexBundle> deletedIndices;
   private List<IndexBundle> newOrModifiedIndices;
-  private List<IndexBundle> unmodifiedIndices;
+
   private PrimaryKeyBundle primaryKey;
   private List<ForeignKeyBundle> foreignKeys;
   private boolean primaryKeyUpdate;
   private boolean foreignKeysUpdate;
+
 
   /**
    * @param oldEntity entity description from an older version of the database
@@ -52,30 +59,39 @@ public class EntityUpdate {
    */
   public EntityUpdate(@NotNull EntityBundle oldEntity, @NotNull EntityBundle newEntity) {
     tableName = oldEntity.getTableName();
-    deletedFields = new ArrayList<>();
-    newFields = new ArrayList<>();
-    modifiedFields = new ArrayList<>();
-    unmodifiedFields = new ArrayList<>();
-    deletedIndices = new ArrayList<>();
-    newOrModifiedIndices = new ArrayList<>();
-    unmodifiedIndices = new ArrayList<>();
+
+    allFields = new ArrayList<>(newEntity.getFields());
+    unmodifiedFields = new HashMap<>();
+    deletedFields = new HashMap<>();
+    modifiedFields = new HashMap<>();
+    newFields = new HashMap<>();
+    valuesForUninitializedFields = new HashMap<>();
+    containsUninitializedNotNullFields = false;
 
     Map<String, FieldBundle> oldEntityFields = new HashMap<>(oldEntity.getFieldsByColumnName());
     for (FieldBundle newField : newEntity.getFields()) {
       if (oldEntityFields.containsKey(newField.getColumnName())) {
         FieldBundle oldField = oldEntityFields.remove(newField.getColumnName());
         if (!oldField.isSchemaEqual(newField)) {
-          modifiedFields.add(newField);
+          modifiedFields.put(newField.getColumnName(), newField);
         }
         else {
-          unmodifiedFields.add(newField);
+          unmodifiedFields.put(newField.getColumnName(), newField);
         }
       }
       else {
-        newFields.add(newField);
+        newFields.put(newField.getColumnName(), newField);
+      }
+
+      if (newField.isNonNull() && (newField.getDefaultValue() == null || newField.getDefaultValue().isEmpty())) {
+        containsUninitializedNotNullFields = true;
       }
     }
-    deletedFields.addAll(oldEntityFields.values());
+    deletedFields = oldEntityFields;
+
+    unmodifiedIndices = new ArrayList<>();
+    deletedIndices = new ArrayList<>();
+    newOrModifiedIndices = new ArrayList<>();
 
     if (oldEntity.getIndices() == null) {
       if (newEntity.getIndices() != null) {
@@ -123,18 +139,28 @@ public class EntityUpdate {
   }
 
   @NotNull
-  public List<FieldBundle> getNewFields() {
-    return newFields;
+  public List<FieldBundle> getAllFields() {
+    return allFields;
   }
 
   @NotNull
-  public List<FieldBundle> getModifiedFields() {
+  public Map<String, FieldBundle> getUnmodifiedFields() {
+    return unmodifiedFields;
+  }
+
+  @NotNull
+  public Map<String, FieldBundle> getModifiedFields() {
     return modifiedFields;
   }
 
   @NotNull
-  public List<FieldBundle> getUnmodifiedFields() {
-    return unmodifiedFields;
+  public Map<String, FieldBundle> getDeletedFields() {
+    return deletedFields;
+  }
+
+  @NotNull
+  public Map<String, FieldBundle> getNewFields() {
+    return newFields;
   }
 
   @NotNull
@@ -189,6 +215,20 @@ public class EntityUpdate {
    * update. More information ca be found here: https://www.sqlite.org/lang_altertable.html
    */
   public boolean isComplexUpdate() {
-    return !deletedFields.isEmpty() || !modifiedFields.isEmpty() || keysWereUpdated();
+    return !deletedFields.isEmpty() || !modifiedFields.isEmpty() || keysWereUpdated() || containsUninitializedNotNullFields;
+  }
+
+  /**
+   * Takes a mapping between names of new columns and user specified default values for them.
+   * This mapping is used in other to populate the pre-existent rows in a table with new NOT NULL columns without default values
+   * specified at creation.
+   */
+  public void setValuesForUninitializedFields(@NotNull Map<FieldBundle, String> valuesForUninitializedFields) {
+    this.valuesForUninitializedFields = valuesForUninitializedFields;
+  }
+
+  @NotNull
+  public Map<FieldBundle, String> getValuesForUninitializedFields() {
+    return valuesForUninitializedFields;
   }
 }

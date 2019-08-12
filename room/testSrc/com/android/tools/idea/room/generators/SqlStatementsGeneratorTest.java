@@ -29,6 +29,7 @@ import com.android.tools.idea.room.migrations.json.IndexBundle;
 import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
 import com.android.tools.idea.room.migrations.update.EntityUpdate;
+import com.google.common.collect.ImmutableMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +59,7 @@ public class SqlStatementsGeneratorTest {
 
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly("ALTER TABLE `table` ADD COLUMN column3 TEXT;");
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly("ALTER TABLE `table` ADD COLUMN column3 TEXT;");
   }
 
   @Test
@@ -68,7 +69,7 @@ public class SqlStatementsGeneratorTest {
 
     EntityUpdate entityUpdate = new EntityUpdate(entity2, entity1);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
       "CREATE TABLE table_data$android_studio_tmp\n" +
       "(\n" +
       "\tcolumn1 TEXT,\n" +
@@ -89,7 +90,7 @@ public class SqlStatementsGeneratorTest {
 
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
       "CREATE TABLE table_data$android_studio_tmp\n" +
       "(\n" +
       "\tcolumn1 TEXT,\n" +
@@ -110,18 +111,97 @@ public class SqlStatementsGeneratorTest {
 
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
       "CREATE TABLE table_data$android_studio_tmp\n" +
       "(\n" +
-      "\tcolumn2 TEXT,\n" +
       "\tcolumn1 CHAR,\n" +
+      "\tcolumn2 TEXT,\n" +
       "\tPRIMARY KEY (column1)\n" +
       ");",
-      "INSERT INTO table_data$android_studio_tmp (column2, column1)\n" +
-      "\tSELECT column2, column1\n" +
+      "INSERT INTO table_data$android_studio_tmp (column1, column2)\n" +
+      "\tSELECT column1, column2\n" +
       "\tFROM `table`;",
       "DROP TABLE `table`;",
       "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;").inOrder();
+  }
+
+  @Test
+  public void testModifyColumnDefaultUpdateStatements() {
+    FieldBundle field = createFieldBundle("field2", "TEXT", "default");
+
+    EntityBundle entity1 = createEntityBundle("table", Arrays.asList(field1, field2));
+    EntityBundle entity2 = createEntityBundle("table", Arrays.asList(field1, field));
+
+    EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
+
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
+      "CREATE TABLE table_data$android_studio_tmp\n" +
+      "(\n" +
+      "\tcolumn1 TEXT,\n" +
+      "\tfield2 TEXT DEFAULT 'default',\n" +
+      "\tPRIMARY KEY (column1)\n" +
+      ");",
+      "INSERT INTO table_data$android_studio_tmp (column1)\n" +
+      "\tSELECT column1\n" +
+      "\tFROM `table`;",
+      "DROP TABLE `table`;",
+      "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;"
+    ).inOrder();
+  }
+
+  @Test
+  public void testInsertUserSpecifiedDefaultValuesUpdateStatements() {
+    EntityBundle entity1 = createEntityBundle("table", Collections.singletonList(field1));
+    EntityBundle entity2 = createEntityBundle("table", Arrays.asList(field1, field2, field3));
+
+    EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
+    entityUpdate.setValuesForUninitializedFields(ImmutableMap.of(field2, "value2", field3, "value3"));
+
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
+      "ALTER TABLE `table` ADD COLUMN column3 TEXT;",
+      "ALTER TABLE `table` ADD COLUMN column2 TEXT;",
+      "UPDATE `table`\n" +
+      "SET\tcolumn2 = 'value2',\n" +
+      "\tcolumn3 = 'value3';"
+    ).inOrder();
+  }
+
+  @Test
+  public void testAddNotNullColumnWithDefaultValue() {
+    FieldBundle field = new FieldBundle("", "field2", "TEXT", true, "default");
+
+    EntityBundle entity1 = createEntityBundle("table", Collections.singletonList(field1));
+    EntityBundle entity2 = createEntityBundle("table", Arrays.asList(field1, field));
+
+    EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
+
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
+      "ALTER TABLE `table` ADD COLUMN field2 TEXT DEFAULT 'default' NOT NULL;").inOrder();
+  }
+
+  @Test
+  public void testAddNotNullColumnWithoutDefaultValue() {
+    FieldBundle idField = new FieldBundle("id", "id", "INTEGER", true, null);
+    FieldBundle nameField = new FieldBundle("name", "name", "TEXT", true, null);
+
+    EntityBundle idOnly = createEntityBundle("my_table", Collections.singletonList(idField));
+    EntityBundle idAndName = createEntityBundle("my_table", Arrays.asList(idField, nameField));
+
+    EntityUpdate entityUpdate = new EntityUpdate(idOnly, idAndName);
+    entityUpdate.setValuesForUninitializedFields(ImmutableMap.of(nameField, "John Doe"));
+
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
+      "CREATE TABLE my_table_data$android_studio_tmp\n" +
+      "(\n" +
+      "\tid INTEGER NOT NULL,\n" +
+      "\tname TEXT NOT NULL,\n" +
+      "\tPRIMARY KEY (id)\n" +
+      ");",
+      "INSERT INTO my_table_data$android_studio_tmp (id, name)\n" +
+      "\tSELECT id, `'John Doe'`\n" +
+      "\tFROM my_table;",
+      "DROP TABLE my_table;",
+      "ALTER TABLE my_table_data$android_studio_tmp RENAME TO my_table;").inOrder();
   }
 
   @Test
@@ -135,7 +215,7 @@ public class SqlStatementsGeneratorTest {
 
     DatabaseUpdate databaseUpdate = new DatabaseUpdate(db1, db2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(databaseUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getMigrationStatements(databaseUpdate)).containsExactly(
       "CREATE TABLE table3\n" +
       "(\n" +
       "\tcolumn1 TEXT,\n" +
@@ -155,7 +235,7 @@ public class SqlStatementsGeneratorTest {
 
     DatabaseUpdate databaseUpdate = new DatabaseUpdate(db1, db2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(databaseUpdate)).containsExactly("DROP TABLE table2;");
+    assertThat(SqlStatementsGenerator.getMigrationStatements(databaseUpdate)).containsExactly("DROP TABLE table2;");
   }
 
   @Test
@@ -169,51 +249,18 @@ public class SqlStatementsGeneratorTest {
 
     DatabaseUpdate databaseUpdate = new DatabaseUpdate(db1, db2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(databaseUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getMigrationStatements(databaseUpdate)).containsExactly(
       "CREATE TABLE table1_data$android_studio_tmp\n" +
       "(\n" +
-      "\tcolumn2 TEXT,\n" +
       "\tcolumn1 CHAR,\n" +
+      "\tcolumn2 TEXT,\n" +
       "\tPRIMARY KEY (column1)\n" +
       ");",
-      "INSERT INTO table1_data$android_studio_tmp (column2, column1)\n" +
-      "\tSELECT column2, column1\n" +
+      "INSERT INTO table1_data$android_studio_tmp (column1, column2)\n" +
+      "\tSELECT column1, column2\n" +
       "\tFROM table1;",
       "DROP TABLE table1;",
       "ALTER TABLE table1_data$android_studio_tmp RENAME TO table1;").inOrder();
-  }
-
-  @Test
-  public void testNotNull() {
-    EntityBundle idOnly = createEntityBundle(
-      "my_table",
-      Collections.singletonList(
-        new FieldBundle("id",
-                        "id",
-                        "INTEGER",
-                        true,
-                        null)));
-
-    EntityBundle idAndName = createEntityBundle(
-      "my_table",
-      Arrays.asList(
-        new FieldBundle("id",
-                        "id",
-                        "INTEGER",
-                        true,
-                        null),
-        new FieldBundle("name",
-                        "name",
-                        "TEXT",
-                        true,
-                        null)));
-
-    DatabaseUpdate databaseUpdate = new DatabaseUpdate(
-      new DatabaseBundle(1, "hash", Collections.singletonList(idOnly), null, null),
-      new DatabaseBundle(2, "hash", Collections.singletonList(idAndName), null, null));
-
-    assertThat(SqlStatementsGenerator.getUpdateStatements(databaseUpdate))
-      .containsExactly("ALTER TABLE my_table ADD COLUMN name TEXT NOT NULL;");
   }
 
   @Test
@@ -228,7 +275,7 @@ public class SqlStatementsGeneratorTest {
 
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
       "CREATE TABLE table_data$android_studio_tmp\n" +
       "(\n" +
       "\tcolumn1 TEXT,\n" +
@@ -256,7 +303,7 @@ public class SqlStatementsGeneratorTest {
 
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
       "CREATE TABLE table_data$android_studio_tmp\n" +
       "(\n" +
       "\tcolumn1 INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
@@ -289,7 +336,7 @@ public class SqlStatementsGeneratorTest {
 
     DatabaseUpdate databaseUpdate = new DatabaseUpdate(db1, db2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(databaseUpdate)).containsExactly(
+    assertThat(SqlStatementsGenerator.getMigrationStatements(databaseUpdate)).containsExactly(
       "CREATE TABLE table2_data$android_studio_tmp\n" +
       "(\n" +
       "\tcolumn1 TEXT,\n" +
@@ -317,7 +364,7 @@ public class SqlStatementsGeneratorTest {
 
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly("DROP INDEX index_table_column1;").inOrder();
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly("DROP INDEX index_table_column1;").inOrder();
   }
 
   @Test
@@ -331,7 +378,7 @@ public class SqlStatementsGeneratorTest {
 
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate))
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate))
       .containsExactly("CREATE INDEX index_table_column1 ON `table` (column1);").inOrder();
   }
 
@@ -346,7 +393,7 @@ public class SqlStatementsGeneratorTest {
 
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate))
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate))
       .containsExactly("CREATE UNIQUE INDEX index_table_column1 ON `table` (column1);").inOrder();
   }
 
@@ -364,7 +411,7 @@ public class SqlStatementsGeneratorTest {
 
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate))
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate))
       .containsExactly("DROP INDEX index_table_column1;", "CREATE INDEX index_column1 ON `table` (column1);").inOrder();
   }
 
@@ -381,7 +428,7 @@ public class SqlStatementsGeneratorTest {
 
     EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
 
-    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate))
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate))
       .containsExactly(
         "CREATE TABLE table_data$android_studio_tmp\n" +
         "(\n" +

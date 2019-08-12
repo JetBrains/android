@@ -116,7 +116,7 @@ public class JavaMigrationClassGenerator {
     }
     migrationMethod.getParameterList().add(parameter);
 
-    List<String> sqlUpdateStatements = SqlStatementsGenerator.getUpdateStatements(databaseUpdate);
+    List<String> sqlUpdateStatements = SqlStatementsGenerator.getMigrationStatements(databaseUpdate);
     for (String sqlStatement : sqlUpdateStatements) {
       addMigrationStatement(migrationMethod, sqlStatement);
     }
