@@ -151,13 +151,13 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     // TODO: Assert that the SDK manager has a minimum set of SDKs installed needed to be certain the test is comprehensive
     // For now make sure there's at least one
     var ranTest = false
-    val lowestMinApiForProject = (moduleState.get(ATTR_MIN_API) as String).toInt().coerceAtLeast(moduleState.templateMetadata!!.minSdk)
+    val lowestMinApiForProject = (moduleState[ATTR_MIN_API] as String).toInt().coerceAtLeast(moduleState.template.metadata!!.minSdk)
     val targets = sdkData.targets.reversed()
       .filter { it.isPlatform && isInterestingApiLevel(it.version.apiLevel, MANUAL_BUILD_API, apiSensitiveTemplate) }
       .takeOneIfOtherwiseAll(TEST_JUST_ONE_BUILD_TARGET)
     for (target in targets) {
-      val activityMetadata = activityState.templateMetadata!!
-      val moduleMetadata = moduleState.templateMetadata!!
+      val activityMetadata = activityState.template.metadata!!
+      val moduleMetadata = moduleState.template.metadata!!
       val lowestSupportedApi = activityMetadata.minSdk.coerceAtLeast(lowestMinApiForProject)
 
       val interestingMinSdks = (lowestSupportedApi..SdkVersionInfo.HIGHEST_KNOWN_API)
@@ -207,7 +207,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     projectOverrides: Map<String, Any>
   ) {
     val moduleState = projectState.moduleTemplateState
-    val createActivity = moduleState.get(ATTR_CREATE_ACTIVITY) as Boolean? ?: true
+    val createActivity = moduleState[ATTR_CREATE_ACTIVITY] as Boolean? ?: true
     val templateState = (if (createActivity) projectState.activityTemplateState else activityState)!!
 
     moduleState.apply {
@@ -278,7 +278,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
         projectName = projectNameBase + "_" + parameter.id + "_" + value
         checkProject(projectName, projectState, activityState)
       }
-      templateState.put(parameter.id!!, initial)
+      templateState.put(parameter.id!!, initial!!)
     }
     projectName = projectNameBase + "_default"
     checkProject(projectName, projectState, activityState)
@@ -300,7 +300,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     val language = Language.fromName(moduleState[ATTR_LANGUAGE] as String?, Language.JAVA)
 
     val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker!!, language)
-    if (moduleState.get(ATTR_ANDROIDX_SUPPORT) != true) {
+    if (moduleState[ATTR_ANDROIDX_SUPPORT] != true) {
       // Make sure we test all templates against androidx
       setAndroidSupport(true, moduleState, activityState)
       projectChecker.checkProjectNow(projectName + "_x")
@@ -372,6 +372,5 @@ internal val TEST_FEWER_API_VERSIONS = !COMPREHENSIVE
 private val TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE
 private val TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE
 private val TEST_JUST_ONE_TARGET_SDK_VERSION = !COMPREHENSIVE
-private var ourValidatedTemplateManager = false
 // TODO: this is used only in TemplateTest. We should pass this value without changing template values.
 internal const val ATTR_CREATE_ACTIVITY = "createActivity"
