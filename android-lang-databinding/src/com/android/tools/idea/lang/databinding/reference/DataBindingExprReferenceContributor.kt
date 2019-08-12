@@ -360,24 +360,25 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
 
   /**
    * Given a [PsiElement] and its [simpleName] (e.g. name without any qualified prefix), attempts to find
-   * a reference for it.
+   * a reference for it. In case of name collisions variable names take precedence over imported short type names.
    */
   private fun getReferencesBySimpleName(element: PsiElement, simpleName: String): Array<PsiReference> {
     val module = ModuleUtilCore.findModuleForPsiElement(element) ?: return PsiReference.EMPTY_ARRAY
 
     // Search the parent layout file, as that will let us check if the current identifier is found
-    // somewhere in the <data> section
+    // somewhere in the <data> section.
     run {
       val layoutInfo = getParentLayoutInfo(module, element) ?: return PsiReference.EMPTY_ARRAY
+      val layoutData = layoutInfo.data
 
-      layoutInfo.xml.variables.firstOrNull { it.name == simpleName }?.let { variable ->
-        layoutInfo.psi.findVariableTag(variable)?.let { variableTag ->
+      layoutData.findVariable(simpleName)?.let { variable ->
+        DataBindingUtil.findVariableTag(layoutData, variable.name)?.let { variableTag ->
           return arrayOf(XmlVariableReference(element, variableTag, variable, layoutInfo, module))
         }
       }
 
-      layoutInfo.xml.imports.firstOrNull { it.aliasOrType == simpleName }?.let { import ->
-        layoutInfo.psi.findImportTag(import)?.let { importTag ->
+      layoutData.findImport(simpleName)?.let { import ->
+        DataBindingUtil.findImportTag(layoutData, simpleName)?.let { importTag ->
           return arrayOf(XmlImportReference(element, importTag, import, module))
         }
       }

@@ -19,8 +19,8 @@ import static com.android.tools.idea.lang.databinding.DataBindingLangUtil.JAVA_L
 
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingLangUtil;
+import com.android.tools.idea.res.binding.BindingLayoutData;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
-import com.android.tools.idea.res.binding.BindingLayoutXml;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
@@ -64,16 +64,17 @@ import org.jetbrains.annotations.Nullable;
  */
 public class DataBindingConverter extends ResolvingConverter<PsiElement> implements CustomReferenceConverter<PsiElement> {
   @Nullable
-  private static String getImport(@NotNull String alias, @NotNull ConvertContext context) {
+  private static String getImport(@NotNull String importedShortName, @NotNull ConvertContext context) {
     BindingLayoutInfo bindingInfo = getDataBindingInfo(context);
     if (bindingInfo == null) {
       return null;
     }
-    return bindingInfo.resolveImport(alias);
+    return bindingInfo.getData().resolveImport(importedShortName);
   }
 
   /**
-   * Completion is handled by {@link com.android.tools.idea.lang.databinding.DataBindingCompletionContributor}. So, nothing to do here.
+   * Completion is handled by {@link com.android.tools.idea.lang.databinding.completion.DataBindingCompletionContributor}.
+   * So, nothing to do here.
    */
   @Override
   @NotNull
@@ -91,8 +92,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (module == null) {
       return null;
     }
-    BindingLayoutInfo bindingLayoutInfo = getDataBindingInfo(context);
-    String qualifiedName = DataBindingUtil.resolveImport(type, bindingLayoutInfo);
+    BindingLayoutInfo layoutInfo = getDataBindingInfo(context);
+    String qualifiedName = layoutInfo == null ? type : DataBindingUtil.resolveImport(type, layoutInfo.getData());
     Project project = context.getProject();
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope scope = enlargeScope(module.getModuleWithDependenciesAndLibrariesScope(false),
@@ -153,19 +154,19 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
   private static String unresolveImport(String className, BindingLayoutInfo bindingLayoutInfo) {
     List<String> segments = StringUtil.split(className, ".");
     if (!segments.isEmpty()) {
-      String alias = null;
+      String importedShortName = null;
       int maxMatchedSegments = 0;
-      for (BindingLayoutXml.Import anImport : bindingLayoutInfo.getXml().getImports()) {
-        String importedType = anImport.getType();
+      for (BindingLayoutData.Import anImport : bindingLayoutInfo.getData().getImports().values()) {
+        String importedType = anImport.getQualifiedName();
         int matchedSegments = getNumberOfMatchedSegments(importedType, segments);
         if (matchedSegments > maxMatchedSegments) {
           maxMatchedSegments = matchedSegments;
-          alias = anImport.getAlias();
+          importedShortName = anImport.getImportedShortName();
         }
       }
-      if (maxMatchedSegments != 0 && alias != null) {
+      if (maxMatchedSegments != 0) {
         segments = segments.subList(maxMatchedSegments - 1, segments.size());
-        segments.set(0, alias);
+        segments.set(0, importedShortName);
         return StringUtil.join(segments, ".");
       }
     }
@@ -267,7 +268,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     private final String myReferenceTo;
     private final Module myModule;
 
-    public AliasedReference(PsiElement referenceFrom, TextRange range, String referenceTo, Module module) {
+    AliasedReference(PsiElement referenceFrom, TextRange range, String referenceTo, Module module) {
       super(referenceFrom, range, true);
       myReferenceTo = referenceTo;
       myModule = module;
@@ -354,7 +355,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
   private static class ClassReference extends PsiReferenceBase<PsiElement> {
     @NotNull private final PsiElement myResolveTo;
 
-    public ClassReference(@NotNull PsiElement element, @NotNull TextRange range, @NotNull PsiElement resolveTo) {
+    ClassReference(@NotNull PsiElement element, @NotNull TextRange range, @NotNull PsiElement resolveTo) {
       super(element, range, true);
       myResolveTo = resolveTo;
     }
