@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.event.EventModel
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
@@ -102,5 +103,25 @@ class CpuCaptureStageTest {
     assertThat(interactionTrackGroup.size).isEqualTo(2)
     assertThat(interactionTrackGroup[0].title).isEqualTo("User")
     assertThat(interactionTrackGroup[1].title).isEqualTo("Lifecycle")
+  }
+
+  @Test
+  fun minimapSetsCaptureRange() {
+    val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("basic.trace"))
+    profilers.stage = stage
+    assertThat(stage.minimapModel.maxRange.length.toLong()).isEqualTo(303)
+  }
+
+  @Test
+  fun minimapRangeSelectionUpdatesTrackGroups() {
+    val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("basic.trace"))
+    profilers.stage = stage
+    assertThat(stage.trackGroupListModel[0][0].dataModel.javaClass).isAssignableTo(EventModel::class.java)
+    val userEventModelRange = (stage.trackGroupListModel[0][0].dataModel as EventModel<*>).rangedSeries.xRange
+
+    // Select a new range
+    stage.minimapModel.rangeSelectionModel.selectionRange.set(1.0, 2.0)
+    assertThat(userEventModelRange.min).isEqualTo(1.0)
+    assertThat(userEventModelRange.max).isEqualTo(2.0)
   }
 }
