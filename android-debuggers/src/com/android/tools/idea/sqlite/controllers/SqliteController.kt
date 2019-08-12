@@ -161,15 +161,28 @@ class SqliteController(
   }
 
   private fun closeDatabase(existingDatabase: SqliteDatabase) {
+    val tabsToClose = resultSetControllers.keys
+      .filterIsInstance<TabId.TableTab>()
+      .filter { it.database == existingDatabase }
+
+    tabsToClose.forEach { closeTab(it) }
+
     val index = openDatabases.headMap(existingDatabase).size
     resultSetControllers.values
       .asSequence()
       .filterIsInstance<SqliteEvaluatorController>()
       .forEach { it.removeDatabase(index) }
+
     sqliteView.removeDatabaseSchema(existingDatabase)
 
     openDatabases.remove(existingDatabase)
     Disposer.dispose(existingDatabase)
+  }
+
+  private fun closeTab(tabId: TabId) {
+    sqliteView.closeTab(tabId)
+    val controller = resultSetControllers.remove(tabId)
+    controller?.let(Disposer::dispose)
   }
 
   private fun updateDatabaseSchema(database: SqliteDatabase) {
@@ -249,10 +262,7 @@ class SqliteController(
     }
 
     override fun closeTabActionInvoked(tabId: TabId) {
-      sqliteView.closeTab(tabId)
-
-      val controller = resultSetControllers.remove(tabId)
-      controller?.let(Disposer::dispose)
+      closeTab(tabId)
     }
 
     override fun removeDatabaseActionInvoked(database: SqliteDatabase) {
