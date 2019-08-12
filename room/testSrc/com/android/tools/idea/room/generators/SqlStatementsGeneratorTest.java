@@ -205,6 +205,60 @@ public class SqlStatementsGeneratorTest {
   }
 
   @Test
+  public void testRenameUpdateStatements() {
+    EntityBundle entity1 = createEntityBundle("table", Arrays.asList(field1, field2));
+    EntityBundle entity2 = createEntityBundle("table", Arrays.asList(field1, field3));
+
+    EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
+    entityUpdate.applyRenameMapping(ImmutableMap.of("column2", "column3"));
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
+      "ALTER TABLE `table` RENAME column2 TO column3;");
+  }
+
+  @Test
+  public void testComplexUpdateWithRenamedColumnStatements() {
+    FieldBundle field = createFieldBundle("column");
+    EntityBundle entity1 = createEntityBundle("table", Arrays.asList(field1, field2, field));
+    EntityBundle entity2 = createEntityBundle("table", Arrays.asList(field1, field3));
+
+    EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
+    entityUpdate.applyRenameMapping(ImmutableMap.of("column2", "column3"));
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
+      "CREATE TABLE table_data$android_studio_tmp\n" +
+      "(\n" +
+      "\tcolumn1 TEXT,\n" +
+      "\tcolumn3 TEXT,\n" +
+      "\tPRIMARY KEY (column1)\n" +
+      ");",
+      "INSERT INTO table_data$android_studio_tmp (column1, column3)\n" +
+      "\tSELECT column1, column2\n" +
+      "\tFROM `table`;",
+      "DROP TABLE `table`;",
+      "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;").inOrder();
+  }
+
+  @Test
+  public void testRenameAndModifyColumnStatements() {
+    EntityBundle entity1 = createEntityBundle("table", Arrays.asList(field2, field3));
+    EntityBundle entity2 = createEntityBundle("table", Arrays.asList(field2, field4));
+
+    EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
+    entityUpdate.applyRenameMapping(ImmutableMap.of("column3", "column1"));
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate)).containsExactly(
+      "CREATE TABLE table_data$android_studio_tmp\n" +
+      "(\n" +
+      "\tcolumn2 TEXT,\n" +
+      "\tcolumn1 CHAR,\n" +
+      "\tPRIMARY KEY (column2)\n" +
+      ");",
+      "INSERT INTO table_data$android_studio_tmp (column2, column1)\n" +
+      "\tSELECT column2, column3\n" +
+      "\tFROM `table`;",
+      "DROP TABLE `table`;",
+      "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;").inOrder();
+  }
+
+  @Test
   public void testAddEntityUpdateStatement() {
     EntityBundle entity1 = createEntityBundle("table1", Arrays.asList(field1, field2));
     EntityBundle entity2 = createEntityBundle("table2", Arrays.asList(field1, field2, field3));
