@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.project;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
+import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
@@ -31,7 +32,6 @@ import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateHandle;
@@ -111,7 +111,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     LicenseAgreementStep licenseAgreementStep =
-      new LicenseAgreementStep(new LicenseAgreementModel(AndroidVersionsInfo.getSdkManagerLocalPath()), myInstallLicenseRequests);
+      new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), myInstallLicenseRequests);
 
     InstallSelectedPackagesStep installPackagesStep =
       new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), AndroidSdks.getInstance().tryToChooseSdkHandler(), false);
