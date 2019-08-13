@@ -339,8 +339,8 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   }
 
   /**
-   * Returns the parent XML layout info for the target [element], or `null` if that isn't possible
-   * (e.g. databinding isn't enabled for this module)
+   * Returns the parent XML layout info for the target [element], or null if that isn't possible
+   * (e.g. databinding isn't enabled for this module).
    */
   private fun getParentLayoutInfo(module: Module, element: PsiElement): BindingLayoutInfo? {
     val facet = AndroidFacet.getInstance(module)?.takeIf { facet -> DataBindingUtil.isDataBindingEnabled(facet) }
@@ -354,8 +354,8 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       topLevelFile.context?.containingFile?.let { topLevelFile = it }
     }
 
-    val fileNameWithoutExtension = topLevelFile.name.substringBeforeLast('.')
-    return moduleResources.getBindingLayoutInfo(fileNameWithoutExtension)
+    val fileNameWithoutExtension = topLevelFile.name.substringBefore('.')
+    return moduleResources.getBindingLayoutInfo(fileNameWithoutExtension).firstOrNull()
   }
 
   /**

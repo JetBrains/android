@@ -24,7 +24,6 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ResourceAsserts.assertThat;
-import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
 import static com.android.tools.idea.testing.AndroidTestUtils.moveCaret;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
@@ -150,15 +149,15 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   private static void resetScanCounter() {
-    ourFullRescans = 0;
+    ResourceFolderRepository.ourFullRescans = 0;
   }
 
   private static void ensureIncremental() {
-    assertEquals(0, ourFullRescans);
+    assertEquals(0, ResourceFolderRepository.ourFullRescans);
   }
 
   private static void ensureSingleScan() {
-    assertEquals(1, ourFullRescans);
+    assertEquals(1, ResourceFolderRepository.ourFullRescans);
   }
 
   @NotNull
@@ -209,11 +208,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Verify that we generated expected data binding resources by comparing the path to all
     // XML files we plan to generate layout bindings for.
-    Set<String> actualNames = actual.getDataBindingResourceFiles().stream()
+    Set<String> actualNames = actual.getBindingLayoutGroups().values().stream()
       .flatMap(group -> group.getLayouts().stream())
       .map(layout -> layout.getQualifiedClassName())
       .collect(Collectors.toSet());
-    Set<String> expectedNames = expected.getDataBindingResourceFiles().stream()
+    Set<String> expectedNames = expected.getBindingLayoutGroups().values().stream()
       .flatMap(group -> group.getLayouts().stream())
       .map(layout -> layout.getQualifiedClassName())
       .collect(Collectors.toSet());
@@ -3630,7 +3629,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     Future<ResourceFolderRepository> loadJob = executorService.submit(() -> createRegisteredRepository());
     ResourceFolderRepository resources = loadJob.get();
     assertNotNull(resources);
-    assertEquals(1, resources.getDataBindingResourceFiles().size());
+    assertEquals(1, resources.getBindingLayoutGroups().size());
     assertEquals("land", getOnlyItem(resources, ResourceType.LAYOUT, "layout_with_data_binding").getConfiguration().getQualifierString());
     ResourceItem dupedStringItem = resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0);
     assertNotNull(dupedStringItem);

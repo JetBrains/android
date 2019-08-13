@@ -19,7 +19,7 @@ import static com.android.tools.idea.lang.databinding.DataBindingLangUtil.JAVA_L
 
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingLangUtil;
-import com.android.tools.idea.res.binding.BindingLayoutData;
+import com.android.tools.idea.res.BindingLayoutData;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -123,13 +123,13 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
 
   @Override
   @Nullable
-  public String toString(@Nullable PsiElement element, ConvertContext context) {
+  public String toString(@Nullable PsiElement element, @NotNull ConvertContext context) {
     if (element instanceof PsiClass) {
       String type = ((PsiClass)element).getQualifiedName();
       if (type != null) {
         BindingLayoutInfo bindingLayoutInfo = getDataBindingInfo(context);
         if (bindingLayoutInfo != null) {
-          type = unresolveImport(type, bindingLayoutInfo);
+          type = unresolveImport(type, bindingLayoutInfo.getData());
         }
       }
       return type;
@@ -146,17 +146,17 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
    * import statements.
    *
    * @param className the fully qualified class name
-   * @param bindingLayoutInfo the data binding information containing the import statements to use
+   * @param layoutData the data binding information containing the import statements to use
    * @return a shorter class name, or the original name if it doesn't match any import statement
    *
-   * @see #resolveImport
+   * @see BindingLayoutData#resolveImport
    */
-  private static String unresolveImport(String className, BindingLayoutInfo bindingLayoutInfo) {
+  private static String unresolveImport(@NotNull String className, @NotNull BindingLayoutData layoutData) {
     List<String> segments = StringUtil.split(className, ".");
     if (!segments.isEmpty()) {
       String importedShortName = null;
       int maxMatchedSegments = 0;
-      for (BindingLayoutData.Import anImport : bindingLayoutInfo.getData().getImports().values()) {
+      for (BindingLayoutData.Import anImport : layoutData.getImports()) {
         String importedType = anImport.getQualifiedName();
         int matchedSegments = getNumberOfMatchedSegments(importedType, segments);
         if (matchedSegments > maxMatchedSegments) {
@@ -260,7 +260,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
   }
 
   @Nullable
-  protected static BindingLayoutInfo getDataBindingInfo(@NotNull final ConvertContext context) {
+  protected static BindingLayoutInfo getDataBindingInfo(@NotNull ConvertContext context) {
     return DataBindingLangUtil.getBindingLayoutInfo(context.getFile());
   }
 

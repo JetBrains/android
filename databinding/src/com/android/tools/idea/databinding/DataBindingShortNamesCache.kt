@@ -109,6 +109,7 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     return allClassNamesCache.value
   }
 
+  // TODO(davidhemnan): Override a non-deprecated method instead.
   override fun getAllClassNames(dest: HashSet<String>) {
     dest.addAll(allClassNames)
   }
@@ -137,6 +138,7 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     return allMethodNamesCache.value
   }
 
+  // TODO(davidhemnan): Override a non-deprecated method instead.
   override fun getAllMethodNames(set: HashSet<String>) {
     set.addAll(allClassNames)
   }
@@ -154,6 +156,7 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     return allFieldNamesCache.value
   }
 
+  // TODO(davidhemnan): Override a non-deprecated method instead.
   override fun getAllFieldNames(set: HashSet<String>) {
     set.addAll(allFieldNames)
   }
@@ -171,8 +174,11 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
     override fun doCompute(): Map<String, List<LightBindingClass>> {
       val moduleResources = ResourceRepositoryManager.getInstance(facet).existingModuleResources ?: return defaultValue()
-      val groups = moduleResources.dataBindingResourceFiles ?: return defaultValue()
-      return groups
+      val groups = moduleResources.bindingLayoutGroups
+      if (groups.isEmpty()) {
+        return defaultValue()
+      }
+      return groups.values
         .flatMap { group -> ModuleDataBinding.getInstance(facet).getLightBindingClasses(group) }
         .groupBy { bindingClass -> bindingClass.name }
     }

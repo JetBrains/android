@@ -23,7 +23,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
 import com.android.tools.idea.databinding.index.ViewIdInfo;
-import com.android.tools.idea.res.binding.BindingLayoutData;
+import com.android.tools.idea.res.BindingLayoutData;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.highlighter.JavaFileType;
@@ -67,8 +67,8 @@ import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import kotlin.Pair;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -144,7 +144,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   /**
-   * Convenience method to grab the facet out of the config, since it is needed so often
+   * Convenience method to grab the facet out of the config, since it is needed so often.
    */
   @NotNull
   private AndroidFacet getFacet() {
@@ -265,7 +265,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     if (!continueProcessing) {
       return false;
     }
-    Map<String, BindingLayoutData.Import> imports = myConfig.getTargetLayout().getData().getImports();
+    Collection<BindingLayoutData.Import> imports = myConfig.getTargetLayout().getData().getImports();
     if (imports.isEmpty()) {
       return true;
     }
@@ -273,7 +273,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     if (classHint != null && classHint.shouldProcess(ElementClassHint.DeclarationKind.CLASS)) {
       NameHint nameHint = processor.getHint(NameHint.KEY);
       String name = nameHint != null ? nameHint.getName(state) : null;
-      for (BindingLayoutData.Import anImport : imports.values()) {
+      for (BindingLayoutData.Import anImport : imports) {
         if (!anImport.isShortNameDerivedFromQualifiedName()) {
           continue; // Aliases are pre-resolved.
         }

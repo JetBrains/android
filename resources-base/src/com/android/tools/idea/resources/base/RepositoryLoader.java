@@ -623,9 +623,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
    */
   @NotNull
   protected static String getResourceName(@NotNull PathString file) {
-    String filename = file.getFileName();
-    int dotPos = filename.indexOf('.');
-    return dotPos < 0 ? filename : filename.substring(0, dotPos);
+    return StringUtil.trimExtensions(file.getFileName());
   }
 
   @NotNull
