@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This implements the {@link StatusPanelModel} it is responsible for updating the parsing time, as well as showing notifications when
@@ -35,8 +36,12 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
   @NotNull private final File myCaptureFile;
   private boolean myIsParsing = false;
 
-  public CpuCaptureHandler(@NotNull IdeProfilerServices services, @NotNull File captureFile, @NotNull String configuration) {
+  public CpuCaptureHandler(@NotNull IdeProfilerServices services,
+                           @NotNull File captureFile,
+                           @NotNull String configuration,
+                           @Nullable String captureProcessNameHint) {
     myCaptureParser = new CpuCaptureParser(services);
+    myCaptureParser.setProcessNameHint(captureProcessNameHint);
     myCaptureFile = captureFile;
     myServices = services;
     myConfiguration = configuration;

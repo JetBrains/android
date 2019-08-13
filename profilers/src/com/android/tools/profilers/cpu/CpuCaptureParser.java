@@ -29,9 +29,9 @@ import com.android.tools.profilers.cpu.atrace.PerfettoProducer;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,6 +91,11 @@ public class CpuCaptureParser {
   private long myParsingStartTimeMs;
 
   /**
+   * Hint to the parser what process to look for. This is used when parsing Perfetto/Atrace captures that were recorded from the UI.
+   */
+  private String myProcessNameHint;
+
+  /**
    * Metadata associated with parsing a capture. If an entry exists, the metadata will be populated and uploaded to metrics.
    */
   private Map<Long, CpuCaptureMetadata> myCaptureMetadataMap = new HashMap<>();
@@ -144,6 +149,10 @@ public class CpuCaptureParser {
 
   public long getParsingElapsedTimeMs() {
     return System.currentTimeMillis() - myParsingStartTimeMs;
+  }
+
+  public void setProcessNameHint(@Nullable String processName) {
+    myProcessNameHint = processName;
   }
 
   /**
@@ -259,10 +268,20 @@ public class CpuCaptureParser {
           // Any process matching the application id of the current project will be sorted to
           // the top of our process list.
           CpuThreadSliceInfo[] processList = parser.getProcessList(myServices.getApplicationId());
-          CpuThreadSliceInfo selected = myServices.openListBoxChooserDialog("Select a process",
-                                                                            "Select the process you want to analyze.",
-                                                                            processList,
-                                                                            (t) -> t.getProcessName());
+          // Attempt to find users intended process.
+          CpuThreadSliceInfo selected = null;
+          // 1) Use hint if available.
+          if (StringUtil.isNotEmpty(myProcessNameHint)) {
+            selected = Arrays.stream(processList).filter(it -> myProcessNameHint.endsWith(it.getProcessName())).findFirst().orElse(null);
+          }
+
+          // 2) Ask the user for input.
+          if (selected == null) {
+            selected = myServices.openListBoxChooserDialog("Select a process",
+                                                           "Select the process you want to analyze.",
+                                                           processList,
+                                                           (t) -> t.getProcessName());
+          }
           if (selected != null) {
             parser.setSelectProcess(selected);
             return parser.parse(traceFile, IMPORTED_TRACE_ID);
