@@ -297,7 +297,7 @@ public class GuiTestRule implements TestRule {
   }
 
   @NotNull
-  public IdeFrameFixture openProject(@NotNull String projectDirName) throws Exception {
+  public Project openProject(@NotNull String projectDirName) throws Exception {
     File projectDir = copyProjectBeforeOpening(projectDirName);
     VirtualFile fileToSelect = VfsUtil.findFileByIoFile(projectDir, true);
     ProjectManager.getInstance().loadAndOpenProject(fileToSelect.getPath());
@@ -306,9 +306,8 @@ public class GuiTestRule implements TestRule {
 
     Project project = ProjectManager.getInstance().getOpenProjects()[0];
     GuiTests.waitForProjectIndexingToFinish(project);
-    IdeFrameFixture ideFrameFixture = ideFrame().updateToolbars();
-
-    return ideFrameFixture;
+    ideFrame().updateToolbars();
+    return project;
   }
 
   public IdeFrameFixture importSimpleApplication() throws IOException {

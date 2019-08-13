@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.adtui.ASGallery;
@@ -23,23 +24,17 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JRootPane;
-import javax.swing.JTextField;
 import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizardFixture> {
 
-  public static NewModuleWizardFixture find(IdeFrameFixture ideFrameFixture) {
-    JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Create New Module"));
-    return new NewModuleWizardFixture(ideFrameFixture, dialog);
+  public static NewModuleWizardFixture find(IdeFrameFixture ideFrame) {
+    JDialog dialog = waitUntilShowing(ideFrame.robot(), Matchers.byTitle(JDialog.class, message("android.wizard.module.new.module.title")));
+    return new NewModuleWizardFixture(ideFrame, dialog);
   }
 
   private final IdeFrameFixture myIdeFrameFixture;
@@ -50,84 +45,62 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public NewModuleWizardFixture chooseModuleType(String name) {
-    JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
-    listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());
-    listFixture.clickItem(name);
-    return this;
-  }
-
-  @NotNull
-  public NewModuleWizardFixture setModuleName(String name) {
-    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).setText(name);
-    return this;
-  }
-
-  @NotNull
-  public NewModuleWizardFixture setFileName(String name) {
-    TextFieldWithBrowseButton panel = robot().finder().findByLabel(target(), "File name:", TextFieldWithBrowseButton.class);
-    new JTextComponentFixture(robot(), robot().finder().findByType(panel, JTextField.class)).setText(name);
-    return this;
-  }
-
-  @NotNull
-  public NewModuleWizardFixture setSubprojectName(String name) {
-    new JTextComponentFixture(robot(), robot().finder().findByLabel(target(), "Subproject name:", JTextField.class)).setText(name);
-    return this;
-  }
-
-  @NotNull
-  public NewModuleWizardFixture setSourceLanguage(String sourceLanguage) {
-    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Language:", JComboBox.class, true))
-      .selectItem(sourceLanguage);
-    return this;
-  }
-
-  @NotNull
   public NewModuleWizardFixture chooseActivity(String activity) {
     new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class)).clickItem(activity);
     return this;
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> getConfigureAndroidModuleStep() {
-    JRootPane rootPane = findStepWithTitle("Configure the new module");
-    return new ConfigureAndroidModuleStepFixture<>(this, rootPane);
-  }
-
-  @NotNull
-  public ConfigureBasicActivityStepFixture<NewModuleWizardFixture> getConfigureActivityStep() {
-    JRootPane rootPane = findStepWithTitle("Configure Activity");
-    return new ConfigureBasicActivityStepFixture<>(this, rootPane);
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextPhoneAndTabletModule() {
+    clickNextToStep(message("android.wizard.module.new.mobile"), message("android.wizard.module.new.mobile"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
   public ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture> clickNextToDynamicFeature() {
-    chooseModuleType("Dynamic Feature Module");
-    clickNext();
-    JRootPane rootPane = findStepWithTitle("Configure your module");
-    return new ConfigureDynamicFeatureStepFixture<>(this, rootPane);
+    clickNextToStep(message("android.wizard.module.new.dynamic.module"), message("android.wizard.module.config.title"));
+    return new ConfigureDynamicFeatureStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
   public ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture> clickNextToInstantDynamicFeature() {
-    chooseModuleType(message("android.wizard.module.new.dynamic.module.instant"));
-    clickNext();
-    JRootPane rootPane = findStepWithTitle("Configure your module");
-    return new ConfigureDynamicFeatureStepFixture<>(this, rootPane);
+    clickNextToStep(message("android.wizard.module.new.dynamic.module.instant"), message("android.wizard.module.config.title"));
+    return new ConfigureDynamicFeatureStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
-  public NewModuleWizardFixture clickNextToStep(String name) {
-    GuiTests.findAndClickButton(this, "Next");
-    Wait.seconds(5).expecting("next step to appear").until(
-      () -> robot().finder().findAll(target(), JLabelMatcher.withText(name).andShowing()).size() == 1);
-    return this;
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextToAndroidLibrary() {
+    clickNextToStep(message("android.wizard.module.new.library"), message("android.wizard.module.new.library"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
-  public ConfigureJavaLibraryStepFixture<NewModuleWizardFixture> getConfigureJavaLibaryStepFixture() {
+  public ConfigureJavaLibraryStepFixture<NewModuleWizardFixture> clickNextToJavaLibrary() {
+    clickNextToStep(message("android.wizard.module.new.java.library"), message("android.wizard.module.config.title"));
     return new ConfigureJavaLibraryStepFixture<>(this, target().getRootPane());
+  }
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextToBenchmarkModule() {
+    clickNextToStep(message("android.wizard.module.new.benchmark.module.app"), message("android.wizard.module.config.title"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
+  }
+
+  @NotNull
+  public ConfigureNewModuleFromJarStepFixture<NewModuleWizardFixture> clickNextToModuleFromJar() {
+    clickNextToStep(message("android.wizard.module.import.title"), message("android.wizard.module.import.library.title"));
+    return new ConfigureNewModuleFromJarStepFixture<>(this, target().getRootPane());
+  }
+
+  private void clickNextToStep(String moduleName, String nextStepTitle) {
+    JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
+    listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());
+    listFixture.clickItem(moduleName);
+
+    clickNext();
+
+    Wait.seconds(5).expecting("next step to appear").until(
+      () -> robot().finder().findAll(target(), JLabelMatcher.withText(nextStepTitle).andShowing()).size() == 1);
   }
 
   @NotNull

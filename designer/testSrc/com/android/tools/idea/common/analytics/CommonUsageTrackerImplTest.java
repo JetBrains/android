@@ -44,6 +44,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     when(surface.getScale()).thenReturn(0.50);
     Configuration configuration = getConfigurationMock();
     when(surface.getConfigurations()).thenReturn(ImmutableList.of(configuration));
+    surface.setState(DesignSurface.State.SPLIT);
 
     return new CommonUsageTrackerImpl(SYNC_EXECUTOR, surface, usageTracker::logNow) {
       @Override

@@ -69,7 +69,6 @@ public final class AsyncDevicesGetterTest {
     AndroidDevice googlePixel3AndroidDevice = Mockito.mock(AndroidDevice.class);
 
     ConnectedDevice googlePixel3ConnectedDevice = new TestConnectedDevice.Builder()
-      .setName("Connected Device")
       .setKey("86UX00F4R")
       .setAndroidDevice(googlePixel3AndroidDevice)
       .setPhysicalDeviceName("Google Pixel 3")
@@ -78,7 +77,6 @@ public final class AsyncDevicesGetterTest {
     AndroidDevice pixel3ApiQAndroidDevice = Mockito.mock(AndroidDevice.class);
 
     ConnectedDevice pixel3ApiQConnectedDevice = new TestConnectedDevice.Builder()
-      .setName("Connected Device")
       .setKey("emulator-5554")
       .setAndroidDevice(pixel3ApiQAndroidDevice)
       .setVirtualDeviceKey("Pixel_3_API_Q")

@@ -27,8 +27,7 @@ import com.intellij.psi.xml.XmlTag
 data class PsiDataBindingResourceItem(
   val name: String,
   val type: DataBindingResourceType,
-  val xmlTag: XmlTag,
-  val source: PsiResourceFile) {
+  val xmlTag: XmlTag) {
 
   /**
    * If you are planning to call this with [SdkConstants.ATTR_TYPE], use [typeDeclaration] instead.

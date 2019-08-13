@@ -238,7 +238,11 @@ public class CpuProfilerTestUtils {
     AspectObserver parseObserver = new AspectObserver();
     CountDownLatch parsingLatch = new CountDownLatch(0);
     // If the trace is empty, then parsing will not happen.
-    if (traceContent != null && !traceContent.isEmpty()) {
+    // If we are in the capture stage then shouldn't create a latch for the capture parsing in the profiler stage.
+    // TODO (b/132268755): Understand what needs to happen here now we have a capture stage.
+    if (traceContent != null &&
+        !traceContent.isEmpty() &&
+        !stage.getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
       parsingLatch = waitForParsingStartFinish(stage, parseObserver);
     }
     // Trigger the TransportEventPoller to run and the CpuTraceInfo to be picked up by the CpuProfilerStage.

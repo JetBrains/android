@@ -19,7 +19,6 @@ import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.Disposable
 
 /**
  * Abstraction over operations allowed on a single underlying sqlite database.
@@ -30,7 +29,7 @@ import com.intellij.openapi.Disposable
  * The [dispose] method cancels all pending operations and releases all resources associated with
  * the service.
  */
-interface SqliteService : Disposable {
+interface SqliteService {
   fun openDatabase(): ListenableFuture<Unit>
   fun closeDatabase(): ListenableFuture<Unit>
   fun readSchema(): ListenableFuture<SqliteSchema>

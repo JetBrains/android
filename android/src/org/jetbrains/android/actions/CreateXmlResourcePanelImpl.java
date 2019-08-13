@@ -16,6 +16,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.builder.model.SourceProvider;
+import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
@@ -52,7 +53,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   private JTextField myNameField;
   private ModulesComboBox myModuleCombo;
   private JBLabel myModuleLabel;
-  private JTextArea myValueField;
+  private JTextField myValueField;
   private JBLabel myValueLabel;
   private JBLabel myNameLabel;
   private JComboBox myFileNameCombo;
@@ -103,7 +104,10 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
 
       setChangeValueVisible(true);
       if (!StringUtil.isEmpty(resourceValue)) {
-        myValueField.setText(resourceValue);
+        // Need to escape the string to properly represent it in the JTextField.
+        // E.g: If the string is "foo \n bar" we need to pass "foo \\n bar" to properly see it in the JTextField.
+        String value = (resourceType == ResourceType.STRING)? ValueXmlHelper.escapeResourceString(resourceValue, false): resourceValue;
+        myValueField.setText(value);
       }
     }
 
@@ -314,7 +318,10 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   @Override
   @NotNull
   public String getValue() {
-    return myValueField.getText();
+    String value = myValueField.getText();
+    // When we need to get the desired value for a string resource, the text has to be unescaped.
+    // E.g: If the user types "foo \n bar" JTextField.getText will return "foo \\n bar" so it has to be unescaped.
+    return (myResourceType == ResourceType.STRING)? ValueXmlHelper.unescapeResourceString(value, false, false) : value;
   }
 
   @Nullable

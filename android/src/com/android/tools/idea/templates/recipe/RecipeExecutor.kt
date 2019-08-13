@@ -91,12 +91,17 @@ interface RecipeExecutor {
   fun popFolder()
 
   /**
-   * Append contents of the first file to the second one.
-   */
-  fun append(from: File, to: File)
-
-  /**
    * Add a variable that can be referenced while the template is being rendered.
    */
   fun addGlobalVariable(id: String, value: Any)
+
+  /**
+   * Add source directory or file (if [type] is a manifest).
+   */
+  fun addSourceSet(type: String, name: String, dir: String)
+
+  /**
+   * Set variable in ext block of global build.gradle.
+   */
+  fun setExtVar(name: String, value: String)
 }

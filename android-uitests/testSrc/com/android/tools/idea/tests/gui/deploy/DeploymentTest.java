@@ -105,7 +105,7 @@ public class DeploymentTest {
     // Start ADB with fake server and its port.
     AndroidDebugBridge.enableFakeAdbServerMode(myAdbServer.getPort());
 
-    myProject = myGuiTest.openProject(PROJECT_NAME).getProject();
+    myProject = myGuiTest.openProject(PROJECT_NAME);
 
     // Get the bridge synchronously, since we're in test mode.
     myBridge = AdbService.getInstance().getDebugBridge(AndroidSdkUtils.getAdb(myProject)).get();
@@ -166,7 +166,6 @@ public class DeploymentTest {
   private void connectDevices() throws Exception {
     for (FakeDeviceLibrary.DeviceId id : FakeDeviceLibrary.DeviceId.values()) {
       FakeDevice device = new FakeDeviceLibrary().build(id);
-      device.setShellBridge(DeployerTestUtils.getShell());
       myHandler.connect(device, myAdbServer);
     }
 

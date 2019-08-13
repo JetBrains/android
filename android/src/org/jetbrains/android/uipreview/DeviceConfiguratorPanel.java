@@ -547,14 +547,11 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         }
       });
 
-      myComboBox.setRenderer(new ListCellRendererWrapper() {
-        @Override
-        public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-          if (value instanceof ResourceEnum) {
-            setText(((ResourceEnum)value).getShortDisplayValue());
-          }
+      myComboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+        if (value instanceof ResourceEnum) {
+          label.setText(((ResourceEnum)value).getShortDisplayValue());
         }
-      });
+      }));
 
       final JPanel panel = new JPanel(new VerticalFlowLayout());
       final JBLabel label = new JBLabel(getCaption());

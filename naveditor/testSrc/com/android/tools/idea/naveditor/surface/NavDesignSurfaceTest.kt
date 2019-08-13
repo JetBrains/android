@@ -91,32 +91,6 @@ import kotlin.test.assertNotEquals
  */
 class NavDesignSurfaceTest : NavTestCase() {
 
-  fun testSwitchTabMetrics() {
-    // TODO(b/136174865): port metrics to split editor
-    StudioFlags.NELE_SPLIT_EDITOR.override(false)
-    val model = model("nav.xml") { navigation() }
-    val file = model.virtualFile
-    val fileEditorManager = FileEditorManagerImpl(project)
-    (project as ComponentManagerImpl).registerComponentInstance(FileEditorManager::class.java, fileEditorManager)
-
-    val editors = fileEditorManager.openFile(file, true)
-    val surface = editors.firstIsInstance<NavEditor>().component.surface
-    // When the file is opened we create the surface synchronously but initialize the model asynchronously. We have to wait until it's set
-    // to continue, since metrics logging depends on it.
-    // If there's some problem, stop after three seconds.
-    val startTime = System.currentTimeMillis()
-    while (surface.model == null && System.currentTimeMillis() < startTime + TimeUnit.SECONDS.toMillis(3)) {
-      UIUtil.dispatchAllInvocationEvents()
-    }
-    TestNavUsageTracker.create(surface.model!!).use { tracker ->
-      fileEditorManager.setSelectedEditor(file, TextEditorProvider.getInstance().editorTypeId)
-      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_XML_TAB).build())
-      fileEditorManager.setSelectedEditor(file, NAV_EDITOR_ID)
-      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_DESIGN_TAB).build())
-    }
-    StudioFlags.NELE_SPLIT_EDITOR.clearOverride()
-  }
-
   fun testOpenFileMetrics() {
     val surface = NavDesignSurface(project, project)
 

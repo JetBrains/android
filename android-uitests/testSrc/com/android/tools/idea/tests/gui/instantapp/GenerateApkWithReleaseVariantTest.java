@@ -60,8 +60,8 @@ public class GenerateApkWithReleaseVariantTest {
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 
     NewModuleWizardFixture.find(ideFrame)
-      .chooseModuleType("Android Library")
-      .clickNextToStep("Configure the new module")
+      .clickNextToAndroidLibrary()
+      .wizard()
       .clickFinish();
     ideFrame.waitForGradleProjectSyncToFinish();
 

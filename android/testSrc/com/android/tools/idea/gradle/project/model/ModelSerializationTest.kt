@@ -100,7 +100,17 @@ import com.android.ide.common.gradle.model.stubs.TestedTargetVariantStub
 import com.android.ide.common.gradle.model.stubs.VariantStub
 import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.ide.common.gradle.model.stubs.l2AndroidLibrary
+import com.android.ide.common.gradle.model.stubs.l2JavaLibrary
+import com.android.ide.common.gradle.model.stubs.l2ModuleLibrary
+import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder
+import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStubBuilder
+import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStubBuilder
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.model.java.GradleModuleVersionImpl
+import com.android.tools.idea.gradle.model.java.JarLibraryDependency
+import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot
+import com.android.tools.idea.gradle.model.java.JavaModuleDependency
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.intellij.serialization.ObjectSerializer
 import com.intellij.serialization.ReadConfiguration
@@ -165,6 +175,26 @@ class ModelSerializationTest {
     NdkModuleModel("moduleName", File("some/path"), IdeNativeAndroidProjectImpl(NativeAndroidProjectStub()), listOf())
   }
 
+  @Test
+  fun gradleModuleVersionImpl() = assertSerializable {
+    GradleModuleVersionImpl("group", "name", "version")
+  }
+
+  @Test
+  fun jarLibraryDependency() = assertSerializable {
+    JarLibraryDependency("name", null, null, null, null, null, false)
+  }
+
+  @Test
+  fun javaModuleContentRoot() = assertSerializable {
+    JavaModuleContentRoot(File("rootDir"), listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
+  }
+
+  @Test
+  fun javaModuleDependency() = assertSerializable {
+    JavaModuleDependency("moduleName", "moduleId", null, false)
+  }
+
   /*
    * END IDE ONLY MODULES
    * BEGIN LEVEL TWO DEPENDENCY MODELS
@@ -173,18 +203,17 @@ class ModelSerializationTest {
   @Test
   fun level2AndroidLibrary() = assertSerializable {
     IdeLibraryFactory().create(
-      com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub()) as com.android.ide.common.gradle.model.level2.IdeAndroidLibrary
+      AndroidLibraryStubBuilder().build()) as com.android.ide.common.gradle.model.level2.IdeAndroidLibrary
   }
 
   @Test
   fun level2JavaLibrary() = assertSerializable {
-    IdeLibraryFactory().create(
-      com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub()) as com.android.ide.common.gradle.model.level2.IdeJavaLibrary
+    IdeLibraryFactory().create(JavaLibraryStubBuilder().build()) as com.android.ide.common.gradle.model.level2.IdeJavaLibrary
   }
 
   @Test
   fun level2ModuleLibrary() = assertSerializable {
-    IdeLibraryFactory().create(com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub()) as IdeModuleLibrary
+    IdeLibraryFactory().create(ModuleLibraryStubBuilder().build()) as IdeModuleLibrary
   }
 
   @Test
@@ -195,16 +224,9 @@ class ModelSerializationTest {
     val androidGraphItem = GraphItemStub("androidLibrary", listOf(), "")
     val moduleGraphItem = GraphItemStub("module", listOf(), "")
 
-    val level2JavaLibrary = object : com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub() {
-      override fun getArtifactAddress() = "javaLibrary"
-
-    }
-    val level2AndroidLibrary = object : com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub() {
-      override fun getArtifactAddress() = "androidLibrary"
-    }
-    val level2ModuleLibrary = object : com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub() {
-      override fun getArtifactAddress() = "module"
-    }
+    val level2JavaLibrary = l2JavaLibrary("javaLibrary")
+    val level2AndroidLibrary = l2AndroidLibrary("androidLibrary")
+    val level2ModuleLibrary = l2ModuleLibrary("module")
 
     val graphStub = DependencyGraphsStub(listOf(javaGraphItem, androidGraphItem, moduleGraphItem), listOf(), listOf(), listOf())
     localDependenciesFactory.setUpGlobalLibraryMap(listOf(GlobalLibraryMapStub(

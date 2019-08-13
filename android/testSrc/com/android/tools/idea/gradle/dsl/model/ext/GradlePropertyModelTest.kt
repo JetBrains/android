@@ -2857,8 +2857,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   @Test
   fun testVariablesFromNestedApply() {
-    writeToNewProjectFile("b", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE)
-    writeToNewProjectFile("a", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_TWO)
+    val b = writeToNewProjectFile("b", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE)
+    val a = writeToNewProjectFile("a", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_TWO)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY)
 
     val buildModel = gradleBuildModel
@@ -2867,14 +2867,14 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val properties = buildModel.ext().inScopeProperties
       assertSize(5, properties.values)
       verifyPropertyModel(properties["prop2"], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "prop2", "ext.prop2")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop2"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop2"]!!.gradleFile)
       verifyListProperty(properties["prop1"], listOf("var1", "var2", "var3"), false)
       verifyListProperty(properties["prop1"], listOf("1", true, 1), REGULAR, 3)
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop1"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop1"]!!.gradleFile)
       verifyPropertyModel(properties["prop4"], STRING_TYPE, "prop1[0]", REFERENCE, REGULAR, 1, "prop4", "ext.prop4")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("build.gradle")!!, properties["prop4"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(myBuildFile.name)!!, properties["prop4"]!!.gradleFile)
       verifyPropertyModel(properties["prop3"], STRING_TYPE, "hello", STRING, REGULAR, 0, "prop3", "ext.prop3")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("a.gradle")!!, properties["prop3"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(a)!!, properties["prop3"]!!.gradleFile)
       verifyPropertyModel(properties["prop5"], INTEGER_TYPE, 5, INTEGER, REGULAR, 0, "prop5", "ext.prop5")
 
       // Check we can actually make changes to all the files.
@@ -2884,10 +2884,10 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       properties["prop2"]!!.setValue("true")
 
       verifyPropertyModel(properties["prop2"], STRING_TYPE, "true", STRING, REGULAR, 0, "prop2", "ext.prop2")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop2"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop2"]!!.gradleFile)
       verifyListProperty(properties["prop1"], listOf(2, "var2", "var3"), false)
       verifyListProperty(properties["prop1"], listOf(2, false, 1), REGULAR, 2)
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop1"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop1"]!!.gradleFile)
     }
 
     applyChangesAndReparse(buildModel)
@@ -2895,14 +2895,14 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     run {
       val properties = buildModel.ext().inScopeProperties
       verifyPropertyModel(properties["prop2"], STRING_TYPE, "true", STRING, REGULAR, 0, "prop2", "ext.prop2")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop2"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop2"]!!.gradleFile)
       verifyListProperty(properties["prop1"], listOf(2, "var2", "var3"), false)
       verifyListProperty(properties["prop1"], listOf(2, false, 1), REGULAR, 2)
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop1"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop1"]!!.gradleFile)
       verifyPropertyModel(properties["prop4"], STRING_TYPE, "prop1[0]", REFERENCE, REGULAR, 1, "prop4", "ext.prop4")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("build.gradle")!!, properties["prop4"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(myBuildFile.name)!!, properties["prop4"]!!.gradleFile)
       verifyPropertyModel(properties["prop3"], STRING_TYPE, "hello", STRING, REGULAR, 0, "prop3", "ext.prop3")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("a.gradle")!!, properties["prop3"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(a)!!, properties["prop3"]!!.gradleFile)
     }
   }
 

@@ -20,17 +20,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.databinding.finders.DataBindingScopeEnlarger;
+import com.android.tools.idea.databinding.utils.JavaCodeInsightTestFixtureUtils;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameterList;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
@@ -78,6 +75,7 @@ public class AndroidDataBindingTest {
 
     fixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/databinding");
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML);
+
     AndroidFacet androidFacet = FacetManager.getInstance(myProjectRule.getModule()).getFacetByType(AndroidFacet.ID);
     ModuleDataBinding.getInstance(androidFacet).setMode(myDataBindingMode);
   }
@@ -130,7 +128,8 @@ public class AndroidDataBindingTest {
     copyLayout("basic_binding");
     copyClass(DUMMY_CLASS_QNAME);
 
-    PsiClass aClass = getFixture().findClass("p1.p2.databinding.BasicBindingBinding");
+    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+    PsiClass aClass = JavaCodeInsightTestFixtureUtils.findClass(getFixture(), "p1.p2.databinding.BasicBindingBinding", context);
     assertNotNull(aClass);
 
     assertNotNull(aClass.findFieldByName("view1", false));
@@ -162,7 +161,8 @@ public class AndroidDataBindingTest {
     copyLayout("import_variable");
     copyClass(DUMMY_CLASS_QNAME);
 
-    PsiClass aClass = getFixture().findClass("p1.p2.databinding.ImportVariableBinding");
+    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+    PsiClass aClass = JavaCodeInsightTestFixtureUtils.findClass(getFixture(), "p1.p2.databinding.ImportVariableBinding", context);
     assertNotNull(aClass);
 
     assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
@@ -187,7 +187,8 @@ public class AndroidDataBindingTest {
     copyLayout("import_via_alias");
     copyClass(DUMMY_CLASS_QNAME);
 
-    PsiClass aClass = getFixture().findClass("p1.p2.databinding.ImportViaAliasBinding");
+    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+    PsiClass aClass = JavaCodeInsightTestFixtureUtils.findClass(getFixture(), "p1.p2.databinding.ImportViaAliasBinding", context);
     assertNotNull(aClass);
 
     assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
@@ -212,21 +213,12 @@ public class AndroidDataBindingTest {
   @Test
   @RunsInEdt
   public void testDataBindingComponentContainingFileIsNotNull() {
-    // Random class in the current module; we just need something so we can resolve it, triggering
-    // a data binding scope-enlargement behind the scenes
     copyClass(DUMMY_CLASS_QNAME);
-    PsiClass aClass = getFixture().findClass(DUMMY_CLASS_QNAME);
-    assertNotNull(aClass);
-    GlobalSearchScope moduleScope = aClass.getResolveScope();
 
-    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(myProjectRule.getProject());
-    PsiClass foundClass;
-    if (myDataBindingMode == DataBindingMode.SUPPORT) {
-      foundClass = javaPsiFacade.findClass("android.databinding.DataBindingComponent", moduleScope);
-    }
-    else {
-      foundClass = javaPsiFacade.findClass("androidx.databinding.DataBindingComponent", moduleScope);
-    }
+    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+
+    String dataBindingPrefix = (myDataBindingMode == DataBindingMode.SUPPORT) ? "android.databinding." : "androidx.databinding.";
+    PsiClass foundClass = JavaCodeInsightTestFixtureUtils.findClass(getFixture(), dataBindingPrefix + "DataBindingComponent", context);
     assertNotNull(foundClass);
     assertNotNull(foundClass.getContainingFile());
   }

@@ -34,8 +34,8 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.ComboboxWithBrowseButton;
-import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.RawCommandLineEditor;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
@@ -105,7 +105,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private JBCheckBox myIncludeAssetsFromLibraries;
   private JBCheckBox myUseCustomManifestPackage;
   private JTextField myCustomManifestPackageField;
-  private ComboBox myUpdateProjectPropertiesCombo;
+  private ComboBox<String> myUpdateProjectPropertiesCombo;
   private CheckBoxList<AndroidImportableProperty> myImportedOptionsList;
   private JBTabbedPane myTabbedPane;
   private JBCheckBox myEnableManifestMerging;
@@ -246,20 +246,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     });
 
     myUpdateProjectPropertiesCombo.setModel(new DefaultComboBoxModel(new Object[]{"", Boolean.TRUE.toString(), Boolean.FALSE.toString()}));
-    myUpdateProjectPropertiesCombo.setRenderer(new ListCellRendererWrapper<String>() {
-      @Override
-      public void customize(JList list, String value, int index, boolean selected, boolean hasFocus) {
-        if (value != null && value.isEmpty()) {
-          setText("Ask");
-        }
-        else if (Boolean.parseBoolean(value)) {
-          setText("Yes");
-        }
-        else {
-          setText("No");
-        }
-      }
-    });
+    myUpdateProjectPropertiesCombo.setRenderer(SimpleListCellRenderer.create(
+      "No", value -> value.isEmpty() ? "Ask" : Boolean.parseBoolean(value) ? "Yes" : "No"));
     buildImportedOptionsList();
 
     final int mavenTabIndex = myTabbedPane.indexOfTab(MAVEN_TAB_TITLE);

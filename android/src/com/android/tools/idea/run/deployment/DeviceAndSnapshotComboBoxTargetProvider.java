@@ -29,7 +29,6 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
-import java.util.Collections;
 import java.util.Map;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -133,8 +132,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
     ActionManager manager = ActionManager.getInstance();
     DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
-    Device device = action.getSelectedDevice(project);
 
-    return new DeviceAndSnapshotComboBoxTarget(device == null ? Collections.emptyList() : Collections.singletonList(device));
+    return new DeviceAndSnapshotComboBoxTarget(action.getSelectedDevice(project), action.getSelectedSnapshot(project));
   }
 }

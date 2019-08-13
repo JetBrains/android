@@ -23,9 +23,12 @@ import com.android.SdkConstants;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
 import com.android.tools.idea.databinding.index.ViewIdInfo;
+import com.android.tools.idea.res.binding.BindingLayoutInfo;
+import com.android.tools.idea.res.binding.BindingLayoutPsiUtils;
 import com.android.tools.idea.res.binding.BindingLayoutXml;
 import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.module.Module;
@@ -40,8 +43,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
@@ -61,6 +66,7 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,17 +90,25 @@ import org.jetbrains.annotations.Nullable;
 public class LightBindingClass extends AndroidLightClassBase {
   private final Object myCacheLock = new Object();
 
-  private final LightBindingClassConfig myConfig;
+  @NotNull private final LightBindingClassConfig myConfig;
+  @NotNull private final PsiJavaFile myBackingFile;
 
-  private CachedValue<PsiMethod[]> myPsiMethodsCache;
-  private CachedValue<PsiField[]> myPsiFieldsCache;
+  @NotNull private CachedValue<PsiMethod[]> myPsiMethodsCache;
+  @NotNull private CachedValue<PsiField[]> myPsiFieldsCache;
 
-  private PsiReferenceList myExtendsList;
-  private PsiClassType[] myExtendsListTypes;
+  @Nullable private PsiReferenceList myExtendsList;
+  @Nullable private PsiClassType[] myExtendsListTypes;
 
   public LightBindingClass(@NotNull PsiManager psiManager, @NotNull LightBindingClassConfig config) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myConfig = config;
+
+    // Create a dummy, backing file to represent this binding class
+    PsiFileFactory factory = PsiFileFactory.getInstance(getProject());
+    myBackingFile = (PsiJavaFile)factory.createFileFromText(myConfig.getClassName() + ".java", JavaFileType.INSTANCE,
+                                                            "// This class is generated on-the-fly by the IDE.");
+    myBackingFile.setPackageName(StringUtil.getPackageName(myConfig.getQualifiedName()));
+
     setModuleInfo(getFacet().getModule(), false);
 
     CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(getProject());
@@ -269,9 +283,6 @@ public class LightBindingClass extends AndroidLightClassBase {
         }
 
         Module module = myConfig.getTargetLayout().getPsi().getModule();
-        if (module == null) {
-          return true; // this should not really happen but just to be safe
-        }
         PsiClass aClass = JavaPsiFacade.getInstance(getProject()).findClass(qName, module
           .getModuleWithDependenciesAndLibrariesScope(true));
         if (aClass != null) {
@@ -359,8 +370,8 @@ public class LightBindingClass extends AndroidLightClassBase {
     PsiManager psiManager = getManager();
     PsiMethod[] methods = new PsiMethod[]{inflate1Arg, inflate2Arg, inflate3Arg, inflate4Arg, bind, bindWithComponent};
     for (PsiMethod method : methods) {
-      outPsiMethods.add(
-        new LightDataBindingMethod(myConfig.getTargetLayout().getPsi().getXmlPsiFile(), psiManager, method, this, JavaLanguage.INSTANCE));
+      XmlFile xmlFile = BindingLayoutPsiUtils.toPsiFile(myConfig.getTargetLayout().getXml(), project);
+      outPsiMethods.add(new LightDataBindingMethod(xmlFile, psiManager, method, this, JavaLanguage.INSTANCE));
     }
   }
 
@@ -389,7 +400,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     }
     LightFieldBuilder field = new LightFieldBuilder(PsiManager.getInstance(getProject()), name, type);
     field.setModifiers("public", "final");
-    return new LightDataBindingField(idInfo, getManager(), field, this);
+    return new LightDataBindingField(myConfig.getTargetLayout(), idInfo, getManager(), field, this);
   }
 
   @Override
@@ -412,12 +423,12 @@ public class LightBindingClass extends AndroidLightClassBase {
   @Nullable
   @Override
   public PsiFile getContainingFile() {
-    return myConfig.getTargetLayout().getPsi().getXmlPsiFile();
+    return myBackingFile;
   }
 
   @Override
   public boolean isValid() {
-    // it is always valid. Not having this valid creates IDE errors because it is not always resolved instantly
+    // It is always valid. Not having this valid creates IDE errors because it is not always resolved instantly.
     return true;
   }
 
@@ -457,43 +468,47 @@ public class LightBindingClass extends AndroidLightClassBase {
    * The light field class that represents the generated view fields for a layout file.
    */
   public static class LightDataBindingField extends LightField {
+    private final BindingLayoutInfo myLayoutInfo;
     private final ViewIdInfo myViewIdInfo;
 
     private final CachedValue<XmlTag> tagCache = CachedValuesManager.getManager(getProject())
       .createCachedValue(() -> CachedValueProvider.Result.create(computeTag(), PsiModificationTracker.MODIFICATION_COUNT));
 
-    public LightDataBindingField(@NotNull ViewIdInfo viewIdInfo,
+    public LightDataBindingField(@NotNull BindingLayoutInfo layoutInfo,
+                                 @NotNull ViewIdInfo viewIdInfo,
                                  @NotNull PsiManager manager,
                                  @NotNull PsiField field,
                                  @NotNull PsiClass containingClass) {
       super(manager, field, containingClass);
+      myLayoutInfo = layoutInfo;
       myViewIdInfo = viewIdInfo;
     }
 
     @Nullable
     private XmlTag computeTag() {
       final Ref<XmlTag> resultTag = new Ref<>();
-      if (getContainingFile() != null) {
-        getContainingFile().accept(new XmlRecursiveElementWalkingVisitor() {
-          @Override
-          public void visitXmlTag(XmlTag tag) {
-            super.visitXmlTag(tag);
-            String idValue = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
-            if (idValue != null && myViewIdInfo.getId().equals(stripPrefixFromId(idValue))) {
-              resultTag.set(tag);
-              stopWalking();
-            }
+
+      XmlFile xmlFile = BindingLayoutPsiUtils.toPsiFile(myLayoutInfo.getXml(), getProject());
+      xmlFile.accept(new XmlRecursiveElementWalkingVisitor() {
+        @Override
+        public void visitXmlTag(XmlTag tag) {
+          super.visitXmlTag(tag);
+          String idValue = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
+          if (idValue != null && myViewIdInfo.getId().equals(stripPrefixFromId(idValue))) {
+            resultTag.set(tag);
+            stopWalking();
           }
-        });
-      }
+        }
+      });
       return resultTag.get();
     }
 
     @Override
     @Nullable
     public PsiFile getContainingFile() {
-      PsiClass containingClass = super.getContainingClass();
-      return containingClass == null ? null : containingClass.getContainingFile();
+      // Note: This light field has to be backed by a real file on disk, not a light class, or else
+      // renaming breaks.
+      return BindingLayoutPsiUtils.toPsiFile(myLayoutInfo.getXml(), getProject());
     }
 
     @Override

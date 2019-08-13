@@ -25,15 +25,26 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<State> {
   @NotNull
   private final Collection<Device> myDevices;
 
+  @Nullable
+  private final Snapshot mySnapshot;
+
+  DeviceAndSnapshotComboBoxTarget(@Nullable Device device, @Nullable Snapshot snapshot) {
+    myDevices = device == null ? Collections.emptyList() : Collections.singletonList(device);
+    mySnapshot = snapshot;
+  }
+
   DeviceAndSnapshotComboBoxTarget(@NotNull Collection<Device> devices) {
     myDevices = devices;
+    mySnapshot = null;
   }
 
   @Override
@@ -52,7 +63,7 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<State> {
   public DeviceFutures getDevices(@NotNull State state, @NotNull AndroidFacet facet, @NotNull DeviceCount count, boolean debug, int id) {
     DeviceFutures futures = new DeviceFutures(new ArrayList<>(myDevices.size()));
     Project project = facet.getModule().getProject();
-    myDevices.forEach(device -> device.addTo(futures, project, null));
+    myDevices.forEach(device -> device.addTo(futures, project, mySnapshot));
 
     return futures;
   }

@@ -29,7 +29,7 @@ import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.packaging.impl.run.BuildArtifactsBeforeRunTaskProvider;
 import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.SmartList;
@@ -80,7 +80,16 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);
 
     myArtifactCombo = myCustomArtifactLabeledComponent.getComponent();
-    myArtifactCombo.setRenderer(new ArtifactRenderer());
+    myArtifactCombo.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      if (value instanceof Artifact) {
+        final Artifact artifact = (Artifact)value;
+        label.setText(artifact.getName());
+        label.setIcon(artifact.getArtifactType().getIcon());
+      }
+      else if (value instanceof String) {
+        label.setText("<html><font color='red'>" + value + "</font></html>");
+      }
+    }));
     myArtifactCombo.setModel(new DefaultComboBoxModel(getAndroidArtifacts().toArray()));
     myArtifactCombo.addActionListener(this);
 
@@ -377,19 +386,5 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
                                                  && StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.get())
                                                 ? DynamicFeaturesParameters.AvailableDeployTypes.INSTANT_AND_INSTALLED
                                                 : DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);
-  }
-
-  private static class ArtifactRenderer extends ListCellRendererWrapper {
-    @Override
-    public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-      if (value instanceof Artifact) {
-        final Artifact artifact = (Artifact)value;
-        setText(artifact.getName());
-        setIcon(artifact.getArtifactType().getIcon());
-      }
-      else if (value instanceof String) {
-        setText("<html><font color='red'>" + value + "</font></html>");
-      }
-    }
   }
 }

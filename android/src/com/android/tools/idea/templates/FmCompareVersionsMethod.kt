@@ -24,7 +24,7 @@ import freemarker.template.TemplateModelException
 /**
  * Method invoked by FreeMarker to compare two Maven artifact version strings.
  */
-abstract class AbstractFmCompareVersionsMethod : TemplateMethodModelEx {
+class FmCompareVersionsIgnoringQualifiersMethod : TemplateMethodModelEx {
   override fun exec(args: List<*>): TemplateModel {
     if (args.size != 2) {
       throw TemplateModelException("Wrong arguments")
@@ -33,16 +33,6 @@ abstract class AbstractFmCompareVersionsMethod : TemplateMethodModelEx {
     val lhs = GradleVersion.parse(args[0].toString())
     val rhs = GradleVersion.parse(args[1].toString())
 
-    return SimpleNumber(doComparison(lhs, rhs))
+    return SimpleNumber(lhs.compareIgnoringQualifiers(rhs))
   }
-
-  protected abstract fun doComparison(lhs: GradleVersion, rhs: GradleVersion): Int
-}
-
-class FmCompareVersionsMethod : AbstractFmCompareVersionsMethod() {
-  override fun doComparison(lhs: GradleVersion, rhs: GradleVersion): Int = lhs.compareTo(rhs)
-}
-
-class FmCompareVersionsIgnoringQualifiersMethod : AbstractFmCompareVersionsMethod() {
-  override fun doComparison(lhs: GradleVersion, rhs: GradleVersion): Int = lhs.compareIgnoringQualifiers(rhs)
 }

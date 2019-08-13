@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -36,6 +37,7 @@ import com.android.tools.idea.templates.FmGetConfigurationNameMethod
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException
 import com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate
+import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APPLICATION_PACKAGE
@@ -50,6 +52,7 @@ import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.TemplateUtils.writeTextFile
 import com.android.tools.idea.templates.mergeGradleSettingsFile
 import com.android.tools.idea.templates.mergeXml
+import com.android.tools.idea.templates.resolveDependency
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.google.common.base.Strings.isNullOrEmpty
 import com.google.common.base.Strings.nullToEmpty
@@ -112,8 +115,55 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     }
   }
 
+  override fun addSourceSet(type: String, name: String, dir: String) {
+    val buildFile = getBuildFilePath(context)
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    val sourceSet = buildModel.android().addSourceSet(name)
+
+    if (type == "manifest") {
+      sourceSet.manifest().srcFile().setValue(dir)
+      io.applyChanges(buildModel)
+      return
+    }
+
+    val srcDirsModel = with(sourceSet) {
+      when (type) {
+        "aidl" -> aidl()
+        "assets" -> assets()
+        "java" -> java()
+        "jni" -> jni()
+        "renderscript" -> renderscript()
+        "res" -> res()
+        "resources" -> resources()
+        else -> throw IllegalArgumentException("Unknown source set category $type")
+      }
+    }.srcDirs()
+
+    val dirExists = srcDirsModel.toList().orEmpty().any { it.toString() == dir }
+
+    if (dirExists) {
+      return
+    }
+
+    srcDirsModel.addListValue().setValue(dir)
+    io.applyChanges(buildModel)
+  }
+
+  override fun setExtVar(name: String, value: String) {
+    val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(context.project))
+    // TODO(qumeric) handle it in more reliable way?
+    val buildModel = getBuildModel(rootBuildFile, context.project) ?: return
+    val property = buildModel.buildscript().ext().findProperty(name)
+    if (property.valueType != GradlePropertyModel.ValueType.NONE) {
+      return // we do not override property value if it exists. TODO(qumeric): ask user?
+    }
+    property.setValue(value)
+    io.applyChanges(buildModel)
+  }
+
   override fun addClasspath(mavenUrl: String) {
-    val mavenUrl = mavenUrl.trim()
+    val mavenUrl = resolveDependency(RepositoryUrlManager.get(), mavenUrl.trim())
 
     referencesExecutor.addClasspath(mavenUrl)
 
@@ -266,9 +316,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
       }
 
       val sourceText: String = if (hasExtension(from, DOT_FTL))
-          processFreemarkerTemplate(context, from, null) // Perform template substitution of the template prior to merging
-        else
-          readTextFromDisk(sourceFile) ?: return
+        processFreemarkerTemplate(context, from, null) // Perform template substitution of the template prior to merging
+      else
+        readTextFromDisk(sourceFile) ?: return
 
       val contents: String = when {
         targetFile.name == GRADLE_PROJECT_SETTINGS_FILE -> mergeGradleSettingsFile(sourceText, targetText)
@@ -281,30 +331,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
       }
 
       io.writeFile(this, contents, targetFile)
-      referencesExecutor.addSourceFile(sourceFile)
-      referencesExecutor.addTargetFile(targetFile)
-    }
-    catch (e: IOException) {
-      throw RuntimeException(e)
-    }
-  }
-
-  override fun append(from: File, to: File) {
-    try {
-      val sourceFile = context.loader.getSourceFile(from)
-      val targetFile = getTargetFile(to)
-
-      val sourceText = readTextFromDisk(sourceFile) ?: return
-
-      if (targetFile.exists()) {
-        val targetContents = readTextFromDisk(targetFile)
-        val resultContents = (if (targetContents == null) "" else targetContents + LINE_SEPARATOR) + sourceText
-
-        io.writeFile(this, resultContents, targetFile)
-      }
-      else {
-        io.writeFile(this, sourceText, targetFile)
-      }
       referencesExecutor.addSourceFile(sourceFile)
       referencesExecutor.addTargetFile(targetFile)
     }
@@ -474,8 +500,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
 
   @Throws(IOException::class)
   private fun copyFile(file: VirtualFile, src: VirtualFile, destinationFile: File): Boolean {
-    val relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar) ?:
-                       throw RuntimeException("${file.path} is not a child of $src")
+    val relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar) ?: throw RuntimeException(
+      "${file.path} is not a child of $src")
     if (file.isDirectory) {
       io.mkDir(File(destinationFile, relativePath))
       return true
@@ -495,13 +521,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   }
 
   private fun readTextFile(file: File): String? =
-    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_PROJECT])
+    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_MODULE])
       readTextFromDisk(file)
     else
       readTextFromDocument(context.project, file)
 
   private fun readTextFile(file: VirtualFile): String? =
-    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_PROJECT])
+    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_MODULE])
       readTextFromDisk(virtualToIoFile(file))
     else
       readTextFromDocument(context.project, file)

@@ -54,9 +54,9 @@ public class CreateNewLibraryModuleWithDefaultsTest {
   public void createNewLibraryModuleWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
            .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-           .chooseModuleType("Android Library")
-           .clickNextToStep("Android Library")
-           .setModuleName("library_module")
+           .clickNextToAndroidLibrary()
+           .enterModuleName("library_module")
+           .wizard()
            .clickFinish()
            .waitForGradleProjectSyncToFinish(Wait.seconds(30));
     assertAbout(file()).that(guiTest.getProjectPath("library_module")).isDirectory();

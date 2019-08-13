@@ -17,8 +17,9 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
-import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
+import com.android.tools.idea.sqlite.model.getFormattedSqliteDatabaseName
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewListener
 import com.google.common.util.concurrent.FutureCallback
@@ -34,12 +35,12 @@ import com.intellij.openapi.util.Disposer
 class SqliteEvaluatorController(
   parentDisposable: Disposable,
   private val view: SqliteEvaluatorView,
-  private val service: SqliteService,
   private val edtExecutor: FutureCallbackExecutor
 ) : Disposable {
 
   private var currentQueryResultSetController: ResultSetController? = null
   private val sqliteEvaluatorViewListener: SqliteEvaluatorViewListener = SqliteEvaluatorViewListenerImpl()
+  private val listeners = mutableListOf<SqliteEvaluatorControllerListener>()
 
   init {
     Disposer.register(parentDisposable, this)
@@ -49,11 +50,32 @@ class SqliteEvaluatorController(
     view.addListener(sqliteEvaluatorViewListener)
   }
 
-  override fun dispose() {
-    view.removeListener(sqliteEvaluatorViewListener)
+  fun removeDatabase(index: Int) {
+    view.removeDatabase(index)
   }
 
-  fun evaluateSqlStatement(sqlStatement: String) {
+  override fun dispose() {
+    view.removeListener(sqliteEvaluatorViewListener)
+    listeners.clear()
+  }
+
+  fun addListener(listener: SqliteEvaluatorControllerListener) {
+    listeners.add(listener)
+  }
+
+  fun removeListener(listener: SqliteEvaluatorControllerListener) {
+    listeners.remove(listener)
+  }
+
+  fun removeListeners() {
+    listeners.clear()
+  }
+
+  fun addDatabase(database: SqliteDatabase, index: Int) {
+    view.addDatabase(database, database.getFormattedSqliteDatabaseName(), index)
+  }
+
+  fun evaluateSqlStatement(database: SqliteDatabase, sqlStatement: String) {
     view.showSqliteStatement(sqlStatement)
 
     // TODO(b/137259344) after introducing the SQL parser this bit should become a bit nicer
@@ -63,17 +85,19 @@ class SqliteEvaluatorController(
         sqlStatement.startsWith("ALTER", ignoreCase = true) or
         sqlStatement.startsWith("INSERT", ignoreCase = true) or
         sqlStatement.startsWith("UPDATE", ignoreCase = true) or
-        sqlStatement.startsWith("DELETE", ignoreCase = true) -> executeUpdate(sqlStatement)
-      else -> executeQuery(sqlStatement) {
+        sqlStatement.startsWith("DELETE", ignoreCase = true) -> executeUpdate(database, sqlStatement)
+      else -> executeQuery(database, sqlStatement) {
         view.tableView.reportError("Error executing sqlQueryCommand", it)
       }
     }
   }
 
-  private fun executeUpdate(sqlUpdateCommand: String) {
-    edtExecutor.addCallback(service.executeUpdate(sqlUpdateCommand), object : FutureCallback<Int> {
+  private fun executeUpdate(database: SqliteDatabase, sqlUpdateCommand: String) {
+    val sqliteService = database.sqliteService
+    edtExecutor.addCallback(sqliteService.executeUpdate(sqlUpdateCommand), object : FutureCallback<Int> {
       override fun onSuccess(result: Int?) {
         view.tableView.resetView()
+        listeners.forEach { it.onSchemaUpdated(database) }
       }
 
       override fun onFailure(t: Throwable) {
@@ -82,10 +106,11 @@ class SqliteEvaluatorController(
     })
   }
 
-  private fun executeQuery(sqlQueryCommand: String, doOnFailure: (Throwable) -> Unit) {
-    edtExecutor.addCallback(service.executeQuery(sqlQueryCommand), object : FutureCallback<SqliteResultSet> {
+  private fun executeQuery(database: SqliteDatabase, sqlQueryCommand: String, doOnFailure: (Throwable) -> Unit) {
+    val sqliteService = database.sqliteService
+    edtExecutor.addCallback(sqliteService.executeQuery(sqlQueryCommand), object : FutureCallback<SqliteResultSet> {
       override fun onSuccess(sqliteResultSet: SqliteResultSet?) {
-        if(sqliteResultSet == null) return
+        if (sqliteResultSet == null) return
 
         currentQueryResultSetController = ResultSetController(
           this@SqliteEvaluatorController,
@@ -102,8 +127,12 @@ class SqliteEvaluatorController(
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorViewListener {
-    override fun evaluateSqlActionInvoked(sqlStatement: String) {
-      evaluateSqlStatement(sqlStatement)
+    override fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
+      evaluateSqlStatement(database, sqliteStatement)
     }
   }
+}
+
+interface SqliteEvaluatorControllerListener {
+  fun onSchemaUpdated(database: SqliteDatabase)
 }

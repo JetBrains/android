@@ -16,9 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.idea.protobuf.ByteString;
-import com.android.tools.idea.transport.EventStreamServer;
-import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
@@ -35,7 +32,6 @@ import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.atrace.AtraceExporter;
 import com.android.tools.profilers.sessions.SessionsManager;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -56,7 +52,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +75,22 @@ public class CpuProfiler extends StudioProfiler {
     }
   }
 
+  private void run() {
+    Common.Session session = myProfilers.getSession();
+    // Make sure the timeline is paused when the stage is opened for the first time, and its bounds are within the session.
+    ProfilerTimeline timeline = myProfilers.getTimeline();
+    timeline.reset(session.getStartTimestamp(), session.getEndTimestamp());
+    timeline.setIsPaused(true);
+
+    assert mySessionTraceFiles.containsKey(session.getSessionId());
+    if (myProfilers.getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+      myProfilers.setStage(CpuCaptureStage.create(myProfilers, "Imported", mySessionTraceFiles.get(session.getSessionId())));
+    }
+    else {
+      myProfilers.setStage(new CpuProfilerStage(myProfilers, mySessionTraceFiles.get(session.getSessionId())));
+    }
+  }
+
   private static Logger getLogger() {
     return Logger.getInstance(CpuProfiler.class);
   }
@@ -89,22 +100,7 @@ public class CpuProfiler extends StudioProfiler {
    * {@link Common.SessionMetaData.SessionType#CPU_CAPTURE}.
    */
   private void registerImportedSessionListener() {
-    myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.CPU_CAPTURE, () -> {
-      // Open a CpuProfilerStage in import mode when selecting an imported session.
-      Common.Session session = myProfilers.getSession();
-      // Make sure the timeline is paused when the stage is opened for the first time, and its bounds are within the session.
-      ProfilerTimeline timeline = myProfilers.getTimeline();
-      timeline.reset(session.getStartTimestamp(), session.getEndTimestamp());
-      timeline.setIsPaused(true);
-
-      assert mySessionTraceFiles.containsKey(session.getSessionId());
-      if (myProfilers.getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
-        myProfilers.setStage(new CpuCaptureStage(myProfilers, mySessionTraceFiles.get(session.getSessionId())));
-      }
-      else {
-        myProfilers.setStage(new CpuProfilerStage(myProfilers, mySessionTraceFiles.get(session.getSessionId())));
-      }
-    });
+    myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.CPU_CAPTURE, this::run);
   }
 
   /**

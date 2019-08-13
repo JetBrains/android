@@ -49,27 +49,31 @@ public final class FreemarkerUtils {
     // Builtin conversion methods
     paramMap.put("activityToLayout", new FmActivityToLayoutMethod());
     paramMap.put("fragmentToLayout", new FmFragmentToLayoutMethod());
-    paramMap.put("camelCaseToUnderscore", new FmCamelCaseToUnderscoreMethod());
+    paramMap.put("layoutToActivity", new FmLayoutToActivityMethod());
+    paramMap.put("layoutToFragment", new FmLayoutToFragmentMethod());
     paramMap.put("classToResource", new FmClassNameToResourceMethod());
-    paramMap.put("compareVersions", new FmCompareVersionsMethod());
-    paramMap.put("compareVersionsIgnoringQualifiers", new FmCompareVersionsIgnoringQualifiersMethod());
-    paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
+
+    paramMap.put("underscoreToCamelCase", new FmUnderscoreToCamelCaseMethod());
+    paramMap.put("camelCaseToUnderscore", new FmCamelCaseToUnderscoreMethod());
+
+    paramMap.put("escapeKotlinIdentifiers", new FmEscapeKotlinIdentifierMethod());
+
+    // TODO(qumeric): move to executor
+    paramMap.put("getConfigurationName", new FmGetConfigurationNameMethod(paramMap));
+    paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
+    paramMap.put("resolveDependency", new FmResolveDependencyMethod());
+    paramMap.put("getMaterialComponentName", new FmGetMaterialComponentNameMethod());
+
+    // TODO(qumeric): remove when new templates are ready
+    paramMap.put("extractLetters", new FmExtractLettersMethod());
+    paramMap.put("slashedPackageName", new FmSlashedPackageNameMethod());
+    paramMap.put("truncate", new FmTruncateStringMethod());
     paramMap.put("escapeXmlAttribute", new FmEscapeXmlAttributeMethod());
     paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());
     paramMap.put("escapeXmlText", new FmEscapeXmlStringMethod());
-    paramMap.put("extractLetters", new FmExtractLettersMethod());
     paramMap.put("getAppManifestDir", new FmGetAppManifestDirMethod(paramMap));
-    paramMap.put("isAndroidxEnabled", new FmIsAndroidxEnabledMethod(paramMap));
-    paramMap.put("getConfigurationName", new FmGetConfigurationNameMethod(paramMap));
-    paramMap.put("resolveDependency", new FmResolveDependencyMethod());
-    paramMap.put("getMaterialComponentName", new FmGetMaterialComponentNameMethod());
-    paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
-    paramMap.put("layoutToActivity", new FmLayoutToActivityMethod());
-    paramMap.put("layoutToFragment", new FmLayoutToFragmentMethod());
-    paramMap.put("slashedPackageName", new FmSlashedPackageNameMethod());
-    paramMap.put("truncate", new FmTruncateStringMethod());
-    paramMap.put("underscoreToCamelCase", new FmUnderscoreToCamelCaseMethod());
-    paramMap.put("escapeKotlinIdentifiers", new FmEscapeKotlinIdentifierMethod());
+    paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
+    paramMap.put("compareVersionsIgnoringQualifiers", new FmCompareVersionsIgnoringQualifiersMethod());
 
     // Dependencies multimap. Doesn't store duplicates, preserves insertion order.
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP, LinkedHashMultimap.create());

@@ -27,7 +27,7 @@ enum class SceneMode(val displayName: String,
   SCREEN_ONLY("Design", ::ScreenView),
   BLUEPRINT_ONLY("Blueprint", ::BlueprintView),
   BOTH("Design + Blueprint", ::ScreenView, ::BlueprintView),
-  SCREEN_COMPOSE_ONLY("Compose", { surface, manager -> ScreenView(surface, manager, true) }, visibleToUser = false);
+  SCREEN_COMPOSE_ONLY("Compose", { surface, manager -> ScreenView(surface, manager, true, false) }, visibleToUser = false);
 
   operator fun next(): SceneMode {
     val values = values().filter { it.visibleToUser }

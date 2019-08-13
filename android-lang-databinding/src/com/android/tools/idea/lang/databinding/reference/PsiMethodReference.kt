@@ -26,6 +26,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.impl.light.LightMethodBuilder
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.xml.XmlAttribute
 
 /**
  * Reference that refers to a [PsiMethod]
@@ -44,6 +45,9 @@ internal class PsiMethodReference(element: PsiElement, method: PsiModelMethod, t
 
   constructor(expr: PsiDbInferredFormalParameterList, method: PsiModelMethod)
     : this(expr, method, expr.textRange.shiftLeft(expr.textOffset))
+
+  constructor(attr: XmlAttribute, method: PsiModelMethod)
+    : this(attr, method, attr.textRange.shiftLeft(attr.textOffset))
 
   override val resolvedType = method.returnType
 

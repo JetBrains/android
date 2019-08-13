@@ -118,7 +118,7 @@ expr
   |   signChangeExpr
   |   castExpr
   |   callExpr
-  |   bracketExpr          //  array op - []
+  |   arrayExpr            //  array op - []
   |   qualRefExpr          //  field access
   |   simpleRefExpr
   |   functionRefExpr      //  method reference using '::'
@@ -176,7 +176,7 @@ negationExpr ::= negationOp expr
 signChangeExpr ::= signOp expr
 castExpr ::= '(' type ')' expr
 callExpr ::= refExpr '(' expressionList? ')'
-bracketExpr ::= expr '[' expr ']'
+arrayExpr ::= expr bracketArgument
 functionRefExpr ::= expr '::' id
 resourcesExpr ::= RESOURCE_REFERENCE resourceParameters?
 classExtractionExpr ::= type '.' 'class'
@@ -193,6 +193,7 @@ private mulOp ::= '*' | '/' | '%'
 private negationOp ::= '~' | '!'
 
 expressionList ::= expr (',' expr)*
+bracketArgument ::= '[' expr ']'
 
 private literal
   ::= INTEGER_LITERAL

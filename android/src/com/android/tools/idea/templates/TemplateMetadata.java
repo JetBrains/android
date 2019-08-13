@@ -64,6 +64,7 @@ public class TemplateMetadata {
   public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
   public static final String ATTR_PACKAGE_NAME = "packageName";
   public static final String ATTR_APP_TITLE = "appTitle";
+  public static final String ATTR_IS_NEW_MODULE = "isNewModule";
   public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
   public static final String ATTR_THEME_EXISTS = "themeExists";
   public static final String ATTR_TOP_OUT = "topOut";
@@ -97,7 +98,6 @@ public class TemplateMetadata {
   public static final String ATTR_DEPENDENCIES_MULTIMAP = "dependenciesMultimap";
 
   public static final String ATTR_IS_DYNAMIC_FEATURE = "isDynamicFeature";
-  public static final String ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY = "dynamicFeatureSupportsDynamicDelivery";
   public static final String ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY = "dynamicFeatureInstallTimeDelivery";
   public static final String ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY = "dynamicFeatureInstallTimeWithConditionsDelivery";
   public static final String ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY = "dynamicFeatureOnDemandDelivery";
@@ -113,7 +113,6 @@ public class TemplateMetadata {
   public static final String ATTR_BASE_FEATURE_RES_DIR = "baseFeatureResDir";
   public static final String ATTR_CLASS_NAME = "className";
 
-  public static final String ATTR_KOTLIN_SUPPORT = "includeKotlinSupport";
   public static final String ATTR_ANDROIDX_SUPPORT = "addAndroidXSupport";
   public static final String ATTR_LANGUAGE = "language"; // Java vs Kotlin
   public static final String ATTR_KOTLIN_VERSION = "kotlinVersion";

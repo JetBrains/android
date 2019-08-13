@@ -19,6 +19,14 @@ import com.intellij.ui.table.JBTable;
 import javax.swing.JPanel;
 
 public class TablePanel {
-  public JPanel root;
-  public JBTable table;
+  private JPanel myRoot;
+  private JBTable myTable;
+
+  public JPanel getRoot() {
+    return myRoot;
+  }
+
+  public JBTable getTable() {
+    return myTable;
+  }
 }

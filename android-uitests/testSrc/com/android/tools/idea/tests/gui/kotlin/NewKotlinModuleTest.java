@@ -72,9 +72,7 @@ public class NewKotlinModuleTest {
 
   private void addNewKotlinModule() throws IOException {
     guiTest.ideFrame().openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Phone & Tablet Module")
-      .clickNext() // Selected App
-      .getConfigureAndroidModuleStep()
+      .clickNextPhoneAndTabletModule()
       .enterModuleName(NEW_KOTLIN_MODULE_NAME)
       .setSourceLanguage("Kotlin")
       .wizard()

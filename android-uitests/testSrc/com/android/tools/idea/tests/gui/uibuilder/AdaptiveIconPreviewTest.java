@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +32,7 @@ import java.io.IOException;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
+// TODO(b/138996982): Support split editor.
 public class AdaptiveIconPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
@@ -37,6 +40,7 @@ public class AdaptiveIconPreviewTest {
 
   @Test
   public void densitySelector() throws IOException {
+    StudioFlags.NELE_SPLIT_EDITOR.override(false);
     NlPreviewFixture preview =
       guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
         .getEditor()
@@ -71,6 +75,7 @@ public class AdaptiveIconPreviewTest {
 
   @Test
   public void shapeSelector() throws IOException {
+    StudioFlags.NELE_SPLIT_EDITOR.override(false);
     NlPreviewFixture preview =
       guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
         .getEditor()
@@ -106,6 +111,7 @@ public class AdaptiveIconPreviewTest {
 
   @Test
   public void themeSelector() throws IOException {
+    StudioFlags.NELE_SPLIT_EDITOR.override(false);
     NlPreviewFixture preview =
       guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
         .getEditor()
@@ -126,5 +132,10 @@ public class AdaptiveIconPreviewTest {
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
     assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ff212121");
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
   }
 }

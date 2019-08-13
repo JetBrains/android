@@ -16,21 +16,28 @@
 
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.event.LifecycleAction;
-import com.android.tools.adtui.model.event.EventAction;
-import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.adtui.model.event.EventModel;
-import com.android.tools.adtui.model.event.LifecycleEvent;
-import com.intellij.ui.JBColor;
-import org.jetbrains.annotations.NotNull;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_FONT_COLOR;
+import static com.android.tools.adtui.common.AdtUiUtils.shrinkToFit;
 
-import java.awt.*;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.event.EventModel;
+import com.android.tools.adtui.model.event.LifecycleAction;
+import com.android.tools.adtui.model.event.LifecycleEvent;
+import com.android.tools.adtui.model.event.LifecycleEventModel;
+import com.intellij.ui.JBColor;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.adtui.common.AdtUiUtils.*;
+import java.util.ListIterator;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A component that renders activities and their fragments.
@@ -50,19 +57,15 @@ public class ActivityComponent extends AnimatedComponent {
   private static final int FONT_SPACING = 10;
 
   @NotNull
-  private final EventModel<LifecycleEvent> myActivityModel;
-
-  @NotNull
-  private final EventModel<LifecycleEvent> myFragmentModel;
+  private final LifecycleEventModel myEventModel;
 
   private List<ActivityRenderData> myActivities = new ArrayList<>();
   private List<Double> myFragmentPositions = new ArrayList<>();
   private boolean myRender;
 
-  public ActivityComponent(@NotNull EventModel<LifecycleEvent> activityModel, @NotNull EventModel<LifecycleEvent> fragmentModel) {
-    myActivityModel = activityModel;
-    myFragmentModel = fragmentModel;
-    myActivityModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
+  public ActivityComponent(@NotNull LifecycleEventModel lifecycleEventModel) {
+    myEventModel = lifecycleEventModel;
+    myEventModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
     myRender = true;
   }
 
@@ -72,8 +75,8 @@ public class ActivityComponent extends AnimatedComponent {
   }
 
   private void renderActivity() {
-    double viewMin = myActivityModel.getRangedSeries().getXRange().getMin();
-    double viewMax = myActivityModel.getRangedSeries().getXRange().getMax();
+    double viewMin = myEventModel.getActivitySeries().getXRange().getMin();
+    double viewMax = myEventModel.getActivitySeries().getXRange().getMax();
 
     // A map of EventAction started events to their start time, so we can correlate these to
     // EventAction competed events with the EventAction start events. This is done this way as
@@ -86,7 +89,7 @@ public class ActivityComponent extends AnimatedComponent {
     // For each start event we store off its EventAction until we find an associated stop event.
     // Once we find a stop event we determine the draw order, name, start and stop locations and
     // cache off a path to draw.
-    for (SeriesData<EventAction<LifecycleEvent>> seriesData : myActivityModel.getRangedSeries().getSeries()) {
+    for (SeriesData<EventAction<LifecycleEvent>> seriesData : myEventModel.getActivitySeries().getSeries()) {
       LifecycleAction data = (LifecycleAction)seriesData.value;
 
       // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
@@ -96,7 +99,7 @@ public class ActivityComponent extends AnimatedComponent {
 
       // We want to start drawing from the beginning of the event or the beginning of a new data stream
       // TODO(b/122964201) Modify the data provider to provide the correct range instead of clamping
-      double dataClampedStartUs = Math.max(data.getStartUs(), myActivityModel.getRangedSeries().getIntersection().getMin());
+      double dataClampedStartUs = Math.max(data.getStartUs(), myEventModel.getActivitySeries().getIntersection().getMin());
       double normalizedStartPosition = ((dataClampedStartUs - viewMin) / (viewMax - viewMin));
       if (normalizedStartPosition < 0) {
         normalizedStartPosition = 0;
@@ -121,7 +124,7 @@ public class ActivityComponent extends AnimatedComponent {
     });
 
     myFragmentPositions.clear();
-    for (SeriesData<EventAction<LifecycleEvent>> seriesData : myFragmentModel.getRangedSeries().getSeries()) {
+    for (SeriesData<EventAction<LifecycleEvent>> seriesData : myEventModel.getFragmentSeries().getSeries()) {
       LifecycleAction data = (LifecycleAction)seriesData.value;
       if (data.getEndUs() >= viewMin && data.getEndUs() < viewMax) {
         // TODO(b/122964201) Modify the data provider to provide the correct range instead of clamping
@@ -149,8 +152,8 @@ public class ActivityComponent extends AnimatedComponent {
   private void drawActivity(Graphics2D g2d, Dimension dim) {
     int scaleFactor = dim.width;
     AffineTransform scale = AffineTransform.getScaleInstance(scaleFactor, dim.height - SEGMENT_SPACING);
-    double viewMin = myActivityModel.getRangedSeries().getXRange().getMin();
-    double viewMax = myActivityModel.getRangedSeries().getXRange().getMax();
+    double viewMin = myEventModel.getActivitySeries().getXRange().getMin();
+    double viewMax = myEventModel.getActivitySeries().getXRange().getMax();
     FontMetrics metrics = g2d.getFontMetrics();
     Object previousHint = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -169,7 +172,7 @@ public class ActivityComponent extends AnimatedComponent {
       }
 
       // We want to start drawing from the beginning of the event or the beginning of a new data stream
-      double dataClampedStartUs = Math.max(event.getStartUs(), myActivityModel.getRangedSeries().getIntersection().getMin());
+      double dataClampedStartUs = Math.max(event.getStartUs(), myEventModel.getActivitySeries().getIntersection().getMin());
       double normalizedStartPosition = (dataClampedStartUs - viewMin) / (viewMax - viewMin);
       double lifetime = event.getEndUs();
       if (event.getEndUs() == 0) {
