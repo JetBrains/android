@@ -31,6 +31,7 @@ import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.UserEventDataSeries;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -119,7 +120,8 @@ public class CpuCaptureStage extends Stage {
     if (captureFile == null) {
       return null;
     }
-    return create(profilers, configurationName, captureFile);
+    String captureProcessNameHint = CpuProfiler.getTraceInfoFromId(profilers, traceId).getConfiguration().getAppName();
+    return new CpuCaptureStage(profilers, configurationName, captureFile, captureProcessNameHint);
   }
 
   /**
@@ -127,16 +129,20 @@ public class CpuCaptureStage extends Stage {
    */
   @NotNull
   public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull String configurationName, @NotNull File captureFile) {
-    return new CpuCaptureStage(profilers, configurationName, captureFile);
+    return new CpuCaptureStage(profilers, configurationName, captureFile, null);
   }
 
   /**
    * Create a capture stage that loads a given file.
    */
-  private CpuCaptureStage(@NotNull StudioProfilers profilers, @NotNull String configurationName, @NotNull File captureFile) {
+  @VisibleForTesting
+  CpuCaptureStage(@NotNull StudioProfilers profilers,
+                  @NotNull String configurationName,
+                  @NotNull File captureFile,
+                  @Nullable String captureProcessNameHint) {
     super(profilers);
 
-    myCpuCaptureHandler = new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configurationName);
+    myCpuCaptureHandler = new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configurationName, captureProcessNameHint);
     myMinimapModel = new CpuCaptureMinimapModel(profilers);
     getAspect().addDependency(myObserver).onChange(Aspect.STATE, this::captureStateChanged);
   }
@@ -169,7 +175,7 @@ public class CpuCaptureStage extends Stage {
   }
 
   @NotNull
-  private CpuCapture getCapture() {
+  public CpuCapture getCapture() {
     assert myState == State.ANALYZING;
     return myCapture;
   }
