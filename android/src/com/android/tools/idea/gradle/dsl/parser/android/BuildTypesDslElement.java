@@ -18,30 +18,26 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.google.common.collect.Lists;
+import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
-public final class BuildTypesDslElement extends GradleDslElementMap {
+public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslElement {
   @NonNls public static final String BUILD_TYPES_BLOCK_NAME = "buildTypes";
 
   public BuildTypesDslElement(@NotNull GradleDslElement parent) {
     super(parent, BUILD_TYPES_BLOCK_NAME);
   }
 
-  @Override
-  public boolean isBlockElement() {
-    return true;
-  }
-
   @NotNull
   public List<BuildTypeModel> get() {
     List<BuildTypeModel> result = Lists.newArrayList();
     for (BuildTypeDslElement dslElement : getValues(BuildTypeDslElement.class)) {
-      result.add(new BuildTypeModelImpl(dslElement));
+      // Filter any buildtypes that we have wrongly detected.
+      if (!KNOWN_METHOD_NAMES.contains(dslElement.getName())) {
+        result.add(new BuildTypeModelImpl(dslElement));
+      }
     }
     return result;
   }
