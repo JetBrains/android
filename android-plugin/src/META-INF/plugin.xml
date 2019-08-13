@@ -6,7 +6,7 @@
     Supports the development of <a href="https://developer.android.com">Android</a> applications with IntelliJ IDEA and Android Studio.
     ]]>
   </description>
-  <version>10.3.6 Canary 7</version>
+  <version>dev build</version>
   <vendor>JetBrains &amp; Google</vendor>
 
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
