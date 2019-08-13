@@ -15,6 +15,21 @@
  */
 package com.android.tools.idea.lang.androidSql.parser
 
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes
 import com.intellij.lexer.FlexAdapter
 
-class AndroidSqlLexer : FlexAdapter(_AndroidSqlLexer())
+class AndroidSqlLexer : FlexAdapter(_AndroidSqlLexer()) {
+  companion object {
+    fun needsQuoting(name: String): Boolean {
+      val lexer = AndroidSqlLexer()
+      lexer.start(name)
+      return lexer.tokenType != AndroidSqlPsiTypes.IDENTIFIER || lexer.tokenEnd != lexer.bufferEnd
+    }
+
+    /** Checks if the given name (table name, column name) needs escaping and returns a string that's safe to put in SQL. */
+    @JvmStatic
+    fun getValidName(name: String): String {
+      return if (!needsQuoting(name)) name else "`${name.replace("`", "``")}`"
+    }
+  }
+}

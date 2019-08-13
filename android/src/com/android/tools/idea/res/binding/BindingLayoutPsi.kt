@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("BindingLayoutPsiUtils")
+
 package com.android.tools.idea.res.binding
 
 import com.android.SdkConstants
 import com.android.ide.common.resources.DataBindingResourceType
-import com.android.tools.idea.res.PsiResourceFile
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * PSI fields and other information indirectly backed by those fields that are related to a layout
  * xml file that we want to generate a binding class for.
+ *
+ * One does not construct this directly. Instead, [BindingLayoutInfo] is responsible for creating
+ * it.
  */
-class BindingLayoutPsi(val facet: AndroidFacet,
-                       private val psiResourceFile: PsiResourceFile) {
+class BindingLayoutPsi internal constructor(val facet: AndroidFacet,
+                                            private val info: BindingLayoutInfo) {
   val project: Project
     get() = facet.module.project
 
@@ -43,8 +48,8 @@ class BindingLayoutPsi(val facet: AndroidFacet,
   /**
    * The PSI of the `layout.xml` file this binding layout information is associated with
    */
-  val xmlPsiFile: XmlFile
-    get() = psiResourceFile.psiFile as XmlFile
+  internal val xmlPsiFile: XmlFile
+    get() = info.xml.toPsiFile(project)
 
   /**
    * The PSI for a "BindingImpl" class generated for this layout file. It is created externally so
@@ -73,9 +78,6 @@ class BindingLayoutPsi(val facet: AndroidFacet,
     else {
       BindingLayoutInfo.LayoutType.VIEW_BINDING_LAYOUT
     }
-
-  val fileName: String
-    get() = psiResourceFile.name
 
   private val _resourceItems = mutableMapOf<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>>()
   val resourceItems: Map<DataBindingResourceType, Map<String, PsiDataBindingResourceItem>>
@@ -108,3 +110,9 @@ class BindingLayoutPsi(val facet: AndroidFacet,
    */
   fun getItems(type: DataBindingResourceType): Map<String, PsiDataBindingResourceItem> = _resourceItems[type] ?: emptyMap()
 }
+
+/**
+ * Convenience method for converting an XML data file into its corresponding PSI [XmlFile].
+ * Note: this will throw an exception if the file isn't found given the specified project.
+ */
+fun BindingLayoutXml.toPsiFile(project: Project) = PsiManager.getInstance(project).findFile(file) as XmlFile

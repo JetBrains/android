@@ -38,6 +38,8 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import kotlin.test.assertNull
 
+private const val WAIT_TIMEOUT = 3000
+
 class ResourceExplorerDialogTest {
 
   @get:Rule
@@ -49,7 +51,7 @@ class ResourceExplorerDialogTest {
   fun setUp() {
     projectRule.fixture.testDataPath = getTestDataDirectory()
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
-    pickerDialog = createResourcePickerDialog()
+    pickerDialog = createResourcePickerDialog(false)
     Disposer.register(projectRule.project, pickerDialog.disposable)
   }
 
@@ -82,6 +84,35 @@ class ResourceExplorerDialogTest {
   }
 
   @Test
+  fun selectSampleDataResource() {
+    pickerDialog = createResourcePickerDialog(true)
+    Disposer.register(projectRule.project, pickerDialog.disposable)
+    val explorerView = UIUtil.findComponentOfType(pickerDialog.resourceExplorerPanel, ResourceExplorerView::class.java)!!
+
+    var sampleDataList: AssetListView? = null
+    val waitForSampleDataList = object : WaitFor(WAIT_TIMEOUT) {
+      public override fun condition(): Boolean {
+        val listViews = UIUtil.findComponentsOfType(explorerView, AssetListView::class.java)
+        listViews.forEach { listView ->
+          if (listView.model.getElementAt(0).assets.first().resourceItem.type == ResourceType.SAMPLE_DATA) {
+            // Make sure there are actually sample data resources being displayed.
+            sampleDataList = listView
+            return true
+          }
+        }
+        return false
+      }
+    }
+    assertThat(waitForSampleDataList.isConditionRealized).isTrue()
+
+    sampleDataList!!.ui = HeadlessListUI()
+    val point = sampleDataList!!.indexToLocation(0)
+    simulateMouseClick(sampleDataList!!, point, 2)
+    // We don't know for a fact what resource will come first, so just check that the format is correct.
+    assertThat(pickerDialog.resourceName).startsWith("@tools:sample/")
+  }
+
+  @Test
   fun selectMultipleConfigurationResource() {
     val resDir = projectRule.fixture.copyDirectoryToProject("res/", "res/")
     runInEdtAndWait {
@@ -105,20 +136,18 @@ class ResourceExplorerDialogTest {
     assertNull(UIUtil.findComponentOfType(explorerView, ResourceDetailView::class.java))
   }
 
-  private fun createResourcePickerDialog(): ResourceExplorerDialog {
+  private fun createResourcePickerDialog(showSampleData: Boolean): ResourceExplorerDialog {
     var explorerDialog: ResourceExplorerDialog? = null
     runInEdtAndWait {
       explorerDialog = ResourceExplorerDialog(AndroidFacet.getInstance(projectRule.module)!!,
-                                              setOf(ResourceType.DRAWABLE))
+                                              setOf(ResourceType.DRAWABLE),
+                                              showSampleData,
+                                              null)
     }
     assertThat(explorerDialog).isNotNull()
     explorerDialog?.let { view ->
       val explorerView = UIUtil.findComponentOfType(view.resourceExplorerPanel, ResourceExplorerView::class.java)!!
-
-      val waitForAssetListToBeCreated = object : WaitFor(1000) {
-        public override fun condition() = UIUtil.findComponentOfType(explorerView, AssetListView::class.java) != null
-      }
-      assertThat(waitForAssetListToBeCreated.isConditionRealized).isEqualTo(true)
+      waitAndAssertListView(explorerView) { it != null }
     }
     return explorerDialog!!
   }
@@ -134,4 +163,11 @@ class ResourceExplorerDialogTest {
         component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, clickCount, false))
     }
   }
+}
+
+private fun waitAndAssertListView(view: ResourceExplorerView, condition: (list: AssetListView?) -> Boolean) {
+  val waitForAssetListView = object : WaitFor(WAIT_TIMEOUT) {
+    public override fun condition() = condition(UIUtil.findComponentOfType(view, AssetListView::class.java))
+  }
+  assertThat(waitForAssetListView.isConditionRealized).isTrue()
 }

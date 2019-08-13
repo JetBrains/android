@@ -40,20 +40,18 @@ class FmResolveDependencyMethod : TemplateMethodModelEx {
     val dependency = args[0].toString()
     val minVersion = args.getOrNull(1)?.toString()
 
-    return SimpleScalar(convertConfiguration(RepositoryUrlManager.get(), dependency, minVersion))
+    return SimpleScalar(resolveDependency(RepositoryUrlManager.get(), dependency, minVersion))
   }
+}
 
-  companion object {
-    fun convertConfiguration(repo: RepositoryUrlManager, dependency: String, minRev: String?): String {
-      // If we can't parse the dependency, just return it back
-      val coordinate = parseCoordinateString(dependency) ?: throw InvalidParameterException("Invalid dependency: $dependency")
+fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: String? = null): String {
+  // If we can't parse the dependency, just return it back
+  val coordinate = parseCoordinateString(dependency) ?: throw InvalidParameterException("Invalid dependency: $dependency")
 
-      val minCoordinate = if (minRev == null) coordinate else GradleCoordinate(coordinate.groupId, coordinate.artifactId, minRev)
+  val minCoordinate = if (minRev == null) coordinate else GradleCoordinate(coordinate.groupId, coordinate.artifactId, minRev)
 
-      // If we cannot resolve the dependency on the repo, return the at least the min requested
-      val resolved = repo.resolveDynamicCoordinate(coordinate, null) ?: return minCoordinate.toString()
+  // If we cannot resolve the dependency on the repo, return the at least the min requested
+  val resolved = repo.resolveDynamicCoordinate(coordinate, null) ?: return minCoordinate.toString()
 
-      return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER).toString()
-    }
-  }
+  return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER).toString()
 }

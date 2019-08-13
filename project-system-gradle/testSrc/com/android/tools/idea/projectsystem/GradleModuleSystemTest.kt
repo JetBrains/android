@@ -17,8 +17,8 @@ package com.android.tools.idea.projectsystem
 
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub
-import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStub
+import com.android.ide.common.gradle.model.stubs.l2AndroidLibrary
+import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
@@ -139,7 +139,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
   fun testAddSupportDependencyWithMatchInSubModule() {
     val libraryModule = getAdditionalModuleByName(library1ModuleName)!!
-    installDependencies(libraryModule, Collections.singletonList("com.android.support:appcompat-v7:23.1.1"))
+    createFakeModel(libraryModule, Collections.singletonList("com.android.support:appcompat-v7:23.1.1"))
     myFixture.addFileToProject("build.gradle", """
       dependencies {
           api project(':$library1ModuleName')
@@ -160,7 +160,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   }
 
   fun testAddSupportDependencyWithMatchInAppModule() {
-    installDependencies(myModule, listOf("com.android.support:recyclerview-v7:22.2.1"))
+    createFakeModel(myModule, listOf("com.android.support:recyclerview-v7:22.2.1"))
     myFixture.addFileToProject("build.gradle", """
       dependencies {
           api project(':$library1ModuleName')
@@ -180,7 +180,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   }
 
   fun testProjectWithIncompatibleDependencies() {
-    installDependencies(myModule, listOf("androidx.appcompat:appcompat:2.0.0", "androidx.appcompat:appcompat:1.2.0"))
+    createFakeModel(myModule, listOf("androidx.appcompat:appcompat:2.0.0", "androidx.appcompat:appcompat:1.2.0"))
     myFixture.addFileToProject("build.gradle", """
       dependencies {
           implementation 'androidx.appcompat:appcompat:2.0.0'
@@ -202,7 +202,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   }
 
   fun testProjectWithIncompatibleIndirectDependencies() {
-    installDependencies(myModule, listOf("androidx.appcompat:appcompat:2.0.0", "androidx.core:core:1.0.0"))
+    createFakeModel(myModule, listOf("androidx.appcompat:appcompat:2.0.0", "androidx.core:core:1.0.0"))
     myFixture.addFileToProject("build.gradle", """
       dependencies {
           implementation 'androidx.appcompat:appcompat:2.0.0'
@@ -229,7 +229,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   }
 
   fun testTwoArtifactsWithConflictingDependencies() {
-    installDependencies(myModule, Collections.singletonList("com.google.android.material:material:1.3.0"))
+    createFakeModel(myModule, Collections.singletonList("com.google.android.material:material:1.3.0"))
     myFixture.addFileToProject("build.gradle", """
       dependencies {
           implementation 'com.google.android.material:material:1.3.0'
@@ -259,7 +259,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
           api project(':$library1ModuleName')
       }""".trimIndent())
 
-    installDependencies(getAdditionalModuleByName(library1ModuleName)!!, listOf("com.google.android.material:material:1.3.0"))
+    createFakeModel(getAdditionalModuleByName(library1ModuleName)!!, listOf("com.google.android.material:material:1.3.0"))
     myFixture.addFileToProject("$library1Path/build.gradle", """
       dependencies {
           implementation 'com.google.android.material:material:1.3.0'
@@ -298,7 +298,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   }
 
   fun testNewestSameMajorIsChosenFromExistingIndirectDependency() {
-    installDependencies(myModule, listOf("androidx.appcompat:appcompat:1.0.0"))
+    createFakeModel(myModule, listOf("androidx.appcompat:appcompat:1.0.0"))
     myFixture.addFileToProject("build.gradle", """
       dependencies {
           implementation 'androidx.appcompat:appcompat:1.0.0'
@@ -317,7 +317,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
     // We should ignore test dependencies with analyzing compatibility issues.
     // In this case recyclerview and material have conflicting dependencies on mockito,
     // recyclerview on mockito-core:2.19.0 and material on mockito-core:1.9.5
-    installDependencies(myModule, listOf("androidx.recyclerview:recyclerview:1.2.0"))
+    createFakeModel(myModule, listOf("androidx.recyclerview:recyclerview:1.2.0"))
     val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
       listOf(GradleCoordinate("com.google.android.material", "material", "+")))
 
@@ -346,29 +346,19 @@ class GradleModuleSystemTest : AndroidTestCase() {
   }
 
   /**
-   * Setup a module with some existing dependencies.
-   *
-   * Disclaimer: This method has side effects. It will override the
-   * AndroidModuleModel and IdeAndroidProject to make it look like the specified
-   * [artifacts] are in fact dependencies of the specified [module].
-   * Use with care.
-   */
-  private fun installDependencies(module: Module, artifacts: List<String>) {
-    val model = AndroidModuleModel.get(module) ?: createFakeModel(module)
-    val dependencies = model.selectedMainCompileLevel2Dependencies as IdeDependenciesStub
-    dependencies.androidLibraries.clear()
-    artifacts.forEach { artifact -> dependencies.addAndroidLibrary(AndroidLibraryStub(artifact)) }
-  }
-
-  /**
-   * Create a fake {@link AndroidModuleModel}.
+   * Create a fake {@link AndroidModuleModel} and sets up the module with
+   * [artifacts] dependencies.
    *
    * Disclaimer: this method has side effects. An IdeAndroidProject will be
-   * created if it hasn't already been.
+   * created if it hasn't already been and it will override the
+   * AndroidModuleModel and IdeAndroidProject to make it look like the specified
+   * [artifacts] are in fact dependencies of the specified [module]
    */
-  private fun createFakeModel(module: Module): AndroidModuleModel {
+  private fun createFakeModel(module: Module, artifacts: List<String>): AndroidModuleModel {
     val project = androidProject ?: createAndroidProject()
-    val ideDependencies = IdeDependenciesStub()
+    val ideDependencies = IdeDependenciesStubBuilder().apply {
+      androidLibraries = artifacts.map { l2AndroidLibrary(it) }
+    }.build()
     val model = mock(AndroidModuleModel::class.java)
     `when`(model.androidProject).thenReturn(project)
     `when`(model.selectedMainCompileLevel2Dependencies).thenReturn(ideDependencies)

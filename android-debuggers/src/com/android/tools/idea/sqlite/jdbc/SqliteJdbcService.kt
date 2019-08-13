@@ -22,9 +22,7 @@ import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.sql.Connection
@@ -41,7 +39,6 @@ import java.util.concurrent.Executor
  */
 class SqliteJdbcService(
   private val sqliteFile: VirtualFile,
-  parentDisposable: Disposable,
   pooledExecutor: Executor
 ) : SqliteService {
   companion object {
@@ -53,14 +50,6 @@ class SqliteJdbcService(
   val sequentialTaskExecutor = FutureCallbackExecutor.wrap(
     SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
   )
-
-  init {
-    Disposer.register(parentDisposable, this)
-  }
-
-  override fun dispose() {
-    closeDatabase().get()
-  }
 
   override fun closeDatabase() = sequentialTaskExecutor.executeAsync {
       connection?.close()
@@ -88,17 +77,18 @@ class SqliteJdbcService(
 
     connection!!.let { connection ->
       val tables = connection.metaData.getTables(null, null, null, null)
-      SqliteJdbcSchema().apply {
-        while (tables.next()) {
-          addTable(
-            SqliteTable(
-              tables.getString("TABLE_NAME"),
-              readColumnDefinitions(connection, tables.getString("TABLE_NAME"))
-            )
+      val sqliteTables = mutableListOf<SqliteTable>()
+      while (tables.next()) {
+        sqliteTables.add(
+          SqliteTable(
+            tables.getString("TABLE_NAME"),
+            readColumnDefinitions(connection, tables.getString("TABLE_NAME")),
+            isView = tables.getString("TABLE_TYPE") == "VIEW"
           )
-        }
-        logger.info("Successfully read database schema: ${sqliteFile.path}")
+        )
       }
+
+      SqliteSchema(sqliteTables).apply { logger.info("Successfully read database schema: ${sqliteFile.path}") }
     }
   }
 

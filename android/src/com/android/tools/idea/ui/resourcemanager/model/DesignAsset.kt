@@ -41,12 +41,14 @@ interface Asset {
 
   companion object {
 
-    fun fromResourceItem(resourceItem: ResourceItem): Asset? {
-      val file = resourceItem.getSourceAsVirtualFile() ?: return null // TODO: Return a BaseAsset here.
+    fun fromResourceItem(resourceItem: ResourceItem): Asset? = fromResourceItem(resourceItem, resourceItem.type)
+
+    fun fromResourceItem(resourceItem: ResourceItem, resourceType: ResourceType): Asset? {
+      val file = resourceItem.getSourceAsVirtualFile() ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
       return DesignAsset(
         file = file,
         qualifiers = resourceItem.configuration.qualifiers.toList(),
-        type = resourceItem.type,
+        type = resourceType,
         name = resourceItem.name,
         resourceItem = resourceItem)
     }
@@ -150,7 +152,11 @@ private fun createAsset(child: VirtualFile, root: VirtualFile, matcher: Qualifie
 }
 
 fun ResourceResolver.resolveValue(designAsset: Asset): ResourceValue? {
-  val resolvedValue = resolveResValue(designAsset.resourceItem.resourceValue)
+  val resolvedValue = if (designAsset.resourceItem.type == ResourceType.ATTR) {
+    findItemInTheme(designAsset.resourceItem.referenceToSelf)
+  } else {
+    resolveResValue(designAsset.resourceItem.resourceValue)
+  }
   if (resolvedValue == null) {
     LOG.warn("${designAsset.resourceItem.name} couldn't be resolved")
   }

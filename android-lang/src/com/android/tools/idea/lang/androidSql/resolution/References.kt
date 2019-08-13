@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.androidSql.resolution
 
 import com.android.tools.idea.lang.androidSql.NotRenamableElement
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlBindParameter
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlColumnName
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlDefinedTableName
@@ -131,7 +132,7 @@ private fun buildVariants(result: Collection<AndroidSqlColumn>): Array<Any> {
   return result
     .filter { column -> !column.isImplicit }
     .map { column ->
-      LookupElementBuilder.create(column.definingElement, AndroidSqlNameElementManipulator.getValidName(column.name!!))
+      LookupElementBuilder.create(column.definingElement, AndroidSqlLexer.getValidName(column.name!!))
         .withTypeText(column.type?.typeName)
         .withTailText(if (column.isPrimaryKey) " (integer primary key)" else null)
         // Columns that come from Java fields will most likely use camelCase, starting with a lower-case letter. By default code
@@ -190,7 +191,7 @@ class AndroidSqlDefinedTablePsiReference(
 
 private fun lookupElementForTable(table: AndroidSqlTable): LookupElement {
   val element = table.definingElement
-  return LookupElementBuilder.create(element, AndroidSqlNameElementManipulator.getValidName(table.name!!))
+  return LookupElementBuilder.create(element, AndroidSqlLexer.getValidName(table.name!!))
     .withTypeText((element as? PsiClass)?.qualifiedName, true)
     // Tables that come from Java classes will have the first letter in upper case and by default the IDE has code completion
     // configured to be case sensitive on the first letter (see Settings), so if the user types `b` we won't offer them neither

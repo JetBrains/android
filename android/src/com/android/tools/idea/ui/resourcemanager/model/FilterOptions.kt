@@ -25,7 +25,10 @@ class FilterOptions internal constructor(
   private val isShowResourcesChanged: () -> Unit = {},
   private val searchStringChanged: (String) -> Unit = {},
   moduleDependenciesInitialValue: Boolean,
-  librariesInitialValue: Boolean) {
+  librariesInitialValue: Boolean,
+  val isShowSampleData: Boolean,
+  val showAndroidResources: Boolean,
+  val showThemeAttributes: Boolean) {
 
   /**
    * If true, the resources from the dependent modules will be shown.
@@ -51,17 +54,27 @@ class FilterOptions internal constructor(
                initialParams: FilterOptionsParams)
       = FilterOptions(isShowResourcesChanged,
                       searchStringChanged,
-                      initialParams.moduleDependenciesInitialValue,
-                      initialParams.librariesInitialValue)
+                      moduleDependenciesInitialValue =  initialParams.moduleDependenciesInitialValue,
+                      librariesInitialValue = initialParams.librariesInitialValue,
+                      isShowSampleData = initialParams.showSampleData,
+                      showAndroidResources = initialParams.androidResourcesInitialValue,
+                      showThemeAttributes = initialParams.themeAttributesInitialValue)
 
     /** Instantiate [FilterOptions] with no callback implementation and with all values initialized as false. */
     @TestOnly
-    fun createDefault() = FilterOptions(moduleDependenciesInitialValue = false, librariesInitialValue = false)
+    fun createDefault() = FilterOptions(moduleDependenciesInitialValue = false,
+                                        librariesInitialValue = false,
+                                        isShowSampleData = false,
+                                        showAndroidResources = false,
+                                        showThemeAttributes = false)
   }
 }
 
 /** Params to define the initial state of [FilterOptions]. */
 data class FilterOptionsParams(
   val moduleDependenciesInitialValue: Boolean,
-  val librariesInitialValue: Boolean
+  val librariesInitialValue: Boolean,
+  val showSampleData: Boolean,
+  val androidResourcesInitialValue: Boolean,
+  val themeAttributesInitialValue: Boolean
 )

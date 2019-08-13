@@ -15,8 +15,10 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
+import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
@@ -26,30 +28,32 @@ import kotlin.math.max
 /**
  * An analyzer for calculating the critical path, that is the path of tasks determining the total build duration.
  */
-class CriticalPathAnalyzer : BuildEventsAnalyzer {
-  private val tasksSet = HashSet<TaskBuildData>()
-  private val dependenciesMap = HashMap<TaskBuildData, List<TaskBuildData>>()
+class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter) : BuildEventsAnalyzer {
+  private val tasksSet = HashSet<TaskData>()
+  private val dependenciesMap = HashMap<TaskData, List<TaskData>>()
 
-  val tasksCriticalPath = ArrayList<TaskBuildData>()
+  val tasksCriticalPath = ArrayList<TaskData>()
   val pluginsCriticalPath = ArrayList<PluginBuildData>()
 
-  /**
-   * We report here the critical path duration rather than the total build time as there are other things that the build time is spent on
-   * like up-to-date checks and configuration.
-   */
   var criticalPathDuration = 0L
     private set
 
+  var totalBuildTime = 0L
+    private set
+
   override fun receiveEvent(event: ProgressEvent) {
+    if (event is FinishEvent && event.displayName == "Run build succeeded") {
+      totalBuildTime = event.result.endTime - event.result.startTime
+    }
+
     if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
-      val task = TaskBuildData(TaskData(event.descriptor.taskPath, PluginData(event.descriptor.originPlugin)),
-                               event.result.endTime - event.result.startTime)
-      val dependenciesList = ArrayList<TaskBuildData>()
+      val task = TaskData.createTaskData(event)
+      val dependenciesList = ArrayList<TaskData>()
 
       event.descriptor.dependencies.forEach { dependency ->
         if (dependency is TaskOperationDescriptor) {
           tasksSet.find {
-            it.taskData.getTaskPath() == dependency.taskPath && it.taskData.originPlugin.equals(dependency.originPlugin)
+            it.getTaskPath() == dependency.taskPath && it.originPlugin.equals(dependency.originPlugin)
           }?.let {
             dependenciesList.add(it)
           }
@@ -65,8 +69,8 @@ class CriticalPathAnalyzer : BuildEventsAnalyzer {
    * returns the duration of the critical path that starts from task [startTask]
    */
   private fun calculateCriticalPathStartingFromTask(
-    startTask: TaskBuildData,
-    criticalPathFromTaskMap: MutableMap<TaskBuildData, Long>
+    startTask: TaskData,
+    criticalPathFromTaskMap: MutableMap<TaskData, Long>
   ): Long {
     // Avoid recomputing the subpath critical path if it's already calculated
     criticalPathFromTaskMap[startTask]?.let { return it }
@@ -77,7 +81,7 @@ class CriticalPathAnalyzer : BuildEventsAnalyzer {
     }
 
     // Add task execution time
-    criticalPathDuration += startTask.taskExecutionTime
+    criticalPathDuration += startTask.executionTime
     // Memoize the calculated value in the map
     criticalPathFromTaskMap[startTask] = criticalPathDuration
 
@@ -91,9 +95,9 @@ class CriticalPathAnalyzer : BuildEventsAnalyzer {
    * of the number of tasks in the graph.
    */
   private fun calculateTasksCriticalPath() {
-    val criticalPathFromTaskMap = HashMap<TaskBuildData, Long>()
+    val criticalPathFromTaskMap = HashMap<TaskData, Long>()
 
-    var startTask: TaskBuildData? = null
+    var startTask: TaskData? = null
     var currentCriticalPathDuration = -1L
 
     // Calculate the critical path starting from each task
@@ -111,7 +115,7 @@ class CriticalPathAnalyzer : BuildEventsAnalyzer {
     while (startTask != null) {
       tasksCriticalPath.add(startTask!!)
 
-      var nextTask: TaskBuildData? = null
+      var nextTask: TaskData? = null
       currentCriticalPathDuration = -1
 
       dependenciesMap[startTask!!]!!.forEach { dependency ->
@@ -132,8 +136,8 @@ class CriticalPathAnalyzer : BuildEventsAnalyzer {
     // Group tasks in the critical path by plugin to get the plugins critical path
     val pluginBuildDurationMap = HashMap<PluginData, Long>()
     tasksCriticalPath.forEach { task ->
-      val currentDuration = pluginBuildDurationMap.getOrDefault(task.taskData.originPlugin, 0L)
-      pluginBuildDurationMap[task.taskData.originPlugin] = currentDuration + task.taskExecutionTime
+      val currentDuration = pluginBuildDurationMap.getOrDefault(task.originPlugin, 0L)
+      pluginBuildDurationMap[task.originPlugin] = currentDuration + task.executionTime
     }
 
     pluginBuildDurationMap.forEach { (plugin, duration) -> pluginsCriticalPath.add(PluginBuildData(plugin, duration)) }
@@ -159,8 +163,6 @@ class CriticalPathAnalyzer : BuildEventsAnalyzer {
     tasksSet.clear()
     dependenciesMap.clear()
   }
-
-  data class TaskBuildData(val taskData: TaskData, val taskExecutionTime: Long)
 
   data class PluginBuildData(val plugin: PluginData, val buildDuration: Long)
 }

@@ -15,20 +15,23 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
-import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.adtui.model.event.LifecycleEvent;
-import com.android.tools.profilers.*;
+import com.android.tools.adtui.model.event.LifecycleEventModel;
+import com.android.tools.adtui.model.event.UserEvent;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.ProfilerMonitorTooltip;
+import com.android.tools.profilers.ProfilerTooltip;
+import com.android.tools.profilers.StudioProfilers;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
 
 public class EventMonitor extends ProfilerMonitor {
 
@@ -36,10 +39,7 @@ public class EventMonitor extends ProfilerMonitor {
   private final EventModel<UserEvent> myUserEvents;
 
   @NotNull
-  private final EventModel<LifecycleEvent> myActivityEvents;
-
-  @NotNull
-  private final EventModel<LifecycleEvent> myFragmentEvents;
+  private final LifecycleEventModel myLifecycleEvents;
 
   private boolean myEnabled;
 
@@ -52,20 +52,23 @@ public class EventMonitor extends ProfilerMonitor {
     myUserEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events, getTimeline().getDataRange()));
 
     LifecycleEventDataSeries activities = new LifecycleEventDataSeries(myProfilers, false);
-    myActivityEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), activities, getTimeline().getDataRange()));
-
+    LifecycleEventDataSeries fragments;
     if (myProfilers.getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
-      LifecycleEventDataSeries fragments = new LifecycleEventDataSeries(myProfilers, true);
-      myFragmentEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), fragments, getTimeline().getDataRange()));
+      fragments = new LifecycleEventDataSeries(myProfilers, true);
     }
     else {
-      myFragmentEvents = new EventModel<>(new RangedSeries<>(new Range(1, -1), new DataSeries<EventAction<LifecycleEvent>>() {
+      fragments = new LifecycleEventDataSeries(myProfilers, true) {
         @Override
-        public List<SeriesData<EventAction<LifecycleEvent>>> getDataForRange(Range range) {
+        public List<SeriesData<EventAction<LifecycleEvent>>> getDataForRange(@NotNull Range range) {
+          // Return empty list when fragments data are disabled.
           return new ArrayList<>();
         }
-      }));
+      };
     }
+
+    myLifecycleEvents = new LifecycleEventModel(
+      new RangedSeries<>(getTimeline().getViewRange(), activities, getTimeline().getDataRange()),
+      new RangedSeries<>(getTimeline().getViewRange(), fragments, getTimeline().getDataRange()));
 
     myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::onAgentStatusChanged);
     onAgentStatusChanged();
@@ -85,13 +88,8 @@ public class EventMonitor extends ProfilerMonitor {
   }
 
   @NotNull
-  public EventModel<LifecycleEvent> getActivityEvents() {
-    return myActivityEvents;
-  }
-
-  @NotNull
-  public EventModel<LifecycleEvent> getFragmentEvents() {
-    return myFragmentEvents;
+  public LifecycleEventModel getLifecycleEvents() {
+    return myLifecycleEvents;
   }
 
   @Override

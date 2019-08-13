@@ -35,6 +35,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.NlEditorProvider"/>
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.DesignFilesPreviewEditorProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

@@ -49,6 +49,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
+  private SourceProvider myMainIdeaSourceSetCreatedFor;
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -130,12 +131,14 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (!requiresAndroidModel()) {
       if (myMainIdeaSourceSet == null) {
         myMainIdeaSourceSet = IdeaSourceProvider.createForLegacyProject(this);
+        myMainIdeaSourceSetCreatedFor = null;
       }
     }
     else {
       SourceProvider mainSourceSet = getMainSourceProvider();
-      if (myMainIdeaSourceSet == null || mainSourceSet != myMainSourceSet) {
+      if (myMainIdeaSourceSet == null || myMainIdeaSourceSetCreatedFor != mainSourceSet) {
         myMainIdeaSourceSet = IdeaSourceProvider.create(mainSourceSet);
+        myMainIdeaSourceSetCreatedFor = mainSourceSet;
       }
     }
 

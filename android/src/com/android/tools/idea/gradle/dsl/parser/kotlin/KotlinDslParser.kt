@@ -62,9 +62,11 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.kotlin.psi.KtStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtVisitor
@@ -195,6 +197,30 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     return dslFile.getBlockElement(nameParts, parentElement, nameElement)
   }
 
+  // Check if this is a block with a methodCall as name, and get the block in such case. Ex: getByName("release") -> the release block.
+  private fun methodCallBlock(expression: KtCallExpression, parent: GradlePropertiesDslElement): GradlePropertiesDslElement? {
+    // TODO(xof): should we check the name of the method call against a whitelist? (create, getByName, ...)
+    val arguments = expression.valueArgumentList?.arguments ?: return null
+    if (arguments.size != 1) return null
+    // TODO(xof): we should handle injections / resolving here:
+    //  buildTypes.getByName("$foo") { ... }
+    //  buildTypes.getByName(foo) { ... }
+    val argument = arguments[0].getArgumentExpression()
+    when (argument) {
+      is KtStringTemplateExpression -> {
+        if (argument.hasInterpolation()) return null
+        val blockName = unquoteString((argument.entries[0] as KtLiteralStringTemplateEntry).text)
+        val blockElement = dslFile.getBlockElement(listOf(blockName), parent) ?: return null
+        if (blockElement is AbstractFlavorTypeDslElement) {
+          // TODO(xof): this way of keeping track of how we got hold of the block (which method name) only works once
+          blockElement.setMethodName(expression.name())
+        }
+        return blockElement
+      }
+      else -> return null
+    }
+  }
+
   //
   // Methods to perform the parsing on the KtFile
   //
@@ -212,21 +238,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         // Then the block should be applied to subprojects.
         referenceName = "subprojects"
       }
-      val blockElement : GradlePropertiesDslElement
-      // Check if this is a block with a methodCall as name, and get its correct name in such case. Ex: getByName("release") -> release.
-      if (expression.valueArgumentList != null && (expression.valueArgumentList as KtValueArgumentList).arguments.size == 1) {
-        val blockName =
-          (((expression.valueArgumentList as KtValueArgumentList).arguments[0].getArgumentExpression()
-            as KtStringTemplateExpression).entries[0] as KtLiteralStringTemplateEntry).text
-        blockElement = dslFile.getBlockElement(listOf(blockName), parent) ?: return
-        if (blockElement is AbstractFlavorTypeDslElement) {
-          blockElement.setMethodName(referenceName)
-        }
-      }
-      else {
-        blockElement = dslFile.getBlockElement(listOf(referenceName), parent) ?: return
-      }
-      // Get the block psi element of expression.
+      val blockElement = methodCallBlock(expression, parent) ?: dslFile.getBlockElement(listOf(referenceName), parent) ?: return
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
 
       blockElement.setPsiElement(argumentsBlock)
@@ -254,6 +266,43 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         parent.addParsedElement(callExpression)
       }
 
+    }
+  }
+
+  override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression, parent: GradlePropertiesDslElement) {
+
+    fun parentBlockFromReceiver(receiver: KtExpression): GradlePropertiesDslElement? {
+      var current = parent
+      receiver.accept(object : KtTreeVisitorVoid() {
+        // TODO(xof): need to handle android.getByName("buildTypes").release { ... }
+        override fun visitReferenceExpression(expression: KtReferenceExpression) {
+          when (expression) {
+            is KtNameReferenceExpression -> {
+              current = dslFile.getBlockElement(listOf(expression.text), current) ?: return
+            }
+            else -> Unit
+          }
+        }
+        override fun visitCallExpression(expression: KtCallExpression) {
+          current = methodCallBlock(expression, current) ?: return
+        }
+      }, null)
+      return current
+    }
+
+    // android.buildTypes.release { minify_enabled true }
+    val receiver = expression.receiverExpression
+    val selector = expression.selectorExpression
+    when (selector) {
+      is KtCallExpression -> {
+        val parentBlock = parentBlockFromReceiver(receiver)
+        if (parentBlock == null) {
+          super.visitDotQualifiedExpression(expression, parent)
+          return
+        }
+        visitCallExpression(selector, parentBlock)
+      }
+      else -> super.visitDotQualifiedExpression(expression, parent)
     }
   }
 
@@ -333,10 +382,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     isFirstCall : Boolean
   ) : GradleDslExpression? {
     if (methodName == "mapOf") {
-      return getExpressionMap(parentElement, argumentsList, name, argumentsList.arguments)
+      return getExpressionMap(parentElement, psiElement, name, argumentsList.arguments)
     }
     else if (methodName == "listOf") {
-      return getExpressionList(parentElement, argumentsList, name, argumentsList.arguments, false)
+      return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, false)
     }
     else if (methodName == "kotlin") {
       // If the method has one argument, we should check if it's declared under a dependency block in order to resolve it to a dependency,

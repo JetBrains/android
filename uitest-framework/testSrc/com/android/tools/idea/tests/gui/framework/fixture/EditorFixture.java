@@ -94,6 +94,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.KeyStroke;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.ComponentDriver;
@@ -261,6 +262,14 @@ public class EditorFixture {
     return this;
   }
 
+  @NotNull
+  public EditorFixture pressAndReleaseKey(@NotNull KeyPressInfo keypress) {
+    getFocusedEditor();
+    robot.pressAndReleaseKey(keypress.keyCode(), keypress.modifiers());
+
+    return this;
+  }
+
   /**
    * Requests focus in the editor, waits and returns editor component
    */
@@ -356,7 +365,7 @@ public class EditorFixture {
   public EditorFixture closeFile(@NotNull String relativePath) {
     EdtTestUtil.runInEdtAndWait(
       () -> {
-        VirtualFile file = myFrame.findFileByRelativePath(relativePath, true);
+        VirtualFile file = myFrame.findFileByRelativePath(relativePath);
         if (file != null) {
           FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
           manager.closeFile(file);
@@ -499,7 +508,22 @@ public class EditorFixture {
         })
       );
 
-    Editor editor = GuiQuery.get(() -> FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor());
+    Editor editor = GuiQuery.get(() -> {
+      FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+      if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+        FileEditor selectedEditor = manager.getSelectedEditor();
+        if (selectedEditor instanceof SplitEditor) {
+          SplitEditor splitEditor = (SplitEditor)selectedEditor;
+          if (splitEditor.isTextMode()) {
+            return splitEditor.getEditor();
+          }
+          else {
+            return null;
+          }
+        }
+      }
+      return manager.getSelectedTextEditor();
+    });
     if (editor == null) {
       myFrame.requestFocusIfLost();
     }
@@ -528,7 +552,7 @@ public class EditorFixture {
 
   public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab, @NotNull Wait waitForFileOpen) {
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
-    VirtualFile file = myFrame.findFileByRelativePath(relativePath, true);
+    VirtualFile file = myFrame.findFileByRelativePath(relativePath);
     return open(file, tab, waitForFileOpen);
   }
 

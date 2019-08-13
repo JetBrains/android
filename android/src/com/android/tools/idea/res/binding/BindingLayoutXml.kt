@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.res.binding
 
+import com.intellij.openapi.vfs.VirtualFile
+
 private fun String.cleanInnerClassNames() = replace('$', '.')
 
 /**
@@ -27,8 +29,7 @@ private fun String.cleanInnerClassNames() = replace('$', '.')
  * @param customBindingName A custom binding name, which a user may optionally set using the
  * `<data class=...>` attribute
  */
-data class BindingLayoutXml(val folderName: String,
-                            val fileName: String,
+data class BindingLayoutXml(val file: VirtualFile,
                             val customBindingName: String? = null,
                             val variables: List<Variable> = emptyList(),
                             val imports: List<Import> = emptyList()) {
@@ -40,4 +41,12 @@ data class BindingLayoutXml(val folderName: String,
     val type: String = type.cleanInnerClassNames()
     val aliasOrType: String = alias ?: type.substringAfterLast('.')
   }
+
+  /**
+   * The name of the folder that the layout for this binding is located in.
+   *
+   * The folder name defines the layout's configuration (e.g. "layout-land").
+   */
+  val folderName
+    get() = file.parent.name
 }

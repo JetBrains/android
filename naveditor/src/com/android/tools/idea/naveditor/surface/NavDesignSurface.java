@@ -22,8 +22,6 @@ import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEven
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_NESTED;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.OPEN_FILE;
-import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.SELECT_DESIGN_TAB;
-import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.SELECT_XML_TAB;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.DnDTransferComponent;
@@ -59,7 +57,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
-import com.android.tools.idea.naveditor.editor.NavEditor;
 import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
@@ -83,8 +80,6 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -98,7 +93,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.JBColor;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
@@ -110,7 +104,6 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -143,7 +136,6 @@ public class NavDesignSurface extends DesignSurface {
   private DesignerEditorPanel myEditorPanel;
 
   private static final WeakHashMap<AndroidFacet, SoftReference<ConfigurationManager>> ourConfigurationManagers = new WeakHashMap<>();
-  private static final Set<Project> PROJECTS_WITH_LISTENERS = ContainerUtil.createWeakSet();
 
   private static final List<GradleCoordinate> NAVIGATION_DEPENDENCIES = ImmutableList.of(
     GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+"),
@@ -170,7 +162,7 @@ public class NavDesignSurface extends DesignSurface {
    * {@code editorPanel} should only be null in tests
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
-    super(project, new SelectionModel(), parentDisposable);
+    super(project, new SelectionModel(), parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface));
     setBackground(JBColor.white);
 
     // TODO: add nav-specific issues
@@ -184,23 +176,6 @@ public class NavDesignSurface extends DesignSurface {
         requestRender();
       }
     });
-
-    synchronized (PROJECTS_WITH_LISTENERS) {
-      if (!PROJECTS_WITH_LISTENERS.contains(project)) {
-        PROJECTS_WITH_LISTENERS.add(project);
-        project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
-          @Override
-          public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-            // skip the initial opening
-            if (event.getOldEditor() != null && event.getNewEditor() != null) {
-              NavUsageTracker.Companion.getInstance(getModel())
-                .createEvent(event.getNewEditor() instanceof NavEditor ? SELECT_DESIGN_TAB : SELECT_XML_TAB)
-                .log();
-            }
-          }
-        });
-      }
-    }
   }
 
   @Override
@@ -243,12 +218,6 @@ public class NavDesignSurface extends DesignSurface {
   public CompletableFuture<Void> forceUserRequestedRefresh() {
     // Ignored for nav editor
     return CompletableFuture.completedFuture(null);
-  }
-
-  @NotNull
-  @Override
-  protected NavActionManager createActionManager() {
-    return new NavActionManager(this);
   }
 
   @NotNull

@@ -23,6 +23,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA
 
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -81,6 +82,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,10 +95,16 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public static class Builder {
     private final Project myProject;
     private final Disposable myParentDisposable;
-    private boolean isPreview = false;
-    private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider =
+    private boolean myIsPreview = false;
+    private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
-    private boolean showModelName = false;
+    private boolean myShowModelName = false;
+
+    /**
+     * Factory to create an action manager for the NlDesignSurface
+     */
+    private Function<DesignSurface, ActionManager<? extends DesignSurface>> myActionManagerProvider =
+      surface -> new NlActionManager((NlDesignSurface)surface);
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -108,18 +116,19 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      */
     @NotNull
     public Builder setIsPreview(boolean isPreview) {
-      this.isPreview = isPreview;
+      myIsPreview = isPreview;
       return this;
     }
 
     /**
      * Allows customizing the {@link LayoutlibSceneManager}. Use this method if you need to apply additional settings to it or if you
      * need to completely replace it, for example for tests.
+     *
      * @see NlDesignSurface#defaultSceneManagerProvider(NlDesignSurface, NlModel)
      */
     @NotNull
     public Builder setSceneManagerProvider(@NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider) {
-      this.sceneManagerProvider = sceneManagerProvider;
+      mySceneManagerProvider = sceneManagerProvider;
       return this;
     }
 
@@ -128,13 +137,19 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      */
     @NotNull
     public Builder showModelNames() {
-      showModelName = true;
+      myShowModelName = true;
+      return this;
+    }
+
+    @NotNull
+    public Builder setActionManagerProvider(@NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
+      myActionManagerProvider = actionManagerProvider;
       return this;
     }
 
     @NotNull
     public NlDesignSurface build() {
-      return new NlDesignSurface(myProject, myParentDisposable, isPreview, showModelName, sceneManagerProvider);
+      return new NlDesignSurface(myProject, myParentDisposable, myIsPreview, myShowModelName, mySceneManagerProvider, myActionManagerProvider);
     }
   }
 
@@ -142,12 +157,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @SwingCoordinate private int myScreenX = DEFAULT_SCREEN_OFFSET_X;
   @SwingCoordinate private int myScreenY = DEFAULT_SCREEN_OFFSET_Y;
   private boolean myIsCanvasResizing = false;
-  private boolean showModelNames = false;
+  private boolean myShowModelNames = false;
   private boolean myStackVertically;
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
   private boolean myCentered;
-  private final boolean isInPreview;
+  private final boolean myIsInPreview;
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
   private RenderIssueProvider myRenderIssueProvider;
@@ -162,12 +177,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
                           boolean showModelNames,
-                          @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider) {
-    super(project, new SelectionModel(), parentDisposable);
+                          @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
+                          @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
+    super(project, new SelectionModel(), parentDisposable, actionManagerProvider);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
-    this.isInPreview = isInPreview;
-    this.showModelNames = showModelNames;
+    myIsInPreview = isInPreview;
+    myShowModelNames = showModelNames;
     mySceneManagerProvider = sceneManagerProvider;
   }
 
@@ -200,7 +216,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public boolean isPreviewSurface() {
-    return isInPreview;
+    return myIsInPreview;
   }
 
   /**
@@ -226,7 +242,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public boolean isShowModelNames() {
-    return StudioFlags.NELE_DISPLAY_MODEL_NAME.get() && showModelNames;
+    return StudioFlags.NELE_DISPLAY_MODEL_NAME.get() && myShowModelNames;
   }
 
   @NotNull
@@ -313,7 +329,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     SceneManager primaryManager = managerIterator.next();
     sceneViews.add(primaryManager.getSceneView());
     if (mySceneMode == SceneMode.BOTH) {
-      SceneView secondarySceneView = ((LayoutlibSceneManager) primaryManager).getSecondarySceneView();
+      SceneView secondarySceneView = ((LayoutlibSceneManager)primaryManager).getSecondarySceneView();
       if (secondarySceneView != null) {
         // menu and preference always has only one SceneView even scene mode is both.
         sceneViews.add(secondarySceneView);
@@ -417,7 +433,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     for (SceneManager manager : myModelToSceneManagers.values()) {
       SceneView view = manager.getSceneView();
       builder.add(view);
-      SceneView secondarySceneView = ((LayoutlibSceneManager) manager).getSecondarySceneView();
+      SceneView secondarySceneView = ((LayoutlibSceneManager)manager).getSecondarySceneView();
       if (secondarySceneView != null) {
         builder.add(secondarySceneView);
       }
@@ -500,14 +516,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @NotNull
   @Override
-  protected NlActionManager createActionManager() {
-    return new NlActionManager(this);
-  }
-
-  @NotNull
-  @Override
-  public NlActionManager getActionManager() {
-    return (NlActionManager)super.getActionManager();
+  public ActionManager<NlDesignSurface> getActionManager() {
+    return (ActionManager<NlDesignSurface>)super.getActionManager();
   }
 
   @Override
@@ -516,7 +526,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (!iterator.hasNext()) {
       return;
     }
-    LayoutlibSceneManager primaryManager = (LayoutlibSceneManager) iterator.next();
+    LayoutlibSceneManager primaryManager = (LayoutlibSceneManager)iterator.next();
     Dimension primarySceneViewSize = primaryManager.getSceneView().getSize();
 
     // Position primary screen
@@ -544,7 +554,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     int nextY = myScreenY;
     for (SceneManager manager : myModelToSceneManagers.values()) {
       SceneView sceneView = manager.getSceneView();
-      SceneView secondView = ((LayoutlibSceneManager) manager).getSecondarySceneView();
+      SceneView secondView = ((LayoutlibSceneManager)manager).getSecondarySceneView();
 
       if (myStackVertically) {
         // top/bottom stacking
@@ -677,6 +687,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
       onClickPreview(x, y, false);
     }
+    else {
+      super.onSingleClick(x, y);
+    }
   }
 
   @Override
@@ -698,7 +711,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
     NlComponent component = Coordinates.findComponent(sceneView, x, y);
     if (component != null) {
-      NlComponentHelperKt.tryNavigateTo(component, needsFocusEditor);
+      navigateToComponent(component, needsFocusEditor);
     }
   }
 
@@ -733,9 +746,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     int requiredWidth = 0;
     int requiredHeight = 0;
 
-    for (SceneManager sceneManager: myModelToSceneManagers.values()) {
+    for (SceneManager sceneManager : myModelToSceneManagers.values()) {
       Dimension size = sceneManager.getSceneView().getPreferredSize();
-      SceneView secondarySceneView = ((LayoutlibSceneManager) sceneManager).getSecondarySceneView();
+      SceneView secondarySceneView = ((LayoutlibSceneManager)sceneManager).getSecondarySceneView();
       if (myStackVertically) {
         requiredWidth = Math.max(requiredWidth, size.width);
 
@@ -836,7 +849,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
           RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
                                    ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
                                    : RenderErrorModelFactory
-                                     .createErrorModel(NlDesignSurface.this, result, DataManager.getInstance().getDataContext(getIssuePanel()));
+                                     .createErrorModel(NlDesignSurface.this, result,
+                                                       DataManager.getInstance().getDataContext(getIssuePanel()));
           if (myRenderIssueProvider != null) {
             getIssueModel().removeIssueProvider(myRenderIssueProvider);
           }
@@ -862,7 +876,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public CompletableFuture<Void> forceUserRequestedRefresh() {
     ArrayList<CompletableFuture<Void>> refreshFutures = new ArrayList<>();
     for (SceneManager sceneManager : myModelToSceneManagers.values()) {
-      LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager) sceneManager;
+      LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager)sceneManager;
       refreshFutures.add(layoutlibSceneManager.requestUserInitiatedRender());
     }
 
@@ -914,20 +928,21 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
       if (componentsArea.width < 0) {
         componentsArea.setBounds(componentRect);
-      } else {
+      }
+      else {
         componentsArea.add(componentRect);
       }
     });
 
     @SwingCoordinate Rectangle areaToCenter = Coordinates.getSwingRectDip(view, componentsArea);
-    if(areaToCenter.isEmpty() || getLayeredPane().getVisibleRect().contains(areaToCenter)) {
+    if (areaToCenter.isEmpty() || getLayeredPane().getVisibleRect().contains(areaToCenter)) {
       // No need to scroll to components if they are all fully visible on the surface.
       return;
     }
 
     @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();
-    @SwingCoordinate int targetSwingX = (int) areaToCenter.getCenterX();
-    @SwingCoordinate int targetSwingY = (int) areaToCenter.getCenterY();
+    @SwingCoordinate int targetSwingX = (int)areaToCenter.getCenterX();
+    @SwingCoordinate int targetSwingY = (int)areaToCenter.getCenterY();
     // Center to position.
     setScrollPosition(targetSwingX - swingViewportSize.width / 2, targetSwingY - swingViewportSize.height / 2);
     double fitScale = getFitScale(areaToCenter.getSize(), false);

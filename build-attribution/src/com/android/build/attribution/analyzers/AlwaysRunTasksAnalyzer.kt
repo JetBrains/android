@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import org.gradle.api.internal.changedetection.TaskExecutionMode
@@ -25,15 +26,16 @@ import org.gradle.tooling.events.task.TaskSuccessResult
 /**
  * Analyzer for reporting tasks that always run due to misconfiguration.
  */
-class AlwaysRunTasksAnalyzer : BuildEventsAnalyzer {
+class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter) : BuildEventsAnalyzer {
   private val alwaysRunTasksSet = HashSet<AlwaysRunTaskData>()
 
   override fun receiveEvent(event: ProgressEvent) {
-    if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
+    if (event is TaskFinishEvent && event.result is TaskSuccessResult && warningsFilter.applyTaskFilter(
+        getTaskName(event.descriptor.taskPath))) {
       (event.result as TaskSuccessResult).executionReasons?.forEach {
         if (it == TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS.rebuildReason.get() ||
             it == TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS.rebuildReason.get()) {
-          alwaysRunTasksSet.add(AlwaysRunTaskData(TaskData(event.descriptor.taskPath, PluginData(event.descriptor.originPlugin)), it))
+          alwaysRunTasksSet.add(AlwaysRunTaskData(TaskData.createTaskData(event), it))
         }
       }
     }

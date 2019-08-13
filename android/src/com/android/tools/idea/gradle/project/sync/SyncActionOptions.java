@@ -25,6 +25,7 @@ import java.io.Serializable;
 public class SyncActionOptions implements Serializable {
   @Nullable private SelectedVariants mySelectedVariants;
   @Nullable private Collection<String> myCachedSourcesAndJavadoc;
+  @Nullable private String myModuleIdWithVariantSwitched;
   private boolean mySingleVariantSyncEnabled;
   private boolean myShouldGenerateSources;
 
@@ -60,5 +61,14 @@ public class SyncActionOptions implements Serializable {
 
   public void setCachedSourcesAndJavadoc(@Nullable Collection<String> cached) {
     myCachedSourcesAndJavadoc = cached;
+  }
+
+  @Nullable
+  public String getModuleIdWithVariantSwitched() {
+    return myModuleIdWithVariantSwitched;
+  }
+
+  public void setModuleIdWithVariantSwitched(@Nullable String moduleId) {
+    myModuleIdWithVariantSwitched = moduleId;
   }
 }

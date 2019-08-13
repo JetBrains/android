@@ -16,6 +16,9 @@
 package com.android.tools.idea.room.migrations
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.testFramework.MapDataContext
+import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.AndroidTestCase
 
 class GenerateRoomMigrationActionTest : AndroidTestCase() {
@@ -24,24 +27,56 @@ class GenerateRoomMigrationActionTest : AndroidTestCase() {
   }
 
   fun testTheAction() {
-    myFixture.addFileToProject(
-      "src/schema/foo.json",
+    val jsonOne = myFixture.addFileToProject(
+      "schemas/com.example.FooDb/1.json",
       // language=JSON
       """
         {
-        "some": "json"
+          "formatVersion": 1,
+          "database": {
+            "version": 2,
+            "identityHash": "99c7946712f93a4d723efbe10a500eb0",
+            "entities": [],
+            "setupQueries": [
+              "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+              "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"99c7946712f93a4d723efbe10a500eb0\")"
+            ]
+          }
         }
       """.trimIndent()
-    )
+    ).virtualFile
 
-    try {
-      myFixture.testAction(GenerateRoomMigrationAction())
-      fail()
-    }
-    catch (e: RuntimeException) {
-      // Exception thrown by TestDialog.DEFAULT, making sure the action actually ran.
-      assertThat(e::class.java).isEqualTo(java.lang.RuntimeException::class.java)
-      assertThat(e.message).isEqualTo("Generating migration")
-    }
+    val jsonTwo = myFixture.addFileToProject(
+      "schemas/com.example.FooDb/2.json",
+      // language=JSON
+      """
+        {
+          "formatVersion": 1,
+          "database": {
+            "version": 3,
+            "identityHash": "30a079c09b902b7e6d50fb4eca6380b0",
+            "entities": [],
+            "setupQueries": [
+              "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+              "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"30a079c09b902b7e6d50fb4eca6380b0\")"
+            ]
+          }
+        }
+      """.trimIndent()
+    ).virtualFile
+
+    myFixture.addClass("""
+      package com.example;
+      class FooDb {}
+    """.trimIndent());
+
+    val context = MapDataContext()
+    context.put(CommonDataKeys.VIRTUAL_FILE_ARRAY.name, arrayOf(jsonOne, jsonTwo))
+    context.put(CommonDataKeys.PROJECT, myFixture.project)
+
+    GenerateRoomMigrationAction().actionPerformed(TestActionEvent(context))
+
+    val migration = myFixture.findClass("com.example.Migration_2_3")
+    assertThat(migration).isNotNull()
   }
 }

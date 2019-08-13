@@ -32,7 +32,7 @@ public class SourceToGradleModuleModelTest extends AndroidGradleTestCase {
     String testString = "some Test String";
     SourceToGradleModuleModel model = new SourceToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
 
-    model.sourceLocation().set(" " + testString + " ");
-    assertEquals(testString, model.sourceLocation().get());
+    model.sourceLocation.set(" " + testString + " ");
+    assertEquals(testString, model.sourceLocation.get());
   }
 }

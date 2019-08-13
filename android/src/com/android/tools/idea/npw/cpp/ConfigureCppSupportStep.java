@@ -74,7 +74,7 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
       final ArrayList<Object> flags = new ArrayList<>();
       flags.add(cppStandard.getValueOr(CppStandardType.DEFAULT).getCompilerFlag());
 
-      getModel().cppFlags.set(Joiner.on(' ').skipNulls().join(flags));
+      getModel().getCppFlags().set(Joiner.on(' ').skipNulls().join(flags));
     });
   }
 
@@ -92,7 +92,7 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
 
   @Override
   protected boolean shouldShow() {
-    return getModel().enableCppSupport.get();
+    return getModel().getEnableCppSupport().get();
   }
 
   @Override

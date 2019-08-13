@@ -29,21 +29,16 @@ open class ComposeLightCodeInsightFixtureTestCase : LightCodeInsightFixtureTestC
     val previewAnnotation = myFixture.addFileToProject("src/com/android/tools/preview/Preview.kt", """
       package com.android.tools.preview
 
-      enum class Orientation {
-          DEFAULT,
-          PORTRAINT,
-          LANDSCAPE
-      }
-
       data class Configuration(private val apiLevel: Int? = null,
                                private val theme: String? = null,
-                               private val local: Locale? = null,
-                               private val orientation: Orientation = Orientation.DEFAULT)
+                               private val width: Int? = null,
+                               private val height: Int? = null)
 
       annotation class Preview(val name: String = "",
                                val apiLevel: Int = -1,
                                val theme: String = "",
-                               val locale: String = "")
+                               val width: Int = -1,
+                               val height: Int = -1)
 
       fun Preview(name: String? = null,
                   configuration: Configuration? = null,

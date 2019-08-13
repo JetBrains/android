@@ -151,7 +151,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
     }
 
     BytesRequest request = BytesRequest.newBuilder()
-      .setStreamId(mySession.getStartTimestamp())
+      .setStreamId(mySession.getStreamId())
       .setId(id)
       .build();
 

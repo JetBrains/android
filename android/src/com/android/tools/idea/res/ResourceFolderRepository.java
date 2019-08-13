@@ -65,10 +65,10 @@ import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.binding.BindingLayoutGroup;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
-import com.android.tools.idea.res.binding.BindingLayoutPsi;
 import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.android.tools.idea.resources.base.Base128InputStream;
 import com.android.tools.idea.resources.base.BasicFileResourceItem;
@@ -85,6 +85,7 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
@@ -99,6 +100,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiTreeAnyChangeAbstractAdapter;
 import com.intellij.psi.PsiTreeChangeAdapter;
 import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
@@ -192,7 +194,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private static final Logger LOG = Logger.getInstance(ResourceFolderRepository.class);
 
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final PsiListener myListener;
+  @NotNull private final PsiTreeChangeListener myPsiListener;
   @NotNull private final VirtualFile myResourceDir;
   @NotNull private final ResourceNamespace myNamespace;
   private final boolean myDataBindingEnabled;
@@ -257,8 +259,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     myResourcePathPrefix = myResourceDir.getPath() + '/';
     myDataBindingEnabled = isDataBindingEnabled(facet);
     myViewBindingEnabled = isViewBindingEnabled(facet);
-    myListener = new PsiListener();
     myPsiManager = PsiManager.getInstance(getProject());
+
+    PsiTreeChangeListener psiListener = StudioFlags.INCREMENTAL_RESOURCE_REPOSITORIES.get()
+                                        ? new IncrementalUpdatePsiListener()
+                                        : new SimplePsiListener();
+    myPsiListener = LOG.isDebugEnabled()
+                    ? new LoggingPsiTreeChangeListener(psiListener, LOG)
+                    : psiListener;
 
     Loader loader = new Loader(this, cachingData);
     loader.load();
@@ -450,7 +458,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     Set<BindingLayoutGroup> groups = mySources.values().stream()
       .map(resourceFile -> resourceFile instanceof PsiResourceFile ? (((PsiResourceFile)resourceFile).getBindingLayoutInfo()) : null)
       .filter(Objects::nonNull)
-      .collect(Collectors.groupingBy(info -> info.getXml().getFileName()))
+      .collect(Collectors.groupingBy(info -> info.getXml().getFile().getName()))
       .values().stream()
       .map(layouts -> createOrUpdateGroup(myDataBindingResourceFiles, layouts, modificationCount))
       .collect(Collectors.toSet());
@@ -476,7 +484,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       String name = StringUtil.unescapeXmlEntities(nameValue);
       if (StringUtil.isNotEmpty(name)) {
         if (usedNames.add(name)) {
-          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.VARIABLE, tag, resourceFile);
+          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.VARIABLE, tag);
           items.add(item);
         }
       }
@@ -498,7 +506,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
       if (StringUtil.isNotEmpty(alias)) {
         if (usedAliases.add(type)) {
-          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(alias, DataBindingResourceType.IMPORT, tag, resourceFile);
+          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(alias, DataBindingResourceType.IMPORT, tag);
           items.add(item);
         }
       }
@@ -538,15 +546,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
     BindingLayoutInfo info = resourceFile.getBindingLayoutInfo();
     if (info == null) {
-      PsiDirectory folder = resourceFile.getPsiFile().getParent();
-      // If we're here, we have a LAYOUT folder type, so folder is always non-null. See also: isBindingLayoutFile.
-      assert folder != null;
-      String folderName = folder.getName();
-      String fileName = resourceFile.getPsiFile().getName();
       String modulePackage = MergedManifestManager.getSnapshot(myFacet).getPackage();
 
-      info = new BindingLayoutInfo(modulePackage, folderName, fileName, classAttrValue);
-      info.setPsi(new BindingLayoutPsi(myFacet, resourceFile));
+      info = new BindingLayoutInfo(myFacet, modulePackage, resourceFile.getVirtualFile(), classAttrValue);
       resourceFile.setBindingLayoutInfo(info);
     } else {
       info.updateClassData(classAttrValue, modificationCount);
@@ -726,8 +728,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (resFile instanceof PsiResourceFile) {
       return false;
     }
-    // This schedules a rescan, and when the actual rescanImmediately happens it will purge non-PSI
+    // This schedules a rescan, and when the actual scan happens it will purge non-PSI
     // items as needed, populate psi items, and add to myFileTypes once done.
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Converting to PSI ", psiFile);
+    }
     scheduleScan(psiFile, folderType);
     return true;
   }
@@ -760,6 +765,18 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     synchronized (SCAN_LOCK) {
       return myPendingScans != null && myPendingScans.contains(psiFile);
     }
+  }
+
+  void scheduleScan(@NotNull VirtualFile virtualFile) {
+    ReadAction.run(() -> {
+      PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+      if (psiFile != null) {
+        ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+        if (folderType != null) {
+          scheduleScan(psiFile, folderType);
+        }
+      }
+    });
   }
 
   @VisibleForTesting
@@ -828,6 +845,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     if (psiFile.getProject().isDisposed()) return;
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Rescanning ", psiFile);
+    }
 
     Map<ResourceType, ListMultimap<String, ResourceItem>> result = new HashMap<>();
 
@@ -1083,11 +1104,30 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @NotNull
   public PsiTreeChangeListener getPsiListener() {
-    return myListener;
+    return myPsiListener;
   }
 
-  /** PSI listener which together with VfsListener keeps the repository up to date. */
-  private final class PsiListener extends PsiTreeChangeAdapter {
+  /**
+   * PSI listener which schedules a full file rescan after every change.
+   *
+   * @see IncrementalUpdatePsiListener
+   */
+  private final class SimplePsiListener extends PsiTreeAnyChangeAbstractAdapter {
+    @Override
+    protected void onChange(@Nullable PsiFile psiFile) {
+      ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+      if (folderType != null && psiFile != null && isResourceFile(psiFile)) {
+        scheduleScan(psiFile, folderType);
+      }
+    }
+  }
+
+  /**
+   * PSI listener which keeps the repository up to date. It handles simple edits synchronously and schedules rescans for other events.
+   *
+   * @see IncrementalUpdatePsiListener
+   */
+  private final class IncrementalUpdatePsiListener extends PsiTreeChangeAdapter {
     private boolean myIgnoreChildrenChanged;
 
     @Override
@@ -1833,6 +1873,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private void onSourceRemoved(@NotNull VirtualFile file, @NotNull ResourceItemSource<? extends ResourceItem> source) {
+    LOG.debug("Removing file from repository ", file);
+
     boolean removed = removeItemsFromSource(source);
     if (removed) {
       setModificationCount(ourModificationCounter.incrementAndGet());

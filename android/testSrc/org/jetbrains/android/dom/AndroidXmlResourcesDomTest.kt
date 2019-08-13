@@ -142,6 +142,10 @@ class AndroidXmlResourcesDomTest : AndroidDomTestCase("dom/xml") {
   fun testPathsChildrenCompletion() {
     toTestCompletion("paths2.xml", "paths2_after.xml")
   }
+
+  fun testPathHighlighting() {
+    doTestHighlighting("paths3.xml")
+  }
 }
 
 abstract class AndroidPreferenceXmlDomBase : AndroidDomTestCase("dom/xml") {

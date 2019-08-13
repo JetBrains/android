@@ -74,7 +74,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     project: IdeaProject,
     consumer: ProjectImportExtraModelProvider.BuildModelConsumer
   ) {
-    val androidModules: MutableList<IdeaAndroidModule> = mutableListOf()
+    val androidModules: MutableList<AndroidModule> = mutableListOf()
     project.modules.forEach { module ->
       findParameterizedAndroidModel(controller, module.gradleProject, AndroidProject::class.java)?.also { androidProject ->
         consumer.consume(module, androidProject, AndroidProject::class.java)
@@ -83,7 +83,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
           consumer.consume(module, it, NativeAndroidProject::class.java)
         }
 
-        androidModules.add(IdeaAndroidModule(module, androidProject, nativeAndroidProject))
+        androidModules.add(AndroidModule(module, androidProject, nativeAndroidProject))
       }
     }
 
@@ -91,10 +91,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       // This section is for Single Variant Sync specific models if we have reached here we should have already requested AndroidProjects
       // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
       // e.g the ones that should be selected by the IDE.
-
-      val selectedVariants = syncActionOptions.selectedVariants
-                             ?: throw IllegalStateException("Single variant sync requested, but SelectedVariants were null!")
-      chooseSelectedVariants(controller, androidModules, selectedVariants, syncActionOptions.shouldGenerateSources())
+      chooseSelectedVariants(controller, androidModules, syncActionOptions)
       androidModules.forEach { module ->
         // Variants can be empty if single-variant sync is enabled but not supported for current module.
         if (module.variantGroup.variants.isNotEmpty()) {

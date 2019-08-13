@@ -24,6 +24,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
+import com.intellij.AppTopics;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
@@ -31,6 +32,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
@@ -54,6 +56,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -81,7 +84,8 @@ public class ResourceFolderRegistry implements Disposable {
         removeStaleEntries();
       }
     });
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, new VfsListener());
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, new MyVfsListener());
+    connection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new MyFileDocumentManagerListener());
   }
 
   @NotNull
@@ -157,6 +161,18 @@ public class ResourceFolderRegistry implements Disposable {
   @Override
   public void dispose() {
     reset();
+  }
+
+  private void dispatchToRepositories(@NotNull VirtualFile file,
+                                      @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
+    for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
+      for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
+        ResourceFolderRepository repository = cache.getIfPresent(dir);
+        if (repository != null) {
+          handler.accept(repository, file);
+        }
+      }
+    }
   }
 
   /**
@@ -242,11 +258,11 @@ public class ResourceFolderRegistry implements Disposable {
   }
 
   /**
-   * This VfsListener handles {@link VFileEvent}s for resource folder.
+   * {@link BulkFileListener} which handles {@link VFileEvent}s for resource folder.
    * When an event happens on a file within a folder with a corresponding
    * {@link ResourceFolderRepository}, the event is delegated to it.
    */
-  private class VfsListener implements BulkFileListener {
+  private class MyVfsListener implements BulkFileListener {
     @UiThread
     @Override
     public void before(@NotNull List<? extends VFileEvent> events) {
@@ -327,30 +343,24 @@ public class ResourceFolderRegistry implements Disposable {
     }
 
     private void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
-      for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
-        for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
-          ResourceFolderRepository repository = cache.getIfPresent(dir);
-          if (repository != null) {
-            repository.onFileOrDirectoryRemoved(file);
-          }
-        }
-      }
+      dispatchToRepositories(file, ResourceFolderRepository::onFileOrDirectoryRemoved);
     }
 
     private void onFileContentChanged(@NotNull VirtualFile file) {
       if (file.isDirectory()) {
         return;
       }
+
       if (SdkUtils.hasImageExtension(file.getName())) {
-        for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
-          for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
-            ResourceFolderRepository repository = cache.getIfPresent(dir);
-            if (repository != null) {
-              repository.onBitmapFileUpdated(file);
-            }
-          }
-        }
+        dispatchToRepositories(file, ResourceFolderRepository::onBitmapFileUpdated);
       }
+    }
+  }
+
+  private class MyFileDocumentManagerListener implements FileDocumentManagerListener {
+    @Override
+    public void fileWithNoDocumentChanged(@NotNull VirtualFile file) {
+      dispatchToRepositories(file, ResourceFolderRepository::scheduleScan);
     }
   }
 }

@@ -125,7 +125,7 @@ final class PhysicalDevice extends Device {
 
   @NotNull
   @Override
-  ImmutableCollection<String> getSnapshots() {
+  ImmutableCollection<Snapshot> getSnapshots() {
     return ImmutableList.of();
   }
 
@@ -139,7 +139,7 @@ final class PhysicalDevice extends Device {
   }
 
   @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
     futures.getDevices().add(getAndroidDevice());
   }
 

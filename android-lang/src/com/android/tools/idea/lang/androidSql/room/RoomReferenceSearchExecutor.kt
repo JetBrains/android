@@ -16,8 +16,8 @@
 package com.android.tools.idea.lang.androidSql.room
 
 import com.android.tools.idea.lang.androidSql.NotRenamableElement
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlFindUsagesProvider
-import com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlNameElementManipulator
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumn
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlDefinition
 import com.intellij.lang.cacheBuilder.WordOccurrence
@@ -139,13 +139,13 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
 
     val words = names.map { name ->
       when {
-        AndroidSqlNameElementManipulator.needsQuoting(name) -> {
+        AndroidSqlLexer.needsQuoting(name) -> {
           // We need to figure out how a reference to this element looks like in the IdIndex.
           // We find the first "word" in the quoted name and look for it in the index,
           // as any reference for this table will include this word in its text.
           val processor = CommonProcessors.FindFirstProcessor<WordOccurrence>()
           AndroidSqlFindUsagesProvider().wordsScanner.processWords(
-            AndroidSqlNameElementManipulator.getValidName(name), processor)
+            AndroidSqlLexer.getValidName(name), processor)
           processor.foundValue?.let { it.baseText.substring(it.start, it.end) } ?: name
         }
         else -> name

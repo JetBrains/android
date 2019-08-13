@@ -17,25 +17,25 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
-import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.SqliteServiceFactory
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactory
+import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.SqliteView
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewListener
-import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewListener
 import com.google.common.util.concurrent.FutureCallback
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
+import java.util.TreeMap
 import java.util.concurrent.Executor
-import kotlin.properties.Delegates
 
 /**
  * Implementation of the application logic related to viewing/editing sqlite databases.
@@ -50,11 +50,7 @@ class SqliteController(
   val sqliteView: SqliteView,
   edtExecutor: EdtExecutorService,
   taskExecutor: Executor
-) : Disposable {
-  companion object {
-    private val logger = Logger.getInstance(SqliteController::class.java)
-  }
-
+) : Disposable, SchemaProvider {
   private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val taskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
 
@@ -68,14 +64,12 @@ class SqliteController(
 
   private val sqliteViewListener = SqliteViewListenerImpl()
 
-  private lateinit var sqliteService: SqliteService
-
-  private var sqliteSchema: SqliteSchema? by Delegates.observable<SqliteSchema?>(null) { _, _, newValue ->
-    logger.info("Schema changed $newValue")
-    if (newValue != null) {
-      sqliteView.displaySchema(newValue)
-    }
-  }
+  /**
+   * Maps each open database to its [SqliteSchema].
+   * The keys are sorted in alphabetical order on the name of the database.
+   */
+  private val openDatabases: TreeMap<SqliteDatabase, SqliteSchema>
+    = TreeMap(Comparator.comparing { database: SqliteDatabase -> database.name })
 
   init {
     Disposer.register(project, this)
@@ -86,25 +80,54 @@ class SqliteController(
   }
 
   fun openSqliteDatabase(sqliteFile: VirtualFile) {
-    sqliteService = sqliteServiceFactory.getSqliteService(sqliteFile, this, PooledThreadExecutor.INSTANCE)
+    val existingDatabase = openDatabases.keys.firstOrNull { it.name == sqliteFile.path }
+    if (existingDatabase != null) {
+      closeDatabase(existingDatabase)
+    }
 
-    sqliteView.startLoading("Opening Sqlite database...")
-    loadDbSchema()
+    val sqliteService = sqliteServiceFactory.getSqliteService(sqliteFile, PooledThreadExecutor.INSTANCE)
+    val database = SqliteDatabase(sqliteFile.path, sqliteService)
+    Disposer.register(project, database)
+
+    openDatabase(database) { openDatabase ->
+      readDatabaseSchema(openDatabase) { schema -> addNewDatabaseSchema(database, schema) }
+    }
   }
 
-  fun hasOpenDatabase() = sqliteSchema != null
+  private fun openDatabase(database: SqliteDatabase, onDatabaseOpened: (SqliteDatabase) -> Unit) {
+    sqliteView.startLoading("Opening Sqlite database...")
+    taskExecutor.addCallback(database.sqliteService.openDatabase(), object : FutureCallback<Unit> {
+      override fun onSuccess(result: Unit?) {
+        onDatabaseOpened(database)
+      }
+
+      override fun onFailure(t: Throwable) {
+        sqliteView.reportErrorRelatedToService(database.sqliteService, "Error opening Sqlite database", t)
+      }
+    })
+  }
+
+  fun hasOpenDatabase() = openDatabases.isNotEmpty()
+
+  override fun getSchema(database: SqliteDatabase) = openDatabases[database]
 
   fun runSqlStatement(query: String) {
     val sqliteEvaluatorController = openNewEvaluatorTab()
-    sqliteEvaluatorController.evaluateSqlStatement(query)
+    // TODO this will be fixed in the next CL
+    sqliteEvaluatorController.evaluateSqlStatement(openDatabases.keys.first(), query)
   }
 
   override fun dispose() {
     sqliteView.removeListener(sqliteViewListener)
+
+    resultSetControllers.values
+      .asSequence()
+      .filterIsInstance<SqliteEvaluatorController>()
+      .forEach { it.removeListeners() }
   }
 
-  private fun loadDbSchema() {
-    val futureSchema = taskExecutor.transformAsync(sqliteService.openDatabase()) { sqliteService.readSchema() }
+  private fun readDatabaseSchema(database: SqliteDatabase, onSchemaRead: (SqliteSchema) -> Unit) {
+    val futureSchema = database.sqliteService.readSchema()
 
     edtExecutor.addListener(futureSchema) {
       if (!Disposer.isDisposed(this@SqliteController)) {
@@ -113,61 +136,91 @@ class SqliteController(
     }
 
     edtExecutor.addCallback(futureSchema, object : FutureCallback<SqliteSchema> {
-      override fun onSuccess(result: SqliteSchema?) {
-        result?.let(::setDatabaseSchema)
+      override fun onSuccess(sqliteSchema: SqliteSchema?) {
+        sqliteSchema?.let { onSchemaRead(sqliteSchema) }
       }
 
       override fun onFailure(t: Throwable) {
         if (!Disposer.isDisposed(this@SqliteController)) {
-          sqliteView.reportErrorRelatedToService(sqliteService, "Error opening Sqlite database", t)
+          sqliteView.reportErrorRelatedToService(database.sqliteService, "Error reading Sqlite database", t)
         }
       }
     })
   }
 
-  private fun setDatabaseSchema(schema: SqliteSchema) {
-    if (!Disposer.isDisposed(this)) {
-      sqliteSchema = schema
+  private fun addNewDatabaseSchema(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
+    if (Disposer.isDisposed(this)) return
+    val index = openDatabases.headMap(database).size
+    sqliteView.addDatabaseSchema(database, sqliteSchema, index)
+
+    resultSetControllers.values
+      .asSequence()
+      .filterIsInstance<SqliteEvaluatorController>()
+      .forEach { it.addDatabase(database, index) }
+    openDatabases[database] = sqliteSchema
+  }
+
+  private fun closeDatabase(existingDatabase: SqliteDatabase) {
+    val index = openDatabases.headMap(existingDatabase).size
+    resultSetControllers.values
+      .asSequence()
+      .filterIsInstance<SqliteEvaluatorController>()
+      .forEach { it.removeDatabase(index) }
+    sqliteView.removeDatabaseSchema(existingDatabase)
+
+    openDatabases.remove(existingDatabase)
+    Disposer.dispose(existingDatabase)
+  }
+
+  private fun updateDatabaseSchema(database: SqliteDatabase) {
+    val oldSchema = openDatabases[database] ?: return
+    readDatabaseSchema(database) { newSchema ->
+      updateExistingDatabaseSchemaView(database, oldSchema, newSchema)
+      openDatabases[database] = newSchema
     }
   }
 
-  private fun updateView() {
-    edtExecutor.addCallback(sqliteService.readSchema(), object : FutureCallback<SqliteSchema> {
-      override fun onSuccess(schema: SqliteSchema?) {
-        schema?.let { setDatabaseSchema(it) }
-      }
-
-      override fun onFailure(t: Throwable) {
-        // TODO(b/132943925)
-      }
-    })
+  private fun updateExistingDatabaseSchemaView(database: SqliteDatabase, oldSchema: SqliteSchema, newSqliteSchema: SqliteSchema) {
+    val toRemove = oldSchema.tables.filter { !newSqliteSchema.tables.contains(it) }
+    val toAdd = newSqliteSchema.tables
+      .sortedBy { it.name }
+      .mapIndexed { index, table -> IndexedSqliteTable(index, table) }
+      .filter { !oldSchema.tables.contains(it.sqliteTable) }
+    sqliteView.updateDatabase(database, toRemove, toAdd)
   }
 
   private fun openNewEvaluatorTab(): SqliteEvaluatorController {
     val tabId = TabId.AdHocQueryTab()
 
-    val sqliteEvaluatorView = viewFactory.createEvaluatorView(project)
+    val sqliteEvaluatorView = viewFactory.createEvaluatorView(project, this)
     // TODO(b/136556640) What name should we use for these tabs?
     sqliteView.displayResultSet(tabId, "New Query", sqliteEvaluatorView.component)
 
     val sqliteEvaluatorController = SqliteEvaluatorController(
       this@SqliteController,
-      sqliteEvaluatorView, sqliteService, edtExecutor
+      sqliteEvaluatorView, edtExecutor
     ).also { it.setUp() }
+    sqliteEvaluatorController.addListener(SqliteEvaluatorControllerListenerImpl())
 
     resultSetControllers[tabId] = sqliteEvaluatorController
 
-    sqliteEvaluatorView.addListener(SqliteEvaluatorViewListenerImpl())
+    openDatabases.keys.forEachIndexed { index, sqliteDatabase ->
+      sqliteEvaluatorController.addDatabase(sqliteDatabase, index)
+    }
+
     return sqliteEvaluatorController
   }
 
   private inner class SqliteViewListenerImpl : SqliteViewListener {
-    override fun tableNodeActionInvoked(table: SqliteTable) {
-      val tableId = TabId.TableTab(table.name)
+
+    override fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable) {
+      val tableId = TabId.TableTab(database, table.name)
       if (tableId in resultSetControllers) {
         sqliteView.focusTab(tableId)
         return
       }
+
+      val sqliteService = database.sqliteService
 
       edtExecutor.addCallback(sqliteService.readTable(table), object : FutureCallback<SqliteResultSet> {
         override fun onSuccess(sqliteResultSet: SqliteResultSet?) {
@@ -196,22 +249,22 @@ class SqliteController(
       openNewEvaluatorTab()
     }
 
-    override fun closeTableActionInvoked(tableId: TabId) {
-      sqliteView.closeTab(tableId)
+    override fun closeTabActionInvoked(tabId: TabId) {
+      sqliteView.closeTab(tabId)
 
-      val controller = resultSetControllers.remove(tableId)
+      val controller = resultSetControllers.remove(tabId)
       controller?.let(Disposer::dispose)
     }
   }
 
-  private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorViewListener {
-    override fun evaluateSqlActionInvoked(sqlStatement: String) {
-      updateView()
+  private inner class SqliteEvaluatorControllerListenerImpl : SqliteEvaluatorControllerListener {
+    override fun onSchemaUpdated(database: SqliteDatabase) {
+      updateDatabaseSchema(database)
     }
   }
 }
 
 sealed class TabId {
-  data class TableTab(val tableName: String) : TabId()
+  data class TableTab(val database: SqliteDatabase, val tableName: String) : TabId()
   class AdHocQueryTab : TabId()
 }
