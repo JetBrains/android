@@ -24,7 +24,6 @@ import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.WAITING_FOR_PROCESS
 import com.intellij.execution.process.ProcessOutputTypes
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.Closeable
 import java.util.concurrent.ConcurrentHashMap
@@ -86,7 +85,7 @@ class SingleDeviceAndroidProcessMonitor(
   private var myState: SingleDeviceAndroidProcessMonitorState by Delegates.observable(WAITING_FOR_PROCESS) { _, _, newValue ->
     // This callback method can be invoked inside synchronization block. To avoid possible deadlock,
     // invoke the listener from different thread.
-    ApplicationManager.getApplication().executeOnPooledThread {
+    AppExecutorUtil.getAppExecutorService().submit {
       listener.onStateChanged(this, newValue)
     }
   }
@@ -168,8 +167,6 @@ class SingleDeviceAndroidProcessMonitor(
    */
   @Synchronized
   override fun close() {
-    myStateUpdaterScheduledFuture.cancel(false)
-    myTimeoutScheduledFuture.cancel(false)
     androidLogcatOutputCapture.stopCapture(targetDevice)
 
     when (myState) {
@@ -184,6 +181,9 @@ class SingleDeviceAndroidProcessMonitor(
         /* Nothing to do here */
       }
     }
+
+    myStateUpdaterScheduledFuture.cancel(false)
+    myTimeoutScheduledFuture.cancel(false)
   }
 }
 
