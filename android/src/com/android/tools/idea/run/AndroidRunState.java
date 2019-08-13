@@ -168,9 +168,7 @@ public class AndroidRunState implements RunProfileState {
         previousSessionProcessHandler.detachProcess();
       }
 
-      processHandler = new AndroidProcessHandler.Builder(myEnv.getProject())
-        .setApplicationId(applicationId)
-        .build();
+      processHandler = new AndroidProcessHandler(myEnv.getProject(), applicationId);
       console = attachConsole(processHandler, executor);
     }
 
