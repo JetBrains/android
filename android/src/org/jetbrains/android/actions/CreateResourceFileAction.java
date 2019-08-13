@@ -21,7 +21,11 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -35,16 +39,14 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -95,17 +97,13 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
         return false;
       }
     }
-    PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
-    ResourceFolderType folderType = CreateResourceActionBase.TARGET_RESOURCE_FOLDER_TYPE.getData(context);
-    if (folderType != null && element instanceof PsiDirectory && AndroidResourceUtil.isResourceDirectory((PsiDirectory)element)) {
-      return false;
-    }
     // Offer creating resource files from anywhere in the project (as is done for Java Classes) as long as it's within an Android module
     Module module = LangDataKeys.MODULE.getData(context);
     if (module != null) {
       return AndroidFacet.getInstance(module) != null;
     }
 
+    PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
     return element != null && AndroidFacet.getInstance(element) != null;
   }
 
@@ -201,10 +199,6 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
 
     VirtualFile[] files = CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(dataContext);
     ResourceFolderType folderType = getUniqueFolderType(files);
-    if (folderType == null) {
-      // If files are not for an specific resource file, fallback to a given folder resource type.
-      folderType = CreateResourceActionBase.TARGET_RESOURCE_FOLDER_TYPE.getData(dataContext);
-    }
     FolderConfiguration config = null;
     if (files != null && files.length > 0) {
       config = files.length == 1 ? FolderConfiguration.getConfigForFolder(files[0].getName()) : null;

@@ -110,6 +110,7 @@ public class CreateResourceDialogUtils {
     // However, in the Android Project view there is only a single "res" node, shared by multiple possible source
     // sets, so we *always* want to ask for the target source set there. We don't have a way to know which view
     // we're in here, so we default to always including the source set combo (if it's a Gradle project that is.)
+    // TODO: Give an option for each 'res' directory within each source set. Eg: main/res1, main/res2.
     if (facet != null && facet.requiresAndroidModel() && facet.getConfiguration().getModel() != null) {
       List<SourceProvider> providers = IdeaSourceProvider.getAllSourceProviders(facet);
       DefaultComboBoxModel model = new DefaultComboBoxModel();

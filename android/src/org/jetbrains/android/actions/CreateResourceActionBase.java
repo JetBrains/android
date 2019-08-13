@@ -16,7 +16,6 @@
 
 package org.jetbrains.android.actions;
 
-import com.android.resources.ResourceFolderType;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.openapi.actionSystem.*;
@@ -39,8 +38,6 @@ import javax.swing.*;
  * its own (based on dialog choices like which source provider to use.)
  */
 public abstract class CreateResourceActionBase extends AnAction {
-  public static final DataKey<ResourceFolderType> TARGET_RESOURCE_FOLDER_TYPE = DataKey.create(
-    CreateTypedResourceFileAction.class.getName() + ".folderType");
 
   protected CreateResourceActionBase() {
   }
