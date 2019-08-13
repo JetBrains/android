@@ -49,9 +49,8 @@ class BindingLayoutInfo(var data: BindingLayoutData) : ModificationTracker {
    * of writing this comment is `BindingLayoutInfoFile`. It may no longer be necessary if we end
    * up backing a LightBindingClass with its own light file, instead of with its XML file.
    *
-   * See also: `DataBindingClassFactory.getOrCreateBindingClassesFor`
+   * See also: `ModuleDataBinding.getLightBindingClasses`
    */
-  // TODO(davidherman): The DataBindingClassFactory class mentioned above doesn't exist.
   var psiClass: PsiClass? = null
 
   /**
