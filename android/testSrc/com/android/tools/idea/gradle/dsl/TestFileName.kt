@@ -187,6 +187,7 @@ enum class TestFileName(val path: String) {
   BUILD_TYPE_MODEL_READ_SIGNING_CONFIG("buildTypeModel/readSigningConfig"),
   BUILD_TYPE_MODEL_SET_SIGNING_CONFIG("buildTypeModel/setSigningConfig"),
   BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_FROM_EMPTY("buildTypeModel/setSigningConfigFromEmpty"),
+  BUILD_TYPE_MODEL_ALL_BUILD_TYPES("buildTypeModel/allBuildTypes"),
   BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPLICATION_STATEMENTS("buildTypesElement/buildTypesWithApplicationStatements"),
   BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS("buildTypesElement/buildTypesWithAssignmentStatements"),
   BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_OVERRIDE_STATEMENTS("buildTypesElement/buildTypesWithOverrideStatements"),
