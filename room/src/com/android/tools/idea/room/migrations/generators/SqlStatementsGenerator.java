@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.room.migrations.generators;
 
-import static com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer.*;
-
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
 import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
-import com.android.tools.idea.room.migrations.json.IndexBundle;
 import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
 import com.android.tools.idea.room.migrations.update.EntityUpdate;
@@ -80,37 +78,33 @@ public class SqlStatementsGenerator {
   public static List<String> getUpdateStatements(@NotNull EntityUpdate entityUpdate) {
     String tableName = entityUpdate.getTableName();
     List<FieldBundle> newFields = entityUpdate.getNewFields();
+    List<FieldBundle> deletedFields = entityUpdate.getDeletedFields();
     List<FieldBundle> modifiedFields = entityUpdate.getModifiedFields();
     List<FieldBundle> unmodifiedFields = entityUpdate.getUnmodifiedFields();
-    ArrayList<String> updateStatements = new ArrayList<>();
 
-     if (entityUpdate.isComplexUpdate()) {
-      List<FieldBundle> initialFields = new ArrayList<>();
-      Stream.of(unmodifiedFields, modifiedFields).forEach(initialFields::addAll);
+    // The SQLite ALTER TABLE command supports only column addition.
+    // Therefore, when deleting/renaming/modifying a column, we need to perform a more complex update.
+    // More information ca be found here: https://www.sqlite.org/lang_altertable.html
+    if (deletedFields.isEmpty() && modifiedFields.isEmpty() && !entityUpdate.keysWereUpdated()) {
+      ArrayList<String> statements = new ArrayList<>();
+      for (FieldBundle field : newFields) {
+        statements.add(getAddColumnStatement(tableName, field));
+      }
 
-      List<FieldBundle> currentFields = new ArrayList<>();
-      Stream.of(unmodifiedFields, modifiedFields, newFields).forEach(currentFields::addAll);
-
-      updateStatements.addAll(getComplexTableUpdate(tableName,
-                                                    initialFields,
-                                                    currentFields,
-                                                    entityUpdate.getPrimaryKey(),
-                                                    entityUpdate.getForeignKeys()));
-    } else {
-       for (FieldBundle field : newFields) {
-         updateStatements.add(getAddColumnStatement(tableName, field));
-       }
-     }
-
-    for (IndexBundle index : entityUpdate.getIndicesToBeDropped()) {
-      updateStatements.add(getDropIndexStatement(index));
+      return statements;
     }
 
-    for (IndexBundle index : entityUpdate.getIndicesToBeCreated()) {
-      updateStatements.add(getCreateIndexStatement(index, tableName));
-    }
+    List<FieldBundle> initialFields = new ArrayList<>();
+    Stream.of(unmodifiedFields, modifiedFields).forEach(initialFields::addAll);
 
-    return updateStatements;
+    List<FieldBundle> currentFields = new ArrayList<>();
+    Stream.of(unmodifiedFields, modifiedFields, newFields).forEach(currentFields::addAll);
+
+    return getComplexTableUpdate(tableName,
+                                 initialFields,
+                                 currentFields,
+                                 entityUpdate.getPrimaryKey(),
+                                 entityUpdate.getForeignKeys());
   }
 
   /**
@@ -150,8 +144,10 @@ public class SqlStatementsGenerator {
    */
   @NotNull
   private static String getSelectFromTableStatement(@NotNull String tableName, @NotNull List<FieldBundle> fields) {
-    tableName = getValidName(tableName);
-    StringBuilder statement = new StringBuilder(String.format("SELECT %s\n", getColumnEnumerationFromBundles(fields)));
+    tableName = AndroidSqlLexer.getValidName(tableName);
+    StringBuilder statement = new StringBuilder("SELECT ");
+    statement.append(fields.stream().map(f -> AndroidSqlLexer.getValidName(f.getColumnName())).collect(Collectors.joining(", ")));
+    statement.append("\n");
     statement.append(String.format("\tFROM %s;", tableName));
 
     return statement.toString();
@@ -166,9 +162,10 @@ public class SqlStatementsGenerator {
    */
   @NotNull
   private static String getInsertIntoTableStatement(@NotNull String tableName, @NotNull List<FieldBundle> fields, @NotNull String values) {
-    tableName = getValidName(tableName);
-    StringBuilder statement =
-      new StringBuilder(String.format("INSERT INTO %s (%s)\n\t", tableName, getColumnEnumerationFromBundles(fields)));
+    tableName = AndroidSqlLexer.getValidName(tableName);
+    StringBuilder statement = new StringBuilder(String.format("INSERT INTO %s (", tableName));
+    statement.append(fields.stream().map(f -> AndroidSqlLexer.getValidName(f.getColumnName())).collect(Collectors.joining(", ")));
+    statement.append(")\n\t");
     statement.append(values);
 
     if (!statement.toString().endsWith(";")) {
@@ -187,8 +184,8 @@ public class SqlStatementsGenerator {
   @NotNull
   private static String getRenameTableStatement(@NotNull String oldName, @NotNull String newName) {
     return String.format("ALTER TABLE %s RENAME TO %s;",
-                         getValidName(oldName),
-                         getValidName(newName));
+                         AndroidSqlLexer.getValidName(oldName),
+                         AndroidSqlLexer.getValidName(newName));
   }
 
   /**
@@ -202,7 +199,7 @@ public class SqlStatementsGenerator {
                                                 @NotNull List<FieldBundle> fields,
                                                 @NotNull PrimaryKeyBundle primaryKey,
                                                 @Nullable List<ForeignKeyBundle> foreignKeys) {
-    tableName = getValidName(tableName);
+    tableName = AndroidSqlLexer.getValidName(tableName);
     StringBuilder statement = new StringBuilder(String.format("CREATE TABLE %s\n(\n", tableName));
 
     for (FieldBundle field : fields) {
@@ -236,7 +233,7 @@ public class SqlStatementsGenerator {
    */
   @NotNull
   private static String getDropTableStatement(@NotNull String tableName) {
-    tableName = getValidName(tableName);
+    tableName = AndroidSqlLexer.getValidName(tableName);
     return String.format("DROP TABLE %s;", tableName);
   }
 
@@ -248,7 +245,7 @@ public class SqlStatementsGenerator {
    */
   @NotNull
   private static String getAddColumnStatement(@NotNull String tableName, @NotNull FieldBundle field) {
-    tableName = getValidName(tableName);
+    tableName = AndroidSqlLexer.getValidName(tableName);
     return String.format("ALTER TABLE %s ADD COLUMN %s;", tableName, getColumnDescription(field));
   }
 
@@ -260,7 +257,7 @@ public class SqlStatementsGenerator {
   @NotNull
   private static String getColumnDescription(@NotNull FieldBundle field) {
     StringBuilder fieldDescription =
-      new StringBuilder(String.format("%s %s", getValidName(field.getColumnName()), field.getAffinity()));
+      new StringBuilder(String.format("%s %s", AndroidSqlLexer.getValidName(field.getColumnName()), field.getAffinity()));
 
     if (field.getDefaultValue() != null) {
       fieldDescription.append(String.format(" DEFAULT %s", field.getDefaultValue()));
@@ -275,7 +272,9 @@ public class SqlStatementsGenerator {
 
   @NotNull
   private static String getPrimaryKeyConstraint(@NotNull PrimaryKeyBundle primaryKey) {
-    return String.format("PRIMARY KEY (%s)", getColumnEnumeration(primaryKey.getColumnNames()));
+    return String.format("PRIMARY KEY (%s)",
+                         primaryKey.getColumnNames().stream().map(c -> AndroidSqlLexer.getValidName(c))
+                           .collect(Collectors.joining(", ")));
   }
 
   @NotNull
@@ -288,42 +287,11 @@ public class SqlStatementsGenerator {
                       : "";
     return String.format(
       "FOREIGN KEY (%s) REFERENCES %s (%s)%s%s",
-      getColumnEnumeration(foreignKey.getColumns()),
-      getValidName(foreignKey.getTable()),
-      getColumnEnumeration(foreignKey.getReferencedColumns()),
+      foreignKey.getColumns().stream().map(c -> AndroidSqlLexer.getValidName(c)).collect(Collectors.joining(", ")),
+      foreignKey.getTable(),
+      foreignKey.getReferencedColumns().stream().map(c -> AndroidSqlLexer.getValidName(c)).collect(Collectors.joining(", ")),
       onUpdate,
       onDelete);
-  }
-
-  @NotNull
-  private static String getCreateIndexStatement(@NotNull IndexBundle index,
-                                                @NotNull String tableName) {
-    tableName = getValidName(tableName);
-    StringBuilder statement = new StringBuilder("CREATE ");
-
-    if (index.isUnique()) {
-      statement.append("UNIQUE ");
-    }
-
-    statement.append(
-      String.format("INDEX %s ON %s (%s);", getValidName(index.getName()), tableName, getColumnEnumeration(index.getColumnNames())));
-
-    return statement.toString();
-  }
-
-  @NotNull
-  private static String getDropIndexStatement(@NotNull IndexBundle index) {
-    return String.format("DROP INDEX %s;", getValidName(index.getName()));
-  }
-
-  @NotNull
-  private static String getColumnEnumerationFromBundles(@NotNull List<FieldBundle> fields) {
-    return fields.stream().map(f -> getValidName(f.getColumnName())).collect(Collectors.joining(", "));
-  }
-
-  @NotNull
-  private static String getColumnEnumeration(@NotNull List<String> columnNames) {
-    return columnNames.stream().map(c -> getValidName(c)).collect(Collectors.joining(", "));
   }
 
   private static boolean shouldAddAutoIncrementToColumn(@NotNull FieldBundle field, @NotNull PrimaryKeyBundle primaryKey) {

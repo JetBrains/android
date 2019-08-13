@@ -32,11 +32,13 @@ import java.awt.geom.Rectangle2D
 @SwingCoordinate
 private val ACTION_STROKE_WIDTH = JBUI.scale(3f)
 
+@JvmField
 @NavCoordinate
 val SELF_ACTION_LENGTHS = intArrayOf(JBUI.scale(28), JBUI.scale(26),
                                      JBUI.scale(60), JBUI.scale(8))
 val SELF_ACTION_RADII = floatArrayOf(JBUI.scale(10f), JBUI.scale(10f),
                                      JBUI.scale(5f))
+@JvmField
 val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, BasicStroke.CAP_BUTT,
                                 BasicStroke.JOIN_ROUND)
 private val START_DIRECTION = ConnectionDirection.RIGHT
@@ -120,11 +122,11 @@ enum class ConnectionDirection(val deltaX: Int, val deltaY: Int) {
   LEFT(-1, 0), RIGHT(1, 0), TOP(0, -1), BOTTOM(0, 1);
 }
 
-data class CurvePoints(@SwingCoordinate val p1: Point2D.Float,
-                       @SwingCoordinate val p2: Point2D.Float,
-                       @SwingCoordinate val p3: Point2D.Float,
-                       @SwingCoordinate val p4: Point2D.Float,
-                       val dir: ConnectionDirection)
+data class CurvePoints(@SwingCoordinate @JvmField val p1: Point2D.Float,
+                       @SwingCoordinate @JvmField val p2: Point2D.Float,
+                       @SwingCoordinate @JvmField val p3: Point2D.Float,
+                       @SwingCoordinate @JvmField val p4: Point2D.Float,
+                       @JvmField val dir: ConnectionDirection)
 
 private fun getConnectionPoint(rectangle: Rectangle2D.Float,
                                direction: ConnectionDirection): Point2D.Float {
