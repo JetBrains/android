@@ -20,10 +20,10 @@ import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.getViewBindingClassName
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.ViewIdInfo
-import com.android.tools.idea.res.binding.BindingLayoutData
+import com.android.tools.idea.res.BindingLayoutData
+import com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.res.binding.BindingLayoutGroup
 import com.android.tools.idea.res.binding.BindingLayoutInfo
-import com.android.tools.idea.res.binding.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.indexing.FileBasedIndex
@@ -87,7 +87,7 @@ private val BindingLayoutGroup.aggregatedVariables: List<Pair<BindingLayoutData.
     val alreadySeen = mutableSetOf<String>()
     for (layout in layouts) {
       val layoutData = layout.data
-      for (variable in layoutData.variables.values) {
+      for (variable in layoutData.variables) {
         val variableTag = DataBindingUtil.findVariableTag(layoutData, variable.name)
         if (variableTag != null && alreadySeen.add(variable.name)) {
           aggregatedVariables.add(variable to variableTag)
@@ -146,8 +146,8 @@ class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingCl
 /**
  * Used to generate a "BindingImpl" class.
  *
- * This config should only be used when there are alternate layouts defined in addition to the
- * main one; otherwise, just use [BindingClassConfig].
+ * This config should only be used when there are alternate layouts defined in addition to the main
+ * one; otherwise, just use [BindingClassConfig].
  */
 class BindingImplClassConfig(private val group: BindingLayoutGroup, private val layoutIndex: Int) : LightBindingClassConfig {
   override val targetLayout: BindingLayoutInfo

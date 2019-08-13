@@ -20,9 +20,9 @@ import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.ide.common.resources.stripPrefixFromId
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.res.binding.BindingLayoutType
-import com.android.tools.idea.res.binding.BindingLayoutType.DATA_BINDING_LAYOUT
-import com.android.tools.idea.res.binding.BindingLayoutType.VIEW_BINDING_LAYOUT
+import com.android.tools.idea.res.BindingLayoutType
+import com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT
+import com.android.tools.idea.res.BindingLayoutType.VIEW_BINDING_LAYOUT
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.indexing.DataIndexer
