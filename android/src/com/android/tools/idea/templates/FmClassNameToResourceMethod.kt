@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.wizard.template.AssetNameConverter
-import com.android.tools.idea.wizard.template.AssetNameConverter.Type
+import com.android.tools.idea.templates.AssetNameConverter.Type
 import freemarker.template.SimpleScalar
 import freemarker.template.TemplateMethodModelEx
 import freemarker.template.TemplateModel

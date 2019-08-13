@@ -5,17 +5,22 @@
 
 package org.jetbrains.kotlin.android.model.impl
 
+import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider
+import java.io.File
 
 class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModuleInfoProvider {
     private val androidFacet: AndroidFacet?
         get() = AndroidFacet.getInstance(module)
+
+    private val androidModuleModel: AndroidModuleModel?
+        get() = AndroidModuleModel.get(module)
 
     override fun isAndroidModule() = androidFacet != null
     override fun isGradleModule() = GradleProjectInfo.getInstance(module.project).isBuildWithGradle
@@ -28,23 +33,38 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
     override fun getApplicationPackage() = androidFacet?.manifest?.`package`?.toString()
 
     override fun getMainSourceProvider(): AndroidModuleInfoProvider.SourceProviderMirror? {
-        return androidFacet?.mainIdeaSourceProvider?.let(::SourceProviderMirrorImpl)
+        return androidFacet?.mainSourceProvider?.let(::SourceProviderMirrorImpl)
     }
 
     override fun getActiveSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
-        return IdeaSourceProvider.getCurrentSourceProviders(androidFacet ?: return emptyList()).map(::SourceProviderMirrorImpl)
+        val androidModuleModel = this.androidModuleModel ?: return emptyList()
+        return androidModuleModel.activeSourceProviders.map(::SourceProviderMirrorImpl)
     }
 
-    override fun getMainAndFlavorSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
-        return IdeaSourceProvider.getMainAndFlavorSourceProviders(androidFacet ?: return emptyList()).map(::SourceProviderMirrorImpl)
+    override fun getFlavorSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
+        val androidModuleModel = this.androidModuleModel ?: return emptyList()
+
+        val getFlavorSourceProvidersMethod = try {
+            AndroidFacet::class.java.getMethod("getFlavorSourceProviders")
+        } catch (e: NoSuchMethodException) {
+            null
+        }
+
+        return if (getFlavorSourceProvidersMethod != null) {
+            @Suppress("UNCHECKED_CAST")
+            val sourceProviders = getFlavorSourceProvidersMethod.invoke(androidFacet) as? List<SourceProvider>
+            sourceProviders?.map(::SourceProviderMirrorImpl) ?: emptyList()
+        } else {
+            androidModuleModel.flavorSourceProviders.map(::SourceProviderMirrorImpl)
+        }
     }
 
-    private class SourceProviderMirrorImpl(val sourceProvider: IdeaSourceProvider) :
+    private class SourceProviderMirrorImpl(val sourceProvider: SourceProvider) :
         AndroidModuleInfoProvider.SourceProviderMirror {
         override val name: String
             get() = sourceProvider.name
 
-        override val resDirectories: Collection<VirtualFile>
+        override val resDirectories: Collection<File>
             get() = sourceProvider.resDirectories
     }
 }

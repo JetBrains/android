@@ -21,7 +21,6 @@
   <depends>org.intellij.groovy</depends>
   <depends>com.android.tools.idea.smali</depends>
   <depends>org.jetbrains.kotlin</depends>
-  <depends>com.android.tools.idea.wizard.template</depends>
 
   <!-- One of the layoutlib plugins is required -->
   <depends optional="true" config-file="layoutlib-native.xml">com.android.layoutlib.native</depends>
@@ -528,6 +527,7 @@
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidModuleConverterProvider"/>
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidModuleToJavaModuleConverterProvider"/>
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidProguardOptionsConverterProvider"/>
+    <annotator language="JAVA" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
     <externalAnnotator language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaResourceExternalAnnotator"/>
 
     <facet.toolWindow id="Logcat"

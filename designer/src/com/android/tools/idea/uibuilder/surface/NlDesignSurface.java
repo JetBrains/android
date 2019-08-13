@@ -23,7 +23,6 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA
 
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -82,7 +81,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,12 +97,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
     private boolean myShowModelName = false;
-
-    /**
-     * Factory to create an action manager for the NlDesignSurface
-     */
-    private Function<DesignSurface, ActionManager<? extends DesignSurface>> myActionManagerProvider =
-      surface -> new NlActionManager((NlDesignSurface)surface);
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -142,14 +134,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     @NotNull
-    public Builder setActionManagerProvider(@NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
-      myActionManagerProvider = actionManagerProvider;
-      return this;
-    }
-
-    @NotNull
     public NlDesignSurface build() {
-      return new NlDesignSurface(myProject, myParentDisposable, myIsPreview, myShowModelName, mySceneManagerProvider, myActionManagerProvider);
+      return new NlDesignSurface(myProject, myParentDisposable, myIsPreview, myShowModelName, mySceneManagerProvider);
     }
   }
 
@@ -177,9 +163,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
                           boolean showModelNames,
-                          @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
-                          @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
-    super(project, new SelectionModel(), parentDisposable, actionManagerProvider);
+                          @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider) {
+    super(project, new SelectionModel(), parentDisposable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
@@ -516,8 +501,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @NotNull
   @Override
-  public ActionManager<NlDesignSurface> getActionManager() {
-    return (ActionManager<NlDesignSurface>)super.getActionManager();
+  protected NlActionManager createActionManager() {
+    return new NlActionManager(this);
+  }
+
+  @NotNull
+  @Override
+  public NlActionManager getActionManager() {
+    return (NlActionManager)super.getActionManager();
   }
 
   @Override
