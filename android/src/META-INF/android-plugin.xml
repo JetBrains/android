@@ -936,6 +936,8 @@
             text="Select Device">
       <add-to-group group-id="RunMenu" relative-to-action="editRunConfigurations" anchor="after"/>
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
+
+      <keyboard-shortcut first-keystroke="alt shift F11" keymap="$default"/>
     </action>
   </actions>
 
