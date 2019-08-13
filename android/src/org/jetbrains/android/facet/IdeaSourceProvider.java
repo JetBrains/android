@@ -27,7 +27,6 @@ import static org.jetbrains.android.facet.AndroidRootUtil.getRenderscriptGenDir;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -37,7 +36,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -383,29 +381,6 @@ public abstract class IdeaSourceProvider {
     AndroidModel androidModel = facet.getConfiguration().getModel();
     if (androidModel != null) {
       return createAll(androidModel.getActiveSourceProviders());
-    }
-    return Collections.emptyList();
-  }
-
-  /**
-   * Returns a list of source providers which includes the main source provider and
-   * product flavor specific source providers.
-   *
-   * DEPRECATED: This is method is added here to support android-kotlin-extensions which
-   *             for compatibility reasons require this particular subset of source providers.
-   */
-  @Deprecated
-  @NotNull
-  public static List<IdeaSourceProvider> getMainAndFlavorSourceProviders(@NotNull AndroidFacet facet) {
-    if (!facet.requiresAndroidModel()) {
-      return Collections.singletonList(facet.getMainIdeaSourceProvider());
-    }
-    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-    if (androidModel != null) {
-      List<IdeaSourceProvider> result = new ArrayList<>();
-      result.add(facet.getMainIdeaSourceProvider());
-      result.addAll(createAll(androidModel.getFlavorSourceProviders()));
-      return result;
     }
     return Collections.emptyList();
   }
