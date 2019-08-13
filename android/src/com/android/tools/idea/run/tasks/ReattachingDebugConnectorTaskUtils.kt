@@ -37,10 +37,7 @@ fun createReattachingDebugConnectorTaskWithMasterAndroidProcessName(baseConnecto
       override fun onStart(launchInfo: LaunchInfo,
                            device: IDevice,
                            controller: ReattachingDebugConnectorController) {
-        val masterProcessHandler = AndroidProcessHandler.Builder(launchInfo.env.project)
-          .setApplicationId(masterAndroidProcessName)
-          .monitorRemoteProcesses(true)
-          .build()
+        val masterProcessHandler = AndroidProcessHandler(launchInfo.env.project, masterAndroidProcessName)
         masterProcessHandler.addTargetDevice(device)
         masterProcessHandler.addProcessListener(object : ProcessAdapter() {
           override fun processTerminated(event: ProcessEvent) {
