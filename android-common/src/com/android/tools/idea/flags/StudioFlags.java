@@ -503,7 +503,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> APK_DEBUG_RELOAD = Flag.create(
     NDK, "apkdebugreload", "Enable APK reloading feature",
-    "If enabled, the user will be provided with an option to reload the APK inside an APK debugging project", false);
+    "If enabled, the user will be provided with an option to reload the APK inside an APK debugging project", true);
 
   private static final FlagGroup NDK_SIDE_BY_SIDE = new FlagGroup(FLAGS, "ndk.sxs", "NDK Side by Side");
   public static final Flag<Boolean> NDK_SIDE_BY_SIDE_ENABLED = Flag.create(
