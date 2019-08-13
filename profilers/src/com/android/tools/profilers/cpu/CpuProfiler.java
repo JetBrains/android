@@ -287,6 +287,32 @@ public class CpuProfiler extends StudioProfiler {
   }
 
   /**
+   * Gets the trace info for a given trace id.
+   * This function only uses the unified pipeline.
+   */
+  @NotNull
+  public static CpuTraceInfo getTraceInfoFromId(@NotNull StudioProfilers profilers, long traceId) {
+    if (!profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      return CpuTraceInfo.getDefaultInstance();
+    }
+
+    Transport.GetEventGroupsResponse response = profilers.getClient().getTransportClient().getEventGroups(
+      Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(profilers.getSession().getStreamId())
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setGroupId(traceId)
+        .build());
+    if (response.getGroupsCount() == 0) {
+      return CpuTraceInfo.getDefaultInstance();
+    }
+    Cpu.CpuTraceData data = response.getGroups(0).getEvents(response.getGroups(0).getEventsCount() - 1).getCpuTrace();
+    if (data.hasTraceStarted()) {
+      return data.getTraceStarted().getTraceInfo();
+    }
+    return data.getTraceEnded().getTraceInfo();
+  }
+
+  /**
    * Returns the list of all {@link CpuTraceInfo} for a given session.
    */
   @NotNull
