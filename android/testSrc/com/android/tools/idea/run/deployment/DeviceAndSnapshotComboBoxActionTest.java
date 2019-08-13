@@ -874,4 +874,23 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(TestDevices.PIXEL_2_XL_API_28, myPresentation.getText());
   }
+
+  @Test
+  public void updateDevicesGetterReturnsDifferentLists() {
+    // Arrange
+    Device device = new PhysicalDevice.Builder()
+      .setName("Unknown Device")
+      .setKey("cd020375-1ce4-45dc-a5be-b45e5765c6f2")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Mockito.when(myDevicesGetter.get())
+      .thenReturn(Collections.emptyList())
+      .thenReturn(Collections.singletonList(device));
+
+    AnAction action = new DeviceAndSnapshotComboBoxAction(() -> false, project -> myDevicesGetter, project -> null, myClock);
+
+    // Act
+    action.update(myEvent);
+  }
 }
