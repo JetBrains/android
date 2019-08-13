@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -50,6 +51,7 @@ class SplitEditorTest : AndroidTestCase() {
     val textEditorComponent = mock(JComponent::class.java)
     textEditor = mock(TextEditor::class.java)
     `when`(textEditor.component).thenReturn(textEditorComponent)
+    `when`(textEditor.file).thenReturn(mock(VirtualFile::class.java))
     splitEditor = object : SplitEditor(textEditor, designerEditor, "testEditor", project) {
       override fun getComponent(): JComponent {
         return mock(JComponent::class.java)
@@ -87,6 +89,11 @@ class SplitEditorTest : AndroidTestCase() {
 
     splitEditor.selectSplitMode(triggerExplicitly)
     assertThat(splitEditor.isSplitMode).isTrue()
+  }
+
+  fun testFileIsDelegateToTextEditor() {
+    val splitEditorFile = splitEditor.file!!
+    assertThat(splitEditorFile).isEqualTo(textEditor.file)
   }
 
   override fun tearDown() {
