@@ -39,6 +39,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
+import java.util.Collections
 import java.util.TreeMap
 import java.util.concurrent.Executor
 
@@ -69,12 +70,13 @@ class SqliteController(
 
   private val sqliteViewListener = SqliteViewListenerImpl()
 
+  private val databaseComparator = Comparator.comparing { database: SqliteDatabase -> database.name }
   /**
    * Maps each open database to its [SqliteSchema].
    * The keys are sorted in alphabetical order on the name of the database.
    */
   private val openDatabases: TreeMap<SqliteDatabase, SqliteSchema>
-    = TreeMap(Comparator.comparing { database: SqliteDatabase -> database.name })
+    = TreeMap(databaseComparator)
 
   private val virtualFileListener: BulkFileListener
 
@@ -110,7 +112,7 @@ class SqliteController(
 
   fun openSqliteDatabase(sqliteFile: VirtualFile) {
     val sqliteService = sqliteServiceFactory.getSqliteService(sqliteFile, PooledThreadExecutor.INSTANCE)
-    val database = SqliteDatabase(sqliteFile, sqliteFile.path, sqliteService)
+    val database = SqliteDatabase(sqliteFile, sqliteService)
     Disposer.register(project, database)
 
     openDatabase(database) { openDatabase ->
@@ -133,12 +135,13 @@ class SqliteController(
 
   fun hasOpenDatabase() = openDatabases.isNotEmpty()
 
+  fun getOpenDatabases() = Collections.unmodifiableSet(openDatabases.keys)
+
   override fun getSchema(database: SqliteDatabase) = openDatabases[database]
 
-  fun runSqlStatement(query: String) {
+  fun runSqlStatement(database: SqliteDatabase, query: String) {
     val sqliteEvaluatorController = openNewEvaluatorTab()
-    // TODO this will be fixed in the next CL
-    sqliteEvaluatorController.evaluateSqlStatement(openDatabases.keys.first(), query)
+    sqliteEvaluatorController.evaluateSqlStatement(database, query)
   }
 
   override fun dispose() {

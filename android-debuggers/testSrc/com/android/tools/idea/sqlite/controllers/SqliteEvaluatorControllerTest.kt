@@ -49,7 +49,9 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
     sqliteService = mock(SqliteService::class.java)
     edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
     sqliteEvaluatorController = SqliteEvaluatorController(testRootDisposable, sqliteEvaluatorView, edtExecutor)
-    sqliteDatabase = SqliteDatabase(mock(VirtualFile::class.java),"path", sqliteService)
+    val virtualFile = mock(VirtualFile::class.java)
+    `when`(virtualFile.path).thenReturn("data/data/myapp/databases/file.db")
+    sqliteDatabase = SqliteDatabase(virtualFile, sqliteService)
   }
 
   fun testSetUp() {
