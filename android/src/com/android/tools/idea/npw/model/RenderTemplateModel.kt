@@ -71,7 +71,8 @@ class RenderTemplateModel private constructor(
   private val shouldOpenFiles: Boolean,
   val language: ObjectProperty<Language> = languagePropertyFromProject(project.valueOrNull),
   /** Populated in [Template.render] */
-  val createdFiles: MutableList<File> = arrayListOf()
+  val createdFiles: MutableList<File> = arrayListOf(),
+  val moduleTemplateValues: MutableMap<String, Any> = mutableMapOf()
 ) : WizardModel() {
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
@@ -102,6 +103,8 @@ class RenderTemplateModel private constructor(
         log.error("RenderTemplateModel can't create files because module root is not found. Please report this error.")
         return
       }
+
+      templateValues.putAll(moduleTemplateValues)
 
       templateValues[ATTR_SOURCE_PROVIDER_NAME] = template.get().name
       if (module == null) { // New Module
@@ -214,7 +217,8 @@ class RenderTemplateModel private constructor(
                           shouldOpenFiles)
 
     @JvmStatic
-    fun fromModuleModel(moduleModel: NewModuleModel, templateHandle: TemplateHandle?, commandName: String) =
+    fun fromModuleModel(moduleModel: NewModuleModel, templateHandle: TemplateHandle?,
+                        commandName: String = moduleModel.formFactor.get().id) =
       RenderTemplateModel(moduleModel.project,
                           null,
                           templateHandle,
@@ -224,7 +228,8 @@ class RenderTemplateModel private constructor(
                           moduleModel.packageName,
                           commandName,
                           moduleModel.multiTemplateRenderer.apply { incrementRenders() },
-                          true)
+                          true,
+                          moduleTemplateValues = moduleModel.templateValues)
 
     /**
      * Design: If there are no kotlin facets in the project, the default should be Java, whether or not you previously chose Kotlin

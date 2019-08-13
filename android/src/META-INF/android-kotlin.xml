@@ -41,8 +41,6 @@
                          level="ERROR"
                          language="kotlin" />
 
-        <codeInsight.lineMarkerProvider language="kotlin" implementationClass="org.jetbrains.kotlin.android.KotlinAndroidLineMarkerProvider"/>
-
         <intentionAction>
             <className>org.jetbrains.kotlin.android.intention.KotlinAndroidAddStringResource</className>
             <category>Kotlin Android</category>
@@ -84,7 +82,6 @@
 
         <lang.foldingBuilder language="kotlin" implementationClass="org.jetbrains.kotlin.android.folding.ResourceFoldingBuilder" />
 
-        <annotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidResourceReferenceAnnotator" />
         <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinResourceExternalAnnotator" />
 
         <referencesSearch implementation="org.jetbrains.kotlin.AndroidExtensionsReferenceSearchExecutor"/>

@@ -29,8 +29,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPer
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.event.KeyEvent;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.timing.Wait;
 import org.junit.After;
 import org.junit.Before;
@@ -102,9 +104,10 @@ public class PrivateResourceTest {
     guiTest.waitForBackgroundTasks();
 
     String[] autoCompleteSuggestions = editor.waitUntilErrorAnalysisFinishes()
-      .select("(\"@string/app_name\")")
-      .enterText("\"\"")
-      .moveBetween("\"", "\"")
+      // I think the collapsing of string references messes with the select. Hence this moveBetween.
+      .moveBetween("android:text=\"", "@string/app_name\"")
+      .select("(@string/app_name)")
+      .pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_BACK_SPACE))
       .enterText("@string/")
       .getAutoCompleteWindow()
       .contents();

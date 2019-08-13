@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.emulator.SnapshotOuterClass.Snapshot;
+import com.android.emulator.SnapshotOuterClass;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.run.AndroidDevice;
@@ -81,7 +81,7 @@ final class VirtualDevicesWorkerDelegate extends WorkerDelegate<Collection<Virtu
   }
 
   @NotNull
-  private static ImmutableCollection<String> getSnapshots(@NotNull AvdInfo avdInfo) {
+  private static ImmutableCollection<Snapshot> getSnapshots(@NotNull AvdInfo avdInfo) {
     Path snapshots = Paths.get(avdInfo.getDataFolderPath(), "snapshots");
 
     if (!Files.isDirectory(snapshots)) {
@@ -90,11 +90,11 @@ final class VirtualDevicesWorkerDelegate extends WorkerDelegate<Collection<Virtu
 
     try (Stream<Path> stream = Files.list(snapshots)) {
       @SuppressWarnings("UnstableApiUsage")
-      Collector<String, ?, ImmutableList<String>> collector = ImmutableList.toImmutableList();
+      Collector<Snapshot, ?, ImmutableList<Snapshot>> collector = ImmutableList.toImmutableList();
 
       return stream
         .filter(Files::isDirectory)
-        .map(VirtualDevicesWorkerDelegate::getName)
+        .map(VirtualDevicesWorkerDelegate::getSnapshot)
         .filter(Objects::nonNull)
         .sorted()
         .collect(collector);
@@ -107,16 +107,16 @@ final class VirtualDevicesWorkerDelegate extends WorkerDelegate<Collection<Virtu
 
   @Nullable
   @VisibleForTesting
-  static String getName(@NotNull Path snapshotDirectory) {
+  static Snapshot getSnapshot(@NotNull Path snapshotDirectory) {
     Path snapshotProtocolBuffer = snapshotDirectory.resolve("snapshot.pb");
     String snapshotDirectoryName = snapshotDirectory.getFileName().toString();
 
     if (!Files.exists(snapshotProtocolBuffer)) {
-      return snapshotDirectoryName;
+      return new Snapshot(snapshotDirectoryName);
     }
 
     try (InputStream in = Files.newInputStream(snapshotProtocolBuffer)) {
-      return getName(Snapshot.parseFrom(in), snapshotDirectoryName);
+      return getSnapshot(SnapshotOuterClass.Snapshot.parseFrom(in), snapshotDirectoryName);
     }
     catch (IOException exception) {
       Logger.getInstance(VirtualDevicesWorkerDelegate.class).warn(snapshotDirectory.toString(), exception);
@@ -126,7 +126,7 @@ final class VirtualDevicesWorkerDelegate extends WorkerDelegate<Collection<Virtu
 
   @Nullable
   @VisibleForTesting
-  static String getName(@NotNull Snapshot snapshot, @NotNull String fallbackName) {
+  static Snapshot getSnapshot(@NotNull SnapshotOuterClass.Snapshot snapshot, @NotNull String fallbackName) {
     if (snapshot.getImagesCount() == 0) {
       return null;
     }
@@ -134,9 +134,9 @@ final class VirtualDevicesWorkerDelegate extends WorkerDelegate<Collection<Virtu
     String name = snapshot.getLogicalName();
 
     if (name.isEmpty()) {
-      return fallbackName;
+      return new Snapshot(fallbackName);
     }
 
-    return name;
+    return new Snapshot(name, fallbackName);
   }
 }

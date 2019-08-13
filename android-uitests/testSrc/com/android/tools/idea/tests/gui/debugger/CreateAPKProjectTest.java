@@ -91,7 +91,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     String packagedLibraryPath = "lib/x86/libsanangeles.so";
     Wait.seconds(5)
       .expecting("libsanangeles.so to be available")
-      .until(() -> ideFrame.findFileByRelativePath(packagedLibraryPath, true) != null);
+      .until(() -> ideFrame.findFileByRelativePath(packagedLibraryPath) != null);
     LibraryEditorFixture libraryEditor = editor.open(packagedLibraryPath)
       .getLibrarySymbolsFixture()
       .addDebugSymbols(debugSymbols);
@@ -228,7 +228,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
 
     Wait.seconds(5)
       .expecting("DemoActivity.smali file to be indexed and shown")
-      .until(() -> ideFrame.findFileByRelativePath(smaliFile, false) != null);
+      .until(() -> ideFrame.findFileByRelativePath(smaliFile) != null);
 
     ideFrame.getEditor()
       .open(smaliFile)

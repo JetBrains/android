@@ -63,7 +63,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   }
 
   @Throws(Exception::class)
-  fun testGetAvailableDependencyWhenUnavailable() {
+  fun ignoredTestGetAvailableDependencyWhenUnavailable() { // b/136028658
     loadSimpleApplication()
     val moduleSystem = myModules.appModule.getModuleSystem()
 
@@ -157,7 +157,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   }
 
   @Throws(Exception::class)
-  fun testGetResolvedNonMatchingDependencies() {
+  fun ignoredTestGetResolvedNonMatchingDependencies() { // b/136028658
     loadSimpleApplication()
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()

@@ -19,8 +19,20 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 public class SqliteEditorPanel {
-  public JPanel mainPanel;
+  private JPanel mainPanel;
   private JPanel headerPanel;
-  public JButton openSqliteEvaluator;
-  public JPanel tabsRoot;
+  private JButton openSqliteEvaluator;
+  private JPanel tabsRoot;
+
+  public JPanel getMainPanel() {
+    return mainPanel;
+  }
+
+  public JButton getOpenSqliteEvaluator() {
+    return openSqliteEvaluator;
+  }
+
+  public JPanel getTabsRoot() {
+    return tabsRoot;
+  }
 }

@@ -34,23 +34,11 @@ import com.intellij.psi.tree.IElementType
  * because SQL remains valid when renaming quoted names.
  */
 class AndroidSqlNameElementManipulator : AbstractElementManipulator<AndroidSqlNameElement>() {
-  companion object {
-    fun needsQuoting(name: String): Boolean {
-      val lexer = AndroidSqlLexer()
-      lexer.start(name)
-      return lexer.tokenType != AndroidSqlPsiTypes.IDENTIFIER || lexer.tokenEnd != lexer.bufferEnd
-    }
-
-    /** Checks if the given name (table name, column name) needs escaping and returns a string that's safe to put in SQL. */
-    fun getValidName(name: String): String =
-      if (!needsQuoting(name)) name else "`${name.replace("`", "``")}`"
-  }
-
   override fun handleContentChange(element: AndroidSqlNameElement, range: TextRange, newContent: String): AndroidSqlNameElement {
     element.node.replaceChild(
       element.node.firstChildNode,
-      if (needsQuoting(newContent)) {
-        newLeaf(AndroidSqlPsiTypes.BACKTICK_LITERAL, getValidName(newContent))
+      if (AndroidSqlLexer.needsQuoting(newContent)) {
+        newLeaf(AndroidSqlPsiTypes.BACKTICK_LITERAL, AndroidSqlLexer.getValidName(newContent))
       } else {
         newLeaf(AndroidSqlPsiTypes.IDENTIFIER, newContent)
       }
@@ -74,7 +62,7 @@ class AndroidSqlBindParameterManipulator : AbstractElementManipulator<AndroidSql
 /**
  * Creates a new leaf to be inserted in the tree.
  *
- * The node needs to be marked as generated, otherwise refactoring code doesn't how to format the new code.
+ * The node needs to be marked as generated, otherwise refactoring code doesn't know how to format the new code.
  *
  * @see com.intellij.psi.impl.source.PostprocessReformattingAspect
  */

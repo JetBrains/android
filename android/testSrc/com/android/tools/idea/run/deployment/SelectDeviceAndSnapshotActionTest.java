@@ -83,7 +83,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setDevice(device)
       .build();
 
-    assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSnapshot());
+    assertEquals(Snapshot.DEFAULT, action.getSnapshot());
   }
 
   @Test
@@ -94,7 +94,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of("snap_2018-08-07_16-27-58"))
+      .setSnapshots(ImmutableList.of(new Snapshot("snap_2018-08-07_16-27-58")))
       .build();
 
     try {

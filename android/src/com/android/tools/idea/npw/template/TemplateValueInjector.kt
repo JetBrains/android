@@ -70,10 +70,9 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_TH
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_FEATURE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LOW_MEMORY
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_EAP_REPO
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MANIFEST_DIR
@@ -131,7 +130,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     addDebugKeyStore(myTemplateValues, facet)
     addApplicationTheme(myTemplateValues, facet)
 
-    myTemplateValues[ATTR_IS_NEW_PROJECT] = false // Android Modules are called Gradle Projects
+    myTemplateValues[ATTR_IS_NEW_MODULE] = false // Android Modules are called Gradle Projects
     myTemplateValues[ATTR_IS_LIBRARY_MODULE] = facet.configuration.isLibraryProject
 
     val appTheme = MergedManifestManager.getMergedManifestSupplier(facet.module).now?.manifestTheme
@@ -177,7 +176,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project?): TemplateValueInjector {
     addDebugKeyStore(myTemplateValues, null)
 
-    myTemplateValues[ATTR_IS_NEW_PROJECT] = true // Android Modules are called Gradle Projects
+    myTemplateValues[ATTR_IS_NEW_MODULE] = true // Android Modules are called Gradle Projects
     myTemplateValues[ATTR_THEME_EXISTS] = true // New modules always have a theme (unless its a library, but it will have no activity)
 
     myTemplateValues[ATTR_MIN_API_LEVEL] = buildVersion.minApiLevel
@@ -297,7 +296,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
 
   fun setLanguage(language: Language): TemplateValueInjector {
     myTemplateValues[ATTR_LANGUAGE] = language.toString()
-    myTemplateValues[ATTR_KOTLIN_SUPPORT] = language == Language.KOTLIN
     return this
   }
 

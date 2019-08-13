@@ -19,13 +19,17 @@ import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
 public class ShellCommandLauncher {
+  private final static String TARGET_REGEX = "\\berror\\b";
+  @VisibleForTesting
+  static final Pattern errorPattern = Pattern.compile(TARGET_REGEX, Pattern.CASE_INSENSITIVE);
+
   public static boolean execute(@NotNull String command,
                                 @NotNull IDevice device,
                                 @NotNull LaunchStatus launchStatus,
@@ -47,7 +51,7 @@ public class ShellCommandLauncher {
     }
 
     String output = receiver.getOutput();
-    if (output.toLowerCase(Locale.US).contains("error")) {
+    if (errorPattern.matcher(output).find()) {
       launchStatus.terminateLaunch("Error while executing: " + command, true);
       printer.stderr(output);
       return false;

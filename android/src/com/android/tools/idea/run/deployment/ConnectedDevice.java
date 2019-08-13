@@ -31,10 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 class ConnectedDevice extends Device {
   static class Builder extends Device.Builder {
-    @NotNull
-    Builder setName(@NotNull String name) {
-      myName = name;
-      return this;
+    Builder() {
+      myName = "Connected Device";
     }
 
     @NotNull
@@ -117,7 +115,7 @@ class ConnectedDevice extends Device {
 
   @NotNull
   @Override
-  final Collection<String> getSnapshots() {
+  final Collection<Snapshot> getSnapshots() {
     throw new UnsupportedOperationException();
   }
 
@@ -128,7 +126,7 @@ class ConnectedDevice extends Device {
   }
 
   @Override
-  final void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
+  final void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
     throw new UnsupportedOperationException();
   }
 }

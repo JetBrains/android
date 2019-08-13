@@ -21,6 +21,7 @@
   <depends>org.intellij.groovy</depends>
   <depends>com.android.tools.idea.smali</depends>
   <depends>org.jetbrains.kotlin</depends>
+  <depends>com.android.tools.idea.wizard.template</depends>
 
   <!-- One of the layoutlib plugins is required -->
   <depends optional="true" config-file="layoutlib-native.xml">com.android.layoutlib.native</depends>
@@ -34,6 +35,7 @@
 
   <xi:include href="android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="android-junit.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="../com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="../org/jetbrains/android/dom/android-xml.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="../org/jetbrains/android/inspections/lint/android-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -526,7 +528,6 @@
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidModuleConverterProvider"/>
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidModuleToJavaModuleConverterProvider"/>
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidProguardOptionsConverterProvider"/>
-    <annotator language="JAVA" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
     <externalAnnotator language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaResourceExternalAnnotator"/>
 
     <facet.toolWindow id="Logcat"
@@ -615,8 +616,6 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler" />
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
                     serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingDefaultTracker"/>
-    <projectService serviceInterface="com.android.build.attribution.BuildAttributionManager"
-                    serviceImplementation="com.android.build.attribution.BuildAttributionManagerImpl"/>
 
     <moduleService serviceImplementation="org.jetbrains.android.compiler.ModuleSourceAutogenerating" />
     <moduleService serviceImplementation="org.jetbrains.android.TagToClassMapperImpl"
@@ -706,8 +705,13 @@
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>
     <projectStructureDetector implementation="org.jetbrains.android.newProject.AndroidProjectStructureDetector"/>
     <resolveScopeProvider implementation="org.jetbrains.android.AndroidSdkResolveScopeProvider"/>
-    <gotoRelatedProvider implementation="org.jetbrains.android.AndroidGotoRelatedProvider"/>
-    <codeInsight.lineMarkerProvider language="JAVA" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
+    <codeInsight.lineMarkerProvider language="JAVA"
+                                    implementationClass="org.jetbrains.android.AndroidGotoRelatedLineMarkerProvider"/>
+    <codeInsight.lineMarkerProvider language="kotlin"
+                                    implementationClass="org.jetbrains.android.AndroidGotoRelatedLineMarkerProvider"/>
+    <codeInsight.lineMarkerProvider language="XML"
+                                    implementationClass="org.jetbrains.android.AndroidGotoRelatedLineMarkerProvider"/>
+
     <implicitUsageProvider implementation="org.jetbrains.android.AndroidClassMembersImplicitUsagesProvider"/>
     <spellchecker.support language="TEXT" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
     <spellchecker.support language="Properties" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>

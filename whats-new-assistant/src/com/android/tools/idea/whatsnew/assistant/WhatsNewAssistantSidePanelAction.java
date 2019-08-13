@@ -20,10 +20,12 @@ import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WhatsNewAssistantEvent;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.actions.WhatsNewAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
@@ -32,6 +34,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction {
@@ -61,17 +64,20 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
+    openWhatsNewSidePanel(Objects.requireNonNull(event.getProject()));
+  }
+
+  public void openWhatsNewSidePanel(@NotNull Project project) {
     WhatsNewAssistantBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewAssistantBundleCreator.class);
     if (bundleCreator == null || !bundleCreator.shouldShowWhatsNew()) {
-      action.actionPerformed(event);
+      BrowserUtil.browse(ApplicationInfoEx.getInstanceEx().getWhatsNewUrl());
       return;
     }
 
-    assert event.getProject() != null;
-    openWindow(WhatsNewAssistantBundleCreator.BUNDLE_ID, event.getProject());
+    openWindow(WhatsNewAssistantBundleCreator.BUNDLE_ID, project);
 
     // Only register a new listener if there isn't already one, to avoid multiple OPEN/CLOSE events
-    myProjectToListenerMap.computeIfAbsent(event.getProject(), this::newWhatsNewToolWindowListener);
+    myProjectToListenerMap.computeIfAbsent(project, this::newWhatsNewToolWindowListener);
   }
 
   @NotNull

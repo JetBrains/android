@@ -25,6 +25,9 @@ android {
     minSdkVersion 19
     targetSdkVersion 23
     testInstrumentationRunnerArguments size:"medium", foo:"bar"
+    testOptions {
+      animationsDisabled true
+    }
   }
 }
 

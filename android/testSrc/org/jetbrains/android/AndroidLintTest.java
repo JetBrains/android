@@ -173,6 +173,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
@@ -286,11 +287,11 @@ public class AndroidLintTest extends AndroidTestCase {
                     "Set contentDescription",
                     "/res/layout/layout.xml", "xml");
 
-      List<LoggedUsage> usages = usageTracker.getUsages();
-      assertThat(usages).hasSize(2);
-      AndroidStudioEvent event = usages.get(0).getStudioEvent();
-      assertThat(event.getKind()).isEqualTo(AndroidStudioEvent.EventKind.LINT_SESSION);
-      LintSession session = event.getLintSession();
+      List<LoggedUsage> loggedLintSessions = usageTracker.getUsages().stream()
+        .filter(usage -> usage.getStudioEvent().getKind().equals(AndroidStudioEvent.EventKind.LINT_SESSION))
+        .collect(Collectors.toList());
+      assertThat(loggedLintSessions).hasSize(2);
+      LintSession session = loggedLintSessions.get(0).getStudioEvent().getLintSession();
       assertThat(session.getAnalysisType()).isEqualTo(LintSession.AnalysisType.IDE_FILE);
 
       List<LintIssueId> list = session.getIssueIdsList();

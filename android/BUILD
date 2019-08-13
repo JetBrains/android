@@ -30,9 +30,9 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
         "//tools/idea/java/manifest:intellij.java.manifest",
-        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
@@ -46,8 +46,9 @@ iml_module(
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
@@ -210,9 +211,9 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
         "//tools/idea/java/manifest:intellij.java.manifest",
-        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
@@ -234,8 +235,9 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/databinding:intellij.android.databinding",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
@@ -467,8 +469,9 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/arch/core/core-common/2.1.0-rc01:jar",
         "//prebuilts/tools/common/m2/repository/androidx/arch/core/core-runtime/2.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark-gradle-plugin/1.0.0-alpha03:jar",
-        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark/1.0.0-alpha03:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark-common/1.0.0-alpha04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark-gradle-plugin/1.0.0-alpha04:jar",
+        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark-junit4/1.0.0-alpha04:aar",
         "//prebuilts/tools/common/m2/repository/androidx/browser/browser/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/car/car/1.0.0-alpha7:aar",
         "//prebuilts/tools/common/m2/repository/androidx/cardview/cardview/1.0.0:aar",

@@ -60,9 +60,10 @@ class SmartAutoRefresher(psiFile: PsiFile,
   }
 
   /**
-   * Initializes the preview editor and triggers a refresh.
+   * Initializes the preview editor and triggers a refresh. This method can only be called once
+   * the project has synced and is smart.
    */
-  private fun initPreview() {
+  private fun initPreviewWhenSmartAndSynced() {
     refresh()
 
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
@@ -77,21 +78,29 @@ class SmartAutoRefresher(psiFile: PsiFile,
     }, refreshable)
   }
 
-  init {
+  /**
+   * Initialize the preview. This method does not make assumptions about the project sync and smart status.
+   */
+  private fun initPreview() {
     // We are not registering before the constructor finishes, so we should be safe here
     project.runWhenSmartAndSyncedOnEdt(refreshable, Consumer { result ->
       if (result.isSuccessful) {
-        initPreview()
+        initPreviewWhenSmartAndSynced()
       }
       else {
         workbench.loadingStopped("Preview is unavailable until after a successful project sync")
         // The project failed to sync, run initialization when the project syncs correctly
         project.listenUntilNextSync(refreshable, object : ProjectSystemSyncManager.SyncResultListener {
           override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+            // Sync has completed but we might not be in smart mode so re-run the initialization
             initPreview()
           }
         })
       }
     })
+  }
+
+  init {
+    initPreview()
   }
 }

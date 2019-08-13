@@ -16,11 +16,12 @@
 package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
+import com.android.tools.idea.npw.module.getModuleRoot
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.core.BoolProperty
@@ -34,97 +35,88 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 import java.util.ArrayList
 
-class NewModuleModel : WizardModel {
-  val isLibrary: BoolProperty = BoolValueProperty()
-  val renderTemplateModel: OptionalProperty<RenderTemplateModel> = OptionalValueProperty()
-  val templateValues: MutableMap<String, Any> = hashMapOf()
-  val project: OptionalProperty<Project>
-  val moduleParent: String?
-  val projectSyncInvoker: ProjectSyncInvoker
-  val multiTemplateRenderer: MultiTemplateRenderer
+private val log: Logger get() = logger<NewModuleModel>()
 
-  // Note: INVOKE_IMMEDIATELY otherwise Objects may be constructed in the wrong state
-  private val bindings = BindingsManager(INVOKE_IMMEDIATELY_STRATEGY)
-  val moduleName = StringValueProperty()
-  val splitName = StringValueProperty("feature")
+class NewModuleModel(
+  // Shared with NewProjectModule
+  val projectSyncInvoker: ProjectSyncInvoker,
+  val applicationName: StringProperty,
+  val packageName: StringValueProperty,
+  val projectLocation: StringProperty,
+  // enableCppSupport
+  // cppFlags
+  val project: OptionalProperty<Project>,
+  val projectTemplateValues: MutableMap<String, Any>,
+  val language: OptionalValueProperty<Language>,
+  val multiTemplateRenderer: MultiTemplateRenderer,
+
+  val template: ObjectProperty<NamedModuleTemplate>,
+  val moduleParent: String?,
+  val formFactor: ObjectValueProperty<FormFactor>
+) : WizardModel() {
+
+  val isLibrary: BoolProperty = BoolValueProperty()
+  val templateValues = mutableMapOf<String, Any>()
+
+  val moduleName = StringValueProperty().apply { addConstraint(String::trim) }
   // A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
   // module, or instead modifies an existing module (for example just adding a new Activity)
   val templateFile = OptionalValueProperty<File>()
-  val applicationName: StringProperty
-  val projectLocation: StringProperty
-  val packageName = StringValueProperty()
-  private val projectPackageName: StringProperty
-  val enableCppSupport: BoolProperty
-  val language: OptionalValueProperty<Language>
-  private val createInExistingProject: Boolean
-  val template: ObjectProperty<NamedModuleTemplate>
   val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty()
 
-  init { // Default init constructor
-    moduleName.addConstraint(AbstractProperty.Constraint(String::trim))
-    splitName.addConstraint(AbstractProperty.Constraint(String::trim))
-  }
-
-  constructor(project: Project,
-              moduleParent: String?,
-              projectSyncInvoker: ProjectSyncInvoker,
-              template: NamedModuleTemplate) {
-    this.project = OptionalValueProperty(project)
-    this.moduleParent = moduleParent
-    this.projectSyncInvoker = projectSyncInvoker
-    this.template = ObjectValueProperty(template)
-    projectPackageName = packageName
-    createInExistingProject = true
-    enableCppSupport = BoolValueProperty()
-    language = OptionalValueProperty(getInitialSourceLanguage(project))
-    applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
-    applicationName.addConstraint(AbstractProperty.Constraint(String::trim))
-    projectLocation = StringValueProperty(project.basePath!!)
+  // TODO(qumeric): replace constructors by factories
+  constructor(
+    project: Project, moduleParent: String?, projectSyncInvoker: ProjectSyncInvoker, template: NamedModuleTemplate
+  ) : this(
+    projectSyncInvoker = projectSyncInvoker,
+    applicationName = StringValueProperty(message("android.wizard.module.config.new.application")),
+    packageName = StringValueProperty(),
+    projectLocation = StringValueProperty(project.basePath!!),
+    project = OptionalValueProperty(project),
+    projectTemplateValues = mutableMapOf(),
+    language = OptionalValueProperty(getInitialSourceLanguage(project)),
+    multiTemplateRenderer = MultiTemplateRenderer(project, projectSyncInvoker),
+    template = ObjectValueProperty(template),
+    moduleParent = moduleParent,
+    formFactor = ObjectValueProperty(FormFactor.MOBILE)
+  ) {
+    applicationName.addConstraint(String::trim)
     isLibrary.addListener { updateApplicationName() }
-    multiTemplateRenderer = MultiTemplateRenderer(project, projectSyncInvoker)
   }
 
-  constructor(projectModel: NewProjectModel, templateFile: File, template: NamedModuleTemplate) {
-    this.template = ObjectValueProperty(template)
-    project = projectModel.project
-    this.moduleParent = null
-    projectPackageName = projectModel.packageName
-    projectSyncInvoker = projectModel.projectSyncInvoker
-    createInExistingProject = false
-    enableCppSupport = projectModel.enableCppSupport
-    applicationName = projectModel.applicationName
-    projectLocation = projectModel.projectLocation
+  constructor(
+    projectModel: NewProjectModel, templateFile: File, template: NamedModuleTemplate,
+    formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
+  ) : this(
+    projectSyncInvoker = projectModel.projectSyncInvoker,
+    applicationName = projectModel.applicationName,
+    packageName = projectModel.packageName,
+    projectLocation = projectModel.projectLocation,
+    project = projectModel.project,
+    projectTemplateValues = projectModel.templateValues,
+    language = projectModel.language,
+    multiTemplateRenderer = projectModel.multiTemplateRenderer,
+    template = ObjectValueProperty(template),
+    moduleParent = null,
+    formFactor = formFactor
+  ) {
     this.templateFile.value = templateFile
-    multiTemplateRenderer = projectModel.multiTemplateRenderer
     multiTemplateRenderer.incrementRenders()
-    language = OptionalValueProperty()
-
-    bindings.bind(packageName, projectPackageName)
-  }
-
-  override fun dispose() {
-    super.dispose()
-    bindings.releaseAll()
-  }
-
-  /**
-   * This method should be called if there is no "Activity Render Template" step (For example when creating a Library, or the activity
-   * creation is skipped by the user)
-   */
-  fun setRenderTemplateModel(renderModel: RenderTemplateModel) {
-    this.renderTemplateModel.value = renderModel
   }
 
   public override fun handleFinished() {
@@ -143,6 +135,13 @@ class NewModuleModel : WizardModel {
         log.error("NewModuleModel did not collect expected information and will not complete. Please report this error.")
       }
 
+      // TODO(qumeric): let project know about formFactors (it is being rendered before NewModuleModel.init runs)
+      projectTemplateValues.also {
+        it[formFactor.get().id + ATTR_INCLUDE_FORM_FACTOR] = true
+        it[formFactor.get().id + ATTR_MODULE_NAME] = moduleName.get()
+        templateValues.putAll(it)
+      }
+
       templateValues[ATTR_APP_TITLE] = applicationName.get()
       templateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
 
@@ -157,18 +156,19 @@ class NewModuleModel : WizardModel {
           setLanguage(language.value)
         }
       }
-
-      renderTemplateModel.valueOrNull?.templateValues?.putAll(templateValues)
     }
 
     @WorkerThread
     override fun doDryRun(): Boolean {
+      // This is done because module needs to know about all included form factors, and currently we know about them only after init run,
+      // so we need to set it after all inits (thus in dryRun) TODO(qumeric): remove after adding formFactors to the project
+      templateValues.putAll(projectTemplateValues)
       if (templateFile.valueOrNull == null) {
         return false // If here, the user opted to skip creating any module at all, or is just adding a new Activity
       }
 
       // Returns false if there was a render conflict and the user chose to cancel creating the template
-      return renderModule(true, templateValues, project.value, moduleName.get())
+      return renderModule(true, project.value)
     }
 
     @WorkerThread
@@ -176,7 +176,7 @@ class NewModuleModel : WizardModel {
       val project = project.value
 
       val success = WriteCommandAction.writeCommandAction(project).withName("New Module").compute<Boolean, Exception> {
-        renderModule(false, templateValues, project, moduleName.get())
+        renderModule(false, project)
       }
 
       if (!success) {
@@ -184,10 +184,9 @@ class NewModuleModel : WizardModel {
       }
     }
 
-    private fun renderModule(dryRun: Boolean, templateState: Map<String, Any>, project: Project,
-                             moduleName: String): Boolean {
+    private fun renderModule(dryRun: Boolean, project: Project): Boolean {
       val projectRoot = File(project.basePath!!)
-      val moduleRoot = getModuleRoot(project.basePath!!, moduleName)
+      val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
       val template = Template.createFromPath(templateFile.value)
       val filesToOpen = ArrayList<File>()
 
@@ -198,16 +197,15 @@ class NewModuleModel : WizardModel {
         .withOutputRoot(projectRoot)
         .withModuleRoot(moduleRoot)
         .intoOpenFiles(filesToOpen)
-        .withParams(templateState)
+        .withParams(templateValues)
         .build()
 
-      val renderResult = template.render(context, dryRun)
-      if (renderResult && !dryRun) {
-        // calling smartInvokeLater will make sure that files are open only when the project is ready
-        DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, filesToOpen, false) }
+      return template.render(context, dryRun).also {
+        if (it && !dryRun) {
+          // calling smartInvokeLater will make sure that files are open only when the project is ready
+          DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, filesToOpen, false) }
+        }
       }
-
-      return renderResult
     }
   }
 
@@ -217,16 +215,5 @@ class NewModuleModel : WizardModel {
       else -> "android.wizard.module.config.new.application"
     }
     applicationName.set(message(msgId))
-  }
-
-  companion object {
-    // Module names may use ":" for sub folders. This mapping is only true when creating new modules, as the user can later customize
-    // the Module Path (called Project Path in gradle world) in "settings.gradle"
-    @JvmStatic
-    fun getModuleRoot(projectLocation: String, moduleName: String): File =
-      File(projectLocation, moduleName.replace(':', File.separatorChar))
-
-    private val log: Logger
-      get() = Logger.getInstance(NewModuleModel::class.java)
   }
 }

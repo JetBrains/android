@@ -59,10 +59,8 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSet
-import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.pom.Navigatable
 
 /*
  * Layout editor-specific helper methods and data for NlComponent
@@ -404,21 +402,6 @@ fun NlComponent.createChild(tagName: String,
   val tag = backend.tag ?: return null
   val childTag = tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
   return model.createComponent(surface, childTag, this, before, insertType)
-}
-
-/**
- * Temporary API to help remoe XmlTag dependencies. One navigate functionality to support both needs later.
- * Warp to the text editor and show the corresponding XML for the clicked widget.
- *
- * @param needsFocusEditor true for focusing the editor after navigation. false otherwise.
- */
-fun NlComponent.tryNavigateTo(needsFocusEditor: Boolean): Boolean {
-  val element = backend.tag?.navigationElement ?: return false
-  if (PsiNavigationSupport.getInstance().canNavigate(element) && element is Navigatable) {
-    (element as Navigatable).navigate(needsFocusEditor)
-    return true
-  }
-  return false
 }
 
 val NlComponent.hasNlComponentInfo: Boolean

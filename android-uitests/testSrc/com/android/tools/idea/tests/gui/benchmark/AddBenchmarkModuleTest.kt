@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.benchmark
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -60,9 +57,9 @@ class AddBenchmarkModuleTest {
     val ideFrame = guiTest.importSimpleApplication()
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
-      .chooseModuleType("Benchmark Module")
-      .clickNext()
+      .clickNextToBenchmarkModule()
       .setSourceLanguage("Java")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
       .projectView
@@ -76,8 +73,8 @@ class AddBenchmarkModuleTest {
     guiTest.getProjectFileText("benchmark/build.gradle").run {
       assertThat(this).contains("""apply plugin: 'com.android.library'""")
       assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
-      assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.AndroidBenchmarkRunner'""")
-      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:""")
+      assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'""")
+      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark-junit4:""")
     }
   }
 
@@ -97,8 +94,8 @@ class AddBenchmarkModuleTest {
    * 2. Open the Benchmark Module manifest and check that "android:debuggable" and
    * is set to false.
    * 3. Open build.gradle and check that it applies both com.android.library,
-   * androidx.benchmark plugins, and the benchmark library added as a androidTest
-   * dependency.
+   * androidx.benchmark plugins, the test runner, and the benchmark library added
+   * as a androidTest dependency.
    */
   @Test
   @Throws(Exception::class)
@@ -106,9 +103,9 @@ class AddBenchmarkModuleTest {
     val ideFrame = guiTest.importSimpleApplication()
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
-      .chooseModuleType("Benchmark Module")
-      .clickNext()
+      .clickNextToBenchmarkModule()
       .setSourceLanguage("Kotlin")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
       .projectView
@@ -122,7 +119,8 @@ class AddBenchmarkModuleTest {
     guiTest.getProjectFileText("benchmark/build.gradle").run {
       assertThat(this).contains("""apply plugin: 'com.android.library'""")
       assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
-      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:""")
+      assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'""")
+      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark-junit4:""")
     }
   }
 }

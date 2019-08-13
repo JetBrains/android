@@ -77,9 +77,9 @@ public class ChangeLibModSettingsTest {
   public void changeLibraryModuleSettings() throws Exception {
     new NewProjectDescriptor("MyTestApp").withMinSdk("24").create(guiTest)
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Android Library")
-      .clickNextToStep("Android Library")
-      .setModuleName("library_module")
+      .clickNextToAndroidLibrary()
+      .enterModuleName("library_module")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish(Wait.seconds(30));
 

@@ -28,7 +28,6 @@ import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
@@ -36,7 +35,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.WizardConstants
@@ -67,19 +66,19 @@ import java.util.regex.Pattern
 
 private val logger: Logger get() = logger<NewProjectModel>()
 
-class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()) : WizardModel() {
-  @JvmField val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
-  @JvmField val packageName = StringValueProperty()
-  @JvmField val projectLocation = StringValueProperty()
-  @JvmField val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
-  @JvmField val cppFlags = StringValueProperty()
-  @JvmField val project = OptionalValueProperty<Project>()
-  @JvmField val templateValues = hashMapOf<String, Any>()
-  @JvmField val language = OptionalValueProperty<Language>()
+class NewProjectModel : WizardModel() {
+  val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
+  val applicationName = StringValueProperty(message("android.wizard.module.config.new.application"))
+  val packageName = StringValueProperty()
+  val projectLocation = StringValueProperty()
+  val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
+  val cppFlags = StringValueProperty()
+  val project = OptionalValueProperty<Project>()
+  val templateValues = hashMapOf<String, Any>()
+  val language = OptionalValueProperty<Language>()
   /**
    * When the project is created, it contains the list of new Module that should also be created.
    */
-  val newModuleModels = hashSetOf<NewModuleModel>()
   val multiTemplateRenderer = MultiTemplateRenderer(null, this.projectSyncInvoker)
 
   init {
@@ -90,7 +89,7 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
       }
     }
 
-    applicationName.addConstraint(AbstractProperty.Constraint<String> { it.trim() } )
+    applicationName.addConstraint(String::trim)
 
     language.set(calculateInitialLanguage(PropertiesComponent.getInstance()))
   }
@@ -130,19 +129,32 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
 
       false
     }
-    if (couldEnsureLocationExists) {
-      project.value = ProjectManager.getInstance().createProject(projectName, projectLocation)!!
-      multiTemplateRenderer.setProject(project.value)
+    if (!couldEnsureLocationExists) {
+      val msg = "Could not ensure the target project location exists and is accessible:\n$projectLocation\nPlease try to specify another path."
+      Messages.showErrorDialog(msg, "Error Creating Project")
+      return
     }
-    else {
-      val msg = "Could not ensure the target project location exists and is accessible:\n\n%1\$s\n\nPlease try to specify another path."
-      Messages.showErrorDialog("$msg $projectLocation", "Error Creating Project")
-    }
-
+    project.value = ProjectManager.getInstance().createProject(projectName, projectLocation)!!
+    multiTemplateRenderer.setProject(project.value)
     multiTemplateRenderer.requestRender(ProjectTemplateRenderer())
   }
 
   private inner class ProjectTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
+    lateinit var projectTemplate: Template
+    @WorkerThread
+    override fun init() {
+      projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
+      // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
+      templateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
+      templateValues[ATTR_CPP_FLAGS] = cppFlags.get()
+      templateValues[ATTR_TOP_OUT] = project.value.basePath ?: ""
+      templateValues[ATTR_IS_NEW_PROJECT] = true
+
+      TemplateValueInjector(templateValues)
+        .setProjectDefaults(project.value)
+        .setLanguage(language.value)
+    }
+
     @WorkerThread
     override fun doDryRun(): Boolean {
       if (project.valueOrNull == null) {
@@ -168,77 +180,50 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
       saveWizardState()
     }
 
-    @UiThread
-    override fun finish() {
-      performGradleImport()
-    }
-
     private fun performCreateProject(dryRun: Boolean) {
-      val project = project.value
-
-      // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
-      templateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
-      templateValues[ATTR_CPP_FLAGS] = cppFlags.get()
-      templateValues[ATTR_TOP_OUT] = project.basePath ?: ""
-      templateValues[ATTR_KOTLIN_SUPPORT] = language.value === KOTLIN
-
-      TemplateValueInjector(templateValues).setProjectDefaults(project)
-
-      val params = templateValues.toMutableMap()
-      for (newModuleModel in newModuleModels) {
-        newModuleModel.templateValues.putAll(templateValues)
-      }
-
-      val projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
-      val context = RenderingContext.Builder.newContext(projectTemplate, project)
+      val context = RenderingContext.Builder.newContext(projectTemplate, project.value)
         .withCommandName("New Project")
         .withDryRun(dryRun)
         .withShowErrors(true)
-        .withParams(params)
+        .withParams(templateValues)
         .build()
 
       projectTemplate.render(context, dryRun)
     }
 
-    private fun performGradleImport() {
-      if (ApplicationManager.getApplication().isUnitTestMode) {
-        return
-      }
-
-      val rootLocation = File(projectLocation.get())
-      val wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation)
-      try {
-        val gradleDistFile = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION)
-        if (gradleDistFile == null) {
-          GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(GRADLE_LATEST_VERSION)
-        }
-        else {
-          GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(gradleDistFile)
-        }
-      }
-      catch (e: IOException) {
-        // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".
-        logger.warn("Failed to update Gradle wrapper file", e)
-      }
-
-      try {
-        // Java language level; should be 7 for L and above
-        var initialLanguageLevel: LanguageLevel? = null
-        val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()
-        if (sdkData != null) {
-          val jdk = JavaSdk.getInstance()
-          val sdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdk)
-          if (sdk != null) {
-            val version = jdk.getVersion(sdk)
-            if (version != null && version.isAtLeast(JavaSdkVersion.JDK_1_7)) {
-              initialLanguageLevel = LanguageLevel.JDK_1_7
-            }
+    @UiThread
+    override fun finish() {
+      fun updateDistributionUrl() {
+        val rootLocation = File(projectLocation.get())
+        val wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation)
+        try {
+          val gradleDistFile = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION)
+          if (gradleDistFile == null) {
+            GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(GRADLE_LATEST_VERSION)
+          }
+          else {
+            GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(gradleDistFile)
           }
         }
+        catch (e: IOException) {
+          // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".
+          logger.warn("Failed to update Gradle wrapper file", e)
+        }
+      }
 
-        val request = GradleProjectImporter.Request(project.value)
-        request.isNewProject = true
-        request.javaLanguageLevel = initialLanguageLevel
+      fun performGradleImport() = try {
+        val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()
+        val jdk = JavaSdk.getInstance()
+        val sdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdk)
+        // Java language level; should be 7 for L and above
+        val initialLanguageLevel: LanguageLevel? = LanguageLevel.JDK_1_7.takeIf {
+          sdkData != null && sdk != null && jdk.getVersion(sdk)?.isAtLeast(JavaSdkVersion.JDK_1_7) == true
+        }
+
+        val request = GradleProjectImporter.Request(project.value).apply {
+          isNewProject = true
+          javaLanguageLevel = initialLanguageLevel
+        }
 
         // "Import project" opens the project and thus automatically triggers sync.
         GradleProjectImporter.getInstance().importProjectNoSync(request)
@@ -247,14 +232,25 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
         Messages.showErrorDialog(e.message, message("android.wizard.project.create.error"))
         logger.error(e)
       }
+
+      if (ApplicationManager.getApplication().isUnitTestMode) {
+        return
+      }
+
+      updateDistributionUrl()
+      performGradleImport()
     }
   }
 
   companion object {
-    @VisibleForTesting const val PROPERTIES_ANDROID_PACKAGE_KEY = "SAVED_ANDROID_PACKAGE"
-    @VisibleForTesting const val PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT"
-    @VisibleForTesting const val PROPERTIES_NPW_LANGUAGE_KEY = "SAVED_ANDROID_NPW_LANGUAGE"
-    @VisibleForTesting const val PROPERTIES_NPW_ASKED_LANGUAGE_KEY = "SAVED_ANDROID_NPW_ASKED_LANGUAGE"
+    @VisibleForTesting
+    const val PROPERTIES_ANDROID_PACKAGE_KEY = "SAVED_ANDROID_PACKAGE"
+    @VisibleForTesting
+    const val PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT"
+    @VisibleForTesting
+    const val PROPERTIES_NPW_LANGUAGE_KEY = "SAVED_ANDROID_NPW_LANGUAGE"
+    @VisibleForTesting
+    const val PROPERTIES_NPW_ASKED_LANGUAGE_KEY = "SAVED_ANDROID_NPW_ASKED_LANGUAGE"
 
     private const val PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT"
     private const val EXAMPLE_DOMAIN = "example.com"
@@ -262,25 +258,21 @@ class NewProjectModel @JvmOverloads constructor(val projectSyncInvoker: ProjectS
     private val MODULE_NAME_GROUP = Pattern.compile(".*:") // Anything before ":" belongs to the module parent name
 
     /**
-     * Loads saved company domain, or generates a dummy one if no domain has been saved
+     * Loads saved company domain, or generates a dummy one if no domain has been saved.
      */
     @JvmStatic
-    fun getInitialDomain(): String {
-      val androidPackage = PropertiesComponent.getInstance().getValue(PROPERTIES_ANDROID_PACKAGE_KEY)
-      if (androidPackage != null) {
-        return DomainToPackageExpression(StringValueProperty(androidPackage), StringValueProperty("")).get()
+    fun getInitialDomain(): String =
+      when (val androidPackage = PropertiesComponent.getInstance().getValue(PROPERTIES_ANDROID_PACKAGE_KEY)) {
+        is String -> DomainToPackageExpression(StringValueProperty(androidPackage), StringValueProperty("")).get()
+        else -> EXAMPLE_DOMAIN
       }
-      return EXAMPLE_DOMAIN
-    }
 
     /**
      * Tries to get a valid package suggestion for the specifies Project using the saved user domain.
      */
     @JvmStatic
-    fun getSuggestedProjectPackage(): String {
-        val companyDomain = StringValueProperty(getInitialDomain())
-        return DomainToPackageExpression(companyDomain, StringValueProperty("")).get()
-      }
+    fun getSuggestedProjectPackage(): String =
+      DomainToPackageExpression(StringValueProperty(getInitialDomain()), StringValueProperty("")).get()
 
     /**
      * Calculates the initial values for the language and updates the [PropertiesComponent]

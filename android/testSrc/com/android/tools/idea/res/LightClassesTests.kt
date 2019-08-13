@@ -1005,7 +1005,6 @@ class TestRClassesTest : AndroidGradleTestCase() {
 
     val projectRoot = prepareProjectForImport(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
 
-
     File(projectRoot, "app/build.gradle").appendText("""
       dependencies {
         androidTestImplementation project(':lib')

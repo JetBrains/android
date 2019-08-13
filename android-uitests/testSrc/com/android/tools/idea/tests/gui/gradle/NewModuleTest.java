@@ -45,10 +45,10 @@ public class NewModuleTest {
 
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Import .JAR/.AAR Package")
-      .clickNextToStep("Import Module from Library")
+      .clickNextToModuleFromJar()
       .setFileName(jarFile)
       .setSubprojectName("localJarLib")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
       .getEditor()
@@ -71,9 +71,7 @@ public class NewModuleTest {
   public void createNewJavaLibraryWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Java Library")
-      .clickNextToStep("Library name:")
-      .getConfigureJavaLibaryStepFixture()
+      .clickNextToJavaLibrary()
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
       .wizard()
@@ -86,9 +84,9 @@ public class NewModuleTest {
   public void createNewAndroidLibraryWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Android Library")
-      .clickNextToStep("Android Library")
-      .setModuleName("somelibrary")
+      .clickNextToAndroidLibrary()
+      .enterModuleName("somelibrary")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
 
@@ -101,9 +99,7 @@ public class NewModuleTest {
   public void createNewJavaLibraryWithNoGitIgnore() throws Exception {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Java Library")
-      .clickNextToStep("Library name:")
-      .getConfigureJavaLibaryStepFixture()
+      .clickNextToJavaLibrary()
       .enterLibraryName("mylib")
       .enterPackageName("my.test")
       .enterClassName("MyJavaClass")
@@ -118,8 +114,9 @@ public class NewModuleTest {
     WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
     guiTest.ideFrame()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .clickNext() // Default Phone & Tablet Module
-      .setModuleName("otherModule")
+      .clickNextPhoneAndTabletModule()
+      .enterModuleName("otherModule")
+      .wizard()
       .clickNext()
       .clickNext() // Default "Empty Activity"
       .clickFinish()
@@ -140,8 +137,10 @@ public class NewModuleTest {
     WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
     guiTest.ideFrame()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .clickNext() // Default Phone & Tablet Module
-      .setModuleName("otherModule")
+      .clickNextPhoneAndTabletModule()
+      .setSourceLanguage("Kotlin")
+      .enterModuleName("otherModule")
+      .wizard()
       .clickNext()
       .chooseActivity("Basic Activity")
       .clickNext() // Default "Empty Activity"

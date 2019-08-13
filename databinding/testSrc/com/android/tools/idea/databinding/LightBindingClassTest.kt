@@ -19,6 +19,7 @@ package com.android.tools.idea.databinding
 import com.android.ide.common.resources.stripPrefixFromId
 import com.android.tools.idea.databinding.DataBindingUtil.parsePsiType
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
+import com.android.tools.idea.databinding.utils.findClass
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
@@ -134,8 +135,9 @@ class LightBindingClassTest {
         </LinearLayout>
       </layout>
     """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding") as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     val tags = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
@@ -154,8 +156,9 @@ class LightBindingClassTest {
         </LinearLayout>
       </layout>
     """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding") as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(binding.fields).hasLength(1)
 
     val tag = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }[0]
@@ -185,8 +188,9 @@ class LightBindingClassTest {
         </LinearLayout>
       </layout>
     """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding") as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(binding.fields).hasLength(1)
 
     val tag = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }[0]
@@ -208,8 +212,9 @@ class LightBindingClassTest {
         </LinearLayout>
       </layout>
     """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding") as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(binding.fields).hasLength(1)
 
     val attribute = PsiTreeUtil.findChildrenOfType(file, XmlAttribute::class.java)
@@ -234,8 +239,9 @@ class LightBindingClassTest {
             android:class="com.example.Test"/>
       </layout>
     """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding") as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     assertThat(fields).hasLength(1)
     val tags = findChild(file, XmlTag::class.java) { it.localName == "view" }
@@ -259,11 +265,12 @@ class LightBindingClassTest {
             android:layout="@layout/other_activity"/>
       </layout>
     """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
 
     // initialize app resources
     ResourceRepositoryManager.getAppResources(facet)
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding") as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     assertThat(fields).hasLength(1)
     val tags = findChild(file, XmlTag::class.java) { it.localName == "merge" }
@@ -287,11 +294,12 @@ class LightBindingClassTest {
             android:layout="@layout/other_activity"/>
       </layout>
     """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
 
     // initialize app resources
     ResourceRepositoryManager.getAppResources(facet)
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding") as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     assertThat(fields).hasLength(1)
     val tags = findChild(file, XmlTag::class.java) { it.localName == "include" }

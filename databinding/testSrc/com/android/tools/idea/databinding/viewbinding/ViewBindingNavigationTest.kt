@@ -19,6 +19,7 @@ import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.isViewBindingEnabled
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
+import com.android.tools.idea.databinding.utils.findClass
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.res.binding.BindingLayoutInfoFile
@@ -81,8 +82,11 @@ class ViewBindingNavigationTest {
   @Test
   fun navigateLightViewBindingClass() {
     assertThat(editorManager.selectedFiles).isEmpty()
+
+    val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
+
     // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml
-    val binding = fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding") as LightBindingClass
+    val binding = fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context) as LightBindingClass
     binding.navigate(true)
     assertThat(editorManager.selectedFiles[0].name).isEqualTo("activity_main.xml")
 
@@ -103,8 +107,13 @@ class ViewBindingNavigationTest {
   @Test
   fun navigateLightViewBindingField() {
     assertThat(editorManager.selectedFiles).isEmpty()
+    val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
+
     // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml
-    val binding = fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding").findFieldByName("testId", false)!!
+    val binding = fixture
+      .findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)!!
+      .findFieldByName("testId", false)!!
+
     binding.navigate(true)
     assertThat(editorManager.selectedFiles[0].name).isEqualTo("activity_main.xml")
     assertThat(binding.navigationElement).isInstanceOf(XmlTag::class.java)

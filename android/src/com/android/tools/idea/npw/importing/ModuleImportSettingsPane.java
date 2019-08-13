@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.npw.importing;
 
+import static com.android.tools.idea.ui.wizard.WizardUtils.toHtmlString;
+import static com.google.common.base.Strings.nullToEmpty;
+
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.MessageType;
@@ -118,7 +121,7 @@ public final class ModuleImportSettingsPane extends JPanel implements ModuleImpo
 
   @Override
   public void setValidationStatus(@Nullable MessageType type, @Nullable String message) {
-    myStatusMessage.setText(ImportUIUtil.makeHtmlString(message));
+    myStatusMessage.setText(toHtmlString(nullToEmpty(message)));
     myStatusMessage.setIcon(type == null ? null : type.getDefaultIcon());
   }
 
@@ -129,7 +132,7 @@ public final class ModuleImportSettingsPane extends JPanel implements ModuleImpo
 
   @Override
   public void setModuleSourcePath(String path) {
-    mySourcePath.setText(ImportUIUtil.makeHtmlString(path));
+    mySourcePath.setText(toHtmlString(path));
   }
 
   @Override

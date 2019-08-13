@@ -17,7 +17,10 @@ package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.controllers.TabId
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
+import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.SqliteView
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewListener
 import org.mockito.Mockito.mock
@@ -42,7 +45,9 @@ open class MockSqliteView : SqliteView {
 
   override fun stopLoading() { }
 
-  override fun displaySchema(schema: SqliteSchema) { }
+  override fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int) { }
+
+  override fun removeDatabaseSchema(database: SqliteDatabase) { }
 
   override fun displayResultSet(tableId: TabId, tableName: String, component: JComponent) {
     lastDisplayedResultSetTabId = tableId
@@ -53,4 +58,6 @@ open class MockSqliteView : SqliteView {
   override fun closeTab(tabId: TabId) { }
 
   override fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable) { }
+
+  override fun updateDatabase(database: SqliteDatabase, toRemove: List<SqliteTable>, toAdd: List<IndexedSqliteTable>) { }
 }

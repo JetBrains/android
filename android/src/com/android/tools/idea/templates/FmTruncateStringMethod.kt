@@ -20,6 +20,7 @@ import freemarker.template.TemplateMethodModelEx
 import freemarker.template.TemplateModel
 import freemarker.template.TemplateModelException
 import freemarker.template.TemplateNumberModel
+import kotlin.math.min
 
 class FmTruncateStringMethod : TemplateMethodModelEx {
   override fun exec(args: List<*>): TemplateModel {
@@ -28,6 +29,6 @@ class FmTruncateStringMethod : TemplateMethodModelEx {
     }
     val s = args[0].toString()
     val max = (args[1] as TemplateNumberModel).asNumber.toInt()
-    return SimpleScalar(s.substring(0, Math.min(s.length, max)))
+    return SimpleScalar(s.substring(0, min(s.length, max)))
   }
 }
