@@ -47,9 +47,7 @@ interface AndroidModuleInfoProvider {
 
     // For old Android Extensions
     fun getMainSourceProvider(): SourceProviderMirror?
-
-    @Deprecated("Do not use. IDEAndroidLayoutXmlFileManager requires this method for compatibility reasons")
-    fun getMainAndFlavorSourceProviders(): List<SourceProviderMirror>
+    fun getFlavorSourceProviders(): List<SourceProviderMirror>
     fun getAllResourceDirectories(): List<VirtualFile>
 
     // For experimental Android Extensions
@@ -57,7 +55,7 @@ interface AndroidModuleInfoProvider {
 
     interface SourceProviderMirror {
         val name: String
-        val resDirectories: Collection<VirtualFile>
+        val resDirectories: Collection<File>
     }
 }
 

@@ -125,19 +125,37 @@ class IDEAndroidLayoutXmlFileManager(val module: Module) : AndroidLayoutXmlFileM
         return listOf()
     }
 
-    private fun SourceProviderMirror.toVariant() = let {
-        val list = resDirectories.mapNotNull { it.canonicalPath }
-        val fixedName = if (name != "") name else "main"  // IdeaSourceProvider's for legacy projects rename the main source set.
-        AndroidVariant(fixedName, list)
-    }
+    private fun SourceProviderMirror.toVariant() = AndroidVariant(name, resDirectories.map { it.canonicalPath })
 
     private fun getAndroidModuleInfo(androidInfoProvider: AndroidModuleInfoProvider): AndroidModule? {
-        val applicationPackage = androidInfoProvider.getApplicationPackage() ?: return null
-        val sourceProviders =
-          when (androidInfoProvider.module.androidExtensionsIsExperimental) {
-              true -> androidInfoProvider.getActiveSourceProviders()
-              else -> @Suppress("DEPRECATION") androidInfoProvider.getMainAndFlavorSourceProviders()
-          }
-        return AndroidModule(applicationPackage, sourceProviders.map { it.toVariant() })
+        if (androidInfoProvider.module.androidExtensionsIsExperimental) {
+            return getAndroidModuleInfoExperimental(androidInfoProvider)
+        }
+
+        val applicationPackage = androidInfoProvider.getApplicationPackage()
+
+        if (applicationPackage != null) {
+            val mainVariant = androidInfoProvider.getMainSourceProvider()?.toVariant()
+            val variantsForFlavorts = androidInfoProvider.getFlavorSourceProviders().map { it.toVariant() }
+            val allVariants = listOfNotNull(mainVariant) + variantsForFlavorts
+
+            if (allVariants.isNotEmpty()) {
+                return AndroidModule(applicationPackage, allVariants)
+            }
+        }
+        return null
+    }
+
+    private fun getAndroidModuleInfoExperimental(androidFacet: AndroidModuleInfoProvider): AndroidModule? {
+        val applicationPackage = androidFacet.getApplicationPackage() ?: return null
+        val variants = mutableListOf<AndroidVariant>()
+
+        androidFacet.getMainSourceProvider()?.toVariant()?.let { variants += it }
+
+        androidFacet.getActiveSourceProviders()
+            .filter { it.name != "main" }
+            .forEach { sourceProvider -> variants += sourceProvider.toVariant() }
+
+        return AndroidModule(applicationPackage, variants)
     }
 }
