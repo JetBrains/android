@@ -37,10 +37,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewToolbar.ForceCompile
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.intellij.icons.AllIcons
@@ -49,23 +46,19 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LightVirtualFile
-import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
@@ -74,7 +67,6 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
 import javax.swing.JPanel
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance as getInstance
 
 private const val DEBUG = false
 
@@ -131,6 +123,22 @@ private class ComposeAdapterLightVirtualFile(name: String, content: String) : Li
 }
 
 /**
+ * Interface that provides access to the Compose Preview logic.
+ */
+interface ComposePreviewManager {
+  /**
+   * Returns whether the preview needs a re-build to work. We detect this by looking into the rendering errors
+   * and checking if there are any classes missing.
+   */
+  fun needsBuild(): Boolean
+
+  /**
+   * Requests a preview refresh
+   */
+  fun refresh()
+}
+
+/**
  * A [FileEditor] that displays a preview of composable elements defined in the given [psiFile].
  *
  * The editor will display previews for all declared `@Composable` methods that also use the `@Preview` (see [PREVIEW_ANNOTATION_FQN])
@@ -141,7 +149,7 @@ private class ComposeAdapterLightVirtualFile(name: String, content: String) : Li
  * @param previewProvider [PreviewElementFinder] to obtain the [PreviewElement]s from the file.
  */
 private class PreviewEditor(private val psiFile: PsiFile,
-                            private val previewProvider: PreviewElementFinder) : SmartRefreshable, DesignFileEditor(psiFile.virtualFile!!) {
+                    private val previewProvider: PreviewElementFinder) : ComposePreviewManager, SmartRefreshable, DesignFileEditor(psiFile.virtualFile!!) {
   private val project = psiFile.project
 
   private val surface = NlDesignSurface.builder(project, this)
@@ -178,6 +186,15 @@ private class PreviewEditor(private val psiFile: PsiFile,
    * Calls refresh method on the the successful gradle build
    */
   private val refresher = SmartAutoRefresher(psiFile, this, workbench)
+
+  override fun needsBuild(): Boolean = surface.models.asSequence()
+    .mapNotNull { surface.getSceneManager(it) }
+    .filterIsInstance<LayoutlibSceneManager>()
+    .mapNotNull { it.renderResult?.logger?.brokenClasses?.values }
+    .flatten()
+    .any {
+      it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
+    }
 
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
@@ -222,10 +239,18 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
     CompletableFuture.allOf(*(renders.toTypedArray()))
       .whenComplete { _, ex ->
-        workbench.hideLoading()
+        if (needsBuild()) {
+          workbench.loadingStopped("Some classes could not be found")
+        }
+        else {
+          workbench.hideLoading()
+        }
         if (ex != null) {
           Logger.getInstance(PreviewEditor::class.java).warn(ex)
         }
+
+        // Make sure all notifications are cleared-up
+        EditorNotifications.getInstance(project).updateNotifications(file)
       }
 
   }
@@ -239,10 +264,6 @@ private class PreviewEditor(private val psiFile: PsiFile,
  */
 private fun VirtualFile.isKotlinFileType(): Boolean =
   extension == KotlinFileType.INSTANCE.defaultExtension && fileType == KotlinFileType.INSTANCE
-
-private fun requestBuild(project: Project, module: Module) {
-  GradleBuildInvoker.getInstance(project).compileJava(arrayOf(module), TestCompileType.NONE)
-}
 
 /**
  * [ToolbarActionGroups] that includes the [ForceCompileAndRefreshAction]
@@ -273,41 +294,13 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) : Toolba
   ))
 }
 
-private class ComposeTextEditorWithPreview(editor: TextEditor, preview: PreviewEditor) :
+private class ComposeTextEditorWithPreview constructor(editor: TextEditor, val preview: PreviewEditor) :
   TextEditorWithPreview(editor, preview, "Compose Editor")
 
 /**
- * [EditorNotifications.Provider] that displays the notification when the preview needs to be refreshed.
+ * Returns the Compose [PreviewEditor] or null if this [FileEditor] is not a Compose preview.
  */
-class OutdatedPreviewNotificationProvider : EditorNotifications.Provider<EditorNotificationPanel>() {
-  private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.outdated")
-
-  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
-    if (fileEditor !is ComposeTextEditorWithPreview) return null
-
-    // Do not show the notification while the build is in progress
-    if (GradleBuildState.getInstance(project).isBuildInProgress) return null
-
-    val isModified = FileDocumentManager.getInstance().isFileModified(file)
-    if (!isModified) {
-      // The file was saved, check the compilation time
-      val modificationStamp = file.timeStamp
-      val lastBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).lastBuildTimestamp ?: -1
-      if (lastBuildTimestamp >= modificationStamp) return null
-    }
-
-    val module = ModuleUtil.findModuleForFile(file, project) ?: return null
-    return EditorNotificationPanel().apply {
-      setText("The preview is out of date")
-
-      createActionLabel("Refresh", Runnable {
-        requestBuild(project, module)
-      })
-    }
-  }
-
-  override fun getKey(): Key<EditorNotificationPanel> = COMPONENT_KEY
-}
+fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = (this as? ComposeTextEditorWithPreview)?.preview
 
 /**
  * Provider for Compose Preview editors.

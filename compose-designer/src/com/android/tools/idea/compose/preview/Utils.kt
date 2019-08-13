@@ -16,7 +16,10 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -68,4 +71,8 @@ interface PreviewElementFinder {
    * This method can not use UAST for performance reasons since it might be called very frequently.
    */
   fun elementBelongsToPreviewElement(element: PsiElement): Boolean = true
+}
+
+internal fun requestBuild(project: Project, module: Module) {
+  GradleBuildInvoker.getInstance(project).compileJava(arrayOf(module), TestCompileType.NONE)
 }
