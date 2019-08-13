@@ -19,14 +19,12 @@ import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.getViewBindingClassName
 import com.android.tools.idea.databinding.index.BindingXmlIndex
-import com.android.tools.idea.databinding.index.IndexedLayoutInfo
 import com.android.tools.idea.databinding.index.ViewIdInfo
 import com.android.tools.idea.res.binding.BindingLayoutData
 import com.android.tools.idea.res.binding.BindingLayoutGroup
 import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.res.binding.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.indexing.FileBasedIndex
 
@@ -129,14 +127,12 @@ class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingCl
 
   override val viewIds: List<ViewIdInfo>
     get() {
-      fun searchIndexForViewIds(xmlFile: XmlFile): List<IndexedLayoutInfo> {
-        return FileBasedIndex.getInstance()
-          .getValues(BindingXmlIndex.NAME, BindingXmlIndex.getKeyForFile(xmlFile.virtualFile), GlobalSearchScope.fileScope(xmlFile))
-      }
       return group.layouts
         .mapNotNull { info -> DataBindingUtil.findXmlFile(info.data) }
-        // TODO(davidherman): Can this cause an infinite recursion? If not, please explain why.
-        .flatMap { xmlFile -> searchIndexForViewIds(xmlFile) }
+        .flatMap { xmlFile ->
+          FileBasedIndex.getInstance()
+            .getValues(BindingXmlIndex.NAME, BindingXmlIndex.getKeyForFile(xmlFile.virtualFile), GlobalSearchScope.fileScope(xmlFile))
+        }
         .flatMap { indexedInfo -> indexedInfo.viewIds }
     }
 

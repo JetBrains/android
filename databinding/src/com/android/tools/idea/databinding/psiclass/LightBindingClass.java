@@ -511,9 +511,6 @@ public class LightBindingClass extends AndroidLightClassBase {
     @Override
     @Nullable
     public PsiFile getContainingFile() {
-      // Note: This light field has to be backed by a real file on disk, not a light class, or else
-      // renaming breaks.
-      // TODO(davidherman): The above statement is likely false.
       return DataBindingUtil.findXmlFile(myLayoutInfo.getData());
     }
 
