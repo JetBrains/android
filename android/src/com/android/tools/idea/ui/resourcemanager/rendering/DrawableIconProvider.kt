@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.ui.resourcemanager.rendering
 
+import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.res.resolveDrawable
+import com.android.tools.idea.res.toFileResourcePathString
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.explorer.EMPTY_ICON
 import com.android.tools.idea.ui.resourcemanager.explorer.ERROR_ICON
@@ -28,8 +30,11 @@ import com.android.tools.idea.ui.resourcemanager.explorer.createFailedIcon
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
+import com.android.tools.idea.ui.resourcemanager.plugin.FrameworkDrawableRenderer
 import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderer
+import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.ImageUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -68,21 +73,24 @@ class DrawableIconProvider(
   override var supportsTransparency: Boolean = true
   val project = facet.module.project
 
-  // TODO(b/138947166): Some ResourceType.ATTR DesignAssets are not properly previewed, the renderer seems to lack the appropriate context.
-
   private fun getDrawableImage(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?>? {
     val resolveValue = resourceResolver.resolveValue(designAsset) ?: return null
-    val file = resourceResolver.resolveDrawable(resolveValue, project)
-               ?: designAsset.file
-    return DesignAssetRendererManager.getInstance().getViewer(file)
-      .getImage(file, facet.module, dimension)
+    if (resolveValue.isFramework) {
+      // Delegate framework resources to FrameworkDrawableRenderer. DesignAssetRendererManager fails to provide an image for framework xml
+      // resources, it tries to just use the file reference in ResourceValue but it needs a whole ResourceValue from the ResourceResolver
+      // that also points to LayoutLib's framework resources instead of the local Android Sdk.
+      return renderFrameworkDrawable(resolveValue, designAsset, dimension)
+    }
+
+    val file = resourceResolver.resolveDrawable(resolveValue, project) ?: designAsset.file
+    return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension)
   }
 
   /**
    * Returns an image of the provided [DesignAsset] representing a Layout.
    */
   private fun getLayoutImage(designAsset: DesignAsset): CompletableFuture<out Image?>? {
-    val file = designAsset.file
+    val file = resourceResolver.getResolvedLayoutFile(designAsset) ?: return null
     val psiFile = AndroidPsiUtils.getPsiFileSafely(facet.module.project, file)
     return if (psiFile is XmlFile) {
       CompletableFuture.supplyAsync(
@@ -198,4 +206,31 @@ class DrawableIconProvider(
     }
     return image
   }
+
+  private fun renderFrameworkDrawable(resolvedValue: ResourceValue,
+                                      designAsset: DesignAsset,
+                                      dimension: Dimension): CompletableFuture<out Image?>? {
+    val frameworkValue =
+      if (designAsset.resourceItem.type == ResourceType.ATTR) {
+        // For theme attributes, we can just use the already resolved value.
+        resolvedValue
+      }
+      else {
+        // Need a LayoutLib resolved value, so we resolve the resource's reference instead of its value.
+        resourceResolver.getUnresolvedResource(designAsset.resourceItem.referenceToSelf) ?: return null
+      }
+    return FrameworkDrawableRenderer.getInstance(facet).thenCompose {
+      it.getDrawableRender(frameworkValue, dimension)
+    }
+  }
 }
+
+private fun ResourceResolver.getResolvedLayoutFile(designAsset: DesignAsset): VirtualFile? =
+  if (designAsset.resourceItem.type == ResourceType.ATTR) {
+    resolveValue(designAsset)?.value?.let {
+      toFileResourcePathString(it)?.toVirtualFile()
+    }
+  }
+  else {
+    designAsset.file
+  }
