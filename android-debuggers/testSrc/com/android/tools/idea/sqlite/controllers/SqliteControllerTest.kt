@@ -112,9 +112,9 @@ class SqliteControllerTest : PlatformTestCase() {
     `when`(mockSqliteService.closeDatabase()).thenReturn(Futures.immediateFuture(null))
     `when`(mockSqliteService.readTable(testSqliteTable)).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
-    sqliteDatabase1 = SqliteDatabase(sqliteFile1, sqliteFile1.path, mockSqliteService)
-    sqliteDatabase2 = SqliteDatabase(sqliteFile2, sqliteFile2.path, mockSqliteService)
-    sqliteDatabase3 = SqliteDatabase(sqliteFile3, sqliteFile3.path, mockSqliteService)
+    sqliteDatabase1 = SqliteDatabase(sqliteFile1, mockSqliteService)
+    sqliteDatabase2 = SqliteDatabase(sqliteFile2, mockSqliteService)
+    sqliteDatabase3 = SqliteDatabase(sqliteFile3, mockSqliteService)
 
     Disposer.register(project, sqliteDatabase1)
     Disposer.register(project, sqliteDatabase2)
@@ -350,9 +350,9 @@ class SqliteControllerTest : PlatformTestCase() {
 
     // Assert
     val evaluatorView = viewFactory.createEvaluatorView(project, MockSchemaProvider())
-    verify(evaluatorView).addDatabase(sqliteDatabase1, "com.my.app/db1.db", 0)
-    verify(evaluatorView).addDatabase(sqliteDatabase2, "com.my.app/db2.db", 1)
-    verify(evaluatorView).addDatabase(sqliteDatabase3, "com.ay.app/db.db", 0)
+    verify(evaluatorView).addDatabase(sqliteDatabase1, 0)
+    verify(evaluatorView).addDatabase(sqliteDatabase2, 1)
+    verify(evaluatorView).addDatabase(sqliteDatabase3, 0)
   }
 
   fun testRemoveDatabase() {
