@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res.psi
 
+import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_NAME
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -41,6 +42,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.FakePsiElement
+import com.intellij.psi.impl.compiled.ClsFieldImpl
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
@@ -77,6 +79,7 @@ data class ResourceReferencePsiElement(
       return when (element) {
         is ResourceReferencePsiElement -> element
         is AndroidLightField -> convertAndroidLightField(element)
+        is ClsFieldImpl -> convertClsFieldImpl(element)
         is XmlAttributeValue -> convertXmlAttributeValue(element)
         is PsiFile -> convertPsiFile(element)
         is LazyValueResourceElementWrapper -> ResourceReferencePsiElement(element.resourceInfo.resource.referenceToSelf, element.manager)
@@ -108,6 +111,18 @@ data class ResourceReferencePsiElement(
         ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
       }
       return ResourceReferencePsiElement(ResourceReference(resourceNamespace, resourceType, element.name), element.manager)
+    }
+
+    /**
+     * This is for compiled framework resources in Java/Kotlin files.
+     */
+    private fun convertClsFieldImpl(element: ClsFieldImpl) : ResourceReferencePsiElement? {
+      val containingClass = element.containingClass ?: return null
+      if (containingClass.containingClass?.qualifiedName != SdkConstants.CLASS_R) {
+        return null
+      }
+      val resourceType = containingClass.name?.let { ResourceType.fromClassName(it) } ?: return null
+      return ResourceReferencePsiElement(ResourceReference(ResourceNamespace.ANDROID, resourceType, element.name), element.manager)
     }
 
     /**
