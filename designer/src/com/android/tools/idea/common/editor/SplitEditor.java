@@ -29,12 +29,14 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.fileEditor.TextEditorWithPreview;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.util.ArrayUtil;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link TextEditorWithPreview} in which {@link #myPreview} is a {@link DesignerEditor} and {@link #myEditor} contains the corresponding
@@ -157,6 +159,12 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
   @Override
   public Editor getEditor() {
     return myEditor.getEditor();
+  }
+
+  @Nullable
+  @Override
+  public VirtualFile getFile() {
+    return myEditor.getFile();
   }
 
   @Override
