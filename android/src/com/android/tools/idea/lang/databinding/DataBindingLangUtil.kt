@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 @file:JvmName("DataBindingLangUtil")
-
 package com.android.tools.idea.lang.databinding
 
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -41,9 +41,8 @@ fun getBindingLayoutInfo(element: PsiElement): BindingLayoutInfo? {
       val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
       val topLevelFile = InjectedLanguageManager.getInstance(module.project).getTopLevelFile(element)
       if (topLevelFile != null) {
-        var name = topLevelFile.name
-        name = name.substring(0, name.lastIndexOf('.'))
-        bindingLayoutInfo = moduleResources.getBindingLayoutInfo(name)
+        val name = StringUtil.trimExtensions(topLevelFile.name)
+        bindingLayoutInfo = moduleResources.getBindingLayoutInfo(name).firstOrNull()
       }
     }
   }

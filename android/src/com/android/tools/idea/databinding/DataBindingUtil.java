@@ -22,11 +22,12 @@ import com.android.tools.idea.databinding.index.ViewIdInfo;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.res.BindingLayoutData;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.res.binding.BindingLayoutData;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
@@ -194,7 +195,7 @@ public final class DataBindingUtil {
     if (resourceUrl == null || resourceUrl.type != ResourceType.LAYOUT) {
       return null;
     }
-    BindingLayoutInfo info = moduleResources.getBindingLayoutInfo(resourceUrl.name);
+    BindingLayoutInfo info = Iterables.getFirst(moduleResources.getBindingLayoutInfo(resourceUrl.name), null);
     if (info == null) {
       return null;
     }

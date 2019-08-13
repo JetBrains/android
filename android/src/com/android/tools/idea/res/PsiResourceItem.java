@@ -49,8 +49,10 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.resources.base.RepositoryConfiguration;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -67,7 +69,6 @@ import com.intellij.psi.xml.XmlComment;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.util.XmlUtil;
 import java.lang.ref.WeakReference;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -76,10 +77,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Resource item backed by an {@link XmlTag} PSI element.
  */
-public class PsiResourceItem implements ResourceItem {
+public final class PsiResourceItem implements ResourceItem {
   @NotNull private final String myName;
   @NotNull private final ResourceType myType;
-  @NotNull private final ResourceNamespace myNamespace;
+
+  @NotNull private ResourceFolderRepository myOwner;
   @Nullable private ResourceValue myResourceValue;
   @Nullable private PsiResourceFile mySourceFile;
   /**
@@ -99,15 +101,15 @@ public class PsiResourceItem implements ResourceItem {
 
   private PsiResourceItem(@NotNull String name,
                           @NotNull ResourceType type,
-                          @NotNull ResourceNamespace namespace,
+                          @NotNull ResourceFolderRepository owner,
                           @Nullable XmlTag tag,
                           @NotNull PsiFile file,
                           boolean calledFromPsiListener) {
     myName = name;
     myType = type;
-    myNamespace = namespace;
 
     myOriginalTag = tag == null ? null : new WeakReference<>(tag);
+    myOwner = owner;
 
     SmartPointerManager pointerManager = SmartPointerManager.getInstance(file.getProject());
     if (calledFromPsiListener) {
@@ -145,17 +147,17 @@ public class PsiResourceItem implements ResourceItem {
    *
    * @param name the name of the resource
    * @param type the type of the resource
-   * @param namespace the namespace of the resource
+   * @param owner the owning resource repository
    * @param tag the XML tag to create the resource from
    * @param calledFromPsiListener true if the method was called from a PSI listener
    */
   @NotNull
   public static PsiResourceItem forXmlTag(@NotNull String name,
                                           @NotNull ResourceType type,
-                                          @NotNull ResourceNamespace namespace,
+                                          @NotNull ResourceFolderRepository owner,
                                           @NotNull XmlTag tag,
                                           boolean calledFromPsiListener) {
-    return new PsiResourceItem(name, type, namespace, tag, tag.getContainingFile(), calledFromPsiListener);
+    return new PsiResourceItem(name, type, owner, tag, tag.getContainingFile(), calledFromPsiListener);
   }
 
   /**
@@ -163,17 +165,17 @@ public class PsiResourceItem implements ResourceItem {
    *
    * @param name the name of the resource
    * @param type the type of the resource
-   * @param namespace the namespace of the resource
+   * @param owner the owning resource repository
    * @param file the XML file to create the resource from
    * @param calledFromPsiListener true if the method was called from a PSI listener
    */
   @NotNull
   public static PsiResourceItem forFile(@NotNull String name,
                                         @NotNull ResourceType type,
-                                        @NotNull ResourceNamespace namespace,
+                                        @NotNull ResourceFolderRepository owner,
                                         @NotNull PsiFile file,
                                         boolean calledFromPsiListener) {
-    return new PsiResourceItem(name, type, namespace, null, file, calledFromPsiListener);
+    return new PsiResourceItem(name, type, owner, null, file, calledFromPsiListener);
   }
 
   @Override
@@ -188,10 +190,15 @@ public class PsiResourceItem implements ResourceItem {
     return myType;
   }
 
+  @NotNull
+  ResourceFolderRepository getRepository() {
+    return myOwner;
+  }
+
   @Override
   @NotNull
   public ResourceNamespace getNamespace() {
-    return myNamespace;
+    return myOwner.getNamespace();
   }
 
   @Override
@@ -203,7 +210,7 @@ public class PsiResourceItem implements ResourceItem {
   @Override
   @NotNull
   public ResourceReference getReferenceToSelf() {
-    return new ResourceReference(myNamespace, myType, myName);
+    return new ResourceReference(getNamespace(), myType, myName);
   }
 
   @Override
@@ -247,13 +254,13 @@ public class PsiResourceItem implements ResourceItem {
       return null;
     }
 
-    FolderConfiguration configuration = FolderConfiguration.getConfigForFolder(name);
-    if (configuration == null) {
+    FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(name);
+    if (folderConfiguration == null) {
       return null;
     }
 
     // PsiResourceFile constructor sets the source of this item.
-    return new PsiResourceFile(psiFile, Collections.singletonList(this), folderType, configuration);
+    return new PsiResourceFile(psiFile, ImmutableList.of(this), folderType, new RepositoryConfiguration(myOwner, folderConfiguration));
   }
 
   public void setSourceFile(@Nullable PsiResourceFile sourceFile) {
@@ -279,9 +286,9 @@ public class PsiResourceItem implements ResourceItem {
         VirtualFile virtualFile = source.getVirtualFile();
         String path = virtualFile == null ? null : VfsUtilCore.virtualToIoFile(virtualFile).getAbsolutePath();
         if (density != null) {
-          myResourceValue = new DensityBasedResourceValueImpl(myNamespace, myType, myName, path, density, null);
+          myResourceValue = new DensityBasedResourceValueImpl(getNamespace(), myType, myName, path, density, null);
         } else {
-          myResourceValue = new ResourceValueImpl(myNamespace, myType, myName, path, null);
+          myResourceValue = new ResourceValueImpl(getNamespace(), myType, myName, path, null);
         }
       } else {
         myResourceValue = parseXmlToResourceValue(tag);
@@ -328,16 +335,16 @@ public class PsiResourceItem implements ResourceItem {
     switch (myType) {
       case STYLE:
         String parent = getAttributeValue(tag, ATTR_PARENT);
-        value = parseStyleValue(tag, new StyleResourceValueImpl(myNamespace, myName, parent, null));
+        value = parseStyleValue(tag, new StyleResourceValueImpl(getNamespace(), myName, parent, null));
         break;
       case STYLEABLE:
-        value = parseDeclareStyleable(tag, new StyleableResourceValueImpl(myNamespace, myName, null, null));
+        value = parseDeclareStyleable(tag, new StyleableResourceValueImpl(getNamespace(), myName, null, null));
         break;
       case ATTR:
-        value = parseAttrValue(tag, new AttrResourceValueImpl(myNamespace, myName, null));
+        value = parseAttrValue(tag, new AttrResourceValueImpl(getNamespace(), myName, null));
         break;
       case ARRAY:
-        value = parseArrayValue(tag, new ArrayResourceValueImpl(myNamespace, myName, null) {
+        value = parseArrayValue(tag, new ArrayResourceValueImpl(getNamespace(), myName, null) {
           // Allow the user to specify a specific element to use via tools:index
           @Override
           protected int getDefaultIndex() {
@@ -350,7 +357,7 @@ public class PsiResourceItem implements ResourceItem {
         });
         break;
       case PLURALS:
-        value = parsePluralsValue(tag, new PluralsResourceValueImpl(myNamespace, myName, null, null) {
+        value = parsePluralsValue(tag, new PluralsResourceValueImpl(getNamespace(), myName, null, null) {
           // Allow the user to specify a specific quantity to use via tools:quantity
           @Override
           public String getValue() {
@@ -366,10 +373,10 @@ public class PsiResourceItem implements ResourceItem {
         });
         break;
       case STRING:
-        value = parseTextValue(tag, new PsiTextResourceValue(myNamespace, myName, null, null, null));
+        value = parseTextValue(tag, new PsiTextResourceValue(getNamespace(), myName, null, null, null));
         break;
       default:
-        value = parseValue(tag, new ResourceValueImpl(myNamespace, myType, myName, null));
+        value = parseValue(tag, new ResourceValueImpl(getNamespace(), myType, myName, null));
         break;
     }
 
@@ -458,12 +465,10 @@ public class PsiResourceItem implements ResourceItem {
 
   @Nullable
   private static String getDescription(@NotNull XmlTag tag) {
-    PsiElement comment = XmlUtil.findPreviousComment(tag);
+    XmlComment comment = XmlUtil.findPreviousComment(tag);
     if (comment != null) {
-      String text = XmlUtil.getCommentText((XmlComment)comment);
-      if (text != null && !StringUtil.isEmpty(text)) {
-        return text.trim();
-      }
+      String text = comment.getCommentText();
+      return text.trim();
     }
     return null;
   }
@@ -583,7 +588,7 @@ public class PsiResourceItem implements ResourceItem {
   public String toString() {
     ToStringHelper helper = MoreObjects.toStringHelper(this)
         .add("name", myName)
-        .add("namespace", myNamespace)
+        .add("namespace", getNamespace())
         .add("type", myType);
     XmlTag tag = getTag();
     if (tag != null) {

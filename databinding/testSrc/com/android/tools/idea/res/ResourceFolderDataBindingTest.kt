@@ -82,7 +82,7 @@ class ResourceFolderDataBindingTest {
     val file = fixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
     psiFile = PsiManager.getInstance(project).findFile(file)!!
     resources = createRepository()
-    assertEquals(1, resources.dataBindingResourceFiles.size)
+    assertEquals(1, resources.bindingLayoutGroups.size)
   }
 
   @Test
@@ -257,7 +257,6 @@ class ResourceFolderDataBindingTest {
     val variables = getInfo()
       .data
       .variables
-      .values
       .map { variable -> variable.name to variable.type }
       .toSet()
     assertEquals(expected.toSet(), variables)
@@ -273,7 +272,6 @@ class ResourceFolderDataBindingTest {
     val imports = getInfo()
         .data
         .imports
-        .values
         .map { import -> import.qualifiedName to
                if (import.isShortNameDerivedFromQualifiedName()) { null } else { import.importedShortName } }
         .toSet()
@@ -282,14 +280,14 @@ class ResourceFolderDataBindingTest {
 
   private fun getInfo(): BindingLayoutInfo {
     val appPackage = DataBindingUtil.getGeneratedPackageName(facet)
-    return resources.dataBindingResourceFiles
+    return resources.bindingLayoutGroups.values
         .flatMap { group -> group.layouts }
         .first { layout -> layout.qualifiedClassName == "$appPackage.databinding.LayoutWithDataBindingBinding" }
   }
 
   private fun getVariableTag(name: String): XmlTag {
     val layoutData = getInfo().data
-    val variable = layoutData.variables[name]
+    val variable = layoutData.findVariable(name)
     assertNotNull("cannot find variable with name $name", variable)
     val variableTag = DataBindingUtil.findVariableTag(layoutData, variable!!.name)
     assertNotNull("Cannot find XML tag for variable with name $name", variableTag)

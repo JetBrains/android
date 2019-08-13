@@ -17,6 +17,7 @@ package com.android.tools.idea.res.binding
 
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.res.BindingLayoutData
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
@@ -32,6 +33,7 @@ import com.intellij.util.IncorrectOperationException
  */
 class BindingLayoutInfo(var data: BindingLayoutData) : ModificationTracker {
   internal var modificationCount: Long = 0
+    private set
 
   /**
    * The PSI element representing this layout file, useful if a user wants to navigate
@@ -132,6 +134,11 @@ class BindingLayoutInfo(var data: BindingLayoutData) : ModificationTracker {
       this.modificationCount = modificationCount
       bindingClassNameCached = null
     }
+  }
+
+  @Deprecated("Setting modification count directly is unsafe and should be avoided")
+  fun setModificationCount(modificationCount: Long) {
+    this.modificationCount = modificationCount
   }
 
   override fun getModificationCount(): Long = modificationCount
