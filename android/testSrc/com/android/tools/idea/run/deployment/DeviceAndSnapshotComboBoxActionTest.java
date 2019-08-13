@@ -411,7 +411,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
         .setComboBoxAction(action)
         .setProject(myProject)
         .setDevice(builder.build())
-        .setSnapshot(VirtualDevice.DEFAULT_SNAPSHOT)
+        .setSnapshot(Snapshot.DEFAULT)
         .build(),
       Separator.getInstance(),
       action.getRunOnMultipleDevicesAction(),
@@ -426,7 +426,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of("snap_2018-08-07_16-27-58"));
+      .setSnapshots(ImmutableList.of(new Snapshot("snap_2018-08-07_16-27-58")));
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -561,7 +561,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     assertTrue(myPresentation.isVisible());
     assertNull(action.getSelectedDevice(myProject));
-    assertNull(action.getSelectedSnapshot());
+    assertNull(action.getSelectedSnapshot(myProject));
     assertNull(myPresentation.getIcon());
     assertEquals("No Devices", myPresentation.getText());
   }
@@ -619,7 +619,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     assertTrue(myPresentation.isVisible());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
-    assertNull(action.getSelectedSnapshot());
+    assertNull(action.getSelectedSnapshot(myProject));
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(TestDevices.PIXEL_2_XL_API_28, myPresentation.getText());
   }
@@ -646,7 +646,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     assertTrue(myPresentation.isVisible());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
-    assertNull(action.getSelectedSnapshot());
+    assertNull(action.getSelectedSnapshot(myProject));
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(TestDevices.PIXEL_2_XL_API_28, myPresentation.getText());
   }
@@ -680,7 +680,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     assertTrue(myPresentation.isVisible());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
-    assertNull(action.getSelectedSnapshot());
+    assertNull(action.getSelectedSnapshot(myProject));
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(TestDevices.PIXEL_2_XL_API_28, myPresentation.getText());
   }
@@ -761,7 +761,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     assertTrue(myPresentation.isVisible());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
-    assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
+    assertEquals(Snapshot.DEFAULT, action.getSelectedSnapshot(myProject));
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(TestDevices.PIXEL_2_XL_API_28 + " - default_boot", myPresentation.getText());
   }
@@ -784,12 +784,12 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       myClock);
 
     action.setSelectedDevice(myProject, builder.build());
-    action.setSelectedSnapshot(VirtualDevice.DEFAULT_SNAPSHOT);
+    action.setSelectedSnapshot(myProject, Snapshot.DEFAULT);
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
-    assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
+    assertEquals(Snapshot.DEFAULT, action.getSelectedSnapshot(myProject));
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(TestDevices.PIXEL_2_XL_API_28 + " - default_boot", myPresentation.getText());
   }
@@ -812,12 +812,12 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       myClock);
 
     action.setSelectedDevice(myProject, builder.build());
-    action.setSelectedSnapshot("snap_2018-08-07_16-27-58");
+    action.setSelectedSnapshot(myProject, new Snapshot("snap_2018-08-07_16-27-58"));
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
-    assertEquals(VirtualDevice.DEFAULT_SNAPSHOT, action.getSelectedSnapshot());
+    assertEquals(Snapshot.DEFAULT, action.getSelectedSnapshot(myProject));
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(TestDevices.PIXEL_2_XL_API_28 + " - default_boot", myPresentation.getText());
   }
@@ -840,12 +840,12 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       myClock);
 
     action.setSelectedDevice(myProject, builder.build());
-    action.setSelectedSnapshot(VirtualDevice.DEFAULT_SNAPSHOT);
+    action.setSelectedSnapshot(myProject, Snapshot.DEFAULT);
     action.update(myEvent);
 
     assertTrue(myPresentation.isVisible());
     assertEquals(builder.build(), action.getSelectedDevice(myProject));
-    assertNull(action.getSelectedSnapshot());
+    assertNull(action.getSelectedSnapshot(myProject));
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(TestDevices.PIXEL_2_XL_API_28, myPresentation.getText());
   }

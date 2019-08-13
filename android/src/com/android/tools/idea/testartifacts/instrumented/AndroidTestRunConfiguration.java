@@ -21,6 +21,7 @@ import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.TestOptions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -41,6 +42,7 @@ import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.AnnotationUtil;
@@ -75,6 +77,7 @@ import com.intellij.refactoring.listeners.RefactoringElementListener;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import kotlin.sequences.SequencesKt;
 import org.jetbrains.android.dom.manifest.Instrumentation;
@@ -352,7 +355,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return null;
     }
 
-    String extraInstrumentationOptions = getExtraInstrumentationOptions(facet);
+    String instrumentationOptions = Joiner.on(" ").join(getExtraInstrumentationOptions(facet), getInstrumentationOptions(facet));
 
     String testAppId;
     try {
@@ -378,13 +381,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         return AndroidTestApplicationLaunchTask.allInModuleTest(runner,
                                                                 testAppId,
                                                                 waitForDebugger,
-                                                                extraInstrumentationOptions,
+                                                                instrumentationOptions,
                                                                 testArtifact);
       case TEST_ALL_IN_PACKAGE:
         return AndroidTestApplicationLaunchTask.allInPackageTest(runner,
                                                                  testAppId,
                                                                  waitForDebugger,
-                                                                 extraInstrumentationOptions,
+                                                                 instrumentationOptions,
                                                                  testArtifact,
                                                                  PACKAGE_NAME);
 
@@ -392,7 +395,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         return AndroidTestApplicationLaunchTask.classTest(runner,
                                                           testAppId,
                                                           waitForDebugger,
-                                                          extraInstrumentationOptions,
+                                                          instrumentationOptions,
                                                           testArtifact,
                                                           CLASS_NAME);
 
@@ -400,7 +403,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         return AndroidTestApplicationLaunchTask.methodTest(runner,
                                                            testAppId,
                                                            waitForDebugger,
-                                                           extraInstrumentationOptions,
+                                                           instrumentationOptions,
                                                            testArtifact,
                                                            CLASS_NAME,
                                                            METHOD_NAME);
@@ -472,6 +475,27 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return extraParams.stream()
       .map(param -> "-e " + param.getNAME() + " " + param.getVALUE())
       .collect(Collectors.joining(" "));
+  }
+
+  /**
+   * Retrieves instrumentation options from the given facet. Extra instrumentation options are not included.
+   *
+   * @param facet a facet to retrieve instrumentation options
+   * @return instrumentation options string. All instrumentation options specified by the facet are concatenated by a single space.
+   */
+  @NotNull
+  public String getInstrumentationOptions(@Nullable AndroidFacet facet) {
+    ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
+    boolean isAnimationDisabled = Optional.ofNullable(facet)
+      .map(AndroidModuleModel::get)
+      .map(AndroidModuleModel::getArtifactForAndroidTest)
+      .map(IdeAndroidArtifact::getTestOptions)
+      .map(TestOptions::getAnimationsDisabled)
+      .orElse(false);
+    if (isAnimationDisabled) {
+      builder.add("--no-window-animation");
+    }
+    return Joiner.on(" ").join(builder.build());
   }
 
   /**

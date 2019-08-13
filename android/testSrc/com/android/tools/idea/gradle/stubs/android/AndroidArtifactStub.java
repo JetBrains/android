@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStub;
+import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
@@ -35,7 +36,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final Collection<NativeLibrary> myNativeLibraries = Lists.newArrayList();
-  @NotNull private final IdeDependenciesStub myIdeLevel2DependenciesStub;
+  @NotNull private IdeDependenciesStub myIdeLevel2DependenciesStub;
   @NotNull private String myApplicationId;
 
   private InstantRun myInstantRun;
@@ -51,7 +52,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
     myApplicationId = "app." + buildType.toLowerCase();
     AndroidArtifactOutputStub output = new AndroidArtifactOutputStub(new OutputFileStub(new File(name + "-" + buildType + ".apk")));
     myOutputs = Collections.singletonList(output);
-    myIdeLevel2DependenciesStub = new IdeDependenciesStub();
+    myIdeLevel2DependenciesStub = new IdeDependenciesStubBuilder().build();
     myInstrumentedTestTaskName = "instrumentedTestsTaskName";
     myBundleTaskName = "bundleTaskName";
   }
@@ -174,6 +175,10 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   @Override
   public boolean isTestArtifact() {
     return true;
+  }
+
+  public void setLevel2Dependencies(@NotNull IdeDependenciesStub dependencies) {
+    myIdeLevel2DependenciesStub = dependencies;
   }
 
   @Override

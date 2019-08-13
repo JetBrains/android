@@ -46,7 +46,6 @@ import com.android.tools.idea.lang.androidSql.psi.UNTERMINATED_BACKTICK_LITERAL
 import com.android.tools.idea.lang.androidSql.psi.UNTERMINATED_BRACKET_LITERAL
 import com.android.tools.idea.lang.androidSql.psi.UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL
 import com.android.tools.idea.lang.androidSql.psi.UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL
-import com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlNameElementManipulator
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.TokenType
 import com.intellij.psi.TokenType.BAD_CHARACTER
@@ -324,24 +323,24 @@ class AndroidSqlLexerTest : TestCase() {
   }
 
   fun testNeedsQuoting() {
-    assertFalse(AndroidSqlNameElementManipulator.needsQuoting("foo"))
-    assertTrue(AndroidSqlNameElementManipulator.needsQuoting("select"))
-    assertTrue(AndroidSqlNameElementManipulator.needsQuoting("foo.bar"))
-    assertTrue(AndroidSqlNameElementManipulator.needsQuoting("foo'bar"))
-    assertTrue(AndroidSqlNameElementManipulator.needsQuoting("foo bar"))
-    assertTrue(AndroidSqlNameElementManipulator.needsQuoting("foo`bar"))
-    assertTrue(AndroidSqlNameElementManipulator.needsQuoting(":foo"))
-    assertTrue(AndroidSqlNameElementManipulator.needsQuoting("@foo"))
-    assertTrue(AndroidSqlNameElementManipulator.needsQuoting("?foo"))
-    assertTrue(AndroidSqlNameElementManipulator.needsQuoting("\$foo"))
+    assertFalse(AndroidSqlLexer.needsQuoting("foo"))
+    assertTrue(AndroidSqlLexer.needsQuoting("select"))
+    assertTrue(AndroidSqlLexer.needsQuoting("foo.bar"))
+    assertTrue(AndroidSqlLexer.needsQuoting("foo'bar"))
+    assertTrue(AndroidSqlLexer.needsQuoting("foo bar"))
+    assertTrue(AndroidSqlLexer.needsQuoting("foo`bar"))
+    assertTrue(AndroidSqlLexer.needsQuoting(":foo"))
+    assertTrue(AndroidSqlLexer.needsQuoting("@foo"))
+    assertTrue(AndroidSqlLexer.needsQuoting("?foo"))
+    assertTrue(AndroidSqlLexer.needsQuoting("\$foo"))
   }
 
   fun testValidName() {
-    assertThat(AndroidSqlNameElementManipulator.getValidName("foo")).isEqualTo("foo")
-    assertThat(AndroidSqlNameElementManipulator.getValidName("Order")).isEqualTo("`Order`")
-    assertThat(AndroidSqlNameElementManipulator.getValidName("foo bar")).isEqualTo("`foo bar`")
-    assertThat(AndroidSqlNameElementManipulator.getValidName("foo'bar'baz")).isEqualTo("`foo'bar'baz`")
-    assertThat(AndroidSqlNameElementManipulator.getValidName("foo`bar`baz")).isEqualTo("`foo``bar``baz`")
-    assertThat(AndroidSqlNameElementManipulator.getValidName("\$foo")).isEqualTo("`\$foo`")
+    assertThat(AndroidSqlLexer.getValidName("foo")).isEqualTo("foo")
+    assertThat(AndroidSqlLexer.getValidName("Order")).isEqualTo("`Order`")
+    assertThat(AndroidSqlLexer.getValidName("foo bar")).isEqualTo("`foo bar`")
+    assertThat(AndroidSqlLexer.getValidName("foo'bar'baz")).isEqualTo("`foo'bar'baz`")
+    assertThat(AndroidSqlLexer.getValidName("foo`bar`baz")).isEqualTo("`foo``bar``baz`")
+    assertThat(AndroidSqlLexer.getValidName("\$foo")).isEqualTo("`\$foo`")
   }
 }

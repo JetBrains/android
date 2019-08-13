@@ -25,5 +25,6 @@ public interface Paths extends AndroidDomElement {
   List<Path> getCachePaths();
   List<Path> getExternalPaths();
   List<Path> getExternalFilesPaths();
+  List<Path> getExternalMediaPaths();
   List<Path> getExternalCachePaths();
 }

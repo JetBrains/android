@@ -36,16 +36,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDevice extends Device {
-  static final String DEFAULT_SNAPSHOT = "default_boot";
-  static final ImmutableCollection<String> DEFAULT_SNAPSHOT_COLLECTION = ImmutableList.of(DEFAULT_SNAPSHOT);
-
+  static final ImmutableCollection<Snapshot> DEFAULT_SNAPSHOT_COLLECTION = ImmutableList.of(Snapshot.DEFAULT);
   private static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
   /**
    * Snapshot directory names displayed to the developer.
    */
   @NotNull
-  private final ImmutableCollection<String> mySnapshots;
+  private final ImmutableCollection<Snapshot> mySnapshots;
 
   @NotNull
   static VirtualDevice newConnectedDevice(@NotNull VirtualDevice virtualDevice,
@@ -66,7 +64,7 @@ final class VirtualDevice extends Device {
 
   static final class Builder extends Device.Builder {
     @NotNull
-    private ImmutableCollection<String> mySnapshots;
+    private ImmutableCollection<Snapshot> mySnapshots;
 
     Builder() {
       mySnapshots = ImmutableList.of();
@@ -110,7 +108,7 @@ final class VirtualDevice extends Device {
     }
 
     @NotNull
-    Builder setSnapshots(@NotNull ImmutableCollection<String> snapshots) {
+    Builder setSnapshots(@NotNull ImmutableCollection<Snapshot> snapshots) {
       mySnapshots = snapshots;
       return this;
     }
@@ -140,7 +138,7 @@ final class VirtualDevice extends Device {
 
   @NotNull
   @Override
-  ImmutableCollection<String> getSnapshots() {
+  ImmutableCollection<Snapshot> getSnapshots() {
     return mySnapshots;
   }
 
@@ -161,11 +159,11 @@ final class VirtualDevice extends Device {
   }
 
   @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
     AndroidDevice device = getAndroidDevice();
 
     if (!isConnected()) {
-      device.launch(project, snapshot);
+      device.launch(project, snapshot == null ? null : snapshot.getDirectoryName());
     }
 
     futures.getDevices().add(device);

@@ -40,10 +40,10 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTableImpl;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
 import java.io.IOException;
@@ -122,7 +122,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
 
   @NotNull
   private Library createLibrary(@NotNull File binaryPath, @NotNull File sourcePath, @NotNull File javadocPath) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(getProject());
     LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
     Library library = libraryTableModel.createLibrary("Gradle: " + binaryPath.getName());
 
@@ -212,7 +212,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
    * @return the current modification count of the {@link ProjectLibraryTable} for the current project.
    */
   public static long getLibraryTableModeCount(@NotNull Project project) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
     assertInstanceOf(libraryTable, ProjectLibraryTableImpl.class);
     ProjectLibraryTableImpl libraryTableImpl = (ProjectLibraryTableImpl)libraryTable;
     return libraryTableImpl.getStateModificationCount();

@@ -22,7 +22,7 @@ import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.type.LayoutFileType;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.collect.ImmutableList;
 import java.awt.Dimension;
 import org.jetbrains.annotations.NotNull;
@@ -35,12 +35,15 @@ import org.jetbrains.annotations.Nullable;
 public class ScreenView extends ScreenViewBase {
 
   /**
-   * Whether this {@link ScreenView} has a {@link BorderLayer}, which should happen in almost every scenario, except if we are previewing a
-   * non-layout file in Preview Dialog (e.g. Previewing Vector Drawable).
+   * Whether this {@link ScreenView} has a {@link BorderLayer}, which should only happen if the file type is a subclass of
+   * {@link LayoutEditorFileType}.
    */
   private final boolean myHasBorderLayer;
 
-  private final boolean useImageSize;
+  private final boolean myUseImageSize;
+
+  private final boolean myIsResizeable;
+
 
   /**
    * Creates a new {@link ScreenView}.
@@ -48,21 +51,25 @@ public class ScreenView extends ScreenViewBase {
    * @param manager The {@link LayoutlibSceneManager}.
    * @param useImageSize If true, the ScreenView will be sized as the render image result instead of using the device
    *                     configuration.
+   * @param isResizeable If true, this ScreenView canvas will allow to be resized for files that support it. When false, the resizing
+   *                     target will not be displayed even if the file does support it.
    */
-  public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager, boolean useImageSize) {
+  // TODO(b/139046812): Replace this with a builder
+  public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager, boolean useImageSize, boolean isResizeable) {
     super(surface, manager);
-    myHasBorderLayer = !getSurface().isPreviewSurface() || surface.getLayoutType() == LayoutFileType.INSTANCE;
-    this.useImageSize = useImageSize;
+    myHasBorderLayer = surface.getLayoutType() instanceof LayoutEditorFileType;
+    this.myUseImageSize = useImageSize;
+    this.myIsResizeable = isResizeable;
   }
 
   public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
-    this(surface, manager, false);
+    this(surface, manager, false, true);
   }
 
   @NotNull
   @Override
   public Dimension getPreferredSize(@Nullable Dimension dimension) {
-    if (useImageSize) {
+    if (myUseImageSize) {
       RenderResult result = getSceneManager().getRenderResult();
       if (result != null && result.hasImage()) {
         if (dimension == null) {
@@ -93,7 +100,7 @@ public class ScreenView extends ScreenViewBase {
     SceneLayer sceneLayer = new SceneLayer(getSurface(), this, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
-    if (getSceneManager().getModel().getType().isEditable()) {
+    if (myIsResizeable && getSceneManager().getModel().getType().isEditable()) {
       builder.add(new CanvasResizeLayer(getSurface(), this));
     }
 

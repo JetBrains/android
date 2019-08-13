@@ -80,7 +80,7 @@ public class IdeaSyncPopulateProjectTask {
       if (setupRequest != null && setupRequest.usingCachedGradleModels) {
         // This happened when a newer version of IDEA cannot read the cache of a Gradle project created with an older IDE version.
         // Request a full sync.
-        myProjectSetup.onCachedModelsSetupFailure(setupRequest);
+        myProjectSetup.onCachedModelsSetupFailure(taskId, setupRequest);
         return;
       }
 

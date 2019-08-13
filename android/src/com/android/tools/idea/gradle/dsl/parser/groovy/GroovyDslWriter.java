@@ -41,6 +41,7 @@ import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybe
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.needToCreateParent;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.*;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
+import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.ML_COMMENT;
 import static org.jetbrains.plugins.groovy.lang.psi.impl.PsiImplUtil.isWhiteSpaceOrNls;
 
 public class GroovyDslWriter implements GradleDslWriter {
@@ -163,7 +164,15 @@ public class GroovyDslWriter implements GradleDslWriter {
     PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
 
     if (parentPsiElement instanceof GroovyFile) {
-      addedElement = parentPsiElement.addAfter(statement, anchor);
+      // Check if the file has a Block Comment and add the psi element after it if true.
+      PsiElement firstFileChild = parentPsiElement.getFirstChild();
+      if (firstFileChild != null && firstFileChild.getNode().getElementType() == ML_COMMENT && anchor == null) {
+        addedElement = parentPsiElement.addAfter(statement, firstFileChild);
+      }
+      else {
+        addedElement = parentPsiElement.addAfter(statement, anchor);
+      }
+
       if (element.isBlockElement() && !isWhiteSpaceOrNls(addedElement.getPrevSibling())) {
         parentPsiElement.addBefore(lineTerminator, addedElement);
       }

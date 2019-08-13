@@ -1,0 +1,9 @@
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <files-path name="my_images" path="images/"/>
+    <cache-path name="name" path="path" />
+    <external-path name="name" path="path" />
+    <external-files-path name="name" path="path" />
+    <external-cache-path name="name" path="path" />
+    <external-media-path name="name" path="path" />
+    <<warning descr="Element bogus-path is not allowed here">bogus-path</warning> name="name" path="path" />
+</paths>

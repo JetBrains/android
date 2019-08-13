@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
+import com.android.tools.idea.databinding.utils.findClass
 import com.android.tools.idea.res.binding.BindingLayoutInfoFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -92,11 +93,12 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
 
     val editors = FileEditorManager.getInstance(fixture.project)
     assertThat(editors.selectedFiles).isEmpty()
     // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding") as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     binding.navigate(true)
     assertThat(editors.selectedFiles[0].name).isEqualTo("activity_main.xml")
 
@@ -137,10 +139,11 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
           </LinearLayout>
       </layout>
     """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
 
     val editors = FileEditorManager.getInstance(fixture.project)
     assertThat(editors.selectedFiles).isEmpty()
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding") as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val field = binding.fields[0]
     field.navigate(true)
     assertThat(editors.selectedFiles[0].name).isEqualTo("activity_main.xml")

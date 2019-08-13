@@ -20,3 +20,7 @@ import com.android.build.attribution.data.PluginData
 fun isAndroidGradlePlugin(plugin: PluginData): Boolean {
   return plugin.displayName == "com.android.application"
 }
+
+fun getTaskName(taskPath: String): String {
+  return taskPath.substring(taskPath.lastIndexOf(':') + 1)
+}

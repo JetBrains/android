@@ -145,7 +145,7 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel i
       case ICON_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getIcon();
       case NAME_MODEL_COLUMN_INDEX:
-        return Devices.getName(myDevices.get(modelRowIndex), myDevices);
+        return Devices.getText(myDevices.get(modelRowIndex), myDevices);
       default:
         throw new AssertionError(modelColumnIndex);
     }

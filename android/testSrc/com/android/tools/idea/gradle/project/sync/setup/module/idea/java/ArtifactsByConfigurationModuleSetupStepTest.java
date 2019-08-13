@@ -32,9 +32,9 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
@@ -106,7 +106,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
   }
 
   private void createLibrary(@NotNull File jarFilePath) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(getProject());
     ApplicationManager.getApplication().runWriteAction((Computable<Library>)() -> {
       Library library1 = libraryTable.createLibrary(createLibraryName(jarFilePath));
       Library.ModifiableModel libraryModel = library1.getModifiableModel();
@@ -118,7 +118,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
   }
 
   private void assertJarIsLibrary(@NotNull File jarFilePath) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(getProject());
     Library[] libraries = libraryTable.getLibraries();
     assertThat(libraries).hasLength(1);
 
@@ -162,7 +162,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
 
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
     Library[] libraries = libraryTable.getLibraries();
     assertThat(libraries).isEmpty();
 

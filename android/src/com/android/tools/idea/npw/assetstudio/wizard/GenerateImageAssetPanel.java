@@ -59,7 +59,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.GuiUtils;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -188,14 +188,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
     myValidatorPanel = new ValidatorPanel(this, myRootPanel, "Conversion Issues", "Encountered Issues:");
 
-    myPreviewResolutionComboBox.setRenderer(new ListCellRendererWrapper<Density>() {
-      @Override
-      public void customize(JList list, Density value, int index, boolean selected, boolean hasFocus) {
-        if (value != null) {
-          setText(value.getResourceValue());
-        }
-      }
-    });
+    myPreviewResolutionComboBox.setRenderer(
+      SimpleListCellRenderer.create("", Density::getResourceValue));
     DefaultComboBoxModel<Density> densitiesModel = new DefaultComboBoxModel<>();
     densitiesModel.addElement(Density.MEDIUM);
     densitiesModel.addElement(Density.HIGH);

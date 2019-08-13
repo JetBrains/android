@@ -185,13 +185,6 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       }
     }
 
-    public void clickDebuggerTreeRoot() {
-      try {
-        JComponent debuggerComponent = getTabComponent("Debugger");
-        myRobot.click(debuggerComponent);
-      } catch (ComponentLookupException e) { }
-    }
-
     public JBPopupMenu rightClickVariableInDebuggerVariables(@NotNull IdeFrameFixture ideFrame, @NotNull String variableName) {
       Wait.seconds(5).expecting("Debugger tree present").until(() -> getDebuggerTree() != null);
       JTree tree = (JTree)getDebuggerTree();

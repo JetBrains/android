@@ -102,7 +102,9 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
     val dialog: ResourcePickerDialog =
       if (StudioFlags.RESOURCE_EXPLORER_PICKER.get())
         ResourceExplorerDialog(property.model.facet,
-                               property.type.resourceTypes)
+                               property.type.resourceTypes,
+                               showSampleData,
+                               tag.containingFile.virtualFile)
       else ChooseResourceDialog.builder()
         .setModule(module)
         .setTypes(property.type.resourceTypes)

@@ -115,6 +115,7 @@ endian
 endianness
 errno
 executables
+exoplayer
 fallbacks
 filenames
 filepath
@@ -288,6 +289,7 @@ parameterization
 parameterize
 parcelable
 parcelables
+parcelize
 parsable
 passphrase
 persistable
@@ -316,6 +318,7 @@ raytraced
 realloc
 recurse
 recycler
+recyclerview
 reentrant
 reflow
 reformats
@@ -336,6 +339,7 @@ ringtone
 robolectric
 roboto
 rrggbb
+safeargs
 scenegraph
 screensaver
 screenshot
@@ -355,6 +359,7 @@ spammy
 spannable
 sparsearray
 spherize
+splashscreen
 sqrt
 stacktrace
 stderr

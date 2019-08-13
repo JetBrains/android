@@ -78,7 +78,7 @@ public class AndroidProfilerTest {
     // Start ADB with fake server and its port.
     AndroidDebugBridge.enableFakeAdbServerMode(myAdbServer.getPort());
 
-    Project project = myGuiTest.openProject(PROJECT_NAME).getProject();
+    Project project = myGuiTest.openProject(PROJECT_NAME);
 
     // Get the bridge synchronously, since we're in test mode.
     myBridge = AdbService.getInstance().getDebugBridge(AndroidSdkUtils.getAdb(project)).get();

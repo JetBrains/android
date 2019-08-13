@@ -176,7 +176,7 @@ public class PostSyncProjectSetup {
       boolean syncFailed = mySyncState.lastSyncFailed();
 
       if (syncFailed && request.usingCachedGradleModels) {
-        onCachedModelsSetupFailure(request);
+        onCachedModelsSetupFailure(taskId, request);
         return;
       }
 
@@ -329,7 +329,8 @@ public class PostSyncProjectSetup {
     }
   }
 
-  public void onCachedModelsSetupFailure(@NotNull Request request) {
+  public void onCachedModelsSetupFailure(@Nullable ExternalSystemTaskId taskId, @NotNull Request request) {
+    finishFailedSync(taskId, myProject);
     // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
     // version of such interfaces.
     long syncTimestamp = request.lastSyncTimestamp;

@@ -79,7 +79,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @Nullable GradleDslClosure configurationElement,
                       @NotNull DependencyModelImpl.Maintainer maintainer,
                       @NotNull List<? super ArtifactDependencyModel> dest) {
-      // We can only create ArtifactDependencyModels from expressions, if for some reason we don't have an expression here (e.g form a
+      // We can only create ArtifactDependencyModels from expressions -- if for some reason we don't have an expression here (e.g. from a
       // parser bug) then don't create anything.
       if (!(element instanceof GradleDslExpression)) {
         return;

@@ -16,8 +16,9 @@
 package com.android.tools.idea.databinding
 
 import com.android.flags.junit.RestoreFlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
+import com.android.tools.idea.databinding.utils.findClass
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -55,14 +56,13 @@ class DataBindingPackageFinderTest {
   @Before
   fun setUp() {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
-
   }
 
   @Test
   fun dataBindingPackagePathCanBeFoundWhenViewBindingEnabled() {
     StudioFlags.VIEW_BINDING_ENABLED.override(true)
-    projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING)
 
+    projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING)
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
 
@@ -70,8 +70,9 @@ class DataBindingPackageFinderTest {
     VirtualFileManager.getInstance().syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 
+    val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
     assertThat(projectRule.androidFacet.isViewBindingEnabled()).isTrue()
-    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding")).isInstanceOf(
+    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isInstanceOf(
       LightBindingClass::class.java)
     assertThat(fixture.findPackage("com.android.example.viewbinding.databinding")).isNotNull()
   }
@@ -79,7 +80,6 @@ class DataBindingPackageFinderTest {
   @Test
   fun dataBindingPackagePathCanBeFoundWhenDataBindingEnabled() {
     projectRule.load(TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X)
-
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
 
@@ -87,8 +87,9 @@ class DataBindingPackageFinderTest {
     VirtualFileManager.getInstance().syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 
+    val context = fixture.findClass("com.android.example.appwithdatabinding.MainActivity")
     assertThat(ModuleDataBinding.getInstance(projectRule.androidFacet).dataBindingMode).isEqualTo(DataBindingMode.ANDROIDX)
-    assertThat(fixture.findClass("com.android.example.appwithdatabinding.databinding.ActivityMainBinding")).isInstanceOf(
+    assertThat(fixture.findClass("com.android.example.appwithdatabinding.databinding.ActivityMainBinding", context)).isInstanceOf(
       LightBindingClass::class.java)
     assertThat(fixture.findPackage("com.android.example.appwithdatabinding.databinding")).isNotNull()
   }

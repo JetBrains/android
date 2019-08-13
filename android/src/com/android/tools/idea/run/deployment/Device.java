@@ -109,7 +109,7 @@ public abstract class Device {
   }
 
   @NotNull
-  abstract Collection<String> getSnapshots();
+  abstract Collection<Snapshot> getSnapshots();
 
   @NotNull
   public final String getKey() {
@@ -160,7 +160,7 @@ public abstract class Device {
     }
   }
 
-  abstract void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot);
+  abstract void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot);
 
   @NotNull
   @Override

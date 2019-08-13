@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.jdbc
 
 import com.android.tools.idea.editors.sqlite.SqliteTestUtil
 import com.android.tools.idea.editors.sqlite.SqliteViewer
+import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.Utils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.Utils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.model.SqliteResultSet
@@ -24,6 +25,7 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import org.jetbrains.ide.PooledThreadExecutor
@@ -31,6 +33,8 @@ import java.sql.JDBCType
 
 class SqliteJdbcServiceTest : PlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
+  private lateinit var sqliteFile: VirtualFile
+  private lateinit var sqliteService: SqliteService
   private var previouslyEnabled: Boolean = false
 
   override fun setUp() {
@@ -38,10 +42,14 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
     previouslyEnabled = SqliteViewer.enableFeature(true)
+
+    sqliteFile = sqliteUtil.createTestSqliteDatabase()
+    sqliteService = SqliteJdbcService(sqliteFile, PooledThreadExecutor.INSTANCE)
   }
 
   override fun tearDown() {
     try {
+      sqliteService.closeDatabase()
       sqliteUtil.tearDown()
       SqliteViewer.enableFeature(previouslyEnabled)
     }
@@ -51,27 +59,19 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
   }
 
   fun testReadSchemaFailsIfDatabaseNotOpened() {
-    // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-
     // Act
-    val error = pumpEventsAndWaitForFutureException(service.readSchema())
+    val error = pumpEventsAndWaitForFutureException(sqliteService.readSchema())
 
     // Assert
     assertThat(error).isInstanceOf(IllegalStateException::class.java)
-
-    service.closeDatabase()
   }
 
   fun testReadSchemaReturnsTablesAndColumns() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val schema = pumpEventsAndWaitForFuture(service.readSchema())
+    val schema = pumpEventsAndWaitForFuture(sqliteService.readSchema())
 
     // Assert
     assertThat(schema.tables.count()).isEqualTo(2)
@@ -88,34 +88,28 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     assertThat(bookTable?.hasColumn("title", JDBCType.VARCHAR)).isTrue()
     assertThat(bookTable?.hasColumn("isbn", JDBCType.VARCHAR)).isTrue()
     assertThat(bookTable?.hasColumn("author_id", JDBCType.INTEGER)).isTrue()
-
-    service.closeDatabase()
   }
 
   fun testCloseUnlocksFile() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    pumpEventsAndWaitForFuture(service.closeDatabase())
+    pumpEventsAndWaitForFuture(sqliteService.closeDatabase())
     ApplicationManager.getApplication().runWriteAction {
-      file.delete(this)
+      sqliteFile.delete(this)
     }
 
     // Assert
-    assertThat(file.exists()).isFalse()
+    assertThat(sqliteFile.exists()).isFalse()
   }
 
   fun testReadTableReturnsResultSet() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(service.readTable(SqliteTable("Book", listOf())))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
@@ -141,18 +135,14 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
     // Assert
     assertThat(rows.count()).isEqualTo(0)
-
-    service.closeDatabase()
   }
 
   fun testExecuteQuerySelectAllReturnsResultSet() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(service.executeQuery("SELECT * FROM Book"))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery("SELECT * FROM Book"))
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
@@ -178,18 +168,14 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
     // Assert
     assertThat(rows.count()).isEqualTo(0)
-
-    service.closeDatabase()
   }
 
   fun testExecuteQuerySelectColumnReturnsResultSet() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(service.executeQuery("SELECT book_id FROM Book"))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery("SELECT book_id FROM Book"))
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
@@ -215,56 +201,42 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
     // Assert
     assertThat(rows.count()).isEqualTo(0)
-
-    service.closeDatabase()
   }
 
   fun testExecuteUpdateDropTable() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    pumpEventsAndWaitForFuture(service.executeUpdate("DROP TABLE Book"))
-    val error = pumpEventsAndWaitForFutureException(service.readTable(SqliteTable("Book", listOf())))
+    pumpEventsAndWaitForFuture(sqliteService.executeUpdate("DROP TABLE Book"))
+    val error = pumpEventsAndWaitForFutureException(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
 
     // Assert
     assertThat(error).isNotNull()
-
-    service.closeDatabase()
   }
 
   fun testResultSetThrowsAfterDisposed() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(service.readTable(SqliteTable("Book", listOf())))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
     Disposer.dispose(resultSet)
     val error = pumpEventsAndWaitForFutureException(resultSet.nextRowBatch())
 
     // Assert
     assertThat(error).isNotNull()
-
-    service.closeDatabase()
   }
 
   fun testReadTableFailsWhenIncorrectTableName() {
     // Prepare
-    val file = sqliteUtil.createTestSqliteDatabase()
-    val service = SqliteJdbcService(file, testRootDisposable, PooledThreadExecutor.INSTANCE)
-    pumpEventsAndWaitForFuture(service.openDatabase())
+    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val error = pumpEventsAndWaitForFutureException(service.readTable(SqliteTable("IncorrectTableName", listOf())))
+    val error = pumpEventsAndWaitForFutureException(sqliteService.readTable(SqliteTable("IncorrectTableName", listOf(), false)))
 
     // Assert
     assertThat(error).isNotNull()
-
-    service.closeDatabase()
   }
 
   private fun SqliteResultSet.hasColumn(name: String, type: JDBCType) : Boolean {

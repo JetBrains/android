@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.analytics
 
-import com.google.common.truth.Truth.assertThat
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
-
 import com.android.tools.idea.common.analytics.CommonUsageTracker
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.uibuilder.type.LayoutFileType
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import org.jetbrains.android.AndroidTestBase
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 
 class NlAnalyticsManagerTest : AndroidTestBase() {
 
@@ -67,9 +68,25 @@ class NlAnalyticsManagerTest : AndroidTestBase() {
   }
 
   fun testSurfaceMode() {
+    StudioFlags.NELE_SPLIT_EDITOR.override(false)
     assertThat(analyticsManager.surfaceMode).isEqualTo(LayoutEditorState.Mode.DESIGN_MODE) // By default, we're in design mode
 
     `when`(surface.isPreviewSurface).thenReturn(true)
     assertThat(analyticsManager.surfaceMode).isEqualTo(LayoutEditorState.Mode.PREVIEW_MODE)
+  }
+
+  fun testSurfaceModeSplitEditor() {
+    StudioFlags.NELE_SPLIT_EDITOR.override(true)
+    surface.state = DesignSurface.State.FULL
+    assertThat(analyticsManager.surfaceMode).isEqualTo(LayoutEditorState.Mode.DESIGN_MODE)
+
+    surface.state = DesignSurface.State.SPLIT
+    // Split mode is mapped to PREVIEW_MODE when using the split editor
+    assertThat(analyticsManager.surfaceMode).isEqualTo(LayoutEditorState.Mode.PREVIEW_MODE)
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    StudioFlags.NELE_SPLIT_EDITOR.clearOverride()
   }
 }

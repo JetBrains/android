@@ -15,26 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import com.android.builder.model.level2.Library;
-import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
-import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub;
-import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
-import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.android.tools.idea.testing.Facets;
-import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import static com.android.builder.model.level2.Library.LIBRARY_ANDROID;
 import static com.android.builder.model.level2.Library.LIBRARY_JAVA;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
@@ -42,6 +22,28 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+
+import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
+import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder;
+import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;
+import com.android.ide.common.gradle.model.stubs.level2.JavaLibraryStub;
+import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStub;
+import com.android.ide.common.gradle.model.stubs.level2.ModuleLibraryStubBuilder;
+import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.android.tools.idea.testing.Facets;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.IdeaTestCase;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests for {@link DependenciesExtractor}.
@@ -81,8 +83,10 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
     Library javaLibrary = new JavaLibraryStub(LIBRARY_JAVA, "guava", jarFile);
 
-    myVariant.getMainArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
-    myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
+    IdeDependenciesStubBuilder builder = new IdeDependenciesStubBuilder();
+    builder.setJavaLibraries(ImmutableList.of(javaLibrary));
+    myVariant.getMainArtifact().setLevel2Dependencies(builder.build());
+    myVariant.getInstrumentTestArtifact().setLevel2Dependencies(builder.build());
 
     Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder).onLibraries();
     assertThat(dependencies).hasSize(1);
@@ -106,40 +110,18 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     File resFolder = new File(rootDirPath, join("bundle_aar", "res"));
     File localJar = new File(rootDirPath, "local.jar");
 
-    AndroidLibraryStub library = new AndroidLibraryStub() {
-      @Override
-      @NotNull
-      public String getJarFile() {
-        return libJar.getPath();
-      }
+    AndroidLibraryStubBuilder builder = new AndroidLibraryStubBuilder();
+    builder.setArtifactAddress("com.android.support:support-core-ui:25.3.1@aar");
+    builder.setJarFile(libJar.getPath());
+    builder.setCompileJarFile(libCompileJar.getPath());
+    builder.setResFolder(resFolder.getPath());
+    builder.setLocalJars(Collections.singletonList(localJar.getPath()));
+    AndroidLibraryStub library = builder.build();
 
-      @Override
-      @NotNull
-      public String getCompileJarFile() {
-        return libCompileJar.getPath();
-      }
-
-      @Override
-      @NotNull
-      public String getArtifactAddress() {
-        return "com.android.support:support-core-ui:25.3.1@aar";
-      }
-
-      @Override
-      @NotNull
-      public String getResFolder() {
-        return resFolder.getPath();
-      }
-
-      @Override
-      @NotNull
-      public Collection<String> getLocalJars() {
-        return Collections.singletonList(localJar.getPath());
-      }
-    };
-
-    myVariant.getMainArtifact().getLevel2Dependencies().addAndroidLibrary(library);
-    myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addAndroidLibrary(library);
+    IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
+    dependenciesStubBuilder.setAndroidLibraries(ImmutableList.of(library));
+    myVariant.getMainArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
+    myVariant.getInstrumentTestArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
 
     DependencySet dependencySet = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder);
     List<LibraryDependency> dependencies = new ArrayList<>(dependencySet.onLibraries());
@@ -160,19 +142,17 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     String gradlePath = ":lib";
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
-    ModuleLibraryStub library = new ModuleLibraryStub() {
-      @Override
-      @NotNull
-      public String getProjectPath() {
-        return gradlePath;
-      }
-    };
+    ModuleLibraryStubBuilder builder = new ModuleLibraryStubBuilder();
+    builder.setProjectPath(gradlePath);
+    ModuleLibraryStub library = builder.build();
 
     myModuleFinder = new ModuleFinder(myProject);
     myModuleFinder.addModule(libModule, ":lib");
 
-    myVariant.getMainArtifact().getLevel2Dependencies().addModuleDependency(library);
-    myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addModuleDependency(library);
+    IdeDependenciesStubBuilder dependenciesStubBuilder = new IdeDependenciesStubBuilder();
+    dependenciesStubBuilder.setModuleDependencies(ImmutableList.of(library));
+    myVariant.getMainArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
+    myVariant.getInstrumentTestArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
     Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder).onModules();
     assertThat(dependencies).hasSize(1);
 

@@ -19,6 +19,7 @@ import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
+import org.jetbrains.uast.ULambdaExpression
 import org.jetbrains.uast.ULiteralExpression
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.getContainingUFile
@@ -84,6 +85,24 @@ private fun callExpressionToDataMap(call: UCallExpression, calledMethod: UMethod
  * one [PreviewElement] with name "Button Preview" will be returned.
  */
 object MethodPreviewElementFinder : PreviewElementFinder {
+  /**
+   * If the given [UCallExpression] is a call to a Preview method, it returns the pointer to the Preview method definition or null
+   * otherwise.
+   */
+  private fun getPreviewMethodCall(call: UCallExpression): UMethod? {
+    if (PREVIEW_NAME != call.methodName) {
+      return null
+    }
+
+    val previewMethod = (call.resolveToUElement() as? UMethod) ?: return null
+    return if (PREVIEW_PACKAGE == previewMethod.getContainingUFile()?.packageName) {
+      previewMethod
+    }
+    else {
+      null
+    }
+  }
+
   override fun findPreviewMethods(uFile: UFile): Set<PreviewElement> {
     val previewElements = mutableSetOf<PreviewElement>()
     uFile.accept(object : UastVisitor {
@@ -96,23 +115,14 @@ object MethodPreviewElementFinder : PreviewElementFinder {
         previewElements.add(PreviewElement(previewName, composableMethodName,
                                            PreviewConfiguration(apiLevel = (configuration["apiLevel"] as? Int) ?: UNDEFINED_API_LEVEL,
                                                                 theme = (configuration["theme"] as? String),
-                                                                orientation = null)))
+                                                                width = configuration["width"] as? Int ?: UNDEFINED_DIMENSION,
+                                                                height = configuration["height"] as? Int ?: UNDEFINED_DIMENSION)))
 
       override fun visitCallExpression(node: UCallExpression): Boolean {
-        if (node.methodName != PREVIEW_NAME) {
-          // Keep looking for expressions in case there are other Prevew calls
-          return false
-        }
-
+        val previewUMethod = getPreviewMethodCall(node) ?: return false
         val composableMethod = node.getParentOfType<UMethod>() ?: return false
         val composableMethodClass = composableMethod.uastParent as UClass
         val composableMethodName = "${composableMethodClass.qualifiedName}.${composableMethod.name}"
-
-        val previewUMethod = node.resolveToUElement() as? UMethod ?: return false
-        if (previewUMethod.getContainingUFile()?.packageName != PREVIEW_PACKAGE) {
-          // This is not the Preview method we are looking for
-          return false
-        }
 
         val parameters = callExpressionToDataMap(node, previewUMethod)
         visitPreviewMethodCall(composableMethodName,
@@ -124,5 +134,21 @@ object MethodPreviewElementFinder : PreviewElementFinder {
     })
 
     return previewElements
+  }
+
+  override fun elementBelongsToPreviewElement(uElement: UElement): Boolean {
+    // Find if uElement belongs to the Preview call. It can be any of the parameters but not part of the lambda call.
+    // If we find a call expression, keep looking forward to see if any is the Preview method.
+    var callExpression: UCallExpression? = uElement.getParentOfType<UCallExpression>(UCallExpression::class.java, true,
+                                                                                     ULambdaExpression::class.java)
+    while (callExpression != null) {
+      if (getPreviewMethodCall(callExpression) != null) {
+        return true
+      }
+
+      callExpression = callExpression.getParentOfType<UCallExpression>(UCallExpression::class.java, true, ULambdaExpression::class.java)
+    }
+
+    return false
   }
 }

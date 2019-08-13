@@ -98,7 +98,3 @@ fun createProjectConfigurationFinishEventStub(projectPath: String,
   `when`(projectConfigurationFinishEvent.result).thenReturn(result)
   return projectConfigurationFinishEvent
 }
-
-fun createTaskData(taskFinishEvent: TaskFinishEvent): TaskData {
-  return TaskData(taskFinishEvent.descriptor.taskPath, PluginData(taskFinishEvent.descriptor.originPlugin))
-}

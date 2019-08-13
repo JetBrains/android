@@ -19,6 +19,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.getMaxJavaLanguageLevel;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_CACHED_SETUP_FAILED;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -43,6 +44,10 @@ import com.android.tools.idea.gradle.project.sync.setup.module.common.Dependency
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.build.SyncViewManager;
+import com.intellij.build.events.BuildEvent;
+import com.intellij.build.events.FinishBuildEvent;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -59,6 +64,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 /**
@@ -77,6 +83,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private RunManagerEx myRunManager;
   @Mock private ExternalSystemTaskId myTaskId;
+  @Mock private SyncViewManager myViewManager;
 
   private ProjectStructureStub myProjectStructure;
   private ProgressIndicator myProgressIndicator;
@@ -91,6 +98,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     Project project = getProject();
     myRunManager = RunManagerImpl.getInstanceImpl(project);
+
+    new IdeComponents(myProject).replaceProjectService(SyncViewManager.class, myViewManager);
 
     myProjectStructure = new ProjectStructureStub(project);
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
@@ -251,6 +260,24 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     // verify java language level was updated to 1.8.
     assertEquals(LanguageLevel.JDK_1_8, ex.getLanguageLevel());
+  }
+
+  public void testEnsureFailedCachedSyncEmitsBuildFinishedEvent() {
+    when(mySyncState.lastSyncFailed()).thenReturn(true);
+
+    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
+    request.usingCachedGradleModels = true;
+    mySetup.setUpProject(request, myTaskId, null);
+
+    // Ensure the SyncViewManager was told about the sync finishing.
+    ArgumentCaptor<BuildEvent> buildEventArgumentCaptor = ArgumentCaptor.forClass(BuildEvent.class);
+    verify(myViewManager).onEvent(eq(myTaskId), buildEventArgumentCaptor.capture());
+
+    assertInstanceOf(buildEventArgumentCaptor.getValue(), FinishBuildEvent.class);
+    assertFalse(buildEventArgumentCaptor.getValue().getMessage().isEmpty());
+
+    // Ensure a full sync is scheduled
+    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_CACHED_SETUP_FAILED);
   }
 
   public void testGetMaxJavaLangLevelWithDifferentLevels() {

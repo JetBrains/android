@@ -16,7 +16,9 @@
 package com.android.tools.idea.sqlite.ui.renderers
 
 import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.getFormattedSqliteDatabaseName
 import com.intellij.icons.AllIcons
 import com.intellij.ui.SimpleColoredComponent
 import java.awt.Component
@@ -43,6 +45,11 @@ class SchemaTreeCellRenderer : TreeCellRenderer {
     component.clear()
     if (value is DefaultMutableTreeNode) {
       when (val userObject = value.userObject) {
+        is SqliteDatabase -> {
+          component.icon = AllIcons.Nodes.DataTables
+          component.append(userObject.getFormattedSqliteDatabaseName())
+        }
+
         is SqliteTable -> {
           component.icon = AllIcons.Nodes.DataTables
           component.append(userObject.name)

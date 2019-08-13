@@ -17,14 +17,13 @@ package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.controllers.TabId
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import javax.swing.JComponent
 
 /**
- * Abstraction over the UI component used to display various UI elements of the [com.android.tools.idea.editors.sqlite.SqliteEditor].
- *
- * This is used by [com.android.tools.idea.sqlite.controllers.SqliteController] to avoid direct dependency on the
+ * Abstraction used by [com.android.tools.idea.sqlite.controllers.SqliteController] to avoid direct dependency on the
  * UI implementation.
  *
  * @see [SqliteViewListener] for the listener interface.
@@ -41,7 +40,26 @@ interface SqliteView {
   fun startLoading(text: String)
   fun stopLoading()
 
-  fun displaySchema(schema: SqliteSchema)
+  /**
+   * Adds a new [SqliteSchema] at a specific position among other schemas.
+   * @param database The database containing the schema.
+   * @param schema The schema to add.
+   * @param index The index at which the schema should be added.
+   */
+  fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int)
+
+  /**
+   * Updates the UI for an existing database, by adding and removing tables from its schema.
+   * @param database The database that needs to be updated.
+   * @param toRemove The list of [SqliteTable] to remove from the database schema.
+   * @param toAdd The list of [IndexedSqliteTable] to add to the database schema. Each table is added at the specified index.
+   */
+  fun updateDatabase(database: SqliteDatabase, toRemove: List<SqliteTable>, toAdd: List<IndexedSqliteTable>)
+
+  /**
+   * Removes the [SqliteSchema] corresponding to the [SqliteDatabase] passed as argument.
+   */
+  fun removeDatabaseSchema(database: SqliteDatabase)
   fun displayResultSet(tableId: TabId, tableName: String, component: JComponent)
   fun focusTab(tabId: TabId)
   fun closeTab(tabId: TabId)
@@ -50,7 +68,12 @@ interface SqliteView {
 }
 
 interface SqliteViewListener {
-  fun tableNodeActionInvoked(table: SqliteTable)
-  fun closeTableActionInvoked(tableId: TabId)
+  fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable)
+  fun closeTabActionInvoked(tabId: TabId)
   fun openSqliteEvaluatorTabActionInvoked()
 }
+
+/**
+ * Class containing a [SqliteTable] and its index among other tables in the UI.
+ */
+data class IndexedSqliteTable(val index: Int, val sqliteTable: SqliteTable)

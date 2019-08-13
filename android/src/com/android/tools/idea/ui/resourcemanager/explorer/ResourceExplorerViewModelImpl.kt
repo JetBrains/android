@@ -15,24 +15,34 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.SdkConstants
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.StyleItemResourceValue
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceItemWithVisibility
+import com.android.ide.common.resources.ResourceRepository
+import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
+import com.android.resources.ResourceVisibility
+import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.editors.theme.ResolutionUtils
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
+import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
-import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableConfigurations
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableValue
 import com.android.tools.idea.util.androidFacet
@@ -61,12 +71,15 @@ private const val UNRESOLVED_VALUE = "Could not resolve"
  * ViewModel for [com.android.tools.idea.ui.resourcemanager.view.ResourceExplorerView]
  * to manage resources in the provided [facet].
  *
+ * @param facet Starting [AndroidFacet] for the view model.
+ * @param currentFile Optional file that may hold its own resource configuration (e.g: an XML Layout file).
  * @param filterInitialParams Sets the initial values for the filter options.
- * @param selectAssetAction Optional callback for asset selection, default behavior opens the asset's file.
  * @param supportedResourceTypes Resources to be displayed, each index should represent each resource type in the tabbed pane.
+ * @param selectAssetAction Optional callback for asset selection, default behavior opens the asset's file.
  */
 class ResourceExplorerViewModelImpl(
   facet: AndroidFacet,
+  currentFile: VirtualFile? = null,
   filterInitialParams: FilterOptionsParams,
   private val supportedResourceTypes: Array<ResourceType>,
   selectAssetAction: ((asset: Asset) -> Unit)? = null
@@ -134,7 +147,7 @@ class ResourceExplorerViewModelImpl(
     Disposer.register(this, listViewImageCache)
   }
 
-  override var assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, listViewImageCache)
+  override var assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, currentFile, listViewImageCache)
 
   /**
    * TODO: Use [assetPreviewManager] instead.
@@ -144,6 +157,7 @@ class ResourceExplorerViewModelImpl(
   override val summaryPreviewManager: AssetPreviewManager by lazy {
     AssetPreviewManagerImpl(
       facet,
+      currentFile,
       ImageCache(
         maximumCapacity = (10 * 1024.0.pow(2)).toLong(), // 10 MB
         mergingUpdateQueue = MergingUpdateQueue("queue",
@@ -160,7 +174,7 @@ class ResourceExplorerViewModelImpl(
 
   override fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet) {
     if (newFacet == oldFacet) return
-    assetPreviewManager = AssetPreviewManagerImpl(newFacet, listViewImageCache)
+    assetPreviewManager = AssetPreviewManagerImpl(newFacet, null, listViewImageCache)
     unsubscribeListener(oldFacet)
     subscribeListener(newFacet)
     dataManager.facet = newFacet
@@ -221,9 +235,73 @@ class ResourceExplorerViewModelImpl(
       .toList()
   }
 
+  /** Returns [ResourceType.SAMPLE_DATA] resources that match the content type of the requested [type]. E.g: Images for Drawables. */
+  private fun getSampleDataResources(forFacet: AndroidFacet, type: ResourceType): ResourceSection {
+    val repoManager = ResourceRepositoryManager.getInstance(forFacet).appResources
+    val resources = repoManager.namespaces.flatMap { namespace ->
+      repoManager.getResources(namespace, ResourceType.SAMPLE_DATA) { sampleItem ->
+        if (sampleItem is SampleDataResourceItem) {
+          when (type) {
+            ResourceType.DRAWABLE -> sampleItem.contentType == SampleDataResourceItem.ContentType.IMAGE
+            ResourceType.STRING -> sampleItem.contentType != SampleDataResourceItem.ContentType.IMAGE
+            else -> false
+          }
+        }
+        else false
+      }
+    }
+    return createResourceSection(ResourceType.SAMPLE_DATA.displayName, resources)
+  }
+
+  /**
+   * Returns a [ResourceSection] of the Android Framework resources.
+   */
+  private fun getAndroidResources(forFacet: AndroidFacet, type: ResourceType): ResourceSection? {
+    val repoManager = ResourceRepositoryManager.getInstance(forFacet)
+    val languages = if (type == ResourceType.STRING) repoManager.languagesInProject else emptySet<String>()
+    val frameworkRepo = repoManager.getFrameworkResources(languages)?: return null
+    val resources = frameworkRepo.namespaces.flatMap { namespace ->
+      frameworkRepo.getPublicResources(namespace, type)
+    }.sortedBy { it.name }
+    return createResourceSection(SdkConstants.ANDROID_NS_NAME, resources)
+  }
+
+  /**
+   * Returns a [ResourceSection] of attributes ([ResourceType.ATTR]) from the theme defined either in the module's manifest or from the
+   * configuration in the current file (e.g: the theme defined in the Layout Editor).
+   *
+   * However, this approach means that it might not display some attributes that are expected to be used in a layout if the configuration is
+   * not set up correctly.
+   */
+  private fun getThemeAttributes(forFacet: AndroidFacet, type: ResourceType): ResourceSection? {
+    val configuration = getConfiguration(forFacet) ?: return null
+    val resourceResolver = configuration.resourceResolver
+
+    val projectThemeAttributes =
+      ResourceRepositoryManager.getInstance(forFacet).projectResources.let { resourceRepository ->
+        resourceRepository.getSortedAttributeResources(resourceRepository.namespaces.toList(), resourceResolver, configuration, type) {
+          return@getSortedAttributeResources if (it is ResourceItemWithVisibility) { it.visibility != ResourceVisibility.PRIVATE } else true
+        }
+      }
+    // Repeat similar operation for android/framework resources. Just handle visibility a little different.
+    val frameworkResources = configuration.frameworkResources
+    val androidThemeAttributes = frameworkResources?.let {
+      frameworkResources.getSortedAttributeResources(listOf(ResourceNamespace.ANDROID), resourceResolver, configuration, type) {
+        return@getSortedAttributeResources (it as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
+      }
+    } ?: emptyList()
+    val themeAttributes = projectThemeAttributes.toMutableList().apply { addAll(androidThemeAttributes) }
+    return createResourceSection("Theme attributes", themeAttributes, type)
+  }
+
   override fun getCurrentModuleResourceLists(): CompletableFuture<List<ResourceSection>> = CompletableFuture.supplyAsync(
     Supplier {
-      getResourceSections(facet, filterOptions.isShowModuleDependencies, filterOptions.isShowLibraries)
+      getResourceSections(facet,
+                          showModuleDependencies = filterOptions.isShowModuleDependencies,
+                          showLibraries = filterOptions.isShowLibraries,
+                          showSampleData = filterOptions.isShowSampleData,
+                          showAndroidResources = filterOptions.showAndroidResources,
+                          showThemeAttributes = filterOptions.showThemeAttributes)
     },
     AppExecutorUtil.getAppExecutorService())
 
@@ -238,20 +316,42 @@ class ResourceExplorerViewModelImpl(
         // Don't include modules that are already being displayed.
         !displayedModuleNames.contains(module.name)
       }.flatMap { module ->
-        module.androidFacet?.let { getResourceSections(it, showModuleDependencies = false, showLibraries = false) } ?: emptyList()
+        module.androidFacet?.let {
+          getResourceSections(it,
+                              showModuleDependencies = false,
+                              showLibraries = false,
+                              showSampleData = false,
+                              showAndroidResources = false,
+                              showThemeAttributes = false)
+        } ?: emptyList()
       }
     },
     AppExecutorUtil.getAppExecutorService())
 
 
-  private fun getResourceSections(forFacet: AndroidFacet, showModuleDependencies: Boolean, showLibraries: Boolean): List<ResourceSection> {
+  private fun getResourceSections(forFacet: AndroidFacet,
+                                  showModuleDependencies: Boolean,
+                                  showLibraries: Boolean,
+                                  showSampleData: Boolean,
+                                  showAndroidResources: Boolean,
+                                  showThemeAttributes: Boolean): List<ResourceSection> {
     val resourceType = resourceTypes[resourceTypeIndex]
-    var resources = listOf(getModuleResources(forFacet, resourceType))
+    val resources = mutableListOf<ResourceSection>()
+    if (showSampleData) {
+      resources.add(getSampleDataResources(forFacet, resourceType))
+    }
+    resources.add(getModuleResources(forFacet, resourceType))
     if (showModuleDependencies) {
-      resources += getDependentModuleResources(forFacet, resourceType)
+      resources.addAll(getDependentModuleResources(forFacet, resourceType))
     }
     if (showLibraries) {
-      resources += getLibraryResources(forFacet, resourceType)
+      resources.addAll(getLibraryResources(forFacet, resourceType))
+    }
+    if (showAndroidResources) {
+      getAndroidResources(forFacet, resourceType)?.let { resources.add(it) }
+    }
+    if (showThemeAttributes) {
+      getThemeAttributes(forFacet, resourceType)?.let { resources.add(it) }
     }
     return resources
   }
@@ -333,6 +433,16 @@ private fun createResourceSection(libraryName: String, resourceItems: List<Resou
   val designAssets = resourceItems
     .mapNotNull { Asset.fromResourceItem(it) }
     .groupBy(Asset::name)
+    // TODO: Add an 'indexToPreview' or 'assetToPreview' value for ResourceAssetSet, instead of previewing the first asset by default.
+    .map { (name, assets) -> ResourceAssetSet(name, assets) }
+  return ResourceSection(libraryName, designAssets)
+}
+
+/** Creates a [ResourceSection] forcing the displayed [ResourceType]. E.g: Attributes resources may represent other type of resources. */
+private fun createResourceSection(libraryName: String, resourceItems: List<ResourceItem>, resourceType: ResourceType): ResourceSection {
+  val designAssets = resourceItems
+    .mapNotNull { Asset.fromResourceItem(it, resourceType) }
+    .groupBy(Asset::name)
     .map { (name, assets) -> ResourceAssetSet(name, assets) }
   return ResourceSection(libraryName, designAssets)
 }
@@ -376,4 +486,39 @@ private fun getResourceDataType(asset: Asset, psiElement: PsiElement): String {
     }
   }
   return dataTypeName;
+}
+
+/** Gets a [Configuration] for the given facet. If the given file has its own configuration, that'll be used instead. */
+private fun getConfiguration(facet: AndroidFacet, contextFile: VirtualFile? = null): Configuration? {
+  val configManager = ConfigurationManager.getOrCreateInstance(facet)
+  var configuration: Configuration? = null
+  contextFile?.let {
+    configuration = configManager.getConfiguration(contextFile)
+  }
+  if (configuration == null) {
+    facet.module.project.projectFile?.let { projectFile ->
+      configuration = configManager.getConfiguration(projectFile)
+    }
+  }
+  return configuration
+}
+
+/** Common function to extract theme attributes resources. */
+private fun ResourceRepository.getSortedAttributeResources(namespaces: List<ResourceNamespace>,
+                                                           resourceResolver: ResourceResolver,
+                                                           configuration: Configuration,
+                                                           targetType: ResourceType,
+                                                           visibilityFilter: (ResourceItem) -> Boolean): List<ResourceItem> {
+  return namespaces.flatMap { namespace ->
+    getResources(namespace, ResourceType.ATTR) { item ->
+      // Filter out attributes based on their resolved reference type, not their format, since their format might support different resource
+      // types.
+      var isValid = false
+      resourceResolver.findItemInTheme(item.referenceToSelf)?.let { resolvedValue ->
+        // From Attributes resources, try to resolve these attributes and keep those matching the desired ResourceType.
+        isValid = resolvedValue is StyleItemResourceValue && (ResolutionUtils.getAttrType(resolvedValue, configuration) == targetType)
+      }
+      return@getResources isValid && visibilityFilter(item)
+    }.sortedBy { it.name }
+  }
 }

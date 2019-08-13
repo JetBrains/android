@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.naveditor;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.testFramework.PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -34,7 +35,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.AddDestinationMenuFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureTemplateParametersWizardFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.ui.UIUtil;
@@ -55,16 +55,11 @@ public class NavNlEditorTest {
 
   @Test
   public void testSelectComponent() throws Exception {
-    IdeFrameFixture frame = guiTest.importProject("Navigation");
+    IdeFrameFixture frame = guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish();
     // Open file as XML and switch to design tab, wait for successful render
-    EditorFixture editor = guiTest.ideFrame().getEditor();
+    EditorFixture editor = frame.getEditor();
     editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true);
-
-    // This is separate to catch the case where we have a problem opening the file before sync is complete.
-    frame.waitForGradleProjectSyncToFinish();
-
-    layout.waitForRenderToFinish();
+    NlEditorFixture layout = editor.getLayoutEditor(true).waitForRenderToFinish();
 
     NlComponentFixture screen = ((NavDesignSurfaceFixture)layout.getSurface()).findDestination("first_screen");
     screen.click();
@@ -140,6 +135,8 @@ public class NavNlEditorTest {
         .waitUntilStepErrorMessageIsGone()
         .clickFinish();
 
+      ApplicationManager.getApplication().invokeAndWait(() -> dispatchAllInvocationEventsInIdeEventQueue());
+
       DestinationListFixture destinationListFixture = DestinationListFixture.create(guiTest.robot());
       List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
       assertEquals(1, selectedComponents.size());
@@ -155,14 +152,12 @@ public class NavNlEditorTest {
     try {
       IdeFrameFixture frame = guiTest.importProject("Navigation");
       // Open file as XML and switch to design tab, wait for successful render
+      final String file = "app/src/main/res/navigation/mobile_navigation.xml";
       NlEditorFixture layout = guiTest
         .ideFrame()
-        .getEditor()
-        .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-        .frame()
-        // This is separate to catch the case where we have a problem opening the file before sync is complete.
         .waitForGradleProjectSyncToFinish()
         .getEditor()
+        .open(file, EditorFixture.Tab.DESIGN)
         .getLayoutEditor(true);
 
       layout
@@ -184,6 +179,8 @@ public class NavNlEditorTest {
       frame
         .waitForGradleProjectSyncToFinish()
         .getEditor()
+        // Open the file again in case build.gradle is open after gradle sync
+        .open(file, EditorFixture.Tab.DESIGN)
         .getLayoutEditor(true)
         .waitForRenderToFinish()
         .getNavSurface()
@@ -199,16 +196,14 @@ public class NavNlEditorTest {
 
   @Test
   public void testCreateAndCancel() throws Exception {
+    final String file = "app/src/main/res/navigation/mobile_navigation.xml";
     IdeFrameFixture frame = guiTest.importProject("Navigation");
     // Open file as XML and switch to design tab, wait for successful render
     NlEditorFixture layout = guiTest
       .ideFrame()
-      .getEditor()
-      .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .frame()
-      // This is separate to catch the case where we have a problem opening the file before sync is complete.
       .waitForGradleProjectSyncToFinish()
       .getEditor()
+      .open(file, EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true);
 
     layout
@@ -228,6 +223,8 @@ public class NavNlEditorTest {
     long matchingComponents = frame
       .waitForGradleProjectSyncToFinish()
       .getEditor()
+      // Open the file again in case build.gradle is open after gradle sync
+      .open(file, EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true)
       .waitForRenderToFinish()
       .getAllComponents().stream()

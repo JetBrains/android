@@ -17,14 +17,13 @@ package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.SqliteServiceFactory
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 import org.mockito.Mockito.mock
 import java.util.concurrent.Executor
 
 class MockSqliteServiceFactory: SqliteServiceFactory {
   val sqliteService: SqliteService = mock(SqliteService::class.java)
-  override fun getSqliteService(sqliteFile: VirtualFile, parentDisposable: Disposable, executor: Executor): SqliteService {
+  override fun getSqliteService(sqliteFile: VirtualFile, executor: Executor): SqliteService {
     return sqliteService
   }
 }

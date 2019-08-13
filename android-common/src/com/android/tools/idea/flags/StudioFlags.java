@@ -71,11 +71,6 @@ public final class StudioFlags {
     "Show new version of the Welcome Wizard when Studio starts",
     false);
 
-  public static final Flag<Boolean> NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY = Flag.create(
-    NPW, "dynamic.apps.conditional.delivery", "Support for conditional delivery for dynamic feature modules",
-    "Support for conditional delivery for dynamic feature modules",
-    true);
-
   public static final Flag<Boolean> NPW_USE_HOME_FOLDER_AS_EXTRA_TEMPLATE_ROOT_FOLDER = Flag.create(
     NPW, "home.template.root", "Use .android folder as a Template Root Folder",
     "Let the user keep templates in the .android folder such that they are kept after a Studio install/upgrade",
@@ -274,7 +269,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_SPLIT_EDITOR = Flag.create(
     NELE, "split.layout.editor", "Enable design editors and XML side-by-side view.",
     "Enable this flag to display the design editors side-by-side with their text representation.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_RESOURCE_POPUP_PICKER = Flag.create(
     NELE, "show.resource.popup.picker", "Enable popup  resource picker in layout editor.",
@@ -535,13 +530,6 @@ public final class StudioFlags {
     "computed yet.",
     true);
 
-  public static final Flag<Boolean> GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED = Flag.create(
-    EDITOR,
-    "gutter.annotator.background.enabled",
-    "Enable gutter icon annotator to be run in background.",
-    "Enable gutter icon annotator to be run after all other annotators and in the background.",
-    true);
-
   public static final Flag<Boolean> MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED = Flag.create(
     EDITOR, "multidexkeepfile.support.enabled",
     "Enable support for MultiDexKeepFile format",
@@ -563,6 +551,15 @@ public final class StudioFlags {
     "If enabled, our custom UI for creating a new Java class is used. Otherwise the platform default is used.",
     true
   );
+
+
+  public static final Flag<Boolean> INCREMENTAL_RESOURCE_REPOSITORIES = Flag.create(
+    EDITOR, "incremental.resource.repositories",
+    "Handle PSI events incrementally in ResourceFolderRepository",
+    "If enabled, ResourceFolderRepository will handle PSI events synchronously, rather than rescanning the whole file.",
+    true
+  );
+
   //endregion
 
   //region Analyzer
@@ -663,7 +660,7 @@ public final class StudioFlags {
   //region Compose
   private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
   public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
-    COMPOSE, "compose.preview.enabled", "Enable the Compose preview",
+    COMPOSE, "preview.enabled", "Enable the Compose preview",
     "If enabled, a visual preview will be available for Compose.",
     false);
   //endregion
@@ -673,7 +670,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> VIEW_BINDING_ENABLED = Flag.create(
     BINDING, "view.binding.enabled", "Enable View Binding",
     "Enables view binding integration. Additionally, enabling the compiler may require updating Gradle settings as well",
-    false);
+    true);
   //endregion
 
   private StudioFlags() { }

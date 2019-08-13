@@ -90,8 +90,10 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     // Add a new Android Library.  Note that this needs the path to Kotlin defined in the test's
     // JVM arguments.  See go/studio-testing-pitfalls for information.
     projectFrame.invokeMenuPath("File", "New", "New Module...");
-    NewModuleWizardFixture newModuleWizardFixture = NewModuleWizardFixture.find(guiTest.ideFrame());
-    newModuleWizardFixture.chooseModuleType("Android Library").clickNext().clickFinish();
+    NewModuleWizardFixture.find(guiTest.ideFrame())
+      .clickNextToAndroidLibrary()
+      .wizard()
+      .clickFinish();
 
     MessagesFixture messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
     // Cancel and check that the debugging session is still happening.
@@ -104,8 +106,10 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     waitForSessionStart(debugToolWindowFixture);
 
     projectFrame.invokeMenuPath("File", "New", "New Module...");
-    newModuleWizardFixture = NewModuleWizardFixture.find(guiTest.ideFrame());
-    newModuleWizardFixture.chooseModuleType("Android Library").clickNext().clickFinish();
+    NewModuleWizardFixture.find(guiTest.ideFrame())
+      .clickNextToAndroidLibrary()
+      .wizard()
+      .clickFinish();
 
     messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
     // Click okay and check that the debugger has been killed.

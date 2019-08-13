@@ -73,10 +73,9 @@ open class CpuProfilerMemoryLoadTestBase {
   }
 
   private fun ensureGc() {
-    System.gc()
-    System.gc()
+    for (x in 0..10) System.gc()
     System.runFinalization()
-    ManagementFactory.getMemoryMXBean().gc()
+    for (x in 0..10) ManagementFactory.getMemoryMXBean().gc()
   }
 
   /**

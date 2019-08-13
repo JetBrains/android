@@ -24,6 +24,8 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
+import com.android.tools.idea.common.type.DesignerTypeRegistrar;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.hint.ImplementationViewComponent;
@@ -43,22 +45,31 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Provider that accepts {@link XmlFile}s whose modules contain an {@link AndroidFacet}. Subclasses can be more restrictive with the
- * accepted files by overriding {@link #acceptAndroidFacetXml(XmlFile)}. They're also responsible for creating their editor using
- * {@link #createEditor(Project, VirtualFile)}, and specifying their ID via {@link #getEditorTypeId()}.
+ * Provider that accepts {@link XmlFile}s whose modules contain an {@link AndroidFacet}, and type belongs to {@link #myAcceptedTypes}.
+ * Subclasses are responsible for specifying the types accepted, creating their editor using {@link #createEditor(Project, VirtualFile)},
+ * and specifying their ID via {@link #getEditorTypeId()}. This parent class in turn is responsible for registering the accepted types
+ * against {@link DesignerTypeRegistrar}.
  */
 public abstract class DesignerEditorProvider implements FileEditorProvider, DumbAware {
 
+  @NotNull
+  private final List<DesignerEditorFileType> myAcceptedTypes;
   /**
    * Name of the class that handles the quick definition feature in IntelliJ.
    * This class should be used by quick definition only.
    */
   private static final String CALLER_NAME_OF_QUICK_DEFINITION = ImplementationViewComponent.class.getName();
+
+  protected DesignerEditorProvider(@NotNull List<DesignerEditorFileType> acceptedTypes) {
+    myAcceptedTypes = acceptedTypes;
+    myAcceptedTypes.forEach(DesignerTypeRegistrar.INSTANCE::register);
+  }
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile virtualFile) {
@@ -66,7 +77,7 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
     if (psiFile instanceof XmlFile) {
       XmlFile xmlFile = (XmlFile) psiFile;
       AndroidFacet facet = AndroidFacet.getInstance(xmlFile);
-      return facet != null && acceptAndroidFacetXml(xmlFile);
+      return facet != null && myAcceptedTypes.stream().anyMatch(type -> type.isResourceTypeOf(xmlFile));
     }
     return false;
   }
@@ -128,11 +139,6 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
   @NotNull
   @Override
   public abstract String getEditorTypeId();
-
-  /**
-   * Condition to accept a given {@link XmlFile} whose module contains an {@link AndroidFacet}.
-   */
-  protected abstract boolean acceptAndroidFacetXml(@NotNull XmlFile xmlFile);
 
   @NotNull
   @Override

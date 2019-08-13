@@ -27,7 +27,13 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface) {
 
   open val surfaceType = LayoutEditorState.Surfaces.UNKNOWN_SURFACES
 
-  open val surfaceMode = LayoutEditorState.Mode.UNKOWN_MODE
+  open val surfaceMode
+    get() = when (surface.state) {
+    DesignSurface.State.FULL -> LayoutEditorState.Mode.DESIGN_MODE
+    // We map split mode to PREVIEW_MODE to keep consistency with past data
+    DesignSurface.State.SPLIT -> LayoutEditorState.Mode.PREVIEW_MODE
+    DesignSurface.State.DEACTIVATED -> LayoutEditorState.Mode.UNKOWN_MODE
+  }
 
   open val layoutType = LayoutEditorState.Type.UNKNOWN_TYPE
 
@@ -41,6 +47,12 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface) {
     ZoomType.OUT -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT)
     ZoomType.FIT_INTO, ZoomType.FIT -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT)
     else -> {} // ignore unrecognized zoom type.
+  }
+
+  fun trackSelectEditorMode() = when (surface.state) {
+    DesignSurface.State.FULL -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
+    DesignSurface.State.SPLIT -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
+    DesignSurface.State.DEACTIVATED -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
   }
 
   fun trackIssuePanel(minimized: Boolean) =

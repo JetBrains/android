@@ -24,10 +24,8 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.function.Predicate;
-import javax.swing.Icon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JRootPane;
 import javax.swing.text.JTextComponent;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -83,18 +81,6 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRoot
     Wait.seconds(5).expecting("dialog to disappear").until(
       () -> GuiQuery.getNonNull(() ->!target().isShowing())
     );
-    return myself();
-  }
-
-  @NotNull
-  public S clickPrevious() {
-    findAndClickButton(this, "Previous");
-    return myself();
-  }
-
-  @NotNull
-  public S assertStepIcon(@NotNull Icon expectedIcon) {
-    assertThat(robot().finder().findByName("right_icon", JLabel.class).getIcon()).isEqualTo(expectedIcon);
     return myself();
   }
 

@@ -53,7 +53,7 @@ class AarResourceRepositoryCache private constructor() {
    *     to a local file system directory
    */
   fun getSourceRepository(library: ExternalLibrary): AarSourceResourceRepository {
-    val libraryName = library.address
+    val libraryName = library.location?.fileName ?: library.address
     val resFolder = library.resFolder ?: throw IllegalArgumentException("No resources for $libraryName")
 
     if (resFolder.root.toPath() == null) {
@@ -72,7 +72,7 @@ class AarResourceRepositoryCache private constructor() {
    * @throws IllegalArgumentException if `library` doesn't contain res.apk or its res.apk isn't a file on the local file system
    */
   fun getProtoRepository(library: ExternalLibrary): AarProtoResourceRepository {
-    val libraryName = library.address
+    val libraryName = library.location?.fileName ?: library.address
     val resApkPath = library.resApkFile ?: throw IllegalArgumentException("No res.apk for $libraryName")
 
     val resApkFile = resApkPath.toPath() ?: throw IllegalArgumentException("Cannot find $resApkPath for $libraryName")
