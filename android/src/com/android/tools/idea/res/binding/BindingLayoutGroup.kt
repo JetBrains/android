@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res.binding
 
+import com.google.common.collect.ImmutableList
 import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
@@ -22,32 +23,38 @@ import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
  * A collection of relevant information for one (or more) related layout XML files - that is,
  * a base layout with possible alternate (e.g. landscape) configurations.
  */
-class BindingLayoutGroup(layouts: List<BindingLayoutInfo>) : ModificationTracker {
-  var layouts: List<BindingLayoutInfo> = layouts
+class BindingLayoutGroup(layouts: Collection<BindingLayoutInfo>) : ModificationTracker {
+  var layouts: List<BindingLayoutInfo> = ImmutableList.copyOf(layouts)
     private set
 
   val mainLayout: BindingLayoutInfo
-    // The base info is the one that has the shortest configuration name, e.g. "layout" vs "layout-w600dp"
-    // Safe to assume non-null because there should always be at least one layout in a group
-    get() = layouts.minBy { layout -> layout.data.file.parent.name.length }!!
+    // Safe to assume non-null because there should always be at least one layout in a group.
+    get() = layouts.firstOrNull { layout -> layout.data.folderConfiguration.isDefault() } ?: layouts.first()
 
   /**
-   * Forcefully updates all the layouts of the current group (if the passed in list of layouts
-   * differs from the current list).
-   *
-   * This will additionally update each layout's modification count, because multiple layouts
-   * generate binding classes with a merged API exposing all variables across all configurations.
+   * Forcefully updates all the layouts of the current group (if the passed in layouts differ from
+   * the current list).
    */
-  fun updateLayouts(layouts: List<BindingLayoutInfo>, modificationCount: Long) {
-    if (this.layouts != layouts) {
-      this.layouts = layouts
-      for (layout in this.layouts) {
-        layout.modificationCount = modificationCount
-      }
+  fun updateLayouts(layouts: Collection<BindingLayoutInfo>) {
+    if (!isSameContent(this.layouts, layouts)) {
+      this.layouts = ImmutableList.copyOf(layouts)
     }
   }
 
   override fun getModificationCount(): Long {
     return layouts.sumByLong { layout -> layout.modificationCount }
   }
+}
+
+private fun isSameContent(col1: Collection<Any>, col2: Collection<Any>): Boolean {
+  if (col1.size != col2.size) {
+    return false;
+  }
+  val col2Iter = col2.iterator();
+  for (obj in col1) {
+    if (obj != col2Iter.next()) {
+      return false;
+    }
+  }
+  return true;
 }

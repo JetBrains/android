@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.index
 
-import com.android.tools.idea.res.binding.BindingLayoutType
+import com.android.tools.idea.res.BindingLayoutType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction

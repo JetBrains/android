@@ -18,7 +18,6 @@ package com.android.tools.idea.res
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.resources.base.Base128OutputStream
 import com.android.tools.idea.resources.base.BasicResourceItem
 import com.android.tools.idea.resources.base.RepositoryConfiguration
@@ -36,18 +35,27 @@ import java.io.IOException
  * This is a common interface implemented by [PsiResourceFile] and [VfsResourceFile].
  */
 internal interface ResourceItemSource<T : ResourceItem> : Iterable<T> {
-  val folderConfiguration: FolderConfiguration
-  val folderType: ResourceFolderType?
   val virtualFile: VirtualFile?
+  val configuration: RepositoryConfiguration
+  val folderType: ResourceFolderType?
+
+  @JvmDefault
+  val repository: ResourceFolderRepository
+    get() = configuration.repository as ResourceFolderRepository
+
+  @JvmDefault
+  val folderConfiguration: FolderConfiguration
+    get() = configuration.folderConfiguration
+
   fun addItem(item: T)
 }
 
 /** The [ResourceItemSource] of [PsiResourceItem]s. */
-class PsiResourceFile constructor(
+internal class PsiResourceFile(
   private var _psiFile: PsiFile,
   items: Iterable<PsiResourceItem>,
   private var _resourceFolderType: ResourceFolderType?,
-  private var _folderConfiguration: FolderConfiguration
+  override var configuration: RepositoryConfiguration
 ) : ResourceItemSource<PsiResourceItem> {
 
   private val _items = ArrayListMultimap.create<String, PsiResourceItem>()
@@ -57,7 +65,6 @@ class PsiResourceFile constructor(
   }
 
   override val folderType get() = _resourceFolderType
-  override val folderConfiguration get() = _folderConfiguration
   override val virtualFile: VirtualFile? get() = _psiFile.virtualFile
   override fun iterator(): Iterator<PsiResourceItem> = _items.values().iterator()
   fun isSourceOf(item: ResourceItem): Boolean = (item as? PsiResourceItem)?.sourceFile == this
@@ -73,18 +80,13 @@ class PsiResourceFile constructor(
     _items.remove(item.key, item)
   }
 
-  /**
-   * If a resource file represents a layout file that should generate an associated binding
-   * class, this field will be set.
-   */
-  var bindingLayoutInfo: BindingLayoutInfo? = null
   val name = _psiFile.name
   val psiFile get() = _psiFile
 
-  fun setPsiFile(psiFile: PsiFile, folderConfiguration: FolderConfiguration) {
+  fun setPsiFile(psiFile: PsiFile, configuration: RepositoryConfiguration) {
     this._psiFile = psiFile
-    this._folderConfiguration = folderConfiguration
     this._resourceFolderType = getFolderType(psiFile)
+    this.configuration = configuration
   }
 }
 
@@ -97,9 +99,10 @@ internal class VfsResourceFile(
 
   private val items = ArrayList<BasicResourceItem>()
 
-  override val folderConfiguration get() = configuration.folderConfiguration
-
   override val folderType get() = getFolderType(virtualFile)
+
+  override val repository: ResourceFolderRepository
+    get() = configuration.repository as ResourceFolderRepository
 
   override fun iterator(): Iterator<BasicResourceItem> = items.iterator()
 
@@ -108,7 +111,7 @@ internal class VfsResourceFile(
   }
 
   override val relativePath: String?
-    get() = virtualFile?.let { VfsUtilCore.getRelativePath(it, (repository as ResourceFolderRepository).resourceDir) }
+    get() = virtualFile?.let { VfsUtilCore.getRelativePath(it, repository.resourceDir) }
 
   fun isValid(): Boolean = virtualFile != null
 

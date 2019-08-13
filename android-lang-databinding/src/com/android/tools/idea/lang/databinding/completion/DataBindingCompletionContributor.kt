@@ -152,10 +152,10 @@ open class DataBindingCompletionContributor : CompletionContributor() {
 
     val bindingData = (getBindingLayoutInfo(file) ?: return).data
 
-    val variableTagNamePairs = bindingData.variables.values.map { variable ->
+    val variableTagNamePairs = bindingData.variables.map { variable ->
       variable.name to DataBindingUtil.findVariableTag(bindingData, variable.name)
     }
-    val importTagTypePairs = bindingData.imports.values.map { import ->
+    val importTagTypePairs = bindingData.imports.map { import ->
       import.importedShortName to DataBindingUtil.findImportTag(bindingData, import.importedShortName)
     }
 
