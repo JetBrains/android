@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiFile
+import com.intellij.psi.impl.compiled.ClsFieldImpl
 import com.intellij.psi.xml.XmlAttributeValue
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
@@ -34,6 +35,48 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     myFixture.addFileToProject("res/values/colors.xml",
                                //language=XML
                                """<resources><color name="colorPrimary">#008577</color></resources>""")
+  }
+
+  fun testClsFieldImplKotlin() {
+    val file = myFixture.addFileToProject(
+      "/src/p1/p2/Foo.kt",
+      //language=kotlin
+      """
+       package p1.p2
+       class Foo {
+         fun example() {
+           android.R.color.b${caret}lack
+         }
+       }
+       """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = myFixture.elementAtCaret
+    assertThat(elementAtCaret).isInstanceOf(ClsFieldImpl::class.java)
+    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
+    assertThat(fakePsiElement).isNotNull()
+    assertThat(fakePsiElement!!.resourceReference).isEqualTo(
+      ResourceReference(ResourceNamespace.ANDROID, ResourceType.COLOR, "black"))
+  }
+
+  fun testClsFieldImplJava() {
+    val file = myFixture.addFileToProject(
+      "/src/p1/p2/Foo.java",
+      //language=java
+      """
+       package p1.p2;
+       public class Foo {
+         public static void example() {
+           int black = android.R.color.bla${caret}ck;
+         }
+       }
+       """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = myFixture.elementAtCaret
+    assertThat(elementAtCaret).isInstanceOf(ClsFieldImpl::class.java)
+    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
+    assertThat(fakePsiElement).isNotNull()
+    assertThat(fakePsiElement!!.resourceReference).isEqualTo(
+      ResourceReference(ResourceNamespace.ANDROID, ResourceType.COLOR, "black"))
   }
 
   fun testAndroidLightFieldKotlin() {
@@ -56,8 +99,6 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary"))
-    myFixture.moveCaret("android.R.color.bl|ack")
-    assertThat(ResourceReferencePsiElement.create(myFixture.elementAtCaret)).isNull()
   }
 
   fun testAndroidLightFieldJava() {
@@ -80,11 +121,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary"))
-    myFixture.moveCaret("android.R.color.bl|ack")
-    assertThat(ResourceReferencePsiElement.create(myFixture.elementAtCaret)).isNull()
   }
-
-
 
   fun testResourceReferencePsiElementDeclaration() {
     myFixture.configureByFile("/res/values/colors.xml")
