@@ -37,10 +37,10 @@ import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.initMocks
 
 /**
- * Unit test for [AndroidProcessHandlerImpl].
+ * Unit test for [AndroidProcessHandler].
  */
 @RunWith(JUnit4::class)
-class AndroidProcessHandlerImplTest {
+class AndroidProcessHandlerTest {
   companion object {
     const val TARGET_APP_NAME: String = "example.target.app"
   }
@@ -54,7 +54,7 @@ class AndroidProcessHandlerImplTest {
   @Mock
   lateinit var mockProcessListener: ProcessListener
 
-  lateinit var handler: AndroidProcessHandlerImpl
+  lateinit var handler: AndroidProcessHandler
   lateinit var textEmitter: TextEmitter
   lateinit var monitorManagerListener: AndroidProcessMonitorManagerListener
 
@@ -62,7 +62,7 @@ class AndroidProcessHandlerImplTest {
   fun setUp() {
     initMocks(this)
 
-    handler = AndroidProcessHandlerImpl(
+    handler = AndroidProcessHandler(
       mockProject,
       TARGET_APP_NAME,
       mockDeploymentAppService

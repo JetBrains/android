@@ -23,20 +23,22 @@ import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.intellij.execution.DefaultExecutionTarget
 import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.ExecutionTargetManager
+import com.intellij.execution.KillableProcess
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import java.io.OutputStream
 
 /**
- * A thread-safe implementation of [AndroidProcessHandler].
+ * A [ProcessHandler] that corresponds to a single Android app potentially running on multiple connected devices.
  *
  * This process handler monitors remote processes running on Android devices with an application name of [targetApplicationId].
  * You can add Android device by [addTargetDevice] and logcat messages from all monitored devices will be redirected and broadcast
  * by [notifyTextAvailable].
  *
- * As same as regular process handler, [AndroidProcessHandler] has two terminal states, detach and destroy.
+ * As same as regular process handler, it has two terminal states, detach and destroy.
  *
  * You can reach at detach state only if you call [detachProcess] before no target processes start or while those processes are running.
  * When you detach, all those processes are kept running and this process handler just stops capturing logcat messages from them.
@@ -50,16 +52,16 @@ import java.io.OutputStream
  * @param deploymentApplicationService a service to be used to look up running processes on a device
  * @param androidProcessMonitorManagerFactory a factory method to construct [AndroidProcessMonitorManager]
  */
-class AndroidProcessHandlerImpl @JvmOverloads constructor(
+class AndroidProcessHandler @JvmOverloads constructor(
   private val project: Project,
   private val targetApplicationId: String,
   private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.getInstance(),
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { _, _, textEmitter, listener ->
     AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, listener)
-  }) : AndroidProcessHandler() {
+  }) : ProcessHandler(), KillableProcess, SwappableProcessHandler {
 
   companion object {
-    private var LOG = Logger.getInstance(AndroidProcessHandlerImpl::class.java)
+    private var LOG = Logger.getInstance(AndroidProcessHandler::class.java)
   }
 
   init {
@@ -80,8 +82,11 @@ class AndroidProcessHandlerImpl @JvmOverloads constructor(
       override fun onAllTargetProcessesTerminated() = destroyProcess()
     })
 
+  /**
+   * Adds a target device to this handler.
+   */
   @WorkerThread
-  override fun addTargetDevice(device: IDevice) {
+  fun addTargetDevice(device: IDevice) {
     myMonitorManager.add(device)
 
     // Keep track of the lowest API level among the monitored devices by this handler.
@@ -95,11 +100,18 @@ class AndroidProcessHandlerImpl @JvmOverloads constructor(
     LOG.info("Adding device ${device.name} to monitor for launched app: ${targetApplicationId}")
   }
 
+  /**
+   * Checks if a given device is monitored by this handler. Returns true if it is monitored otherwise false.
+   */
   @WorkerThread
-  override fun isAssociated(device: IDevice) = myMonitorManager.isAssociated(device)
+  fun isAssociated(device: IDevice) = myMonitorManager.isAssociated(device)
 
+  /**
+   * Returns jdwp client of a target application running on a given device, or null if the device is not monitored by
+   * this handler or the process is not running on a device.
+   */
   @WorkerThread
-  override fun getClient(device: IDevice): Client? {
+  fun getClient(device: IDevice): Client? {
     return if (isAssociated(device)) {
       deploymentApplicationService.findClient(device, targetApplicationId).firstOrNull()
     }
