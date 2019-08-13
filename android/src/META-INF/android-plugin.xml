@@ -21,7 +21,6 @@
   <depends>org.intellij.groovy</depends>
   <depends>com.android.tools.idea.smali</depends>
   <depends>org.jetbrains.kotlin</depends>
-  <depends>com.android.tools.idea.wizard.template</depends>
 
   <!-- One of the layoutlib plugins is required -->
   <depends optional="true" config-file="layoutlib-native.xml">com.android.layoutlib.native</depends>
@@ -844,6 +843,8 @@
                     interface="com.android.tools.idea.lang.databinding.DataBindingExpressionSupport"/>
     <extensionPoint qualifiedName="com.android.tools.idea.databinding.dataBindingSupport"
                     interface="com.android.tools.idea.databinding.DataBindingSupport"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.wizard.template.wizardTemplateProvider"
+                    interface="com.android.tools.idea.wizard.template.WizardTemplateProvider"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea.explorer">
@@ -962,6 +963,10 @@
                              displayName="Memory Settings"
                              provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
                              id="memory.settings"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.wizard.template">
+    <wizardTemplateProvider implementation="com.android.tools.idea.wizard.template.impl.WizardTemplateProviderImpl" />
   </extensions>
 
   <module-components>
