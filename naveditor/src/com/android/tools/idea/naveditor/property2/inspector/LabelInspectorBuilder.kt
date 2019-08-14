@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.naveditor.property2.inspector
 
+import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_LABEL
+import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
@@ -25,7 +27,8 @@ import com.android.tools.property.panel.api.PropertiesTable
 
 class LabelInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    if (properties.first?.components?.size != 1) {
+    val components = properties.first?.components ?: return
+    if (components.size != 1) {
       return
     }
 

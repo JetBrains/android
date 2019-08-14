@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -37,7 +36,6 @@ import com.android.tools.idea.templates.FmGetConfigurationNameMethod
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException
 import com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate
-import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APPLICATION_PACKAGE
@@ -52,7 +50,6 @@ import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.TemplateUtils.writeTextFile
 import com.android.tools.idea.templates.mergeGradleSettingsFile
 import com.android.tools.idea.templates.mergeXml
-import com.android.tools.idea.templates.resolveDependency
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.google.common.base.Strings.isNullOrEmpty
 import com.google.common.base.Strings.nullToEmpty
@@ -150,25 +147,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     io.applyChanges(buildModel)
   }
 
-  override fun setExtVar(name: String, value: String) {
-    val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(context.project))
-    // TODO(qumeric) handle it in more reliable way?
-    val buildModel = getBuildModel(rootBuildFile, context.project) ?: return
-    val property = buildModel.buildscript().ext().findProperty(name)
-    if (property.valueType != GradlePropertyModel.ValueType.NONE) {
-      return // we do not override property value if it exists. TODO(qumeric): ask user?
-    }
-    property.setValue(value)
-    io.applyChanges(buildModel)
-  }
-
   override fun addClasspath(mavenUrl: String) {
-    val mavenUrl = resolveDependency(RepositoryUrlManager.get(), mavenUrl.trim())
+    val mavenUrl = mavenUrl.trim()
 
     referencesExecutor.addClasspath(mavenUrl)
 
-    val toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl) ?:
-                              throw RuntimeException("$mavenUrl is not a valid classpath dependency")
+    val toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl) ?: throw RuntimeException(
+      "$mavenUrl is not a valid classpath dependency")
 
     val project = context.project
     val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project))

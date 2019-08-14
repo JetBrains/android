@@ -15,8 +15,6 @@
  */
 package org.jetbrains.android.actions;
 
-import static com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
@@ -89,7 +87,7 @@ public abstract class CreateResourceFileDialogBase extends DialogWrapper {
   @Nullable
   @Override
   protected String getHelpId() {
-    return STUDIO_HELP_PREFIX + "studio/write/add-resources";
+    return "reference.new.resource.file";
   }
 
   protected String setupSubActions(@NotNull Collection<CreateTypedResourceFileAction> actions,

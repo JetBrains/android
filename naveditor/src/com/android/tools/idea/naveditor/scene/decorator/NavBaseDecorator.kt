@@ -30,7 +30,7 @@ import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.android.tools.idea.naveditor.scene.draw.DrawHeader
 import com.android.tools.idea.naveditor.scene.getHeaderRect
-import com.android.tools.idea.naveditor.scene.targets.isDragCreateInProgress
+import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Color
@@ -65,7 +65,7 @@ abstract class NavBaseDecorator : SceneDecorator() {
     when (component.drawState) {
       SceneComponent.DrawState.SELECTED -> SELECTED
       SceneComponent.DrawState.HOVER ->
-        if (isDragCreateInProgress(component.nlComponent) && !component.id.isNullOrEmpty()) SELECTED
+        if (ActionHandleTarget.isDragCreateInProgress(component.nlComponent) && !component.id.isNullOrEmpty()) SELECTED
         else HIGHLIGHTED_FRAME
       SceneComponent.DrawState.DRAG -> HIGHLIGHTED_FRAME
       else -> FRAME

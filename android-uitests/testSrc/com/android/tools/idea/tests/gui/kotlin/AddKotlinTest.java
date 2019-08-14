@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import static com.android.tools.idea.npw.model.HelpersKt.getKotlinVersion;
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.StudioRobot;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
@@ -28,21 +26,28 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import javax.swing.JButton;
+import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.timing.Wait;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.util.concurrent.TimeUnit;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
-import javax.swing.JButton;
-import org.fest.swing.exception.WaitTimedOutError;
-import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.timing.Wait;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import static com.android.tools.idea.npw.model.HelpersKt.getKotlinVersion;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AddKotlinTest {
@@ -51,6 +56,13 @@ public class AddKotlinTest {
 
   private static final String PROJECT_DIR_NAME = "LinkProjectWithKotlin";
   private static final String PACKAGE_NAME = "com.android.linkprojectwithkotlin";
+
+  @Before
+  public void enableXwinClipboardWorkaround() {
+    CopyPasteManager cpm = CopyPasteManager.getInstance();
+    StudioRobot robot = (StudioRobot) guiTest.robot();
+    robot.enableXwinClipboardWorkaround(cpm);
+  }
 
   /**
    * Verifies user can link project with Kotlin.
@@ -199,5 +211,11 @@ public class AddKotlinTest {
     ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     assertThat(ideFrameFixture.invokeProjectMake().isBuildSuccessful()).isTrue();
+  }
+
+  @After
+  public void disableXwinClipboardWorkaround() {
+    StudioRobot robot = (StudioRobot) guiTest.robot();
+    robot.disableXwinClipboardWorkaround();
   }
 }

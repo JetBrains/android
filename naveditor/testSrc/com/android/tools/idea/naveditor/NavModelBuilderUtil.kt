@@ -142,10 +142,8 @@ object NavModelBuilderUtil {
       navigation.apply(f)
     }
 
-    fun action(id: String, destination: String? = null, popUpTo: String? = null, f: ActionComponentDescriptor.() -> Unit = {}) {
-      val action = ActionComponentDescriptor(id, destination, popUpTo)
-      addChild(action, null)
-      action.apply(f)
+    fun action(id: String, destination: String? = null, popUpTo: String? = null) {
+      addChild(ActionComponentDescriptor(id, destination, popUpTo), null)
     }
 
     fun deeplink(uri: String, autoVerify: Boolean = false) {

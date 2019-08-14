@@ -83,6 +83,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     myValidatorFactory = validatorFactory;
 
     myResTypeLabel.setLabelFor(myResourceTypeCombo);
+    myResourceTypeCombo.registerUpDownHint(myFileNameField);
     myUpDownHint.setIcon(PlatformIcons.UP_DOWN_ARROWS);
     String selectedTemplate = setupSubActions(actions, myResourceTypeCombo, folderType);
 
@@ -97,6 +98,10 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     });
 
     if (folderType != null && selectedTemplate != null) {
+      final boolean v = folderType == ResourceFolderType.LAYOUT;
+      myRootElementLabel.setVisible(v);
+      myRootElementFieldWrapper.setVisible(v);
+
       myResTypeLabel.setVisible(false);
       myResourceTypeCombo.setVisible(false);
       myUpDownHint.setVisible(false);
@@ -104,7 +109,6 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     } else {
       // Select values by default if not otherwise specified
       myResourceTypeCombo.setSelectedName(ResourceConstants.FD_RES_VALUES);
-      myResourceTypeCombo.registerUpDownHint(myFileNameField);
     }
 
     if (chooseFileName) {
