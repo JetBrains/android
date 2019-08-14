@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.cleanup;
 
 import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 
@@ -36,7 +35,9 @@ class HttpProxySettingsCleanUpTask extends AndroidStudioCleanUpTask {
   @Override
   void doCleanUp(@NotNull Project project) {
     HttpConfigurable ideHttpProxySettings = HttpConfigurable.getInstance();
-    if (!ideHttpProxySettings.USE_HTTP_PROXY || isEmpty(ideHttpProxySettings.PROXY_HOST)) {
+    boolean usingProxy = (ideHttpProxySettings.USE_HTTP_PROXY && isNotEmpty(ideHttpProxySettings.PROXY_HOST))
+                         || ideHttpProxySettings.USE_PROXY_PAC;
+    if (!usingProxy) {
       return;
     }
     GradleProperties properties;
@@ -49,11 +50,21 @@ class HttpProxySettingsCleanUpTask extends AndroidStudioCleanUpTask {
       return;
     }
     ProxySettings gradleProxySettings = properties.getHttpProxySettings();
-    ProxySettings ideProxySettings = new ProxySettings(ideHttpProxySettings);
+    ProxySettingsDialog dialog = null;
 
-    if (!ideProxySettings.equals(gradleProxySettings)) {
-      ProxySettingsDialog dialog = new ProxySettingsDialog(project, ideProxySettings);
+    if (ideHttpProxySettings.USE_PROXY_PAC) {
+      // Confirm current configuration from the gradle.properties file (see b/135102054)
+      dialog = new ProxySettingsDialog(project, gradleProxySettings);
+    }
+    else {
+      // Show proxy settings dialog only if the IDE configuration is different to Gradle's
+      ProxySettings ideProxySettings = new ProxySettings(ideHttpProxySettings);
+      if (!ideProxySettings.equals(gradleProxySettings)) {
+        dialog = new ProxySettingsDialog(project, ideProxySettings);
+      }
+    }
 
+    if (dialog != null) {
       if (dialog.showAndGet()) {
         dialog.applyProxySettings(properties.getProperties());
         try {
