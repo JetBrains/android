@@ -62,9 +62,12 @@ internal val ESCAPE_CHILD = Regex("[\\t ]+")
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
 internal fun KtCallExpression.isBlockElement() : Boolean {
-  return lambdaArguments.size == 1 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2)
+  return lambdaArguments.size == 1 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2 &&
+                                      isValidBlockName(this.name()))
 }
 
+internal fun isValidBlockName(blockName : String?) =
+  blockName != null && blockName in listOf("configure", "create", "maybeCreate", "register", "getByName")
 /**
  * Check if the caller psiElement is one of the parents for the given psiElement.
  */
@@ -458,7 +461,26 @@ internal fun maybeUpdateName(element : GradleDslElement) {
 }
 
 internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDslElement) {
-  // TODO(karimai) : implement getting dsl closure block for methodCall.
+  val psiElement = element.psiElement ?: return
+
+  val psiFactory = KtPsiFactory(psiElement.project)
+  psiElement.addAfter(psiFactory.createWhiteSpace(), psiElement.lastChild)
+  val block = psiFactory.createLambdaExpression("", " ")
+  val addedBlock = psiElement.addAfter(block, psiElement.lastChild) ?: return
+  closure.psiElement = addedBlock
+  closure.applyChanges()
+  element.setParsedClosureElement(closure)
+  element.setNewClosureElement(null)
+}
+
+internal fun addConfigBlock(expression : GradleDslSettableExpression) {
+  val unsavedBlock = expression.unsavedConfigBlock ?: return
+  val psiElement = expression.psiElement ?: return
+  val psiFactory = KtPsiFactory(psiElement.project)
+
+  psiElement.addAfter(psiFactory.createWhiteSpace(), psiElement.lastChild)
+  psiElement.addAfter(unsavedBlock, psiElement.lastChild)
+  expression.unsavedConfigBlock = null
 }
 
 /**

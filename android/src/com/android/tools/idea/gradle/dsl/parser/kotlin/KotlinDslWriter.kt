@@ -260,6 +260,10 @@ class KotlinDslWriter : GradleDslWriter {
       literal.setExpression(added)
     }
 
+    if (literal.unsavedConfigBlock != null) {
+      addConfigBlock(literal)
+    }
+
     literal.reset()
     literal.commit()
   }
