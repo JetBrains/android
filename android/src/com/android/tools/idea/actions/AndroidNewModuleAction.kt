@@ -19,7 +19,7 @@ package com.android.tools.idea.actions
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.createWithDefaultGallery
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -27,11 +27,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 import org.jetbrains.android.sdk.AndroidSdkUtils
-
-import javax.swing.*
-
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder.UxStyle.INSTANT_APP
 import org.jetbrains.android.util.AndroidBundle.message
+import javax.swing.Icon
 
 open class AndroidNewModuleAction : AnAction, DumbAware {
   constructor() : super(message("android.wizard.module.new.module.menu"), message("android.wizard.module.new.module.menu.description"), null)
@@ -56,7 +53,7 @@ open class AndroidNewModuleAction : AnAction, DumbAware {
       val chooseModuleTypeStep = createWithDefaultGallery(project, getModulePath(e), ProjectSyncInvoker.DefaultProjectSyncInvoker())
       val wizard = ModelWizard.Builder().addStep(chooseModuleTypeStep).build()
 
-      StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUxStyle(INSTANT_APP).build().show()
+      StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).build().show()
     }
   }
 
