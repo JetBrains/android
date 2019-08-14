@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
-import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_JOINER;
-import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_PARSER;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
 import static com.android.tools.idea.gradle.util.ProxySettings.replaceCommasWithPipesAndClean;
 import static com.android.tools.idea.gradle.util.ProxySettings.replacePipesWithCommasAndClean;
+import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_JOINER;
+import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_PARSER;
 
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.google.common.annotations.VisibleForTesting;
@@ -65,6 +65,8 @@ public class ProxySettingsDialog extends DialogWrapper {
   public ProxySettingsDialog(@NotNull Project project, @NotNull ProxySettings httpProxySettings) {
     super(project);
     setTitle("Proxy Settings");
+    setOKButtonText("Yes");
+    setCancelButtonText("No");
 
     myShouldShowDialog = PropertiesComponent.getInstance(project).getBoolean(SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME, true);
     setDoNotAskOption(new PropertyBasedDoNotAskOption(project, SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME));
@@ -77,9 +79,8 @@ public class ProxySettingsDialog extends DialogWrapper {
     myMessageTextLabel.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
     String text = "<html>Android Studio is configured to use a HTTP proxy. " +
                   "Gradle may need these HTTP proxy settings to access the Internet (e.g. for downloading dependencies.)<br/><br/>" +
-                  "Would you like to copy the IDE's proxy configuration to the global gradle.properties file?<br/><br/>" +
-                  "<b>Note:</b> To avoid potential security vulnerabilities, passwords will <b>not</b> be copied to the gradle.properties " +
-                  "file. You can manually copy passwords to the gradle.properties file at your own risk.<br/><br/>" +
+                  "Do you want to store the following HTTP settings into the global gradle.properties file?<br/><br/>" +
+                  "<b>Note:</b> You can manually set passwords in the gradle.properties file at your own risk.<br/><br/>" +
                   "For more details, please refer to the " +
                   "<a href='https://developer.android.com/studio/intro/studio-config.html#proxy'>Android Studio documentation</a>.<br/><br/>";
     myMessageTextLabel.setText(text);

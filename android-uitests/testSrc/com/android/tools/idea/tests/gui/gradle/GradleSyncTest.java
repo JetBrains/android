@@ -259,7 +259,7 @@ public class GradleSyncTest {
     // Expect IDE to ask user to copy proxy settings.
     ProxySettingsDialogFixture proxyDialog = ProxySettingsDialogFixture.find(guiTest.robot());
     proxyDialog.setDoNotShowThisDialog(true);
-    proxyDialog.clickOk();
+    proxyDialog.clickYes();
 
     ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish(Wait.seconds(20));
 
