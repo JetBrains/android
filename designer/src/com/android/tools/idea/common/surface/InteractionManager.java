@@ -456,7 +456,10 @@ public class InteractionManager implements Disposable {
         return;
       }
       else if (interceptPanInteraction(event)) {
-        setPanning(false);
+        if (SwingUtilities.isMiddleMouseButton(event)) {
+          // Consume event, but only disable panning if the middle mouse button was released.
+          setPanning(false);
+        }
         return;
       }
       else if (event.getButton() > 1 || SystemInfo.isMac && event.isControlDown()) {
@@ -716,7 +719,7 @@ public class InteractionManager implements Disposable {
         }
       }
 
-      if (keyCode == DesignSurfaceShortcut.PAN.getKeyCode()) {
+      if (isPanningKeyboardKey(event)) {
         setPanning(true);
         return;
       }
@@ -755,7 +758,7 @@ public class InteractionManager implements Disposable {
         myCurrentInteraction.keyReleased(event);
       }
 
-      if (event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode()) {
+      if (isPanningKeyboardKey(event)) {
         setPanning(false);
         updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
       }
@@ -1036,16 +1039,23 @@ public class InteractionManager implements Disposable {
   }
 
   /**
-   * Check if the mouse wheel button is down.
+   * Intercepts a mouse event if panning had already started or if the mouse wheel button is down.
    *
    * @param event {@link MouseEvent} passed by {@link MouseMotionListener#mouseDragged}
-   * @return true if the event has been intercepted and handled, false otherwise.
+   * @return true if the event should be intercepted and handled, false otherwise.
    */
   public boolean interceptPanInteraction(@NotNull MouseEvent event) {
-    if (myIsPanning || (event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0) {
+    boolean wheelClickDown = SwingUtilities.isMiddleMouseButton(event);
+    if (myIsPanning || wheelClickDown) {
+      boolean leftClickDown = SwingUtilities.isLeftMouseButton(event);
+      mySurface.setCursor((leftClickDown || wheelClickDown) ? AdtUiCursors.GRABBING : AdtUiCursors.GRAB);
       return true;
     }
     return false;
+  }
+
+  private static boolean isPanningKeyboardKey(@NotNull KeyEvent event) {
+    return event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode();
   }
 
   /**
