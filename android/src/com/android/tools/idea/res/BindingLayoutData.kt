@@ -63,10 +63,6 @@ data class BindingLayoutData(private val configuration: RepositoryConfiguration,
   val folderConfiguration
     get() = configuration.folderConfiguration
 
-  @Deprecated("Data binding code should not rely on this class for providing facet")
-  val facet
-    get() = (configuration.repository as ResourceFolderRepository).facet
-
   class Variable(val name: String, val type: String?)
 
   class Import(val qualifiedName: String, val importedShortName: String) {

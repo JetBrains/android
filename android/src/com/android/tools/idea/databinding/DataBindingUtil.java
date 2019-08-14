@@ -467,10 +467,11 @@ public final class DataBindingUtil {
    *     imports, the unqualified name of the class, or, if {@code qualifyJavaLang} is true and the class name cannot be resolved, null
    */
   @Nullable
-  public static String getQualifiedType(@NotNull String nameOrAlias,
+  public static String getQualifiedType(@NotNull Project project,
+                                        @NotNull String nameOrAlias,
                                         @NotNull BindingLayoutData layoutData,
                                         boolean qualifyJavaLang) {
-    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(layoutData.getFacet().getModule().getProject());
+    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     PsiJavaParserFacade parser = psiFacade.getParserFacade();
     PsiType psiType;
     try {
@@ -564,13 +565,13 @@ public final class DataBindingUtil {
   }
 
   @Nullable
-  public static XmlFile findXmlFile(@NotNull BindingLayoutData bindingData) {
-    return (XmlFile)PsiManager.getInstance(bindingData.getFacet().getModule().getProject()).findFile(bindingData.getFile());
+  public static XmlFile findXmlFile(@NotNull Project project, @NotNull BindingLayoutData bindingData) {
+    return (XmlFile)PsiManager.getInstance(project).findFile(bindingData.getFile());
   }
 
   @Nullable
-  private static XmlTag findDataTag(@NotNull BindingLayoutData bindingData) {
-    XmlFile xmlFile = findXmlFile(bindingData);
+  private static XmlTag findDataTag(@NotNull Project project, @NotNull BindingLayoutData bindingData) {
+    XmlFile xmlFile = findXmlFile(project, bindingData);
     if (xmlFile != null) {
       XmlTag rootTag = xmlFile.getRootTag();
       if (rootTag != null && rootTag.getName().equals("layout")) {
@@ -582,8 +583,8 @@ public final class DataBindingUtil {
   }
 
   @Nullable
-  public static XmlTag findVariableTag(@NotNull BindingLayoutData bindingData, @NotNull String variableName) {
-    XmlTag dataTag = findDataTag(bindingData);
+  public static XmlTag findVariableTag(@NotNull Project project, @NotNull BindingLayoutData bindingData, @NotNull String variableName) {
+    XmlTag dataTag = findDataTag(project, bindingData);
     if (dataTag != null) {
       for (XmlTag tag : dataTag.getSubTags()) {
         if (tag.getName().equals("variable")) {
@@ -599,8 +600,8 @@ public final class DataBindingUtil {
   }
 
   @Nullable
-  public static XmlTag findImportTag(@NotNull BindingLayoutData bindingData, @NotNull String simpleImportedName) {
-    XmlTag dataTag = findDataTag(bindingData);
+  public static XmlTag findImportTag(@NotNull Project project, @NotNull BindingLayoutData bindingData, @NotNull String simpleImportedName) {
+    XmlTag dataTag = findDataTag(project, bindingData);
     if (dataTag != null) {
       for (XmlTag tag : dataTag.getSubTags()) {
         if (tag.getName().equals("import")) {

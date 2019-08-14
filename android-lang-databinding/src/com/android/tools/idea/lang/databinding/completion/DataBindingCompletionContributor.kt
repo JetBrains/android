@@ -152,11 +152,12 @@ open class DataBindingCompletionContributor : CompletionContributor() {
 
     val bindingData = (getBindingLayoutInfo(file) ?: return).data
 
+    val project = file.project
     val variableTagNamePairs = bindingData.variables.map { variable ->
-      variable.name to DataBindingUtil.findVariableTag(bindingData, variable.name)
+      variable.name to DataBindingUtil.findVariableTag(project, bindingData, variable.name)
     }
     val importTagTypePairs = bindingData.imports.map { import ->
-      import.importedShortName to DataBindingUtil.findImportTag(bindingData, import.importedShortName)
+      import.importedShortName to DataBindingUtil.findImportTag(project, bindingData, import.importedShortName)
     }
 
     result.addAllElements((variableTagNamePairs + importTagTypePairs).mapNotNull { nameToTag ->
@@ -165,7 +166,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
       LookupElementBuilder.create(xmlTag, DataBindingUtil.convertToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
     })
 
-    JavaPsiFacade.getInstance(file.project).findPackage(CommonClassNames.DEFAULT_PACKAGE)!!
+    JavaPsiFacade.getInstance(project).findPackage(CommonClassNames.DEFAULT_PACKAGE)!!
       .getClasses(ModulesScope.moduleWithLibrariesScope(file.androidFacet!!.module))
       .forEach {
         result.addElement(JavaLookupElementBuilder.forClass(it, it.name, true).withInsertHandler(onCompletionHandler))

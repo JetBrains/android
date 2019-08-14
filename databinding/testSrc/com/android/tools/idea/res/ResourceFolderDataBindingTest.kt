@@ -289,7 +289,7 @@ class ResourceFolderDataBindingTest {
     val layoutData = getInfo().data
     val variable = layoutData.findVariable(name)
     assertNotNull("cannot find variable with name $name", variable)
-    val variableTag = DataBindingUtil.findVariableTag(layoutData, variable!!.name)
+    val variableTag = DataBindingUtil.findVariableTag(project, layoutData, variable!!.name)
     assertNotNull("Cannot find XML tag for variable with name $name", variableTag)
     return variableTag!!
   }

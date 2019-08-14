@@ -371,14 +371,15 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       val layoutInfo = getParentLayoutInfo(module, element) ?: return PsiReference.EMPTY_ARRAY
       val layoutData = layoutInfo.data
 
+      val project = element.project
       layoutData.findVariable(simpleName)?.let { variable ->
-        DataBindingUtil.findVariableTag(layoutData, variable.name)?.let { variableTag ->
+        DataBindingUtil.findVariableTag(project, layoutData, variable.name)?.let { variableTag ->
           return arrayOf(XmlVariableReference(element, variableTag, variable, layoutInfo, module))
         }
       }
 
       layoutData.findImport(simpleName)?.let { import ->
-        DataBindingUtil.findImportTag(layoutData, simpleName)?.let { importTag ->
+        DataBindingUtil.findImportTag(project, layoutData, simpleName)?.let { importTag ->
           return arrayOf(XmlImportReference(element, importTag, import, module))
         }
       }
