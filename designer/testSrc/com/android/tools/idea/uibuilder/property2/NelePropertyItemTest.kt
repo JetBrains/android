@@ -511,9 +511,10 @@ class NelePropertyItemTest {
     assertThat(animator.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(animator.editingSupport.validation("@animator/my_animator")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(animator.editingSupport.validation("@android:animator/fade_in")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@android:anim/fade_in")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(animator.editingSupport.validation("@null")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(animator.editingSupport.validation("@android:color/holo_blue_bright")).isEqualTo(
-      Pair(ERROR, "Unexpected resource type: 'color' expected: animator"))
+      Pair(ERROR, "Unexpected resource type: 'color' expected one of: anim, animator"))
     assertThat(animator.editingSupport.validation("@animator/no_animator")).isEqualTo(
       Pair(ERROR, "Cannot resolve symbol: 'no_animator'"))
     assertThat(animator.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
