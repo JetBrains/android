@@ -40,10 +40,10 @@ public class LayoutInspectorFixture {
     JTree tree = GuiTests.waitUntilShowing(myRobot, Matchers.byType(RollOverTree.class));
     JTreeFixture treeFixture = new JTreeFixture(myRobot, tree);
     treeFixture.replaceCellReader(TREE_NODE_CELL_READER);
-    for (int i = 0; i < tree.getRowCount(); i++) {
+    for (int i = 0; i < treeFixture.getRowCount(); i++) {
       String element = treeFixture.valueAt(i);
       if (element != null) {
-        builder.add(element.substring(0, element.indexOf("@")).trim());
+        builder.add(element.substring(0, element.indexOf('@')).trim());
       }
     }
     return builder.build();

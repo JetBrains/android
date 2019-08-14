@@ -51,7 +51,7 @@ public class AndroidProcessChooserDialogFixture extends ComponentFixture<Android
   public AndroidProcessChooserDialogFixture selectProcess() {
     JTree processTree = robot().finder().findByType(target(), JTree.class);
     JTreeFixture jTreeFixture = new JTreeFixture(robot(), processTree);
-    Wait.seconds(120).expecting("process list to be populated").until(() -> processTree.getRowCount() == 2);
+    Wait.seconds(120).expecting("process list to be populated").until(() -> jTreeFixture.getRowCount() == 2);
     jTreeFixture.selectRow(1);
     return this;
   }
