@@ -58,13 +58,16 @@ import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.util.PsiModificationTracker
+import com.intellij.psi.PsiTreeChangeAdapter
+import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
@@ -72,9 +75,15 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.uast.UComment
+import org.jetbrains.uast.getParentOfType
+import org.jetbrains.uast.toUElement
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
 import javax.swing.JPanel
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance as getInstance
+
+private const val DEBUG = false
 
 /** Preview element name */
 const val PREVIEW_NAME = "Preview"
@@ -134,10 +143,10 @@ private class ComposeAdapterLightVirtualFile(name: String, content: String) : Li
  * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` method.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
- * @param previews a set of @Composable elements available for @Preview in the given [psiFile].
+ * @param previewProvider [PreviewElementFinder] to obtain the [PreviewElement]s from the file.
  */
 private class PreviewEditor(private val psiFile: PsiFile,
-                            private val previews: () -> Set<PreviewElement>) : SmartRefreshable, DesignFileEditor(psiFile.virtualFile!!) {
+                            private val previewProvider: PreviewElementFinder) : SmartRefreshable, DesignFileEditor(psiFile.virtualFile!!) {
   private val project = psiFile.project
 
   private val surface = NlDesignSurface.builder(project, this)
@@ -180,7 +189,15 @@ private class PreviewEditor(private val psiFile: PsiFile,
    */
   override fun refresh() {
     surface.models.forEach { surface.removeModel(it) }
-    val renders = previews()
+    val renders = previewProvider.findPreviewMethods(project, file)
+      .onEach {
+        if (DEBUG) {
+          println("""
+            Preview(name=${it.name}, method=${it.method}) =
+              ${it.toPreviewXmlString()}
+          """.trimIndent())
+        }
+      }
       .map { Pair(it, ComposeAdapterLightVirtualFile("testFile.xml", it.toPreviewXmlString())) }
       .map {
         val (previewElement, file) = it
@@ -326,13 +343,10 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
-    val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
-
-    val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor,
-                                                                PreviewEditor(
-                                                                  psiFile = psiFile) {
-                                                                  AnnotationPreviewElementFinder.findPreviewMethods(project, file)
-                                                                })
+    val textEditor = getInstance().createEditor(project, file) as TextEditor
+    val previewProvider = AnnotationPreviewElementFinder
+    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewProvider)
+    val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor, previewEditor)
 
     // Queue to avoid refreshing notifications on every key stroke
     val modificationQueue = MergingUpdateQueue("Notifications Update queue",
@@ -343,7 +357,15 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
       .apply {
         setRestartTimerOnAdd(true)
       }
-    val updateNotifications = object: Update(file) {
+
+    // Update that triggers a preview refresh. It does not trigger a recompile.
+    val refreshPreview = object: Update("refreshPreview") {
+      override fun run() {
+        previewEditor.refresh()
+      }
+    }
+
+    val updateNotifications = object: Update("updateNotifications") {
       override fun run() {
         if (composeEditorWithPreview.isModified) {
           EditorNotifications.getInstance(project).updateNotifications(file)
@@ -351,9 +373,56 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
       }
     }
 
-    project.messageBus.connect(composeEditorWithPreview).subscribe(PsiModificationTracker.TOPIC, PsiModificationTracker.Listener {
-      modificationQueue.queue(updateNotifications)
-    })
+    PsiManager.getInstance(project).addPsiTreeChangeListener(object: PsiTreeChangeAdapter() {
+      fun elementChanged(eventPsiFile: PsiFile?, psiElement: PsiElement?) {
+        if (eventPsiFile != psiFile) {
+          return
+        }
+
+        if (DumbService.isDumb(project)) {
+          return
+        }
+
+        val uElement = psiElement?.toUElement() ?: return
+        if (uElement.getParentOfType<UComment>(false) != null) {
+          // Ignore comments
+          return
+        }
+        val isPreviewElementChange = previewProvider.elementBelongsToPreviewElement(uElement)
+        if (isPreviewElementChange) {
+          // The change belongs to a PreviewElement declaration. No need to rebuild, we can just refresh
+          modificationQueue.queue(refreshPreview)
+        }
+        else {
+          // Source code was changed, trigger notification update
+          modificationQueue.queue(updateNotifications)
+        }
+      }
+
+      override fun childAdded(event: PsiTreeChangeEvent) {
+        elementChanged(event.file, event.child?.parent)
+      }
+
+      override fun childRemoved(event: PsiTreeChangeEvent) {
+        elementChanged(event.file, event.child?.parent)
+      }
+
+      override fun childrenChanged(event: PsiTreeChangeEvent) {
+        elementChanged(event.file, event.child?.parent)
+      }
+
+      override fun childReplaced(event: PsiTreeChangeEvent) {
+        elementChanged(event.file, event.child?.parent)
+      }
+
+      override fun childMoved(event: PsiTreeChangeEvent) {
+        elementChanged(event.file, event.child?.parent)
+      }
+
+      override fun propertyChanged(event: PsiTreeChangeEvent) {
+        elementChanged(event.file, event.child?.parent)
+      }
+    }, composeEditorWithPreview)
 
     return composeEditorWithPreview
   }

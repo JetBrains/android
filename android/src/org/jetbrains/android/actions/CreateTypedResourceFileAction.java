@@ -196,6 +196,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
   static boolean doIsAvailable(DataContext context, final String resourceType) {
     final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
     if (element == null || AndroidFacet.getInstance(element) == null) {
+      // Requires a given PsiElement.
       return false;
     }
 
@@ -203,9 +204,17 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
       PsiElement e = element;
       while (e != null) {
         if (e instanceof PsiDirectory && AndroidResourceUtil.isResourceSubdirectory((PsiDirectory)e, resourceType)) {
+          // Verify the given PsiElement is a directory within a valid resource type folder (e.g: .../res/color).
           return true;
         }
         e = e.getParent();
+      }
+
+      final ResourceFolderType targetFolderType = TARGET_RESOURCE_FOLDER_TYPE.getData(context);
+      boolean validFolderType = targetFolderType != null && targetFolderType.getName().equals(resourceType);
+      if (validFolderType && element instanceof PsiDirectory && AndroidResourceUtil.isResourceDirectory((PsiDirectory)element)) {
+        // If given an specific resource type folder, just verify the given PsiElement is the base res directory (e.g: .../res)
+        return true;
       }
       return false;
     });
