@@ -24,26 +24,28 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.NotNullLazyValue;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Re-imports (syncs) an Android-Gradle project, without showing the "Import Project" wizard.
  */
 public class SyncProjectAction extends AndroidStudioGradleAction {
-  @NotNull private final GradleSyncInvoker mySyncInvoker;
+  private final NotNullLazyValue<GradleSyncInvoker> mySyncInvoker;
 
   public SyncProjectAction() {
     this("Sync Project with _Gradle Files");
   }
 
   protected SyncProjectAction(@NotNull String text) {
-    this(text, GradleSyncInvoker.getInstance());
+    super(text);
+    mySyncInvoker = NotNullLazyValue.createValue(() -> GradleSyncInvoker.getInstance());
   }
 
   @VisibleForTesting
   SyncProjectAction(@NotNull String text, @NotNull GradleSyncInvoker syncInvoker) {
     super(text);
-    mySyncInvoker = syncInvoker;
+    mySyncInvoker = NotNullLazyValue.createConstantValue(syncInvoker);
   }
 
   @Override
@@ -52,7 +54,7 @@ public class SyncProjectAction extends AndroidStudioGradleAction {
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
     try {
-      mySyncInvoker.requestProjectSync(project, TRIGGER_USER_SYNC_ACTION);
+      mySyncInvoker.getValue().requestProjectSync(project, TRIGGER_USER_SYNC_ACTION);
     }
     finally {
       presentation.setEnabled(true);
