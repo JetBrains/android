@@ -39,20 +39,26 @@ import java.awt.geom.RoundRectangle2D
 const val DEFAULT_FONT_NAME = "Default"
 private val DEFAULT_FONT_SIZE = JBUI.scale(12)
 
+@JvmField
 @NavCoordinate
 val INNER_RADIUS_SMALL = JBUI.scale(5f)
+@JvmField
 @NavCoordinate
 val INNER_RADIUS_LARGE = JBUI.scale(8f)
+@JvmField
 @NavCoordinate
 val OUTER_RADIUS_SMALL = JBUI.scale(7f)
+@JvmField
 @NavCoordinate
 val OUTER_RADIUS_LARGE = JBUI.scale(11f)
 
 @SwingCoordinate
 val HANDLE_STROKE = BasicStroke(JBUI.scale(2).toFloat())
 
+@JvmField
 @NavCoordinate
 val FRAGMENT_BORDER_SPACING = JBUI.scale(2f)
+@JvmField
 @NavCoordinate
 val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING.toInt() + JBUI.scale(2)
 
@@ -63,6 +69,7 @@ val HEADER_TEXT_PADDING = JBUI.scale(2f)
 @NavCoordinate
 val HEADER_PADDING = JBUI.scale(8f)
 
+@JvmField
 @NavCoordinate
 val HEADER_HEIGHT = HEADER_ICON_SIZE + HEADER_PADDING
 @NavCoordinate

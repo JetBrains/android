@@ -55,7 +55,7 @@ class ComponentAssistantTest {
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
 
-    layout.dragComponentToSurface("Containers", "RecyclerView")
+    layout.dragComponentToSurface("Containers", "RecyclerView", 50, 50)
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk()
     val editor = guiTest.ideFrame()
       .waitForGradleProjectSyncToFinish()
@@ -98,7 +98,7 @@ class ComponentAssistantTest {
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
 
-    layout.dragComponentToSurface("Text", "TextView")
+    layout.dragComponentToSurface("Text", "TextView", 50, 50)
     layout.findView("TextView", 1)
       .click()
       .openComponentAssistant()

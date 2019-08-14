@@ -26,7 +26,13 @@ import com.android.tools.property.panel.api.PropertiesTable
 
 class StartDestinationInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    if (properties.first?.components?.singleOrNull()?.isNavigation != true) {
+    val components = properties.first?.components ?: return
+    if (components.size != 1) {
+      return
+    }
+
+    val component = components[0]
+    if(!component.isNavigation) {
       return
     }
 

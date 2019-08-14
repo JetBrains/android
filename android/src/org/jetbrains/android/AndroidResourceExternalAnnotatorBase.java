@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -53,6 +54,10 @@ public abstract class AndroidResourceExternalAnnotatorBase
   @Nullable
   @Override
   public final FileAnnotationInfo collectInformation(@NotNull PsiFile file, @NotNull Editor editor, boolean hasErrors) {
+    // Run even when hasErrors is true.
+    if (!StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.get()) {
+      return null;
+    }
     return collectInformation(file, editor);
   }
 

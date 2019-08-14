@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.property2.inspector
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.property.inspector.AddActionDialog
 import com.android.tools.idea.naveditor.property.inspector.showAndUpdateFromDialog
 import com.android.tools.idea.naveditor.property2.ui.ActionCellRenderer
@@ -31,8 +30,6 @@ class ActionListInspectorBuilder : ComponentListInspectorBuilder(TAG_ACTION, "Ac
   override fun onEdit(component: NlComponent) {
     component.parent?.let { invokeDialog(component, it) }
   }
-
-  override fun isApplicable(component: NlComponent) = component.supportsActions
 
   private fun invokeDialog(component: NlComponent?, parent: NlComponent) {
     val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, component, parent, NavEditorEvent.Source.PROPERTY_INSPECTOR)

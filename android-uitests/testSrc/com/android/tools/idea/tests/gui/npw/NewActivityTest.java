@@ -123,7 +123,7 @@ public class NewActivityTest {
       .moveBetween("implementation \"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_", "version")
       .enterText("my_")
       .open("build.gradle")
-      .moveBetween("kotlin_", "version")
+      .moveBetween("ext.kotlin_", "version")
       .enterText("my_")
       .moveBetween("classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_", "version")
       .enterText("my_")

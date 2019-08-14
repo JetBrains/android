@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
-import com.android.tools.idea.ui.resourcemanager.explorer.ImportResourceDelegate
 import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDNativeTarget
 import com.intellij.ide.dnd.FileCopyPasteUtil
@@ -24,7 +23,6 @@ import com.intellij.openapi.util.SystemInfo
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Image
 import java.awt.Point
-import java.awt.datatransfer.Transferable
 import java.io.File
 
 /**
@@ -34,42 +32,34 @@ import java.io.File
 class ResourceImportDragTarget(
   var facet: AndroidFacet,
   private val importersProvider: ImportersProvider
-) : DnDNativeTarget, ImportResourceDelegate {
+) : DnDNativeTarget {
 
   override fun cleanUpOnLeave() {
   }
 
   override fun update(event: DnDEvent): Boolean {
-    // Returns if parent should handle the event. I.e: Returns false when the import can be handled here.
-    if (canImport(FileCopyPasteUtil.isFileListFlavorAvailable(event), getFilesFromEvent(event))) {
-      event.setDropPossible(true, "Import Files in project resources")
-      return false
-    }
-    return true
-  }
+    if (FileCopyPasteUtil.isFileListFlavorAvailable(event)) {
 
-  override fun drop(event: DnDEvent) {
-    drop(getFilesFromEvent(event))
-  }
-
-  /** For [ImportResourceDelegate]. */
-  override fun doImport(transferable: Transferable): Boolean {
-    val files = getFilesFromTransferable(transferable)
-    return canImport(FileCopyPasteUtil.isFileListFlavorAvailable(transferable.transferDataFlavors), files).also { canBeImported ->
-      if (canBeImported) drop(files)
-    }
-  }
-
-  private fun canImport(fileListFlavorAvailable: Boolean, filesToImport: Sequence<File>): Boolean {
-    if (fileListFlavorAvailable) {
       // On mac, we don't have access to the dragged object before the drop is accepted so
       // we don't check if there is any file
-      if (SystemInfo.isMac || anyFileCanBeImported(filesToImport)) {
-        return true
+      if (SystemInfo.isMac || anyFileCanBeImported(getFiles(event))) {
+        event.setDropPossible(true, "Import Files in project resources")
+        return false // No need to delegate to parent
       }
     }
-    return false
+
+    return true // Delegate to parent if drop is not possible
   }
+
+  /**
+   * Returns a flat list of all the actual files (and not directory) within the hierarchy of the dropped
+   * files.
+   */
+  private fun getFiles(event: DnDEvent?) = FileCopyPasteUtil
+    .getFileListFromAttachedObject(event?.attachedObject)
+    .asSequence()
+    .flatMap(File::getAllLeafFiles)
+
 
   /**
    * Checks if at least one of the file can be imported.
@@ -80,9 +70,9 @@ class ResourceImportDragTarget(
   private fun hasImporterForFile(file: File): Boolean =
     importersProvider.getImportersForExtension(file.extension).isNotEmpty()
 
-  /** Open the [ResourceImportDialog]. */
-  private fun drop(files: Sequence<File>) {
-    val assetSets = files.findAllDesignAssets(importersProvider)
+  override fun drop(event: DnDEvent) {
+    val assetSets = getFiles(event)
+      .findAllDesignAssets(importersProvider)
     ResourceManagerTracking.logAssetAddedViaDnd()
     ResourceImportDialog(facet, assetSets).show()
   }
@@ -91,10 +81,3 @@ class ResourceImportDragTarget(
   }
 }
 
-/** Returns a flat list of all the actual files (and not directory) within the hierarchy of the dropped files. */
-private fun getFilesFromEvent(event: DnDEvent?) =
-  FileCopyPasteUtil.getFileListFromAttachedObject(event?.attachedObject).asSequence().flatMap(File::getAllLeafFiles)
-
-/** Returns a flat list of all the actual files (and not directory) within the hierarchy of the dropped files. */
-private fun getFilesFromTransferable(transferable: Transferable) =
-  FileCopyPasteUtil.getFileList(transferable).orEmpty().asSequence().flatMap(File::getAllLeafFiles)

@@ -55,10 +55,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.android.dom.AndroidDomElement
-import org.jetbrains.android.dom.navigation.DeeplinkElement
 import org.jetbrains.android.dom.navigation.NavActionElement
-import org.jetbrains.android.dom.navigation.NavArgumentElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
@@ -431,16 +428,7 @@ fun NlComponent.createNestedGraph(): NlComponent? {
 }
 
 val NlComponent.supportsActions: Boolean
-  get() = this.supportsElement(NavActionElement::class.java)
-
-val NlComponent.supportsArguments: Boolean
-  get() = this.supportsElement(NavArgumentElement::class.java)
-
-val NlComponent.supportsDeeplinks: Boolean
-  get() = this.supportsElement(DeeplinkElement::class.java)
-
-private fun NlComponent.supportsElement(element: Class<out AndroidDomElement>) =
-  model.schema.getDestinationSubtags(tagName).containsKey(element)
+  get() = model.schema.getDestinationSubtags(tagName).containsKey(NavActionElement::class.java)
 
 /**
  * If the action has a destination attribute set, return it.
