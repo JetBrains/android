@@ -536,7 +536,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     Collection<BindingLayoutInfo> infos = myBindingData.get(layoutName);
     BindingLayoutInfo info = findBindingInfoByFolderConfiguration(infos, configuration.getFolderConfiguration());
     if (info == null) {
-      info = new BindingLayoutInfo(bindingData);
+      info = new BindingLayoutInfo(myFacet, bindingData);
       myBindingData.put(layoutName, info);
     }
     else {

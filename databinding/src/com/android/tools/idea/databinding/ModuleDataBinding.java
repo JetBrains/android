@@ -31,6 +31,7 @@ import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.messages.MessageBusConnection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.WeakHashMap;
 import net.jcip.annotations.GuardedBy;
@@ -143,6 +144,11 @@ public final class ModuleDataBinding {
    */
   @NotNull
   public List<LightBindingClass> getLightBindingClasses(@NotNull BindingLayoutGroup group) {
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    if (facet == null) {
+      return Collections.emptyList();
+    }
+
     synchronized (myLock) {
       List<LightBindingClass> bindingClasses = myLightBindingClasses.get(group);
       if (bindingClasses == null) {
@@ -150,14 +156,14 @@ public final class ModuleDataBinding {
 
         // Always add a full "Binding" class.
         PsiManager psiManager = PsiManager.getInstance(myModule.getProject());
-        LightBindingClass bindingClass = new LightBindingClass(psiManager, new BindingClassConfig(group));
+        LightBindingClass bindingClass = new LightBindingClass(psiManager, new BindingClassConfig(facet, group));
         bindingClasses.add(bindingClass);
 
         // "Impl" classes are only necessary if we have more than a single configuration.
         if (group.getLayouts().size() > 1) {
           for (int layoutIndex = 0; layoutIndex < group.getLayouts().size(); layoutIndex++) {
             BindingLayoutInfo layout = group.getLayouts().get(layoutIndex);
-            LightBindingClass bindingImplClass = new LightBindingClass(psiManager, new BindingImplClassConfig(group, layoutIndex));
+            LightBindingClass bindingImplClass = new LightBindingClass(psiManager, new BindingImplClassConfig(facet, group, layoutIndex));
             layout.setPsiClass(bindingImplClass);
             bindingClasses.add(bindingImplClass);
           }

@@ -41,7 +41,7 @@ internal class XmlVariableReference(element: PsiElement,
       if (type == null) {
         return null;
       }
-      return DataBindingUtil.getQualifiedType(type, layoutInfo.data, false)
+      return DataBindingUtil.getQualifiedType(element.project, type, layoutInfo.data, false)
         ?.let { name -> resolveType(name) }
         ?.let { psiType -> PsiModelClass(psiType, DataBindingMode.fromPsiElement(element)) }
     }
