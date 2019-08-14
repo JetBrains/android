@@ -84,12 +84,13 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
     if (layoutInfo == null) {
       return null;
     }
-    type = DataBindingUtil.getQualifiedType(type, layoutInfo.getData(), false);
+
+    Project project = context.getProject();
+    type = DataBindingUtil.getQualifiedType(project, type, layoutInfo.getData(), false);
     if (type == null) {
       return null;
     }
 
-    Project project = context.getProject();
     JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
     PsiJavaParserFacade parser = facade.getParserFacade();
     try {

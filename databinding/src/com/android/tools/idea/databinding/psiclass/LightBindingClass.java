@@ -71,7 +71,6 @@ import java.util.Collection;
 import java.util.List;
 import kotlin.Pair;
 import org.jetbrains.android.augment.AndroidLightClassBase;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,11 +108,11 @@ public class LightBindingClass extends AndroidLightClassBase {
                                                             "// This class is generated on-the-fly by the IDE.");
     myBackingFile.setPackageName(StringUtil.getPackageName(myConfig.getQualifiedName()));
 
-    setModuleInfo(getFacet().getModule(), false);
+    setModuleInfo(myConfig.getFacet().getModule(), false);
 
     CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(getProject());
     myPsiMethodsCache =
-      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(getFacet(), myCacheLock) {
+      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(myConfig.getFacet(), myCacheLock) {
         @Override
         protected PsiMethod[] doCompute() {
           List<PsiMethod> methods = new ArrayList<>();
@@ -141,14 +140,6 @@ public class LightBindingClass extends AndroidLightClassBase {
 
     myPsiFieldsCache = cachedValuesManager
       .createCachedValue(() -> CachedValueProvider.Result.create(computeFields(), PsiModificationTracker.MODIFICATION_COUNT));
-  }
-
-  /**
-   * Convenience method to grab the facet out of the config, since it is needed so often.
-   */
-  @NotNull
-  private AndroidFacet getFacet() {
-    return myConfig.getTargetLayout().getData().getFacet();
   }
 
   private PsiField[] computeFields() {
@@ -204,7 +195,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   @Override
   public PsiClass getSuperClass() {
     return JavaPsiFacade.getInstance(getProject())
-        .findClass(myConfig.getSuperName(), getFacet().getModule().getModuleWithDependenciesAndLibrariesScope(false));
+        .findClass(myConfig.getSuperName(), myConfig.getFacet().getModule().getModuleWithDependenciesAndLibrariesScope(false));
   }
 
   @Override
@@ -229,7 +220,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     if (myExtendsListTypes == null) {
       myExtendsListTypes = new PsiClassType[]{
         PsiType.getTypeByName(myConfig.getSuperName(), getProject(),
-                              getFacet().getModule().getModuleWithDependenciesAndLibrariesScope(false))};
+                              myConfig.getFacet().getModule().getModuleWithDependenciesAndLibrariesScope(false))};
     }
     return myExtendsListTypes;
   }
@@ -282,7 +273,7 @@ public class LightBindingClass extends AndroidLightClassBase {
           continue;
         }
 
-        Module module = getFacet().getModule();
+        Module module = myConfig.getFacet().getModule();
         PsiClass aClass =
             JavaPsiFacade.getInstance(getProject()).findClass(qName, module.getModuleWithDependenciesAndLibrariesScope(true));
         if (aClass != null && !processor.execute(aClass, state)) {
@@ -300,11 +291,11 @@ public class LightBindingClass extends AndroidLightClassBase {
     XmlTag xmlTag = variableTag.getSecond();
 
     String typeName = variable.getType();
-    String variableType = DataBindingUtil.getQualifiedType(typeName, myConfig.getTargetLayout().getData(), true);
+    String variableType = DataBindingUtil.getQualifiedType(getProject(), typeName, myConfig.getTargetLayout().getData(), true);
     if (variableType == null) {
       return;
     }
-    PsiType type = DataBindingUtil.parsePsiType(variableType, getFacet(), this);
+    PsiType type = DataBindingUtil.parsePsiType(variableType, myConfig.getFacet(), this);
     if (type == null) {
       return;
     }
@@ -326,7 +317,7 @@ public class LightBindingClass extends AndroidLightClassBase {
 
   private void createStaticMethods(@NotNull PsiClassType ownerType, @NotNull List<PsiMethod> outPsiMethods) {
     Project project = getProject();
-    Module module = getFacet().getModule();
+    Module module = myConfig.getFacet().getModule();
     PsiClassType viewGroupType =
         PsiType.getTypeByName(SdkConstants.CLASS_VIEWGROUP, project, module.getModuleWithDependenciesAndLibrariesScope(true));
     PsiClassType layoutInflaterType =
@@ -367,7 +358,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
     bindWithComponent.setDeprecated(true);
 
-    XmlFile xmlFile = DataBindingUtil.findXmlFile(myConfig.getTargetLayout().getData());
+    XmlFile xmlFile = DataBindingUtil.findXmlFile(getProject(), myConfig.getTargetLayout().getData());
     if (xmlFile != null) {
       PsiManager psiManager = getManager();
       PsiMethod[] methods = new PsiMethod[]{inflate1Arg, inflate2Arg, inflate3Arg, inflate4Arg, bind, bindWithComponent};
@@ -396,7 +387,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   @Nullable
   private PsiField createPsiField(@NotNull ViewIdInfo idInfo) {
     String name = DataBindingUtil.convertToJavaFieldName(idInfo.getId());
-    PsiType type = DataBindingUtil.resolveViewPsiType(idInfo, getFacet());
+    PsiType type = DataBindingUtil.resolveViewPsiType(idInfo, myConfig.getFacet());
     if (type == null) {
       return null;
     }
@@ -488,7 +479,7 @@ public class LightBindingClass extends AndroidLightClassBase {
 
     @Nullable
     private XmlTag computeTag() {
-      XmlFile xmlFile = DataBindingUtil.findXmlFile(myLayoutInfo.getData());
+      XmlFile xmlFile = DataBindingUtil.findXmlFile(getProject(), myLayoutInfo.getData());
       if (xmlFile == null) {
         return null;
       }
@@ -511,7 +502,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     @Override
     @Nullable
     public PsiFile getContainingFile() {
-      return DataBindingUtil.findXmlFile(myLayoutInfo.getData());
+      return DataBindingUtil.findXmlFile(getProject(), myLayoutInfo.getData());
     }
 
     @Override
