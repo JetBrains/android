@@ -530,13 +530,6 @@ public final class StudioFlags {
     "computed yet.",
     true);
 
-  public static final Flag<Boolean> GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED = Flag.create(
-    EDITOR,
-    "gutter.annotator.background.enabled",
-    "Enable gutter icon annotator to be run in background.",
-    "Enable gutter icon annotator to be run after all other annotators and in the background.",
-    true);
-
   public static final Flag<Boolean> MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED = Flag.create(
     EDITOR, "multidexkeepfile.support.enabled",
     "Enable support for MultiDexKeepFile format",
@@ -667,7 +660,7 @@ public final class StudioFlags {
   //region Compose
   private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
   public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
-    COMPOSE, "compose.preview.enabled", "Enable the Compose preview",
+    COMPOSE, "preview.enabled", "Enable the Compose preview",
     "If enabled, a visual preview will be available for Compose.",
     false);
   //endregion

@@ -27,6 +27,7 @@ import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.evaluateString
+import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.UastVisitor
 
@@ -52,70 +53,24 @@ data class PreviewConfiguration(val apiLevel: Int,
 data class PreviewElement(val name: String, val method: String, val configuration: PreviewConfiguration)
 
 interface PreviewElementFinder {
+  /**
+   * Returns all the [PreviewElement]s present in the passed [VirtualFile]
+   */
   fun findPreviewMethods(project: Project, vFile: VirtualFile): Set<PreviewElement> {
     val uFile: UFile = PsiManager.getInstance(project).findFile(vFile)?.toUElement() as? UFile ?: return emptySet<PreviewElement>()
 
     return findPreviewMethods(uFile)
   }
 
+  /**
+   * Returns all the [PreviewElement]s present in the passed [UFile]
+   */
   fun findPreviewMethods(uFile: UFile): Set<PreviewElement>
-}
-
-private fun UAnnotation.findAttributeIntValue(name: String, defaultValue: Int) =
-  findAttributeValue(name)?.evaluate() as? Int ?: defaultValue
-
-/**
- * [PreviewElementFinder] that uses `@Preview` annotations.
- */
-object AnnotationPreviewElementFinder : PreviewElementFinder {
-  /**
-   * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
-   */
-  private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
-    val apiLevel = node.findAttributeIntValue("apiLevel", UNDEFINED_API_LEVEL)
-    val theme = node.findAttributeValue("theme")?.evaluateString()?.nullize()
-    val width = node.findAttributeIntValue("width", UNDEFINED_DIMENSION)
-    val height = node.findAttributeIntValue("height", UNDEFINED_DIMENSION)
-
-    return PreviewConfiguration(apiLevel, theme, width, height)
-  }
 
   /**
-   * Returns all the `@Composable` methods in the [uFile] that are also tagged with `@Preview`.
+   * Returns whether the given [UElement] belongs to a PreviewElement handled by this [PreviewElementFinder]. Implementations must return
+   * true if they can not determine if the element belongs to a [PreviewElement] or not.
+   * This method will be called to detect changes into [PreviewElement]s and issue a refresh.
    */
-  override fun findPreviewMethods(uFile: UFile): Set<PreviewElement> {
-    val previewMethodsFqNames = mutableSetOf<PreviewElement>()
-    uFile.accept(object : UastVisitor {
-      // Return false so we explore all the elements in the file (in case there are multiple @Preview elements)
-      override fun visitElement(node: UElement): Boolean = false
-
-      /**
-       * Called for every `@Preview` annotation.
-       */
-      private fun visitPreviewAnnotation(previewAnnotation: UAnnotation) {
-        val uMethod = previewAnnotation.uastParent as UMethod
-
-        if (!uMethod.parameterList.isEmpty) {
-          error("Preview methods must not have any parameters")
-        }
-
-        val uClass: UClass = uMethod.uastParent as UClass
-        val composableMethod = "${uClass.qualifiedName}.${uMethod.name}"
-        val previewName = previewAnnotation.findAttributeValue("name")?.evaluateString() ?: ""
-
-        previewMethodsFqNames.add(PreviewElement(previewName, composableMethod,
-                                                 attributesToConfiguration(previewAnnotation)))
-      }
-
-      override fun visitAnnotation(node: UAnnotation): Boolean {
-        if (PREVIEW_ANNOTATION_FQN == node.qualifiedName) {
-          visitPreviewAnnotation(node)
-        }
-
-        return super.visitAnnotation(node)
-      }
-    })
-
-    return previewMethodsFqNames
-  }
+  fun elementBelongsToPreviewElement(uElement: UElement): Boolean = true
 }
