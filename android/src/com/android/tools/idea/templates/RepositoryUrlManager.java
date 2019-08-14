@@ -68,7 +68,6 @@ public class RepositoryUrlManager {
    */
   public static final String REVISION_ANY = "+";
 
-
   private final boolean myForceRepositoryChecksInTests;
   private final Set<String> myPendingNetworkRequests = ConcurrentHashMap.newKeySet();
   private final GoogleMavenRepository myGoogleMavenRepository;
@@ -307,7 +306,7 @@ public class RepositoryUrlManager {
                                          @Nullable Project project,
                                          @NotNull AndroidSdkHandler sdkHandler) {
     String revision = coordinate.getRevision();
-    if (!revision.endsWith("+")) {
+    if (!revision.endsWith(REVISION_ANY)) {
       // Already resolved. That was easy.
       return revision;
     }
@@ -317,12 +316,22 @@ public class RepositoryUrlManager {
     String groupId = coordinate.getGroupId();
     String artifactId = coordinate.getArtifactId();
 
+    GoogleMavenRepository bestAvailableGoogleMavenRepo;
+
+    // First check the Google maven repository, which has most versions.
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      bestAvailableGoogleMavenRepo = myCachedGoogleMavenRepository;
+      refreshCacheInBackground(groupId, artifactId);
+    } else {
+      bestAvailableGoogleMavenRepo = myGoogleMavenRepository;
+    }
+
     // First check the Google maven repository, which has most versions
-    GradleVersion stable = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, false);
+    GradleVersion stable = bestAvailableGoogleMavenRepo.findVersion(groupId, artifactId, filter, false);
     if (stable != null) {
       return stable.toString();
     }
-    GradleVersion version = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, true);
+    GradleVersion version = bestAvailableGoogleMavenRepo.findVersion(groupId, artifactId, filter, true);
     if (version != null) {
       // Only had preview version; use that (for example, artifacts that haven't been released as stable yet).
       return version.toString();
@@ -399,7 +408,7 @@ public class RepositoryUrlManager {
         // If this coordinate points to an artifact in one of our repositories, check to see if there is a static version
         // that we can add instead of a plus revision.
         String revision = highest.getRevision();
-        if (revision.endsWith("+")) {
+        if (revision.endsWith(REVISION_ANY)) {
           revision = revision.length() > 1 ? revision.substring(0, revision.length() - 1) : null;
           if (ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId()) ||
               ImportModule.CORE_KTX_GROUP_ID.equals(highest.getGroupId())) {
@@ -452,7 +461,7 @@ public class RepositoryUrlManager {
     for (GoogleMavenArtifactId artifactId : GoogleMavenArtifactId.values()) {
       // Note: Only the old style support library have version dependencies, so explicitly check the group ID:
       if (artifactId.isPlatformSupportLibrary() && artifactId.getMavenGroupId().equals(ImportModule.SUPPORT_GROUP_ID)) {
-        GradleCoordinate coordinate = moduleSystem.getResolvedDependency(artifactId.getCoordinate("+"));
+        GradleCoordinate coordinate = moduleSystem.getResolvedDependency(artifactId.getCoordinate(REVISION_ANY));
         GradleVersion version = coordinate != null ? coordinate.getVersion() : null;
         if (version != null) {
           if (highest == null || version.compareTo(highest) > 0) {
@@ -472,7 +481,7 @@ public class RepositoryUrlManager {
     }
     GradleVersion found = highest;
     String raw = highest.toString();
-    if (highest.isPreview() || highest.isSnapshot() || !raw.endsWith("+")) {
+    if (highest.isPreview() || highest.isSnapshot() || !raw.endsWith(REVISION_ANY)) {
       return version -> version.equals(found);
     }
     String prefix = raw.substring(0, raw.length() - 1);
@@ -491,7 +500,7 @@ public class RepositoryUrlManager {
     for (GoogleMavenArtifactId artifactId : GoogleMavenArtifactId.values()) {
       // Only consider Androidx
       if (artifactId.isAndroidxPlatformLibrary()) {
-        GradleCoordinate coordinate = moduleSystem.getResolvedDependency(artifactId.getCoordinate("+"));
+        GradleCoordinate coordinate = moduleSystem.getResolvedDependency(artifactId.getCoordinate(REVISION_ANY));
         GradleVersion version = coordinate != null ? coordinate.getVersion() : null;
         if (version != null) {
           if (highest == null || version.compareTo(highest) > 0) {
@@ -509,7 +518,7 @@ public class RepositoryUrlManager {
       return null;
     }
     String raw = highest.toString();
-    if (highest.isPreview() || highest.isSnapshot() || !raw.endsWith("+")) {
+    if (highest.isPreview() || highest.isSnapshot() || !raw.endsWith(REVISION_ANY)) {
       return version -> version.equals(highest);
     }
     String prefix = raw.substring(0, raw.length() - 1);
@@ -541,7 +550,7 @@ public class RepositoryUrlManager {
       return null;
     }
     String version = highest.get().getRevision();
-    if (version.endsWith("+")) {
+    if (version.endsWith(REVISION_ANY)) {
       return version.length() > 1 ? version.substring(0, version.length() - 1) : null;
     }
     return version;
