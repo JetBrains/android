@@ -17,12 +17,13 @@ package com.android.tools.idea.databinding.viewbinding
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.databinding.TestDataPaths
+import com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger
+import com.android.tools.idea.databinding.finders.BindingScopeEnlarger
 import com.android.tools.idea.databinding.isViewBindingEnabled
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -98,8 +99,11 @@ class ViewBindingCompletionTest {
       """.trimIndent())
   }
 
+  /**
+   * Note: The Java version of this test indirectly verifies [BindingScopeEnlarger].
+   */
   @Test
-  fun completeViewBindingField() {
+  fun completeViewBindingField_JavaContext() {
     lateinit var activityFile: VirtualFile
     projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING) {
       activityFile = addOrOverwriteFile(
@@ -146,6 +150,47 @@ class ViewBindingCompletionTest {
                 binding.testId
             }
         }
+      """.trimIndent())
+  }
+
+  /**
+   * Note: The Kotlin version of this test indirectly verifies [BindingKotlinScopeEnlarger].
+   */
+  @Test
+  fun completeViewBindingField_KotlinContext() {
+    lateinit var testFile: VirtualFile
+    projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING) {
+      testFile = addOrOverwriteFile(
+        "app/src/main/java/com/android/example/viewbinding/TestUtil.kt",
+        // language=kotlin
+        """
+          package com.android.example.viewbinding
+
+          import com.android.example.viewbinding.databinding.ActivityMainBinding
+
+          fun dummy() {
+            lateinit var binding: ActivityMainBinding
+            binding.test<caret>
+          }
+        """.trimIndent())
+    }
+    assertThat(facet.isViewBindingEnabled()).isTrue()
+
+    fixture.configureFromExistingVirtualFile(testFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult(
+      // language=kotlin
+      """
+          package com.android.example.viewbinding
+
+          import com.android.example.viewbinding.databinding.ActivityMainBinding
+
+          fun dummy() {
+            lateinit var binding: ActivityMainBinding
+            binding.testId
+          }
       """.trimIndent())
   }
 }

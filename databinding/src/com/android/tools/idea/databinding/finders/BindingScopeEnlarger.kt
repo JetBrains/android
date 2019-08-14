@@ -32,8 +32,11 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger
+
+private fun AndroidFacet.isRelevantForScopeEnlarging(): Boolean {
+  return DataBindingUtil.isDataBindingEnabled(this) || isViewBindingEnabled()
+}
 
 /**
  * Scope enlarger for data binding and view binding modules, providing additional in-memory light
@@ -42,7 +45,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger
 class BindingScopeEnlarger : ResolveScopeEnlarger() {
   override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
     val module = ModuleUtil.findModuleForFile(file, project) ?: return null
-    val facet = module.androidFacet?.takeIf { DataBindingUtil.isDataBindingEnabled(it) || it.isViewBindingEnabled() } ?: return null
+    val facet = module.androidFacet?.takeIf { it.isRelevantForScopeEnlarging() } ?: return null
 
     return getAdditionalResolveScope(facet)
   }
@@ -89,7 +92,7 @@ class BindingKotlinScopeEnlarger : KotlinResolveScopeEnlarger() {
   private val delegateEnlarger = BindingScopeEnlarger()
 
   override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
-    val facet = module.androidFacet?.takeIf { DataBindingUtil.isDataBindingEnabled(it) } ?: return null
+    val facet = module.androidFacet?.takeIf { it.isRelevantForScopeEnlarging() } ?: return null
     return delegateEnlarger.getAdditionalResolveScope(facet)
   }
 }
