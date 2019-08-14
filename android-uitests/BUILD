@@ -265,6 +265,8 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
+        "qa_unreliable",  # b/139761045
+        "qa_sanity_unreliable",  # b/139761045
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -433,8 +435,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddNewBuildTypeTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/128547019
-        "qa_sanity_unreliable",  # b/128547019
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -528,8 +528,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/113117406
-        "qa_sanity_unreliable",  # b/113117406
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -583,8 +581,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.CreateNewFlavorsTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/128547019
-        "qa_sanity_unreliable",  # b/128547019
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -874,8 +870,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.CreateNavGraphTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",
-        "qa_sanity_unreliable",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
