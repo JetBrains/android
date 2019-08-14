@@ -16,12 +16,17 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.picker.ColorPipetteBase
 import com.intellij.ui.picker.MacColorPipette
+import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.update.MergingUpdateQueue
+import com.intellij.util.ui.update.Update
 import java.awt.AlphaComposite
 import java.awt.Color
+import java.awt.Cursor
 import java.awt.Dialog
 import java.awt.Dimension
 import java.awt.Frame
@@ -41,6 +46,8 @@ import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
 import java.awt.image.BufferedImage
 import java.awt.image.ImageObserver
+import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
 import javax.swing.Timer
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -85,7 +92,22 @@ private val COLOR_VALUE_BACKGROUND = Color(0x80, 0x80, 0x80, 0xB0)
 /**
  * Duration of updating the color of current hovered pixel. The unit is millisecond.
  */
-private const val DURATION_COLOR_UPDATING = 33
+private val DURATION_COLOR_UPDATING = TimeUnit.MILLISECONDS.toMillis(33)
+
+/**
+ * Merge update queue for updating cursor asynchronized and only executes the last request.
+ *
+ * This queue is shared between different [GraphicalColorPipette]s, but there should be only one [GraphicalColorPipette] instance
+ * uses this queue at the same time because the system should only have one cursor.
+ */
+private val cursorUpdateQueue = MergingUpdateQueue("colorpicker.pipette.updatecursor",
+                                                   0, // We wait in the task so we don't need to postpone the execution.
+                                                   true,
+                                                   null,
+                                                   null,
+                                                   null,
+                                                   Alarm.ThreadToUse.POOLED_THREAD)
+  .apply { setRestartTimerOnAdd(true) }
 
 /**
  * The [ColorPipette] which picks up the color from monitor.
@@ -109,7 +131,7 @@ class GraphicalColorPipetteProvider : ColorPipetteProvider {
 
 private abstract class PickerDialogBase(val parent: JComponent, val callback: ColorPipette.Callback, alwaysOnTop: Boolean) : ImageObserver {
 
-  private val timer = Timer(DURATION_COLOR_UPDATING) { updatePipette() }
+  private val timer = Timer(DURATION_COLOR_UPDATING.toInt()) { updatePipette() }
   private val center = Point(ZOOM_RECTANGLE_SIZE / 2, ZOOM_RECTANGLE_SIZE / 2)
   private val captureRect = Rectangle()
 
@@ -261,12 +283,35 @@ private abstract class PickerDialogBase(val parent: JComponent, val callback: Co
         val textWidth = rect.width * (1.0 + tracking)
         val x = (ZOOM_RECTANGLE_SIZE / 2 - textWidth / 2).toInt()
         graphics.drawString(colorValueString, x, ZOOM_RECTANGLE_SIZE + COLOR_CODE_RECTANGLE_GAP + fm.ascent)
-
-        picker.cursor = parent.toolkit.createCustomCursor(image, center, CURSOR_NAME)
-
         graphics.font = originalFont
 
-        callback.update(pickedColor)
+        val parentComponent = parent
+
+        cursorUpdateQueue.queue(object : Update("model.render", LOW_PRIORITY) {
+          override fun canEat(update: Update): Boolean {
+            return this == update
+          }
+
+          override fun run() {
+            try {
+              // According to the documentation, Toolkit.createCustomCursor() may hang due to some unexpected cases.
+              // We future here to avoid potential hanging issue.
+              val future = ApplicationManager.getApplication().executeOnPooledThread(
+                Callable<Cursor> { parentComponent.toolkit.createCustomCursor(image, center, CURSOR_NAME) })
+              // If it spent more than DURATION_COLOR_UPDATING milliseconds to get the cursor, we drop it and just use the old cursor.
+              picker.cursor = future.get(DURATION_COLOR_UPDATING, TimeUnit.MILLISECONDS)
+            }
+            catch (e: Exception) {
+              // Handles IndexOutOfBoundsException and HeadlessException of calling toolkit.createCustomCursor
+              // This also handles the TimeoutException of future task.
+              if (e is NullPointerException) {
+                // b/128599052: Component.getToolKit() doesn't guarantee the returned value is not null and we saw a reported bug has NPE
+                // issue. We catch it here and log for future debugging purpose.
+                Logger.getInstance(GraphicalColorPipette::class.java).error(e.message)
+              }
+            }
+          }
+        })
       }
     }
   }
