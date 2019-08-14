@@ -111,7 +111,9 @@ private fun createDragPreview(jList: JList<ResourceAssetSet>,
   // validate() won't be executed.
   component.setSize(component.preferredSize.width, component.preferredSize.height)
   component.validate()
-  val image = UIUtil.createImage(component.width, component.height, BufferedImage.TYPE_INT_ARGB)
+
+  @Suppress("UndesirableClassUsage") // Dimensions for BufferedImage are pre-scaled.
+  val image = BufferedImage(component.width, component.height, BufferedImage.TYPE_INT_ARGB)
   with(image.createGraphics()) {
     color = jList.background
     fillRect(0, 0, component.width, component.height)
