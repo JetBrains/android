@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.property2.inspector
 
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.naveditor.model.isAction
+import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
@@ -26,7 +27,13 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 
 class DestinationInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    if (properties.first?.components?.singleOrNull()?.isAction != true) {
+    val components = properties.first?.components ?: return
+    if (components.size != 1) {
+      return
+    }
+
+    val component = components[0]
+    if(!component.isAction) {
       return
     }
 

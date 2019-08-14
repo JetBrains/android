@@ -166,7 +166,7 @@ class ResourceExplorerView(
 
   private val listeners = mutableListOf<SelectionListener>()
   private val sectionListModel: SectionListModel = SectionListModel()
-  private val dragHandler = resourceDragHandler(resourceImportDragTarget)
+  private val dragHandler = resourceDragHandler()
 
   private val headerPanel = OverflowingTabbedPaneWrapper().apply {
     resourcesBrowserViewModel.resourceTypes.forEach {

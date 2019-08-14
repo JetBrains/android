@@ -15,57 +15,79 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
-import static com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.util.Trinity;
-import com.intellij.ui.components.JBList;
-import java.awt.event.KeyEvent;
-import javax.swing.JLabel;
-import javax.swing.JRootPane;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JTextField;
-import org.fest.swing.cell.JListCellReader;
-import org.fest.swing.core.matcher.JLabelMatcher;
+import org.fest.swing.cell.JComboBoxCellReader;
+import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
-import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
-public class NewKotlinClassDialogFixture extends ComponentFixture<NewKotlinClassDialogFixture, JRootPane> implements ContainerFixture<JRootPane> {
+public class NewKotlinClassDialogFixture implements ContainerFixture<JDialog> {
 
   public static NewKotlinClassDialogFixture find(IdeFrameFixture ideFrameFixture) {
-    JLabel titleField = waitUntilShowing(ideFrameFixture.robot(), JLabelMatcher.withText("New Kotlin File/Class"));
-    return new NewKotlinClassDialogFixture(ideFrameFixture, titleField.getRootPane());
+    JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "New Kotlin File/Class"));
+    return new NewKotlinClassDialogFixture(ideFrameFixture, dialog);
   }
 
-  private NewKotlinClassDialogFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JRootPane rootPane) {
-    super(NewKotlinClassDialogFixture.class, ideFrameFixture.robot(), rootPane);
+  private final IdeFrameFixture myIdeFrameFixture;
+  private final JDialog myDialog;
+
+  private NewKotlinClassDialogFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog dialog) {
+    myIdeFrameFixture = ideFrameFixture;
+    myDialog = dialog;
   }
 
   @NotNull
   public NewKotlinClassDialogFixture enterName(@NotNull String name) {
-    JTextField textField = robot().finder().findByType(target(), JTextField.class, true);
-    new JTextComponentFixture(robot(), textField).setText(name);
+    JTextField textField = robot().finder().findByLabel(target(), "Name:", JTextField.class, true);
+
+    new JTextComponentFixture(robot(), textField).deleteText();
+
+    // Manually type into the text field. Workaround for Linux clipboard bug.
+    // There does not seem to be a reliable way to wait for the clipboard
+    // to actually contain our value if we use the clipboard multiple times
+    // in a test. StudioRobot.enableXwinClipboardWorkaround seems to only make
+    // tests that enter text through pasting reliable only once.
+    robot().focusAndWaitForFocusGain(textField);
+    robot().typeText(name);
 
     return this;
   }
 
-  private static final JListCellReader KIND_PICKER_READER = (list, index) -> {
-    Trinity element = (Trinity) list.getModel().getElementAt(index);
+  private static final JComboBoxCellReader KIND_PICKER_READER = (jComboBox, index) -> {
+    Trinity element = (Trinity) (jComboBox.getModel().getElementAt(index));
     return element.getFirst().toString();
   };
 
   @NotNull
   public NewKotlinClassDialogFixture selectType(@NotNull String type) {
-    JListFixture listFixture = new JListFixture(robot(), waitUntilShowingAndEnabled(robot(), target(), byType(JBList.class)));
-    listFixture.replaceCellReader(KIND_PICKER_READER);
-    listFixture.selectItem(type);
-
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(robot(), robot().finder().findByType(target(), JComboBox.class));
+    comboBoxFixture.replaceCellReader(KIND_PICKER_READER);
+    comboBoxFixture.selectItem(type);
     return this;
   }
 
   public void clickOk() {
-    robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
+    findAndClickOkButton(this);
+  }
+
+  @NotNull
+  @Override
+  public JDialog target() {
+    return myDialog;
+  }
+
+  @NotNull
+  @Override
+  public Robot robot() {
+    return myIdeFrameFixture.robot();
   }
 }

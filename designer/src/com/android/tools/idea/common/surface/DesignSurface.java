@@ -97,7 +97,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
@@ -194,11 +193,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     repaint();
   });
 
-  public DesignSurface(
-    @NotNull Project project,
-    @NotNull SelectionModel selectionModel,
-    @NotNull Disposable parentDisposable,
-    @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
+  public DesignSurface(@NotNull Project project, @NotNull SelectionModel selectionModel, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
     myProject = project;
@@ -275,7 +270,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     myInteractionManager.startListening();
     //noinspection AbstractMethodCallInConstructor
-    myActionManager = actionManagerProvider.apply(this);
+    myActionManager = createActionManager();
     myActionManager.registerActionsShortcuts(myLayeredPane, this);
   }
 
@@ -291,6 +286,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public float getScreenScalingFactor() {
     return 1f;
   }
+
+  // TODO: add self-type parameter DesignSurface?
+  @NotNull
+  protected abstract ActionManager<? extends DesignSurface> createActionManager();
 
   @NotNull
   protected abstract SceneManager createSceneManager(@NotNull NlModel model);

@@ -108,6 +108,7 @@
     <predefinedCodeStyle implementation="org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle"/>
 
     <!-- Annotators: -->
+    <annotator language="XML" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
     <externalAnnotator language="XML" implementationClass="org.jetbrains.android.AndroidXMLResourceExternalAnnotator"/>
 
 
