@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.ui.resourcechooser
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.adtui.ui.ClickableLabel
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.COLOR_PICKER_WIDTH
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.HORIZONTAL_MARGIN_TO_PICKER_BORDER
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
+import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
+import com.android.tools.idea.util.androidFacet
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBList
@@ -66,12 +72,12 @@ class ColorResourcePicker(configuration: Configuration, initialResourceReference
 
   private val searchField = SearchTextField()
   private val scrollView: JScrollPane
+  private val boxModel: MyComboBoxModel
+  private val box: CommonComboBox<String, MyComboBoxModel>
   private val list = JBList<ResourceCellData>()
   private val listData = Vector<ResourceCellData>()
 
   private val listeners = mutableListOf<ColorResourcePickerListener>()
-
-  private var selectedCategory: String = colorResourceModel.categories.first()
 
   init {
     val boxPanel = JPanel(BorderLayout())
@@ -81,7 +87,7 @@ class ColorResourcePicker(configuration: Configuration, initialResourceReference
     searchField.run {
       preferredSize = JBDimension(SEARCH_FIELD_WIDTH, SEARCH_BAR_HEIGHT)
       background = PICKER_BACKGROUND_COLOR
-      border = JBUI.Borders.empty(0, 0,0, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
+      border = JBUI.Borders.empty(0, 0, 0, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
       addDocumentListener(object : DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
           updateListData()
@@ -89,10 +95,9 @@ class ColorResourcePicker(configuration: Configuration, initialResourceReference
       })
     }
 
-    val boxModel = MyComboBoxModel(colorResourceModel.categories)
-    val box = CommonComboBox(boxModel)
+    boxModel = MyComboBoxModel(colorResourceModel.categories)
+    box = CommonComboBox(boxModel)
     box.addActionListener {
-      selectedCategory = boxModel.selectedItem as String
       updateListData()
     }
     box.preferredSize = JBDimension(CATEGORY_DROPDOWN_BUTTON_WIDTH, CATEGORY_DROPDOWN_BUTTON_HEIGHT)
@@ -131,30 +136,68 @@ class ColorResourcePicker(configuration: Configuration, initialResourceReference
     add(boxPanel, BorderLayout.NORTH)
     add(scrollView, BorderLayout.CENTER)
 
-    if (initialResourceReference != null) {
-      val category = colorResourceModel.findResourceCategory(initialResourceReference)
-      if (category != null) {
-        selectedCategory = category
-      }
-    }
-    val boxSelectedIndex = box.model.getIndexOf(selectedCategory)
-    box.selectedIndex = if (boxSelectedIndex != -1) boxSelectedIndex else 0
-
     updateListData()
 
     if (initialResourceReference != null) {
-      val itemIndex = listData.map { it.resourceReference }.indexOf(initialResourceReference)
-      if (itemIndex != -1) {
-        list.selectedIndex = itemIndex
-        list.ensureIndexIsVisible(itemIndex)
+      selectAndNavigateToResourceReference(initialResourceReference)
+    }
+
+    configuration.module.androidFacet?.let { facet ->
+      // It is only possible to open resource picker when there is an AndroidFacet
+      val footerPanel = JPanel(BorderLayout()).apply {
+        background = PICKER_BACKGROUND_COLOR
+        val browseLabel = ClickableLabel("Browse").apply {
+          background = PICKER_BACKGROUND_COLOR
+          isOpaque = false
+          foreground = JBUI.CurrentTheme.Link.linkColor()
+          border = JBUI.Borders.empty(HORIZONTAL_MARGIN_TO_PICKER_BORDER / 2, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
+
+          addActionListener {
+            val dialog = createResourcePickerDialog("Pick a Color",
+                                                    initialResourceReference?.resourceUrl?.toString(),
+                                                    facet,
+                                                    setOf(ResourceType.COLOR),
+                                                    ResourceType.COLOR,
+                                                    showColorStateLists = false,
+                                                    showSampleData = false,
+                                                    file = configuration.file,
+                                                    tag = null)
+            // TODO: Use resource reference instead of resource string when using resource management to pickup resource.
+            if (dialog.showAndGet()) dialog.resourceName?.let { pickedResourceName ->
+              ResourceUrl.parse(pickedResourceName)
+                ?.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER)
+                ?.let { ref ->
+                  selectAndNavigateToResourceReference(ref)
+                  listeners.forEach { listener -> listener.colorResourcePicked(ref) }
+                }
+            }
+          }
+        }
+        add(browseLabel, BorderLayout.EAST)
       }
+      add(footerPanel, BorderLayout.SOUTH)
+    }
+  }
+
+  private fun selectAndNavigateToResourceReference(ref: ResourceReference) {
+    val category = colorResourceModel.findResourceCategory(ref) ?: colorResourceModel.categories.first()
+    val boxSelectedIndex = boxModel.getIndexOf(category)
+    if (boxSelectedIndex == -1) {
+      return
+    }
+    box.selectedIndex = boxSelectedIndex
+
+    val itemIndex = listData.map { it.resourceReference }.indexOf(ref)
+    if (itemIndex != -1) {
+      list.selectedIndex = itemIndex
+      list.ensureIndexIsVisible(itemIndex)
     }
   }
 
   private fun updateListData() {
     listData.clear()
     val filter = searchField.text?.trim { it <= ' ' } ?: ""
-    colorResourceModel.getResourceReference(selectedCategory, filter).mapNotNullTo(listData) {
+    colorResourceModel.getResourceReference(box.selectedItem as String, filter).mapNotNullTo(listData) {
       val color = colorResourceModel.resolveColor(it)
       if (color != null) ResourceCellData(it, color) else null
     }
