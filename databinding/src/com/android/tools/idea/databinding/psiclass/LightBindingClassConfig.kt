@@ -21,17 +21,21 @@ import com.android.tools.idea.databinding.getViewBindingClassName
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.ViewIdInfo
 import com.android.tools.idea.res.BindingLayoutData
-import com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.res.binding.BindingLayoutGroup
 import com.android.tools.idea.res.binding.BindingLayoutInfo
+import com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT
+import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.indexing.FileBasedIndex
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * All values needed to generate a specific [LightBindingClass]
  */
 interface LightBindingClassConfig {
+  val facet: AndroidFacet
+
   val targetLayout: BindingLayoutInfo
 
   /**
@@ -81,22 +85,21 @@ interface LightBindingClassConfig {
   fun settersShouldBeAbstract(): Boolean
 }
 
-private val BindingLayoutGroup.aggregatedVariables: List<Pair<BindingLayoutData.Variable, XmlTag>>
-  get() {
-    val aggregatedVariables = mutableListOf<Pair<BindingLayoutData.Variable, XmlTag>>()
-    val alreadySeen = mutableSetOf<String>()
-    for (layout in layouts) {
-      val layoutData = layout.data
-      for (variable in layoutData.variables) {
-        val variableTag = DataBindingUtil.findVariableTag(layoutData, variable.name)
-        if (variableTag != null && alreadySeen.add(variable.name)) {
-          aggregatedVariables.add(variable to variableTag)
-        }
+private fun BindingLayoutGroup.getAggregatedVariables(project: Project): List<Pair<BindingLayoutData.Variable, XmlTag>> {
+  val aggregatedVariables = mutableListOf<Pair<BindingLayoutData.Variable, XmlTag>>()
+  val alreadySeen = mutableSetOf<String>()
+  for (layout in layouts) {
+    val layoutData = layout.data
+    for (variable in layoutData.variables) {
+      val variableTag = DataBindingUtil.findVariableTag(project, layoutData, variable.name)
+      if (variableTag != null && alreadySeen.add(variable.name)) {
+        aggregatedVariables.add(variable to variableTag)
       }
     }
-
-    return aggregatedVariables
   }
+
+  return aggregatedVariables
+}
 
 /**
  * Used to generate a "Binding" class.
@@ -104,7 +107,7 @@ private val BindingLayoutGroup.aggregatedVariables: List<Pair<BindingLayoutData.
  * A "Binding" class should always be created. "BindingImpl"s should only be created if there
  * are multiple layout configurations.
  */
-class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingClassConfig {
+class BindingClassConfig(override val facet: AndroidFacet, private val group: BindingLayoutGroup) : LightBindingClassConfig {
   override val targetLayout: BindingLayoutInfo
     get() = group.mainLayout
 
@@ -112,10 +115,10 @@ class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingCl
     get() {
       // Main layout generates a binding class that inherits from the ViewDataBinding classes.
       return if (targetLayout.data.layoutType === DATA_BINDING_LAYOUT) {
-        ModuleDataBinding.getInstance(targetLayout.data.facet).dataBindingMode.viewDataBinding
+        ModuleDataBinding.getInstance(facet).dataBindingMode.viewDataBinding
       }
       else {
-        targetLayout.data.facet.module.project.getViewBindingClassName()
+        facet.module.project.getViewBindingClassName()
       }
     }
 
@@ -123,12 +126,12 @@ class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingCl
   override val qualifiedName = group.mainLayout.qualifiedClassName
 
   override val variableTags: List<Pair<BindingLayoutData.Variable, XmlTag>>
-    get() = group.aggregatedVariables
+    get() = group.getAggregatedVariables(facet.module.project)
 
   override val viewIds: List<ViewIdInfo>
     get() {
       return group.layouts
-        .mapNotNull { info -> DataBindingUtil.findXmlFile(info.data) }
+        .mapNotNull { info -> DataBindingUtil.findXmlFile(facet.module.project, info.data) }
         .flatMap { xmlFile ->
           FileBasedIndex.getInstance()
             .getValues(BindingXmlIndex.NAME, BindingXmlIndex.getKeyForFile(xmlFile.virtualFile), GlobalSearchScope.fileScope(xmlFile))
@@ -149,7 +152,9 @@ class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingCl
  * This config should only be used when there are alternate layouts defined in addition to the main
  * one; otherwise, just use [BindingClassConfig].
  */
-class BindingImplClassConfig(private val group: BindingLayoutGroup, private val layoutIndex: Int) : LightBindingClassConfig {
+class BindingImplClassConfig(override val facet: AndroidFacet,
+                             private val group: BindingLayoutGroup,
+                             private val layoutIndex: Int) : LightBindingClassConfig {
   override val targetLayout: BindingLayoutInfo
     get() = group.layouts[layoutIndex]
 
@@ -165,7 +170,7 @@ class BindingImplClassConfig(private val group: BindingLayoutGroup, private val 
   override val qualifiedName = targetLayout.qualifiedClassName + targetLayout.getImplSuffix()
 
   override val variableTags: List<Pair<BindingLayoutData.Variable, XmlTag>>
-    get() = group.aggregatedVariables
+    get() = group.getAggregatedVariables(facet.module.project)
 
   override val viewIds: List<ViewIdInfo>
     get() = listOf() // Only provided by base "Binding" class.

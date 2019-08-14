@@ -24,6 +24,7 @@ import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Information for a single, target layout XML file that is useful for generating a Binding or BindingImpl class
@@ -31,7 +32,7 @@ import com.intellij.util.IncorrectOperationException
  *
  * See also: [BindingLayoutGroup], which owns one (or more) related [BindingLayoutInfo] instances.
  */
-class BindingLayoutInfo(var data: BindingLayoutData) : ModificationTracker {
+class BindingLayoutInfo(private var facet: AndroidFacet, var data: BindingLayoutData) : ModificationTracker {
   internal var modificationCount: Long = 0
     private set
 
@@ -71,7 +72,7 @@ class BindingLayoutInfo(var data: BindingLayoutData) : ModificationTracker {
   }
 
   private fun computeBindingClassName(): BindingClassName {
-    val modulePackage = MergedManifestManager.getSnapshot(data.facet).getPackage()
+    val modulePackage = MergedManifestManager.getSnapshot(facet).getPackage()
 
     if (data.customBindingName.isNullOrEmpty()) {
       return BindingClassName("$modulePackage.databinding",
@@ -179,7 +180,7 @@ class BindingLayoutInfo(var data: BindingLayoutData) : ModificationTracker {
    *
    * For even more context, see also https://issuetracker.google.com/120561619.
    */
-  inner class BindingLayoutInfoFile : PsiFile by DataBindingUtil.findXmlFile(data)!!, PsiClassOwner {
+  inner class BindingLayoutInfoFile : PsiFile by DataBindingUtil.findXmlFile(facet.module.project, data)!!, PsiClassOwner {
 
     override fun getContainingFile(): PsiFile {
       // Return ourselves instead of delegating to the target XML file, since we're the containing
