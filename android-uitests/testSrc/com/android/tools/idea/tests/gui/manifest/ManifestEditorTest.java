@@ -32,6 +32,7 @@ import java.awt.*;
 import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.fest.swing.edt.GuiTask.execute;
 import static org.junit.Assert.*;
 
 @RunWith(GuiTestRemoteRunner.class)
@@ -84,7 +85,7 @@ public class ManifestEditorTest {
       .waitForLoadingToFinish();
 
     tree.clickPath("manifest/application/android:isGame = true");
-    assertEquals("android:isGame = true", tree.valueAt(tree.target().getLeadSelectionRow()));
+    execute(() ->  assertEquals("android:isGame = true", tree.valueAt(tree.target().getLeadSelectionRow())));
   }
 
   @Test
