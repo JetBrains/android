@@ -162,13 +162,19 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   override fun convertToExcludesBlock(excludes: List<ArtifactDependencySpec>): PsiElement? {
     val factory = KtPsiFactory(dslFile.project)
     val block = factory.createBlock("")
+    // Currently, createBlock returns a block with two empty lines, we should keep only one new line.
+    val firstStatementOrEmpty = block.firstChild.nextSibling
+    if (firstStatementOrEmpty.text == "\n\n") {
+      firstStatementOrEmpty.delete()
+      block.addAfter(factory.createNewLine(), block.firstChild)
+    }
     excludes.forEach {
-      val group = if (FakeArtifactElement.shouldInterpolate(it.group)) iStr(it.group ?: "''") else "'$it.group'"
-      val name = if (FakeArtifactElement.shouldInterpolate(it.name)) iStr(it.name) else "'$it.name'"
-      val text = "exclude(group = $group, module = $name)"
+      val group = if (FakeArtifactElement.shouldInterpolate(it.group)) iStr(it.group ?: "\"\"") else "\"${it.group}\""
+      val name = if (FakeArtifactElement.shouldInterpolate(it.name)) iStr(it.name) else "\"${it.name}\""
+      val text = "exclude(mapOf(\"group\" to $group, \"module\" to $name))"
       val expression = factory.createExpressionIfPossible(text)
       if (expression != null) {
-        block.addAfter(expression, block.lastChild)
+        block.addBefore(expression, block.lastChild)
         block.addBefore(factory.createNewLine(), block.lastChild)
       }
     }
@@ -199,7 +205,6 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
   // Check if this is a block with a methodCall as name, and get the block in such case. Ex: getByName("release") -> the release block.
   private fun methodCallBlock(expression: KtCallExpression, parent: GradlePropertiesDslElement): GradlePropertiesDslElement? {
-    // TODO(xof): should we check the name of the method call against a whitelist? (create, getByName, ...)
     val arguments = expression.valueArgumentList?.arguments ?: return null
     if (arguments.size != 1) return null
     // TODO(xof): we should handle injections / resolving here:
