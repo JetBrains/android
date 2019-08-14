@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.wizard
 
-import com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizard.Builder
 import com.android.tools.idea.wizard.model.ModelWizardDialog
@@ -35,20 +34,14 @@ import java.net.URL
 class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var title: String) {
   /**
    * Temporary toggle as we migrate wizards to a new design
-   *
    * TODO: remove this once migration to the new design is complete
    */
   enum class UxStyle {
     /**
      * Has a title bar with Android Studio icon on the Left, a main text header in large font for the Step title,
-     * a "Android Studio" sub header bellow main header, and an optional Step Icon on the right.
+     * and an optional Step Icon on the right.
      */
     ORIGINAL,
-    /**
-     * Similar to ORIGINAL, without the "Android Studio" sub header and a slightly larger Dialog.
-     */
-    // maybe delete this.
-    INSTANT_APP,
     /**
      * Has a simpler title bar with only the main text header, in large font, for the Step title.
      */
@@ -164,7 +157,6 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
   fun build(): ModelWizardDialog {
     val customLayout: CustomLayout = when (uxStyle) {
       UxStyle.ORIGINAL -> StudioWizardLayout()
-      UxStyle.INSTANT_APP -> com.android.tools.idea.ui.wizard.StudioWizardLayout()
       UxStyle.DYNAMIC_APP -> SimpleStudioWizardLayout()
     }
     minimumSize = minimumSize ?: customLayout.defaultMinSize
