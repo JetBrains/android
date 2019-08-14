@@ -38,6 +38,7 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,14 +95,17 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
         return false;
       }
     }
-
+    PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
+    ResourceFolderType folderType = CreateResourceActionBase.TARGET_RESOURCE_FOLDER_TYPE.getData(context);
+    if (folderType != null && element instanceof PsiDirectory && AndroidResourceUtil.isResourceDirectory((PsiDirectory)element)) {
+      return false;
+    }
     // Offer creating resource files from anywhere in the project (as is done for Java Classes) as long as it's within an Android module
     Module module = LangDataKeys.MODULE.getData(context);
     if (module != null) {
       return AndroidFacet.getInstance(module) != null;
     }
 
-    PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
     return element != null && AndroidFacet.getInstance(element) != null;
   }
 
@@ -197,6 +201,10 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
 
     VirtualFile[] files = CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(dataContext);
     ResourceFolderType folderType = getUniqueFolderType(files);
+    if (folderType == null) {
+      // If files are not for an specific resource file, fallback to a given folder resource type.
+      folderType = CreateResourceActionBase.TARGET_RESOURCE_FOLDER_TYPE.getData(dataContext);
+    }
     FolderConfiguration config = null;
     if (files != null && files.length > 0) {
       config = files.length == 1 ? FolderConfiguration.getConfigForFolder(files[0].getName()) : null;

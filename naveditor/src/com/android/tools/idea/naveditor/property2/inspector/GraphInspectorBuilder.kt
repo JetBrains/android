@@ -26,13 +26,7 @@ import com.android.tools.property.panel.api.PropertiesTable
 
 class GraphInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    val components = properties.first?.components ?: return
-    if (components.size != 1) {
-      return
-    }
-
-    val component = components[0]
-    if(!component.isInclude) {
+    if (properties.first?.components?.singleOrNull()?.isInclude != true) {
       return
     }
 
