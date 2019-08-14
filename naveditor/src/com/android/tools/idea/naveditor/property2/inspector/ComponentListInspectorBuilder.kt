@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.property2.inspector
 
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.property2.ui.ComponentList
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
@@ -46,7 +47,7 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
   : InspectorBuilder<NelePropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     val component = properties.first?.components?.singleOrNull() ?: return
-    if (!isApplicable(component)) {
+    if (!component.isDestination) {
       return
     }
 
@@ -77,7 +78,6 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
 
   protected abstract fun onAdd(parent: NlComponent)
   protected abstract fun onEdit(component: NlComponent)
-  protected abstract fun isApplicable(component: NlComponent): Boolean
 
   private fun refresh(component: NlComponent, model: SortedListModel<NlComponent>) {
     model.clear()

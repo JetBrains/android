@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
@@ -34,6 +35,7 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
  */
 class AndroidKotlinResourceExternalAnnotator : AndroidResourceExternalAnnotatorBase() {
   override fun collectInformation(file: PsiFile, editor: Editor): FileAnnotationInfo? {
+    if (!StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.get()) return null
     val facet = file.androidFacet ?: return null
     val annotationInfo = FileAnnotationInfo(facet, file, editor)
     file.accept(object: PsiRecursiveElementWalkingVisitor() {

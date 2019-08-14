@@ -54,6 +54,6 @@ class FmResolveDependencyMethodTest {
     val mockRepo = Mockito.mock(RepositoryUrlManager::class.java)
     `when`(mockRepo.resolveDynamicCoordinate(Mockito.any(), Mockito.any())).thenReturn(GradleCoordinate.parseCoordinateString(resolved))
 
-    assertThat(resolveDependency(mockRepo, dependency, minRevision)).isEqualTo(expectResult)
+    assertThat(FmResolveDependencyMethod.convertConfiguration(mockRepo, dependency, minRevision)).isEqualTo(expectResult)
   }
 }
