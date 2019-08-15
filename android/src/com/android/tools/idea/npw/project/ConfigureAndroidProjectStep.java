@@ -58,6 +58,7 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import java.awt.Font;
 import java.io.File;
 import java.util.ArrayList;
@@ -122,6 +123,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
+    ((GridLayoutManager)myPanel.getLayout()).setVGap(2);
+
     myBindings.bindTwoWay(new TextProperty(myAppName), myProjectModel.getApplicationName());
 
     String basePackage = NewProjectModel.getSuggestedProjectPackage();
