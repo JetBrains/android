@@ -444,9 +444,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
       else {
         group.updateLayouts(layouts);
-        for (BindingLayoutInfo layout : layouts) {
-          layout.setModificationCount(modificationCount);
-        }
       }
       groups.put(layoutName, group);
     }
