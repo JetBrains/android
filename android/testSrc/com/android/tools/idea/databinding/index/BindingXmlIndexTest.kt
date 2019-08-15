@@ -34,10 +34,15 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.indexing.FileBasedIndex
 import com.intellij.util.indexing.FileContentImpl
+import com.intellij.util.io.DataExternalizer
 import com.intellij.util.ui.UIUtil
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 
 class BindingXmlIndexTest {
   private val projectRule = AndroidProjectRule.onDisk()
@@ -58,22 +63,31 @@ class BindingXmlIndexTest {
   fun indexDataBindingLayout() {
     val file = fixture.configureByText("layout.xml", """
       <layout>
-        <data>
+        <data class="a.b.c.CustomBinding">
           <import type="C"/>
+          <import type="Map&lt;D&gt;" alias="Dee" />
           <variable type="A" name="ex1"/>
-          <variable type="B" name ="ex2"/>
+          <variable type="B" name="ex2"/>
+          <variable type="List&lt;E>" name="ex3"/>
         </data>
       </layout>
     """.trimIndent()).virtualFile
-    val map = BindingXmlIndex().indexer.map(FileContentImpl.createByFile(file))
+    val bindingXmlIndex = BindingXmlIndex()
+    val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
     assertThat(map).hasSize(1)
 
     val layout = map.values.first()
     assertThat(layout.layoutType).isEqualTo(BindingLayoutType.DATA_BINDING_LAYOUT)
-    assertThat(layout.importCount).isEqualTo(1)
-    assertThat(layout.variableCount).isEqualTo(2)
+    assertThat(layout.customBindingName).isEqualTo("a.b.c.CustomBinding")
+    assertThat(layout.imports).containsExactly(ImportInfo("C", null), ImportInfo("Map<D>", "Dee"))
+    assertThat(layout.variables).containsExactly(
+      VariableInfo("ex1", "A"),
+      VariableInfo("ex2", "B"),
+      VariableInfo("ex3", "List<E>"))
     assertThat(layout.viewIds).isEmpty()
+
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, layout)
   }
 
   @Test
@@ -83,14 +97,17 @@ class BindingXmlIndexTest {
         <TextView android:id="@+id/testId2"/>
       </constraint_layout>
     """.trimIndent()).virtualFile
-    val map = BindingXmlIndex().indexer.map(FileContentImpl.createByFile(file))
+    val bindingXmlIndex = BindingXmlIndex()
+    val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
     val layout = map.values.first()
     assertThat(layout.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
-    assertThat(layout.importCount).isEqualTo(0)
-    assertThat(layout.variableCount).isEqualTo(0)
-    assertThat(layout.viewIds).hasSize(1)
-    assertThat(layout.viewIds[0]).isEqualTo(ViewIdInfo("testId2", "TextView", null))
+    assertThat(layout.customBindingName).isNull()
+    assertThat(layout.imports).isEmpty()
+    assertThat(layout.variables).isEmpty()
+    assertThat(layout.viewIds).containsExactly(ViewIdInfo("testId2", "TextView", null))
+
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, layout)
   }
 
   @Test
@@ -105,10 +122,10 @@ class BindingXmlIndexTest {
         <merge android:id="@+id/testId6" android:layout="this_other_layout"/>
       </layout>
     """.trimIndent()).virtualFile
-    val map = BindingXmlIndex().indexer.map(FileContentImpl.createByFile(file))
+    val bindingXmlIndex = BindingXmlIndex()
+    val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
     val layout = map.values.first()
-    assertThat(layout.viewIds).hasSize(6)
     assertThat(layout.viewIds.toList()).containsExactly(
       ViewIdInfo("testId2", "TextView", null),
       ViewIdInfo("testId3", "TextView", null),
@@ -117,6 +134,8 @@ class BindingXmlIndexTest {
       ViewIdInfo("testId5", "include", "this_other_layout"),
       ViewIdInfo("testId6", "merge", "this_other_layout")
     ).inOrder()
+
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, layout)
   }
 
   @Test
@@ -386,5 +405,14 @@ class BindingXmlIndexTest {
       documentManager.commitDocument(document)
     }
     UIUtil.dispatchAllInvocationEvents()
+  }
+
+  private fun verifySerializationLogic(valueExternalizer: DataExternalizer<IndexedLayoutInfo>, layout: IndexedLayoutInfo) {
+    val bytesOut = ByteArrayOutputStream()
+    DataOutputStream(bytesOut).use { valueExternalizer.save(it, layout) }
+
+    val bytesIn = ByteArrayInputStream(bytesOut.toByteArray())
+    val layoutCopy = DataInputStream(bytesIn).use { valueExternalizer.read(it) }
+    assertThat(layoutCopy).isEqualTo(layout)
   }
 }
