@@ -43,6 +43,7 @@ import static com.android.tools.idea.databinding.ViewBindingUtil.isViewBindingEn
 import static com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT;
 import static com.android.tools.idea.res.BindingLayoutType.VIEW_BINDING_LAYOUT;
 import static com.android.tools.idea.res.PsiProjectListener.isRelevantFile;
+import static com.android.tools.idea.resources.base.RepositoryLoader.portableFileName;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.createPersistentCache;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.writeResourcesToStream;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
@@ -212,6 +213,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * the {@link BasicFileResourceItem#getSource()} method.
    */
   @NotNull private final String myResourcePathPrefix;
+  /**
+   * Same as {@link #myResourcePathPrefix} but in a form of {@link PathString}.  Used to produce
+   * resource paths returned by the {@link BasicFileResourceItem#getOriginalSource()} method.
+   */
+  @NotNull private final PathString myResourcePathBase;
 
   // Statistics of the initial repository loading.
   private int myNumXmlFilesLoadedInitially; // Doesn't count files that were explicitly skipped.
@@ -273,7 +279,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     myFacet = facet;
     myResourceDir = resourceDir;
     myNamespace = namespace;
-    myResourcePathPrefix = myResourceDir.getPath() + '/';
+    myResourcePathPrefix = portableFileName(myResourceDir.getPath()) + '/';
+    myResourcePathBase = new PathString(myResourcePathPrefix);
     myViewBindingEnabled = isViewBindingEnabled(facet);
     myPsiManager = PsiManager.getInstance(getProject());
     myPsiDocumentManager = PsiDocumentManager.getInstance(getProject());
@@ -315,7 +322,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @Override
   @NotNull
   public PathString getSourceFile(@NotNull String relativeResourcePath, boolean forFileResource) {
-    return new PathString(myResourcePathPrefix + relativeResourcePath);
+    return myResourcePathBase.resolve(relativeResourcePath);
   }
 
   @Override
