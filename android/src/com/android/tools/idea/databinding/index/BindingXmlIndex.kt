@@ -24,7 +24,10 @@ import com.android.tools.idea.res.BindingLayoutType
 import com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.res.BindingLayoutType.VIEW_BINDING_LAYOUT
 import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.DefaultFileTypeSpecificInputFilter
 import com.intellij.util.indexing.FileBasedIndex
@@ -52,8 +55,15 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
     @JvmField
     val NAME = ID.create<String, BindingXmlData>("BindingXmlIndex")
 
-    @JvmStatic
-    fun getKeyForFile(file: VirtualFile) = FileBasedIndex.getFileId(file).toString()
+    private fun getKeyForFile(file: VirtualFile) = FileBasedIndex.getFileId(file).toString()
+
+    private fun getDataForFile(file: VirtualFile, scope: GlobalSearchScope): BindingXmlData? {
+      val index = FileBasedIndex.getInstance()
+      return index.getValues(NAME, getKeyForFile(file), scope).firstOrNull()
+    }
+
+    fun getDataForFile(project: Project, file: VirtualFile) = getDataForFile(file, GlobalSearchScope.fileScope(project, file))
+    fun getDataForFile(psiFile: PsiFile) = getDataForFile(psiFile.virtualFile, GlobalSearchScope.fileScope(psiFile))
   }
 
   override fun getKeyDescriptor(): KeyDescriptor<String> {

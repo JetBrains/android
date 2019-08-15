@@ -20,7 +20,6 @@ import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.isViewBindingEnabled
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -50,13 +49,9 @@ class BindingClassFinder(project: Project) : PsiElementFinder() {
     fun findAllBindingClasses(facet: AndroidFacet): List<LightBindingClass> {
       if (!facet.isViewBindingEnabled() && !DataBindingUtil.isDataBindingEnabled(facet)) return emptyList()
 
-      val groups = ResourceRepositoryManager.getModuleResources(facet).bindingLayoutGroups
-      if (groups.isEmpty()) {
-        return emptyList()
-      }
-
       val moduleDataBinding = ModuleDataBinding.getInstance(facet)
-      return groups.values.flatMap { group -> moduleDataBinding.getLightBindingClasses(group) }
+      val groups = moduleDataBinding.bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return emptyList()
+      return groups.flatMap { group -> moduleDataBinding.getLightBindingClasses(group) }
     }
   }
 
