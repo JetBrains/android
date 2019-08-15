@@ -24,7 +24,6 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiElementProcessor
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
@@ -32,7 +31,6 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.util.indexing.FileBasedIndex
 import com.intellij.util.indexing.FileContentImpl
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.ui.UIUtil
@@ -356,12 +354,7 @@ class BindingXmlIndexTest {
    * Pairs are variable name to view type
    */
   private fun assertIndexedIds(vararg expected: ViewIdData) {
-    val indexedIds = FileBasedIndex.getInstance()
-      .getValues(BindingXmlIndex.NAME, BindingXmlIndex.getKeyForFile(psiFile.virtualFile),
-                 GlobalSearchScope.fileScope(psiFile))
-      .flatMap(BindingXmlData::viewIds)
-      .toSet()
-
+    val indexedIds = BindingXmlIndex.getDataForFile(psiFile)!!.viewIds.toSet()
     assertThat(indexedIds).isEqualTo(expected.toSet())
   }
 

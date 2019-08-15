@@ -18,7 +18,6 @@ package com.android.tools.idea.databinding.cache
 import com.android.tools.idea.databinding.DataBindingProjectComponent
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
@@ -169,13 +168,10 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     : ResourceCacheValueProvider<Map<String, List<LightBindingClass>>>(facet, null) {
 
     override fun doCompute(): Map<String, List<LightBindingClass>> {
-      val moduleResources = ResourceRepositoryManager.getInstance(facet).existingModuleResources ?: return defaultValue()
-      val groups = moduleResources.bindingLayoutGroups
-      if (groups.isEmpty()) {
-        return defaultValue()
-      }
-      return groups.values
-        .flatMap { group -> ModuleDataBinding.getInstance(facet).getLightBindingClasses(group) }
+      val moduleDataBinding = ModuleDataBinding.getInstance(facet)
+      val groups = moduleDataBinding.bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return defaultValue()
+      return groups
+        .flatMap { group -> moduleDataBinding.getLightBindingClasses(group) }
         .groupBy { bindingClass -> bindingClass.name }
     }
 

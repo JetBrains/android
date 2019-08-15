@@ -18,6 +18,8 @@ package com.android.tools.idea.databinding;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.databinding.index.BindingXmlData;
+import com.android.tools.idea.databinding.index.ImportData;
 import com.android.tools.idea.databinding.index.ViewIdData;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
@@ -53,6 +55,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.GenericAttributeValue;
 import java.util.List;
+import java.util.function.Function;
 import org.jetbrains.android.dom.layout.Import;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -459,22 +462,44 @@ public final class DataBindingUtil {
   }
 
   /**
-   * Returns the fully qualified name of the class referenced by {@code nameOrAlias}.
-   * <p>
-   * It is not guaranteed that the class will exist. The name returned here uses '.' for inner classes (like import declarations) and
-   * not '$' as used by JVM.
-   *
-   * @param nameOrAlias a fully qualified name, or an alias as declared in an {@code <import>}, or an inner class of an alias
-   * @param layoutData layout data containing import statements
-   * @param qualifyJavaLang qualify names of java.lang classes
-   * @return the qualified name of the class, otherwise, if {@code qualifyJavaLang} is false and {@code nameOrAlias} doesn't match any
-   *     imports, the unqualified name of the class, or, if {@code qualifyJavaLang} is true and the class name cannot be resolved, null
+   * See header docs for {@link #getQualifiedType(Project, String, boolean, Function)}.
    */
   @Nullable
   public static String getQualifiedType(@NotNull Project project,
                                         @NotNull String nameOrAlias,
                                         @NotNull BindingLayoutData layoutData,
                                         boolean qualifyJavaLang) {
+    return getQualifiedType(project, nameOrAlias, qualifyJavaLang, className -> resolveImport(className, layoutData));
+  }
+
+  /**
+   * See header docs for {@link #getQualifiedType(Project, String, boolean, Function)}.
+   */
+  @Nullable
+  public static String getQualifiedType(@NotNull Project project,
+                                        @NotNull String nameOrAlias,
+                                        @NotNull BindingXmlData bindingData,
+                                        boolean qualifyJavaLang) {
+    return getQualifiedType(project, nameOrAlias, qualifyJavaLang, className -> resolveImport(className, bindingData));
+  }
+
+  /**
+   * Returns the fully qualified name of the class referenced by {@code nameOrAlias}.
+   * <p>
+   * It is not guaranteed that the class will exist. The name returned here uses '.' for inner classes (like import declarations) and
+   * not '$' as used by JVM.
+   *
+   * @param nameOrAlias a fully qualified name, or an alias as declared in an {@code <import>}, or an inner class of an alias.
+   * @param qualifyJavaLang qualify names of java.lang classes.
+   * @param importResolver A function which, given a class name, returns its resolved (qualified) name, or null if not possible.
+   * @return the qualified name of the class, otherwise, if {@code qualifyJavaLang} is false and {@code nameOrAlias} doesn't match any
+   *     imports, the unqualified name of the class, or, if {@code qualifyJavaLang} is true and the class name cannot be resolved, null.
+   */
+  @Nullable
+  private static String getQualifiedType(@NotNull Project project,
+                                         @NotNull String nameOrAlias,
+                                         boolean qualifyJavaLang,
+                                         @NotNull Function<String, String> importResolver) {
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     PsiJavaParserFacade parser = psiFacade.getParserFacade();
     PsiType psiType;
@@ -505,7 +530,7 @@ public final class DataBindingUtil {
           String className = reference.isQualified() ? reference.getQualifiedName() : reference.getReferenceName();
           if (className != null) {
             int nameLength = className.length();
-            className = resolveImport(className, layoutData);
+            className = importResolver.apply(className);
             if (qualifyJavaLang && className.indexOf('.') < 0) {
               className = qualifyClassName(className, parser);
               if (className == null) {
@@ -550,18 +575,37 @@ public final class DataBindingUtil {
   }
 
   /**
+   * See header docs for {@link #resolveImport(String, Function)}
+   */
+  @NotNull
+  public static String resolveImport(@NotNull String className, @NotNull BindingLayoutData layoutData) {
+    return resolveImport(className, shortName -> layoutData.resolveImport(shortName));
+  }
+
+  /**
+   * See header docs for {@link #resolveImport(String, Function)}
+   */
+  @NotNull
+  public static String resolveImport(@NotNull String className, @NotNull BindingXmlData bindingData) {
+    return resolveImport(className, shortName -> {
+      ImportData anImport = bindingData.findImport(shortName);
+      return anImport != null ? anImport.getType() : null;
+    });
+  }
+
+  /**
    * Resolves a class name using import statements in the data binding information.
    *
    * @param className the class name, possibly not qualified. The class name may contain dots if it corresponds to a nested class.
-   * @param layoutData the layout data that may contain import statements to use for class resolution.
+   * @param shortNameResolver Backing logic that handles the import.
    * @return the fully qualified class name, or the original name if the first segment of {@code className} doesn't match
    *     any import statement.
    */
   @NotNull
-  public static String resolveImport(@NotNull String className, @NotNull BindingLayoutData layoutData) {
+  private static String resolveImport(@NotNull String className, @NotNull Function<String, String> shortNameResolver) {
     int dotOffset = className.indexOf('.');
     String firstSegment = dotOffset >= 0 ? className.substring(0, dotOffset) : className;
-    String importedType = layoutData.resolveImport(firstSegment);
+    String importedType = shortNameResolver.apply(firstSegment);
     if (importedType == null) {
       return className;
     }
