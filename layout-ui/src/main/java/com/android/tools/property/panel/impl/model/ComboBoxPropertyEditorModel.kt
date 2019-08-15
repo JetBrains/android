@@ -127,7 +127,7 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
       // if the EnumValue is an action that displays a dialog.
       // This is why we set text=value just before calling select.
       if (newValue.select(property)) {
-        text = newValue.value
+        text = newValue.value ?: ""
         pendingValueChange = false
       }
       fireValueChanged()
