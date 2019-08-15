@@ -358,15 +358,6 @@ public class AndroidSdksTest extends PlatformTestCase {
     assertTrue(myAndroidSdks.hasValidDocs(sdk, target));
   }
 
-  public void testRefreshDocsIn() throws Exception {
-    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
-    Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of("https://www.google.com"), true);
-    assertFalse(myAndroidSdks.hasValidDocs(sdk, target));
-
-    myAndroidSdks.refreshDocsIn(sdk);
-    assertTrue(myAndroidSdks.hasValidDocs(sdk, target));
-  }
-
   @NotNull
   private Sdk setUpSdkWithDocsRoots(@NotNull IAndroidTarget target,
                                     @NotNull Collection<String> docsRootUrls,
