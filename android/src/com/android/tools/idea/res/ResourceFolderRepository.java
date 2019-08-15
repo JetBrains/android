@@ -1862,11 +1862,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     return myFacet.getModule().getProject();
   }
 
-  @NotNull
-  AndroidFacet getFacet() {
-    return myFacet;
-  }
-
   void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
     if (file.isDirectory()) {
       for (Iterator<Map.Entry<VirtualFile, ResourceItemSource<? extends ResourceItem>>> iterator = mySources.entrySet().iterator();
