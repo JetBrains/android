@@ -32,7 +32,7 @@ import org.jetbrains.android.facet.AndroidFacet
  *
  * See also: [BindingLayoutGroup], which owns one (or more) related [BindingLayoutInfo] instances.
  */
-class BindingLayoutInfo(private var facet: AndroidFacet, var data: BindingLayoutData) : ModificationTracker {
+class BindingLayoutInfo(private var facet: AndroidFacet, var data: BindingLayoutData) {
   internal var modificationCount: Long = 0
     private set
 
@@ -136,13 +136,6 @@ class BindingLayoutInfo(private var facet: AndroidFacet, var data: BindingLayout
       bindingClassNameCached = null
     }
   }
-
-  @Deprecated("Setting modification count directly is unsafe and should be avoided")
-  fun setModificationCount(modificationCount: Long) {
-    this.modificationCount = modificationCount
-  }
-
-  override fun getModificationCount(): Long = modificationCount
 
   /**
    * The package + name for the binding class generated for this layout.
