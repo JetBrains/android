@@ -54,7 +54,6 @@ import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -306,6 +305,8 @@ fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = (this as? Co
  * Provider for Compose Preview editors.
  */
 class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
+  private val previewElemementProvider = AnnotationPreviewElementFinder
+
   init {
     if (StudioFlags.COMPOSE_PREVIEW.get()) {
       DesignerTypeRegistrar.register(object : DesignerEditorFileType {
@@ -323,19 +324,13 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
       return false
     }
 
-    // Indexing might not be ready so we use this hack for now (looking for the import FQCN)
-    return VfsUtil.loadText(file).contains(PREVIEW_ANNOTATION_FQN)
-
-    // Ideally, we should look at the AST for the @Preview annotations. This currently triggers an IndexNotReadyException
-    // dumb mode but we should be able to look at the AST without hitting that.
-    //return findPreviewMethods(project, file).isNotEmpty()
+    return previewElemementProvider.hasPreviewMethods(project, file)
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = getInstance().createEditor(project, file) as TextEditor
-    val previewProvider = AnnotationPreviewElementFinder
-    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewProvider)
+    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewElemementProvider)
     val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor, previewEditor)
 
     // Queue to avoid refreshing notifications on every key stroke
@@ -364,7 +359,7 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
     }
 
     PsiManager.getInstance(project).addPsiTreeChangeListener(SourceCodeChangeListener(psiFile) { psiElement ->
-      val isPreviewElementChange = previewProvider.elementBelongsToPreviewElement(psiElement)
+      val isPreviewElementChange = previewElemementProvider.elementBelongsToPreviewElement(psiElement)
 
       if (isPreviewElementChange) {
         // The change belongs to a PreviewElement declaration. No need to rebuild, we can just refresh
