@@ -27,9 +27,8 @@ class BindingLayoutGroup(layouts: Collection<BindingLayoutInfo>) : ModificationT
   var layouts: List<BindingLayoutInfo> = ImmutableList.copyOf(layouts)
     private set
 
-  val mainLayout: BindingLayoutInfo
-    // Safe to assume non-null because there should always be at least one layout in a group.
-    get() = layouts.firstOrNull { layout -> layout.data.folderConfiguration.isDefault() } ?: layouts.first()
+  var mainLayout = findMainLayout(layouts)
+    private set
 
   /**
    * Forcefully updates all the layouts of the current group (if the passed in layouts differ from
@@ -38,6 +37,7 @@ class BindingLayoutGroup(layouts: Collection<BindingLayoutInfo>) : ModificationT
   fun updateLayouts(layouts: Collection<BindingLayoutInfo>) {
     if (!isSameContent(this.layouts, layouts)) {
       this.layouts = ImmutableList.copyOf(layouts)
+      this.mainLayout = findMainLayout(layouts)
     }
   }
 
@@ -46,15 +46,18 @@ class BindingLayoutGroup(layouts: Collection<BindingLayoutInfo>) : ModificationT
   }
 }
 
+private fun findMainLayout(layouts: Collection<BindingLayoutInfo>) =
+  layouts.firstOrNull { layout -> layout.data.folderConfiguration.isDefault } ?: layouts.first()
+
 private fun isSameContent(col1: Collection<Any>, col2: Collection<Any>): Boolean {
   if (col1.size != col2.size) {
-    return false;
+    return false
   }
-  val col2Iter = col2.iterator();
+  val col2Iter = col2.iterator()
   for (obj in col1) {
     if (obj != col2Iter.next()) {
-      return false;
+      return false
     }
   }
-  return true;
+  return true
 }
