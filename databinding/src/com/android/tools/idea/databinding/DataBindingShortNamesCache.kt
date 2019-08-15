@@ -109,7 +109,7 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     return allClassNamesCache.value
   }
 
-  // TODO(davidhemnan): Override a non-deprecated method instead.
+  // TODO(b/139458402): Override a non-deprecated method instead.
   override fun getAllClassNames(dest: HashSet<String>) {
     dest.addAll(allClassNames)
   }
@@ -138,7 +138,7 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     return allMethodNamesCache.value
   }
 
-  // TODO(davidhemnan): Override a non-deprecated method instead.
+  // TODO(b/139458402): Override a non-deprecated method instead.
   override fun getAllMethodNames(set: HashSet<String>) {
     set.addAll(allClassNames)
   }
@@ -156,7 +156,7 @@ class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     return allFieldNamesCache.value
   }
 
-  // TODO(davidhemnan): Override a non-deprecated method instead.
+  // TODO(b/139458402): Override a non-deprecated method instead.
   override fun getAllFieldNames(set: HashSet<String>) {
     set.addAll(allFieldNames)
   }
