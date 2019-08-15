@@ -58,6 +58,7 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import java.awt.Font;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
