@@ -31,7 +31,16 @@ data class VariableData(
 data class ImportData(
   val type: String,
   val alias: String?
-)
+) {
+  /**
+   * An import's short name is its alias, if present, or its unqualified type.
+   * For example:
+   * `"Calc"` for `<import alias='Calc' type='org.example.math.calc.Calculator'>` or
+   * `"Map"` for `<import type='java.util.Map'>`)
+   */
+  val shortName
+    get() = alias ?: type.substringAfterLast('.')
+}
 
 /**
  * Data class for storing information related to views with IDs.
@@ -68,4 +77,22 @@ data class BindingXmlData(
 
   /** Ids of views defined in this layout. */
   val viewIds: Collection<ViewIdData>
-)
+) {
+  private val importsMap = imports.associateBy { it.shortName }
+  private val variablesMap = variables.associateBy { it.name }
+
+  /**
+   * Find an import using its short name.
+   *
+   * This search is backed by a map and should be preferred over iterating [imports] when possible.
+   */
+  fun findImport(shortName: String) = importsMap[shortName]
+
+  /**
+   * Find a variable using its name.
+   *
+   * This search is backed by a map and should be preferred over iterating [variables] when
+   * possible.
+   */
+  fun findVariable(name: String) = variablesMap[name]
+}

@@ -15,23 +15,31 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.resources.ResourceType
 import com.android.tools.idea.databinding.psiclass.BindingClassConfig
 import com.android.tools.idea.databinding.psiclass.BindingImplClassConfig
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
-import com.android.tools.idea.res.binding.BindingLayoutGroup
+import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.res.LocalResourceRepository
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetManagerAdapter
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
+import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiManager
-import java.util.ArrayList
-import java.util.WeakHashMap
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.xml.XmlFile
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
+import java.util.ArrayList
 
 @ThreadSafe
 class ModuleDataBinding private constructor(private val module: Module) {
@@ -60,6 +68,23 @@ class ModuleDataBinding private constructor(private val module: Module) {
       }
     }
 
+  /**
+   * A backing cache of binding groups, which will get recalculated whenever any of their grouped
+   * layout files change.
+   */
+  @GuardedBy("lock")
+  private val myBindingLayoutGroupsCache: CachedValue<Collection<BindingLayoutGroup>>
+
+  /**
+   * A key used for storing / retrieving a cache of light binding classes.
+   *
+   * Light binding classes should get automatically collected whenever their backing layout file
+   * is deleted. Therefore, we store them on the layout file's [XmlFile], tying their lifetime
+   * to it.
+   */
+  @GuardedBy("lock")
+  private val lightBindingClassesKey: Key<List<LightBindingClass>> = Key.create("ModuleDataBinding.LightBindingClasses")
+
   init {
     fun syncModeWithFacetConfiguration() {
       dataBindingMode = AndroidFacet.getInstance(module)?.configuration?.model?.dataBindingMode ?: return
@@ -74,7 +99,50 @@ class ModuleDataBinding private constructor(private val module: Module) {
       }
     })
     syncModeWithFacetConfiguration()
+
+    /**
+     * Generates all [BindingLayoutGroup]s for the current module.
+     */
+    fun generateGroups(facet: AndroidFacet, moduleResources: LocalResourceRepository): Collection<BindingLayoutGroup> {
+      val modulePackage = MergedManifestManager.getSnapshot(facet).getPackage() ?: return emptySet()
+      val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
+      return layoutResources.values()
+        .map { resource -> BindingLayout(facet, modulePackage, resource) }
+        .groupBy { info -> info.file.name }
+        .map { entry -> BindingLayoutGroup(entry.value) }
+    }
+
+    synchronized(lock) {
+      val facet = AndroidFacet.getInstance(module)
+      val cachedValuesManager = CachedValuesManager.getManager(module.project)
+      if (facet != null) {
+        myBindingLayoutGroupsCache = cachedValuesManager.createCachedValue {
+          val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
+          val groups = generateGroups(facet, moduleResources)
+          CachedValueProvider.Result.create(groups, moduleResources)
+        }
+      }
+      else {
+        myBindingLayoutGroupsCache = cachedValuesManager.createCachedValue {
+          CachedValueProvider.Result.create(emptyList<BindingLayoutGroup>() as Collection<BindingLayoutGroup>)
+        }
+      }
+    }
   }
+
+  /**
+   * Returns all [BindingLayoutGroup] instances associated with this module, representing all layouts
+   * that should have bindings generated for them.
+   *
+   * See also [getLightBindingClasses].
+   */
+  val bindingLayoutGroups: Collection<BindingLayoutGroup>
+    get() {
+      synchronized(lock) {
+        return myBindingLayoutGroupsCache.value
+      }
+    }
+
 
   @GuardedBy("lock")
   private var _lightBrClass: LightBrClass? = null
@@ -125,17 +193,6 @@ class ModuleDataBinding private constructor(private val module: Module) {
     }
 
   /**
-   * A (weak) cache of all generated light binding classes.
-   *
-   * A binding module should generate one or more binding classes per bindable layout, and we cache
-   * everything here. Such a bindable layout should have a [BindingLayoutGroup] associated
-   * with it, with the assumption that its own lifetime is tied to the lifetime of the layout
-   * itself. For example, if the user deletes a layout file, its binding group should also be
-   * released, so in turn these cached binding classes would be collected as well.
-   */
-  @GuardedBy("lock")
-  private val _lightBindingClasses = WeakHashMap<BindingLayoutGroup, MutableList<LightBindingClass>>()
-  /**
    * Returns a list of [LightBindingClass] instances corresponding to the layout XML files
    * related to the passed-in [BindingLayoutGroup].
    *
@@ -146,14 +203,28 @@ class ModuleDataBinding private constructor(private val module: Module) {
    *
    * If this is the first time requesting this information, they will be created on the fly.
    *
-   * This information is backed by a weak map, so when the `group` object goes out of scope,
-   * the associated light binding classes will eventually get released.
+   * This information is cached against the PSI of the main layout of the passed-in group, so if
+   * the layout is ever deleted, the associated light binding classes will eventually get released.
    */
   fun getLightBindingClasses(group: BindingLayoutGroup): List<LightBindingClass> {
     val facet = AndroidFacet.getInstance(module) ?: return emptyList()
 
     synchronized(lock) {
-      var bindingClasses: MutableList<LightBindingClass>? = _lightBindingClasses[group]
+      val layoutXmlFile = group.mainLayout.toXmlFile()
+      var bindingClasses = layoutXmlFile.getUserData(lightBindingClassesKey)
+      if (bindingClasses != null) {
+        // If here, we have a previously cached set of binding classes. However, a layout
+        // configuration (e.g. layout-land) may have been added or removed, at which point, we
+        // need to ignore the cache. The logic here is in sync with the logic in the next block
+        // -- that is, if there's only one layout, we generate a Binding, but if there's multiple
+        // layouts, we generate a general Binding plus one BindingImpl per layout.
+        val numLayouts = group.layouts.size
+        val numClassesToGenerate = if (numLayouts == 1) 1 else numLayouts + 1
+        if (bindingClasses.size != numClassesToGenerate) {
+          bindingClasses = null
+        }
+      }
+
       if (bindingClasses == null) {
         bindingClasses = ArrayList()
 
@@ -175,7 +246,7 @@ class ModuleDataBinding private constructor(private val module: Module) {
           group.mainLayout.psiClass = bindingClass
         }
 
-        _lightBindingClasses[group] = bindingClasses
+        layoutXmlFile.putUserData(lightBindingClassesKey, bindingClasses)
       }
       return bindingClasses
     }

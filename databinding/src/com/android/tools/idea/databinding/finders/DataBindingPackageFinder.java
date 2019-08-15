@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.databinding.finders;
 
+import com.android.tools.idea.databinding.BindingLayoutGroup;
+import com.android.tools.idea.databinding.BindingLayout;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
+import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.res.binding.BindingLayoutGroup;
-import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
@@ -29,6 +28,7 @@ import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -81,14 +81,13 @@ public class DataBindingPackageFinder extends PsiElementFinder {
           return new ResourceCacheValueProvider<Set<String>>(facet, null) {
             @Override
             protected Set<String> doCompute() {
-              LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(getFacet());
-              Map<String, BindingLayoutGroup> groups = moduleResources.getBindingLayoutGroups();
+              Collection<BindingLayoutGroup> groups = ModuleDataBinding.getInstance(getFacet()).getBindingLayoutGroups();
               if (groups.isEmpty()) {
                 return Collections.emptySet();
               }
               Set<String> result = new HashSet<>();
-              for (BindingLayoutGroup group : groups.values()) {
-                for (BindingLayoutInfo layout : group.getLayouts()) {
+              for (BindingLayoutGroup group : groups) {
+                for (BindingLayout layout : group.getLayouts()) {
                   result.add(layout.getPackageName());
                 }
               }
