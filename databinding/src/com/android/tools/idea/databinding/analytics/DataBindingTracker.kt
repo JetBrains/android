@@ -99,8 +99,8 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
                 // TODO(b/137047493): track VIEW_BINDING_LAYOUT type layouts
                 if (layoutInfo.layoutType == DATA_BINDING_LAYOUT) {
                   layoutCount++
-                  importCount += layoutInfo.importCount
-                  variableCount += layoutInfo.variableCount
+                  importCount += layoutInfo.imports.size
+                  variableCount += layoutInfo.variables.size
                 }
                 true
               },
