@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;
@@ -600,5 +601,59 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.getLayout().layoutContainer(surface);
     surface.zoomToFit();
     assertEquals(0.01, surface.getScale());
+  }
+
+  public void testLayoutHorizontally() {
+    NlModel model = model("absolute.xml",
+                          component(ABSOLUTE_LAYOUT)
+                            .withBounds(0, 0, 1000, 1000)
+                            .matchParentWidth()
+                            .matchParentHeight()).build();
+    NlDesignSurface surface = mySurface;
+
+    surface.setScreenMode(SceneMode.BOTH, false);
+
+    surface.setModel(model);
+    // The height is small so the SceneViews should stack horizontally
+    surface.setBounds(0, 0, 1000, 100);
+    surface.validate();
+    surface.getLayout().layoutContainer(surface);
+    surface.updateScrolledAreaSize();
+    surface.layoutContent();
+
+    SceneView view = surface.getSceneManager().getSceneView();
+    SceneView secondaryView = surface.getSceneManager().getSecondarySceneView();
+    // SceneViews should stack horizontally
+    assertEquals(NlConstants.DEFAULT_SCREEN_OFFSET_X, view.getX());
+    assertEquals(NlConstants.DEFAULT_SCREEN_OFFSET_Y, view.getY());
+    assertEquals(view.getX() + view.getSize().width + NlConstants.SCREEN_DELTA, secondaryView.getX());
+    assertEquals(NlConstants.DEFAULT_SCREEN_OFFSET_Y, secondaryView.getY());
+  }
+
+  public void testLayoutVertically() {
+    NlModel model = model("absolute.xml",
+                          component(ABSOLUTE_LAYOUT)
+                            .withBounds(0, 0, 1000, 1000)
+                            .matchParentWidth()
+                            .matchParentHeight()).build();
+    NlDesignSurface surface = mySurface;
+
+    surface.setScreenMode(SceneMode.BOTH, false);
+
+    surface.setModel(model);
+    // The width is small so the SceneViews should stack vertically.
+    surface.setBounds(0, 0, 100, 1000);
+    surface.validate();
+    surface.getLayout().layoutContainer(surface);
+    surface.updateScrolledAreaSize();
+    surface.layoutContent();
+
+    SceneView view = surface.getSceneManager().getSceneView();
+    SceneView secondaryView = surface.getSceneManager().getSecondarySceneView();
+    // SceneViews should stack vertically
+    assertEquals(NlConstants.DEFAULT_SCREEN_OFFSET_X, view.getX());
+    assertEquals(NlConstants.DEFAULT_SCREEN_OFFSET_Y, view.getY());
+    assertEquals(NlConstants.DEFAULT_SCREEN_OFFSET_X, secondaryView.getX());
+    assertEquals(view.getY() + view.getSize().height + NlConstants.SCREEN_DELTA, secondaryView.getY());
   }
 }
