@@ -182,7 +182,7 @@ public class AndroidUtils {
                                                         @NotNull final VirtualFile file,
                                                         @NotNull final Class<T> aClass) {
     return getApplication().runReadAction((Computable<T>)() -> {
-      if (project.isDisposed()) return null;
+      if (project.isDisposed() || !file.isValid()) return null;
       PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
       if (psiFile instanceof XmlFile) {
         return loadDomElementWithReadPermission(project, (XmlFile)psiFile, aClass);
