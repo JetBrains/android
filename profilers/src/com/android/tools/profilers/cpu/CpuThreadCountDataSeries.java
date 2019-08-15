@@ -47,12 +47,14 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
   @Override
   public List<SeriesData<Long>> getDataForRange(Range rangeUs) {
     long minNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
+    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
 
     GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
       .setStreamId(myStreamId)
       .setPid(myPid)
       .setKind(Common.Event.Kind.CPU_THREAD)
-      // TODO(b/122110659): set from_timestamp and to_timestamp when GetEventGroups works as intended.
+      .setFromTimestamp(minNs)
+      .setToTimestamp(maxNs)
       .build();
     GetEventGroupsResponse response = myClient.getEventGroups(request);
 
