@@ -17,6 +17,8 @@ package com.android.tools.idea.templates
 
 import com.google.common.truth.Truth.assertWithMessage
 import java.io.File
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.memberFunctions
 
 open class TemplateTest : TemplateTestBase() {
   //--- Activity templates ---
@@ -648,9 +650,9 @@ open class TemplateTest : TemplateTestBase() {
 
     // The actual implementation of the test
     override fun testAllTemplatesCovered() {
-      javaClass.methods
-        .filter { it.getAnnotation(TemplateCheck::class.java) != null && it.name.startsWith("test") }
-        .forEach { it.invoke(this) }
+      this::class.memberFunctions
+        .filter { it.findAnnotation<TemplateCheck>() != null && it.name.startsWith("test") }
+        .forEach { it.call(this) }
       val manager = TemplateManager.getInstance()
 
       val failureMessages = sequence {
