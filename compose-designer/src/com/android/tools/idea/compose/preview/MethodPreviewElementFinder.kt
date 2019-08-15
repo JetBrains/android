@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parents
 import org.jetbrains.kotlin.idea.intentions.isMethodCall
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UClass
@@ -28,7 +34,6 @@ import org.jetbrains.uast.ULiteralExpression
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.getContainingUFile
 import org.jetbrains.uast.getContainingUMethod
-import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.resolveToUElement
 import org.jetbrains.uast.visitor.UastVisitor
 
@@ -90,6 +95,10 @@ private fun callExpressionToDataMap(call: UCallExpression, calledMethod: UMethod
  * one [PreviewElement] with name "Button Preview" will be returned.
  */
 object MethodPreviewElementFinder : PreviewElementFinder {
+  override fun hasPreviewMethods(project: Project, file: VirtualFile): Boolean =
+    PsiTreeUtil.findChildrenOfType(PsiManager.getInstance(project).findFile(file), KtImportDirective::class.java)
+      .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() }
+
   /**
    * If the given [UCallExpression] is a call to a Preview method, it returns the pointer to the Preview method definition or null
    * otherwise.
@@ -116,8 +125,12 @@ object MethodPreviewElementFinder : PreviewElementFinder {
       /**
        * Called when a Preview method call is found. The received node is guaranteed to be called "Preview"
        */
-      private fun visitPreviewMethodCall(composableMethodName: String, previewName: String, configuration: Map<String, Any>) =
+      private fun visitPreviewMethodCall(composableMethodName: String,
+                                         previewName: String,
+                                         textRange: TextRange?,
+                                         configuration: Map<String, Any>) =
         previewElements.add(PreviewElement(previewName, composableMethodName,
+                                           textRange ?: TextRange.EMPTY_RANGE,
                                            PreviewConfiguration(apiLevel = (configuration["apiLevel"] as? Int) ?: UNDEFINED_API_LEVEL,
                                                                 theme = (configuration["theme"] as? String),
                                                                 width = configuration["width"] as? Int ?: UNDEFINED_DIMENSION,
@@ -135,6 +148,7 @@ object MethodPreviewElementFinder : PreviewElementFinder {
           val parameters = callExpressionToDataMap(node, previewUMethod)
           visitPreviewMethodCall(composableMethodName,
                                  parameters["name"] as? String ?: "",
+                                 composableMethod.bodyTextRange(),
                                  parameters["configuration"] as? Map<String, Any> ?: emptyMap())
         }
 
