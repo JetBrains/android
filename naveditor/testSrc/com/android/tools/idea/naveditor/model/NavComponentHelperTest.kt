@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -24,11 +25,18 @@ import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavDestinationInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.command.WriteCommandAction
+import icons.StudioIcons.NavEditor.Properties.ACTION
+import icons.StudioIcons.NavEditor.Tree.ACTIVITY
+import icons.StudioIcons.NavEditor.Tree.FRAGMENT
+import icons.StudioIcons.NavEditor.Tree.INCLUDE_GRAPH
+import icons.StudioIcons.NavEditor.Tree.NESTED_GRAPH
+import icons.StudioIcons.NavEditor.Tree.PLACEHOLDER
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import javax.swing.Icon
 
 class NavComponentHelperTest {
 
@@ -376,5 +384,39 @@ class NavComponentHelperTest2 : NavTestCase() {
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_INCLUDE)
                                  .build())
     }
+  }
+
+  fun testIcon() {
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment2") {
+        fragment("fragment1", name = "myClass") {
+          action("action", destination = "fragment2")
+        }
+        fragment("fragment2")
+        activity("activity", name = "myClass2")
+        navigation("nav")
+        include("navigation")
+      }
+    }
+
+    testIcon(model, "fragment1", FRAGMENT)
+    testIcon(model, "fragment2", PLACEHOLDER)
+    testIcon(model, "activity", ACTIVITY)
+    testIcon(model, "action", ACTION)
+    testIcon(model, "nav", NESTED_GRAPH)
+
+    val root = model.find("root")!!
+    val include = root.children.first { it.isInclude }
+    testIcon(include, INCLUDE_GRAPH)
+  }
+
+  private fun testIcon(model: SyncNlModel, name: String, expected: Icon) {
+    val component = model.find(name)!!
+    testIcon(component, expected)
+  }
+
+  private fun testIcon(component: NlComponent, expected: Icon) {
+    val actual = component.mixin?.icon
+    assertEquals(expected, actual)
   }
 }
