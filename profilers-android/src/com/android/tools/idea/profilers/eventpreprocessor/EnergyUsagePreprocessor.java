@@ -91,8 +91,8 @@ public class EnergyUsagePreprocessor implements TransportEventPreprocessor {
         break;
       case CPU_USAGE:
         if (myCpuConfig == null) {
-          // CPU core config is required to calculate CPU energy usage.
-          break;
+          // CPU core config is required to calculate CPU energy usage. Use default values if we can't get them from the device.
+          myCpuConfig = new CpuConfig(Cpu.CpuCoreConfigData.getDefaultInstance(), myLogService);
         }
         if (myLastCpuUsageData != null) {
           myBatteryModel.handleEvent(event.getTimestamp(), BatteryModel.Event.CPU_USAGE,
