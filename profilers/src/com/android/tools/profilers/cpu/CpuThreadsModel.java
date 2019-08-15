@@ -101,7 +101,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
           .setStreamId(mySession.getStreamId())
           .setPid(mySession.getPid())
           .setKind(Common.Event.Kind.CPU_THREAD)
-          // TODO(b/122110659): set from_timestamp when GetEventGroups works as intended.
+          .setFromTimestamp(minNs)
           .setToTimestamp(maxNs)
           .build());
 

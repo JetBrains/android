@@ -54,14 +54,15 @@ public class CpuThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thr
   @Override
   public List<SeriesData<CpuProfilerStage.ThreadState>> getDataForRange(Range rangeUs) {
     List<SeriesData<CpuProfilerStage.ThreadState>> series = new ArrayList<>();
+    long minNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
     long maxNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
-    // Query from the beginning because we need the last state of the thread before range min.
     GetEventGroupsResponse response = myClient.getEventGroups(
       GetEventGroupsRequest.newBuilder()
         .setStreamId(myStreamId)
         .setPid(myPid)
         .setKind(Common.Event.Kind.CPU_THREAD)
         .setGroupId(myThreadId)
+        .setFromTimestamp(minNs)
         .setToTimestamp(maxNs)
         .build());
     // We don't expect more than one data group for the given group ID.
