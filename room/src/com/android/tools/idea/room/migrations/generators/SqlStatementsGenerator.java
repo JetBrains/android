@@ -17,6 +17,8 @@ package com.android.tools.idea.room.migrations.generators;
 
 import static com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer.*;
 
+import com.android.tools.idea.room.migrations.json.BundleUtil;
+import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
 import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
@@ -64,6 +66,14 @@ public class SqlStatementsGenerator {
 
     for (EntityBundle entityBundle : databaseUpdate.getDeletedEntities().values()) {
       updateStatements.add(getDropTableStatement(entityBundle.getTableName()));
+    }
+
+    for (DatabaseViewBundle view : databaseUpdate.getDeletedViews()) {
+      updateStatements.add(getDropViewStatement(view));
+    }
+
+    for (DatabaseViewBundle view : databaseUpdate.getNewOrModifiedViews()) {
+      updateStatements.add(getCreateViewStatement(view));
     }
 
     if (needsConstraintsCheck) {
@@ -356,6 +366,20 @@ public class SqlStatementsGenerator {
     statement.append(";");
 
     return statement.toString();
+  }
+
+  @NotNull
+  private static String getCreateViewStatement(@NotNull DatabaseViewBundle view) {
+    String statement = view.getCreateSql().replace(BundleUtil.VIEW_NAME_PLACEHOLDER, getValidName(view.getViewName()));
+    if (!statement.trim().endsWith(";")) {
+      statement += ";";
+    }
+    return statement;
+  }
+
+  @NotNull
+  private static String getDropViewStatement(@NotNull DatabaseViewBundle view) {
+    return String.format("DROP VIEW %s;", getValidName(view.getViewName()));
   }
 
   @NotNull
