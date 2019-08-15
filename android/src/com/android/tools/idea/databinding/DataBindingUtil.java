@@ -152,7 +152,7 @@ public final class DataBindingUtil {
   @Nullable
   private static String getViewClassName(@NotNull ViewIdInfo viewIdInfo, @NotNull AndroidFacet facet) {
     String viewName = viewIdInfo.getViewName();
-    if (viewName != null && viewName.indexOf('.') == -1) {
+    if (viewName.indexOf('.') == -1) {
       if (VIEW_PACKAGE_ELEMENTS.contains(viewName)) {
         return SdkConstants.VIEW_PKG_PREFIX + viewName;
       } else if (SdkConstants.WEB_VIEW.equals(viewName)) {
