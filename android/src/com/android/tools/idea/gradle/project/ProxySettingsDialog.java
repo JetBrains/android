@@ -146,13 +146,16 @@ public class ProxySettingsDialog extends DialogWrapper {
   public void applyProxySettings(@NotNull Properties properties) {
     ProxySettings httpProxySetting = createProxySettingsFromUI(HTTP_PROXY_TYPE, myHttpProxyHostTextField, myHttpProxyPortTextField,
                                                                myHttpProxyExceptions, myHttpProxyAuthCheckBox, myHttpProxyLoginTextField);
-
+    // Prevent clearing password if it is already defined
+    httpProxySetting.setPassword(properties.getProperty("systemProp.http.proxyPassword"));
     httpProxySetting.applyProxySettings(properties);
 
     if (myEnableHttpsProxyCheckBox.isSelected()) {
       ProxySettings httpsProxySettings = createProxySettingsFromUI(HTTPS_PROXY_TYPE, myHttpsProxyHostTextField, myHttpsProxyPortTextField,
                                                                    myHttpsProxyExceptions, myHttpsProxyAuthCheckBox,
                                                                    myHttpsProxyLoginTextField);
+      // Prevent clearing password if it is already defined
+      httpsProxySettings.setPassword(properties.getProperty("systemProp.https.proxyPassword"));
       httpsProxySettings.applyProxySettings(properties);
     }
   }

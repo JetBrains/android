@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
 import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.junit.Assert.assertTrue;
+
+import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Assert;
 
 public class UserGradlePropertiesUtil {
   /**
@@ -35,9 +37,13 @@ public class UserGradlePropertiesUtil {
     File backupFile = null;
     File userFile = getUserGradlePropertiesFile();
     if (userFile.exists()) {
-      File backup = getUserGradlePropertiesBackupFile();
-      assertTrue("Could not create backup of global gradle.properties", userFile.renameTo(backup));
-      backupFile = userFile;
+      backupFile = getUserGradlePropertiesBackupFile();
+      try {
+        Files.copy(userFile, backupFile);
+      }
+      catch (IOException e) {
+        Assert.fail("Could not generate a backup of global gradle.properties");
+      }
     }
     return backupFile;
   }

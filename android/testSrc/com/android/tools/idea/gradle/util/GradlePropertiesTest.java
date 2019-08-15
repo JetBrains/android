@@ -87,13 +87,13 @@ public class GradlePropertiesTest extends PlatformTestCase {
     assertEquals(host, gradleProxySetting.getHost());
     assertEquals(port, gradleProxySetting.getPort());
 
-    // Verify that username and password are removed from properties file, if authentication is disabled in IDE settings.
+    // Verify that username is removed but password not if authentication is disabled in IDE settings.
     ideSettings.PROXY_AUTHENTICATION = false;
 
     ideProxySettings = new ProxySettings(ideSettings);
     ideProxySettings.applyProxySettings(myProperties.getProperties());
 
     assertNull(myProperties.getProperty("systemProp.http.proxyUser"));
-    assertNull(myProperties.getProperty("systemProp.http.proxyPassword"));
+    assertEquals(password, myProperties.getProperty("systemProp.http.proxyPassword"));
   }
 }
