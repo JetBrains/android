@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
   com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
   com.android.tools.idea.rendering.RenderSecurityManagerTest.class,  // calls System.setSecurityManager
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
+  com.android.tools.idea.templates.TemplateTestBase.class, // This is a base class, does not contain actual tests
   com.android.tools.idea.templates.TemplateTest.CoverageChecker.class, // Inner class is used to test TemplateTest covers all templates
 
   // The following classes had failures when run in Bazel.
