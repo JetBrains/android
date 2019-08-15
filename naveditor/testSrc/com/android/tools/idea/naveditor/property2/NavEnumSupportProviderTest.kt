@@ -20,7 +20,6 @@ import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_START_DESTINATION
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property2.support.NavEnumSupportProvider
@@ -47,14 +46,14 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val action1 = model.find("action1")!!
     val values = getValues(AUTO_URI, ATTR_DESTINATION, NelePropertyType.DESTINATION, action1)
 
-    val expected = listOf("fragment3", "navigation1", "fragment2", "root", "fragment1")
-    assertContainsOrdered(values.map { it.display }, expected)
-    assertContainsOrdered(values.map { it.value }, expected.map { "@id/$it" })
+    val expected = listOf("", "fragment3", "navigation1", "fragment2", "root", "fragment1")
+    testDisplays(expected, values)
+    testValues(expected.map { if (it.isBlank()) null else "@id/$it" }, values)
   }
 
   fun testStartDestinations() {
     val model = model("nav.xml") {
-      NavModelBuilderUtil.navigation("root") {
+      navigation("root") {
         action("action1", "fragment1")
         fragment("fragment1")
         activity("activity1")
@@ -65,9 +64,9 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val root = model.find("root")!!
     val values = getValues(AUTO_URI, ATTR_START_DESTINATION, NelePropertyType.DESTINATION, root)
 
-    val expected = listOf("activity1", "fragment1", "navigation1")
-    assertContainsOrdered(values.map { it.display }, expected)
-    assertContainsOrdered(values.map { it.value }, expected.map { "@id/$it" })
+    val expected = listOf("", "activity1", "fragment1", "navigation1")
+    testDisplays(expected, values)
+    testValues(expected.map { if (it.isBlank()) null else "@id/$it" }, values)
   }
 
   fun testNames() {
@@ -76,7 +75,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     addFragment("fragment3")
 
     val model = model("nav.xml") {
-      NavModelBuilderUtil.navigation("root") {
+      navigation("root") {
         fragment("fragment1")
       }
     }
@@ -84,17 +83,33 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val fragment1 = model.find("fragment1")!!
     val values = getValues(ANDROID_URI, ATTR_NAME, NelePropertyType.CLASS_NAME, fragment1)
 
-    val expectedDisplays = listOf("BlankFragment (mytest.navtest)",
+    val expectedDisplays = listOf("",
+                                  "BlankFragment (mytest.navtest)",
                                   "fragment1 (mytest.navtest)",
                                   "fragment2 (mytest.navtest)",
                                   "fragment3 (mytest.navtest)")
-    assertContainsOrdered(values.map { it.display }, expectedDisplays)
 
-    val expectedValues = listOf("mytest.navtest.BlankFragment",
+    testDisplays(expectedDisplays, values)
+
+    val expectedValues = listOf(null,
+                                "mytest.navtest.BlankFragment",
                                 "mytest.navtest.fragment1",
                                 "mytest.navtest.fragment2",
                                 "mytest.navtest.fragment3")
-    assertContainsOrdered(values.map { it.value }, expectedValues)
+
+    testValues(expectedValues, values)
+  }
+
+  private fun testDisplays(expectedDisplays: List<String>, values: List<EnumValue>) {
+    expectedDisplays.forEachIndexed { i, expected ->
+      assertEquals(expected, values[i].display)
+    }
+  }
+
+  private fun testValues(expectedValues: List<String?>, values: List<EnumValue>) {
+    expectedValues.forEachIndexed { i, expected ->
+      assertEquals(expected, values[i].value)
+    }
   }
 
   private fun getValues(namespace: String, name: String, type: NelePropertyType, component: NlComponent): List<EnumValue> {

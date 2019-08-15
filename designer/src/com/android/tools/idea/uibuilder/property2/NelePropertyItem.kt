@@ -338,7 +338,7 @@ open class NelePropertyItem(
       return tags
     }
     if (type == NelePropertyType.ID) {
-      return IdEnumSupport(this).values.map { it.value }
+      return IdEnumSupport(this).values.mapNotNull { it.value }
     }
     val values = mutableListOf<String>()
     val attrDefinition = definition
