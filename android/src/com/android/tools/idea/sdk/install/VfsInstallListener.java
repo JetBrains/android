@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sdk.install;
 
+import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep.updateSdkIfNeeded;
+
 import com.android.annotations.NonNull;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
@@ -34,8 +36,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class VfsInstallListener implements PackageOperation.StatusChangeListener {
   @Override
-  public void statusChanged(@NonNull PackageOperation op, @NonNull ProgressIndicator progress)
-    throws PackageOperation.StatusChangeListenerException {
+  public void statusChanged(@NonNull PackageOperation op, @NonNull ProgressIndicator progress) {
     if (op.getInstallStatus().equals(PackageOperation.InstallStatus.COMPLETE)) {
       Task refreshTask = new Task.Backgroundable(null, "Refreshing...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
         @Override
@@ -63,8 +64,7 @@ public class VfsInstallListener implements PackageOperation.StatusChangeListener
     RefreshQueue.getInstance().refresh(true, false, () -> {
       AndroidSdks androidSdks = AndroidSdks.getInstance();
       for (Sdk sdk : androidSdks.getAllAndroidSdks()) {
-        androidSdks.refreshLibrariesIn(sdk);
-        androidSdks.refreshDocsIn(sdk);
+        updateSdkIfNeeded(sdk, androidSdks);
       }
     });
   }
