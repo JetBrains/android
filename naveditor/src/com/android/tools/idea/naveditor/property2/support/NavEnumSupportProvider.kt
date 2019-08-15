@@ -33,6 +33,8 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
 import org.jetbrains.android.dom.navigation.isInProject
 
+private val emptyList = listOf(EnumValue.EMPTY)
+
 class NavEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
   override fun invoke(actual: NelePropertyItem): EnumSupport? {
     val property = actual.delegate ?: actual
@@ -62,7 +64,7 @@ class NavEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
       else -> return null
     }
 
-    return EnumSupport.simple(values)
+    return EnumSupport.simple(emptyList.plus(values))
   }
 
   companion object {
