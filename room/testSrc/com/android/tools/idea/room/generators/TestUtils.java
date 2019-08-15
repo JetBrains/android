@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 public class TestUtils {
   @NotNull
   public static DatabaseBundle createDatabaseBundle(int version, @NotNull List<EntityBundle> entities) {
-    return new DatabaseBundle(version, "", entities, null, null);
+    return new DatabaseBundle(version, "", entities, Collections.emptyList(), null);
   }
 
   @NotNull

@@ -21,6 +21,7 @@ import static com.android.tools.idea.room.generators.TestUtils.createFieldBundle
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
+import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
 import com.android.tools.idea.room.migrations.generators.SqlStatementsGenerator;
@@ -496,5 +497,65 @@ public class SqlStatementsGeneratorTest {
         "DROP TABLE `table`;",
         "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;",
         "CREATE INDEX index_table_column1 ON `table` (column1);").inOrder();
+  }
+
+  @Test
+  public void dropView() {
+    DatabaseViewBundle view = new DatabaseViewBundle(
+      "viewName",
+      "CREATE VIEW ${VIEW_NAME} as\n" +
+      "SELECT column1, column2, column3\n" +
+      "FROM myTable;");
+
+    DatabaseBundle db1 = new DatabaseBundle(1, "", Collections.emptyList(), Collections.singletonList(view), Collections.emptyList());
+    DatabaseBundle db2 = new DatabaseBundle(2, "", Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+
+    DatabaseUpdate databaseUpdate = new DatabaseUpdate(db1, db2);
+
+    assertThat(SqlStatementsGenerator.getMigrationStatements(databaseUpdate)).containsExactly("DROP VIEW viewName;");
+  }
+
+  @Test
+  public void addView() {
+    DatabaseViewBundle view = new DatabaseViewBundle(
+      "viewName",
+      "CREATE VIEW ${VIEW_NAME} as\n" +
+      "SELECT column1, column2, column3\n" +
+      "FROM myTable;");
+
+    DatabaseBundle db1 = new DatabaseBundle(1, "", Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+    DatabaseBundle db2 = new DatabaseBundle(2, "", Collections.emptyList(), Collections.singletonList(view), Collections.emptyList());
+
+    DatabaseUpdate databaseUpdate = new DatabaseUpdate(db1, db2);
+
+    assertThat(SqlStatementsGenerator.getMigrationStatements(databaseUpdate)).containsExactly(
+      "CREATE VIEW viewName as\n" +
+      "SELECT column1, column2, column3\n" +
+      "FROM myTable;");
+  }
+
+  @Test
+  public void modifyView() {
+    DatabaseViewBundle view1 = new DatabaseViewBundle(
+      "viewName",
+      "CREATE VIEW ${VIEW_NAME} as\n" +
+      "SELECT column1, column2, column3\n" +
+      "FROM myTable;");
+    DatabaseViewBundle view2 = new DatabaseViewBundle(
+      "viewName",
+      "CREATE VIEW ${VIEW_NAME} as\n" +
+      "SELECT column1, column2\n" +
+      "FROM myTable;");
+
+    DatabaseBundle db1 = new DatabaseBundle(1, "", Collections.emptyList(), Collections.singletonList(view1), Collections.emptyList());
+    DatabaseBundle db2 = new DatabaseBundle(2, "", Collections.emptyList(), Collections.singletonList(view2), Collections.emptyList());
+
+    DatabaseUpdate databaseUpdate = new DatabaseUpdate(db1, db2);
+
+    assertThat(SqlStatementsGenerator.getMigrationStatements(databaseUpdate)).containsExactly(
+      "DROP VIEW viewName;",
+      "CREATE VIEW viewName as\n" +
+      "SELECT column1, column2\n" +
+      "FROM myTable;").inOrder();
   }
 }
