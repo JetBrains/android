@@ -61,6 +61,8 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import icons.StudioIcons
+import javax.swing.Icon
 
 /*
  * Layout editor-specific helper methods and data for NlComponent
@@ -584,6 +586,12 @@ class NlComponentMixin(component: NlComponent)
   override fun postCreateFromTransferrable(dndComponent: DnDTransferComponent) {
     component.w = dndComponent.width
     component.h = dndComponent.height
+  }
+
+  override fun getIcon(): Icon {
+    val manager = ViewHandlerManager.get(component.model.project)
+    val handler = manager.getHandler(component) ?: return StudioIcons.LayoutEditor.Palette.VIEW
+    return handler.getIcon(component)
   }
 }
 

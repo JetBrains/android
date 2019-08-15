@@ -137,19 +137,13 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
         if (NavComponentHelperKt.isStartDestination(component)) {
           append(" - Start", SimpleTextAttributes.GRAY_ATTRIBUTES);
         }
+
         Icon icon = FRAGMENT;
-        if (NavComponentHelperKt.isInclude(component)) {
-          icon = INCLUDE_GRAPH;
+        NlComponent.XmlModelComponentMixin mixin = component.getMixin();
+        if(mixin != null) {
+          icon = mixin.getIcon();
         }
-        else if (NavComponentHelperKt.isNavigation(component)) {
-          icon = NESTED_GRAPH;
-        }
-        else if (NavComponentHelperKt.getClassName(component) == null) {
-          icon = PLACEHOLDER;
-        }
-        else if (NavComponentHelperKt.isActivity(component)) {
-          icon = ACTIVITY;
-        }
+
         if (isSelected && list.hasFocus()) {
           icon = WHITE_ICONS.get(icon);
         }
