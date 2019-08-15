@@ -19,7 +19,6 @@ import com.android.tools.idea.databinding.BrUtil
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.collect.ImmutableSet
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
@@ -79,13 +78,9 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
         override fun doCompute(): Array<PsiField> {
           val project = facet.module.project
           val elementFactory = PsiElementFactory.getInstance(project)
-          val moduleResources = ResourceRepositoryManager.getInstance(facet).existingModuleResources ?: return defaultValue()
-          val groups = moduleResources.bindingLayoutGroups
-          if (groups.isEmpty()) {
-            return defaultValue()
-          }
+          val groups = ModuleDataBinding.getInstance(facet).bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return defaultValue()
 
-          val variableNamesSet = groups.values
+          val variableNamesSet = groups
             .flatMap { group -> group.layouts }
             .flatMap { layout -> layout.data.variables }
             .map { variable -> variable.name }
