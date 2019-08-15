@@ -31,7 +31,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -124,6 +126,18 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
                            pathToIdeaUrl(new File(model.getBuildFolderPath(), join("classes", "kotlin", "test"))),
                            pathToIdeaUrl(new File(model.getBuildFolderPath(), join("classes", "kotlin", "main")))
     );
+  }
+
+  public void testAndroidModulesRecursiveAndJavaModulesNot() throws Exception {
+    loadProject(PSD_SAMPLE);
+
+    Module appModule = getModule("app");
+    Module libModule = getModule("jav");
+
+    OrderEnumerationHandler appHandler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(appModule);
+    assertTrue(appHandler.shouldProcessDependenciesRecursively());
+    OrderEnumerationHandler libHandler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(libModule);
+    assertFalse(libHandler.shouldProcessDependenciesRecursively());
   }
 
   private static List<String> getAmendedPaths(@NotNull Module module, boolean includeTests) {
