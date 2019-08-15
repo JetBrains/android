@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
+import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -960,5 +961,8 @@ public class NlComponent implements NlAttributesHolder {
     public void postCreateFromTransferrable(DnDTransferComponent dndComponent) {}
 
     public abstract boolean maybeHandleDeletion(@NotNull Collection<NlComponent> children);
+
+    @NotNull
+    public abstract Icon getIcon();
   }
 }

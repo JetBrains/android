@@ -29,7 +29,6 @@ import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.NAVIGATION_PREFIX
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.SdkConstants.TOOLS_URI
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.BooleanAttributeDelegate
 import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
@@ -40,6 +39,7 @@ import com.android.tools.idea.naveditor.analytics.MetricsLoggingAttributeDelegat
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.uibuilder.model.createChild
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -55,6 +55,12 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
+import icons.StudioIcons.NavEditor.Properties.ACTION
+import icons.StudioIcons.NavEditor.Tree.ACTIVITY
+import icons.StudioIcons.NavEditor.Tree.FRAGMENT
+import icons.StudioIcons.NavEditor.Tree.INCLUDE_GRAPH
+import icons.StudioIcons.NavEditor.Tree.NESTED_GRAPH
+import icons.StudioIcons.NavEditor.Tree.PLACEHOLDER
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.navigation.DeeplinkElement
 import org.jetbrains.android.dom.navigation.NavActionElement
@@ -74,7 +80,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.get
 import java.io.File
-import java.util.ArrayList
+import javax.swing.Icon
 import kotlin.streams.toList
 
 private const val ADD_NESTED_COMMAND_NAME = "Add to Nested Graph"
@@ -557,6 +563,17 @@ class NavComponentMixin(component: NlComponent)
   }
 
   override fun getTooltipText() = if (component.isAction) component.id else null
+
+  override fun getIcon(): Icon {
+    return when {
+      component.isInclude -> INCLUDE_GRAPH
+      component.isNavigation -> NESTED_GRAPH
+      component.isAction -> ACTION
+      component.className == null -> PLACEHOLDER
+      component.isActivity -> ACTIVITY
+      else -> FRAGMENT
+    }
+  }
 }
 
 object NavComponentHelper {
