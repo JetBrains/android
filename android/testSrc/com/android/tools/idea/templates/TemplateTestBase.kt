@@ -71,8 +71,6 @@ open class TemplateTestBase : AndroidGradleTestCase() {
    */
   private var usageTracker: TestUsageTracker? = null
 
-  fun testSilenceNoTestsWarning() {}
-
   override fun createDefaultProject(): Boolean {
     // We'll be creating projects manually except for the following tests
     val testName: String = name
@@ -356,11 +354,9 @@ open class TemplateTestBase : AndroidGradleTestCase() {
         setAndroidSupport(true, moduleState, activityState)
       }
     }
-    var language = Language.JAVA
-    // TODO(qumeric) implicit dependency on test name. Easy to miss.
-    if (getTestName(false).endsWith("WithKotlin")) {
-      language = Language.KOTLIN
-    }
+
+    val language = Language.fromName(moduleState[ATTR_LANGUAGE] as String?, Language.JAVA)
+
     val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker!!, language)
     if (moduleState.get(ATTR_ANDROIDX_SUPPORT) != true) {
       // Make sure we test all templates against androidx
@@ -385,7 +381,6 @@ open class TemplateTestBase : AndroidGradleTestCase() {
       projectChecker.checkProjectNow(projectName + "_lib")
     }
   }
-
 
   @MustBeDocumented
   @Retention(AnnotationRetention.RUNTIME)
@@ -443,3 +438,4 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     internal const val ATTR_CREATE_ACTIVITY = "createActivity"
   }
 }
+
