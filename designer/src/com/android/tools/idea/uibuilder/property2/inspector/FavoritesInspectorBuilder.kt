@@ -117,7 +117,7 @@ class FavoritesInspectorBuilder(
   }
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    if (!InspectorSection.FAVORITES.visible) {
+    if (properties.isEmpty || !InspectorSection.FAVORITES.visible) {
       return
     }
     val favorites = loadFavoritePropertiesIfNeeded()
