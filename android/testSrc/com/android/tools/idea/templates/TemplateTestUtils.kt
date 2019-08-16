@@ -214,9 +214,15 @@ private const val nonAsciiChars = "你所有的基地都属于我们"
 internal fun getModifiedProjectName(projectName: String, activityState: TestTemplateWizardState?): String = when {
   SystemInfo.isWindows -> "app"
   // Bug 137161906
-  projectName.startsWith("BasicActivity") && activityState != null &&
+  usesSafeArgs(projectName) && activityState != null &&
   Language.KOTLIN.toString() == activityState.getString(ATTR_LANGUAGE) -> projectName
   else -> "$projectName$specialChars,$nonAsciiChars"
+}
+
+private fun usesSafeArgs(projectName: String): Boolean {
+  return projectName.startsWith("BasicActivity") ||
+    projectName.startsWith("NavigationDrawerActivity") ||
+    projectName.startsWith("BottomNavigationActivity")
 }
 
 /**
