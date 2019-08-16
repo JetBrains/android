@@ -38,7 +38,8 @@
 
     <lang.parserDefinition language="PROGUARD_R8"
                            implementationClass="com.android.tools.idea.lang.proguardR8.parser.ProguardR8ParserDefinition"/>
-
+    <lang.syntaxHighlighterFactory language="PROGUARD_R8"
+                                   implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8SyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory language="PROGUARD"
                                    implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory"/>
     <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter"/>
