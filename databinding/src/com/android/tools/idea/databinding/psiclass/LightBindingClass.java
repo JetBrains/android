@@ -22,7 +22,7 @@ import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 import com.android.SdkConstants;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
-import com.android.tools.idea.databinding.index.ViewIdInfo;
+import com.android.tools.idea.databinding.index.ViewIdData;
 import com.android.tools.idea.res.BindingLayoutData;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.google.common.collect.ImmutableSet;
@@ -143,7 +143,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   private PsiField[] computeFields() {
-    List<ViewIdInfo> viewIds = myConfig.getViewIds();
+    List<ViewIdData> viewIds = myConfig.getViewIds();
     if (viewIds.isEmpty()) {
       return PsiField.EMPTY_ARRAY;
     }
@@ -385,15 +385,15 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   @Nullable
-  private PsiField createPsiField(@NotNull ViewIdInfo idInfo) {
-    String name = DataBindingUtil.convertToJavaFieldName(idInfo.getId());
-    PsiType type = DataBindingUtil.resolveViewPsiType(idInfo, myConfig.getFacet());
+  private PsiField createPsiField(@NotNull ViewIdData viewIdData) {
+    String name = DataBindingUtil.convertToJavaFieldName(viewIdData.getId());
+    PsiType type = DataBindingUtil.resolveViewPsiType(viewIdData, myConfig.getFacet());
     if (type == null) {
       return null;
     }
     LightFieldBuilder field = new LightFieldBuilder(PsiManager.getInstance(getProject()), name, type);
     field.setModifiers("public", "final");
-    return new LightDataBindingField(myConfig.getTargetLayout(), idInfo, getManager(), field, this);
+    return new LightDataBindingField(myConfig.getTargetLayout(), viewIdData, getManager(), field, this);
   }
 
   @Override
@@ -462,19 +462,19 @@ public class LightBindingClass extends AndroidLightClassBase {
    */
   public static class LightDataBindingField extends LightField {
     private final BindingLayoutInfo myLayoutInfo;
-    private final ViewIdInfo myViewIdInfo;
+    private final ViewIdData myViewIdData;
 
     private final CachedValue<XmlTag> tagCache = CachedValuesManager.getManager(getProject())
       .createCachedValue(() -> CachedValueProvider.Result.create(computeTag(), PsiModificationTracker.MODIFICATION_COUNT));
 
     public LightDataBindingField(@NotNull BindingLayoutInfo layoutInfo,
-                                 @NotNull ViewIdInfo viewIdInfo,
+                                 @NotNull ViewIdData viewIdData,
                                  @NotNull PsiManager manager,
                                  @NotNull PsiField field,
                                  @NotNull PsiClass containingClass) {
       super(manager, field, containingClass);
       myLayoutInfo = layoutInfo;
-      myViewIdInfo = viewIdInfo;
+      myViewIdData = viewIdData;
     }
 
     @Nullable
@@ -490,7 +490,7 @@ public class LightBindingClass extends AndroidLightClassBase {
         public void visitXmlTag(XmlTag tag) {
           super.visitXmlTag(tag);
           String idValue = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
-          if (idValue != null && myViewIdInfo.getId().equals(stripPrefixFromId(idValue))) {
+          if (idValue != null && myViewIdData.getId().equals(stripPrefixFromId(idValue))) {
             resultTag.set(tag);
             stopWalking();
           }
