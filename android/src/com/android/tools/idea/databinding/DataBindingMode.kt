@@ -59,6 +59,21 @@ enum class DataBindingMode constructor(
   @JvmField
   val bindingMethods: String,
   /**
+   * The qualified name for the InverseBindingAdapter annotation
+   */
+  @JvmField
+  val inverseBindingAdapter: String,
+  /**
+   * The qualified name for the InverseBindingMethod annotation
+   */
+  @JvmField
+  val inverseBindingMethod: String,
+  /**
+   * The qualified name for the InverseBindingMethods annotation
+   */
+  @JvmField
+  val inverseBindingMethods: String,
+  /**
    * The qualified name for the LiveData class
    */
   @JvmField
@@ -73,7 +88,7 @@ enum class DataBindingMode constructor(
   /**
    * Project does not use data binding
    */
-  NONE("", "", "", "", "", "", "", "", arrayOf()),
+  NONE("", "", "", "", "", "", "", "", "", "", "", arrayOf()),
   /**
    * Project uses data binding in the androidx namespace
    */
@@ -85,6 +100,9 @@ enum class DataBindingMode constructor(
     SdkConstants.CLASS_DATA_BINDING_BASE_BINDING.newName(),
     SdkConstants.BINDING_ADAPTER_ANNOTATION.newName(),
     SdkConstants.BINDING_METHODS_ANNOTATION.newName(),
+    SdkConstants.INVERSE_BINDING_ADAPTER_ANNOTATION.newName(),
+    SdkConstants.INVERSE_BINDING_METHOD_ANNOTATION.newName(),
+    SdkConstants.INVERSE_BINDING_METHODS_ANNOTATION.newName(),
     SdkConstants.CLASS_LIVE_DATA.newName(),
     arrayOf(SdkConstants.CLASS_OBSERVABLE_BOOLEAN.newName(),
             SdkConstants.CLASS_OBSERVABLE_BYTE.newName(),
@@ -107,6 +125,9 @@ enum class DataBindingMode constructor(
     SdkConstants.CLASS_DATA_BINDING_BASE_BINDING.oldName(),
     SdkConstants.BINDING_ADAPTER_ANNOTATION.oldName(),
     SdkConstants.BINDING_METHODS_ANNOTATION.oldName(),
+    SdkConstants.INVERSE_BINDING_ADAPTER_ANNOTATION.oldName(),
+    SdkConstants.INVERSE_BINDING_METHOD_ANNOTATION.oldName(),
+    SdkConstants.INVERSE_BINDING_METHODS_ANNOTATION.oldName(),
     SdkConstants.CLASS_LIVE_DATA.oldName(),
     arrayOf(SdkConstants.CLASS_OBSERVABLE_BOOLEAN.oldName(),
             SdkConstants.CLASS_OBSERVABLE_BYTE.oldName(),
