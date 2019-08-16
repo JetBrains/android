@@ -104,7 +104,8 @@ public class CommandLineArgs {
       // Example of version to pass: 2.4.0.6
       args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, myApplicationInfo.getStrictVersion()));
     }
-    // Skip download of source and javadoc jars during Gradle sync, this flag has no effect on AGP prior to 3.5.
+    // Skip download of source and javadoc jars during Gradle sync, this flag only has effect on AGP 3.5.
+    //noinspection deprecation AGP 3.6 and above do not download sources at all.
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD, true));
 
     if (project != null) {
