@@ -77,17 +77,17 @@ class BindingXmlIndexTest {
 
     assertThat(map).hasSize(1)
 
-    val layout = map.values.first()
-    assertThat(layout.layoutType).isEqualTo(BindingLayoutType.DATA_BINDING_LAYOUT)
-    assertThat(layout.customBindingName).isEqualTo("a.b.c.CustomBinding")
-    assertThat(layout.imports).containsExactly(ImportInfo("C", null), ImportInfo("Map<D>", "Dee"))
-    assertThat(layout.variables).containsExactly(
-      VariableInfo("ex1", "A"),
-      VariableInfo("ex2", "B"),
-      VariableInfo("ex3", "List<E>"))
-    assertThat(layout.viewIds).isEmpty()
+    val data = map.values.first()
+    assertThat(data.layoutType).isEqualTo(BindingLayoutType.DATA_BINDING_LAYOUT)
+    assertThat(data.customBindingName).isEqualTo("a.b.c.CustomBinding")
+    assertThat(data.imports).containsExactly(ImportData("C", null), ImportData("Map<D>", "Dee"))
+    assertThat(data.variables).containsExactly(
+      VariableData("ex1", "A"),
+      VariableData("ex2", "B"),
+      VariableData("ex3", "List<E>"))
+    assertThat(data.viewIds).isEmpty()
 
-    verifySerializationLogic(bindingXmlIndex.valueExternalizer, layout)
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
   }
 
   @Test
@@ -100,14 +100,14 @@ class BindingXmlIndexTest {
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
-    val layout = map.values.first()
-    assertThat(layout.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
-    assertThat(layout.customBindingName).isNull()
-    assertThat(layout.imports).isEmpty()
-    assertThat(layout.variables).isEmpty()
-    assertThat(layout.viewIds).containsExactly(ViewIdInfo("testId2", "TextView", null))
+    val data = map.values.first()
+    assertThat(data.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
+    assertThat(data.customBindingName).isNull()
+    assertThat(data.imports).isEmpty()
+    assertThat(data.variables).isEmpty()
+    assertThat(data.viewIds).containsExactly(ViewIdData("testId2", "TextView", null))
 
-    verifySerializationLogic(bindingXmlIndex.valueExternalizer, layout)
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
   }
 
   @Test
@@ -125,17 +125,17 @@ class BindingXmlIndexTest {
     val bindingXmlIndex = BindingXmlIndex()
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
-    val layout = map.values.first()
-    assertThat(layout.viewIds.toList()).containsExactly(
-      ViewIdInfo("testId2", "TextView", null),
-      ViewIdInfo("testId3", "TextView", null),
-      ViewIdInfo("testId1", "TextView", null),
-      ViewIdInfo("testId4", "com.example.class", null),
-      ViewIdInfo("testId5", "include", "this_other_layout"),
-      ViewIdInfo("testId6", "merge", "this_other_layout")
+    val data = map.values.first()
+    assertThat(data.viewIds.toList()).containsExactly(
+      ViewIdData("testId2", "TextView", null),
+      ViewIdData("testId3", "TextView", null),
+      ViewIdData("testId1", "TextView", null),
+      ViewIdData("testId4", "com.example.class", null),
+      ViewIdData("testId5", "include", "this_other_layout"),
+      ViewIdData("testId6", "merge", "this_other_layout")
     ).inOrder()
 
-    verifySerializationLogic(bindingXmlIndex.valueExternalizer, layout)
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
   }
 
   @Test
@@ -161,7 +161,7 @@ class BindingXmlIndexTest {
       xml = """android:id="@+id/root_view" """
     )
     assertIndexedIds(
-      ViewIdInfo("root_view", "LinearLayout", null)
+      ViewIdData("root_view", "LinearLayout", null)
     )
   }
 
@@ -181,7 +181,7 @@ class BindingXmlIndexTest {
       """.trimIndent()
     )
     assertIndexedIds(
-      ViewIdInfo("root_view", "LinearLayout", null)
+      ViewIdData("root_view", "LinearLayout", null)
     )
     val idAttr = findChild {
       (it is XmlAttribute) && it.localName == "id"
@@ -206,7 +206,7 @@ class BindingXmlIndexTest {
       """.trimIndent()
     )
     assertIndexedIds(
-      ViewIdInfo("root_view", "LinearLayout", null)
+      ViewIdData("root_view", "LinearLayout", null)
     )
     val idAttr = findChild {
       (it is XmlAttribute) && it.localName == "id"
@@ -216,7 +216,7 @@ class BindingXmlIndexTest {
       xml = "@+id/new_id"
     )
     assertIndexedIds(
-      ViewIdInfo("new_id", "LinearLayout", null)
+      ViewIdData("new_id", "LinearLayout", null)
     )
   }
 
@@ -243,7 +243,7 @@ class BindingXmlIndexTest {
       xml = "<TextView"
     )
     assertIndexedIds(
-      ViewIdInfo("root_view", "TextView", null)
+      ViewIdData("root_view", "TextView", null)
     )
   }
 
@@ -263,7 +263,7 @@ class BindingXmlIndexTest {
       """.trimIndent()
     )
     assertIndexedIds(
-      ViewIdInfo("root_view", "LinearLayout", null)
+      ViewIdData("root_view", "LinearLayout", null)
     )
     val linearLayout = findChild {
       (it is XmlTag) && it.localName == "LinearLayout"
@@ -280,8 +280,8 @@ class BindingXmlIndexTest {
         """.trimIndent()
     )
     assertIndexedIds(
-      ViewIdInfo("root_view", "LinearLayout", null),
-      ViewIdInfo("view2", "TextView", null)
+      ViewIdData("root_view", "LinearLayout", null),
+      ViewIdData("view2", "TextView", null)
     )
   }
 
@@ -301,7 +301,7 @@ class BindingXmlIndexTest {
       """.trimIndent()
     )
     assertIndexedIds(
-      ViewIdInfo("root_view", "LinearLayout", null)
+      ViewIdData("root_view", "LinearLayout", null)
     )
     val orientationAttr = findChild {
       (it is XmlAttribute) && it.localName == "orientation"
@@ -311,7 +311,7 @@ class BindingXmlIndexTest {
       xml = "horizontal"
     )
     assertIndexedIds(
-      ViewIdInfo("root_view", "LinearLayout", null)
+      ViewIdData("root_view", "LinearLayout", null)
     )
   }
 
@@ -331,7 +331,7 @@ class BindingXmlIndexTest {
       """.trimIndent()
     )
     assertIndexedIds(
-      ViewIdInfo("root_view", "LinearLayout", null)
+      ViewIdData("root_view", "LinearLayout", null)
     )
     val linearLayout = findChild {
       (it is XmlTag) && it.localName == "LinearLayout"
@@ -347,7 +347,7 @@ class BindingXmlIndexTest {
         """.trimIndent()
     )
     assertIndexedIds(
-      ViewIdInfo("root_view", "LinearLayout", null)
+      ViewIdData("root_view", "LinearLayout", null)
     )
   }
 
@@ -355,11 +355,11 @@ class BindingXmlIndexTest {
    * asserts all views with viewIds.
    * Pairs are variable name to view type
    */
-  private fun assertIndexedIds(vararg expected: ViewIdInfo) {
+  private fun assertIndexedIds(vararg expected: ViewIdData) {
     val indexedIds = FileBasedIndex.getInstance()
       .getValues(BindingXmlIndex.NAME, BindingXmlIndex.getKeyForFile(psiFile.virtualFile),
                  GlobalSearchScope.fileScope(psiFile))
-      .flatMap(IndexedLayoutInfo::viewIds)
+      .flatMap(BindingXmlData::viewIds)
       .toSet()
 
     assertThat(indexedIds).isEqualTo(expected.toSet())
@@ -407,12 +407,12 @@ class BindingXmlIndexTest {
     UIUtil.dispatchAllInvocationEvents()
   }
 
-  private fun verifySerializationLogic(valueExternalizer: DataExternalizer<IndexedLayoutInfo>, layout: IndexedLayoutInfo) {
+  private fun verifySerializationLogic(valueExternalizer: DataExternalizer<BindingXmlData>, data: BindingXmlData) {
     val bytesOut = ByteArrayOutputStream()
-    DataOutputStream(bytesOut).use { valueExternalizer.save(it, layout) }
+    DataOutputStream(bytesOut).use { valueExternalizer.save(it, data) }
 
     val bytesIn = ByteArrayInputStream(bytesOut.toByteArray())
-    val layoutCopy = DataInputStream(bytesIn).use { valueExternalizer.read(it) }
-    assertThat(layoutCopy).isEqualTo(layout)
+    val dataCopy = DataInputStream(bytesIn).use { valueExternalizer.read(it) }
+    assertThat(dataCopy).isEqualTo(data)
   }
 }

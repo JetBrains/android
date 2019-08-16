@@ -47,10 +47,10 @@ import java.io.Reader
 /**
  * File based index for data binding layout xml files.
  */
-class BindingXmlIndex : FileBasedIndexExtension<String, IndexedLayoutInfo>() {
+class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
   companion object {
     @JvmField
-    val NAME = ID.create<String, IndexedLayoutInfo>("BindingXmlIndex")
+    val NAME = ID.create<String, BindingXmlData>("BindingXmlIndex")
 
     @JvmStatic
     fun getKeyForFile(file: VirtualFile) = FileBasedIndex.getFileId(file).toString()
@@ -65,9 +65,9 @@ class BindingXmlIndex : FileBasedIndexExtension<String, IndexedLayoutInfo>() {
   /**
    * Defines the data externalizer handling the serialization/de-serialization of indexed information.
    */
-  override fun getValueExternalizer(): DataExternalizer<IndexedLayoutInfo> {
-    return object : DataExternalizer<IndexedLayoutInfo> {
-      override fun save(out: DataOutput, value: IndexedLayoutInfo?) {
+  override fun getValueExternalizer(): DataExternalizer<BindingXmlData> {
+    return object : DataExternalizer<BindingXmlData> {
+      override fun save(out: DataOutput, value: BindingXmlData?) {
         value ?: return
         writeINT(out, value.layoutType.ordinal)
         IOUtil.writeUTF(out, value.customBindingName ?: "")
@@ -85,49 +85,49 @@ class BindingXmlIndex : FileBasedIndexExtension<String, IndexedLayoutInfo>() {
         }
 
         writeINT(out, value.viewIds.size)
-        for (idInfo in value.viewIds) {
-          IOUtil.writeUTF(out, idInfo.id)
-          IOUtil.writeUTF(out, idInfo.viewName)
-          IOUtil.writeUTF(out, idInfo.layoutName ?: "")
+        for (viewId in value.viewIds) {
+          IOUtil.writeUTF(out, viewId.id)
+          IOUtil.writeUTF(out, viewId.viewName)
+          IOUtil.writeUTF(out, viewId.layoutName ?: "")
         }
       }
 
-      override fun read(`in`: DataInput): IndexedLayoutInfo {
+      override fun read(`in`: DataInput): BindingXmlData {
         val layoutType = BindingLayoutType.values()[readINT(`in`)]
         val customBindingName = IOUtil.readUTF(`in`).ifEmpty { null }
 
-        val imports = mutableListOf<ImportInfo>()
+        val imports = mutableListOf<ImportData>()
         for (i in 0 until readINT(`in`)) {
-          imports.add(ImportInfo(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`).ifEmpty { null }))
+          imports.add(ImportData(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`).ifEmpty { null }))
         }
-        val variables = mutableListOf<VariableInfo>()
+        val variables = mutableListOf<VariableData>()
         for (i in 0 until readINT(`in`)) {
-          variables.add(VariableInfo(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`)))
+          variables.add(VariableData(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`)))
         }
 
-        val viewIds = mutableListOf<ViewIdInfo>()
+        val viewIds = mutableListOf<ViewIdData>()
         for (i in 1..readINT(`in`)) {
-          viewIds.add(ViewIdInfo(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`),
+          viewIds.add(ViewIdData(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`),
                                  IOUtil.readUTF(`in`).ifEmpty { null }))
         }
-        return IndexedLayoutInfo(layoutType, customBindingName, imports, variables, viewIds)
+        return BindingXmlData(layoutType, customBindingName, imports, variables, viewIds)
       }
     }
   }
 
-  override fun getName(): ID<String, IndexedLayoutInfo> {
+  override fun getName(): ID<String, BindingXmlData> {
     return NAME
   }
 
-  override fun getIndexer(): DataIndexer<String, IndexedLayoutInfo, FileContent> {
+  override fun getIndexer(): DataIndexer<String, BindingXmlData, FileContent> {
     return DataIndexer { inputData ->
       var isDataBindingLayout = false
       var customBindingName: String? = null
-      val variables = mutableListOf<VariableInfo>()
-      val imports = mutableListOf<ImportInfo>()
-      val viewIds = mutableListOf<ViewIdInfo>()
+      val variables = mutableListOf<VariableData>()
+      val imports = mutableListOf<ImportData>()
+      val viewIds = mutableListOf<ViewIdData>()
 
-      class TagInfo(val name: String) {
+      class TagData(val name: String) {
         var importType: String? = null
         var importAlias: String? = null
 
@@ -140,10 +140,10 @@ class BindingXmlIndex : FileBasedIndexExtension<String, IndexedLayoutInfo>() {
       }
 
       NanoXmlUtil.parse(EscapingXmlReader(inputData.contentAsText), object : NanoXmlBuilder {
-        var currTag: TagInfo? = null
+        var currTag: TagData? = null
 
         override fun startElement(name: String, nsPrefix: String?, nsURI: String?, systemID: String, lineNr: Int) {
-          currTag = TagInfo(name)
+          currTag = TagData(name)
           if (name == TAG_LAYOUT) {
             isDataBindingLayout = true
           }
@@ -191,12 +191,12 @@ class BindingXmlIndex : FileBasedIndexExtension<String, IndexedLayoutInfo>() {
 
             SdkConstants.TAG_IMPORT ->
               if (currTag.importType != null) {
-                imports.add(ImportInfo(currTag.importType!!, currTag.importAlias))
+                imports.add(ImportData(currTag.importType!!, currTag.importAlias))
               }
 
             SdkConstants.TAG_VARIABLE ->
               if (currTag.variableName != null && currTag.variableType != null) {
-                variables.add(VariableInfo(currTag.variableName!!, currTag.variableType!!))
+                variables.add(VariableData(currTag.variableName!!, currTag.variableType!!))
               }
 
             else ->
@@ -205,7 +205,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, IndexedLayoutInfo>() {
                 // OR the special-case <view class="path.to.CustomView"/>
                 val viewName = if (currTag.name != SdkConstants.VIEW_TAG) currTag.name else currTag.viewClass
                 if (viewName != null) {
-                  viewIds.add(ViewIdInfo(currTag.viewId!!, viewName, currTag.viewLayout))
+                  viewIds.add(ViewIdData(currTag.viewId!!, viewName, currTag.viewLayout))
                 }
               }
             }
@@ -215,7 +215,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, IndexedLayoutInfo>() {
       })
 
       val layoutType = if (isDataBindingLayout) DATA_BINDING_LAYOUT else VIEW_BINDING_LAYOUT
-      mapOf(getKeyForFile(inputData.file) to IndexedLayoutInfo(layoutType, customBindingName, imports, variables, viewIds))
+      mapOf(getKeyForFile(inputData.file) to BindingXmlData(layoutType, customBindingName, imports, variables, viewIds))
     }
   }
 
@@ -282,56 +282,3 @@ private class EscapingXmlReader(text: CharSequence): Reader() {
     delegate.close()
   }
 }
-
-/**
- * Data class for storing information related to <variable> tags.
- */
-data class VariableInfo(
-  val name: String,
-  val type: String
-)
-
-/**
- * Data class for storing information related to <import> tags.
- */
-data class ImportInfo(
-  val type: String,
-  val alias: String?
-)
-
-/**
- * Data class for storing information related to views with IDs.
- */
-data class ViewIdInfo(
-  /** Id of the view. */
-  val id: String,
-
-  /** Name of the view. Typically the tag name: <TextView>. */
-  val viewName: String,
-
-  /** Optional layout attribute. Only applicable to <Merge> or <Include> tags. */
-  val layoutName: String?
-)
-
-/**
- * Data class for storing the indexed content of layouts we want to generate bindings for,
- * e.g. data binding or view binding candidates.
- *
- * For view binding data, many of these fields will be left empty.
- */
-data class IndexedLayoutInfo(
-  /** Type of layout. */
-  val layoutType: BindingLayoutType,
-
-  /** Name used to affect the final Binding class path, if present. */
-  val customBindingName: String?,
-
-  /** Data binding import elements. */
-  val imports: Collection<ImportInfo>,
-
-  /** Data binding variable elements. */
-  val variables: Collection<VariableInfo>,
-
-  /** Ids of views defined in this layout. */
-  val viewIds: Collection<ViewIdInfo>
-)

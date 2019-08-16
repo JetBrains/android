@@ -18,7 +18,7 @@ package com.android.tools.idea.databinding;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.databinding.index.ViewIdInfo;
+import com.android.tools.idea.databinding.index.ViewIdData;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
 import com.android.tools.idea.model.MergedManifestManager;
@@ -137,8 +137,8 @@ public final class DataBindingUtil {
    * otherwise.
    */
   @Nullable
-  public static PsiType resolveViewPsiType(@NotNull ViewIdInfo viewIdInfo, @NotNull AndroidFacet facet) {
-    String viewClassName = getViewClassName(viewIdInfo, facet);
+  public static PsiType resolveViewPsiType(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
+    String viewClassName = getViewClassName(viewIdData, facet);
     if (StringUtil.isNotEmpty(viewClassName)) {
       return parsePsiType(viewClassName, facet, null);
     }
@@ -146,21 +146,21 @@ public final class DataBindingUtil {
   }
 
   /**
-   * Receives a {@link ViewIdInfo} and returns the name of the View class that is implied by it.
+   * Receives a {@link ViewIdData} and returns the name of the View class that is implied by it.
    * May return null if it cannot find anything reasonable (e.g. it is a merge but does not have data binding)
    */
   @Nullable
-  private static String getViewClassName(@NotNull ViewIdInfo viewIdInfo, @NotNull AndroidFacet facet) {
-    String viewName = viewIdInfo.getViewName();
+  private static String getViewClassName(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
+    String viewName = viewIdData.getViewName();
     if (viewName.indexOf('.') == -1) {
       if (VIEW_PACKAGE_ELEMENTS.contains(viewName)) {
         return SdkConstants.VIEW_PKG_PREFIX + viewName;
       } else if (SdkConstants.WEB_VIEW.equals(viewName)) {
         return SdkConstants.ANDROID_WEBKIT_PKG + viewName;
       } else if (SdkConstants.VIEW_MERGE.equals(viewName)) {
-        return getViewClassNameFromMergeTag(viewIdInfo, facet);
+        return getViewClassNameFromMergeTag(viewIdData, facet);
       } else if (SdkConstants.VIEW_INCLUDE.equals(viewName)) {
-        return getViewClassNameFromIncludeTag(viewIdInfo, facet);
+        return getViewClassNameFromIncludeTag(viewIdData, facet);
       } else if (SdkConstants.VIEW_STUB.equals(viewName)) {
         DataBindingMode mode = getDataBindingMode(facet);
         return mode.viewStubProxy;
@@ -172,14 +172,14 @@ public final class DataBindingUtil {
   }
 
   @NotNull
-  private static String getViewClassNameFromIncludeTag(@NotNull ViewIdInfo viewIdInfo, @NotNull AndroidFacet facet) {
-    String reference = getViewClassNameFromLayoutAttribute(viewIdInfo.getLayoutName(), facet);
+  private static String getViewClassNameFromIncludeTag(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
+    String reference = getViewClassNameFromLayoutAttribute(viewIdData.getLayoutName(), facet);
     return reference == null ? SdkConstants.CLASS_VIEW : reference;
   }
 
   @Nullable
-  private static String getViewClassNameFromMergeTag(@NotNull ViewIdInfo viewIdInfo, @NotNull AndroidFacet facet) {
-    return getViewClassNameFromLayoutAttribute(viewIdInfo.getLayoutName(), facet);
+  private static String getViewClassNameFromMergeTag(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
+    return getViewClassNameFromLayoutAttribute(viewIdData.getLayoutName(), facet);
   }
 
   @Nullable
