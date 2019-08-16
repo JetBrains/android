@@ -100,6 +100,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       NlDesignSurface::defaultSceneManagerProvider;
     private boolean myShowModelName = false;
     private boolean myIsEditable = true;
+    private SurfaceLayoutManager myLayoutManager;
 
     /**
      * Factory to create an action manager for the NlDesignSurface
@@ -143,6 +144,16 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     /**
+     * Allows customizing the {@link SurfaceLayoutManager}. Use this method if you need to apply additional settings to it or if you
+     * need to completely replace it, for example for tests.
+     */
+    @NotNull
+    public Builder setLayoutManager(@NotNull SurfaceLayoutManager layoutManager) {
+      myLayoutManager = layoutManager;
+      return this;
+    }
+
+    /**
      * Allows customizing the {@link ActionManager}. Use this method if you need to apply additional settings to it or if you
      * need to completely replace it, for example for tests.
      *
@@ -169,12 +180,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
     @NotNull
     public NlDesignSurface build() {
+      SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
       return new NlDesignSurface(myProject,
                                  myParentDisposable,
                                  myIsPreview,
                                  myIsEditable,
                                  myShowModelName,
                                  mySceneManagerProvider,
+                                 layoutManager,
                                  myActionManagerProvider);
     }
   }
@@ -196,10 +209,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   private final BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider;
 
-  private SurfaceLayoutManager myLayoutManager = new SingleDirectionLayoutManager(DEFAULT_SCREEN_OFFSET_X,
-                                                                                  DEFAULT_SCREEN_OFFSET_Y,
-                                                                                  SCREEN_DELTA,
-                                                                                  SCREEN_DELTA);
+  @NotNull private final SurfaceLayoutManager myLayoutManager;
 
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
@@ -207,12 +217,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           boolean isEditable,
                           boolean showModelNames,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
+                          @NotNull SurfaceLayoutManager layoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
     super(project, parentDisposable, actionManagerProvider, isEditable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
     myShowModelNames = showModelNames;
+    myLayoutManager = layoutManager;
     mySceneManagerProvider = sceneManagerProvider;
   }
 
@@ -222,6 +234,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
     return new LayoutlibSceneManager(model, surface, () -> RenderSettings.getProjectSettings(model.getProject()));
+  }
+
+  @NotNull
+  public static SurfaceLayoutManager createDefaultSurfaceLayoutManager() {
+     return new SingleDirectionLayoutManager(DEFAULT_SCREEN_OFFSET_X, DEFAULT_SCREEN_OFFSET_Y, SCREEN_DELTA, SCREEN_DELTA);
   }
 
   /**
