@@ -24,7 +24,6 @@ import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersion
 import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.IMPORTED_MODULE;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
@@ -75,7 +74,6 @@ import com.android.tools.idea.gradle.project.sync.SelectedVariants;
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
-import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
@@ -304,8 +302,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     populateSourcesAndJavadocModel(gradleModule);
-    ImportedModule importedModule = new ImportedModule(gradleModule.getName());
-    ideModule.createChild(IMPORTED_MODULE, importedModule);
 
     // do not derive module root dir based on *.iml file location
     File moduleRootDirPath = toSystemDependentPath(ideModule.getData().getLinkedExternalProjectPath());
