@@ -19,12 +19,17 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.editor.SplitEditor
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import javax.swing.JComponent
 
 private const val WORKBENCH_NAME = "DESIGN_FILES_PREVIEW_EDITOR"
 
@@ -47,8 +52,20 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
       }
     }
 
-    return DesignerEditorPanel(this, myProject, myFile, workBench, surface) { emptyList() }
+    return DesignerEditorPanel(this, myProject, myFile, workBench, surface, { emptyList() },
+                               if (StudioFlags.NELE_ANIMATIONS_PREVIEW.get()) this::addAnimationToolbar else null)
   }
+
+  private fun addAnimationToolbar(surface: DesignSurface, model: NlModel?) = if (model?.type is AnimatedVectorFileType) {
+    // If opening an animated vector, add an unlimited animation bar
+    AnimationToolbar.createUnlimitedAnimationToolbar(this, AnimationToolbar.AnimationListener { frameTimeMs ->
+      (surface.sceneManager as? LayoutlibSceneManager)?.let {
+        it.setElapsedFrameTimeMs(frameTimeMs)
+        it.requestRender()
+      }
+    }, 16, 500L)
+  }
+  else null
 
   override fun getName() = "Design"
 }
