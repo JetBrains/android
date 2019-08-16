@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.visual;
 
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
+
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlComponent;
@@ -28,6 +32,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.surface.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.util.SyncUtil;
@@ -71,6 +76,16 @@ public class VisualizationForm implements Disposable {
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
 
   /**
+   * horizontal gap between different previews
+   */
+  @SwingCoordinate private static final int HORIZONTAL_SCREEN_DELTA = 100;
+
+  /**
+   * vertical gap between different previews
+   */
+  @SwingCoordinate private static final int VERTICAL_SCREEN_DELTA = 60;
+
+  /**
    * We predefined some pixel devices for now.
    */
   private static final List<String> DEVICES_TO_DISPLAY =
@@ -110,6 +125,10 @@ public class VisualizationForm implements Disposable {
       .setIsPreview(false)
       .setEditable(false)
       .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface))
+      .setLayoutManager(new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
+                                                     DEFAULT_SCREEN_OFFSET_Y,
+                                                     HORIZONTAL_SCREEN_DELTA,
+                                                     VERTICAL_SCREEN_DELTA))
       .build();
     mySurface.setScreenMode(SceneMode.VISUALIZATION, false);
     Disposer.register(this, mySurface);
