@@ -21,7 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType
 import com.android.tools.idea.uibuilder.type.FontFileType
 import com.android.tools.idea.uibuilder.type.StateListFileType
-import com.android.tools.idea.uibuilder.type.VectorFileType
+import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.project.Project
@@ -40,5 +40,5 @@ class DesignFilesPreviewEditorProvider : DesignerEditorProvider(
   override fun getEditorTypeId() = DESIGN_FILES_PREVIEW_EDITOR_ID
 }
 
-fun acceptedTypes(): ImmutableList<DesignerEditorFileType> = ImmutableList.of(AdaptiveIconFileType, StateListFileType, VectorFileType,
+fun acceptedTypes(): ImmutableList<DesignerEditorFileType> = ImmutableList.of(AdaptiveIconFileType, StateListFileType, AnimatedVectorFileType,
                                                                               FontFileType, ZoomableDrawableFileType)

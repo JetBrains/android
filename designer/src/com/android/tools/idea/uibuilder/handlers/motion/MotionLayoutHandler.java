@@ -62,7 +62,7 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
       return null;
     }
 
-    return (context) -> new MotionLayoutAssistantPanel(surface, context.getComponent(), context.getDoClose());
+    return (context) -> new MotionLayoutAssistantPanel(surface, context.getComponent());
   }
 
   @NotNull
