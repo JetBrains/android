@@ -20,6 +20,7 @@ import com.android.tools.idea.room.migrations.json.FieldBundle;
 import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
 import com.android.tools.idea.room.migrations.json.IndexBundle;
 import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +62,9 @@ public class EntityUpdate {
    * @param newEntity entity description from the current version of the database
    */
   public EntityUpdate(@NotNull EntityBundle oldEntity, @NotNull EntityBundle newEntity) {
+    checkEntity(oldEntity);
+    checkEntity(newEntity);
+
     tableName = oldEntity.getTableName();
 
     allFields = new ArrayList<>(newEntity.getFields());
@@ -97,24 +101,24 @@ public class EntityUpdate {
     deletedIndices = new ArrayList<>();
     newOrModifiedIndices = new ArrayList<>();
 
-    if (oldEntity.getIndices() == null) {
-      if (newEntity.getIndices() != null) {
-        newOrModifiedIndices.addAll(newEntity.getIndices());
-      }
+    if (oldEntity.getIndices().isEmpty()) {
+      newOrModifiedIndices.addAll(newEntity.getIndices());
+    } else if (newEntity.getIndices().isEmpty()) {
+      deletedIndices.addAll(oldEntity.getIndices());
     } else {
       Map<String, IndexBundle> oldIndices = oldEntity.getIndices().stream().collect(Collectors.toMap(IndexBundle::getName, index -> index));
       if (newEntity.getIndices() != null) {
         for (IndexBundle newIndex : newEntity.getIndices()) {
-          if (oldIndices.containsKey(newIndex.getName())) {
-            if (!oldIndices.get(newIndex.getName()).isSchemaEqual(newIndex)) {
+          IndexBundle oldIndex = oldIndices.get(newIndex.getName());
+          if (oldIndex != null) {
+            if (!oldIndex.isSchemaEqual(newIndex)) {
               newOrModifiedIndices.add(newIndex);
             }
             else {
               unmodifiedIndices.add(newIndex);
               oldIndices.remove(newIndex.getName());
             }
-          }
-          else {
+          } else {
             newOrModifiedIndices.add(newIndex);
           }
         }
@@ -274,5 +278,17 @@ public class EntityUpdate {
     return oldField.isNonNull() == newField.isNonNull() &&
            Objects.equals(oldField.getAffinity(), newField.getAffinity()) &&
            Objects.equals(oldField.getDefaultValue(), newField.getDefaultValue());
+  }
+
+  private void checkEntity(@NotNull EntityBundle entityBundle) {
+    Preconditions.checkArgument(entityBundle.getFields() != null,
+                                "Invalid EntityBundle object: the field list is null.");
+
+    Preconditions.checkArgument(entityBundle.getIndices() != null,
+                                "Invalid EntityBundle object: the list of indices is null.");
+    Preconditions.checkArgument(entityBundle.getPrimaryKey() != null,
+                                "Invalid EntityBundle object: the primary key is null.");
+    Preconditions.checkArgument(entityBundle.getForeignKeys() != null,
+                                "Invalid EntityBundle object: the foreign key list is null.");
   }
 }
