@@ -56,7 +56,6 @@ public class AndroidTestListener implements ITestRunListener {
     if (myTestClassName != null) {
       testSuiteFinished();
     }
-    myPrinter.stdout("");
     myPrinter.stdout("Tests ran to completion.\n");
     myLaunchStatus.terminateLaunch("", true);
   }
@@ -133,19 +132,12 @@ public class AndroidTestListener implements ITestRunListener {
   @Override
   public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
     if (StudioFlags.PRINT_INSTRUMENTATION_STATUS.get()) {
-      boolean customOutput = false;
 
       for (Map.Entry<String, String> entry : testMetrics.entrySet()) {
         String key = entry.getKey();
         if (key.startsWith(DISPLAY_PREFIX)) {
           myPrinter.stdout(key.substring(DISPLAY_PREFIX.length()) + ": " + entry.getValue());
-          customOutput = true;
         }
-      }
-
-      if (customOutput) {
-        // Adding empty lines after per-method output improves rendering of the combined output for some reason.
-        myPrinter.stdout("");
       }
     }
 
