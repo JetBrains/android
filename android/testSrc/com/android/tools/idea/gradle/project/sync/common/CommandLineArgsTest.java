@@ -137,6 +137,7 @@ public class CommandLineArgsTest extends PlatformTestCase {
     assertThat(args).contains("-P" + PROPERTY_INVOKED_FROM_IDE + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_ADVANCED + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_VERSIONED + "=" + MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD);
+    //noinspection deprecation Still needs to be injected for AGP 3.5.
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD + "=true");
   }
 }
