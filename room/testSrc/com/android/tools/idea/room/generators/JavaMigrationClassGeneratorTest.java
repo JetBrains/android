@@ -29,7 +29,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiPackage;
-import java.util.Arrays;
 import org.jetbrains.android.AndroidTestCase;
 import org.junit.Test;
 
@@ -51,12 +50,12 @@ public class JavaMigrationClassGeneratorTest extends AndroidTestCase {
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
     FieldBundle field3 = createFieldBundle("column3", "TEXT", null);
 
-    EntityBundle entity1 = createEntityBundle("table1", Arrays.asList(field1, field2));
-    EntityBundle entity2 = createEntityBundle("table2", Arrays.asList(field1, field2, field3));
-    EntityBundle entity3 = createEntityBundle("table3", Arrays.asList(field1, field3));
+    EntityBundle entity1 = createEntityBundle("table1", field1, field2);
+    EntityBundle entity2 = createEntityBundle("table2", field1, field2, field3);
+    EntityBundle entity3 = createEntityBundle("table3", field1, field3);
 
-    db1 = createDatabaseBundle(1, Arrays.asList(entity1, entity2));
-    db2 = createDatabaseBundle(2, Arrays.asList(entity1, entity2, entity3));
+    db1 = createDatabaseBundle(1, entity1, entity2);
+    db2 = createDatabaseBundle(2, entity1, entity2, entity3);
   }
 
   @Test
