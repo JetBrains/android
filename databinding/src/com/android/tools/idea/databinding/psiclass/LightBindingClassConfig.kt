@@ -19,7 +19,7 @@ import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.getViewBindingClassName
 import com.android.tools.idea.databinding.index.BindingXmlIndex
-import com.android.tools.idea.databinding.index.ViewIdInfo
+import com.android.tools.idea.databinding.index.ViewIdData
 import com.android.tools.idea.res.BindingLayoutData
 import com.android.tools.idea.res.binding.BindingLayoutGroup
 import com.android.tools.idea.res.binding.BindingLayoutInfo
@@ -70,7 +70,7 @@ interface LightBindingClassConfig {
    *
    * Note: These fields should only get generated for the base "Binding" class.
    */
-  val viewIds: List<ViewIdInfo>
+  val viewIds: List<ViewIdData>
 
   /**
    * Returns `true` if the generated light binding class should have a full method API, e.g.
@@ -128,7 +128,7 @@ class BindingClassConfig(override val facet: AndroidFacet, private val group: Bi
   override val variableTags: List<Pair<BindingLayoutData.Variable, XmlTag>>
     get() = group.getAggregatedVariables(facet.module.project)
 
-  override val viewIds: List<ViewIdInfo>
+  override val viewIds: List<ViewIdData>
     get() {
       return group.layouts
         .mapNotNull { info -> DataBindingUtil.findXmlFile(facet.module.project, info.data) }
@@ -172,7 +172,7 @@ class BindingImplClassConfig(override val facet: AndroidFacet,
   override val variableTags: List<Pair<BindingLayoutData.Variable, XmlTag>>
     get() = group.getAggregatedVariables(facet.module.project)
 
-  override val viewIds: List<ViewIdInfo>
+  override val viewIds: List<ViewIdData>
     get() = listOf() // Only provided by base "Binding" class.
 
   override fun shouldGenerateGettersAndStaticMethods() = false
