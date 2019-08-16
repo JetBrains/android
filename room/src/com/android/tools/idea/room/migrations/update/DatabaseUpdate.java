@@ -19,7 +19,6 @@ import com.android.tools.idea.room.migrations.json.DatabaseBundle;
 import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.google.common.base.Preconditions;
-import com.intellij.openapi.util.InvalidDataException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +45,9 @@ public class DatabaseUpdate {
    * @param newDatabase current version of the database
    */
   public DatabaseUpdate(@NotNull DatabaseBundle oldDatabase, @NotNull DatabaseBundle newDatabase) {
+    checkDatabase(oldDatabase);
+    checkDatabase(newDatabase);
+
     previousVersion = oldDatabase.getVersion();
     currentVersion = newDatabase.getVersion();
     deletedEntities = new HashMap<>(oldDatabase.getEntitiesByTableName());
@@ -62,9 +64,6 @@ public class DatabaseUpdate {
         newEntities.put(newEntity.getTableName(), newEntity);
       }
     }
-
-    Preconditions.checkArgument(oldDatabase.getViews() != null && newDatabase.getViews() != null,
-                                "Invalid DatabaseBundle object: the list of views is null.");
 
     deletedViews = new ArrayList<>();
     newOrModifiedViews = new ArrayList<>();
@@ -125,5 +124,12 @@ public class DatabaseUpdate {
 
   public int getPreviousVersion() {
     return previousVersion;
+  }
+
+  private void checkDatabase(@NotNull DatabaseBundle databaseBundle) {
+    Preconditions.checkArgument(databaseBundle.getEntities() != null,
+                                "Invalid DatabaseBundle object: the list of entities is null.");
+    Preconditions.checkArgument(databaseBundle.getViews() != null,
+                                "Invalid DatabaseBundle object: the list of views is null.");
   }
 }
