@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -26,6 +27,22 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.LightColors
+import java.awt.Color
+
+private fun createBuildNotificationPanel(project: Project,
+                                         file: VirtualFile,
+                                         text: String,
+                                         buildActionLabel: String = "Build",
+                                         color: Color? = null): EditorNotificationPanel? {
+  val module = ModuleUtil.findModuleForFile(file, project) ?: return null
+  return EditorNotificationPanel(color).apply {
+    setText(text)
+
+    createActionLabel(buildActionLabel) {
+      requestBuild(project, module)
+    }
+  }
+}
 
 /**
  * [EditorNotifications.Provider] that displays the notification when the preview needs to be refreshed.
@@ -35,20 +52,30 @@ class OutdatedPreviewNotificationProvider : EditorNotifications.Provider<EditorN
 
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
     val previewManager = fileEditor.getComposePreviewManager() ?: return null
+    val gradleBuildState = GradleBuildState.getInstance(project)
 
     // Do not show the notification while the build is in progress
-    if (GradleBuildState.getInstance(project).isBuildInProgress) return null
+    if (gradleBuildState.isBuildInProgress) return null
+    val status = GradleBuildState.getInstance(project)?.summary?.status
+    val lastBuildSuccessful = status == BuildStatus.SKIPPED || status == BuildStatus.SUCCESS
 
+    // Check if the project has compiled correctly
+    if (!lastBuildSuccessful) {
+      return createBuildNotificationPanel(
+        project,
+        file,
+        text = "The project needs to be compiled successfully for the preview to be displayed",
+        color = LightColors.RED)
+    }
+
+    // If the project has compiled, it could be that we are missing a class because we need to recompile.
     // Check for errors from missing classes
     if (previewManager.needsBuild()) {
-      val module = ModuleUtil.findModuleForFile(file, project) ?: return null
-      return EditorNotificationPanel(LightColors.RED).apply {
-        setText("The project needs to be compiled for the preview to be displayed")
-
-        createActionLabel("Build", Runnable {
-          requestBuild(project, module)
-        })
-      }
+      return createBuildNotificationPanel(
+        project,
+        file,
+        text = "The project needs to be compiled for the preview to be displayed",
+        color = LightColors.RED)
     }
 
     val isModified = FileDocumentManager.getInstance().isFileModified(file)
@@ -59,14 +86,11 @@ class OutdatedPreviewNotificationProvider : EditorNotifications.Provider<EditorN
       if (lastBuildTimestamp < 0L || lastBuildTimestamp >= modificationStamp) return null
     }
 
-    val module = ModuleUtil.findModuleForFile(file, project) ?: return null
-    return EditorNotificationPanel().apply {
-      setText("The preview is out of date")
-
-      createActionLabel("Refresh", Runnable {
-        requestBuild(project, module)
-      })
-    }
+    return createBuildNotificationPanel(
+      project,
+      file,
+      text = "The preview is out of date",
+      buildActionLabel = "Build & Refresh")
   }
 
   override fun getKey(): Key<EditorNotificationPanel> = COMPONENT_KEY
