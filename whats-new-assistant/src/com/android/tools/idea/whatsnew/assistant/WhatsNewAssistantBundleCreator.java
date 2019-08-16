@@ -194,7 +194,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     try (InputStream configStream = openConfigStream()) {
       if (configStream == null)
         return null;
-      return DefaultTutorialBundle.parse(configStream, WhatsNewAssistantBundle.class);
+      return DefaultTutorialBundle.parse(configStream, WhatsNewAssistantBundle.class, getBundleId());
     }
     catch (Exception e) {
       getLog().warn("Error parsing bundle", e);
@@ -304,7 +304,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
       if (stream == null) {
         return false;
       }
-      WhatsNewAssistantBundle bundle = DefaultTutorialBundle.parse(stream, WhatsNewAssistantBundle.class);
+      WhatsNewAssistantBundle bundle = DefaultTutorialBundle.parse(stream, WhatsNewAssistantBundle.class, getBundleId());
       // If Studio version is 0.0.0 (dev build) then return true, as an exception so we can show local file for editing
       return myStudioRevision.equals(Revision.parseRevision("0.0.0rc0")) || isBundleRevisionSame(bundle.getVersion());
     }

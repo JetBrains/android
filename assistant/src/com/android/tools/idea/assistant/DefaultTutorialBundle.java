@@ -99,6 +99,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
 
   private Class myResourceClass;
 
+  @NotNull
+  private String myBundleCreatorId;
+
   @XmlElements({
     @XmlElement(name = "feature", type = Feature.class)
   })
@@ -106,26 +109,30 @@ public class DefaultTutorialBundle implements TutorialBundleData {
 
 
   public DefaultTutorialBundle() {
+    myBundleCreatorId = "Default";
   }
 
   /**
    * Parse a bundle XML.
    */
-  public static TutorialBundleData parse(@NotNull InputStream stream) throws JAXBException {
-    return parse(stream, DefaultTutorialBundle.class);
+  public static TutorialBundleData parse(@NotNull InputStream stream, @NotNull String bundleCreatorId) throws JAXBException {
+    return parse(stream, DefaultTutorialBundle.class, bundleCreatorId);
   }
 
   /**
    * Parse a bundle XML with a custom class. Used when extending this class.
    */
-  public static <T> T parse(@NotNull InputStream stream, Class<T> clazz) throws JAXBException {
+  public static <T extends TutorialBundleData> T parse(@NotNull InputStream stream,
+                                                       Class<T> clazz, @NotNull String bundleCreatorId) throws JAXBException {
     Unmarshaller unmarshaller = JAXBContext.newInstance(clazz).createUnmarshaller();
     unmarshaller.setEventHandler(event -> {
       getLog().info("Found unhandled xml", event.getLinkedException());
       return true;
     });
 
-    return unmarshaller.unmarshal(new StreamSource(stream), clazz).getValue();
+    T bundleData = unmarshaller.unmarshal(new StreamSource(stream), clazz).getValue();
+    bundleData.setBundleCreatorId(bundleCreatorId);
+    return bundleData;
   }
 
   private static Logger getLog() {
@@ -211,6 +218,17 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   @Override
   public String getWelcome() {
     return myWelcome;
+  }
+
+  @NotNull
+  @Override
+  public String getBundleCreatorId() {
+    return myBundleCreatorId;
+  }
+
+  @Override
+  public void setBundleCreatorId(@NotNull String bundleCreatorId) {
+    myBundleCreatorId = bundleCreatorId;
   }
 
   @SuppressWarnings("unused")
