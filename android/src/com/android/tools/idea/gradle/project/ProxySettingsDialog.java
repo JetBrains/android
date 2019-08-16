@@ -22,6 +22,8 @@ import static com.android.tools.idea.gradle.util.ProxySettings.replaceCommasWith
 import static com.android.tools.idea.gradle.util.ProxySettings.replacePipesWithCommasAndClean;
 import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_JOINER;
 import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_PARSER;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static org.gradle.internal.impldep.org.eclipse.jgit.util.StringUtils.isEmptyOrNull;
 
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.google.common.annotations.VisibleForTesting;
@@ -143,12 +145,20 @@ public class ProxySettingsDialog extends DialogWrapper {
     }
   }
 
-  public void applyProxySettings(@NotNull Properties properties) {
-    ProxySettings httpProxySetting = createProxySettingsFromUI(HTTP_PROXY_TYPE, myHttpProxyHostTextField, myHttpProxyPortTextField,
+  /**
+   * Apply proxy settings to properties and return whether or not passwords are needed.
+   * @param properties
+   * @return {@code true} if authentication is needed but no passwords are defined.
+   */
+  public boolean applyProxySettings(@NotNull Properties properties) {
+    ProxySettings httpProxySettings = createProxySettingsFromUI(HTTP_PROXY_TYPE, myHttpProxyHostTextField, myHttpProxyPortTextField,
                                                                myHttpProxyExceptions, myHttpProxyAuthCheckBox, myHttpProxyLoginTextField);
+    boolean hasHttpPassword = properties.containsKey("systemProp.http.proxyPassword");
+    boolean hasHttpsPassword = properties.containsKey("systemProp.https.proxyPassword");
     // Prevent clearing password if it is already defined
-    httpProxySetting.setPassword(properties.getProperty("systemProp.http.proxyPassword"));
-    httpProxySetting.applyProxySettings(properties);
+    httpProxySettings.setPassword(properties.getProperty("systemProp.http.proxyPassword"));
+    httpProxySettings.applyProxySettings(properties);
+    boolean needsPassword = isNotEmpty(httpProxySettings.getUser()) && !hasHttpPassword;
 
     if (myEnableHttpsProxyCheckBox.isSelected()) {
       ProxySettings httpsProxySettings = createProxySettingsFromUI(HTTPS_PROXY_TYPE, myHttpsProxyHostTextField, myHttpsProxyPortTextField,
@@ -157,7 +167,9 @@ public class ProxySettingsDialog extends DialogWrapper {
       // Prevent clearing password if it is already defined
       httpsProxySettings.setPassword(properties.getProperty("systemProp.https.proxyPassword"));
       httpsProxySettings.applyProxySettings(properties);
+      needsPassword |= isNotEmpty(httpsProxySettings.getUser()) && !hasHttpsPassword;
     }
+    return needsPassword;
   }
 
   private void createUIComponents() {

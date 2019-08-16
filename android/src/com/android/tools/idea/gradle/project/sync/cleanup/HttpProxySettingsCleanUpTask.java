@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle.project.sync.cleanup;
 
 import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 
 import com.android.tools.idea.gradle.project.ProxySettingsDialog;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.android.tools.idea.project.AndroidNotification;
@@ -66,9 +68,14 @@ class HttpProxySettingsCleanUpTask extends AndroidStudioCleanUpTask {
 
     if (dialog != null) {
       if (dialog.showAndGet()) {
-        dialog.applyProxySettings(properties.getProperties());
+        boolean needsPassword = dialog.applyProxySettings(properties.getProperties());
         try {
           properties.save();
+          if (needsPassword) {
+            String msg = "Proxy passwords are not defined.";
+            OpenFileHyperlink openLink = new OpenFileHyperlink(getUserGradlePropertiesFile().getPath());
+            AndroidNotification.getInstance(project).showBalloon("Proxy Settings", msg, WARNING, openLink);
+          }
         }
         catch (IOException e) {
           Throwable root = getRootCause(e);
