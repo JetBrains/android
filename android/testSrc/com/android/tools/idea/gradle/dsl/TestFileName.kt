@@ -507,6 +507,7 @@ enum class TestFileName(val path: String) {
   MODULE_DEPENDENCY_SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES("moduleDependency/setNameWithPathHavingSameSegmentNames"),
   MODULE_DEPENDENCY_SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST("moduleDependency/setNamesOnItemsInExpressionList"),
   MODULE_DEPENDENCY_RESET("moduleDependency/reset"),
+  MODULE_DEPENDENCY_ADD_CLOSURE_TO_DEPENDENCY("moduleDependency/addClosureToDependency"),
   MODULE_DEPENDENCY_MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION("moduleDependency/multiTypeApplicationStatementDoesNotThrowException"),
   BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION("buildNotification/incompleteParsingNotification"),
   BUILD_NOTIFICATION_PROPERTY_PLACEMENT_NOTIFICATION("buildNotification/propertyPlacementNotification"),
