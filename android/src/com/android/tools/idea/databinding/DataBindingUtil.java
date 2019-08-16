@@ -407,6 +407,10 @@ public final class DataBindingUtil {
     return string.startsWith(SdkConstants.PREFIX_BINDING_EXPR) || string.startsWith(SdkConstants.PREFIX_TWOWAY_BINDING_EXPR);
   }
 
+  public static boolean isTwoWayBindingExpression(@NotNull String string) {
+    return string.startsWith(SdkConstants.PREFIX_TWOWAY_BINDING_EXPR);
+  }
+
   /**
    * The &lt;import&gt; tag supports an optional alias tag in addition to the required type tag.
    * This method fetches a final type, which is either set to the alias (if present) or the simple
