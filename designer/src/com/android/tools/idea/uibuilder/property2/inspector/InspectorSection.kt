@@ -24,7 +24,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 enum class InspectorSection(val title: String) {
   DECLARED("Declared Attributes"),
   LAYOUT("Layout"),
-  FAVORITES("Favorites"),
+  FAVORITES("Favorite Attributes"),
   COMMON("Common Attributes"),
   ALL("All Attributes");
 
