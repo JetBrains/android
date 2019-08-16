@@ -21,7 +21,6 @@ import static org.junit.Assert.fail;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
 import java.util.Arrays;
@@ -54,7 +53,6 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of())
       .build();
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
@@ -74,7 +72,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)
+      .setSnapshot(Snapshot.DEFAULT)
       .build();
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
@@ -94,7 +92,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of(new Snapshot("snap_2018-08-07_16-27-58")))
+      .setSnapshot(new Snapshot("snap_2018-08-07_16-27-58"))
       .build();
 
     try {
