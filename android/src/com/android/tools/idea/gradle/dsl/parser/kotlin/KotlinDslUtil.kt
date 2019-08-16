@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
@@ -451,7 +452,7 @@ internal fun createPsiElementInsideList(parentDslElement : GradleDslElement,
   if (parentPsiElement.arguments.isNotEmpty() && anchor != null) {
     val anchorPsi =
       anchor.psiElement as? KtValueArgument ?:
-      getNextValidPsiElement(anchor.psiElement, KtValueArgument::class) as? KtValueArgument ?: return null
+      getNextValidParentPsiElement(anchor.psiElement, KtValueArgument::class) as? KtValueArgument ?: return null
 
     return parentPsiElement.addArgumentAfter(argument, anchorPsi)
   }
@@ -461,7 +462,7 @@ internal fun createPsiElementInsideList(parentDslElement : GradleDslElement,
 /**
  * Return, if found, first parent psiElement that is of the type eClass, otherwise, return null.
  */
-internal fun getNextValidPsiElement(psiElement: PsiElement?, eClass: KClass<*>) : PsiElement? {
+internal fun getNextValidParentPsiElement(psiElement: PsiElement?, eClass: KClass<*>) : PsiElement? {
   var psiElement = psiElement ?: return null
   do {
     psiElement = psiElement.parent ?: return null
@@ -507,12 +508,20 @@ internal fun maybeUpdateName(element : GradleDslElement) {
 }
 
 internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDslElement) {
-  val psiElement = element.psiElement ?: return
+  // If element is a GradleDslMethodCall, then we should consider that this refers to a nested KtCallExpression psiElement in the KTS file
+  // (ex: implementation(file())). In such case, element has as psiElement the part that corresponds to "file()" only, and we should not
+  // add the block to it but rather to the parent element, which would result in implementation(file()) {}.
+  var psiElement =
+    (if (element is GradleDslMethodCall) getNextValidParentPsiElement(element.psiElement, KtCallExpression::class) else element.psiElement)
+    ?: return
+
+  if (psiElement is KtCallExpression && psiElement.name() != element.name) return
 
   val psiFactory = KtPsiFactory(psiElement.project)
   psiElement.addAfter(psiFactory.createWhiteSpace(), psiElement.lastChild)
-  val block = psiFactory.createLambdaExpression("", " ")
-  val addedBlock = psiElement.addAfter(block, psiElement.lastChild) ?: return
+  val block = (psiFactory.createExpression("foo() { }") as? KtCallExpression)?.lambdaArguments?.firstOrNull() ?: return
+  val addedBlock =
+    (psiElement.addAfter(block, psiElement.lastChild) as? KtLambdaArgument)?.getLambdaExpression()?.bodyExpression ?: return
   closure.psiElement = addedBlock
   closure.applyChanges()
   element.setParsedClosureElement(closure)
