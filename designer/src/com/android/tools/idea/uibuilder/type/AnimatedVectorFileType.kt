@@ -17,4 +17,4 @@ package com.android.tools.idea.uibuilder.type
 
 import com.android.SdkConstants
 
-object VectorFileType : DrawableFileType(setOf(SdkConstants.TAG_VECTOR, SdkConstants.TAG_ANIMATED_VECTOR))
+object AnimatedVectorFileType : DrawableFileType(setOf(SdkConstants.TAG_ANIMATED_VECTOR))

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor
 
+import com.android.SdkConstants
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
@@ -22,9 +23,12 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition
+import com.android.tools.idea.uibuilder.model.isOrHasSuperclass
 import com.android.tools.idea.uibuilder.palette.PaletteDefinition
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition
 import com.android.tools.idea.uibuilder.property2.NelePropertiesPanelDefinition
@@ -33,8 +37,8 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-
 import org.jetbrains.android.facet.AndroidFacet
+import javax.swing.JComponent
 
 private const val WORKBENCH_NAME = "NELE_EDITOR"
 
@@ -46,8 +50,8 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
 
   override fun createEditorPanel() =
     DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this),
-                        { NlDesignSurface.build(myProject, this).apply { setCentered(true) } })
-    { toolWindowDefinitions(it) }
+                        { NlDesignSurface.build(myProject, this).apply { setCentered(true) } }, { toolWindowDefinitions(it) },
+                        if (StudioFlags.NELE_MOTION_LAYOUT_ANIMATIONS.get()) this::addMotionLayoutAnimationToolbar else null)
 
   private fun toolWindowDefinitions(facet: AndroidFacet): List<ToolWindowDefinition<DesignSurface>> {
     val definitions = ImmutableList.builder<ToolWindowDefinition<DesignSurface>>()
@@ -65,6 +69,12 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
     }
 
     return definitions.build()
+  }
+
+  private fun addMotionLayoutAnimationToolbar(surface: DesignSurface, model: NlModel?): JComponent? {
+    // Find if there is a motion layout, otherwise we should not add the bar.
+    val motionLayout = model?.flattenComponents()?.filter { it.isOrHasSuperclass(SdkConstants.MOTION_LAYOUT) }?.findAny()?.orElse(null)
+    return motionLayout?.let { MotionLayoutAssistantPanel(surface, it).toolbar }
   }
 
   override fun getName() = "Design"
