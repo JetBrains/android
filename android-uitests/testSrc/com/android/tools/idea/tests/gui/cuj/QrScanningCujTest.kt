@@ -31,6 +31,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton
+import org.fest.swing.timing.Pause.pause
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
 import org.junit.Test
@@ -180,20 +181,24 @@ class QrScanningCujTest {
       .clickOk()
 
     // Create a new vector drawable from an icon available in the Vector Asset Wizard
-    ide.openFromMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("File", "New", "Vector Asset")).run {
-      switchToClipArt()
-      chooseIcon()
-        .filterByNameAndSelect("flash on")
-        .clickOk()
-      setName("ic_flash_on_white_24dp")
-      setColor("FFFFFF")
-      clickNext()
-      clickFinish()
-    }
+    ide.openResourceManager()
+      .run {
+        ResourceExplorerFixture.find(robot())
+          .clickAddButton()
+        openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
+          .switchToClipArt()
+          .chooseIcon()
+          .filterByNameAndSelect("flash on")
+          .clickOk()
+          .setName("ic_flash_on_white_24dp")
+          .setColor("FFFFFF")
+          .clickNext()
+          .clickFinish()
+      }.closeResourceManager()
 
     // Add an ImageView by dragging it from the palette in the preview, and select ic_flash_on_white_24dp as the source
     ide.editor
-      .getLayoutPreview(false).run {
+      .getLayoutEditor(false).run {
         dragComponentToSurface("Common", "ImageView")
         ChooseResourceDialogFixture.find(robot()).run {
           searchField.setText("ic_flash_on_white")
