@@ -8,12 +8,9 @@ package org.jetbrains.kotlin.android.configure
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.NativeAndroidProject
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule
-import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.IMPORTED_MODULE
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.externalSystem.util.Order
 import org.gradle.tooling.model.idea.IdeaModule
@@ -22,8 +19,6 @@ import org.jetbrains.kotlin.gradle.KotlinMPPGradleModelBuilder
 import org.jetbrains.kotlin.gradle.KotlinPlatform
 import org.jetbrains.kotlin.idea.configuration.KotlinAndroidSourceSetData
 import org.jetbrains.kotlin.idea.configuration.KotlinMPPGradleProjectResolver
-import org.jetbrains.kotlin.idea.configuration.kotlinSourceSet
-import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 
 @Order(ExternalSystemConstants.UNORDERED - 1)
@@ -51,14 +46,6 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
         super.populateModuleContentRoots(gradleModule, ideModule)
         if (IdeInfo.getInstance().isAndroidStudio || isAndroidProject) {
             KotlinMPPGradleProjectResolver.populateContentRoots(gradleModule, ideModule, resolverCtx)
-            // Work around module disposal service which discards modules without accompanying ImportedModule instance
-            for (childNode in ExternalSystemApiUtil.getChildren(ideModule, GradleSourceSetData.KEY)) {
-                if (childNode.kotlinSourceSet == null) continue
-                val moduleName = childNode.data.internalName
-                val importedModule = ImportedModule(gradleModule.name)
-                importedModuleNameField.set(importedModule, moduleName)
-                ideModule.createChild(IMPORTED_MODULE, importedModule)
-            }
         }
     }
 
@@ -88,11 +75,5 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
             .mapNotNull { KotlinMPPGradleProjectResolver.createSourceSetInfo(it, gradleModule, resolverCtx) }
             .toList()
         mainModuleData.createChild(KotlinAndroidSourceSetData.KEY, KotlinAndroidSourceSetData(androidSourceSets))
-    }
-
-    companion object {
-        val importedModuleNameField by lazy {
-            ImportedModule::class.java.getDeclaredField("myName").apply { isAccessible = true }
-        }
     }
 }
