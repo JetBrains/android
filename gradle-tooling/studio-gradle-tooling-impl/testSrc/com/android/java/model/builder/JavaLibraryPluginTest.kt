@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,16 @@
  */
 package com.android.java.model.builder
 
-import com.android.java.model.builder.JavaModelBuilder.Companion.isGradleAtLeast
-
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert
 import org.junit.Test
 
-/** Test class for [JavaModelBuilder].  */
-class JavaModelBuilderTest {
+class JavaLibraryPluginTest {
   @Test
   fun gradleVersionCheck() {
-    assertFalse(isGradleAtLeast("2.2", "2.12"))
-    assertFalse(isGradleAtLeast("2.2", "2.6"))
-    assertTrue(isGradleAtLeast("4.2", "2.6"))
-    assertTrue(isGradleAtLeast("4.2", "2.12"))
-    assertTrue(isGradleAtLeast("4.2", "4.2"))
+    Assert.assertFalse(isGradleAtLeast("2.2", "2.12"))
+    Assert.assertFalse(isGradleAtLeast("2.2", "2.6"))
+    Assert.assertTrue(isGradleAtLeast("4.2", "2.6"))
+    Assert.assertTrue(isGradleAtLeast("4.2", "2.12"))
+    Assert.assertTrue(isGradleAtLeast("4.2", "4.2"))
   }
 }
