@@ -98,14 +98,14 @@ public class GradleInitScripts {
     return null;
   }
 
-  public void addApplyJavaLibraryPluginInitScriptCommandLineArg(@NotNull List<String> allArgs) {
+  public void addAndroidStudioToolingPluginInitScriptCommandLineArg(@NotNull List<String> allArgs) {
     try {
-      File initScriptFile = createApplyJavaLibraryPluginInitScriptFile();
+      File initScriptFile = createAndroidStudioToolingPluginInitScriptFile();
       addInitScriptCommandLineArg(initScriptFile, allArgs);
     }
     catch (IOException e) {
       // Unlikely to happen, create warning message in log files. Let Gradle sync continue without the injected init script.
-      getLogger().warn("Failed to create init script that applies the Java library plugin, Java modules won't be configured properly.", e);
+      getLogger().warn("Failed to create init script that applies the Android Studio Tooling plugin.", e);
     }
   }
 
@@ -142,9 +142,9 @@ public class GradleInitScripts {
   }
 
   @NotNull
-  private File createApplyJavaLibraryPluginInitScriptFile() throws IOException {
-    String content = myContentCreator.createApplyJavaLibraryPluginInitScriptContent();
-    return createInitScriptFile("sync.java.lib", content);
+  private File createAndroidStudioToolingPluginInitScriptFile() throws IOException {
+    String content = myContentCreator.createAndroidStudioToolingPluginInitScriptContent();
+    return createInitScriptFile("sync.studio.tooling", content);
   }
 
   @NotNull
@@ -196,14 +196,14 @@ public class GradleInitScripts {
 
   @VisibleForTesting
   static class ContentCreator {
-    @NotNull private final JavaLibraryPluginJars myJavaLibraryPluginJars;
+    @NotNull private final AndroidStudioToolingPluginJars myAndroidStudioToolingPluginJars;
 
     ContentCreator() {
-      this(new JavaLibraryPluginJars());
+      this(new AndroidStudioToolingPluginJars());
     }
 
-    ContentCreator(@NotNull JavaLibraryPluginJars javaLibraryPluginJars) {
-      myJavaLibraryPluginJars = javaLibraryPluginJars;
+    ContentCreator(@NotNull AndroidStudioToolingPluginJars androidStudioToolingPluginJars) {
+      myAndroidStudioToolingPluginJars = androidStudioToolingPluginJars;
     }
 
     @Nullable
@@ -228,8 +228,8 @@ public class GradleInitScripts {
     }
 
     @NotNull
-    String createApplyJavaLibraryPluginInitScriptContent() {
-      List<String> paths = myJavaLibraryPluginJars.getJarPaths();
+    String createAndroidStudioToolingPluginInitScriptContent() {
+      List<String> paths = myAndroidStudioToolingPluginJars.getJarPaths();
       return "initscript {\n" +
              "    dependencies {\n" +
              "        " + createClassPathString(paths) + "\n" +
@@ -299,7 +299,7 @@ public class GradleInitScripts {
   }
 
   @VisibleForTesting
-  static class JavaLibraryPluginJars {
+  static class AndroidStudioToolingPluginJars {
     @NotNull
     List<String> getJarPaths() {
       return Arrays
