@@ -150,7 +150,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(false /* do not apply Java library plugin */), new ProjectImportErrorHandler(), new ProjectFinder(),
+    this(new CommandLineArgs(), new ProjectImportErrorHandler(), new ProjectFinder(),
          new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(), new IdeaJavaModuleModelFactory(),
          new IdeDependenciesFactory());
   }

@@ -59,7 +59,7 @@ public class CommandLineArgsTest extends PlatformTestCase {
     initMocks(this);
     new IdeComponents(getProject(), getTestRootDisposable()).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
 
-    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, false /* do not apply Java library plugin */);
+    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts);
   }
 
   public void testGetWithDefaultOptions() {
@@ -76,13 +76,6 @@ public class CommandLineArgsTest extends PlatformTestCase {
     check(args);
     verify(myInitScripts, times(1)).addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
     verify(myInitScripts, times(1)).addLocalMavenRepoInitScriptCommandLineArg(args);
-  }
-
-  public void testGetWhenApplyingJavaPlugin() {
-    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, true /* apply Java library plugin */);
-    List<String> args = myArgs.get(getProject());
-    check(args);
-    verify(myInitScripts, times(1)).addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
   }
 
   public void testGetWithAndroidStudio() {
