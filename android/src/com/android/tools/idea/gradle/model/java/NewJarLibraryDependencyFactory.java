@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
-import com.android.java.model.JavaLibrary;
+import com.android.model.JavaLibrary;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

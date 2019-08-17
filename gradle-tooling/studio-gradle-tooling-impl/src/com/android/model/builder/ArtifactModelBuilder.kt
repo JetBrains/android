@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.java.model.builder
+package com.android.model.builder
 
-import com.android.java.model.ArtifactModel
-import com.android.java.model.impl.ArtifactModelImpl
+import com.android.model.ArtifactModel
+import com.android.model.impl.ArtifactModelImpl
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.File
@@ -45,7 +45,7 @@ class ArtifactModelBuilder : ToolingModelBuilder {
     }
 
     return ArtifactModelImpl(project.name.intern(),
-                             getArtifactsByConfiguration(project))
+                                                    getArtifactsByConfiguration(project))
   }
 
   private fun getArtifactsByConfiguration(project: Project): Map<String, Set<File>> {

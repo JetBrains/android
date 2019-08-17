@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.java.model.builder
+package com.android.model.builder
 
 import com.android.model.sources.builder.SourcesAndJavadocModelBuilder
 import org.gradle.api.Plugin
@@ -23,8 +23,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.util.VersionNumber
 import javax.inject.Inject
 
-/** Custom plugin for Java Library.  */
-class JavaLibraryPlugin @Inject
+class AndroidStudioToolingPlugin @Inject
 internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Project> {
 
   override fun apply(project: Project) {
