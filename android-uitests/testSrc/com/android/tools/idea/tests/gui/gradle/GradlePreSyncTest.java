@@ -32,6 +32,7 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.net.HttpConfigurable;
 import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
@@ -183,5 +184,49 @@ public class GradlePreSyncTest {
 
     // Verifies that the "Do not show this dialog in the future" does not show up. If it does show up the test will timeout and fail.
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
+  }
+
+  @Test
+  public void testShowProxySettingDialogPAC() throws IOException {
+    guiTest.importSimpleApplication();
+    PropertiesComponent.getInstance(guiTest.ideFrame().getProject()).setValue("show.do.not.copy.http.proxy.settings.to.gradle", "true");
+
+    File gradlePropertiesPath = new File(guiTest.ideFrame().getProjectPath(), "gradle.properties");
+    createIfNotExists(gradlePropertiesPath);
+
+    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
+    ideSettings.USE_HTTP_PROXY = false;
+    ideSettings.USE_PROXY_PAC = true;
+
+
+    // ProxySettingsDialog should be shown when no configuration is done
+    guiTest.ideFrame().requestProjectSync();
+    ProxySettingsDialogFixture proxySettingsDialog = ProxySettingsDialogFixture.find(guiTest.robot());
+    proxySettingsDialog.clickNo();
+
+    // Should be shown when port is not set
+    File userPropertiesFile = getUserGradlePropertiesFile();
+    GradleProperties gradleProperties = new GradleProperties(userPropertiesFile);
+    Properties properties = gradleProperties.getProperties();
+    properties.setProperty("systemProp.http.proxyHost", "myproxy.test.com");
+    gradleProperties.save();
+    guiTest.ideFrame().requestProjectSync();
+    proxySettingsDialog = ProxySettingsDialogFixture.find(guiTest.robot());
+    proxySettingsDialog.clickNo();
+
+    // Should be shown when host is not set
+    properties.remove("systemProp.http.proxyHost");
+    properties.setProperty("systemProp.http.proxyPort", "443");
+    gradleProperties.save();
+    guiTest.ideFrame().requestProjectSync();
+    proxySettingsDialog = ProxySettingsDialogFixture.find(guiTest.robot());
+    proxySettingsDialog.clickNo();
+
+    // Should not be shown when host and port are set
+    properties.setProperty("systemProp.http.proxyHost", "myproxy.test.com");
+    gradleProperties.save();
+    guiTest.ideFrame().requestProjectSync();
+    // No dialog should be shown, test will timeout otherwise
+    guiTest.ideFrame().waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
   }
 }
