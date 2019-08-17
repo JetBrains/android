@@ -52,21 +52,18 @@ public class CommandLineArgs {
   @NotNull private final ApplicationInfo myApplicationInfo;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
-  private final boolean myIsNewSync;
 
-  public CommandLineArgs(boolean isNewSync) {
-    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(), isNewSync);
+  public CommandLineArgs() {
+    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance());
   }
 
   @VisibleForTesting
   CommandLineArgs(@NotNull ApplicationInfo applicationInfo,
                   @NotNull IdeInfo ideInfo,
-                  @NotNull GradleInitScripts initScripts,
-                  boolean isNewSync) {
+                  @NotNull GradleInitScripts initScripts) {
     myApplicationInfo = applicationInfo;
     myIdeInfo = ideInfo;
     myInitScripts = initScripts;
-    myIsNewSync = isNewSync;
   }
 
   @NotNull
@@ -74,11 +71,6 @@ public class CommandLineArgs {
     List<String> args = new ArrayList<>();
 
     myInitScripts.addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
-
-    if (myIsNewSync) {
-      myInitScripts.addApplyKaptModelBuilderInitScript(args);
-      myInitScripts.addApplyBuildScriptClasspathModelBuilderInitScript(args);
-    }
 
     // http://b.android.com/201742, let's make sure the daemon always runs in headless mode.
     args.add("-Djava.awt.headless=true");
