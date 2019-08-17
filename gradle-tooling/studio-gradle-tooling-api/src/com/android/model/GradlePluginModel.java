@@ -28,10 +28,4 @@ public interface GradlePluginModel {
      */
     @NotNull
     Collection<String> getGradlePluginList();
-
-    /**
-     * @return whether or not the Gradle project has variants. This is set to false for non-android
-     *     modules.
-     */
-    boolean areVariantsEmpty();
 }
