@@ -73,7 +73,7 @@ public class ContentCreatorTest extends PlatformTestCase {
                       "    }\n" +
                       "}\n" +
                       "allprojects {\n" +
-                      "    apply plugin: com.android.java.model.builder.JavaLibraryPlugin\n" +
+                      "    apply plugin: com.android.model.builder.AndroidStudioToolingPlugin\n" +
                       "}\n";
 
     String content = myContentCreator.createApplyJavaLibraryPluginInitScriptContent();
@@ -90,7 +90,7 @@ public class ContentCreatorTest extends PlatformTestCase {
                       "    }\n" +
                       "}\n" +
                       "allprojects {\n" +
-                      "    apply plugin: com.android.java.model.builder.JavaLibraryPlugin\n" +
+                      "    apply plugin: com.android.model.builder.AndroidStudioToolingPlugin\n" +
                       "}\n";
 
     String content = myContentCreator.createApplyJavaLibraryPluginInitScriptContent();

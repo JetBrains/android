@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.model;
 
-package com.android.java.model.impl
+import org.jetbrains.annotations.NotNull;
 
-import nl.jqno.equalsverifier.EqualsVerifier
-import org.junit.Test
+/** Represents the version of {@link JavaLibrary}. */
+public interface LibraryVersion {
 
-/**
- * Test class for [JavaLibraryImpl].
- */
-class JavaLibraryImplTest {
-  @Test
-  @Throws(Exception::class)
-  fun equals() {
-    EqualsVerifier.forClass(JavaLibraryImpl::class.java).verify()
-  }
+    /** @return the name of the library. */
+    @NotNull
+    String getName();
+
+    /** @return the group of the library. */
+    @NotNull
+    String getGroup();
+
+    /** @return the version of the library. */
+    @NotNull
+    String getVersion();
 }
