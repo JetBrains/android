@@ -23,12 +23,8 @@ import java.io.Serializable
  * Implementation of the [GradlePluginModel] model object.
  */
 data class GradlePluginModelImpl(
-  private val myGradlePluginList: Collection<String>,
-  private val hasNoVariants: Boolean
+  private val myGradlePluginList: Collection<String>
 ) : GradlePluginModel, Serializable {
-
-  override fun areVariantsEmpty(): Boolean = hasNoVariants
-
   override fun getGradlePluginList(): Collection<String> = myGradlePluginList
 
   companion object {
