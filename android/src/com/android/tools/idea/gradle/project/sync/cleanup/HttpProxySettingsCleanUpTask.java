@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.cleanup;
 import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.WARNING;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 
@@ -56,7 +57,9 @@ class HttpProxySettingsCleanUpTask extends AndroidStudioCleanUpTask {
 
     if (ideHttpProxySettings.USE_PROXY_PAC) {
       // Confirm current configuration from the gradle.properties file (see b/135102054)
-      dialog = new ProxySettingsDialog(project, gradleProxySettings);
+      if (isEmpty(gradleProxySettings.getHost()) || !properties.getProperties().containsKey("systemProp.http.proxyPort")) {
+        dialog = new ProxySettingsDialog(project, gradleProxySettings);
+      }
     }
     else {
       // Show proxy settings dialog only if the IDE configuration is different to Gradle's
