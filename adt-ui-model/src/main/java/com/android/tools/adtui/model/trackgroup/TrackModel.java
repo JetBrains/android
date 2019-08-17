@@ -55,10 +55,6 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     return myTitle;
   }
 
-  public void setTitle(String title) {
-    myTitle = title;
-  }
-
   /**
    * @return a unique ID needed for being in a drag and drop list. -1 if it's not added to a {@link TrackGroupModel} yet.
    */
