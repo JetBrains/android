@@ -24,15 +24,13 @@ import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
-import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Transport;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
-import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.UserEventDataSeries;
 import com.google.common.annotations.VisibleForTesting;
@@ -255,7 +253,7 @@ public class CpuCaptureStage extends Stage {
 
   private void initTrackGroupList(@NotNull Range selectionRange) {
     // Interaction
-    TrackGroupModel interaction = new TrackGroupModel("Interaction");
+    TrackGroupModel interaction = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("Interaction"));
     interaction.addTrackModel(
       new TrackModel<>(
         new EventModel<>(new RangedSeries<>(selectionRange, new UserEventDataSeries(getStudioProfilers()))),
@@ -268,7 +266,6 @@ public class CpuCaptureStage extends Stage {
           new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), true))),
         ProfilerTrackRendererType.APP_LIFECYCLE,
         "Lifecycle"));
-    myTrackGroupListModel.addTrackGroupModel(interaction);
 
     // Display
 
