@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.java.model;
 
-import java.io.File;
-import java.util.Map;
-import java.util.Set;
+package com.android.model;
+
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Returns artifacts information of a module.
+ * Entry point for the model of Java Library Projects.
  */
-public interface ArtifactModel {
+public interface JavaProject {
 
     /**
-     * Returns a user friendly name.
+     * Returns the model version.
      *
-     * @return a user friendly name.
+     * @return a long integer representing the model version.
+     */
+    long getModelVersion();
+
+    /**
+     * Returns the name of the module.
+     *
+     * @return the name of the module.
      */
     @NotNull
     String getName();
 
     /**
-     * Returns a map from configuration name to artifacts.
+     * Returns a list of {@link SourceSet}.
      *
-     * @return a map from configuration name to artifacts.
+     * @return a list of {@link SourceSet}.
      */
     @NotNull
-    Map<String, Set<File>> getArtifactsByConfiguration();
+    Collection<SourceSet> getSourceSets();
+
+    /**
+     * Returns the level of java language.
+     *
+     * @return the java language level.
+     */
+    @NotNull
+    String getJavaLanguageLevel();
 }

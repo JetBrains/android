@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.java.model;
+package com.android.model;
 
-import java.util.Collection;
+import java.io.File;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-/** Returns artifacts information of a module. */
-public interface GradlePluginModel {
+/**
+ * Returns artifacts information of a module.
+ */
+public interface ArtifactModel {
 
     /**
-     * Returns a list of applied plugins.
+     * Returns a user friendly name.
      *
-     * @return a list of applied plugins.
+     * @return a user friendly name.
      */
     @NotNull
-    Collection<String> getGradlePluginList();
+    String getName();
 
     /**
-     * @return whether or not the Gradle project has variants. This is set to false for non-android
-     *     modules.
+     * Returns a map from configuration name to artifacts.
+     *
+     * @return a map from configuration name to artifacts.
      */
-    boolean areVariantsEmpty();
+    @NotNull
+    Map<String, Set<File>> getArtifactsByConfiguration();
 }

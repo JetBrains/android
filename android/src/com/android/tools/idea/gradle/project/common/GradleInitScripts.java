@@ -23,8 +23,8 @@ import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
 
 import com.android.ide.common.repository.GoogleMavenRepositoryKt;
-import com.android.java.model.JavaProject;
-import com.android.java.model.builder.JavaLibraryPlugin;
+import com.android.model.JavaProject;
+import com.android.model.builder.AndroidStudioToolingPlugin;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.escape.Escaper;
@@ -234,7 +234,7 @@ public class GradleInitScripts {
              "    }\n" +
              "}\n" +
              "allprojects {\n" +
-             "    apply plugin: " + JavaLibraryPlugin.class.getName() + "\n" +
+             "    apply plugin: " + AndroidStudioToolingPlugin.class.getName() + "\n" +
              "}\n";
     }
 
@@ -301,7 +301,7 @@ public class GradleInitScripts {
     @NotNull
     List<String> getJarPaths() {
       return Arrays
-        .asList(getJarPathForClass(JavaProject.class), getJarPathForClass(JavaLibraryPlugin.class), getJarPathForClass(KType.class));
+        .asList(getJarPathForClass(JavaProject.class), getJarPathForClass(AndroidStudioToolingPlugin.class), getJarPathForClass(KType.class));
     }
   }
 }
