@@ -23,10 +23,8 @@ class TrackGroupListModelTest {
   @Test
   fun addTrackGroupModel() {
     val trackGroupListModel = TrackGroupListModel()
-    val trackGroupModel1 = TrackGroupModel("group1")
-    val trackGroupModel2 = TrackGroupModel("group2")
-    trackGroupListModel.addTrackGroupModel(trackGroupModel1)
-    trackGroupListModel.addTrackGroupModel(trackGroupModel2)
+    trackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("group1"))
+    trackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("group2"))
 
     val addedTrackGroupModel1 = trackGroupListModel.get(0)
     val addedTrackGroupModel2 = trackGroupListModel.get(1)
