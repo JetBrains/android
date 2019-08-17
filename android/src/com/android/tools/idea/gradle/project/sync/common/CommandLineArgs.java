@@ -31,7 +31,6 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.ui.GuiTestingService;
@@ -74,7 +73,7 @@ public class CommandLineArgs {
   public List<String> get(@Nullable Project project) {
     List<String> args = new ArrayList<>();
 
-    myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    myInitScripts.addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
 
     if (myIsNewSync) {
       myInitScripts.addApplyKaptModelBuilderInitScript(args);
