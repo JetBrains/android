@@ -29,14 +29,17 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> implements
    */
   private static final AtomicInteger TRACK_ID_GENERATOR = new AtomicInteger();
 
-  private int myId = -1;
+  private int myId;
   private String myTitle;
+  private boolean myCollapsedInitially;
 
   /**
-   * @param title string to be displayed in the header
+   * Use builder to instantiate this class.
    */
-  public TrackGroupModel(String title) {
+  private TrackGroupModel(int id, String title, boolean collapsedInitially) {
+    myId = id;
     myTitle = title;
+    myCollapsedInitially = collapsedInitially;
   }
 
   /**
@@ -55,8 +58,8 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> implements
     return myTitle;
   }
 
-  public void setTitle(String title) {
-    myTitle = title;
+  public boolean isCollapsedInitially() {
+    return myCollapsedInitially;
   }
 
   /**
@@ -67,11 +70,47 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> implements
     return myId;
   }
 
-  /**
-   * Used by container (e.g. {@link TrackGroupListModel}) to set unique IDs automatically.
-   */
-  public TrackGroupModel setId(int id) {
-    myId = id;
-    return this;
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+    private int myId;
+    private String myTitle;
+    private boolean myCollapsedInitially;
+
+    private Builder() {
+      myId = -1;
+      myTitle = "";
+      myCollapsedInitially = false;
+    }
+
+    /**
+     * Used by container (e.g. {@link TrackGroupListModel}) to set unique IDs automatically.
+     */
+    public Builder setId(int id) {
+      myId = id;
+      return this;
+    }
+
+    /**
+     * @param title string to be displayed in the header
+     */
+    public Builder setTitle(String title) {
+      myTitle = title;
+      return this;
+    }
+
+    /**
+     * @param collapsedInitially true if the track group is collapsed initially
+     */
+    public Builder setCollapsedInitially(boolean collapsedInitially) {
+      myCollapsedInitially = collapsedInitially;
+      return this;
+    }
+
+    public TrackGroupModel build() {
+      return new TrackGroupModel(myId, myTitle, myCollapsedInitially);
+    }
   }
 }
