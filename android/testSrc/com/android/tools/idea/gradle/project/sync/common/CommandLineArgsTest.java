@@ -65,7 +65,7 @@ public class CommandLineArgsTest extends PlatformTestCase {
   public void testGetWithDefaultOptions() {
     List<String> args = myArgs.get(getProject());
     check(args);
-    verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    verify(myInitScripts, times(1)).addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
   }
 
   public void testGetWhenIncludingLocalMavenRepo() {
@@ -74,7 +74,7 @@ public class CommandLineArgsTest extends PlatformTestCase {
     Project project = getProject();
     List<String> args = myArgs.get(project);
     check(args);
-    verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    verify(myInitScripts, times(1)).addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
     verify(myInitScripts, times(1)).addLocalMavenRepoInitScriptCommandLineArg(args);
   }
 
@@ -82,7 +82,7 @@ public class CommandLineArgsTest extends PlatformTestCase {
     myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, true /* apply Java library plugin */);
     List<String> args = myArgs.get(getProject());
     check(args);
-    verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    verify(myInitScripts, times(1)).addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
   }
 
   public void testGetWithAndroidStudio() {
