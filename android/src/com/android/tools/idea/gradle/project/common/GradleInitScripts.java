@@ -23,7 +23,7 @@ import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
 
 import com.android.ide.common.repository.GoogleMavenRepositoryKt;
-import com.android.model.JavaProject;
+import com.android.model.GradlePluginModel;
 import com.android.model.builder.AndroidStudioToolingPlugin;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
@@ -56,6 +56,8 @@ public class GradleInitScripts {
     return ServiceManager.getService(GradleInitScripts.class);
   }
 
+  // Used by intellij
+  @SuppressWarnings("unused")
   public GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths) {
     this(embeddedDistributionPaths, new ContentCreator());
   }
@@ -301,7 +303,7 @@ public class GradleInitScripts {
     @NotNull
     List<String> getJarPaths() {
       return Arrays
-        .asList(getJarPathForClass(JavaProject.class), getJarPathForClass(AndroidStudioToolingPlugin.class), getJarPathForClass(KType.class));
+        .asList(getJarPathForClass(GradlePluginModel.class), getJarPathForClass(AndroidStudioToolingPlugin.class), getJarPathForClass(KType.class));
     }
   }
 }

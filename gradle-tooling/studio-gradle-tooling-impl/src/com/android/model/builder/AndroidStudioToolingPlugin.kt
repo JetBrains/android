@@ -27,7 +27,6 @@ class AndroidStudioToolingPlugin @Inject
 internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Project> {
 
   override fun apply(project: Project) {
-    registry.register(ArtifactModelBuilder())
     registry.register(GradlePluginModelBuilder())
     // SourcesAndJavadocModelBuilder extends ParameterizedToolingModelBuilder, which is available since Gradle 4.4.
     if (isGradleAtLeast(project.gradle.gradleVersion, "4.4")) {

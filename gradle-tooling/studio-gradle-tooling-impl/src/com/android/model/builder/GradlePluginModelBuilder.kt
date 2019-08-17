@@ -27,34 +27,6 @@ class GradlePluginModelBuilder : ToolingModelBuilder {
   }
 
   override fun buildAll(modelName: String, project: Project): Any? {
-    val hasNoVariants = checkIfGradleProjectIsMissingVariants(project)
-
-    return GradlePluginModelImpl(project.plugins.map { it.javaClass.name }, hasNoVariants)
+    return GradlePluginModelImpl(project.plugins.map { it.javaClass.name })
   }
-
-  private fun checkIfGradleProjectIsMissingVariants(project: Project): Boolean {
-    val androidExtension = project.extensions.findByName("android") ?: return false
-    // Use reflection to obtain the list of variants by attempting to call the methods.
-    // It is possible to have both feature variants and library variants present on the FeatureExtension
-    val applicationVariants = getVariantsFromClass(androidExtension, "getApplicationVariants")
-    if (applicationVariants != null) {
-      return applicationVariants.isEmpty()
-    }
-
-    val libraryVariants = getVariantsFromClass(androidExtension, "getLibraryVariants")
-    val featureVariants = getVariantsFromClass(androidExtension, "getFeatureVariants")
-
-    val hasEmptyLibraryVariants = libraryVariants != null && libraryVariants.isEmpty()
-
-    return if (featureVariants == null) hasEmptyLibraryVariants else hasEmptyLibraryVariants && featureVariants.isEmpty()
-  }
-
-  private fun getVariantsFromClass(obj: Any, methodName: String): Any? = try {
-    obj::class.java.getMethod(methodName).invoke(obj)
-  }
-  catch (e: NoSuchMethodException) {
-    null
-  }
-
-  private fun Any.isEmpty(): Boolean = this::class.java.getMethod("isEmpty").invoke(this) as Boolean
 }
