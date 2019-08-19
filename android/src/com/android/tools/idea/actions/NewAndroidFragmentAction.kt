@@ -20,7 +20,8 @@ import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel
-import com.android.tools.idea.npw.project.AndroidPackageUtils
+import com.android.tools.idea.npw.project.getModuleTemplates
+import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ChooseFragmentTypeStep
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -62,10 +63,10 @@ class NewAndroidFragmentAction
     }
     val directory = targetDirectory!!
 
-    val moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory)
+    val moduleTemplates = facet.getModuleTemplates(targetDirectory)
     assert(!moduleTemplates.isEmpty())
 
-    val initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory)
+    val initialPackageSuggestion = facet.getPackageForPath(moduleTemplates, targetDirectory)
     val project = module.project
 
     val dialogTitle = AndroidBundle.message("android.wizard.new.fragment.title")
