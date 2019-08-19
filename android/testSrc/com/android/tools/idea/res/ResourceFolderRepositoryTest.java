@@ -208,12 +208,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Verify that we generated expected data binding resources by comparing the path to all
     // XML files we plan to generate layout bindings for.
-    Set<String> actualNames = actual.getBindingLayoutGroups().values().stream()
-      .flatMap(group -> group.getLayouts().stream())
+    Set<String> actualNames = actual.getResources(RES_AUTO, ResourceType.LAYOUT).values().stream()
+      .flatMap(resource -> actual.getBindingLayoutInfo(resource.getName()).stream())
       .map(layout -> layout.getQualifiedClassName())
       .collect(Collectors.toSet());
-    Set<String> expectedNames = expected.getBindingLayoutGroups().values().stream()
-      .flatMap(group -> group.getLayouts().stream())
+    Set<String> expectedNames = expected.getResources(RES_AUTO, ResourceType.LAYOUT).values().stream()
+      .flatMap(resource -> actual.getBindingLayoutInfo(resource.getName()).stream())
       .map(layout -> layout.getQualifiedClassName())
       .collect(Collectors.toSet());
 
@@ -3629,7 +3629,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     Future<ResourceFolderRepository> loadJob = executorService.submit(() -> createRegisteredRepository());
     ResourceFolderRepository resources = loadJob.get();
     assertNotNull(resources);
-    assertEquals(1, resources.getBindingLayoutGroups().size());
     assertEquals("land", getOnlyItem(resources, ResourceType.LAYOUT, "layout_with_data_binding").getConfiguration().getQualifierString());
     ResourceItem dupedStringItem = resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0);
     assertNotNull(dupedStringItem);

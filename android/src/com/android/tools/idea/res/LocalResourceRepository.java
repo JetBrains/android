@@ -22,7 +22,6 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.binding.BindingLayoutGroup;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -234,15 +233,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   @NotNull
   public Collection<BindingLayoutInfo> getBindingLayoutInfo(@NotNull String layoutName) {
     return ImmutableList.of();
-  }
-
-  /**
-   * Returns all {@link BindingLayoutGroup}s across all repository layouts keyed by layout names.
-   * See also {@link #getBindingLayoutInfo(String)}.
-   */
-  @NotNull
-  public Map<String, BindingLayoutGroup> getBindingLayoutGroups() {
-    return ImmutableMap.of();
   }
 
   boolean isScanPending(@NotNull PsiFile psiFile) {

@@ -72,7 +72,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.BindingLayoutData.Import;
 import com.android.tools.idea.res.BindingLayoutData.Variable;
-import com.android.tools.idea.res.binding.BindingLayoutGroup;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.resources.base.Base128InputStream;
 import com.android.tools.idea.resources.base.BasicDensityBasedFileResourceItem;
@@ -240,9 +239,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   /* {@link BindingLayoutInfo} objects keyed by layout names. */
   @NotNull private Multimap<String, BindingLayoutInfo> myBindingData = ArrayListMultimap.create();
   private final boolean myViewBindingEnabled;
-  /* Binding layout groups keyed by layout names. */
-  @NotNull private Map<String, BindingLayoutGroup> myBindingLayoutGroups = new HashMap<>();
-  private long myBindingLayoutGroupsModificationCount = -1;
 
   /**
    * Creates a ResourceFolderRepository and loads its contents.
@@ -431,33 +427,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @NotNull
   public Collection<BindingLayoutInfo> getBindingLayoutInfo(@NotNull String layoutName) {
     return myBindingData.get(layoutName);
-  }
-
-  @Override
-  @NotNull
-  public Map<String, BindingLayoutGroup> getBindingLayoutGroups() {
-    long modificationCount = getModificationCount();
-    if (myBindingLayoutGroupsModificationCount == modificationCount) {
-      return myBindingLayoutGroups;
-    }
-
-    ImmutableMap.Builder<String, BindingLayoutGroup> groups = ImmutableMap.builder();
-    for (Map.Entry<String, Collection<BindingLayoutInfo>> entry : myBindingData.asMap().entrySet()) {
-      String layoutName = entry.getKey();
-      Collection<BindingLayoutInfo> layouts = entry.getValue();
-      BindingLayoutGroup group = myBindingLayoutGroups.get(layoutName);
-      if (group == null) {
-        group = new BindingLayoutGroup(layouts);
-      }
-      else {
-        group.updateLayouts(layouts);
-      }
-      groups.put(layoutName, group);
-    }
-
-    myBindingLayoutGroups = groups.build();
-    myBindingLayoutGroupsModificationCount = modificationCount;
-    return myBindingLayoutGroups;
   }
 
   private void scanBindingLayout(@NotNull PsiResourceFile resourceFile) {
