@@ -22,6 +22,8 @@ import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
 import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
+import com.android.tools.idea.room.migrations.json.FtsEntityBundle;
+import com.android.tools.idea.room.migrations.json.FtsOptionsBundle;
 import com.android.tools.idea.room.migrations.json.IndexBundle;
 import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
@@ -52,11 +54,8 @@ public class SqlStatementsGenerator {
     List<String> updateStatements = new ArrayList<>();
     boolean needsConstraintsCheck = false;
 
-    for (EntityBundle entityBundle : databaseUpdate.getNewEntities().values()) {
-      updateStatements.add(getCreateTableStatement(entityBundle.getTableName(),
-                                                   entityBundle.getFields(),
-                                                   entityBundle.getPrimaryKey(),
-                                                   entityBundle.getForeignKeys()));
+    for (EntityBundle entity : databaseUpdate.getNewEntities().values()) {
+      updateStatements.add(getCreateTableStatement(entity.getTableName(), entity));
     }
 
     for (EntityUpdate entityUpdate : databaseUpdate.getModifiedEntities().values()) {
@@ -64,8 +63,8 @@ public class SqlStatementsGenerator {
       needsConstraintsCheck |= entityUpdate.foreignKeysWereUpdated();
     }
 
-    for (EntityBundle entityBundle : databaseUpdate.getDeletedEntities().values()) {
-      updateStatements.add(getDropTableStatement(entityBundle.getTableName()));
+    for (EntityBundle entity : databaseUpdate.getDeletedEntities().values()) {
+      updateStatements.add(getDropTableStatement(entity.getTableName()));
     }
 
     for (DatabaseViewBundle view : databaseUpdate.getDeletedViews()) {
@@ -94,7 +93,11 @@ public class SqlStatementsGenerator {
     ArrayList<String> updateStatements = new ArrayList<>();
 
     if (entityUpdate.isComplexUpdate()) {
-      updateStatements.addAll(getComplexTableUpdate(entityUpdate));
+      if (entityUpdate.isFtsEntityWithExternalContent()) {
+        updateStatements.addAll(getComplexUpdateForFtsTableWithExternalContent(entityUpdate));
+      } else {
+        updateStatements.addAll(getComplexTableUpdate(entityUpdate));
+      }
     } else {
       Map<String, FieldBundle> newFields = entityUpdate.getNewFields();
       for (FieldBundle field : newFields.values()) {
@@ -125,40 +128,53 @@ public class SqlStatementsGenerator {
   }
 
   /**
-   * Returns a collection of statements which perform complex updates on a SQLite table, i.e. deleting/renaming/modifying columns.
-   * As the SQLite ALTER TABLE command does not support these operations, the way to perform them is to create a new table with the desired
+   * Returns a collection of statements which perform complex updates on a SQLite table, i.e. deleting/renaming/modifying columns or
+   * modifying an FTS table which does not have an external source of content.
+   *
+   * <p>As the SQLite ALTER TABLE command does not support these operations, the way to perform them is to create a new table with the desired
    * new format and then transfer to content from te original table to the new one. More information ca be found in the SQLite documentation
-   * (https://www.sqlite.org/lang_altertable.html).
+   * (https://www.sqlite.org/lang_altertable.html).</p>
    *
    * @param entityUpdate the object which describes the changes which need to be executed
    */
   @NotNull
   private static List<String> getComplexTableUpdate(@NotNull EntityUpdate entityUpdate) {
-    String tableName = entityUpdate.getTableName();
-    List<FieldBundle> allFields = entityUpdate.getAllFields();
     List<String> updateStatements = new ArrayList<>();
+    String tableName = entityUpdate.getTableName();
+    String dataSource = entityUpdate.getDataSourceForComplexUpdate();
     String tempTableName = String.format(TMP_TABLE_NAME_TEMPLATE, tableName);
-    Map<String, String> columnNameToColumnValue = new LinkedHashMap<>();
+    Map<String, String> columnNameToColumnValue = getColumnNameToColumnValueMapping(entityUpdate);
 
-    for (FieldBundle field : allFields) {
-      String value = getValueForField(field, entityUpdate);
-      if (value == null) {
-        if (columnNeedsUserSpecifiedValue(field)) {
-          throw new InvalidDataException("NOT NULL column without default value or user specified value.");
-        }
-      } else {
-        columnNameToColumnValue.put(getValidName(field.getColumnName()), value);
-      }
-    }
-
-    updateStatements.add(getCreateTableStatement(tempTableName, allFields, entityUpdate.getPrimaryKey(), entityUpdate.getForeignKeys()));
+    updateStatements.add(getCreateTableStatement(tempTableName, entityUpdate.getEntity()));
     updateStatements.add(getInsertIntoTableStatement(tempTableName,
                                                      new ArrayList<>(columnNameToColumnValue.keySet()),
                                                      getSelectFromTableStatement(
-                                                       tableName,
+                                                       dataSource,
                                                        new ArrayList<>(columnNameToColumnValue.values()))));
     updateStatements.add(getDropTableStatement(tableName));
     updateStatements.add(getRenameTableStatement(tempTableName, tableName));
+
+    return updateStatements;
+  }
+
+  /**
+   * Returns a collection of statements which perform the update of an FTS table with external content.
+   *
+   * <p>Because we have an external source of data, we only need to drop the old table, create a new one and copy the data form the external
+   * content table. More information can be found in the SQLite documentation (https://www.sqlite.org/fts3.html#summary).</p>
+   */
+  private static List<String> getComplexUpdateForFtsTableWithExternalContent(@NotNull EntityUpdate entityUpdate) {
+    List<String> updateStatements = new ArrayList<>();
+    String tableName = entityUpdate.getTableName();
+    String dataSource = entityUpdate.getDataSourceForComplexUpdate();
+    Map<String, String> columnNameToColumnValue = getColumnNameToColumnValueMapping(entityUpdate);
+
+    updateStatements.add(getDropTableStatement(tableName));
+    updateStatements.add(getCreateTableStatement(tableName, entityUpdate.getEntity()));
+    updateStatements.add(getInsertIntoTableStatement(
+      tableName,
+      new ArrayList<>(columnNameToColumnValue.keySet()),
+      getSelectFromTableStatement(dataSource, new ArrayList<>(columnNameToColumnValue.values()))));
 
     return updateStatements;
   }
@@ -216,30 +232,34 @@ public class SqlStatementsGenerator {
    * Returns a statement which creates the table.
    *
    * @param tableName the name of the new table
-   * @param fields the FiledBundles which describe the columns of the table
+   * @param entity the EntityBundleObject which describes the table to be created and contains a template for the creation statement
    */
   @NotNull
   private static String getCreateTableStatement(@NotNull String tableName,
-                                                @NotNull List<FieldBundle> fields,
-                                                @NotNull PrimaryKeyBundle primaryKey,
-                                                @Nullable List<ForeignKeyBundle> foreignKeys) {
+                                                @NotNull EntityBundle entity) {
+    // If the entity describes an FTS table, we use the create statement stored inside the entity as the information from the FtsOptionBundle
+    // class is not accessible from this scope.
+    if (entity instanceof FtsEntityBundle) {
+      return getCreateTableStatementFromEntityBundle(tableName, entity);
+    }
+
     tableName = getValidName(tableName);
     StringBuilder statement = new StringBuilder(String.format("CREATE TABLE %s\n(\n", tableName));
 
-    for (FieldBundle field : fields) {
+    for (FieldBundle field : entity.getFields()) {
       statement.append(String.format("\t%s,\n", getColumnDescription(field)));
-      if (shouldAddAutoIncrementToColumn(field, primaryKey)) {
+      if (shouldAddAutoIncrementToColumn(field, entity.getPrimaryKey())) {
         statement.replace(statement.length() - 2, statement.length(), "");
         statement.append(" PRIMARY KEY AUTOINCREMENT,\n");
       }
     }
 
-    if (!primaryKey.isAutoGenerate()) {
-      statement.append(String.format("\t%s,\n", getPrimaryKeyConstraint(primaryKey)));
+    if (!entity.getPrimaryKey().isAutoGenerate()) {
+      statement.append(String.format("\t%s,\n", getPrimaryKeyConstraint(entity.getPrimaryKey())));
     }
 
-    if (foreignKeys != null) {
-      for (ForeignKeyBundle foreignKey : foreignKeys) {
+    if (entity.getForeignKeys() != null) {
+      for (ForeignKeyBundle foreignKey : entity.getForeignKeys()) {
         statement.append(String.format("\t%s,\n", getForeignKeyConstraint(foreignKey)));
       }
     }
@@ -248,6 +268,20 @@ public class SqlStatementsGenerator {
     statement.append(");");
 
     return statement.toString();
+  }
+
+  /**
+   * Returns a statement which creates the table.
+   * @param tableName the name of the table
+   * @param entity the EntityBundleObject which describes the table to be created and contains a template for the creation statement
+   */
+  @NotNull
+  private static String getCreateTableStatementFromEntityBundle(@NotNull String tableName, @NotNull EntityBundle entity) {
+    String statement = entity.getCreateSql().replace(BundleUtil.TABLE_NAME_PLACEHOLDER, tableName);
+    if (!statement.trim().endsWith(";")) {
+      statement += ";";
+    }
+    return statement;
   }
 
   /**
@@ -406,8 +440,10 @@ public class SqlStatementsGenerator {
   }
 
   /**
-   * Returns a value to initialize the given column with. First we look for a user defined value. If there is none, we check whether the
-   * column is already present in the table and therefore already has values to be populated with.
+   * Returns a value to initialize the given column with.
+   *
+   * <p>First we look for a user defined value. If there is none, we check whether the column is already present in the
+   * table and therefore already has values to be populated with.</p>
    */
   @Nullable
   private static String getValueForField(@NotNull FieldBundle field, @NotNull EntityUpdate entityUpdate) {
@@ -415,6 +451,15 @@ public class SqlStatementsGenerator {
     String userSpecifiedValue = entityUpdate.getValuesForUninitializedFields().get(field);
     if (userSpecifiedValue != null) {
       return toSqlStringLiteral(userSpecifiedValue);
+    }
+
+    // If the table to be updated is an FTS table and has an external content source, we take the values for the current
+    // column from its correspondent column in the external content table
+    if (entityUpdate.isFtsEntity()) {
+      FtsOptionsBundle ftsOptions = ((FtsEntityBundle)entityUpdate.getEntity()).getFtsOptions();
+      if (ftsOptions != null && (ftsOptions.getContentTable() != null && !ftsOptions.getContentTable().isEmpty())) {
+        return getValidName(field.getColumnName());
+      }
     }
 
     // If the column was renamed, we use the values under the old name
@@ -430,6 +475,27 @@ public class SqlStatementsGenerator {
     }
 
     return null;
+  }
+
+  /**
+   * Provides a correlation between the name of the columns from newly created table and the values they should be initialized with.
+   */
+  @NotNull
+  private static Map<String, String> getColumnNameToColumnValueMapping(@NotNull EntityUpdate entityUpdate) {
+    Map<String, String> columnNameToColumnValue = new LinkedHashMap<>();
+
+    for (FieldBundle field : entityUpdate.getAllFields()) {
+      String value = getValueForField(field, entityUpdate);
+      if (value == null) {
+        if (columnNeedsUserSpecifiedValue(field)) {
+          throw new InvalidDataException("NOT NULL column without default value or user specified value.");
+        }
+      } else {
+        columnNameToColumnValue.put(getValidName(field.getColumnName()), value);
+      }
+    }
+
+    return columnNameToColumnValue;
   }
 
   private static boolean columnNeedsUserSpecifiedValue(@NotNull FieldBundle field) {

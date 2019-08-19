@@ -18,6 +18,8 @@ package com.android.tools.idea.room.migrations.update;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
 import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
+import com.android.tools.idea.room.migrations.json.FtsEntityBundle;
+import com.android.tools.idea.room.migrations.json.FtsOptionsBundle;
 import com.android.tools.idea.room.migrations.json.IndexBundle;
 import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
 import com.google.common.base.Preconditions;
@@ -32,10 +34,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Holds the differences between two version of Room database Entity.
+ * Describes the differences between two version of Room database Entity and contains all information needed in order to perform the update.
  */
 public class EntityUpdate {
+  private EntityBundle entity;
   private String tableName;
+  private String contentTableForFtsEntity;
+  private boolean isFtsEntity;
 
   private List<FieldBundle> allFields;
   private Map<String, FieldBundle> unmodifiedFields;
@@ -65,7 +70,14 @@ public class EntityUpdate {
     checkEntity(oldEntity);
     checkEntity(newEntity);
 
-    tableName = oldEntity.getTableName();
+    entity = newEntity;
+    tableName = newEntity.getTableName();
+    isFtsEntity = newEntity instanceof FtsEntityBundle;
+
+    if (isFtsEntity) {
+      FtsOptionsBundle ftsOptions = ((FtsEntityBundle)entity).getFtsOptions();
+      contentTableForFtsEntity = ftsOptions != null && ftsOptions.getContentTable() != null ? ftsOptions.getContentTable() : "";
+    }
 
     allFields = new ArrayList<>(newEntity.getFields());
     unmodifiedFields = new HashMap<>();
@@ -148,6 +160,43 @@ public class EntityUpdate {
     containsRenamedAndModifiedFields = false;
   }
 
+  /**
+   * Provides the EntityBundle which describes the final state of the table to be updated.
+   */
+  @NotNull
+  public EntityBundle getEntity() {
+    return entity;
+  }
+
+  /**
+   * Provides the name the table should have after the update.
+   */
+  @NotNull
+  public String getTableName() {
+    return tableName;
+  }
+
+  public boolean isFtsEntity() {
+    return isFtsEntity;
+  }
+
+  public boolean isFtsEntityWithExternalContent() {
+    return isFtsEntity && !contentTableForFtsEntity.isEmpty();
+  }
+
+  /**
+   * Returns the name of the table to copy data from in case of an complex update.
+   * In case of an FTS table with external content, it returns the name of the external content table.
+   */
+  @NotNull
+  public String getDataSourceForComplexUpdate() {
+    if (isFtsEntityWithExternalContent()) {
+      return contentTableForFtsEntity;
+    }
+
+    return tableName;
+  }
+
   @NotNull
   public List<FieldBundle> getAllFields() {
     return allFields;
@@ -197,11 +246,6 @@ public class EntityUpdate {
   @Nullable
   public List<ForeignKeyBundle> getForeignKeys() {
     return foreignKeys;
-  }
-
-  @NotNull
-  public String getTableName() {
-    return tableName;
   }
 
   /**
@@ -268,7 +312,8 @@ public class EntityUpdate {
            !modifiedFields.isEmpty() ||
            keysWereUpdated() ||
            containsUninitializedNotNullFields ||
-           containsRenamedAndModifiedFields;
+           containsRenamedAndModifiedFields ||
+           isFtsEntity;
   }
 
   /**
