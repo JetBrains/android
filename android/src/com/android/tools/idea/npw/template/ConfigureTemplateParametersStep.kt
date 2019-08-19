@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.project.AndroidGradleModuleUtils
+import com.android.tools.idea.npw.project.getSourceProvider
 import com.android.tools.idea.npw.template.components.CheckboxProvider
 import com.android.tools.idea.npw.template.components.ComponentProvider
 import com.android.tools.idea.npw.template.components.EnumComboProvider
@@ -393,7 +393,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   private fun validateAllParametersExcept(excludedParameters: Set<String>): String? {
     val parameters = model.templateHandle!!.metadata.parameters
     val project = model.project.valueOrNull
-    val sourceProvider = AndroidGradleModuleUtils.getSourceProvider(model.template.get())
+    val sourceProvider = model.template.get().getSourceProvider()
 
     return parameters.mapNotNull { parameter ->
       val property = parameterRows[parameter]?.property
@@ -551,7 +551,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       var suffix = 2
       val project = model.project.valueOrNull
       val relatedValues = getRelatedValues(parameter)
-      val sourceProvider = AndroidGradleModuleUtils.getSourceProvider(model.template.get())
+      val sourceProvider = model.template.get().getSourceProvider()
       while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {
         suggested = filenameJoiner.join(namePart + suffix, Strings.emptyToNull(extPart))
         suffix++

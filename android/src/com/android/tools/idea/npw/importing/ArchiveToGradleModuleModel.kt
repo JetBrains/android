@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.importing
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getContainingModule
+import com.android.tools.idea.npw.project.getContainingModule
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.StringProperty
