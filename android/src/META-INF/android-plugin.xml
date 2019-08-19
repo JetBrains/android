@@ -459,7 +459,7 @@
     <!--<frameworkSupport implementation="org.jetbrains.android.facet.AndroidSupportProvider"/>-->
 
     <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
-    <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory" />
+    <fileType name="AndroidDataBinding" language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbFileType" extensions="android_data_binding" fieldName="INSTANCE"/>
 
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition" />
     <lang.syntaxHighlighterFactory language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
