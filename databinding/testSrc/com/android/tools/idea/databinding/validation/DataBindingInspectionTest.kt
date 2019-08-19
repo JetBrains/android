@@ -84,7 +84,7 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
     }
 
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(mode)
+    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = mode
 
     // We don't need a valid gradle facet, except for it to be present with `isKaptEnabled` set to
     // false, since these affect DataBindingKotlinAnnotator

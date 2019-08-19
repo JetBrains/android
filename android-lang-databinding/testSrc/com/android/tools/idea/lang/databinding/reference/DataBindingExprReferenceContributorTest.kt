@@ -92,7 +92,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     }
 
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(mode)
+    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = mode
   }
 
   @Test

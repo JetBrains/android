@@ -68,7 +68,7 @@ public final class ConvertLayoutToDataBindingActionTest {
     myProjectRule.fixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/actions");
 
     AndroidFacet androidFacet = FacetManager.getInstance(myProjectRule.getModule()).getFacetByType(AndroidFacet.ID);
-    ModuleDataBinding.getInstance(androidFacet).setMode(myDataBindingMode);
+    ModuleDataBinding.getInstance(androidFacet).setDataBindingMode(myDataBindingMode);
   }
 
   @Test
