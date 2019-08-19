@@ -83,6 +83,9 @@ public class CommandLineArgs {
       }
     }
 
+    // Always add the --stacktrace option to aid in the debugging of any issues in sync.
+    args.add("--stacktrace");
+
     // These properties tell the Android Gradle plugin that we are performing a sync and not a build.
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY, true));
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_ADVANCED, true));
