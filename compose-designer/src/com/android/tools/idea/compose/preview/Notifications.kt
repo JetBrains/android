@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.module.ModuleUtil
@@ -47,15 +48,21 @@ private fun createBuildNotificationPanel(project: Project,
 /**
  * [EditorNotifications.Provider] that displays the notification when the preview needs to be refreshed.
  */
-class OutdatedPreviewNotificationProvider : EditorNotifications.Provider<EditorNotificationPanel>() {
-  private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.outdated")
+class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNotificationPanel>() {
+  private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.notification")
+  private val LOG = Logger.getInstance(ComposePreviewNotificationProvider::class.java)
 
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
+    LOG.debug("createNotificationsProvider")
     val previewManager = fileEditor.getComposePreviewManager() ?: return null
     val gradleBuildState = GradleBuildState.getInstance(project)
 
     // Do not show the notification while the build is in progress
-    if (gradleBuildState.isBuildInProgress) return null
+    if (gradleBuildState.isBuildInProgress) {
+      LOG.debug("Build is progress")
+      return null
+    }
+
     val status = GradleBuildState.getInstance(project)?.summary?.status
     val lastBuildSuccessful = status == BuildStatus.SKIPPED || status == BuildStatus.SUCCESS
 
@@ -71,6 +78,7 @@ class OutdatedPreviewNotificationProvider : EditorNotifications.Provider<EditorN
     // If the project has compiled, it could be that we are missing a class because we need to recompile.
     // Check for errors from missing classes
     if (previewManager.needsBuild()) {
+      LOG.debug("Preview needsBuild = true")
       return createBuildNotificationPanel(
         project,
         file,
@@ -83,6 +91,9 @@ class OutdatedPreviewNotificationProvider : EditorNotifications.Provider<EditorN
       // The file was saved, check the compilation time
       val modificationStamp = file.timeStamp
       val lastBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).lastBuildTimestamp ?: -1
+      if (LOG.isDebugEnabled) {
+        LOG.debug("modificationStamp=${modificationStamp}, lastBuildTimestamp=${lastBuildTimestamp}")
+      }
       if (lastBuildTimestamp < 0L || lastBuildTimestamp >= modificationStamp) return null
     }
 
