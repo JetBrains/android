@@ -29,6 +29,7 @@ import com.android.tools.idea.common.editor.SmartAutoRefresher
 import com.android.tools.idea.common.editor.SmartRefreshable
 import com.android.tools.idea.common.editor.SourceCodeChangeListener
 import com.android.tools.idea.common.editor.ToolbarActionGroups
+import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
@@ -165,19 +166,20 @@ private class PreviewEditor(private val psiFile: PsiFile,
       setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true)
     }
 
-  private val actionsToolbar = ActionsToolbar(this@PreviewEditor, surface)
-
-  private val editorPanel = JPanel(BorderLayout()).apply {
-    add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
-    add(surface, BorderLayout.CENTER)
-  }
-
   /**
    * [WorkBench] used to contain all the preview elements.
    */
   override val workbench = WorkBench<DesignSurface>(project, "Compose Preview", this).apply {
     isOpaque = true
-    init(editorPanel, surface, listOf())
+
+    val actionsToolbar = ActionsToolbar(this@PreviewEditor, surface)
+    val surfacePanel = JPanel(BorderLayout()).apply {
+      add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
+      add(surface, BorderLayout.CENTER)
+    }
+    val issueErrorSplitter = IssuePanelSplitter(surface, surfacePanel)
+
+    init(issueErrorSplitter, surface, listOf())
     showLoading("Waiting for build to finish...")
   }
 
