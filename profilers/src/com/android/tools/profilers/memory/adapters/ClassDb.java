@@ -16,9 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.google.common.annotations.VisibleForTesting;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import org.jetbrains.annotations.NotNull;
@@ -59,6 +57,19 @@ public final class ClassDb {
   public ClassEntry getEntry(long classId) {
     assert myClassEntries.containsKey(classId);
     return myClassEntries.get(classId);
+  }
+
+  @NotNull
+  public Set<ClassEntry> getEntriesByName(@NotNull String className) {
+    Set<ClassEntry> entries = new HashSet<>();
+
+    for (ClassEntry entry : myClassEntries.values()) {
+      if (entry.getClassName().equals(className)) {
+        entries.add(entry);
+      }
+    }
+
+    return entries;
   }
 
   /**

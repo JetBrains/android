@@ -55,9 +55,9 @@ class HeapDumpInstanceObject implements InstanceObject {
   @NotNull private final String myMemoizedLabel;
 
   HeapDumpInstanceObject(@NotNull HeapDumpCaptureObject captureObject,
-                                @NotNull Instance instance,
-                                @NotNull ClassDb.ClassEntry classEntry,
-                                @Nullable ValueType precomputedValueType) {
+                         @NotNull Instance instance,
+                         @NotNull ClassDb.ClassEntry classEntry,
+                         @Nullable ValueType precomputedValueType) {
     myCaptureObject = captureObject;
     myInstance = instance;
     myClassEntry = classEntry;
