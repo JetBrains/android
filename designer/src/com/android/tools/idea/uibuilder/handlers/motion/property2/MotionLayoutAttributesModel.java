@@ -177,7 +177,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   @Nullable
   public static XmlTag getTag(@NotNull NelePropertyItem property) {
     @SuppressWarnings("unchecked")
-    SmartPsiElementPointer<XmlTag> tagPointer = (SmartPsiElementPointer<XmlTag>)property.getOptionalValue();
+    SmartPsiElementPointer<XmlTag> tagPointer = (SmartPsiElementPointer<XmlTag>)property.getOptionalValue1();
     if (tagPointer == null) {
       return null;
     }

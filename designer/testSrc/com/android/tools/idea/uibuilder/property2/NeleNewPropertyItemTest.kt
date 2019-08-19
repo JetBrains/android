@@ -196,7 +196,7 @@ class NeleNewPropertyItemTest {
 
     // Override property1 such that componentName and library name is set for the delegate test above:
     val textProperty = with(property1) {
-      NelePropertyItem(namespace, name, type, definition, FQCN_TEXT_VIEW, "android", model, optionalValue, components)
+      NelePropertyItem(namespace, name, type, definition, FQCN_TEXT_VIEW, "android", model, components)
     }
     add(table, property0)
     add(table, textProperty)
