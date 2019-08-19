@@ -13,40 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.cpp;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+package com.android.tools.idea.npw.cpp
 
 /**
- * Supported C++ standard versions that NDK code can use
+ * Supported C++ standard versions that NDK code can use.
  *
  * @see ConfigureCppSupportStep
  */
-public enum CppStandardType {
+enum class CppStandardType(private val dialogName: String, /* null if no additional flag required*/ val compilerFlag: String?) {
   DEFAULT("Toolchain Default", null),
   CXX11("C++11", "-std=c++11"),
   CXX14("C++14", "-std=c++14"),
   CXX17("C++17", "-std=c++17");
 
-  CppStandardType(@NotNull String dialogName, @Nullable String compilerFlag) {
-    myDialogName = dialogName;
-    myCompilerFlag = compilerFlag;
-  }
-
-  @NotNull
-  private final String myDialogName;
-
-  @Nullable/*if no additional flag required*/
-  private final String myCompilerFlag;
-
-  @Nullable
-  public String getCompilerFlag() {
-    return myCompilerFlag;
-  }
-
-  @Override
-  public String toString() {
-    return myDialogName;
-  }
+  override fun toString(): String = dialogName
 }
