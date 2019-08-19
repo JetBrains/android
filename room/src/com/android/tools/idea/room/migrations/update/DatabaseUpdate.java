@@ -18,6 +18,7 @@ package com.android.tools.idea.room.migrations.update;
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
 import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
+import com.android.tools.idea.room.migrations.json.FtsEntityBundle;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,19 +51,27 @@ public class DatabaseUpdate {
 
     previousVersion = oldDatabase.getVersion();
     currentVersion = newDatabase.getVersion();
+
     deletedEntities = new HashMap<>(oldDatabase.getEntitiesByTableName());
     newEntities = new HashMap<>();
     modifiedEntities = new HashMap<>();
 
     for (EntityBundle newEntity : newDatabase.getEntities()) {
-      if (deletedEntities.containsKey(newEntity.getTableName())) {
-        EntityBundle oldEntity = deletedEntities.remove(newEntity.getTableName());
-        if (!oldEntity.isSchemaEqual(newEntity)) {
-          modifiedEntities.put(oldEntity.getTableName(),  new EntityUpdate(oldEntity, newEntity));
+      EntityBundle oldEntity = deletedEntities.remove(newEntity.getTableName());
+        if (oldEntity != null) {
+          if ((oldEntity instanceof FtsEntityBundle && !(newEntity instanceof FtsEntityBundle)) ||
+              (!(oldEntity instanceof FtsEntityBundle) && newEntity instanceof FtsEntityBundle)) {
+            deletedEntities.put(oldEntity.getTableName(), oldEntity);
+            newEntities.put(newEntity.getTableName(), newEntity);
+          } else {
+            if (!oldEntity.isSchemaEqual(newEntity)) {
+              modifiedEntities.put(oldEntity.getTableName(), new EntityUpdate(oldEntity, newEntity));
+            }
+          }
         }
-      } else {
-        newEntities.put(newEntity.getTableName(), newEntity);
-      }
+        else {
+          newEntities.put(newEntity.getTableName(), newEntity);
+        }
     }
 
     deletedViews = new ArrayList<>();
