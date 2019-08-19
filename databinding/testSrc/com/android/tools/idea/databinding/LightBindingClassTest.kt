@@ -117,7 +117,7 @@ class LightBindingClassTest {
       </manifest>
     """.trimIndent())
 
-    ModuleDataBinding.getInstance(facet).setMode(DataBindingMode.ANDROIDX)
+    ModuleDataBinding.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
   @Test
