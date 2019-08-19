@@ -175,7 +175,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     NelePropertyType type = mapFromCustomType(customType);
     SmartPsiElementPointer<XmlTag> tagPointer =
       SmartPointerManager.getInstance(model.getProject()).createSmartPsiElementPointer(customTag);
-    return new NelePropertyItem("", name, type, null, "", "", model, tagPointer, components);
+    return new NelePropertyItem("", name, type, null, "", "", model, components, tagPointer, null);
   }
 
   private static NelePropertyItem createProperty(@NotNull String namespace,
@@ -187,12 +187,12 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     NelePropertyType type = TypeResolver.INSTANCE.resolveType(name, attr);
     String libraryName = StringUtil.notNullize(attr != null ? attr.getLibraryName() : null);
     if (namespace == ANDROID_URI && name == ATTR_ID) {
-      return new NeleIdPropertyItem(model, attr, "", tagPointer, components);
+      return new NeleIdPropertyItem(model, attr, "", components, tagPointer, null);
     }
     if (attr != null && attr.getFormats().contains(AttributeFormat.FLAGS) && attr.getValues().length == 0) {
-      return new NeleFlagsPropertyItem(namespace, name, type, attr, "", libraryName, model, tagPointer, components);
+      return new NeleFlagsPropertyItem(namespace, name, type, attr, "", libraryName, model, components, tagPointer, null);
     }
-    return new NelePropertyItem(namespace, name, type, attr, "", libraryName, model, tagPointer, components);
+    return new NelePropertyItem(namespace, name, type, attr, "", libraryName, model, components, tagPointer, null);
   }
 
   @Nullable

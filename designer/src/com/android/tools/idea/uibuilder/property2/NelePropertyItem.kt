@@ -99,8 +99,9 @@ open class NelePropertyItem(
   open val componentName: String,
   open val libraryName: String,
   val model: NelePropertiesModel,
-  val optionalValue: Any?,
-  val components: List<NlComponent>
+  val components: List<NlComponent>,
+  val optionalValue1: Any? = null,
+  val optionalValue2: Any? = null
 ) : PropertyItem {
 
   override var value: String?
@@ -210,7 +211,7 @@ open class NelePropertyItem(
 
   val designProperty: NelePropertyItem
     get() = if (namespace == TOOLS_URI) this else
-      NelePropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, optionalValue, components)
+      NelePropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, components, optionalValue1, optionalValue2)
 
   override fun equals(other: Any?) =
     when (other) {
