@@ -110,7 +110,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
   }
 
   override fun createEmptyTable(): PropertiesTable<NelePropertyItem> =
-    PropertiesTable.create(HashBasedTable.create<String, String, NelePropertyItem>(EXPECTED_ROWS, EXPECTED_CELLS_PER_ROW))
+    PropertiesTable.create(HashBasedTable.create(EXPECTED_ROWS, EXPECTED_CELLS_PER_ROW))
 
   private class PropertiesGenerator(facet: AndroidFacet,
                                     private val model: NelePropertiesModel,
@@ -128,14 +128,11 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
     fun generate(): Table<String, String, NelePropertyItem> {
       var combinedProperties: Table<String, String, NelePropertyItem>? = null
       for (component in components) {
-        val tag = component.tagDeprecated
-        if (!component.backend.isValid()) {
-          return emptyTable
-        }
+        val tag = component.tag ?: return emptyTable
 
         val elementDescriptor = descriptorProvider.getDescriptor(tag) ?: return emptyTable
         val descriptors = elementDescriptor.getAttributesDescriptors(tag)
-        properties = HashBasedTable.create<String, String, NelePropertyItem>(EXPECTED_ROWS, descriptors.size)
+        properties = HashBasedTable.create(EXPECTED_ROWS, descriptors.size)
 
         loadPropertiesFromDescriptors(tag, descriptors)
 
@@ -221,7 +218,8 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
     }
 
     private fun findPsiClassOfComponent(component: NlComponent): PsiClass? {
-      val psiClass = PsiTreeUtil.getParentOfType(component.tagDeprecated, PsiClass::class.java)
+      val tag = component.tag ?: return null
+      val psiClass = PsiTreeUtil.getParentOfType(tag, PsiClass::class.java)
       val viewClassName = component.viewInfo?.className
       if (viewClassName != null && viewClassName != psiClass?.qualifiedName) {
         return psiFacade.findClass(viewClassName, GlobalSearchScope.allScope(project))
@@ -262,12 +260,12 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
       val type = TypeResolver.resolveType(name, attr)
       val libraryName = attr?.libraryName ?: ""
       if (namespace == ANDROID_URI && name == ATTR_ID) {
-        return NeleIdPropertyItem(model, attr, componentName, null, components)
+        return NeleIdPropertyItem(model, attr, componentName, components)
       }
       if (attr != null && attr.formats.contains(AttributeFormat.FLAGS) && attr.values.isNotEmpty()) {
-        return NeleFlagsPropertyItem(namespace, name, type, attr, componentName, libraryName, model, null, components)
+        return NeleFlagsPropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
       }
-      return NelePropertyItem(namespace, name, type, attr, componentName, libraryName, model, null, components)
+      return NelePropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
     }
 
     private fun getNamespace(descriptor: XmlAttributeDescriptor, context: XmlTag): String {

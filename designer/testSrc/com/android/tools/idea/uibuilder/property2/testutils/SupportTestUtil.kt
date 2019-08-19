@@ -68,19 +68,19 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
     val definition = findDefinition(namespace, name)
     when {
       definition == null ->
-        return NelePropertyItem(namespace, name, type, null, "", "", model, null, components)
+        return NelePropertyItem(namespace, name, type, null, "", "", model, components)
       definition.formats.contains(AttributeFormat.FLAGS) ->
-        return NeleFlagsPropertyItem(namespace, name, NelePropertyType.ENUM, definition, "", "", model, null, components)
+        return NeleFlagsPropertyItem(namespace, name, NelePropertyType.ENUM, definition, "", "", model, components)
       else -> return makeProperty(namespace, definition, type)
     }
   }
 
   fun makeProperty(namespace: String, definition: AttributeDefinition, type: NelePropertyType): NelePropertyItem {
-    return NelePropertyItem(namespace, definition.name, type, definition, "", "", model, null, components)
+    return NelePropertyItem(namespace, definition.name, type, definition, "", "", model, components)
   }
 
   fun makeFlagsProperty(namespace: String, definition: AttributeDefinition): NelePropertyItem {
-    return NeleFlagsPropertyItem(namespace, definition.name, NelePropertyType.STRING, definition, "", "", model, null, components)
+    return NeleFlagsPropertyItem(namespace, definition.name, NelePropertyType.STRING, definition, "", "", model, components)
   }
 
   fun makeFlagsProperty(namespace: String, name: String, values: List<String>): NelePropertyItem {
@@ -93,7 +93,7 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
 
   fun makeIdProperty(): NeleIdPropertyItem {
     val definition = findDefinition(ANDROID_URI, ATTR_ID)
-    return NeleIdPropertyItem(model, definition, "", null, components)
+    return NeleIdPropertyItem(model, definition, "", components)
   }
 
   fun setUpCustomView() {

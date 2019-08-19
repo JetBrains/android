@@ -116,7 +116,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
     val property = NelePropertyItem(namespace, name, type,
                                     null, "", "",
-                                    propertiesModel, null, listOf(component))
+                                    propertiesModel, listOf(component))
 
     val enumSupportProvider = NavEnumSupportProvider()
     val enumSupport = enumSupportProvider(property)
