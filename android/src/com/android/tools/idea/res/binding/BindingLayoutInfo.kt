@@ -29,8 +29,6 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Information for a single, target layout XML file that is useful for generating a Binding or BindingImpl class
  * (assuming it is a data binding or a view binding layout).
- *
- * See also: [BindingLayoutGroup], which owns one (or more) related [BindingLayoutInfo] instances.
  */
 class BindingLayoutInfo(private var facet: AndroidFacet, var data: BindingLayoutData) {
   internal var modificationCount: Long = 0
