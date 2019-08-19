@@ -16,15 +16,13 @@
 package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
-import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_FORMAT;
-import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.EXT_PNG;
-import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 import static com.android.SdkConstants.TAG_ITEM;
 import static com.android.SdkConstants.TAG_RESOURCES;
+import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.ResourceFolderType.COLOR;
 import static com.android.resources.ResourceFolderType.DRAWABLE;
 import static com.android.resources.ResourceFolderType.FONT;
@@ -33,7 +31,6 @@ import static com.android.tools.idea.res.PsiProjectListener.isRelevantFile;
 import static com.android.tools.idea.resources.base.RepositoryLoader.portableFileName;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.createPersistentCache;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.writeResourcesToStream;
-import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
 
@@ -429,72 +426,43 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                       @NotNull List<PsiResourceItem> items,
                       @NotNull PsiElement element,
                       boolean calledFromPsiListener) {
-    // "@+id/" names found before processing the view tag corresponding to the id.
-    Map<String, XmlTag> pendingResourceIds = new HashMap<>();
     Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(element, XmlTag.class);
     if (element instanceof XmlTag) {
-      addId(result, items, (XmlTag)element, pendingResourceIds, calledFromPsiListener);
+      addIds(result, items, (XmlTag)element, calledFromPsiListener);
     }
     if (!xmlTags.isEmpty()) {
       for (XmlTag tag : xmlTags) {
-        addId(result, items, tag, pendingResourceIds, calledFromPsiListener);
+        addIds(result, items, tag, calledFromPsiListener);
       }
     }
-    // Add any remaining ids.
-    if (!pendingResourceIds.isEmpty()) {
-      for (Map.Entry<String, XmlTag> entry : pendingResourceIds.entrySet()) {
-        String id = entry.getKey();
-        PsiResourceItem item = PsiResourceItem.forXmlTag(id, ResourceType.ID, this, entry.getValue(), calledFromPsiListener);
+  }
+
+  private void addIds(@NotNull Map<ResourceType, ListMultimap<String, ResourceItem>> result,
+                      @NotNull List<PsiResourceItem> items,
+                      @NotNull XmlTag tag,
+                      boolean calledFromPsiListener) {
+    assert tag.isValid();
+
+    for (XmlAttribute attribute : tag.getAttributes()) {
+      PsiResourceItem item = createIdFromAttribute(attribute, calledFromPsiListener);
+      if (item != null) {
         items.add(item);
         addToResult(result, item);
       }
     }
   }
 
-  private void addId(@NotNull Map<ResourceType, ListMultimap<String, ResourceItem>> result,
-                     @NotNull List<PsiResourceItem> items,
-                     @NotNull XmlTag tag,
-                     @NotNull Map<String, XmlTag> pendingResourceIds,
-                     boolean calledFromPsiListener) {
-    assert tag.isValid();
-    ListMultimap<String, ResourceItem> idMultimap = result.get(ResourceType.ID);
-    for (XmlAttribute attribute : tag.getAttributes()) {
-      if (ANDROID_URI.equals(attribute.getNamespace())) {
-        // For all attributes in the android namespace, check if something has a value of the form "@+id/"
-        // If the attribute is not android:id, and an item for it hasn't been created yet, add it to
-        // the list of pending ids.
-        String value = attribute.getValue();
-        if (value != null && value.startsWith(NEW_ID_PREFIX) && !ATTR_ID.equals(attribute.getLocalName())) {
-          String id = value.substring(NEW_ID_PREFIX.length());
-          if (isValidResourceName(id) && (idMultimap == null || !idMultimap.containsKey(id)) && !pendingResourceIds.containsKey(id)) {
-            pendingResourceIds.put(id, tag);
-          }
-        }
-      }
-    }
-    // Now process the android:id attribute.
-    String id = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
-    if (id != null) {
-      if (id.startsWith(ID_PREFIX)) {
-        // If the id is not "@+id/", it may still have been declared as "@+id/" in a preceding view (eg. layout_above).
-        // So, we test if this is such a pending id.
-        id = id.substring(ID_PREFIX.length());
-        if (!pendingResourceIds.containsKey(id)) {
-          return;
-        }
-      } else if (id.startsWith(NEW_ID_PREFIX)) {
-        id = id.substring(NEW_ID_PREFIX.length());
-      } else {
-        return;
-      }
-
+  @Nullable
+  private PsiResourceItem createIdFromAttribute(XmlAttribute attribute, boolean calledFromPsiListener) {
+    PsiResourceItem item = null;
+    String attributeValue = StringUtil.notNullize(attribute.getValue()).trim();
+    if (attributeValue.startsWith(NEW_ID_PREFIX) && !attribute.getNamespace().equals(TOOLS_URI)) {
+      String id = attributeValue.substring(NEW_ID_PREFIX.length());
       if (isValidResourceName(id)) {
-        pendingResourceIds.remove(id);
-        PsiResourceItem item = PsiResourceItem.forXmlTag(id, ResourceType.ID, this, tag, calledFromPsiListener);
-        items.add(item);
-        addToResult(result, item);
+        item = PsiResourceItem.forXmlTag(id, ResourceType.ID, this, attribute.getParent(), calledFromPsiListener);
       }
     }
+    return item;
   }
 
   private boolean scanValueFileAsPsi(@NotNull Map<ResourceType, ListMultimap<String, ResourceItem>> result,
@@ -857,14 +825,16 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    *
    * @return true if any resource items were removed from the repository
    */
-  private boolean removeItemForTag(@NotNull ResourceItemSource<PsiResourceItem> source, @NotNull XmlTag xmlTag) {
+  private boolean removeItemsForTag(@NotNull ResourceItemSource<PsiResourceItem> source,
+                                    @NotNull XmlTag xmlTag,
+                                    @NotNull ResourceType resourceType) {
     boolean changed = false;
 
     synchronized (ITEM_MAP_LOCK) {
       for (Iterator<PsiResourceItem> sourceIter = source.iterator(); sourceIter.hasNext();) {
         PsiResourceItem item = sourceIter.next();
         if (item.wasTag(xmlTag)) {
-          ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, item.getType());
+          ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, resourceType);
           List<ResourceItem> items = map.get(item.getName());
           for (Iterator<ResourceItem> iter = items.iterator(); iter.hasNext(); ) {
             ResourceItem candidate = iter.next();
@@ -1090,10 +1060,25 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               } else if (child instanceof XmlAttribute || parent instanceof XmlAttribute) {
                 // We check both because invalidation might come from XmlAttribute if it is inserted at once.
                 XmlAttribute attribute = parent instanceof XmlAttribute ? (XmlAttribute)parent : (XmlAttribute)child;
-                // warning for separate if branches suppressed because to do.
-                if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
-                  // TODO: Update it incrementally.
-                  scheduleScan(psiFile, folderType);
+
+                PsiResourceItem newIdResource = createIdFromAttribute(attribute, true);
+                if (newIdResource != null) {
+                  if (convertToPsiIfNeeded(psiFile, folderType)) {
+                    return;
+                  }
+
+                  synchronized (ITEM_MAP_LOCK) {
+                    ResourceItemSource<? extends ResourceItem> resFile = mySources.get(psiFile.getVirtualFile());
+                    if (resFile != null) {
+                      assert resFile instanceof PsiResourceFile;
+                      PsiResourceFile psiResourceFile = (PsiResourceFile)resFile;
+                      psiResourceFile.addItem(newIdResource);
+                      getOrCreateMap(getNamespace(), ResourceType.ID).put(newIdResource.getName(), newIdResource);
+                      setModificationCount(ourModificationCounter.incrementAndGet());
+                      invalidateParentCaches(myNamespace, ResourceType.ID);
+                      return;
+                    }
+                  }
                 }
               }
             }
@@ -1177,7 +1162,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     ResourceType type = getResourceTypeForResourceTag(tag);
                     if (type != null) {
                       synchronized (ITEM_MAP_LOCK) {
-                        boolean removed = removeItemForTag(resourceFile, tag);
+                        boolean removed = removeItemsForTag(resourceFile, tag, type);
                         if (removed) {
                           setModificationCount(ourModificationCounter.incrementAndGet());
                           invalidateParentCaches(myNamespace, type);
@@ -1251,18 +1236,17 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               if (child instanceof XmlAttributeValue) {
                 assert parent instanceof XmlAttribute : parent;
                 XmlAttribute attribute = (XmlAttribute)parent;
-                if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
-                  // For each id attribute!
-                  ResourceItemSource<? extends ResourceItem> source = mySources.get(psiFile.getVirtualFile());
-                  if (source != null) {
-                    XmlTag xmlTag = attribute.getParent();
-                    PsiElement oldChild = event.getOldChild();
-                    PsiElement newChild = event.getNewChild();
-                    if (oldChild instanceof XmlAttributeValue && newChild instanceof XmlAttributeValue) {
-                      XmlAttributeValue oldValue = (XmlAttributeValue)oldChild;
-                      XmlAttributeValue newValue = (XmlAttributeValue)newChild;
-                      ResourceUrl oldResourceUrl = ResourceUrl.parse(oldValue.getValue());
-                      ResourceUrl newResourceUrl = ResourceUrl.parse(newValue.getValue());
+
+                PsiElement oldChild = event.getOldChild();
+                PsiElement newChild = event.getNewChild();
+                if (oldChild instanceof XmlAttributeValue && newChild instanceof XmlAttributeValue) {
+                  String oldText = ((XmlAttributeValue)oldChild).getValue().trim();
+                  String newText = ((XmlAttributeValue)newChild).getValue().trim();
+                  if (oldText.startsWith(NEW_ID_PREFIX) || newText.startsWith(NEW_ID_PREFIX)) {
+                    ResourceItemSource<? extends ResourceItem> source = mySources.get(psiFile.getVirtualFile());
+                    if (source != null) {
+                      ResourceUrl oldResourceUrl = ResourceUrl.parse(oldText);
+                      ResourceUrl newResourceUrl = ResourceUrl.parse(newText);
 
                       // Make sure to compare name as well as urlType, e.g. if both have @+id or not.
                       if (Objects.equals(oldResourceUrl, newResourceUrl)) {
@@ -1270,13 +1254,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                         return;
                       }
 
-                      if (handleIdChange(psiFile, source, xmlTag, newResourceUrl, stripIdPrefix(oldValue.getValue()))) {
+                      if (handleIdsChange(source, attribute.getParent())) {
                         return;
                       }
                     }
-                  }
 
-                  scheduleScan(psiFile, folderType);
+                    scheduleScan(psiFile, folderType);
+                  }
                 }
               } else if (parent instanceof XmlAttributeValue) {
                 PsiElement grandParent = parent.getParent();
@@ -1287,16 +1271,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 }
                 assert grandParent instanceof XmlAttribute : parent;
                 XmlAttribute attribute = (XmlAttribute)grandParent;
-                if (ATTR_ID.equals(attribute.getLocalName()) &&
-                    ANDROID_URI.equals(attribute.getNamespace())) {
-                  // For each id attribute!
+                XmlTag xmlTag = attribute.getParent();
+                String oldText = StringUtil.notNullize(event.getOldChild().getText()).trim();
+                String newText = StringUtil.notNullize(event.getNewChild().getText()).trim();
+                if (oldText.startsWith(NEW_ID_PREFIX) || newText.startsWith(NEW_ID_PREFIX)) {
                   ResourceItemSource<? extends ResourceItem> resFile = mySources.get(psiFile.getVirtualFile());
                   if (resFile != null) {
-                    XmlTag xmlTag = attribute.getParent();
-                    PsiElement oldChild = event.getOldChild();
-                    PsiElement newChild = event.getNewChild();
-                    ResourceUrl oldResourceUrl = ResourceUrl.parse(oldChild.getText());
-                    ResourceUrl newResourceUrl = ResourceUrl.parse(newChild.getText());
+                    ResourceUrl oldResourceUrl = ResourceUrl.parse(oldText);
+                    ResourceUrl newResourceUrl = ResourceUrl.parse(newText);
 
                     // Make sure to compare name as well as urlType, e.g. if both have @+id or not.
                     if (Objects.equals(oldResourceUrl, newResourceUrl)) {
@@ -1304,7 +1286,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                       return;
                     }
 
-                    if (handleIdChange(psiFile, resFile, xmlTag, newResourceUrl, stripIdPrefix(oldChild.getText()))) {
+                    if (handleIdsChange(resFile, xmlTag)) {
                       return;
                     }
                   }
@@ -1508,52 +1490,31 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     /**
-     * Tries to handle changes to an {@code android:id} tag incrementally.
+     * Tries to handle changes to attributes that contain "@+id" incrementally.
+     *
+     * <p>To correctly handle multiple ids declared in the same tag, this means deleting all existing ID resources associated with {@code
+     * xmlTag} and creating new ones for every attribute that contains "@+id".
      *
      * @return true if incremental change succeeded, false otherwise (i.e. a rescan is necessary).
      */
-    private boolean handleIdChange(@NotNull PsiFile psiFile,
-                                   @NotNull ResourceItemSource<? extends ResourceItem> resFile,
-                                   @NotNull XmlTag xmlTag,
-                                   @Nullable ResourceUrl newResourceUrl,
-                                   @NotNull String oldName) {
-      if (resFile instanceof PsiResourceFile) {
-        PsiResourceFile psiResourceFile = (PsiResourceFile)resFile;
-        ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName, xmlTag);
-        synchronized (ITEM_MAP_LOCK) {
-          ListMultimap<String, ResourceItem> idMultimap = myFullTable.get(myNamespace, ResourceType.ID);
-          if (idMultimap != null) {
-            boolean madeChanges = false;
-
-            if (item != null) {
-              // Found the relevant item: delete it and create a new one in a new location
-              idMultimap.remove(oldName, item);
-              if (psiResourceFile.isSourceOf(item)) {
-                psiResourceFile.removeItem((PsiResourceItem)item);
-              }
-              madeChanges = true;
-            }
-
-            if (newResourceUrl != null) {
-              String newName = newResourceUrl.name;
-              if (newResourceUrl.urlType == ResourceUrl.UrlType.CREATE && isValidResourceName(newName)) {
-                PsiResourceItem newItem =
-                    PsiResourceItem.forXmlTag(newName, ResourceType.ID, ResourceFolderRepository.this, xmlTag, true);
-                idMultimap.put(newName, newItem);
-                psiResourceFile.addItem(newItem);
-                madeChanges = true;
-              }
-            }
-
-            if (madeChanges) {
-              setModificationCount(ourModificationCounter.incrementAndGet());
-              invalidateParentCaches(myNamespace, ResourceType.ID);
-            }
-            return true;
-          }
-        }
+    private boolean handleIdsChange(@NotNull ResourceItemSource<? extends ResourceItem> resFile,
+                                    @NotNull XmlTag xmlTag) {
+      if (!(resFile instanceof PsiResourceFile)) {
+        return false;
       }
-      return false;
+      PsiResourceFile psiResourceFile = (PsiResourceFile)resFile;
+
+      synchronized (ITEM_MAP_LOCK) {
+        removeItemsForTag(psiResourceFile, xmlTag, ResourceType.ID);
+        Map<ResourceType, ListMultimap<String, ResourceItem>> result = new HashMap<>();
+        ArrayList<PsiResourceItem> ids = new ArrayList<>();
+        addIds(result, ids, xmlTag, true);
+        commitToRepository(result);
+        ids.forEach(psiResourceFile::addItem);
+        setModificationCount(ourModificationCounter.incrementAndGet());
+        invalidateParentCaches(myNamespace, ResourceType.ID);
+        return true;
+      }
     }
 
     private void handleValueXmlTextEdit(@Nullable PsiElement parent, @NotNull PsiFile psiFile) {
