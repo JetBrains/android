@@ -64,6 +64,7 @@ public class MenuPreviewRendererTest extends AndroidTestCase {
     assertEquals(newXml, layout);
 
     RenderTestUtil.scaleAndCheckRendering(task, getTestDataPath() + "/render/thumbnails/menu/menu1.png");
+    task.dispose();
   }
 
   public void testLightTheme() throws IOException {
@@ -76,5 +77,6 @@ public class MenuPreviewRendererTest extends AndroidTestCase {
     assertNotNull(task);
 
     RenderTestUtil.scaleAndCheckRendering(task, getTestDataPath() + "/render/thumbnails/menu/menu1-light.png");
+    task.dispose();
   }
 }
