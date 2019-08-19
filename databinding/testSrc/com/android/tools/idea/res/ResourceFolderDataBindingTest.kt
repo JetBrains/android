@@ -82,7 +82,6 @@ class ResourceFolderDataBindingTest {
     val file = fixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
     psiFile = PsiManager.getInstance(project).findFile(file)!!
     resources = createRepository()
-    assertEquals(1, resources.bindingLayoutGroups.size)
   }
 
   @Test
@@ -279,10 +278,7 @@ class ResourceFolderDataBindingTest {
   }
 
   private fun getInfo(): BindingLayoutInfo {
-    val appPackage = DataBindingUtil.getGeneratedPackageName(facet)
-    return resources.bindingLayoutGroups.values
-        .flatMap { group -> group.layouts }
-        .first { layout -> layout.qualifiedClassName == "$appPackage.databinding.LayoutWithDataBindingBinding" }
+    return resources.getBindingLayoutInfo("layout_with_data_binding").first()
   }
 
   private fun getVariableTag(name: String): XmlTag {
