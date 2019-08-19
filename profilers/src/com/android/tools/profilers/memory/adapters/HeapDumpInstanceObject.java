@@ -50,18 +50,15 @@ class HeapDumpInstanceObject implements InstanceObject {
   @NotNull protected ValueType myValueType;
 
   @NotNull private final HeapDumpCaptureObject myCaptureObject;
-  @Nullable private final InstanceObject myClassInstanceObject;
   @NotNull private final Instance myInstance;
   @NotNull private final ClassDb.ClassEntry myClassEntry;
   @NotNull private final String myMemoizedLabel;
 
   HeapDumpInstanceObject(@NotNull HeapDumpCaptureObject captureObject,
-                                @Nullable InstanceObject classInstanceObject,
                                 @NotNull Instance instance,
                                 @NotNull ClassDb.ClassEntry classEntry,
                                 @Nullable ValueType precomputedValueType) {
     myCaptureObject = captureObject;
-    myClassInstanceObject = classInstanceObject;
     myInstance = instance;
     myClassEntry = classEntry;
 
@@ -149,12 +146,6 @@ class HeapDumpInstanceObject implements InstanceObject {
   @Override
   public ClassDb.ClassEntry getClassEntry() {
     return myClassEntry;
-  }
-
-  @Nullable
-  @Override
-  public InstanceObject getClassObject() {
-    return myClassInstanceObject;
   }
 
   @Override

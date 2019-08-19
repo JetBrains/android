@@ -22,7 +22,6 @@ import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Type;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
@@ -85,13 +84,13 @@ public class HeapDumpInstanceObjectTest {
     targetInstance.addFieldValue(Type.OBJECT, "nullTest", null);
 
     myCaptureObject.addInstance(classInstance, new HeapDumpInstanceObject(
-      myCaptureObject, null, classInstance, myCaptureObject.getClassDb().registerClass(0, "MockClass2"), OBJECT));
+      myCaptureObject, classInstance, myCaptureObject.getClassDb().registerClass(1, "MockClass2"), OBJECT));
     myCaptureObject.addInstance(classObj, new HeapDumpInstanceObject(
-      myCaptureObject, null, classObj, myCaptureObject.getClassDb().registerClass(0, "MockClass3"), CLASS));
+      myCaptureObject, classObj, myCaptureObject.getClassDb().registerClass(2, "MockClass3"), CLASS));
     myCaptureObject.addInstance(stringInstance, new HeapDumpInstanceObject(
-      myCaptureObject, null, stringInstance, myCaptureObject.getClassDb().registerClass(0, "java.lang.String"), STRING));
+      myCaptureObject, stringInstance, myCaptureObject.getClassDb().registerClass(3, "java.lang.String"), STRING));
     myCaptureObject.addInstance(targetInstance, new HeapDumpInstanceObject(
-      myCaptureObject, null, targetInstance, myCaptureObject.getClassDb().registerClass(0, "MockClass1"), OBJECT));
+      myCaptureObject, targetInstance, myCaptureObject.getClassDb().registerClass(4, "MockClass1"), OBJECT));
 
     List<FieldObject> fields = myCaptureObject.getInstance(targetInstance).getFields();
     assertEquals(12, fields.size());
@@ -133,14 +132,11 @@ public class HeapDumpInstanceObjectTest {
     arrayInstance.setValue(0, element0);
     arrayInstance.setValue(1, element1);
     arrayInstance.setValue(2, element2);
-    myCaptureObject.addInstance(element0, new HeapDumpInstanceObject(
-      myCaptureObject, null, element0, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
-    myCaptureObject.addInstance(element1, new HeapDumpInstanceObject(
-      myCaptureObject, null, element1, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
-    myCaptureObject.addInstance(element2, new HeapDumpInstanceObject(
-      myCaptureObject, null, element2, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
-    myCaptureObject.addInstance(arrayInstance, new HeapDumpInstanceObject(
-      myCaptureObject, null, arrayInstance, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), ARRAY));
+    ClassDb.ClassEntry mockClassEntry = myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS);
+    myCaptureObject.addInstance(element0, new HeapDumpInstanceObject(myCaptureObject, element0, mockClassEntry, OBJECT));
+    myCaptureObject.addInstance(element1, new HeapDumpInstanceObject(myCaptureObject, element1, mockClassEntry, OBJECT));
+    myCaptureObject.addInstance(element2, new HeapDumpInstanceObject(myCaptureObject, element2, mockClassEntry, OBJECT));
+    myCaptureObject.addInstance(arrayInstance, new HeapDumpInstanceObject(myCaptureObject, arrayInstance, mockClassEntry, ARRAY));
 
     List<FieldObject> fields = myCaptureObject.getInstance(arrayInstance).getFields();
     assertEquals(3, fields.size());
@@ -170,10 +166,9 @@ public class HeapDumpInstanceObjectTest {
     classObj.addStaticField(Type.INT, "staticInt", new Integer(4));
     classObj.addStaticField(Type.LONG, "staticLong", new Integer(5));
 
-    myCaptureObject.addInstance(classInstance, new HeapDumpInstanceObject(
-      myCaptureObject, null, classInstance, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
-    myCaptureObject.addInstance(classObj, new HeapDumpInstanceObject(
-      myCaptureObject, null, classObj, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), CLASS));
+    ClassDb.ClassEntry mockClassEntry = myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS);
+    myCaptureObject.addInstance(classInstance, new HeapDumpInstanceObject(myCaptureObject, classInstance, mockClassEntry, OBJECT));
+    myCaptureObject.addInstance(classObj, new HeapDumpInstanceObject(myCaptureObject, classObj, mockClassEntry, CLASS));
 
     List<FieldObject> fields = myCaptureObject.getInstance(classObj).getFields();
     assertEquals(9, fields.size());
@@ -232,16 +227,17 @@ public class HeapDumpInstanceObjectTest {
     mockInstance.addHardReference(hardClassRef);
     mockInstance.addSoftReferences(softInstanceRef);
 
+    ClassDb.ClassEntry mockClassEntry = myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS);
     myCaptureObject.addInstance(hardInstanceRef, new HeapDumpInstanceObject(
-      myCaptureObject, null, hardInstanceRef, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
+      myCaptureObject, hardInstanceRef, mockClassEntry, OBJECT));
     myCaptureObject.addInstance(hardArrayRef, new HeapDumpInstanceObject(
-      myCaptureObject, null, hardArrayRef, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), ARRAY));
+      myCaptureObject, hardArrayRef, mockClassEntry, ARRAY));
     myCaptureObject.addInstance(hardClassRef, new HeapDumpInstanceObject(
-      myCaptureObject, null, hardClassRef, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), CLASS));
+      myCaptureObject, hardClassRef, mockClassEntry, CLASS));
     myCaptureObject.addInstance(softInstanceRef, new HeapDumpInstanceObject(
-      myCaptureObject, null, softInstanceRef, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
+      myCaptureObject, softInstanceRef, mockClassEntry, OBJECT));
     myCaptureObject.addInstance(mockInstance, new HeapDumpInstanceObject(
-      myCaptureObject, null, mockInstance, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
+      myCaptureObject, mockInstance, mockClassEntry, OBJECT));
 
     // extractReference is expected to return a list of sorted hard references first
     // then sorted soft references.

@@ -32,13 +32,13 @@ import com.android.tools.profiler.proto.Memory.AllocationEvent;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
+import com.android.tools.profiler.proto.Memory.NativeBacktrace;
+import com.android.tools.profiler.proto.Memory.NativeCallStack;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
-import com.android.tools.profiler.proto.Memory.NativeBacktrace;
-import com.android.tools.profiler.proto.Memory.NativeCallStack;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
@@ -59,7 +59,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -94,7 +93,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   @VisibleForTesting final ExecutorService myExecutorService;
   private final ClassDb myClassDb;
-  private final Map<ClassDb.ClassEntry, LiveAllocationInstanceObject> myClassMap;
   private final TIntObjectHashMap<LiveAllocationInstanceObject> myInstanceMap;
   private final TIntObjectHashMap<Memory.AllocationStack> myCallstackMap;
   // Mapping from unsymbolized addresses to symbolized native frames
@@ -134,7 +132,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     }
 
     myClassDb = new ClassDb();
-    myClassMap = new HashMap<>();
     myInstanceMap = new TIntObjectHashMap<>();
     myCallstackMap = new TIntObjectHashMap<>();
     myNativeFrameMap = new TLongObjectHashMap<>();
@@ -290,16 +287,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     List<Memory.BatchAllocationContexts> contextsList = getAllocationContexts(myContextEndTimeNs, endTimeNs);
     for (Memory.BatchAllocationContexts contexts : contextsList) {
       for (AllocatedClass klass : contexts.getClassesList()) {
-        ClassDb.ClassEntry entry = myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, klass.getClassName(), klass.getClassId());
-        if (!myClassMap.containsKey(entry)) {
-          // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
-          // TODO pass in proper allocation time once this is handled via ALLOC_DATA.
-          LiveAllocationInstanceObject instance =
-            new LiveAllocationInstanceObject(this, entry, null, null, null, MemoryObject.INVALID_VALUE, MemoryObject.INVALID_VALUE);
-          instance.setAllocationTime(myCaptureStartTime);
-          myClassMap.put(entry, instance);
-          // TODO figure out what to do with java.lang.Class instance objects
-        }
+        // We don't have super class information at the moment so just assign invalid id as the super class id.
+        myClassDb.registerClass(klass.getClassId(), klass.getClassName());
       }
       contexts.getMethodsList().forEach(method -> {
         if (!myMethodIdMap.containsKey(method.getMethodId())) {
@@ -462,7 +451,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     LiveAllocationInstanceObject instance = myInstanceMap.get(tag);
     if (instance == null) {
       ClassDb.ClassEntry entry = myClassDb.getEntry(classTag);
-      assert myClassMap.containsKey(entry);
       AllocationStack callstack = null;
       if (stackId != 0) {
         assert myCallstackMap.containsKey(stackId);
@@ -473,7 +461,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         assert myThreadIdMap.containsKey(threadId);
         thread = myThreadIdMap.get(threadId);
       }
-      instance = new LiveAllocationInstanceObject(this, entry, myClassMap.get(entry), thread, callstack, size, heapId);
+      instance = new LiveAllocationInstanceObject(this, entry, thread, callstack, size, heapId);
       myInstanceMap.put(tag, instance);
     }
 

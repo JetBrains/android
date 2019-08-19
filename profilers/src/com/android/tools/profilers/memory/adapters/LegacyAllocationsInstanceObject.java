@@ -87,12 +87,6 @@ final class LegacyAllocationsInstanceObject implements InstanceObject {
     return myAllocationClassEntry;
   }
 
-  @Nullable
-  @Override
-  public InstanceObject getClassObject() {
-    return null;
-  }
-
   @Override
   public int getShallowSize() {
     return (int)myEvent.getSize();
