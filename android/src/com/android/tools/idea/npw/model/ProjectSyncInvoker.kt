@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.model;
+package com.android.tools.idea.npw.model
 
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.intellij.openapi.project.Project
 
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED;
-
-public interface ProjectSyncInvoker {
+interface ProjectSyncInvoker {
   /**
    * Triggers synchronizing the IDE model with the build system model of the project.
    */
-  void syncProject(@NotNull Project project);
+  fun syncProject(project: Project)
 
   /**
-   * Triggers synchronizing using {@link ProjectSystemSyncManager}.
+   * Triggers synchronizing using [ProjectSyncInvoker].
    */
-  class DefaultProjectSyncInvoker implements ProjectSyncInvoker {
-    @Override
-    public void syncProject(@NotNull Project project) {
-      ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(PROJECT_MODIFIED);
+  class DefaultProjectSyncInvoker : ProjectSyncInvoker {
+    override fun syncProject(project: Project) {
+      project.getProjectSystem().getSyncManager().syncProject(PROJECT_MODIFIED)
     }
   }
 }
