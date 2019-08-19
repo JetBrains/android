@@ -40,6 +40,7 @@ import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
+import com.google.common.base.Predicate
 import com.google.common.base.Predicates
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
@@ -357,9 +358,8 @@ class GradleModuleSystem(
     return found
   }
 
-  private fun findNextVersion(id: GradleCoordinateId, filter: (GradleVersion) -> Boolean, isPreview: Boolean): GradleVersion? {
-    return repoUrlManager.findVersion(id.groupId, id.artifactId, filter, isPreview, FileOpUtils.create())
-  }
+  private fun findNextVersion(id: GradleCoordinateId, filter: (GradleVersion) -> Boolean, isPreview: Boolean): GradleVersion? =
+    repoUrlManager.findVersion(id.groupId, id.artifactId, Predicate { filter(it!!) }, isPreview, FileOpUtils.create())
 
   private data class GradleCoordinateId(val groupId: String, val artifactId: String) {
     constructor(coordinate: GradleCoordinate) : this(coordinate.groupId, coordinate.artifactId)
