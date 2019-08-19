@@ -15,16 +15,19 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.stacktrace.ThreadId;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.Assert.*;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class FakeInstanceObject implements InstanceObject {
   @NotNull private final String myName;
@@ -45,7 +48,7 @@ public final class FakeInstanceObject implements InstanceObject {
 
   private FakeInstanceObject(@NotNull String name,
                              @NotNull ClassDb.ClassEntry classEntry,
-                             @NotNull List<String> fields,
+                             @NotNull List<FakeFieldObject> fields,
                              @NotNull ThreadId allocationThreadId,
                              @Nullable AllocationStack allocationStack,
                              @NotNull ValueType valueType,
@@ -59,8 +62,7 @@ public final class FakeInstanceObject implements InstanceObject {
     myNativeSize = nativeSize;
     myShallowSize = shallowSize;
     myRetainedSize = retainedSize;
-    myFields = new ArrayList<>();
-    fields.forEach(fieldName -> myFields.add(new FakeFieldObject(fieldName, ValueType.NULL, null)));
+    myFields = new ArrayList<>(fields);
     myAllocationThreadId = allocationThreadId;
     myAllocationStack = allocationStack;
     myValueType = valueType;
@@ -102,12 +104,6 @@ public final class FakeInstanceObject implements InstanceObject {
   @Override
   public ClassDb.ClassEntry getClassEntry() {
     return myClassEntry;
-  }
-
-  @Nullable
-  @Override
-  public InstanceObject getClassObject() {
-    return null;
   }
 
   @Override
@@ -227,12 +223,13 @@ public final class FakeInstanceObject implements InstanceObject {
   public static class Builder {
     @NotNull private FakeCaptureObject myCaptureObject;
     @NotNull private String myName = "DUMMY_INSTANCE";
-    @NotNull private List<String> myFields = new ArrayList<>();
+    @NotNull private List<FakeFieldObject> myFields = new ArrayList<>();
     @NotNull private ThreadId myAllocationThreadId = ThreadId.INVALID_THREAD_ID;
     @Nullable private AllocationStack myAllocationStack = null;
     @NotNull private ValueType myValueType = ValueType.NULL;
     @NotNull private String myClassName;
-    private long myClassLoaderId = CaptureObject.DEFAULT_CLASSLOADER_ID;
+    private long myClassId;
+    private long mySuperClassId = ClassDb.INVALID_CLASS_ID;
     private int myHeapId = FakeCaptureObject.DEFAULT_HEAP_ID;
 
     private int myDepth = Integer.MAX_VALUE;
@@ -243,14 +240,9 @@ public final class FakeInstanceObject implements InstanceObject {
     private Object myArray;
     private int myArrayLength;
 
-    public Builder(@NotNull FakeCaptureObject captureObject, @NotNull String className) {
+    public Builder(@NotNull FakeCaptureObject captureObject, long classId, @NotNull String className) {
       myCaptureObject = captureObject;
-      myClassName = className;
-    }
-
-    public Builder(@NotNull FakeCaptureObject captureObject, long classLoaderId, @NotNull String className) {
-      myCaptureObject = captureObject;
-      myClassLoaderId = classLoaderId;
+      myClassId = classId;
       myClassName = className;
     }
 
@@ -261,10 +253,16 @@ public final class FakeInstanceObject implements InstanceObject {
     }
 
     @NotNull
+    public Builder setSuperClassId(long superClassId) {
+      mySuperClassId = superClassId;
+      return this;
+    }
+
+    @NotNull
     public Builder createFakeFields(int fieldCount) {
       assertEquals(0, myFields.size());
       for (int i = 0; i < fieldCount; i++) {
-        myFields.add("mField" + i);
+        myFields.add(new FakeFieldObject("mField" + i, ValueType.NULL, null));
       }
       return this;
     }
@@ -272,7 +270,12 @@ public final class FakeInstanceObject implements InstanceObject {
     @NotNull
     public Builder setFields(@NotNull List<String> fields) {
       myFields.clear();
-      myFields.addAll(fields);
+      myFields.addAll(fields.stream().map(name -> new FakeFieldObject(name, ValueType.NULL, null)).collect(Collectors.toList()));
+      return this;
+    }
+
+    public Builder addField(@NotNull String fieldName, ValueType fieldType, Object value) {
+      myFields.add(new FakeFieldObject(fieldName, fieldType, value));
       return this;
     }
 
@@ -335,9 +338,9 @@ public final class FakeInstanceObject implements InstanceObject {
 
     @NotNull
     public FakeInstanceObject build() {
-      return new FakeInstanceObject(myName, myCaptureObject.registerClass(myClassLoaderId, myClassName), myFields, myAllocationThreadId,
-                                    myAllocationStack, myValueType, myArrayElementType, myArray, myArrayLength, myHeapId, myDepth,
-                                    myNativeSize, myShallowSize, myRetainedSize);
+      return new FakeInstanceObject(myName, myCaptureObject.registerClass(myClassId, mySuperClassId, myClassName), myFields,
+                                    myAllocationThreadId, myAllocationStack, myValueType, myArrayElementType, myArray, myArrayLength,
+                                    myHeapId, myDepth, myNativeSize, myShallowSize, myRetainedSize);
     }
   }
 }

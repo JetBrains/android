@@ -91,7 +91,7 @@ public class MemoryInstanceDetailsViewTest {
   public void NoCallstackOrReferenceVisibilityTest() throws Exception {
     // Selection with no callstack / reference information
     Component component = myDetailsView.getComponent();
-    FakeInstanceObject fakeInstanceObject = new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").build();
+    FakeInstanceObject fakeInstanceObject = new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").build();
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(fakeInstanceObject));
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
@@ -104,9 +104,9 @@ public class MemoryInstanceDetailsViewTest {
   public void SelectionWithReferenceVisibilityTest() throws Exception {
     // Selection with reference information
     Component component = myDetailsView.getComponent();
-    FakeInstanceObject referee = new FakeInstanceObject.Builder(myFakeCaptureObject, "REFEREE").setName("referee").build();
+    FakeInstanceObject referee = new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "REFEREE").setName("referee").build();
     FakeInstanceObject referer =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setName("referee").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 2, "REFERER").setName("referee").setFields(Collections.singletonList("mField"))
         .build();
     referer.setFieldValue("mField", OBJECT, referee);
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(referee, referer));
@@ -125,7 +125,7 @@ public class MemoryInstanceDetailsViewTest {
       Memory.AllocationStack.StackFrameWrapper.newBuilder().addFrames(
         Memory.AllocationStack.StackFrame.newBuilder().setClassName("MockClass").setMethodName("MockMethod").setLineNumber(1)))
       .build();
-    FakeInstanceObject instance = new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setAllocationStack(stack).build();
+    FakeInstanceObject instance = new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setAllocationStack(stack).build();
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(instance));
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
@@ -151,22 +151,22 @@ public class MemoryInstanceDetailsViewTest {
     // ---> Ref4
     // -> Ref5
     FakeInstanceObject fakeInstance1 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setName("fake1").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setName("fake1").setFields(Collections.singletonList("mField"))
         .build();
     FakeInstanceObject fakeInstance2 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setName("fake2").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setName("fake2").setFields(Collections.singletonList("mField"))
         .build();
     FakeInstanceObject fakeInstance3 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setName("fake3").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setName("fake3").setFields(Collections.singletonList("mField"))
         .build();
     FakeInstanceObject fakeInstance4 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setName("fake4").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setName("fake4").setFields(Collections.singletonList("mField"))
         .build();
     FakeInstanceObject fakeInstance5 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setName("fake5").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "DUMMY_CLASS").setName("fake5").setFields(Collections.singletonList("mField"))
         .build();
     FakeInstanceObject fakeRootObject =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_ROOT").setName("FakeRoot").build();
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 2, "DUMMY_ROOT").setName("FakeRoot").build();
 
     fakeInstance1.setFieldValue("mField", OBJECT, fakeRootObject);
     fakeInstance2.setFieldValue("mField", OBJECT, fakeInstance1);
@@ -220,8 +220,8 @@ public class MemoryInstanceDetailsViewTest {
   @Test
   public void testGoToInstance() {
     FakeInstanceObject referer =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setFields(Collections.singletonList("mField")).build();
-    FakeInstanceObject referee = new FakeInstanceObject.Builder(myFakeCaptureObject, "REFEREE").build();
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "REFERER").setFields(Collections.singletonList("mField")).build();
+    FakeInstanceObject referee = new FakeInstanceObject.Builder(myFakeCaptureObject, 2, "REFEREE").build();
     referer.setFieldValue("mField", OBJECT, referee);
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(referer, referee));
 
@@ -264,17 +264,17 @@ public class MemoryInstanceDetailsViewTest {
     // -> fake2
     // -> fake3
     FakeInstanceObject fake1 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setName("Ref1").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "REFERER").setName("Ref1").setFields(Collections.singletonList("mField"))
         .setDepth(1).setNativeSize(1).setShallowSize(2).setRetainedSize(3).build();
     FakeInstanceObject fake2 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setName("Ref2").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "REFERER").setName("Ref2").setFields(Collections.singletonList("mField"))
         .setDepth(4).setNativeSize(2).setShallowSize(5).setRetainedSize(6).build();
     FakeInstanceObject fake3 =
-      new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setName("Ref3").setFields(Collections.singletonList("mField"))
+      new FakeInstanceObject.Builder(myFakeCaptureObject, 1, "REFERER").setName("Ref3").setFields(Collections.singletonList("mField"))
         .setDepth(7).setNativeSize(3).setShallowSize(8).setRetainedSize(9).build();
     List<FakeInstanceObject> references = Arrays.asList(fake1, fake2, fake3);
 
-    FakeInstanceObject fakeRootObject = new FakeInstanceObject.Builder(myFakeCaptureObject, "REFEREE").setName("MockRoot").build();
+    FakeInstanceObject fakeRootObject = new FakeInstanceObject.Builder(myFakeCaptureObject, 2, "REFEREE").setName("MockRoot").build();
 
     fake1.setFieldValue("mField", OBJECT, fakeRootObject);
     fake2.setFieldValue("mField", OBJECT, fakeRootObject);

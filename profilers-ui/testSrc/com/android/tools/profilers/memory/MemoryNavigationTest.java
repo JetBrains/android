@@ -75,12 +75,12 @@ public class MemoryNavigationTest {
   @Test
   public void testGoToInstance() {
     FakeCaptureObject fakeCaptureObject = new FakeCaptureObject.Builder().build();
-    FakeInstanceObject instance = new FakeInstanceObject.Builder(fakeCaptureObject, "DUMMY_CLASS").setName("instance")
+    FakeInstanceObject instance = new FakeInstanceObject.Builder(fakeCaptureObject, 1, "DUMMY_CLASS").setName("instance")
       .setFields(Collections.singletonList("DUMMY_FIELD")).setDepth(1).setShallowSize(3).setRetainedSize(9).build();
     assertEquals(1, instance.getFieldCount());
     assertEquals(1, instance.getFields().size());
     InstanceObject fieldInstance =
-      new FakeInstanceObject.Builder(fakeCaptureObject, "DUMMY_FIELD_CLASS").setName("fieldInstance").setDepth(2).setShallowSize(6)
+      new FakeInstanceObject.Builder(fakeCaptureObject, 2, "DUMMY_FIELD_CLASS").setName("fieldInstance").setDepth(2).setShallowSize(6)
         .setRetainedSize(6).build();
     instance.setFieldValue("DUMMY_FIELD", ValueObject.ValueType.OBJECT, fieldInstance);
     fakeCaptureObject.addInstanceObjects(ImmutableSet.of(instance, fieldInstance));
@@ -127,7 +127,7 @@ public class MemoryNavigationTest {
 
     FakeCaptureObject fakeCaptureObject = new FakeCaptureObject.Builder().build();
     InstanceObject fakeInstance =
-      new FakeInstanceObject.Builder(fakeCaptureObject, testClassName).setName("TestInstance").setDepth(1).setShallowSize(2)
+      new FakeInstanceObject.Builder(fakeCaptureObject, 1, testClassName).setName("TestInstance").setDepth(1).setShallowSize(2)
         .setRetainedSize(3).build();
     fakeCaptureObject.addInstanceObjects(ImmutableSet.of(fakeInstance));
 

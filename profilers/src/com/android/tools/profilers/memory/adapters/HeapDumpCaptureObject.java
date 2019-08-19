@@ -20,6 +20,8 @@ import static com.android.tools.profilers.memory.adapters.CaptureObject.Classifi
 import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.NATIVE_SIZE;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.RETAINED_SIZE;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.SHALLOW_SIZE;
+import static com.android.tools.profilers.memory.adapters.ClassDb.INVALID_CLASS_ID;
+import static com.android.tools.profilers.memory.adapters.ClassDb.JAVA_LANG_CLASS;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
@@ -38,6 +40,7 @@ import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
+import gnu.trove.TLongObjectHashMap;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,10 +69,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
   private final Map<Integer, HeapSet> myHeapSets = new HashMap<>();
 
   @NotNull
-  private final Map<ClassObj, InstanceObject> myClassObjectIndex = new HashMap<>();
-
-  @NotNull
-  private final Map<Instance, InstanceObject> myInstanceIndex = new HashMap<>();
+  private final TLongObjectHashMap<InstanceObject> myInstanceIndex = new TLongObjectHashMap<>();
 
   @NotNull
   private final ClassDb myClassDb = new ClassDb();
@@ -204,7 +204,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
       heapSets.put(heap, heapSet);
       if (javaLangClassObject == null) {
         ClassObj javaLangClass =
-          heap.getClasses().stream().filter(classObj -> ClassDb.JAVA_LANG_CLASS.equals(classObj.getClassName())).findFirst().orElse(null);
+          heap.getClasses().stream().filter(classObj -> JAVA_LANG_CLASS.equals(classObj.getClassName())).findFirst().orElse(null);
         if (javaLangClass != null) {
           javaLangClassObject = createClassObjectInstance(null, javaLangClass);
         }
@@ -216,7 +216,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
       HeapSet heapSet = heapSets.get(heap);
       heap.getClasses().forEach(classObj -> {
         InstanceObject classObject = createClassObjectInstance(finalJavaLangClassObject, classObj);
-        myInstanceIndex.put(classObj, classObject);
+        assert !myInstanceIndex.containsKey(classObj.getId());
+        myInstanceIndex.put(classObj.getId(), classObject);
         heapSet.addDeltaInstanceObject(classObject);
       });
     }
@@ -224,12 +225,16 @@ public class HeapDumpCaptureObject implements CaptureObject {
     for (Heap heap : snapshot.getHeaps()) {
       HeapSet heapSet = heapSets.get(heap);
       heap.forEachInstance(instance -> {
-        assert !ClassDb.JAVA_LANG_CLASS.equals(getName());
+        assert !JAVA_LANG_CLASS.equals(instance.getClassObj().getClassName());
+
         ClassObj classObj = instance.getClassObj();
-        InstanceObject instanceObject =
-          new HeapDumpInstanceObject(this, getClassObjectInstance(instance), instance,
-                                     myClassDb.registerClass(classObj.getClassLoaderId(), classObj.getClassName()), null);
-        myInstanceIndex.put(instance, instanceObject);
+        ClassDb.ClassEntry classEntry =
+          classObj.getSuperClassObj() != null ?
+          myClassDb.registerClass(classObj.getId(), classObj.getSuperClassObj().getId(), classObj.getClassName()) :
+          myClassDb.registerClass(classObj.getId(), classObj.getClassName());
+        InstanceObject instanceObject = new HeapDumpInstanceObject(this, instance, classEntry, null);
+        assert !myInstanceIndex.containsKey(instance.getId());
+        myInstanceIndex.put(instance.getId(), instanceObject);
         heapSet.addDeltaInstanceObject(instanceObject);
         return true;
       });
@@ -289,32 +294,24 @@ public class HeapDumpCaptureObject implements CaptureObject {
       return null;
     }
 
-    return myInstanceIndex.get(instance);
+    return myInstanceIndex.get(instance.getId());
   }
 
   @NotNull
   InstanceObject createClassObjectInstance(@Nullable InstanceObject javaLangClass, @NotNull ClassObj classObj) {
+    String className = javaLangClass == null ? JAVA_LANG_CLASS : classObj.getClassName();
+    ClassDb.ClassEntry classEntry = classObj.getSuperClassObj() != null ?
+                                    myClassDb.registerClass(classObj.getId(), classObj.getSuperClassObj().getId(), className) :
+                                    myClassDb.registerClass(classObj.getId(), className);
+    InstanceObject classObject;
     if (javaLangClass == null) {
-      // Deal with the root java.lang.Class object.
-      assert !myClassObjectIndex.containsKey(classObj);
-      InstanceObject rootInstanceObject =
-        new HeapDumpInstanceObject(this, null, classObj,
-                                   myClassDb.registerClass(classObj.getClassLoaderId(), "java.lang.Class"),
-                                   ValueObject.ValueType.CLASS);
-      myClassObjectIndex.put(classObj, rootInstanceObject);
-      return rootInstanceObject;
+      // Handle java.lang.Class which is a special case. All its instances are other classes, so wee need to create an InstanceObject for it
+      // first for all classes to reference.
+      classObject = new HeapDumpInstanceObject(this, classObj, classEntry, ValueObject.ValueType.CLASS);
     }
     else {
-      HeapDumpInstanceObject classObject = new HeapDumpInstanceObject(this, javaLangClass, classObj, myClassDb
-        .registerClass(classObj.getClassLoaderId(), javaLangClass.getClassEntry().getClassName()), ValueObject.ValueType.CLASS);
-      myClassObjectIndex.put(classObj, classObject);
-      return classObject;
+      classObject = new HeapDumpInstanceObject(this, classObj, javaLangClass.getClassEntry(), ValueObject.ValueType.CLASS);
     }
-  }
-
-  @Nullable
-  InstanceObject getClassObjectInstance(@NotNull Instance instance) {
-    ClassObj classObj = instance.getClassObj();
-    return myClassObjectIndex.get(classObj);
+    return classObject;
   }
 }

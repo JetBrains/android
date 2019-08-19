@@ -30,7 +30,6 @@ import java.util.List;
 public class LiveAllocationInstanceObject implements InstanceObject {
   @NotNull private final LiveAllocationCaptureObject myCaptureObject;
   @NotNull private final ClassDb.ClassEntry myClassEntry;
-  @Nullable private final LiveAllocationInstanceObject myClassObject;
   @NotNull private final ValueType myValueType;
   private long myAllocTime = Long.MIN_VALUE;
   private long myDeallocTime = Long.MAX_VALUE;
@@ -42,14 +41,12 @@ public class LiveAllocationInstanceObject implements InstanceObject {
 
   public LiveAllocationInstanceObject(@NotNull LiveAllocationCaptureObject captureObject,
                                       @NotNull ClassDb.ClassEntry classEntry,
-                                      @Nullable LiveAllocationInstanceObject classObject,
                                       @Nullable ThreadId threadId,
                                       @Nullable AllocationStack callstack,
                                       long size,
                                       int heapId) {
     myCaptureObject = captureObject;
     myClassEntry = classEntry;
-    myClassObject = classObject;
     mySize = size;
     myHeapId = heapId;
     myThreadId = threadId == null ? ThreadId.INVALID_THREAD_ID : threadId;
@@ -151,12 +148,6 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   @Override
   public ClassDb.ClassEntry getClassEntry() {
     return myClassEntry;
-  }
-
-  @Nullable
-  @Override
-  public InstanceObject getClassObject() {
-    return myClassObject;
   }
 
   @NotNull
