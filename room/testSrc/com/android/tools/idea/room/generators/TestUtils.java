@@ -19,6 +19,8 @@ import com.android.tools.idea.room.migrations.json.DatabaseBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
 import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
+import com.android.tools.idea.room.migrations.json.FtsEntityBundle;
+import com.android.tools.idea.room.migrations.json.FtsOptionsBundle;
 import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,5 +56,38 @@ public class TestUtils {
                             new PrimaryKeyBundle(false, Collections.singletonList(fields[0].getColumnName())),
                             Collections.emptyList(),
                             Collections.emptyList());
+  }
+  @NotNull
+  public static FtsEntityBundle createFtsEntityBundle(@NotNull String tableName,
+                                                      @NotNull String createSql,
+                                                      @NotNull FieldBundle... fields) {
+    return new FtsEntityBundle(tableName,
+                               createSql,
+                               Arrays.asList(fields),
+                               new PrimaryKeyBundle(false, Collections.singletonList(fields[0].getColumnName())),
+                               "",
+                               null,
+                               Collections.emptyList());
+  }
+
+  public static FtsEntityBundle createFtsEntityBundle(@NotNull String tableName,
+                                                      @NotNull String createSql,
+                                                      @NotNull String contentTableName,
+                                                      @NotNull FieldBundle... fields) {
+    FtsOptionsBundle optionsBundle = new FtsOptionsBundle("",
+                                                          Collections.emptyList(),
+                                                          contentTableName,
+                                                          "",
+                                                          "",
+                                                          Collections.emptyList(),
+                                                          Collections.emptyList(),
+                                                          "");
+    return new FtsEntityBundle(tableName,
+                               createSql,
+                               Arrays.asList(fields),
+                               new PrimaryKeyBundle(false, Collections.singletonList(fields[0].getColumnName())),
+                               "",
+                               optionsBundle,
+                               Collections.emptyList());
   }
 }
