@@ -75,7 +75,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
     }
 
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(dataBindingMode)
+    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = dataBindingMode
   }
 
   @Test
