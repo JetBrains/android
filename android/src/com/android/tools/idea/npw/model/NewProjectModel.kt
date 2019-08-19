@@ -25,8 +25,8 @@ import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.platform.Language.JAVA
 import com.android.tools.idea.npw.platform.Language.KOTLIN
-import com.android.tools.idea.npw.project.AndroidGradleModuleUtils
 import com.android.tools.idea.npw.project.DomainToPackageExpression
+import com.android.tools.idea.npw.project.setGradleWrapperExecutable
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
@@ -181,7 +181,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
       try {
         val projectRoot = VfsUtilCore.virtualToIoFile(project.value.baseDir)
-        AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot)
+        setGradleWrapperExecutable(projectRoot)
       }
       catch (e: IOException) {
         logger.warn("Failed to update Gradle wrapper permissions", e)

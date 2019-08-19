@@ -27,7 +27,7 @@ import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset
 import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.project.AndroidGradleModuleUtils
+import com.android.tools.idea.npw.project.setGradleWrapperExecutable
 import com.android.tools.idea.templates.Template.titleToTemplateRenderer
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
@@ -167,7 +167,7 @@ data class ProjectChecker(
 
     // check usage tracker after project render
     verifyLastLoggedUsage(usageTracker, titleToTemplateRenderer(projectTemplate.metadata!!.title), projectContext.paramMap)
-    AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot)
+    setGradleWrapperExecutable(projectRoot)
     val moduleContext = createRenderingContext(moduleState.template, project, projectRoot, moduleRoot, moduleState.parameters)
     val moduleTemplate = moduleState.template
     moduleTemplate.render(moduleContext, false)
