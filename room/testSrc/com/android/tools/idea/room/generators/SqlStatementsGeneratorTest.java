@@ -18,6 +18,7 @@ package com.android.tools.idea.room.generators;
 import static com.android.tools.idea.room.generators.TestUtils.createDatabaseBundle;
 import static com.android.tools.idea.room.generators.TestUtils.createEntityBundle;
 import static com.android.tools.idea.room.generators.TestUtils.createFieldBundle;
+import static com.android.tools.idea.room.generators.TestUtils.createFtsEntityBundle;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
@@ -26,6 +27,7 @@ import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
 import com.android.tools.idea.room.migrations.generators.SqlStatementsGenerator;
 import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
+import com.android.tools.idea.room.migrations.json.FtsEntityBundle;
 import com.android.tools.idea.room.migrations.json.IndexBundle;
 import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
@@ -490,7 +492,8 @@ public class SqlStatementsGeneratorTest {
                                                            new PrimaryKeyBundle(false, Collections.singletonList(field1.getColumnName())),
                                                            Collections.singletonList(indexRenamedIndex), Collections.emptyList());
 
-    testMigrationStatements(entity, entityWithRenamedIndex, "DROP INDEX index_table_column1;", "CREATE INDEX index_column1 ON `table` (column1);");
+    testMigrationStatements(entity, entityWithRenamedIndex, "DROP INDEX index_table_column1;",
+                            "CREATE INDEX index_column1 ON `table` (column1);");
   }
 
   @Test
@@ -570,5 +573,79 @@ public class SqlStatementsGeneratorTest {
                             "CREATE VIEW viewName as\n" +
                             "SELECT column1, column2\n" +
                             "FROM myTable;");
+  }
+
+  @Test
+  public void addFtsTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    EntityBundle entity = createEntityBundle("table", field1, field2);
+    FtsEntityBundle ftsEntity = createFtsEntityBundle("ftsTable",
+                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                      field1, field2);
+
+    testMigrationStatements(createDatabaseBundle(1, entity),
+                            createDatabaseBundle(2, entity, ftsEntity),
+                            "CREATE VIRTUAL TABLE ftsTable USING fts4(column1, column2);");
+  }
+
+  @Test
+  public void dropFtsTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    EntityBundle entity = createEntityBundle("table", field1, field2);
+    FtsEntityBundle ftsEntity = createFtsEntityBundle("ftsTable",
+                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                      field1, field2);
+
+    testMigrationStatements(createDatabaseBundle(2, entity, ftsEntity),
+                            createDatabaseBundle(1, entity),
+                            "DROP TABLE ftsTable;");
+  }
+
+  @Test
+  public void modifyFtsTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    FtsEntityBundle ftsEntity = createFtsEntityBundle("ftsTable",
+                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1)",
+                                                      field1);
+    FtsEntityBundle modifiedFtsEntity = createFtsEntityBundle("ftsTable",
+                                                              "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                              field1, field2);
+
+    testMigrationStatements(createDatabaseBundle(1, ftsEntity),
+                            createDatabaseBundle(2, modifiedFtsEntity),
+                            "CREATE VIRTUAL TABLE ftsTable_data$android_studio_tmp USING fts4(column1, column2);",
+                            "INSERT INTO ftsTable_data$android_studio_tmp (column1)\n" +
+                            "\tSELECT column1\n" +
+                            "\tFROM ftsTable;",
+                            "DROP TABLE ftsTable;",
+                            "ALTER TABLE ftsTable_data$android_studio_tmp RENAME TO ftsTable;");
+  }
+
+  @Test
+  public void updateFtsTableWithContentTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    EntityBundle entity = createEntityBundle("table", field1, field2);
+    FtsEntityBundle ftsEntity = createFtsEntityBundle("ftsTable",
+                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                      field1, field2);
+    FtsEntityBundle ftsEntityWithContentTable = createFtsEntityBundle("ftsTable",
+                                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                                      "table", field1, field2);
+
+    testMigrationStatements(createDatabaseBundle(1, entity, ftsEntity),
+                            createDatabaseBundle(2, entity, ftsEntityWithContentTable),
+                            "DROP TABLE ftsTable;",
+                            "CREATE VIRTUAL TABLE ftsTable USING fts4(column1, column2);",
+                            "INSERT INTO ftsTable (column1, column2)\n" +
+                            "\tSELECT column1, column2\n" +
+                            "\tFROM `table`;");
   }
 }
