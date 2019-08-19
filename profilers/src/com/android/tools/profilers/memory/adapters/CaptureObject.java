@@ -19,6 +19,9 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
+import java.util.Collections;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -159,6 +162,9 @@ public interface CaptureObject extends MemoryObject {
 
   long getEndTimeNs();
 
+  @NotNull
+  ClassDb getClassDatabase();
+
   /**
    * Entry point for the {@link CaptureObject} to load its data. Note that it is up to the implementation to listen to changes
    * in the queryRange and make data changes accordingly. The optional queryJoiner allows the implementation to perform
@@ -173,4 +179,13 @@ public interface CaptureObject extends MemoryObject {
   boolean isError();
 
   void unload();
+
+  @NotNull
+  default Set<CaptureObjectInstanceFilter> getSupportedInstanceFilters() {
+    return Collections.EMPTY_SET;
+  }
+
+  default void addInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
+
+  default void removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
 }

@@ -147,6 +147,12 @@ public final class FakeCaptureObject implements CaptureObject {
     return myEndTime;
   }
 
+  @NotNull
+  @Override
+  public ClassDb getClassDatabase() {
+    return myClassDb;
+  }
+
   @Override
   public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
     return myIsLoadSuccessful;

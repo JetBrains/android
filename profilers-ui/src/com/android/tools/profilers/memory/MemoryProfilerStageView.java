@@ -131,6 +131,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
   @NotNull private final MemoryClassifierView myClassifierView = new MemoryClassifierView(getStage(), getIdeComponents());
   @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
+  @NotNull private final MemoryInstanceFilterView myInstanceFilterView = new MemoryInstanceFilterView(getStage());
   @NotNull private final MemoryClassSetView myClassSetView = new MemoryClassSetView(getStage(), getIdeComponents());
   @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
   @Nullable private RangeSelectionComponent myRangeSelectionComponent;
@@ -785,6 +786,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     toolbar.add(myCaptureView.getComponent());
     toolbar.add(myHeapView.getComponent());
     toolbar.add(myClassGrouping.getComponent());
+    toolbar.add(myInstanceFilterView.getComponent());
     if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
       toolbar.add(myCaptureInfoMessage);
     }

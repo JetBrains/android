@@ -170,7 +170,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertView(fakeCapture2, selectedHeap, null, null, false);
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 0, 0, 0);
 
-    stageView.getHeapView().getComponent().setSelectedItem(fakeCapture2.getHeapSet(0));
+    stageView.getHeapView().getHeapComboBox().setSelectedItem(fakeCapture2.getHeapSet(0));
     assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), null, null);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
@@ -610,7 +610,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
                           boolean isCaptureLoading) {
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
 
-    ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getComponent().getModel();
+    ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getHeapComboBox().getModel();
 
     if (expectedCaptureObject == null) {
       assertThat(stageView.getChartCaptureSplitter().getSecondComponent()).isNull();
