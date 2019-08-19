@@ -20,8 +20,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
@@ -35,10 +37,21 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
+import com.google.common.truth.Truth;
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -181,6 +194,48 @@ public class HeapDumpCaptureObjectTest {
     assertTrue(capture.isDoneLoading());
     assertTrue(capture.isError());
     assertEquals(0, capture.getHeapSets().size());
+  }
+
+
+  @Test
+  public void testHeapDumpActivityLeak() throws Exception {
+    HeapDumpInfo dumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build();
+    HeapDumpCaptureObject capture =
+      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA,
+                                dumpInfo, null, myIdeProfilerServices.getFeatureTracker(), myStage);
+
+    File hprof = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/hprofs/displayingbitmaps_leakedActivity.hprof");
+    FileInputStream inputStream = new FileInputStream(hprof);
+    MappedByteBuffer buffer = inputStream.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, inputStream.getChannel().size());
+    buffer.load();
+
+    myTransportService.addFile(Long.toString(0), ByteString.copyFrom(buffer));
+    capture.load(null, null);
+    assertTrue(capture.isDoneLoading());
+    assertFalse(capture.isError());
+
+    long allInstanceCount = capture.getInstances().count();
+    Truth.assertThat(allInstanceCount).isGreaterThan(1L);
+    List<CaptureObjectInstanceFilter> filters = new ArrayList<>(capture.getSupportedInstanceFilters());
+    Truth.assertThat(filters).hasSize(1);
+
+    CountDownLatch addFilterLatch = new CountDownLatch(1);
+    capture.addInstanceFilter(filters.get(0), Runnable::run);
+    // Wait for the filter to finish running on the off-main-thread executor.
+    capture.getInstanceFilterExecutor().submit(addFilterLatch::countDown);
+    addFilterLatch.await();
+    List<InstanceObject> filtredInstances = capture.getInstances().collect(Collectors.toList());
+    Truth.assertThat(filtredInstances).hasSize(1);
+    InstanceObject leakedInstance = filtredInstances.get(0);
+    // The hprof contains a single instance of the ImageDetailActivity that has been leaked.
+    Truth.assertThat(leakedInstance.getClassEntry().getSimpleClassName()).isEqualTo("ImageDetailActivity");
+
+    CountDownLatch removeFilterLatch = new CountDownLatch(1);
+    capture.removeInstanceFilter(filters.get(0), Runnable::run);
+    // Wait for the filter to finish running on the off-main-thread executor.
+    capture.getInstanceFilterExecutor().submit(removeFilterLatch::countDown);
+    removeFilterLatch.await();
+    Truth.assertThat(capture.getInstances().count()).isEqualTo(allInstanceCount);
   }
 
   private static void verifyInstance(@NotNull InstanceObject instance,
