@@ -15,45 +15,51 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.google.common.collect.ImmutableSet;
-import org.junit.Test;
-
-import java.util.Arrays;
-
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.*;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.ARRAY;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.BOOLEAN;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.BYTE;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.INT;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import com.google.common.collect.ImmutableSet;
+import java.util.Arrays;
+import org.junit.Test;
 
 public class BitmapDecoderTest {
   @Test
   public void dataProviderTest() {
     final String BITMAP_CLASS_NAME = "android.graphics.Bitmap";
+    final String BYTES_CLASS_NAME = "byte[]";
 
     FakeCaptureObject fakeCaptureObject = new FakeCaptureObject.Builder().build();
 
-    FakeInstanceObject bitmapInstance = new FakeInstanceObject.Builder(fakeCaptureObject, BITMAP_CLASS_NAME)
+    FakeInstanceObject bitmapInstance = new FakeInstanceObject.Builder(fakeCaptureObject, 1, BITMAP_CLASS_NAME)
       .setFields(Arrays.asList("mBuffer", "mIsMutable", "mWidth", "mHeight")).build();
     bitmapInstance
-      .setFieldValue("mBuffer", ARRAY, new FakeInstanceObject.Builder(fakeCaptureObject, "byte[]").setValueType(ARRAY)
-        .setArray(BYTE, new byte[]{0, 0, 0, 0, 0, 0, 0, 0,}, 8).build())
+      .setFieldValue("mBuffer", ARRAY,
+                     new FakeInstanceObject.Builder(fakeCaptureObject, 2, BYTES_CLASS_NAME).setValueType(ARRAY)
+                       .setArray(BYTE, new byte[]{0, 0, 0, 0, 0, 0, 0, 0,}, 8).build())
       .setFieldValue("mWidth", INT, 2)
       .setFieldValue("mHeight", INT, 1)
       .setFieldValue("mIsMutable", BOOLEAN, false);
 
-    FakeInstanceObject badBitmapInstance1 = new FakeInstanceObject.Builder(fakeCaptureObject, BITMAP_CLASS_NAME)
+    FakeInstanceObject badBitmapInstance1 = new FakeInstanceObject.Builder(fakeCaptureObject, 1, BITMAP_CLASS_NAME)
       .setFields(Arrays.asList("mBuffer", "mIsMutable", "mWidth", "mHeight")).build();
     bitmapInstance // dimension larger than buffer
-      .setFieldValue("mBuffer", ARRAY, new FakeInstanceObject.Builder(fakeCaptureObject, "byte[]").setValueType(ARRAY)
-        .setArray(BYTE, new byte[]{0, 0, 0, 0, 0, 0, 0, 0,}, 8).build())
+      .setFieldValue("mBuffer", ARRAY,
+                     new FakeInstanceObject.Builder(fakeCaptureObject, 2, BYTES_CLASS_NAME).setValueType(ARRAY)
+                       .setArray(BYTE, new byte[]{0, 0, 0, 0, 0, 0, 0, 0,}, 8).build())
       .setFieldValue("mWidth", INT, 3)
       .setFieldValue("mHeight", INT, 1)
       .setFieldValue("mIsMutable", BOOLEAN, false);
 
-    FakeInstanceObject badBitmapInstance2 = new FakeInstanceObject.Builder(fakeCaptureObject, BITMAP_CLASS_NAME)
+    FakeInstanceObject badBitmapInstance2 = new FakeInstanceObject.Builder(fakeCaptureObject, 1, BITMAP_CLASS_NAME)
       .setFields(Arrays.asList("mBuffer", "mIsMutable", "mWidth", "mHeight")).build();
     bitmapInstance // MIA fields
-      .setFieldValue("mBuffer", ARRAY, new FakeInstanceObject.Builder(fakeCaptureObject, "byte[]").setValueType(ARRAY)
-        .setArray(BYTE, new byte[]{0, 0, 0, 0, 0, 0, 0, 0,}, 8).build())
+      .setFieldValue("mBuffer", ARRAY,
+                     new FakeInstanceObject.Builder(fakeCaptureObject, 2, BYTES_CLASS_NAME).setValueType(ARRAY)
+                       .setArray(BYTE, new byte[]{0, 0, 0, 0, 0, 0, 0, 0,}, 8).build())
       .setFieldValue("mWidth", INT, 2)
       .setFieldValue("mIsMutable", BOOLEAN, false);
 

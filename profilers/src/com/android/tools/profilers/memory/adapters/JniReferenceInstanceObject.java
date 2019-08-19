@@ -245,12 +245,6 @@ public class JniReferenceInstanceObject implements InstanceObject {
     return myReferencedObject.getClassEntry();
   }
 
-  @Nullable
-  @Override
-  public InstanceObject getClassObject() {
-    return myReferencedObject.getClassObject();
-  }
-
   @NotNull
   @Override
   public ValueType getValueType() {

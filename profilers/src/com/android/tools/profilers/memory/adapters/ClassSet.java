@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static com.android.tools.profilers.memory.adapters.ClassDb.INVALID_CLASS_ID;
+
 import com.android.tools.adtui.model.filter.Filter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
  * Classifies {@link InstanceObject}s based on their {@link Class}.
  */
 public class ClassSet extends ClassifierSet {
-  public static final ClassSet EMPTY_SET = new ClassSet(new ClassDb.ClassEntry("null"));
+  public static final ClassSet EMPTY_SET = new ClassSet(new ClassDb.ClassEntry(INVALID_CLASS_ID, INVALID_CLASS_ID, "null"));
 
   @NotNull private final ClassDb.ClassEntry myClassEntry;
 

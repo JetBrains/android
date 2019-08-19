@@ -20,7 +20,6 @@ import static com.android.tools.profilers.memory.MemoryProfiler.saveLegacyAlloca
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -33,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 public final class LegacyAllocationCaptureObject implements CaptureObject {
   static final int DEFAULT_HEAP_ID = 0;
   static final String DEFAULT_HEAP_NAME = "default";
-  static final long DEFAULT_CLASSLOADER_ID = -1;
 
   @NotNull private final ProfilerClient myClient;
   @NotNull private final ClassDb myClassDb;
@@ -140,7 +137,8 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     myAllocationConverter.parseDump(response.getContents().toByteArray());
     myAllocationConverter.getAllocationStacks().forEach(stack -> callStacks.putIfAbsent(stack.getStackId(), stack));
     myAllocationConverter.getClassNames().forEach(
-      klass -> classEntryMap.put(klass.getClassId(), myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, klass.getClassName())));
+      // We don't have super class information so just assign invalid id as the super class id.
+      klass -> classEntryMap.put(klass.getClassId(), myClassDb.registerClass(klass.getClassId(), klass.getClassName())));
 
     for (Memory.AllocationEvent.Allocation event : myAllocationConverter.getAllocationEvents()) {
       assert classEntryMap.containsKey(event.getClassTag());
