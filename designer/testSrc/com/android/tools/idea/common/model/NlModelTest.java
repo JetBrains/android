@@ -419,7 +419,7 @@ public class NlModelTest extends LayoutTestCase {
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x70, instance=2}",
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x72, instance=2}",
                  myTreeDumper.toTree(model.getComponents()));
   }
 

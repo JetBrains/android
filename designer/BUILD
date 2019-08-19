@@ -63,7 +63,7 @@ iml_module(
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
-        "//prebuilts/studio/layoutlib/data:layoutlib",
+        "//prebuilts/studio/layoutlib/data:layoutlib_native",
     ],
 )
 
@@ -80,6 +80,10 @@ iml_module(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/linux",
+        "//prebuilts/studio/layoutlib/data/mac",
+        "//prebuilts/studio/layoutlib/data/win",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android:test_deps.zip",
@@ -164,6 +168,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
-        "//prebuilts/studio/layoutlib/data:layoutlib[test]",
+        "//prebuilts/studio/layoutlib/data:layoutlib_native[test]",
     ],
 )
