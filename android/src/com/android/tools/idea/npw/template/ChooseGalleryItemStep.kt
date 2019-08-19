@@ -25,7 +25,7 @@ import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
-import com.android.tools.idea.npw.project.AndroidPackageUtils
+import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.ui.ActivityGallery
 import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.observable.ListenerManager
@@ -81,7 +81,7 @@ abstract class ChooseGalleryItemStep(
     messageKeys: WizardGalleryItemsStepMessageKeys,
     emptyItemLabel: String
   ) : this(moduleModel, renderModel, formFactor,
-           AndroidPackageUtils.getModuleTemplates(renderModel.androidFacet!!, targetDirectory),
+           renderModel.androidFacet!!.getModuleTemplates(targetDirectory),
            messageKeys, emptyItemLabel)
 
   override fun getComponent(): JComponent = validatorPanel
