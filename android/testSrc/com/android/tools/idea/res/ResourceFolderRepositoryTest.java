@@ -51,6 +51,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -4236,6 +4237,164 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue("Unsaved changes in Document", fileDocumentManager.isFileModified(stringsXml));
   }
 
+  public void testIdDeclarationInNonIdAttribute() throws Exception {
+    PsiFile layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=XML
+      "<LinearLayout\n" +
+      "     xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+      "     xmlns:app='http://schemas.android.com/apk/res-auto'>\n" +
+      "  <TextView android:id='@id/a' />\n" +
+      "  <TextView app:layout_constraintTop_toTopOf='@+id/a' />\n" +
+      "</LinearLayout>\n");
+    myFixture.openFileInEditor(layout.getVirtualFile());
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a");
+
+    repository.scheduleScan(layout, ResourceFolderType.LAYOUT);
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a");
+
+    type("@+id/a|", "a");
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("aa");
+  }
+
+  /**
+   * Regression test for b/138007389.
+   */
+  public void testDuplicateAndroidIdLine() throws Exception {
+    ResourceFolderRepository repository = createRegisteredRepository();
+
+    PsiFile layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=XML
+      "<LinearLayout xmlns:android='http://schemas.android.com/apk/res/android'>\n" +
+      "  <TextView \n" +
+      "     android:id='@+id/a'\n" +
+      "     android:text='Hello' />\n" +
+      "  <TextView android:id='@+id/b' />\n" +
+      "</LinearLayout>\n");
+    myFixture.openFileInEditor(layout.getVirtualFile());
+    runListeners();
+
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+    // Make sure we've switched to PSI.
+    assertThat(Iterables.getOnlyElement(repository.getResources(RES_AUTO, ResourceType.ID, "a")))
+      .isInstanceOf(PsiResourceItem.class);
+
+    moveCaret(myFixture, "@+id|/a");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DUPLICATE);
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+
+    myFixture.type('x');
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+
+    myFixture.getEditor().getCaretModel().moveToOffset(myFixture.getCaretOffset() - 8);
+    myFixture.type('x');
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    // Check the edit above is what we wanted.
+    assertThat(myFixture.getFile().findElementAt(myFixture.getCaretOffset()).getText()).isEqualTo("android:ixd");
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+  }
+
+  public void testDuplicatePlusIdLine() throws Exception {
+    ResourceFolderRepository repository = createRegisteredRepository();
+
+    PsiFile layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=XML
+      "<LinearLayout\n" +
+      "     xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+      "     xmlns:app='http://schemas.android.com/apk/res-auto'>\n" +
+      "  <TextView\n" +
+      "     app:layout_constraintTop_toTopOf='@+id/a'\n" +
+      "     android:text='Hello' />\n" +
+      "  <TextView android:id='@+id/b' />\n" +
+      "</LinearLayout>\n");
+    myFixture.openFileInEditor(layout.getVirtualFile());
+    runListeners();
+
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+    // Make sure we've switched to PSI.
+    assertThat(Iterables.getOnlyElement(repository.getResources(RES_AUTO, ResourceType.ID, "a")))
+      .isInstanceOf(PsiResourceItem.class);
+
+    moveCaret(myFixture, "@+id|/a");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DUPLICATE);
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+
+    myFixture.type('x');
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+
+    myFixture.getEditor().getCaretModel().moveToOffset(myFixture.getCaretOffset() - 8);
+    myFixture.type('x');
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    // Check the edit above is what we wanted.
+    assertThat(myFixture.getFile().findElementAt(myFixture.getCaretOffset()).getText())
+      .isEqualTo("app:layout_constraintTop_toTopOxf");
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+  }
+
+  public void testDuplicatePlusIdLineNotConverted() throws Exception {
+    PsiFile layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=XML
+      "<LinearLayout\n" +
+      "     xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+      "     xmlns:app='http://schemas.android.com/apk/res-auto'>\n" +
+      "  <TextView\n" +
+      "     app:layout_constraintTop_toTopOf='@+id/a'\n" +
+      "     android:text='Hello' />\n" +
+      "  <TextView android:id='@+id/b' />\n" +
+      "</LinearLayout>\n");
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+    assertThat(Iterables.getOnlyElement(repository.getResources(RES_AUTO, ResourceType.ID, "a")))
+      .isNotInstanceOf(PsiResourceItem.class);
+
+    myFixture.openFileInEditor(layout.getVirtualFile());
+    moveCaret(myFixture, "@+id|/a");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DUPLICATE);
+    PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
+    assertTrue(repository.isScanPending(layout));
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+    assertThat(Iterables.getOnlyElement(repository.getResources(RES_AUTO, ResourceType.ID, "b")))
+      .isInstanceOf(PsiResourceItem.class);
+  }
+
+  public void testAddUnrelatedAttribute() throws Exception {
+    PsiFile layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=XML
+      "<LinearLayout\n" +
+      "     xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+      "     xmlns:app='http://schemas.android.com/apk/res-auto'>\n" +
+      "  <TextView\n" +
+      "     app:layout_constraintTop_toTopOf='@+id/a'\n" +
+      "     android:text='Hello' />\n" +
+      "  <TextView android:id='@+id/b' />\n" +
+      "</LinearLayout>\n");
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    myFixture.openFileInEditor(layout.getVirtualFile());
+    type("@+id/b' |/>", "foo='bar'");
+    assertFalse(repository.isScanPending(layout));
+  }
+
   @Nullable
   private static XmlTag findTagById(@NotNull PsiFile file, @NotNull String id) {
     assertFalse(id.startsWith(PREFIX_RESOURCE_REF)); // Just the id.
@@ -4292,7 +4451,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   private void runListeners() {
-    PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
-    UIUtil.dispatchAllInvocationEvents();
+    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+    try {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    }
+    catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
