@@ -75,7 +75,7 @@ class AndroidResourceReferenceInCodeUsageTypeProvider : UsageTypeProvider {
       return null
     }
     val androidLightField =
-      element.references.asSequence().map { it.resolve() }.first { it is AndroidLightField } as? AndroidLightField ?: return null
+      element.references.asSequence().map { it.resolve() as? AndroidLightField }.firstOrNull() ?: return null
     return when (androidLightField.containingClass.containingClass) {
       is ManifestClass -> PERMISSION_REFERENCE_IN_CODE
       is AndroidRClassBase -> RESOURCE_REFERENCE_IN_CODE
