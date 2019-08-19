@@ -58,6 +58,7 @@ import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.common.base.Joiner
 import com.google.common.base.Strings
+import com.google.common.cache.CacheBuilder
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -100,7 +101,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   : ModelWizardStep<RenderTemplateModel>(model, title) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
-  private val thumbnailsCache = IconLoader.createLoadingCache()
+  private val thumbnailsCache = CacheBuilder.newBuilder().build(IconLoader())!!
   private val parameterRows = hashMapOf<Parameter, RowEntry<*>>()
   private val userValues = hashMapOf<Parameter, Any>()
   private val parameterEvaluator = StringEvaluator()
@@ -188,10 +189,10 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       val thumb = IconProperty(templateThumbLabel)
       val thumbVisibility = VisibleProperty(templateThumbLabel)
       bindings.bind(thumb, object : Expression<Optional<Icon>>(thumbPath) {
-        override fun get(): Optional<Icon> = thumbnailsCache.getUnchecked(File(templateHandle.rootPath, thumbPath.get()))
+        override fun get() = Optional.ofNullable(thumbnailsCache.getUnchecked(File(templateHandle.rootPath, thumbPath.get())))
       })
       bindings.bind(thumbVisibility, object : Expression<Boolean>(thumb) {
-        override fun get(): Boolean = thumb.get().isPresent
+        override fun get() = thumb.get().isPresent
       })
       thumbPath.set(defaultThumbnailPath)
     }
