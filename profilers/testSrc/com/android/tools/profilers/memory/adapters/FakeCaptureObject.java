@@ -16,14 +16,20 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.adtui.model.Range;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class FakeCaptureObject implements CaptureObject {
   @NotNull private final String myCaptureName;
@@ -92,12 +98,12 @@ public final class FakeCaptureObject implements CaptureObject {
   }
 
   @NotNull
-  public ClassDb.ClassEntry registerClass(long classLoaderId, @NotNull String className) {
-    return myClassDb.registerClass(classLoaderId, className);
+  public ClassDb.ClassEntry registerClass(long classId, long superClassId, @NotNull String className) {
+    return myClassDb.registerClass(classId, superClassId, className);
   }
 
-  public boolean containsClass(long classLoaderId, @NotNull String className) {
-    return myClassDb.containsClassEntry(classLoaderId, className);
+  public boolean containsClass(long classId) {
+    return myClassDb.getEntry(classId) != null;
   }
 
   public void addInstanceObjects(@NotNull Set<InstanceObject> instanceObjects) {
