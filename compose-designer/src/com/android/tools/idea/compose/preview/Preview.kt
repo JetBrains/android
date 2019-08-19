@@ -33,6 +33,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewToolbar.ForceCompile
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
@@ -62,8 +63,6 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
 import javax.swing.JPanel
-
-private const val DEBUG = false
 
 /** Preview element name */
 const val PREVIEW_NAME = "Preview"
@@ -145,6 +144,7 @@ interface ComposePreviewManager {
  */
 private class PreviewEditor(private val psiFile: PsiFile,
                     private val previewProvider: PreviewElementFinder) : ComposePreviewManager, SmartRefreshable, DesignFileEditor(psiFile.virtualFile!!) {
+  private val LOG = Logger.getInstance(PreviewEditor::class.java)
   private val project = psiFile.project
 
   private val surface = NlDesignSurface.builder(project, this)
@@ -196,10 +196,14 @@ private class PreviewEditor(private val psiFile: PsiFile,
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    */
   override fun refresh() {
+    val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
+
     val newModels = previewProvider.findPreviewMethods(project, file)
+      .asSequence()
       .onEach {
-        if (DEBUG) {
-          println("""
+        if (LOG.isDebugEnabled) {
+          LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
+
             Preview(name=${it.name}, method=${it.method}) =
               ${it.toPreviewXmlString()}
           """.trimIndent())
@@ -235,14 +239,38 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
     CompletableFuture.allOf(*(renders.toTypedArray()))
       .whenComplete { _, ex ->
+        if (LOG.isDebugEnabled) {
+          LOG.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
+
+          // Log any rendering errors
+          surface.models.asSequence()
+            .mapNotNull { surface.getSceneManager(it) }
+            .filterIsInstance<LayoutlibSceneManager>()
+            .forEach {
+              val modelName = it.model.modelDisplayName
+              it.renderResult?.let { result ->
+                val logger = result.logger
+                LOG.debug("""modelName="$modelName" result
+                  | ${result}
+                  | hasErrors=${logger.hasErrors()}
+                  | missingClasses=${logger.missingClasses}
+                  | messages=${logger.messages}
+                  | exceptions=${logger.brokenClasses.values + logger.classesWithIncorrectFormat.values}
+                """.trimMargin())
+              }
+            }
+        }
+
         if (needsBuild()) {
+          LOG.debug("needsBuild")
           workbench.loadingStopped("Some classes could not be found")
         }
         else {
+          LOG.debug("hideLoading")
           workbench.hideLoading()
         }
         if (ex != null) {
-          Logger.getInstance(PreviewEditor::class.java).warn(ex)
+          LOG.warn(ex)
         }
 
         // Make sure all notifications are cleared-up
@@ -299,6 +327,7 @@ fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = (this as? Co
  * Provider for Compose Preview editors.
  */
 class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
+  private val LOG = Logger.getInstance(ComposeFileEditorProvider::class.java)
   private val previewElemementProvider = AnnotationPreviewElementFinder
 
   init {
@@ -318,10 +347,18 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
       return false
     }
 
-    return previewElemementProvider.hasPreviewMethods(project, file)
+    val hasPreviewMethods = previewElemementProvider.hasPreviewMethods(project, file)
+    if (LOG.isDebugEnabled) {
+      LOG.debug("${file.path} hasPreviewMethods=${hasPreviewMethods}")
+    }
+
+    return hasPreviewMethods
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
+    if (LOG.isDebugEnabled) {
+      LOG.debug("createEditor file=${file.path}")
+    }
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = getInstance().createEditor(project, file) as TextEditor
     val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewElemementProvider)
@@ -340,12 +377,14 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
     // Update that triggers a preview refresh. It does not trigger a recompile.
     val refreshPreview = object : Update("refreshPreview") {
       override fun run() {
+        LOG.debug("refreshPreview requested")
         previewEditor.refresh()
       }
     }
 
     val updateNotifications = object : Update("updateNotifications") {
       override fun run() {
+        LOG.debug("updateNotifications requested")
         if (composeEditorWithPreview.isModified) {
           EditorNotifications.getInstance(project).updateNotifications(file)
         }
