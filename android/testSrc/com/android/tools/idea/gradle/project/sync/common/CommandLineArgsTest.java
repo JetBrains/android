@@ -124,6 +124,10 @@ public class CommandLineArgsTest extends PlatformTestCase {
     assertThat(args).contains("-P" + PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL + "=true");
   }
 
+  public void testStacktraceArgumentApplied() {
+    assertThat(myArgs.get(getProject())).contains("--stacktrace");
+  }
+
   private static void check(@NotNull List<String> args) {
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_ADVANCED + "=true");
