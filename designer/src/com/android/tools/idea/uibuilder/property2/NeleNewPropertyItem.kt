@@ -41,7 +41,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
                           var properties: PropertiesTable<NelePropertyItem>,
                           val filter: (NelePropertyItem) -> Boolean = { true },
                           val delegateUpdated: (NeleNewPropertyItem) -> Unit = {})
-  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", "", model, null, listOf()), NewPropertyItem,
+  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", "", model, listOf()), NewPropertyItem,
     FlagsPropertyItem<NeleFlagPropertyItem> {
 
   override var namespace: String = ""
