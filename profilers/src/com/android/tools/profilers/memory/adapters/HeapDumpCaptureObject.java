@@ -37,19 +37,28 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.MemoryProfiler;
+import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.adapters.instancefilters.ActivityLeakInstanceFilter;
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import gnu.trove.TLongObjectHashMap;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,6 +98,13 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   @NotNull
   private final MemoryProfilerStage myStage;
+
+  private final Set<CaptureObjectInstanceFilter> mySupportedInstanceFilters = Collections.singleton(new ActivityLeakInstanceFilter());
+
+  private final Set<CaptureObjectInstanceFilter> myCurrentInstanceFilters = new HashSet<>();
+
+  private final ExecutorService myExecutorService =
+    Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("memory-heapdump-instancefilters").build());
 
   public HeapDumpCaptureObject(@NotNull ProfilerClient client,
                                @NotNull Common.Session session,
@@ -170,6 +186,11 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   public boolean getHasNativeAllocations() {
     return myHasNativeAllocations;
+  }
+
+  @Override
+  public ClassDb getClassDatabase() {
+    return myClassDb;
   }
 
   @Override
@@ -267,7 +288,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   @Override
   public void unload() {
-
+    myExecutorService.shutdownNow();
   }
 
   @NotNull
@@ -313,5 +334,74 @@ public class HeapDumpCaptureObject implements CaptureObject {
       classObject = new HeapDumpInstanceObject(this, classObj, javaLangClass.getClassEntry(), ValueObject.ValueType.CLASS);
     }
     return classObject;
+  }
+
+  @NotNull
+  @Override
+  public Set<CaptureObjectInstanceFilter> getSupportedInstanceFilters() {
+    return mySupportedInstanceFilters;
+  }
+
+  @VisibleForTesting
+  ExecutorService getInstanceFilterExecutor() {
+    return myExecutorService;
+  }
+
+  @Override
+  public void addInstanceFilter(@NotNull CaptureObjectInstanceFilter filterToAdd, @NotNull Executor analyzeJoiner) {
+    assert mySupportedInstanceFilters.contains(filterToAdd);
+
+    myCurrentInstanceFilters.add(filterToAdd);
+    myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
+    myExecutorService.submit(() -> {
+      // Run the analyzers on the currently existing InstanceObjects in the HeapSets.
+      Set<InstanceObject> currentMatchedInstances = new HashSet<>();
+      for (HeapSet heap : myHeapSets.values()) {
+        currentMatchedInstances.addAll(heap.getInstancesStream().collect(Collectors.toSet()));
+      }
+
+      Set<InstanceObject> matchedInstancesFinal = filterToAdd.filter(currentMatchedInstances, myClassDb);
+      analyzeJoiner.execute(() -> {
+        for (HeapSet heap : myHeapSets.values()) {
+          heap.clearClassifierSets();
+        }
+
+        matchedInstancesFinal.forEach(instance -> myHeapSets.get(instance.getHeapId()).addDeltaInstanceObject(instance));
+        myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
+        myStage.refreshSelectedHeap();
+      });
+    });
+  }
+
+  @Override
+  public void removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filterToRemove, @NotNull Executor analyzeJoiner) {
+    // Filter is not set in the first place so othing needs to be done.
+    if (!myCurrentInstanceFilters.contains(filterToRemove)) {
+      return;
+    }
+
+    myCurrentInstanceFilters.remove(filterToRemove);
+    myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
+    myExecutorService.submit(() -> {
+      // Run the remaining analyzers on the full instance set, since we don't know the the instances that have been removed from the
+      // HeapSets using the filter that we are removing.
+      Set<InstanceObject> allInstances = new HashSet<>(myInstanceIndex.size());
+      myInstanceIndex.forEachValue(instance -> allInstances.add(instance));
+      Set<InstanceObject> matchedInstances = allInstances;
+      for (CaptureObjectInstanceFilter filter : myCurrentInstanceFilters) {
+        matchedInstances = filter.filter(matchedInstances, myClassDb);
+      }
+
+      Set<InstanceObject> matchedInstancesFinal = matchedInstances;
+      analyzeJoiner.execute(() -> {
+        for (HeapSet heap : myHeapSets.values()) {
+          heap.clearClassifierSets();
+        }
+
+        matchedInstancesFinal.forEach(instance -> myHeapSets.get(instance.getHeapId()).addDeltaInstanceObject(instance));
+        myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
+        myStage.refreshSelectedHeap();
+      });
+    });
   }
 }
