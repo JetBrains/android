@@ -59,7 +59,7 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
     projectRule.fixture.testDataPath = "${TestDataPaths.TEST_DATA_ROOT}/dom/layout"
 
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(myDataBindingMode)
+    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = myDataBindingMode
   }
 
   @Test

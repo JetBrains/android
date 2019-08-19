@@ -73,7 +73,7 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
   fun setUp() {
     fixture.testDataPath = "${getTestDataPath()}/projects/common"
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
-    ModuleDataBinding.getInstance(androidFacet).setMode(mode)
+    ModuleDataBinding.getInstance(androidFacet).dataBindingMode = mode
   }
 
   @Test
