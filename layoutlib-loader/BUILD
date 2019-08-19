@@ -61,7 +61,7 @@ iml_module(
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/idea/.idea/libraries:ASM",
-        "//prebuilts/studio/layoutlib/data:layoutlib",
+        "//prebuilts/studio/layoutlib/data:layoutlib_native",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
     ],
 )
@@ -114,6 +114,6 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava[test]",
         "//tools/idea/.idea/libraries:ASM[test]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
-        "//prebuilts/studio/layoutlib/data:layoutlib",
+        "//prebuilts/studio/layoutlib/data:layoutlib_native[test]",
     ],
 )
