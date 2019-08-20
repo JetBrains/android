@@ -16,12 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.editors.strings.MultilineStringEditorDialog;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
-import com.intellij.ui.EditorTextField;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 

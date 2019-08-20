@@ -333,14 +333,6 @@
         id="CommonForkJoinPool"
         message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
         <location
-            file="src/com/android/tools/swing/layoutlib/AndroidPreviewPanel.java"
-            line="228"/>
-    </issue>
-
-    <issue
-        id="CommonForkJoinPool"
-        message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
-        <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
             line="425"/>
     </issue>
@@ -471,14 +463,6 @@
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/plugin/SVGAssetRenderer.kt"
             line="43"/>
-    </issue>
-
-    <issue
-        id="SwingWorker"
-        message="Do not use `javax.swing.SwingWorker`, use `com.intellij.util.concurrency.SwingWorker` instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/swing/layoutlib/AndroidPreviewPanel.java"
-            line="142"/>
     </issue>
 
     <issue
