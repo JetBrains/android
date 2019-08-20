@@ -117,8 +117,9 @@ object MethodPreviewElementFinder : PreviewElementFinder {
     }
   }
 
-  override fun findPreviewMethods(uFile: UFile): Set<PreviewElement> {
-    val previewElements = mutableSetOf<PreviewElement>()
+  override fun findPreviewMethods(uFile: UFile): List<PreviewElement> {
+    val previewMethodsFqName = mutableSetOf<String>()
+    val previewElements = mutableListOf<PreviewElement>()
     uFile.accept(object : UastVisitor {
       override fun visitElement(node: UElement) = false
 
@@ -145,11 +146,15 @@ object MethodPreviewElementFinder : PreviewElementFinder {
           val composableMethodClass = composableMethod.uastParent as UClass
           val composableMethodName = "${composableMethodClass.qualifiedName}.${composableMethod.name}"
 
-          val parameters = callExpressionToDataMap(node, previewUMethod)
-          visitPreviewMethodCall(composableMethodName,
-                                 parameters["name"] as? String ?: "",
-                                 composableMethod.bodyTextRange(),
-                                 parameters["configuration"] as? Map<String, Any> ?: emptyMap())
+          // If the same composable method is found multiple times, only keep the first one. This usually will happen during
+          // copy & paste and both the compiler and Studio will flag it as an error.
+          if (previewMethodsFqName.add(composableMethodName)) {
+            val parameters = callExpressionToDataMap(node, previewUMethod)
+            visitPreviewMethodCall(composableMethodName,
+                                   parameters["name"] as? String ?: "",
+                                   composableMethod.bodyTextRange(),
+                                   parameters["configuration"] as? Map<String, Any> ?: emptyMap())
+          }
         }
 
         return super.visitCallExpression(node)

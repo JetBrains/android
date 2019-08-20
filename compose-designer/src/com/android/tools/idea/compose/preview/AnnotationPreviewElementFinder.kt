@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview
  */
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -59,9 +58,11 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
 
   /**
    * Returns all the `@Composable` methods in the [uFile] that are also tagged with `@Preview`.
+   * The order of the elements will be the same as the order of the composable methods.
    */
-  override fun findPreviewMethods(uFile: UFile): Set<PreviewElement> {
-    val previewMethodsFqNames = mutableSetOf<PreviewElement>()
+  override fun findPreviewMethods(uFile: UFile): List<PreviewElement> {
+    val previewMethodsFqName = mutableSetOf<String>()
+    val previewElements = mutableListOf<PreviewElement>()
     uFile.accept(object : UastVisitor {
       // Return false so we explore all the elements in the file (in case there are multiple @Preview elements)
       override fun visitElement(node: UElement): Boolean = false
@@ -74,9 +75,13 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
         val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
         val previewName = previewAnnotation.findAttributeValue("name")?.evaluateString() ?: ""
 
-        previewMethodsFqNames.add(PreviewElement(previewName, composableMethod,
-                                                 annotatedMethod.bodyTextRange(),
-                                                 attributesToConfiguration(previewAnnotation)))
+        // If the same composable method is found multiple times, only keep the first one. This usually will happen during
+        // copy & paste and both the compiler and Studio will flag it as an error.
+        if (previewMethodsFqName.add(composableMethod)) {
+          previewElements.add(PreviewElement(previewName, composableMethod,
+                                             annotatedMethod.bodyTextRange(),
+                                             attributesToConfiguration(previewAnnotation)))
+        }
       }
 
       override fun visitAnnotation(node: UAnnotation): Boolean {
@@ -98,7 +103,7 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
       }
     })
 
-    return previewMethodsFqNames
+    return previewElements
   }
 
   override fun elementBelongsToPreviewElement(element: PsiElement): Boolean {
