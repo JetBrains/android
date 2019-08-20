@@ -21,7 +21,6 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ArrayListMultimap;
@@ -220,12 +219,12 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @Override
   @NotNull
-  public Collection<BindingLayoutInfo> getBindingLayoutInfo(@NotNull String layoutName) {
+  public Collection<BindingLayoutData> getBindingLayoutData(@NotNull String layoutName) {
     synchronized (ITEM_MAP_LOCK) {
       for (LocalResourceRepository child : myLocalResources) {
-        Collection<BindingLayoutInfo> infos = child.getBindingLayoutInfo(layoutName);
-        if (!infos.isEmpty()) {
-          return infos;
+        Collection<BindingLayoutData> layoutData = child.getBindingLayoutData(layoutName);
+        if (!layoutData.isEmpty()) {
+          return layoutData;
         }
       }
       return ImmutableList.of();
