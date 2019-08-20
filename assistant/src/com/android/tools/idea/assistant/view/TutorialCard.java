@@ -16,6 +16,7 @@
 package com.android.tools.idea.assistant.view;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.tools.idea.assistant.ScrollHandler;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
@@ -34,7 +35,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
 import javax.swing.BorderFactory;
+import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
@@ -43,6 +46,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Generic view for tutorial content. Represents a single view in a collection
@@ -62,6 +66,9 @@ public class TutorialCard extends CardViewPanel {
   private final boolean myIsStepByStep;
   @NotNull
   private final JBScrollPane myContentsScroller;
+  @Nullable
+  private final ScrollHandler myScrollHandler;
+  private boolean myAdjustmentListenerInitialized;
 
   /**
    * Partial label used in the back button.
@@ -79,7 +86,8 @@ public class TutorialCard extends CardViewPanel {
                @NotNull Project project,
                boolean hideChooserAndNavigationalBar,
                boolean isStepByStep,
-               boolean hideStepIndex) {
+               boolean hideStepIndex,
+               @NotNull String bundleId) {
     super(listener);
     myContentsScroller = new JBScrollPane();
     myTutorialsTitle = tutorialsTitle;
@@ -90,6 +98,11 @@ public class TutorialCard extends CardViewPanel {
     myIsStepByStep = isStepByStep;
     myHideStepIndex = hideStepIndex;
     myStepIndex = 0;
+
+    myScrollHandler = ScrollHandler.EP_NAME.getExtensionList().stream()
+      .filter(handler -> handler.getId().equals(bundleId))
+      .findAny()
+      .orElse(null);
 
     if (!myHideChooserAndNavigationBar) {
       // TODO: Add a short label to the xml and use that here instead.
@@ -124,6 +137,30 @@ public class TutorialCard extends CardViewPanel {
     JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
     verticalScrollBar.setValue(verticalScrollBar.getMinimum());
     horizontalScrollBar.setValue(horizontalScrollBar.getMinimum());
+
+    if (!myAdjustmentListenerInitialized) {
+      myAdjustmentListenerInitialized = true;
+
+      if (myScrollHandler != null) {
+        // Dispatch scrolledToBottom to the correct extension, can be used for metrics
+        myContentsScroller.getVerticalScrollBar().addAdjustmentListener(this::trackScrolledToBottom);
+
+        // If the window is opened large enough that a scrollbar is not needed, we consider this as scrolled to bottom
+        if (!myContentsScroller.getVerticalScrollBar().isShowing()) {
+          myScrollHandler.scrolledToBottom(myProject);
+        }
+      }
+    }
+  }
+
+  private void trackScrolledToBottom(@NotNull AdjustmentEvent event) {
+    if (myScrollHandler == null || event.getValueIsAdjusting()) {
+      return;
+    }
+    BoundedRangeModel model = ((JScrollBar)event.getAdjustable()).getModel();
+    if (model.getExtent() + event.getValue() >= model.getMaximum()) {
+      myScrollHandler.scrolledToBottom(myProject);
+    }
   }
 
   // update the view

@@ -71,8 +71,8 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
       return;
     }
 
-    openWindow(WhatsNewAssistantBundleCreator.BUNDLE_ID, project);
     WhatsNewToolWindowListener.fireOpenEvent(project, isAutoOpened);
+    openWindow(WhatsNewAssistantBundleCreator.BUNDLE_ID, project);
 
     // Only register a new listener if there isn't already one, to avoid multiple OPEN/CLOSE events
     myProjectToListenerMap.computeIfAbsent(project, this::newWhatsNewToolWindowListener);
@@ -144,6 +144,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
           isOpen = false;
         }
         else if (!isOpen && window.isVisible()){
+          // TODO b/139709466: Cannot detect WNA window not having a scrollbar if it is reopened from side tab
           fireOpenEvent(myProject, false);
           isOpen = true;
         }

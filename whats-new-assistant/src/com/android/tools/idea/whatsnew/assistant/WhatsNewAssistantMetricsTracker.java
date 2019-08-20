@@ -52,8 +52,6 @@ public final class WhatsNewAssistantMetricsTracker {
     myProjectToBuilderMap.get(project).myBuilder.setUpdateFlow(true);
   }
 
-  // TODO b/126605387: add scrolling metrics later, since it probably requires some changes to Assistant framework
-  @SuppressWarnings("unused")
   void scrolledToBottom(@NotNull Project project) {
     myProjectToBuilderMap.get(project).myBuilder.setScrolledToBottom(true);
   }
@@ -74,8 +72,8 @@ public final class WhatsNewAssistantMetricsTracker {
    * Wrapper for WhatsNewAssistantUpdateEvent because we need to keep track of the time difference
    */
   private static class MetricsEventBuilder {
-    @NotNull private final WhatsNewAssistantUpdateEvent.Builder myBuilder;
-    @NotNull private final Stopwatch myStopwatch;
+    @NotNull final WhatsNewAssistantUpdateEvent.Builder myBuilder;
+    @NotNull final Stopwatch myStopwatch;
 
     private MetricsEventBuilder() {
       myBuilder = WhatsNewAssistantUpdateEvent.newBuilder();
