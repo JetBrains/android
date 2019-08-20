@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorTextFieldFixture;
 import com.android.tools.idea.uibuilder.actions.MorphPanel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JButtonFixture;

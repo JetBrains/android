@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.android.tools.idea.actions.CreateFileFromTemplateDialog;
 import com.android.tools.idea.actions.CreateFileFromTemplateDialog.Visibility;
