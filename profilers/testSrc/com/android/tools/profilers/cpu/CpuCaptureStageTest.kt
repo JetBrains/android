@@ -39,7 +39,7 @@ class CpuCaptureStageTest {
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
-  private val profilerClient = ProfilerClient(grpcChannel.getName())
+  private val profilerClient = ProfilerClient(grpcChannel.name)
 
   private lateinit var profilers: StudioProfilers
 
@@ -159,7 +159,7 @@ class CpuCaptureStageTest {
     services.enableAtrace(true)
     services.enablePerfetto(true)
     val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), "surfaceflinger")
-    profilers.stage = stage!!
+    profilers.stage = stage
     assertThat(stage.capture).isNotNull()
     val mainThread = stage.capture.threads.find { it.isMainThread }
     assertThat(mainThread!!.name).isEqualTo("surfaceflinger")
@@ -171,7 +171,7 @@ class CpuCaptureStageTest {
     services.enableAtrace(true)
     services.enablePerfetto(true)
     val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), null)
-    profilers.stage = stage!!
+    profilers.stage = stage
     assertThat(stage.capture).isNotNull()
     val mainThread = stage.capture.threads.find { it.isMainThread }
     assertThat(mainThread!!.name).isEqualTo("android.traceur")
