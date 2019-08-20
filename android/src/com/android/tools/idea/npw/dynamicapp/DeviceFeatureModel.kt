@@ -26,4 +26,8 @@ class DeviceFeatureModel {
   val deviceFeatureType = ObjectValueProperty( DeviceFeatureKind.NAME)
   @JvmField
   val deviceFeatureValue = StringValueProperty( "")
+
+  // For FreeMarker support only. TODO(qumeric): remove it
+  fun getDeviceFeatureType() = deviceFeatureType
+  fun getDeviceFeatureValue() = deviceFeatureValue
 }
