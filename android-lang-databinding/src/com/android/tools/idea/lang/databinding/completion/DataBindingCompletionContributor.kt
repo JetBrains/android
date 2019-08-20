@@ -18,7 +18,7 @@ package com.android.tools.idea.lang.databinding.completion
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.lang.databinding.config.DbFile
-import com.android.tools.idea.lang.databinding.getBindingLayoutInfo
+import com.android.tools.idea.lang.databinding.getBindingLayoutData
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
@@ -150,7 +150,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   private fun autoCompleteVariablesAndUnqualifiedFunctions(file: DbFile, result: CompletionResultSet) {
     autoCompleteUnqualifiedFunctions(result)
 
-    val bindingData = (getBindingLayoutInfo(file) ?: return).data
+    val bindingData = getBindingLayoutData(file) ?: return
 
     val project = file.project
     val variableTagNamePairs = bindingData.variables.map { variable ->

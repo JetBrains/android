@@ -31,8 +31,8 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterL
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
+import com.android.tools.idea.res.BindingLayoutData
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -342,7 +342,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
    * Returns the parent XML layout info for the target [element], or null if that isn't possible
    * (e.g. databinding isn't enabled for this module).
    */
-  private fun getParentLayoutInfo(module: Module, element: PsiElement): BindingLayoutInfo? {
+  private fun getParentLayoutData(module: Module, element: PsiElement): BindingLayoutData? {
     val facet = AndroidFacet.getInstance(module)?.takeIf { facet -> DataBindingUtil.isDataBindingEnabled(facet) }
                 ?: return null
     val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
@@ -355,7 +355,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     }
 
     val fileNameWithoutExtension = topLevelFile.name.substringBefore('.')
-    return moduleResources.getBindingLayoutInfo(fileNameWithoutExtension).firstOrNull()
+    return moduleResources.getBindingLayoutData(fileNameWithoutExtension).firstOrNull()
   }
 
   /**
@@ -368,13 +368,12 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     // Search the parent layout file, as that will let us check if the current identifier is found
     // somewhere in the <data> section.
     run {
-      val layoutInfo = getParentLayoutInfo(module, element) ?: return PsiReference.EMPTY_ARRAY
-      val layoutData = layoutInfo.data
+      val layoutData = getParentLayoutData(module, element) ?: return PsiReference.EMPTY_ARRAY
 
       val project = element.project
       layoutData.findVariable(simpleName)?.let { variable ->
         DataBindingUtil.findVariableTag(project, layoutData, variable.name)?.let { variableTag ->
-          return arrayOf(XmlVariableReference(element, variableTag, variable, layoutInfo, module))
+          return arrayOf(XmlVariableReference(element, variableTag, variable, layoutData, module))
         }
       }
 

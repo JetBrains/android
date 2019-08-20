@@ -72,7 +72,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.BindingLayoutData.Import;
 import com.android.tools.idea.res.BindingLayoutData.Variable;
-import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.resources.base.Base128InputStream;
 import com.android.tools.idea.resources.base.BasicDensityBasedFileResourceItem;
 import com.android.tools.idea.resources.base.BasicFileResourceItem;
@@ -236,8 +235,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   static int ourFullRescans;
 
   // Data / View binding support.
-  /* {@link BindingLayoutInfo} objects keyed by layout names. */
-  @NotNull private Multimap<String, BindingLayoutInfo> myBindingData = ArrayListMultimap.create();
+  /* {@link BindingLayoutData} objects keyed by layout names. */
+  @NotNull private Multimap<String, BindingLayoutData> myBindingData = ArrayListMultimap.create();
   private final boolean myViewBindingEnabled;
 
   /**
@@ -425,7 +424,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @Override
   @NotNull
-  public Collection<BindingLayoutInfo> getBindingLayoutInfo(@NotNull String layoutName) {
+  public Collection<BindingLayoutData> getBindingLayoutData(@NotNull String layoutName) {
     return myBindingData.get(layoutName);
   }
 
@@ -503,29 +502,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     RepositoryConfiguration configuration = resourceFile.getConfiguration();
-    BindingLayoutData bindingData =
-        new BindingLayoutData(configuration, resourceFile.getVirtualFile(), layoutType, customBindingName, variables, imports);
     String layoutName = StringUtil.trimExtensions(resourceFile.getName());
-    Collection<BindingLayoutInfo> infos = myBindingData.get(layoutName);
-    BindingLayoutInfo info = findBindingInfoByFolderConfiguration(infos, configuration.getFolderConfiguration());
-    if (info == null) {
-      info = new BindingLayoutInfo(myFacet, bindingData);
-      myBindingData.put(layoutName, info);
+    Collection<BindingLayoutData> existingData = myBindingData.get(layoutName);
+    if (existingData != null) {
+      existingData.removeIf(data -> data.getFolderConfiguration() == configuration.getFolderConfiguration());
     }
-    else {
-      info.setData(bindingData, getModificationCount());
-    }
-  }
 
-  @Nullable
-  private static BindingLayoutInfo findBindingInfoByFolderConfiguration(
-      @NotNull Collection<BindingLayoutInfo> infos, @NotNull FolderConfiguration folderConfiguration) {
-    for (BindingLayoutInfo info : infos) {
-      if (info.getData().getFolderConfiguration().equals(folderConfiguration)) {
-        return info;
-      }
-    }
-    return null;
+    myBindingData.put(
+      layoutName,
+      new BindingLayoutData(configuration, resourceFile.getVirtualFile(), layoutType, customBindingName, variables, imports));
   }
 
   @Override
