@@ -20,7 +20,6 @@ import static com.android.tools.idea.lang.databinding.DataBindingLangUtil.JAVA_L
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingLangUtil;
 import com.android.tools.idea.res.BindingLayoutData;
-import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
@@ -65,11 +64,11 @@ import org.jetbrains.annotations.Nullable;
 public class DataBindingConverter extends ResolvingConverter<PsiElement> implements CustomReferenceConverter<PsiElement> {
   @Nullable
   private static String getImport(@NotNull String importedShortName, @NotNull ConvertContext context) {
-    BindingLayoutInfo bindingInfo = getDataBindingInfo(context);
-    if (bindingInfo == null) {
+    BindingLayoutData bindingData = getDataBindingData(context);
+    if (bindingData == null) {
       return null;
     }
-    return bindingInfo.getData().resolveImport(importedShortName);
+    return bindingData.resolveImport(importedShortName);
   }
 
   /**
@@ -92,8 +91,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (module == null) {
       return null;
     }
-    BindingLayoutInfo layoutInfo = getDataBindingInfo(context);
-    String qualifiedName = layoutInfo == null ? type : DataBindingUtil.resolveImport(type, layoutInfo.getData());
+    BindingLayoutData layoutData = getDataBindingData(context);
+    String qualifiedName = layoutData == null ? type : DataBindingUtil.resolveImport(type, layoutData);
     Project project = context.getProject();
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope scope = enlargeScope(module.getModuleWithDependenciesAndLibrariesScope(false),
@@ -127,9 +126,9 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (element instanceof PsiClass) {
       String type = ((PsiClass)element).getQualifiedName();
       if (type != null) {
-        BindingLayoutInfo bindingLayoutInfo = getDataBindingInfo(context);
-        if (bindingLayoutInfo != null) {
-          type = unresolveImport(type, bindingLayoutInfo.getData());
+        BindingLayoutData bindingLayoutData = getDataBindingData(context);
+        if (bindingLayoutData != null) {
+          type = unresolveImport(type, bindingLayoutData);
         }
       }
       return type;
@@ -260,8 +259,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
   }
 
   @Nullable
-  protected static BindingLayoutInfo getDataBindingInfo(@NotNull ConvertContext context) {
-    return DataBindingLangUtil.getBindingLayoutInfo(context.getFile());
+  protected static BindingLayoutData getDataBindingData(@NotNull ConvertContext context) {
+    return DataBindingLangUtil.getBindingLayoutData(context.getFile());
   }
 
   private static class AliasedReference extends PsiReferenceBase<PsiElement> {

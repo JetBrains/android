@@ -48,6 +48,7 @@ import com.android.resources.ResourceType;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Collections2;
@@ -92,6 +93,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -186,7 +188,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   /**
    * Checks that two repositories contain the same data.
    */
-  private static void assertContainSameData(@NotNull ResourceFolderRepository expected, @NotNull ResourceFolderRepository actual) {
+  private static void assertContainSameData(@NotNull AndroidFacet facet,
+                                            @NotNull ResourceFolderRepository expected,
+                                            @NotNull ResourceFolderRepository actual) {
     assertThat(expected.getResourceDir()).isEqualTo(actual.getResourceDir());
 
     List<ResourceItem> expectedItems = expected.getAllResources();
@@ -209,12 +213,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Verify that we generated expected data binding resources by comparing the path to all
     // XML files we plan to generate layout bindings for.
     Set<String> actualNames = actual.getResources(RES_AUTO, ResourceType.LAYOUT).values().stream()
-      .flatMap(resource -> actual.getBindingLayoutInfo(resource.getName()).stream())
-      .map(layout -> layout.getQualifiedClassName())
+      .flatMap(resource -> actual.getBindingLayoutData(resource.getName()).stream())
+      .map(data -> DataBindingUtil.getQualifiedBindingName(facet, data))
       .collect(Collectors.toSet());
     Set<String> expectedNames = expected.getResources(RES_AUTO, ResourceType.LAYOUT).values().stream()
-      .flatMap(resource -> actual.getBindingLayoutInfo(resource.getName()).stream())
-      .map(layout -> layout.getQualifiedClassName())
+      .flatMap(resource -> actual.getBindingLayoutData(resource.getName()).stream())
+      .map(data -> DataBindingUtil.getQualifiedBindingName(facet, data))
       .collect(Collectors.toSet());
 
     assertThat(actualNames).isEqualTo(expectedNames);
@@ -3803,7 +3807,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(0, fromCacheFile.getNumXmlFilesLoadedInitiallyFromSources());
 
     assertNotSame(resources, fromCacheFile);
-    assertContainSameData(resources, fromCacheFile);
+    assertContainSameData(myFacet, resources, fromCacheFile);
   }
 
   public void testInvalidateCache() {
@@ -3980,7 +3984,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(fromCacheFile.hasFreshFileCache());
 
     assertNotSame(resources, fromCacheFile);
-    assertContainSameData(resources, fromCacheFile);
+    assertContainSameData(myFacet, resources, fromCacheFile);
     value = ResourceRepositoryUtil.getConfiguredValue(fromCacheFile, ResourceType.LAYOUT, "activity_foo", config);
     assertNotNull(value);
     valueString = value.getValue();
@@ -4014,7 +4018,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(fromCacheFile.hasFreshFileCache());
 
     assertNotSame(resources, fromCacheFile);
-    assertContainSameData(resources, fromCacheFile);
+    assertContainSameData(myFacet, resources, fromCacheFile);
     value = ResourceRepositoryUtil.getConfiguredValue(fromCacheFile, ResourceType.DRAWABLE, "drawable_foo", config);
     assertNotNull(value);
     valueString = value.getValue();
