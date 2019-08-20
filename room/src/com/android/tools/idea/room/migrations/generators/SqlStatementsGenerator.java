@@ -16,6 +16,7 @@
 package com.android.tools.idea.room.migrations.generators;
 
 import static com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer.*;
+import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.*;
 
 import com.android.tools.idea.room.migrations.json.BundleUtil;
 import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;
@@ -54,6 +55,8 @@ public class SqlStatementsGenerator {
     List<String> updateStatements = new ArrayList<>();
     boolean needsConstraintsCheck = false;
 
+    databaseUpdate.getRenamedEntities().forEach((oldName, newName) -> {updateStatements.add(getRenameTableStatement(oldName, newName));});
+
     for (EntityBundle entity : databaseUpdate.getNewEntities().values()) {
       updateStatements.add(getCreateTableStatement(entity.getTableName(), entity));
     }
@@ -89,16 +92,22 @@ public class SqlStatementsGenerator {
    */
   @NotNull
   public static List<String> getMigrationStatements(@NotNull EntityUpdate entityUpdate) {
-    String tableName = entityUpdate.getTableName();
+    String tableName = entityUpdate.getNewTableName();
     ArrayList<String> updateStatements = new ArrayList<>();
 
     if (entityUpdate.isComplexUpdate()) {
-      if (entityUpdate.isFtsEntityWithExternalContent()) {
+      // If the update produces an FTS table which requires data copied from an external source, we need to recreate the table and
+      // copy the data from the external content table.
+      if (entityUpdate.shouldCreateAnFtsEntity() && ftsTableNeedsExternalContentSource((FtsEntityBundle)entityUpdate.getNewState())) {
         updateStatements.addAll(getComplexUpdateForFtsTableWithExternalContent(entityUpdate));
       } else {
         updateStatements.addAll(getComplexTableUpdate(entityUpdate));
       }
     } else {
+      if (entityUpdate.shouldRenameTable()) {
+        updateStatements.add(getRenameTableStatement(entityUpdate.getOldTableName(), entityUpdate.getNewTableName()));
+      }
+
       Map<String, FieldBundle> newFields = entityUpdate.getNewFields();
       for (FieldBundle field : newFields.values()) {
         updateStatements.add(getAddColumnStatement(tableName, field));
@@ -140,19 +149,20 @@ public class SqlStatementsGenerator {
   @NotNull
   private static List<String> getComplexTableUpdate(@NotNull EntityUpdate entityUpdate) {
     List<String> updateStatements = new ArrayList<>();
-    String tableName = entityUpdate.getTableName();
-    String dataSource = entityUpdate.getDataSourceForComplexUpdate();
-    String tempTableName = String.format(TMP_TABLE_NAME_TEMPLATE, tableName);
+    String oldTableName = !entityUpdate.shouldRenameTable() ? entityUpdate.getNewTableName() : entityUpdate.getOldTableName();
+    String newTableName = !entityUpdate.shouldRenameTable() ? String.format(TMP_TABLE_NAME_TEMPLATE, oldTableName) : entityUpdate.getNewTableName() ;
+    String dataSource = getDataSourceForComplexUpdate(entityUpdate);
     Map<String, String> columnNameToColumnValue = getColumnNameToColumnValueMapping(entityUpdate);
 
-    updateStatements.add(getCreateTableStatement(tempTableName, entityUpdate.getEntity()));
-    updateStatements.add(getInsertIntoTableStatement(tempTableName,
+    updateStatements.add(getCreateTableStatement(newTableName, entityUpdate.getNewState()));
+    updateStatements.add(getInsertIntoTableStatement(newTableName,
                                                      new ArrayList<>(columnNameToColumnValue.keySet()),
                                                      getSelectFromTableStatement(
                                                        dataSource,
                                                        new ArrayList<>(columnNameToColumnValue.values()))));
-    updateStatements.add(getDropTableStatement(tableName));
-    updateStatements.add(getRenameTableStatement(tempTableName, tableName));
+    updateStatements.add(getDropTableStatement(oldTableName));
+    if (!entityUpdate.shouldRenameTable())
+    updateStatements.add(getRenameTableStatement(newTableName, oldTableName));
 
     return updateStatements;
   }
@@ -165,14 +175,15 @@ public class SqlStatementsGenerator {
    */
   private static List<String> getComplexUpdateForFtsTableWithExternalContent(@NotNull EntityUpdate entityUpdate) {
     List<String> updateStatements = new ArrayList<>();
-    String tableName = entityUpdate.getTableName();
-    String dataSource = entityUpdate.getDataSourceForComplexUpdate();
+    String oldTableName = entityUpdate.getOldTableName();
+    String newTableName = entityUpdate.getNewTableName();
+    String dataSource = getDataSourceForComplexUpdate(entityUpdate);
     Map<String, String> columnNameToColumnValue = getColumnNameToColumnValueMapping(entityUpdate);
 
-    updateStatements.add(getDropTableStatement(tableName));
-    updateStatements.add(getCreateTableStatement(tableName, entityUpdate.getEntity()));
+    updateStatements.add(getDropTableStatement(oldTableName));
+    updateStatements.add(getCreateTableStatement(newTableName, entityUpdate.getNewState()));
     updateStatements.add(getInsertIntoTableStatement(
-      tableName,
+      newTableName,
       new ArrayList<>(columnNameToColumnValue.keySet()),
       getSelectFromTableStatement(dataSource, new ArrayList<>(columnNameToColumnValue.values()))));
 
@@ -440,6 +451,26 @@ public class SqlStatementsGenerator {
   }
 
   /**
+   * Returns the name of the table to copy data from in case of an complex update.
+   * In case of an FTS table with external content, it always returns the name of the external content table.
+   * In case of a renamed table (which is not an FTS table with external content), it will return the old name of the table.
+   * Otherwise, it returns the name of the table to be updated.
+   */
+  @NotNull
+  private static String getDataSourceForComplexUpdate(@NotNull EntityUpdate entityUpdate) {
+    EntityBundle newState = entityUpdate.getNewState();
+    if (entityUpdate.shouldCreateAnFtsEntity() && ftsTableNeedsExternalContentSource((FtsEntityBundle)newState)) {
+      return ((FtsEntityBundle)newState).getFtsOptions().getContentTable();
+    }
+
+    if (entityUpdate.shouldRenameTable()) {
+      return entityUpdate.getOldTableName();
+    }
+
+    return entityUpdate.getNewTableName();
+  }
+
+  /**
    * Returns a value to initialize the given column with.
    *
    * <p>First we look for a user defined value. If there is none, we check whether the column is already present in the
@@ -455,8 +486,8 @@ public class SqlStatementsGenerator {
 
     // If the table to be updated is an FTS table and has an external content source, we take the values for the current
     // column from its correspondent column in the external content table
-    if (entityUpdate.isFtsEntity()) {
-      FtsOptionsBundle ftsOptions = ((FtsEntityBundle)entityUpdate.getEntity()).getFtsOptions();
+    if (entityUpdate.shouldCreateAnFtsEntity()) {
+      FtsOptionsBundle ftsOptions = ((FtsEntityBundle)entityUpdate.getNewState()).getFtsOptions();
       if (ftsOptions != null && (ftsOptions.getContentTable() != null && !ftsOptions.getContentTable().isEmpty())) {
         return getValidName(field.getColumnName());
       }
