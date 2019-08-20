@@ -20,18 +20,12 @@ import com.android.tools.idea.res.BindingLayoutType
 /**
  * Data class for storing information related to <variable> tags.
  */
-data class VariableData(
-  val name: String,
-  val type: String
-)
+data class VariableData(val name: String, val type: String)
 
 /**
  * Data class for storing information related to <import> tags.
  */
-data class ImportData(
-  val type: String,
-  val alias: String?
-) {
+data class ImportData(val type: String, val alias: String?) {
   /**
    * An import's short name is its alias, if present, or its unqualified type.
    * For example:
@@ -44,40 +38,31 @@ data class ImportData(
 
 /**
  * Data class for storing information related to views with IDs.
+ *
+ * @param id Id of the view.
+ * @param viewName Name of the view. Typically the tag name: `<TextView>`.
+ * @param layoutName Optional layout attribute. Only applicable to `<Merge>` or `<Include>` tags.
  */
-data class ViewIdData(
-  /** Id of the view. */
-  val id: String,
-
-  /** Name of the view. Typically the tag name: <TextView>. */
-  val viewName: String,
-
-  /** Optional layout attribute. Only applicable to <Merge> or <Include> tags. */
-  val layoutName: String?
-)
+data class ViewIdData(val id: String, val viewName: String, val layoutName: String?)
 
 /**
  * Data class for storing the indexed content of layouts we want to generate bindings for,
  * e.g. data binding or view binding candidates.
  *
  * For view binding data, many of these fields will be left empty.
+ *
+ * @param layoutType The type of binding for the target layout.
+ * @param customBindingName Value used to override the class path and/or name of the generated
+ *     binding, if present.
+ * @param imports Data binding imports.
+ * @param variables Data binding variables.
+ * @param viewIds Ids of views defined in this layout.
  */
-data class BindingXmlData(
-  /** Type of layout. */
-  val layoutType: BindingLayoutType,
-
-  /** Name used to affect the final Binding class path, if present. */
-  val customBindingName: String?,
-
-  /** Data binding import elements. */
-  val imports: Collection<ImportData>,
-
-  /** Data binding variable elements. */
-  val variables: Collection<VariableData>,
-
-  /** Ids of views defined in this layout. */
-  val viewIds: Collection<ViewIdData>
-) {
+data class BindingXmlData(val layoutType: BindingLayoutType,
+                          val customBindingName: String?,
+                          val imports: Collection<ImportData>,
+                          val variables: Collection<VariableData>,
+                          val viewIds: Collection<ViewIdData>) {
   private val importsMap = imports.associateBy { it.shortName }
   private val variablesMap = variables.associateBy { it.name }
 
