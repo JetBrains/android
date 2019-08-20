@@ -33,7 +33,6 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
-import javax.swing.table.TableModel
 import kotlin.properties.Delegates
 
 private const val PREVIEW_BOTTOM_MARGIN = 10
@@ -46,6 +45,9 @@ class DetailedPreview : JPanel(null) {
   private val label = JBLabel(null, JBLabel.CENTER)
   private val valuesTableModel = object : DefaultTableModel(0, 2) {
     override fun isCellEditable(row: Int, column: Int) = false
+
+    override fun getColumnClass(columnIndex: Int): Class<*> =
+      if (columnIndex == 1) String::class.java else super.getColumnClass(columnIndex)
   }
   private val tableModel = object : DefaultTableModel(0, 2) {
     override fun isCellEditable(row: Int, column: Int) = false
@@ -55,27 +57,27 @@ class DetailedPreview : JPanel(null) {
    * A metadata map. Displays the values in the form of ["Key:" "Value"].
    */
   var data: Map<String, String> by Delegates.observable(emptyMap()) { _, _, newValue ->
-      tableModel.rowCount = newValue.size
-      tableModel.setTableData(newValue)
-      metadataTable.revalidate()
-      metadataTable.repaint()
+    tableModel.rowCount = newValue.size
+    tableModel.setTableData(newValue)
+    metadataTable.revalidate()
+    metadataTable.repaint()
   }
 
   /**
    * A configuration/value map. Displays the map on a table with a header, reads "Configuration" for the keys, and "Value" for the values.
    */
   var values: Map<String, String> by Delegates.observable(emptyMap()) { _, _, newValue ->
-      valuesContainer.isVisible = newValue.isNotEmpty()
-      valuesTableModel.setTableData(newValue, "Configuration", "Value")
+    valuesContainer.isVisible = newValue.isNotEmpty()
+    valuesTableModel.setTableData(newValue, "Configuration", "Value")
 
-      // Make the scrollpane take the size of its content, instead of trying to take available space.
-      // Once the layout takes the all the space, the scrollpane should allow to scroll.
-      // TODO: Find a way to achieve this with layout managers instead.
-      val tableHeight = valuesTable.tableHeader.preferredSize.height + (valuesTable.rowHeight * valuesTable.rowCount)
-      valuesContainer.maximumSize = Dimension(Int.MAX_VALUE, tableHeight)
-      valuesContainer.preferredSize = Dimension(valuesTable.preferredScrollableViewportSize.width, tableHeight)
-      valuesContainer.revalidate()
-      valuesContainer.repaint()
+    // Make the scrollpane take the size of its content, instead of trying to take available space.
+    // Once the layout takes the all the space, the scrollpane should allow to scroll.
+    // TODO: Find a way to achieve this with layout managers instead.
+    val tableHeight = valuesTable.tableHeader.preferredSize.height + (valuesTable.rowHeight * valuesTable.rowCount)
+    valuesContainer.maximumSize = Dimension(Int.MAX_VALUE, tableHeight)
+    valuesContainer.preferredSize = Dimension(valuesTable.preferredScrollableViewportSize.width, tableHeight)
+    valuesContainer.revalidate()
+    valuesContainer.repaint()
   }
 
   /**
@@ -116,6 +118,7 @@ class DetailedPreview : JPanel(null) {
     (tableHeader.defaultRenderer as? DefaultTableCellRenderer)?.let { headerRenderer ->
       headerRenderer.horizontalAlignment = SwingConstants.LEFT
     }
+    setDefaultRenderer(String::class.java, I18nStringCellRenderer())
     rowHeight = JBUI.scale(28)
     rowMargin = JBUI.scale(8)
     background = JBColor.white
