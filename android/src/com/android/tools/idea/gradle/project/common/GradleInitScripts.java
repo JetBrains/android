@@ -23,8 +23,8 @@ import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
 
 import com.android.ide.common.repository.GoogleMavenRepositoryKt;
-import com.android.model.GradlePluginModel;
-import com.android.model.builder.AndroidStudioToolingPlugin;
+import com.android.ide.gradle.model.GradlePluginModel;
+import com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.escape.Escaper;

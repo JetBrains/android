@@ -20,9 +20,9 @@ import com.android.builder.model.BaseArtifact
 import com.android.builder.model.Library
 import com.android.builder.model.Variant
 import com.android.ide.common.repository.GradleVersion
-import com.android.model.sources.SourcesAndJavadocArtifactIdentifier
-import com.android.model.sources.SourcesAndJavadocArtifacts
-import com.android.model.sources.SourcesAndJavadocParameter
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifactIdentifier
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts
+import com.android.ide.gradle.model.sources.SourcesAndJavadocParameter
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.tooling.BuildController
