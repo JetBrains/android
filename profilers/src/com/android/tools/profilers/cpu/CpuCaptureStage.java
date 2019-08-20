@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.event.EventModel;
@@ -121,9 +120,6 @@ public class CpuCaptureStage extends Stage {
   // Accessible only when in state analyzing
   private CpuCapture myCapture;
 
-  @SuppressWarnings("FieldCanBeLocal")
-  private final AspectObserver myObserver = new AspectObserver();
-
   /**
    * Create a capture stage that loads a given trace id. If a trace id is not found null will be returned.
    */
@@ -157,7 +153,6 @@ public class CpuCaptureStage extends Stage {
 
     myCpuCaptureHandler = new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configurationName, captureProcessNameHint);
     myMinimapModel = new CpuCaptureMinimapModel(profilers);
-    getAspect().addDependency(myObserver).onChange(Aspect.STATE, this::captureStateChanged);
   }
 
   public State getState() {
@@ -200,19 +195,6 @@ public class CpuCaptureStage extends Stage {
     return myCapture;
   }
 
-  private void captureStateChanged() {
-    switch (getState()) {
-      case PARSING:
-        myTrackGroupListModel.clear();
-        break;
-      case ANALYZING:
-        myMinimapModel.setMaxRange(getCapture().getRange());
-        initTrackGroupList(myMinimapModel.getRangeSelectionModel().getSelectionRange());
-        buildAnalysisTabs();
-        break;
-    }
-  }
-
   @Override
   public void enter() {
     getStudioProfilers().getUpdater().register(myCpuCaptureHandler);
@@ -224,6 +206,7 @@ public class CpuCaptureStage extends Stage {
         }
         else {
           myCapture = capture;
+          onCaptureParsed(capture);
           setState(State.ANALYZING);
         }
       } catch (Exception ex) {
@@ -238,20 +221,27 @@ public class CpuCaptureStage extends Stage {
     getStudioProfilers().getUpdater().unregister(myCpuCaptureHandler);
   }
 
-  public void addCpuAnalysisModel(CpuAnalysisModel model) {
+  public void addCpuAnalysisModel(@NotNull CpuAnalysisModel model) {
     myAnalysisModels.add(model);
     myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
   }
 
-  private void buildAnalysisTabs() {
+  private void onCaptureParsed(@NotNull CpuCapture capture) {
+    myMinimapModel.setMaxRange(capture.getRange());
+    initTrackGroupList(myMinimapModel.getRangeSelectionModel().getSelectionRange());
+    buildAnalysisTabs(capture);
+  }
+
+  private void buildAnalysisTabs(@NotNull CpuCapture capture) {
     CpuAnalysisModel fullTraceModel = new CpuAnalysisModel(DEFAULT_ANALYSIS_NAME);
     CpuAnalysisTabModel<CpuCapture> summaryModel = new CpuAnalysisTabModel<>(CpuAnalysisTabModel.Type.SUMMARY);
-    summaryModel.addData(getCapture());
+    summaryModel.addData(capture);
     fullTraceModel.getTabs().add(summaryModel);
     addCpuAnalysisModel(fullTraceModel);
   }
 
   private void initTrackGroupList(@NotNull Range selectionRange) {
+    myTrackGroupListModel.clear();
     // Interaction
     TrackGroupModel interaction = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("Interaction"));
     interaction.addTrackModel(
