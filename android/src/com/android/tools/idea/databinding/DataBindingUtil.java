@@ -27,7 +27,6 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.BindingLayoutData;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.project.Project;
@@ -198,11 +197,60 @@ public final class DataBindingUtil {
     if (resourceUrl == null || resourceUrl.type != ResourceType.LAYOUT) {
       return null;
     }
-    BindingLayoutInfo info = Iterables.getFirst(moduleResources.getBindingLayoutInfo(resourceUrl.name), null);
-    if (info == null) {
+    BindingLayoutData data = Iterables.getFirst(moduleResources.getBindingLayoutData(resourceUrl.name), null);
+    if (data == null) {
       return null;
     }
-    return info.getQualifiedClassName();
+    return getQualifiedBindingName(facet, data);
+  }
+
+  /**
+   * Returns the qualified path of a class name that should be used for a generated layout binding
+   * class, or {@code null} if the current {@link AndroidFacet} doesn't currently provide a valid
+   * module package.
+   *
+   * By default, a layout called "layout.xml" causes a class to get generated with the qualified
+   * path "(module-package).databinding.LayoutBinding".
+   *
+   * This value can be overridden using the {@code <data class=...>} attribute, with a few
+   * accepted patterns:
+   *
+   * "custom.path.CustomBinding"  -- generates --> "custom.path.CustomBinding"
+   * "CustomBinding"              -- generates --> "(module-package).databinding.CustomBinding
+   * ".custom.path.CustomBinding" -- generates --> "(module-package).custom.path.CustomBinding
+   */
+  @Nullable
+  public static String getQualifiedBindingName(@NotNull AndroidFacet facet, @NotNull BindingLayoutData data) {
+    String modulePackage = MergedManifestManager.getSnapshot(facet).getPackage();
+    if (modulePackage == null) {
+      return null;
+    }
+
+    String customBindingName = data.getCustomBindingName();
+    if (customBindingName == null || customBindingName.isEmpty()) {
+      return modulePackage + ".databinding." + convertToJavaClassName(data.getFile().getName()) + "Binding";
+    }
+    else {
+      int firstDotIndex = customBindingName.indexOf('.');
+
+      if (firstDotIndex < 0) {
+        return modulePackage + ".databinding." + customBindingName;
+      }
+      else {
+        int lastDotIndex = customBindingName.lastIndexOf('.');
+        String packageName;
+        if (firstDotIndex == 0) {
+          // A custom name like ".ExampleBinding" generates a binding class in the module package.
+          packageName = modulePackage + customBindingName.substring(0, lastDotIndex);
+        }
+        else {
+          packageName = customBindingName.substring(0, lastDotIndex);
+        }
+        String simpleClassName = customBindingName.substring(lastDotIndex + 1);
+        return packageName + "." + simpleClassName;
+      }
+    }
+
   }
 
   /**

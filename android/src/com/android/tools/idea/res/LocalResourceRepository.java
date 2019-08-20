@@ -22,9 +22,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -35,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
@@ -226,12 +223,12 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   /**
-   * Returns {@link BindingLayoutInfo} objects for all layouts with the given name, or an empty
+   * Returns {@link BindingLayoutData} objects for all layouts with the given name, or an empty
    * collection if the name isn't found, or if the target layouts should not generate any "Binding"
    * classes.
    */
   @NotNull
-  public Collection<BindingLayoutInfo> getBindingLayoutInfo(@NotNull String layoutName) {
+  public Collection<BindingLayoutData> getBindingLayoutData(@NotNull String layoutName) {
     return ImmutableList.of();
   }
 
