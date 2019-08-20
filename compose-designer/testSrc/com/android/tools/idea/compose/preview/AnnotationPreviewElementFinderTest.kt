@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.intellij.openapi.util.TextRange
+import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import org.intellij.lang.annotations.Language
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UFile
@@ -60,7 +62,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
 
     val elements = AnnotationPreviewElementFinder.findPreviewMethods(composeTest)
     assertEquals(3, elements.size)
-    elements.single { it.name == "preview2" }.let {
+    elements[1].let {
       assertEquals("preview2", it.name)
       assertEquals(12, it.configuration.apiLevel)
       assertNull(it.configuration.theme)
@@ -70,7 +72,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
       assertMethodTextRange(composeTest, "Preview2", it.textRange)
     }
 
-    elements.single { it.name == "preview3" }.let {
+    elements[2].let {
       assertEquals("preview3", it.name)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
@@ -78,7 +80,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
       assertMethodTextRange(composeTest, "Preview3", it.textRange)
     }
 
-    elements.single { it.name.isEmpty() }.let {
+    elements[0].let {
       assertEquals("", it.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
@@ -86,6 +88,29 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
 
       assertMethodTextRange(composeTest, "Preview1", it.textRange)
     }
+  }
+
+  fun testNoDuplicatePreviewElements() {
+    @Language("kotlin")
+    val composeTest = myFixture.addFileToProject("src/Test.kt", """
+      import com.android.tools.preview.Preview
+      import androidx.compose.Composable
+
+      @Composable
+      @Preview
+      fun Preview1() {
+      }
+
+      @Composable
+      @Preview(name = "preview2", apiLevel = 12)
+      fun Preview1() {
+      }
+    """.trimIndent()).toUElement() as UFile
+
+    val elements = AnnotationPreviewElementFinder.findPreviewMethods(composeTest)
+    assertEquals(1, elements.size)
+    // Check that we keep the first element
+    assertEmpty(elements[0].name)
   }
 
   fun testElementBelongsToPreviewElement() {
