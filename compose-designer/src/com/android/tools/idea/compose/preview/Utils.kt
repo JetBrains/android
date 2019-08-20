@@ -63,10 +63,10 @@ interface PreviewElementFinder {
    *
    * This method always runs on smart mode.
    */
-  fun findPreviewMethods(project: Project, vFile: VirtualFile): Set<PreviewElement> {
+  fun findPreviewMethods(project: Project, vFile: VirtualFile): List<PreviewElement> {
     assert(!DumbService.getInstance(project).isDumb) { "findPreviewMethods can not be called on dumb mode" }
 
-    val uFile: UFile = PsiManager.getInstance(project).findFile(vFile)?.toUElement() as? UFile ?: return emptySet<PreviewElement>()
+    val uFile: UFile = PsiManager.getInstance(project).findFile(vFile)?.toUElement() as? UFile ?: return emptyList<PreviewElement>()
 
     return findPreviewMethods(uFile)
   }
@@ -76,7 +76,7 @@ interface PreviewElementFinder {
    *
    * This method always runs on smart mode.
    */
-  fun findPreviewMethods(uFile: UFile): Set<PreviewElement>
+  fun findPreviewMethods(uFile: UFile): List<PreviewElement>
 
   /**
    * Returns whether the given [PsiElement] belongs to a PreviewElement handled by this [PreviewElementFinder]. Implementations must return
