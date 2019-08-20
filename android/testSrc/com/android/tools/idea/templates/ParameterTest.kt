@@ -163,6 +163,18 @@ class ParameterTest: AndroidTestCase() {
     assertPasses(null, "good_drawable")
   }
 
+  fun testNavigation() {
+    setConstraint(NAVIGATION)
+
+    val violating = listOf("not-xml-or-png.txt", "\u00f8foo", "ACapitalLetter", " midCapitalLetters ", " hyphens -bad", "if ", " void ")
+
+    violating.forEach {
+      assertViolates(null, it)
+    }
+
+    assertPasses(null, "good_navigation")
+  }
+
   fun testUriAuthority() {
     setConstraint(URI_AUTHORITY)
 
