@@ -26,6 +26,9 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
+import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
+import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
@@ -49,7 +52,19 @@ data class PreviewConfiguration(val apiLevel: Int,
     }
   }
 }
-data class PreviewElement(val name: String, val method: String, val textRange: TextRange, val configuration: PreviewConfiguration)
+
+/**
+ * @param displayName display name of this preview element
+ * @param composableMethodFqn Fully Qualified Name of the composable method
+ * @param previewElementDefinitionPsi [SmartPsiElementPointer] to the preview element definition
+ * @param previewBodyPsi [SmartPsiElementPointer] to the preview body. This is the code that will be ran during preview
+ * @param configuration the preview element configuration
+ */
+data class PreviewElement(val displayName: String,
+                          val composableMethodFqn: String,
+                          val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
+                          val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
+                          val configuration: PreviewConfiguration)
 
 interface PreviewElementFinder {
   /**
@@ -94,5 +109,7 @@ internal fun requestBuild(project: Project, module: Module) {
   GradleBuildInvoker.getInstance(project).compileJava(arrayOf(module), TestCompileType.NONE)
 }
 
-fun UMethod?.bodyTextRange(): TextRange =
-  this?.uastBody?.sourcePsi?.textRange ?: TextRange.EMPTY_RANGE
+fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
+  val bodyPsiElement = this?.sourcePsi ?: return null
+  return SmartPointerManager.createPointer(bodyPsiElement)
+}
