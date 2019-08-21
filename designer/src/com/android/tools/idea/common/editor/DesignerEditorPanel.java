@@ -26,9 +26,12 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.util.SyncUtil;
+import com.intellij.ProjectTopics;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -56,7 +59,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
   private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until after a successful project sync";
 
-
   @NotNull private final DesignerEditor myEditor;
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myFile;
@@ -65,6 +67,13 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final WorkBench<DesignSurface> myWorkBench;
   private JBSplitter mySplitter;
   @Nullable private final JPanel myAccessoryPanel;
+  /**
+   * Whether we listened to a gradle sync that happened after model creation. {@link #initNeleModel} calls {@link #initNeleModelWhenSmart}
+   * when a Gradle Sync has happened in the project. In some situations, we want to make sure to listen to the gradle sync that happens only
+   * after this model is created, so we can be sure about the state we're in. For instance, when adding a new module to the project,
+   * {@link AndroidFacet} might still be null in the first call to {@link #initNeleModel}.
+   */
+  private boolean myGradleSyncHappenedAfterModelCreation;
   /**
    * Which {@link ToolWindowDefinition} should be added to {@link #myWorkBench}.
    */
@@ -128,17 +137,11 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       return;
     }
 
-    CompletableFuture.supplyAsync(() -> {
-      XmlFile file = ReadAction.compute(() -> getFile());
-      AndroidFacet facet = AndroidFacet.getInstance(file);
-      assert facet != null;
-      return NlModel.create(myEditor, null, facet, myFile, mySurface.getConfigurationManager(facet), mySurface.getComponentRegistrar());
-    }, AppExecutorUtil.getAppExecutorService())
+    CompletableFuture.supplyAsync(this::createAndInitNeleModel, AppExecutorUtil.getAppExecutorService())
       .whenComplete((model, exception) -> {
-        // We are running on the AppExecutorService so wait for goingToSetModel async operation to complete
-        mySurface.goingToSetModel(model).join();
-
         if (exception == null) {
+          // We are running on the AppExecutorService so wait for goingToSetModel async operation to complete
+          mySurface.goingToSetModel(model).join();
           myWorkBench.setLoadingText("Waiting for build to finish...");
           SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
             if (result.isSuccessful()) {
@@ -151,10 +154,49 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
           });
         }
         else {
-          myWorkBench.loadingStopped("Failed to initialize editor");
+          Throwable cause = exception.getCause();
+          if (cause instanceof WaitingForGradleSyncException) {
+            // Expected exception. Just log the message and listen to the next Gradle sync.
+            Logger.getInstance(DesignerEditorPanel.class).info(cause.getMessage());
+            SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
+            myWorkBench.loadingStopped("Design editor is unavailable until next gradle sync.");
+            return;
+          }
+
+          myWorkBench.loadingStopped("Failed to initialize editor.");
           Logger.getInstance(DesignerEditorPanel.class).warn("Failed to initialize DesignerEditorPanel", exception);
         }
       });
+  }
+
+  @NotNull
+  private NlModel createAndInitNeleModel() {
+    XmlFile file = ReadAction.compute(() -> getFile());
+    AndroidFacet facet = AndroidFacet.getInstance(file);
+    if (facet == null) {
+      if (myGradleSyncHappenedAfterModelCreation) {
+        throw new IllegalStateException("Could not init NlModel. AndroidFacet is unexpectedly null. " +
+                                        "That might happen if the file does not belong to an Android module of the project.");
+      }
+      else {
+        myGradleSyncHappenedAfterModelCreation = true;
+        throw new WaitingForGradleSyncException("Waiting for next gradle sync to set AndroidFacet.");
+      }
+    }
+    NlModel model =
+      NlModel.create(myEditor, null, facet, myFile, mySurface.getConfigurationManager(facet), mySurface.getComponentRegistrar());
+    Module modelModule = AndroidPsiUtils.getModuleSafely(myProject, myFile);
+    // Dispose the surface if we remove the module from the project, and show some text warning the user.
+    myProject.getMessageBus().connect(mySurface).subscribe(ProjectTopics.MODULES, new ModuleListener() {
+      @Override
+      public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
+        if (module.equals(modelModule)) {
+          Disposer.dispose(mySurface);
+          myWorkBench.loadingStopped("This file does not belong to the project.");
+        }
+      }
+    });
+    return model;
   }
 
   @UiThread
@@ -219,5 +261,11 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull
   public WorkBench<DesignSurface> getWorkBench() {
     return myWorkBench;
+  }
+
+  private static class WaitingForGradleSyncException extends RuntimeException {
+    private WaitingForGradleSyncException(@NotNull String message) {
+      super(message);
+    }
   }
 }
