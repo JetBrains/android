@@ -16,7 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture.run.deployment;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.deployment.SelectDeviceAndSnapshotAction;
+import com.android.tools.idea.run.deployment.Key;
+import com.android.tools.idea.run.deployment.SelectDeviceAction;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionItem;
 import java.awt.event.KeyEvent;
@@ -95,16 +96,16 @@ public final class DeviceSelectorFixture {
       JList<ActionItem> target = list.target();
 
       ListModel<ActionItem> model = target.getModel();
-      Object key = device.getSerialNumber();
+      Object key = new Key(device.getSerialNumber());
 
       for (int i = 0, size = model.getSize(); i < size; i++) {
         Object action = model.getElementAt(i).getAction();
 
-        if (!(action instanceof SelectDeviceAndSnapshotAction)) {
+        if (!(action instanceof SelectDeviceAction)) {
           continue;
         }
 
-        if (((SelectDeviceAndSnapshotAction)action).getDevice().getKey().equals(key)) {
+        if (((SelectDeviceAction)action).getDevice().getKey().equals(key)) {
           return i;
         }
       }
