@@ -1026,6 +1026,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The editor has been activated
    */
   public void activate() {
+    if (Disposer.isDisposed(this)) {
+      // Prevent activating a disposed surface.
+      return;
+    }
+
     if (!myIsActive) {
       for (NlModel model : myModelToSceneManagers.keySet()) {
         model.activate(this);
