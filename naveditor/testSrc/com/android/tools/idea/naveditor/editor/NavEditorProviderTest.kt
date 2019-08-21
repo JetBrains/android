@@ -44,19 +44,6 @@ class NavEditorProviderTest : AndroidTestCase() {
     assertFalse(provider.accept(project, file.virtualFile))
   }
 
-  fun testAcceptNavigationFileInAndroidModuleOnly() {
-    val file = myFixture.addFileToProject("res/navigation/my_nav.xml", navigationContent())
-    assertTrue(provider.accept(project, file.virtualFile))
-
-    // Makes the module is not an AndroidModule by removing AndroidFacet from it.
-    val modifiableModel = FacetManager.getInstance(myModule).createModifiableModel()
-    Facets.removeAllFacets(modifiableModel, AndroidFacet.ID)
-    ApplicationManager.getApplication().runWriteAction {
-      modifiableModel.commit()
-    }
-    assertFalse(provider.accept(project, file.virtualFile))
-  }
-
   @Language("XML")
   private fun layoutContent(): String {
     val layout = ComponentDescriptor(SdkConstants.LINEAR_LAYOUT)
