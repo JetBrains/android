@@ -18,14 +18,12 @@ package com.android.tools.idea.databinding
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.databinding.index.BindingXmlData
 import com.android.tools.idea.databinding.index.BindingXmlIndex
-import com.android.tools.idea.res.BindingLayoutData
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
@@ -57,7 +55,7 @@ class BindingLayout(private val facet: AndroidFacet, private val modulePackage: 
    * Otherwise, it is preferable to work with [file] and [data] directly.
    */
   fun toXmlFile(): XmlFile {
-    return PsiManager.getInstance(facet.module.project).findFile(file) as XmlFile
+    return DataBindingUtil.findXmlFile(facet.module.project, file)!!
   }
 
   /**
@@ -137,7 +135,7 @@ class BindingLayout(private val facet: AndroidFacet, private val modulePackage: 
    * The package + name for the binding class generated for this layout.
    *
    * The package for a binding class is usually a subpackage of module's package, but it can be
-   * fully customized based on the value of [BindingLayoutData.customBindingName].
+   * fully customized based on the value of [BindingXmlData.customBindingName].
    *
    * See also: [getImplSuffix], if you want to generate the path to a binding impl class instead.
    */

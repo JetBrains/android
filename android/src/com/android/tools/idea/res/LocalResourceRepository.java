@@ -22,7 +22,6 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -220,16 +219,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
   protected void setModificationCount(long count) {
     myGeneration = count;
-  }
-
-  /**
-   * Returns {@link BindingLayoutData} objects for all layouts with the given name, or an empty
-   * collection if the name isn't found, or if the target layouts should not generate any "Binding"
-   * classes.
-   */
-  @NotNull
-  public Collection<BindingLayoutData> getBindingLayoutData(@NotNull String layoutName) {
-    return ImmutableList.of();
   }
 
   boolean isScanPending(@NotNull PsiFile psiFile) {

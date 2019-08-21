@@ -17,8 +17,7 @@
 package com.android.tools.idea.lang.databinding
 
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.res.BindingLayoutData
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.text.StringUtil
@@ -28,23 +27,21 @@ import org.jetbrains.android.facet.AndroidFacet
 const val JAVA_LANG = "java.lang."
 
 /**
- * Given a [PsiElement], return an associated [BindingLayoutData] for it.
+ * Given a [PsiElement], return an associated entry in the [BindingXmlIndex] for it.
  * This will return null if the IDEA module of the [PsiElement] cannot be found,
  * doesn't have an Android facet attached to it, or databinding is not enabled on it.
  */
-fun getBindingLayoutData(element: PsiElement): BindingLayoutData? {
-  var bindingLayoutData: BindingLayoutData? = null
+fun getBindingIndexEntry(element: PsiElement): BindingXmlIndex.Entry? {
   val module = ModuleUtilCore.findModuleForPsiElement(element)
   if (module != null) {
     val facet = AndroidFacet.getInstance(module)
     if (facet != null && DataBindingUtil.isDataBindingEnabled(facet)) {
-      val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
       val topLevelFile = InjectedLanguageManager.getInstance(module.project).getTopLevelFile(element)
       if (topLevelFile != null) {
         val name = StringUtil.trimExtensions(topLevelFile.name)
-        bindingLayoutData = moduleResources.getBindingLayoutData(name).firstOrNull()
+        return BindingXmlIndex.getEntriesForLayout(module, name).firstOrNull()
       }
     }
   }
-  return bindingLayoutData
+  return null
 }

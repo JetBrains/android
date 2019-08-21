@@ -15,7 +15,21 @@
  */
 package com.android.tools.idea.databinding.index
 
-import com.android.tools.idea.res.BindingLayoutType
+/**
+ * Which sort of binding logic should apply to some target layout XML.
+ *
+ * Note: This enum is serialized and de-serialized. Please only append.
+ */
+enum class BindingLayoutType {
+  /**
+   * The layout XML doesn't contain any data binding information, but view binding option is enabled.
+   */
+  VIEW_BINDING_LAYOUT,
+  /**
+   * The layout XML starts with `<layout>` tag, and possibly contains a `<data>` tag.
+   */
+  DATA_BINDING_LAYOUT
+}
 
 /**
  * Data class for storing information related to <variable> tags.
@@ -80,4 +94,9 @@ data class BindingXmlData(val layoutType: BindingLayoutType,
    * possible.
    */
   fun findVariable(name: String) = variablesMap[name]
+
+  /**
+   * Resolves an import's short name to its fully qualified class name, if found.
+   */
+  fun resolveImport(shortName: String): String? = findImport(shortName)?.type
 }
