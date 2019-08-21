@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.databinding.reference
 
 import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
 import com.android.tools.idea.lang.databinding.model.PsiCallable
@@ -31,8 +32,8 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterL
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
-import com.android.tools.idea.res.BindingLayoutData
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.databinding.findImportTag
+import com.android.tools.idea.databinding.findVariableTag
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -339,14 +340,11 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   }
 
   /**
-   * Returns the parent XML layout info for the target [element], or null if that isn't possible
-   * (e.g. databinding isn't enabled for this module).
+   * Returns the index entry that has information about the target [element]'s parent layout XML
+   * file, or null if that isn't possible (e.g. databinding isn't enabled for this module).
    */
-  private fun getParentLayoutData(module: Module, element: PsiElement): BindingLayoutData? {
-    val facet = AndroidFacet.getInstance(module)?.takeIf { facet -> DataBindingUtil.isDataBindingEnabled(facet) }
-                ?: return null
-    val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
-
+  private fun getBindingIndexEntry(module: Module, element: PsiElement): BindingXmlIndex.Entry? {
+    AndroidFacet.getInstance(module)?.takeIf { facet -> DataBindingUtil.isDataBindingEnabled(facet) } ?: return null
     var topLevelFile = InjectedLanguageManager.getInstance(element.project).getTopLevelFile(element) ?: return null
     if (topLevelFile === DbFileType.INSTANCE) {
       // If this is a DbFileType file, it's probably contained in another (XML) file that's
@@ -355,7 +353,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     }
 
     val fileNameWithoutExtension = topLevelFile.name.substringBefore('.')
-    return moduleResources.getBindingLayoutData(fileNameWithoutExtension).firstOrNull()
+    return BindingXmlIndex.getEntriesForLayout(module, fileNameWithoutExtension).firstOrNull()
   }
 
   /**
@@ -368,17 +366,19 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     // Search the parent layout file, as that will let us check if the current identifier is found
     // somewhere in the <data> section.
     run {
-      val layoutData = getParentLayoutData(module, element) ?: return PsiReference.EMPTY_ARRAY
+      val indexEntry = getBindingIndexEntry(module, element) ?: return PsiReference.EMPTY_ARRAY
+      val bindingData = indexEntry.data
 
       val project = element.project
-      layoutData.findVariable(simpleName)?.let { variable ->
-        DataBindingUtil.findVariableTag(project, layoutData, variable.name)?.let { variableTag ->
-          return arrayOf(XmlVariableReference(element, variableTag, variable, layoutData, module))
+      val xmlFile = DataBindingUtil.findXmlFile(project, indexEntry.file)!!
+      bindingData.findVariable(simpleName)?.let { variable ->
+        xmlFile.findVariableTag(variable.name)?.let { variableTag ->
+          return arrayOf(XmlVariableReference(element, variableTag, variable, bindingData, module))
         }
       }
 
-      layoutData.findImport(simpleName)?.let { import ->
-        DataBindingUtil.findImportTag(project, layoutData, simpleName)?.let { importTag ->
+      bindingData.findImport(simpleName)?.let { import ->
+        xmlFile.findImportTag(simpleName)?.let { importTag ->
           return arrayOf(XmlImportReference(element, importTag, import, module))
         }
       }

@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.android.tools.idea.databinding.BindingLayoutGroup
 import com.android.tools.idea.databinding.BindingLayout
+import com.android.tools.idea.databinding.BindingLayoutGroup
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.findVariableTag
 import com.android.tools.idea.databinding.getViewBindingClassName
+import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingXmlIndex
-import com.android.tools.idea.databinding.index.ViewIdData
 import com.android.tools.idea.databinding.index.VariableData
-import com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT
+import com.android.tools.idea.databinding.index.ViewIdData
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 

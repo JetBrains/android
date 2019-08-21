@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding
 
 import com.android.SdkConstants
-import com.android.tools.idea.res.BindingLayoutData
+import com.android.tools.idea.databinding.index.ImportData
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
@@ -53,7 +53,8 @@ fun XmlFile.findImportTag(shortName: String): XmlTag? {
     val alias = tag.getAttributeValue(SdkConstants.ATTR_ALIAS)
     if (alias == null) {
       val type = tag.getAttributeValue(SdkConstants.ATTR_TYPE) ?: continue
-      if (shortName == BindingLayoutData.Import.getImportedShortName(StringUtil.unescapeXmlEntities(type), null)) {
+      val anImport = ImportData(StringUtil.unescapeXmlEntities(type), null);
+      if (anImport.shortName == shortName) {
         return tag
       }
     }
