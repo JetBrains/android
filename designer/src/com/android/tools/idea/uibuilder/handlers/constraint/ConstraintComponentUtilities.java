@@ -159,8 +159,8 @@ public final class ConstraintComponentUtilities {
     ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
     ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
     ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_START_TO_START_OF, AnchorTarget.Type.LEFT);
-    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_START_TO_END_OF, AnchorTarget.Type.LEFT);
-    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_START_OF, AnchorTarget.Type.RIGHT);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_START_TO_END_OF, AnchorTarget.Type.RIGHT);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_START_OF, AnchorTarget.Type.LEFT);
     ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_END_OF, AnchorTarget.Type.RIGHT);
   }
 
@@ -187,8 +187,8 @@ public final class ConstraintComponentUtilities {
     ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
     ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
     ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_START_TO_START_OF, AnchorTarget.Type.RIGHT);
-    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_START_TO_END_OF, AnchorTarget.Type.RIGHT);
-    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_START_OF, AnchorTarget.Type.LEFT);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_START_TO_END_OF, AnchorTarget.Type.LEFT);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_START_OF, AnchorTarget.Type.RIGHT);
     ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_END_OF, AnchorTarget.Type.LEFT);
   }
 
