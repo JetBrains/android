@@ -160,6 +160,10 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   private void modelChanged() {
+    if (!isShowing()) {
+      return;
+    }
+
     boolean valuesChanged = false;
     // Check for new/modified legends.
     for (Legend legend : myModel.getLegends()) {
