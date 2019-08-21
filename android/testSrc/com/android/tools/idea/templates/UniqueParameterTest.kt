@@ -134,16 +134,6 @@ class UniqueParameterTest : AndroidGradleTestCase() {
     assertPasses("blahblahblah", UNIQUE, null, myMainSourceProvider)
   }
 
-  fun testUniqueNavigation() {
-    myParameter.constraints.add(NAVIGATION)
-
-    assertViolates("nav_graph", UNIQUE, null, myMainSourceProvider)
-
-    assertPasses("nav_graph", UNIQUE, null, myPaidSourceProvider)
-
-    assertPasses("blahblahblah", UNIQUE, null, myMainSourceProvider)
-  }
-
   fun testUniqueModule() {
     myParameter.constraints.add(MODULE)
 
