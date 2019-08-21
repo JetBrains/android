@@ -70,7 +70,7 @@ public class RelativeLayoutTest {
     layout.dragComponentToSurface("Widgets", "ImageView");
 
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myGuiTest.robot());
-    assertThat(dialog.getTitle()).isEqualTo("Resources");
+    assertThat(dialog.getTitle()).isEqualTo("Pick a Resource");
     dialog.expandList("Project (1)").getList("Project (1)").selectItem("ic_launcher");
 
     dialog.clickOK();

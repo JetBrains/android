@@ -273,6 +273,7 @@ class ResourceExplorerViewModelImpl(
       repoManager.getResources(namespace, ResourceType.SAMPLE_DATA) { sampleItem ->
         if (sampleItem is SampleDataResourceItem) {
           when (type) {
+            ResourceType.SAMPLE_DATA -> true
             ResourceType.DRAWABLE -> sampleItem.contentType == SampleDataResourceItem.ContentType.IMAGE
             ResourceType.STRING -> sampleItem.contentType != SampleDataResourceItem.ContentType.IMAGE
             else -> false
