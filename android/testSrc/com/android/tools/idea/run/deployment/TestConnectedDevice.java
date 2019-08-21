@@ -22,21 +22,21 @@ import org.jetbrains.annotations.Nullable;
 
 final class TestConnectedDevice extends ConnectedDevice {
   @Nullable
-  private final String myVirtualDeviceKey;
+  private final Key myVirtualDeviceKey;
 
   @Nullable
   private final String myPhysicalDeviceName;
 
   static final class Builder extends ConnectedDevice.Builder {
     @Nullable
-    private String myVirtualDeviceKey;
+    private Key myVirtualDeviceKey;
 
     @Nullable
     private String myPhysicalDeviceName;
 
     @NotNull
     @Override
-    Builder setKey(@NotNull String key) {
+    Builder setKey(@NotNull Key key) {
       myKey = key;
       return this;
     }
@@ -49,7 +49,7 @@ final class TestConnectedDevice extends ConnectedDevice {
     }
 
     @NotNull
-    Builder setVirtualDeviceKey(@NotNull @SuppressWarnings("SameParameterValue") String virtualDeviceKey) {
+    Builder setVirtualDeviceKey(@NotNull @SuppressWarnings("SameParameterValue") Key virtualDeviceKey) {
       myVirtualDeviceKey = virtualDeviceKey;
       return this;
     }
@@ -76,7 +76,7 @@ final class TestConnectedDevice extends ConnectedDevice {
 
   @Nullable
   @Override
-  String getVirtualDeviceKey() {
+  Key getVirtualDeviceKey() {
     return myVirtualDeviceKey;
   }
 
