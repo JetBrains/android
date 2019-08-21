@@ -79,10 +79,8 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
                   "CommandId INTEGER NOT NULL", // Optional filter, not required for data.
                   "Timestamp INTEGER NOT NULL", // Optional filter, required for all data.
                   "Data BLOB");
-      createTable(  "BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Data BLOB");
-      createUniqueIndex("UnifiedEventsTable", "StreamId", "ProcessId", "GroupId", "Kind", "Timestamp");
-      createIndex("UnifiedEventsTable", 1, "StreamId", "Kind", "Timestamp");
-      createIndex("UnifiedEventsTable", 2, "StreamId", "Kind", "CommandId", "Timestamp");
+      createTable("BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Data BLOB");
+      createUniqueIndex("UnifiedEventsTable", "Kind", "StreamId", "ProcessId", "GroupId", "Timestamp");
       createUniqueIndex("BytesTable", "StreamId", "Id");
     }
     catch (SQLException ex) {
