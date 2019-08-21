@@ -15,10 +15,13 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.res.AndroidRClassBase
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
 import com.intellij.psi.PsiReferenceExpression
+import com.intellij.psi.impl.compiled.ClsFieldImpl
 import com.intellij.psi.xml.XmlFile
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
@@ -74,11 +77,21 @@ class AndroidResourceReferenceInCodeUsageTypeProvider : UsageTypeProvider {
     if (element !is PsiReferenceExpression && element !is KtSimpleNameExpression) {
       return null
     }
-    val androidLightField =
-      element.references.asSequence().map { it.resolve() as? AndroidLightField }.firstOrNull() ?: return null
-    return when (androidLightField.containingClass.containingClass) {
-      is ManifestClass -> PERMISSION_REFERENCE_IN_CODE
-      is AndroidRClassBase -> RESOURCE_REFERENCE_IN_CODE
+    return when (val field = element.references.asSequence().mapNotNull { it.resolve() as? PsiField }.firstOrNull()) {
+      is AndroidLightField -> {
+        when (field.containingClass.containingClass) {
+          is ManifestClass -> PERMISSION_REFERENCE_IN_CODE
+          is AndroidRClassBase -> RESOURCE_REFERENCE_IN_CODE
+          else -> null
+        }
+      }
+      is ClsFieldImpl -> {
+        when (field.containingClass?.containingClass?.qualifiedName) {
+          SdkConstants.CLASS_MANIFEST -> PERMISSION_REFERENCE_IN_CODE
+          SdkConstants.CLASS_R -> RESOURCE_REFERENCE_IN_CODE
+          else -> null
+        }
+      }
       else -> null
     }
   }
