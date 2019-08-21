@@ -121,8 +121,6 @@ class Parameter(
     LAYOUT,
     /** The associated value should represent a valid drawable resource name. */
     DRAWABLE,
-    /** The associated value should represent a valid navigation resource name. */
-    NAVIGATION,
     /** The associated value should represent a valid values file name. */
     VALUES,
     /** The associated value should represent a valid id resource name. */
@@ -138,7 +136,6 @@ class Parameter(
       DRAWABLE -> ResourceFolderType.DRAWABLE
       STRING, VALUES -> ResourceFolderType.VALUES
       LAYOUT -> ResourceFolderType.LAYOUT
-      NAVIGATION -> ResourceFolderType.NAVIGATION
       else -> throw IllegalArgumentException("There is not matching ResourceFolderType for $this constraint")
     }
   }
@@ -184,7 +181,7 @@ class Parameter(
     Constraint.PACKAGE -> name!! + " is not set to a valid package name"
     Constraint.MODULE -> name!! + " is not set to a valid module name"
     Constraint.ID -> name!! + " is not set to a valid id."
-    Constraint.DRAWABLE, Constraint.STRING, Constraint.LAYOUT, Constraint.NAVIGATION -> {
+    Constraint.DRAWABLE, Constraint.STRING, Constraint.LAYOUT -> {
       val rft = c.toResourceFolderType()
       val resourceNameError = IdeResourceNameValidator.forFilename(rft).getErrorText(value)
       if (resourceNameError == null) {
@@ -230,7 +227,7 @@ class Parameter(
       Constraint.URI_AUTHORITY -> !value.matches("$URI_AUTHORITY_REGEX(;$URI_AUTHORITY_REGEX)*".toRegex())
       Constraint.ACTIVITY, Constraint.CLASS, Constraint.PACKAGE -> !isValidFullyQualifiedJavaIdentifier(fqName)
       Constraint.APP_PACKAGE -> AndroidUtils.validateAndroidPackageName(value) != null
-      Constraint.DRAWABLE, Constraint.STRING, Constraint.LAYOUT, Constraint.VALUES, Constraint.NAVIGATION -> {
+      Constraint.DRAWABLE, Constraint.STRING, Constraint.LAYOUT, Constraint.VALUES -> {
         val rft = c.toResourceFolderType()
         IdeResourceNameValidator.forFilename(rft).getErrorText(value) != null
       }
@@ -261,12 +258,6 @@ class Parameter(
             existsResourceFile(provider, module, ResourceFolderType.DRAWABLE, ResourceType.DRAWABLE, value)
           else
             existsResourceFile(module, ResourceType.DRAWABLE, value)
-        }
-        Constraint.NAVIGATION -> {
-          if (provider != null)
-            existsResourceFile(provider, module, ResourceFolderType.NAVIGATION, ResourceType.NAVIGATION, value)
-          else
-            existsResourceFile(module, ResourceType.NAVIGATION, value)
         }
         Constraint.VALUES -> provider?.resDirectories?.any { existsResourceFile(it, ResourceFolderType.VALUES, value) } ?: false
         Constraint.SOURCE_SET_FOLDER -> {
@@ -311,8 +302,7 @@ class Parameter(
 
     val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet
       .of(Constraint.ACTIVITY, Constraint.API_LEVEL, Constraint.CLASS, Constraint.PACKAGE, Constraint.APP_PACKAGE, Constraint.MODULE,
-          Constraint.LAYOUT, Constraint.DRAWABLE, Constraint.NAVIGATION, Constraint.ID, Constraint.SOURCE_SET_FOLDER, Constraint.STRING,
-          Constraint.URI_AUTHORITY)
+          Constraint.LAYOUT, Constraint.DRAWABLE, Constraint.ID, Constraint.SOURCE_SET_FOLDER, Constraint.STRING, Constraint.URI_AUTHORITY)
 
     private fun isValidFullyQualifiedJavaIdentifier(value: String) = AndroidUtils.isValidJavaPackageName(value) && value.contains('.')
 
