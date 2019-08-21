@@ -109,6 +109,28 @@ class CpuCaptureStageTest {
   }
 
   @Test
+  fun trackGroupModelsAreSetForAtrace() {
+    services.enableAtrace(true)
+    val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"))
+    profilers.stage = stage
+
+    assertThat(stage.trackGroupListModel.size).isEqualTo(2)
+
+    val interactionTrackGroup = stage.trackGroupListModel[0]
+    assertThat(interactionTrackGroup.title).isEqualTo("Interaction")
+    assertThat(interactionTrackGroup.size).isEqualTo(2)
+    assertThat(interactionTrackGroup[0].title).isEqualTo("User")
+    assertThat(interactionTrackGroup[1].title).isEqualTo("Lifecycle")
+
+    val displayTrackGroup = stage.trackGroupListModel[1]
+    assertThat(displayTrackGroup.title).isEqualTo("Display")
+    assertThat(displayTrackGroup.size).isEqualTo(3)
+    assertThat(displayTrackGroup[0].title).isEqualTo("Frames")
+    assertThat(displayTrackGroup[1].title).isEqualTo("Surfaceflinger")
+    assertThat(displayTrackGroup[2].title).isEqualTo("Vsync")
+  }
+
+  @Test
   fun minimapSetsCaptureRange() {
     val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("basic.trace"))
     profilers.stage = stage
