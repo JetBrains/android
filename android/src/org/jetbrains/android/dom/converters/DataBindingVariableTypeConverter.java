@@ -17,7 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.DataBindingUtil.ClassReferenceVisitor;
-import com.android.tools.idea.res.BindingLayoutData;
+import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.utils.OffsetTrackingDecodedXmlValue;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
@@ -80,13 +80,13 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
       return null;
     }
 
-    BindingLayoutData bindingData = getDataBindingData(context);
-    if (bindingData == null) {
+    BindingXmlIndex.Entry indexEntry = getBindingIndexEntry(context);
+    if (indexEntry == null) {
       return null;
     }
 
     Project project = context.getProject();
-    type = DataBindingUtil.getQualifiedType(project, type, bindingData, false);
+    type = DataBindingUtil.getQualifiedType(project, type, indexEntry.getData(), false);
     if (type == null) {
       return null;
     }

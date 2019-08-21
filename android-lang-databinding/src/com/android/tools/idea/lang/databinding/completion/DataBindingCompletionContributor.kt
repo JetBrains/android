@@ -18,10 +18,12 @@ package com.android.tools.idea.lang.databinding.completion
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.lang.databinding.config.DbFile
-import com.android.tools.idea.lang.databinding.getBindingLayoutData
+import com.android.tools.idea.lang.databinding.getBindingIndexEntry
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
+import com.android.tools.idea.databinding.findImportTag
+import com.android.tools.idea.databinding.findVariableTag
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_LAMBDA
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_METHOD_REFERENCE
@@ -150,14 +152,15 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   private fun autoCompleteVariablesAndUnqualifiedFunctions(file: DbFile, result: CompletionResultSet) {
     autoCompleteUnqualifiedFunctions(result)
 
-    val bindingData = getBindingLayoutData(file) ?: return
+    val indexEntry = getBindingIndexEntry(file) ?: return
 
     val project = file.project
-    val variableTagNamePairs = bindingData.variables.map { variable ->
-      variable.name to DataBindingUtil.findVariableTag(project, bindingData, variable.name)
+    val xmlFile = DataBindingUtil.findXmlFile(project, indexEntry.file)!!
+    val variableTagNamePairs = indexEntry.data.variables.map { variable ->
+      variable.name to xmlFile.findVariableTag(variable.name)
     }
-    val importTagTypePairs = bindingData.imports.map { import ->
-      import.importedShortName to DataBindingUtil.findImportTag(project, bindingData, import.importedShortName)
+    val importTagTypePairs = indexEntry.data.imports.map { import ->
+      import.shortName to xmlFile.findImportTag(import.shortName)
     }
 
     result.addAllElements((variableTagNamePairs + importTagTypePairs).mapNotNull { nameToTag ->

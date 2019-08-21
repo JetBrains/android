@@ -48,7 +48,6 @@ import com.android.resources.ResourceType;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Collections2;
@@ -87,11 +86,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -209,19 +206,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       ResourceValue actualValue = actualItem.getResourceValue();
       assertThat(actualValue).isEquivalentTo(expectedValue);
     }
-
-    // Verify that we generated expected data binding resources by comparing the path to all
-    // XML files we plan to generate layout bindings for.
-    Set<String> actualNames = actual.getResources(RES_AUTO, ResourceType.LAYOUT).values().stream()
-      .flatMap(resource -> actual.getBindingLayoutData(resource.getName()).stream())
-      .map(data -> DataBindingUtil.getQualifiedBindingName(facet, data))
-      .collect(Collectors.toSet());
-    Set<String> expectedNames = expected.getResources(RES_AUTO, ResourceType.LAYOUT).values().stream()
-      .flatMap(resource -> actual.getBindingLayoutData(resource.getName()).stream())
-      .map(data -> DataBindingUtil.getQualifiedBindingName(facet, data))
-      .collect(Collectors.toSet());
-
-    assertThat(actualNames).isEqualTo(expectedNames);
   }
 
   public void testComputeResourceStrings() {
@@ -3795,15 +3779,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository(true);
     assertNotNull(resources);
     assertFalse(resources.hasFreshFileCache());
-    // We count only XML files. The layout_with_data_binding.xml is parsed as PSI due to presense of data binding information.
-    assertEquals(6, resources.getNumXmlFilesLoadedInitially());
+    assertEquals(7, resources.getNumXmlFilesLoadedInitially());
     assertEquals(resources.getNumXmlFilesLoadedInitially(), resources.getNumXmlFilesLoadedInitiallyFromSources());
 
     ResourceFolderRepository fromCacheFile = createRepository(true);
     assertNotNull(fromCacheFile);
     // Check that fromCacheFile really avoided reparsing some XML files, before checking equivalence of items.
     assertTrue(fromCacheFile.hasFreshFileCache());
-    assertEquals(6, fromCacheFile.getNumXmlFilesLoadedInitially());
+    assertEquals(7, fromCacheFile.getNumXmlFilesLoadedInitially());
     assertEquals(0, fromCacheFile.getNumXmlFilesLoadedInitiallyFromSources());
 
     assertNotSame(resources, fromCacheFile);

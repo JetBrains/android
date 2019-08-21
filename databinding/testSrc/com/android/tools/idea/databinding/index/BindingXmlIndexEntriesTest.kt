@@ -13,37 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res
+package com.android.tools.idea.databinding.index
 
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.TestDataPaths
+import com.android.tools.idea.databinding.findVariableTag
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.TextRange
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.UsefulTestCase.assertSize
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.facet.ResourceFolderManager
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.picocontainer.MutablePicoContainer
-import java.nio.file.Paths
 
+private const val LAYOUT_WITH_DATA_BINDING = "res/layout_with_data_binding.xml"
+
+/**
+ * Tests that verify that the entry contents of a binding index are kept up-to-date as their
+ * associated layout files are added, updated, and deleted.
+ */
 @RunsInEdt
-class ResourceFolderDataBindingTest {
+class BindingXmlIndexEntriesTest {
   private var projectRule = AndroidProjectRule.withSdk().initAndroid(true)
 
   // ProjectRule initialization must not happen on the EDT thread
@@ -54,38 +53,20 @@ class ResourceFolderDataBindingTest {
     get() = projectRule.project
   private val fixture
     get() = projectRule.fixture
-  private val facet
-    get() = projectRule.module.androidFacet!!
 
-  private lateinit var oldFileCacheService: ResourceFolderRepositoryFileCache
-  private lateinit var registry: ResourceFolderRegistry
   private lateinit var psiFile: PsiFile
-  private lateinit var resources: ResourceFolderRepository
 
   @Before
   fun setUp() {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
 
-    // Use a file cache that has per-test root directories instead of sharing the system directory.
-    val cache = ResourceFolderRepositoryFileCacheImpl(Paths.get(fixture.tempDirPath))
-    oldFileCacheService = overrideCacheService(cache)
-  }
-
-  @After
-  fun tearDown() {
-    overrideCacheService(oldFileCacheService)
-  }
-
-  private fun setupTestWithDataBinding() {
-    registry = ResourceFolderRegistry.getInstance(project)
-    val file = fixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
+    val file = fixture.copyFileToProject(
+      LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
     psiFile = PsiManager.getInstance(project).findFile(file)!!
-    resources = createRepository()
   }
 
   @Test
   fun testAddVariable() {
-    setupTestWithDataBinding()
     insertXml(
       offset = getVariableTag("variable1").textOffset,
       xml = """
@@ -102,7 +83,6 @@ class ResourceFolderDataBindingTest {
 
   @Test
   fun testRenameVariable() {
-    setupTestWithDataBinding()
     updateXml(
       range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange,
       xml = "newName")
@@ -113,7 +93,6 @@ class ResourceFolderDataBindingTest {
 
   @Test
   fun testRenameVariable_prefix() {
-    setupTestWithDataBinding()
     insertXml(
       offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.textOffset,
       xml = "prefix_")
@@ -124,7 +103,6 @@ class ResourceFolderDataBindingTest {
 
   @Test
   fun testRenameVariable_suffix() {
-    setupTestWithDataBinding()
     insertXml(
       offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange.endOffset,
       xml = "_suffix")
@@ -135,7 +113,6 @@ class ResourceFolderDataBindingTest {
 
   @Test
   fun testRemoveVariable() {
-    setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
     deleteXml(variableTag.textRange)
     assertVariables()
@@ -143,7 +120,6 @@ class ResourceFolderDataBindingTest {
 
   @Test
   fun testRemoveVariable_afterAddingAnother() {
-    setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
     insertXml(
       offset = variableTag.textRange.endOffset,
@@ -162,7 +138,6 @@ class ResourceFolderDataBindingTest {
 
   @Test
   fun testRemoveVariable_afterAddingIt() {
-    setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
     insertXml(
       offset = variableTag.textRange.endOffset,
@@ -181,7 +156,6 @@ class ResourceFolderDataBindingTest {
 
   @Test
   fun testUpdateType() {
-    setupTestWithDataBinding()
     updateXml(
       range = getVariableTag("variable1").getAttribute("type")!!.valueElement!!.valueTextRange,
       xml = "Float"
@@ -223,7 +197,6 @@ class ResourceFolderDataBindingTest {
 
   @Test
   fun testInitialParsing() {
-    setupTestWithDataBinding()
     assertVariables(
       "variable1" to "String"
     )
@@ -233,26 +206,14 @@ class ResourceFolderDataBindingTest {
     )
   }
 
-  private fun createRepository(): ResourceFolderRepository {
-    val dir = getResourceDirectory()
-    return registry.get(facet, dir)
-  }
-
-  private fun getResourceDirectory(): VirtualFile {
-    val resourceDirectories = ResourceFolderManager.getInstance(facet).folders
-    assertNotNull(resourceDirectories)
-    assertSize(1, resourceDirectories)
-    return resourceDirectories[0]
-  }
-
   /**
-   * Asserts all variables declared in the xml are found up-to-date in the current [BindingLayoutData].
-   * See also: [getLayoutData]
+   * Asserts all variables declared in the xml are found up-to-date in the [BindingXmlIndex].
+   * See also: [getIndexEntry]
    *
    * Note: Pairs are name to type.
    */
   private fun assertVariables(vararg expected: Pair<String, String>) {
-    val variables = getLayoutData()
+    val variables = getIndexEntry().data
       .variables
       .map { variable -> variable.name to variable.type }
       .toSet()
@@ -260,46 +221,33 @@ class ResourceFolderDataBindingTest {
   }
 
   /**
-   * Asserts all imports declared in the xml are found up-to-date in the current [BindingLayoutData]
-   * See also: [getLayoutData]
+   * Asserts all imports declared in the xml are found up-to-date in the current [BindingXmlIndex.Entry]
+   * See also: [getIndexEntry]
    *
    * Note: Pairs are type to alias.
    */
   private fun assertImports(vararg expected: Pair<String, String?>) {
-    val imports = getLayoutData()
+    val imports = getIndexEntry().data
         .imports
-        .map { import -> import.qualifiedName to
-               if (import.isShortNameDerivedFromQualifiedName()) { null } else { import.importedShortName } }
+        .map { import -> import.type to import.alias }
         .toSet()
     assertEquals(expected.toSet(), imports)
   }
 
-  private fun getLayoutData(): BindingLayoutData {
-    return resources.getBindingLayoutData("layout_with_data_binding").first()
+  /**
+   * Returns the index entry that corresponds to the single layout declared for this test.
+   */
+  private fun getIndexEntry(): BindingXmlIndex.Entry {
+    return BindingXmlIndex.getEntriesForLayout(project, "layout_with_data_binding").first()
   }
 
   private fun getVariableTag(name: String): XmlTag {
-    val layoutData = getLayoutData()
-    val variable = layoutData.findVariable(name)
+    val indexEntry = getIndexEntry()
+    val xmlFile = DataBindingUtil.findXmlFile(project, indexEntry.file)!!
+    val variable = indexEntry.data.findVariable(name)
     assertNotNull("cannot find variable with name $name", variable)
-    val variableTag = DataBindingUtil.findVariableTag(project, layoutData, variable!!.name)
+    val variableTag = xmlFile.findVariableTag(variable!!.name)
     assertNotNull("Cannot find XML tag for variable with name $name", variableTag)
     return variableTag!!
-  }
-
-  companion object {
-    private const val LAYOUT_WITH_DATA_BINDING = "res/layout_with_data_binding.xml"
-
-    private fun overrideCacheService(newCache: ResourceFolderRepositoryFileCache): ResourceFolderRepositoryFileCache {
-      val applicationContainer = ApplicationManager.getApplication().picoContainer as MutablePicoContainer
-
-      // Use a file cache that has per-test root directories instead of sharing the system directory.
-      // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
-      val oldCache = applicationContainer.getComponentInstance(
-          ResourceFolderRepositoryFileCache::class.java.name) as ResourceFolderRepositoryFileCache
-      applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache::class.java.name)
-      applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache::class.java.name, newCache)
-      return oldCache
-    }
   }
 }
