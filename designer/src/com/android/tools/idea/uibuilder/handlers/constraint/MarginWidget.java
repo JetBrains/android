@@ -18,7 +18,8 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
+import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.CollectionComboBoxModel;
@@ -26,10 +27,10 @@ import com.intellij.util.ui.JBUI;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.EnumSet;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,18 +137,21 @@ public class MarginWidget extends JComboBox<String> {
       return DEFAULT;
     }
 
-    Set<ResourceType> types = new HashSet<>();
-    types.add(ResourceType.DIMEN);
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
 
-    ChooseResourceDialog dialog = ChooseResourceDialog.builder()
-      .setModule(module)
-      .setTypes(types)
-      .setCurrentValue(DEFAULT)
-      .setTag(tag)
-      .setDefaultType(ResourceType.DIMEN)
-      .build();
+    ResourcePickerDialog dialog = ResourceChooserHelperKt.createResourcePickerDialog(
+      PICK_A_DIMENSION,
+      null,
+      facet,
+      EnumSet.of(ResourceType.DIMEN),
+      null,
+      true,
+      false,
+      tag.getContainingFile().getVirtualFile(),
+      null,
+      tag);
 
-    dialog.setTitle(PICK_A_DIMENSION);
     if (dialog.showAndGet()) {
       return dialog.getResourceName();
     }

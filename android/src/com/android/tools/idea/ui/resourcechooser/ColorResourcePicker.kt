@@ -161,6 +161,7 @@ class ColorResourcePicker(configuration: Configuration, initialResourceReference
                                                     showColorStateLists = false,
                                                     showSampleData = false,
                                                     file = configuration.file,
+                                                    xmlFile = null,
                                                     tag = null)
             // TODO: Use resource reference instead of resource string when using resource management to pickup resource.
             if (dialog.showAndGet()) dialog.resourceName?.let { pickedResourceName ->
