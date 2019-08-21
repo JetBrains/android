@@ -17,31 +17,19 @@ package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTRS_DATA_BINDING;
-import static com.android.SdkConstants.ATTR_ALIAS;
-import static com.android.SdkConstants.ATTR_CLASS;
 import static com.android.SdkConstants.ATTR_FORMAT;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_NAME;
-import static com.android.SdkConstants.ATTR_TYPE;
 import static com.android.SdkConstants.EXT_PNG;
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
-import static com.android.SdkConstants.TAGS_DATA_BINDING;
-import static com.android.SdkConstants.TAG_DATA;
-import static com.android.SdkConstants.TAG_IMPORT;
 import static com.android.SdkConstants.TAG_ITEM;
-import static com.android.SdkConstants.TAG_LAYOUT;
 import static com.android.SdkConstants.TAG_RESOURCES;
-import static com.android.SdkConstants.TAG_VARIABLE;
 import static com.android.resources.ResourceFolderType.COLOR;
 import static com.android.resources.ResourceFolderType.DRAWABLE;
 import static com.android.resources.ResourceFolderType.FONT;
 import static com.android.resources.ResourceFolderType.LAYOUT;
 import static com.android.resources.ResourceFolderType.VALUES;
-import static com.android.tools.idea.databinding.ViewBindingUtil.isViewBindingEnabled;
-import static com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT;
-import static com.android.tools.idea.res.BindingLayoutType.VIEW_BINDING_LAYOUT;
 import static com.android.tools.idea.res.PsiProjectListener.isRelevantFile;
 import static com.android.tools.idea.resources.base.RepositoryLoader.portableFileName;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.createPersistentCache;
@@ -70,8 +58,6 @@ import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.res.BindingLayoutData.Import;
-import com.android.tools.idea.res.BindingLayoutData.Variable;
 import com.android.tools.idea.resources.base.Base128InputStream;
 import com.android.tools.idea.resources.base.BasicDensityBasedFileResourceItem;
 import com.android.tools.idea.resources.base.BasicFileResourceItem;
@@ -84,12 +70,9 @@ import com.android.tools.idea.resources.base.ResourceSerializationUtil;
 import com.android.tools.idea.resources.base.ResourceSourceFile;
 import com.android.tools.idea.util.FileExtensions;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
@@ -126,7 +109,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlProcessingInstruction;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.File;
 import java.io.IOException;
@@ -234,11 +216,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @VisibleForTesting
   static int ourFullRescans;
 
-  // Data / View binding support.
-  /* {@link BindingLayoutData} objects keyed by layout names. */
-  @NotNull private Multimap<String, BindingLayoutData> myBindingData = ArrayListMultimap.create();
-  private final boolean myViewBindingEnabled;
-
   /**
    * Creates a ResourceFolderRepository and loads its contents.
    * <p>
@@ -276,7 +253,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     myNamespace = namespace;
     myResourcePathPrefix = portableFileName(myResourceDir.getPath()) + '/';
     myResourcePathBase = new PathString(myResourcePathPrefix);
-    myViewBindingEnabled = isViewBindingEnabled(facet);
     myPsiManager = PsiManager.getInstance(getProject());
     myPsiDocumentManager = PsiDocumentManager.getInstance(getProject());
 
@@ -413,104 +389,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       addIds(result, items, file);
 
       PsiResourceFile resourceFile = new PsiResourceFile(file, items, folderType, configuration);
-      scanBindingLayout(resourceFile);
       mySources.put(file.getVirtualFile(), resourceFile);
     } else {
       PsiResourceFile resourceFile = new PsiResourceFile(file, Collections.singletonList(item), folderType, configuration);
       mySources.put(file.getVirtualFile(), resourceFile);
       addToResult(result, item);
     }
-  }
-
-  @Override
-  @NotNull
-  public Collection<BindingLayoutData> getBindingLayoutData(@NotNull String layoutName) {
-    return myBindingData.get(layoutName);
-  }
-
-  private void scanBindingLayout(@NotNull PsiResourceFile resourceFile) {
-    if (resourceFile.getFolderType() != LAYOUT ||
-        !(resourceFile.getPsiFile() instanceof XmlFile) ||
-        resourceFile.getVirtualFile() == null) {
-      return;
-    }
-
-    XmlFile layoutFile = (XmlFile)resourceFile.getPsiFile();
-    XmlTag rootTag = layoutFile.getRootTag();
-    if (rootTag == null) {
-      return;
-    }
-
-    BindingLayoutType layoutType = TAG_LAYOUT.equals(rootTag.getName()) ? DATA_BINDING_LAYOUT : VIEW_BINDING_LAYOUT;
-    if (layoutType == VIEW_BINDING_LAYOUT && !isViewBindingEnabled(myFacet)) {
-      return;
-    }
-
-    String customBindingName = null;
-    ImmutableMap<String, Variable> variables = ImmutableMap.of();
-    ImmutableMap<String, Import> imports = ImmutableMap.of();
-
-    XmlTag dataTag = rootTag.findFirstSubTag(TAG_DATA);
-    if (dataTag != null) {
-      ImmutableMap.Builder<String, Variable> variablesBuilder = ImmutableMap.builder();
-      ImmutableMap.Builder<String, Import> importsBuilder = ImmutableMap.builder();
-
-      customBindingName = dataTag.getAttributeValue(ATTR_CLASS);
-      if (customBindingName != null) {
-        customBindingName = StringUtil.unescapeXmlEntities(customBindingName);
-      }
-
-      Set<String> variableNames = new HashSet<>();
-      Set<String> importedSimpleNames = new HashSet<>();
-
-      for (XmlTag tag : dataTag.getSubTags()) {
-        if (tag.getName().equals(TAG_VARIABLE)) {
-          String name = tag.getAttributeValue(ATTR_NAME);
-          if (name == null) {
-            continue;
-          }
-          name = StringUtil.unescapeXmlEntities(name);
-
-          String type = tag.getAttributeValue(ATTR_TYPE);
-          if (type != null) {
-            type = StringUtil.unescapeXmlEntities(type).replace('$', '.');
-          }
-          // In case of repeated variable names, the first occurrence wins.
-          if (StringUtil.isNotEmpty(name) && variableNames.add(name)) {
-            variablesBuilder.put(name, new Variable(name, type));
-          }
-        }
-        else if (tag.getName().equals(TAG_IMPORT)) {
-          String qualifiedName = tag.getAttributeValue(ATTR_TYPE);
-          if (qualifiedName == null) {
-            continue;
-          }
-          qualifiedName = StringUtil.unescapeXmlEntities(qualifiedName);
-
-          String alias = tag.getAttributeValue(ATTR_ALIAS);
-          String importedShortName =
-              Import.getImportedShortName(qualifiedName, alias == null ? null : StringUtil.unescapeXmlEntities(alias));
-
-          // In case of repeated imported names, the first occurrence wins.
-          if (StringUtil.isNotEmpty(importedShortName) && importedSimpleNames.add(importedShortName)) {
-            importsBuilder.put(importedShortName, new Import(qualifiedName, importedShortName));
-          }
-        }
-      }
-      variables = variablesBuilder.build();
-      imports = importsBuilder.build();
-    }
-
-    RepositoryConfiguration configuration = resourceFile.getConfiguration();
-    String layoutName = StringUtil.trimExtensions(resourceFile.getName());
-    Collection<BindingLayoutData> existingData = myBindingData.get(layoutName);
-    if (existingData != null) {
-      existingData.removeIf(data -> data.getFolderConfiguration() == configuration.getFolderConfiguration());
-    }
-
-    myBindingData.put(
-      layoutName,
-      new BindingLayoutData(configuration, resourceFile.getVirtualFile(), layoutType, customBindingName, variables, imports));
   }
 
   @Override
@@ -903,8 +787,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             }
           }
 
-          rescanJustDataBinding(psiFile);
-          // Identities may have changed even if the ids are the same, so update maps
+          // Identities may have changed even if the ids are the same, so update maps.
+          setModificationCount(ourModificationCounter.incrementAndGet());
           invalidateParentCaches(myNamespace, ResourceType.ID);
         }
       } else {
@@ -1190,9 +1074,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 if (convertToPsiIfNeeded(psiFile, folderType)) {
                   return;
                 }
-                if (affectsDataBinding((XmlTag)child)) {
-                  rescanJustDataBinding(psiFile);
-                }
                 List<PsiResourceItem> ids = new ArrayList<>();
                 Map<ResourceType, ListMultimap<String, ResourceItem>> result = new HashMap<>();
                 addIds(result, ids, child, true);
@@ -1217,8 +1098,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
                   // TODO: Update it incrementally.
                   scheduleScan(psiFile, folderType);
-                } else if (affectsDataBinding(attribute)){
-                  rescanJustDataBinding(psiFile);
                 }
               }
             }
@@ -1435,8 +1314,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   }
 
                   scheduleScan(psiFile, folderType);
-                } else if (affectsDataBinding(attribute)) {
-                  rescanJustDataBinding(psiFile);
                 } else if (folderType != VALUES) {
                   // This is an XML change within an ID generating folder to something that it's not an ID. While we do not need
                   // to generate the ID, we need to notify that something relevant has changed.
@@ -1785,27 +1662,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         LOG.debug("Received unexpected childrenChanged event for inter-file operations", throwable);
       }
     }
-
-    /**
-     * Checks if changes in the given attribute affects data binding.
-     *
-     * @param attribute The XML attribute
-     * @return true if changes in this element would affect data binding
-     */
-    private boolean affectsDataBinding(@NotNull XmlAttribute attribute) {
-      return ArrayUtil.contains(attribute.getLocalName(), ATTRS_DATA_BINDING)
-             && ArrayUtil.contains(attribute.getParent().getLocalName(), TAGS_DATA_BINDING);
-    }
-
-    /**
-     * Checks if changes in the given XmlTag affects data binding.
-     *
-     * @param xmlTag the tag to check
-     * @return true if changes in the xml tag would affect data binding info, false otherwise
-     */
-    private boolean affectsDataBinding(@NotNull XmlTag xmlTag) {
-      return ArrayUtil.contains(xmlTag.getLocalName(), TAGS_DATA_BINDING);
-    }
   }
 
   void onBitmapFileUpdated(@NotNull VirtualFile file) {
@@ -1862,24 +1718,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
     else if (folderType == FONT) {
       clearFontCache(file);
-    }
-  }
-
-  private void rescanJustDataBinding(@NotNull PsiFile psiFile) {
-    ResourceItemSource<? extends ResourceItem> resFile = mySources.get(psiFile.getVirtualFile());
-    if (resFile != null) {
-      // Data-binding files are always scanned as PsiResourceFiles.
-      PsiResourceFile resourceFile = (PsiResourceFile)resFile;
-
-      // TODO: this is a targeted workaround for b/77658263, but we need to fix the invalid PSI eventually.
-      // At this point, it's possible resFile._psiFile is invalid and has a different FileViewProvider than psiFile, even though in theory
-      // they should be identical.
-      if (!resourceFile.getPsiFile().isValid()) {
-        resourceFile.setPsiFile(psiFile, resFile.getConfiguration());
-      }
-
-      setModificationCount(ourModificationCounter.incrementAndGet());
-      scanBindingLayout(resourceFile);
     }
   }
 
@@ -2195,12 +2033,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   continue;
                 }
 
-                if (myRepository.myViewBindingEnabled && folderInfo.resourceType == ResourceType.LAYOUT) {
-                  // Layout XML files are queued to be scanned separately in scanQueuedPsiResources.
-                  myFilesToReparseAsPsi.add(file);
-                  continue;
-                }
-
                 PathString pathString = FileExtensions.toPathString(file);
                 myLastVirtualFile = file;
                 myLastPathString = pathString;
@@ -2279,11 +2111,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         do {
           event = parser.nextToken();
           if (event == XmlPullParser.START_TAG) {
-            if (parser.getDepth() == 1 && parser.getPrefix() == null && parser.getName().equals(TAG_LAYOUT)) {
-              // TODO(b/136500593): Handle databinding information without resorting to PSI parsing.
-              throw new DataBindingInfoEncounteredException();
-            }
-
             int numAttributes = parser.getAttributeCount();
             for (int i = 0; i < numAttributes; i++) {
               String idValue = parser.getAttributeValue(i);
@@ -2443,11 +2270,5 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     ParsingException(Throwable cause) {
       super(cause);
     }
-
-    protected ParsingException() {
-    }
-  }
-
-  private static class DataBindingInfoEncounteredException extends ParsingException {
   }
 }

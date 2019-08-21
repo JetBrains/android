@@ -18,8 +18,10 @@ package org.jetbrains.android.dom.converters;
 import static com.android.tools.idea.lang.databinding.DataBindingLangUtil.JAVA_LANG;
 
 import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.index.BindingXmlData;
+import com.android.tools.idea.databinding.index.BindingXmlIndex;
+import com.android.tools.idea.databinding.index.ImportData;
 import com.android.tools.idea.lang.databinding.DataBindingLangUtil;
-import com.android.tools.idea.res.BindingLayoutData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
@@ -64,11 +66,11 @@ import org.jetbrains.annotations.Nullable;
 public class DataBindingConverter extends ResolvingConverter<PsiElement> implements CustomReferenceConverter<PsiElement> {
   @Nullable
   private static String getImport(@NotNull String importedShortName, @NotNull ConvertContext context) {
-    BindingLayoutData bindingData = getDataBindingData(context);
-    if (bindingData == null) {
+    BindingXmlIndex.Entry indexEntry = getBindingIndexEntry(context);
+    if (indexEntry == null) {
       return null;
     }
-    return bindingData.resolveImport(importedShortName);
+    return indexEntry.getData().resolveImport(importedShortName);
   }
 
   /**
@@ -91,8 +93,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (module == null) {
       return null;
     }
-    BindingLayoutData layoutData = getDataBindingData(context);
-    String qualifiedName = layoutData == null ? type : DataBindingUtil.resolveImport(type, layoutData);
+    BindingXmlIndex.Entry indexEntry = getBindingIndexEntry(context);
+    String qualifiedName = indexEntry == null ? type : DataBindingUtil.resolveImport(type, indexEntry.getData());
     Project project = context.getProject();
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope scope = enlargeScope(module.getModuleWithDependenciesAndLibrariesScope(false),
@@ -126,9 +128,9 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (element instanceof PsiClass) {
       String type = ((PsiClass)element).getQualifiedName();
       if (type != null) {
-        BindingLayoutData bindingLayoutData = getDataBindingData(context);
-        if (bindingLayoutData != null) {
-          type = unresolveImport(type, bindingLayoutData);
+        BindingXmlIndex.Entry indexEntry = getBindingIndexEntry(context);
+        if (indexEntry != null) {
+          type = unresolveImport(type, indexEntry.getData());
         }
       }
       return type;
@@ -148,19 +150,19 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
    * @param layoutData the data binding information containing the import statements to use
    * @return a shorter class name, or the original name if it doesn't match any import statement
    *
-   * @see BindingLayoutData#resolveImport
+   * @see BindingXmlData#resolveImport
    */
-  private static String unresolveImport(@NotNull String className, @NotNull BindingLayoutData layoutData) {
+  private static String unresolveImport(@NotNull String className, @NotNull BindingXmlData layoutData) {
     List<String> segments = StringUtil.split(className, ".");
     if (!segments.isEmpty()) {
       String importedShortName = null;
       int maxMatchedSegments = 0;
-      for (BindingLayoutData.Import anImport : layoutData.getImports()) {
-        String importedType = anImport.getQualifiedName();
+      for (ImportData anImport : layoutData.getImports()) {
+        String importedType = anImport.getType();
         int matchedSegments = getNumberOfMatchedSegments(importedType, segments);
         if (matchedSegments > maxMatchedSegments) {
           maxMatchedSegments = matchedSegments;
-          importedShortName = anImport.getImportedShortName();
+          importedShortName = anImport.getShortName();
         }
       }
       if (maxMatchedSegments != 0) {
@@ -259,8 +261,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
   }
 
   @Nullable
-  protected static BindingLayoutData getDataBindingData(@NotNull ConvertContext context) {
-    return DataBindingLangUtil.getBindingLayoutData(context.getFile());
+  protected static BindingXmlIndex.Entry getBindingIndexEntry(@NotNull ConvertContext context) {
+    return DataBindingLangUtil.getBindingIndexEntry(context.getFile());
   }
 
   private static class AliasedReference extends PsiReferenceBase<PsiElement> {

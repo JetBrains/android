@@ -20,13 +20,14 @@ import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.ide.common.resources.stripPrefixFromId
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.res.BindingLayoutType
-import com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT
-import com.android.tools.idea.res.BindingLayoutType.VIEW_BINDING_LAYOUT
+import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
+import com.android.tools.idea.databinding.index.BindingLayoutType.VIEW_BINDING_LAYOUT
 import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.DefaultFileTypeSpecificInputFilter
@@ -43,6 +44,7 @@ import com.intellij.util.io.KeyDescriptor
 import com.intellij.util.text.CharArrayUtil
 import com.intellij.util.xml.NanoXmlBuilder
 import com.intellij.util.xml.NanoXmlUtil
+import org.jetbrains.kotlin.idea.search.projectScope
 import java.io.DataInput
 import java.io.DataOutput
 import java.io.Reader
@@ -51,6 +53,11 @@ import java.io.Reader
  * File based index for data binding layout xml files.
  */
 class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
+  /**
+   * An entry into this index, containing information associated with a target layout file.
+   */
+  data class Entry(val file: VirtualFile, val data: BindingXmlData)
+
   companion object {
     @JvmField
     val NAME = ID.create<String, BindingXmlData>("BindingXmlIndex")
@@ -64,6 +71,24 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
 
     fun getDataForFile(project: Project, file: VirtualFile) = getDataForFile(file, GlobalSearchScope.fileScope(project, file))
     fun getDataForFile(psiFile: PsiFile) = getDataForFile(psiFile.virtualFile, GlobalSearchScope.fileScope(psiFile))
+
+    /**
+     * Returns all entries that match a given [layoutName].
+     *
+     * This may return multiple entries as a layout may have multiple configurations.
+     */
+    private fun getEntriesForLayout(project: Project, layoutName: String, scope: GlobalSearchScope): Collection<Entry> {
+      val entries = mutableListOf<Entry>()
+      FilenameIndex.getVirtualFilesByName(project, "$layoutName.xml", scope).forEach { file ->
+        getDataForFile(file, scope)?.let { data -> entries.add(Entry(file, data)) }
+      }
+      return entries
+    }
+
+    @JvmStatic
+    fun getEntriesForLayout(project: Project, layoutName: String) = getEntriesForLayout(project, layoutName, project.projectScope())
+    fun getEntriesForLayout(module: Module, layoutName: String) = getEntriesForLayout(module.project, layoutName,
+                                                                                      module.moduleContentWithDependenciesScope)
   }
 
   override fun getKeyDescriptor(): KeyDescriptor<String> {
