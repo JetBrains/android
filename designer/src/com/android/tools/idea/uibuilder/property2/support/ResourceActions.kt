@@ -99,15 +99,16 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
     val isImageViewDrawable = hasImageTag.isPresent &&
                               (SdkConstants.ATTR_SRC_COMPAT == propertyName || SdkConstants.ATTR_SRC == propertyName)
     val showSampleData = SdkConstants.TOOLS_URI == property.namespace
-    val dialog: ResourcePickerDialog = createResourcePickerDialog(PICK_A_RESOURCE,
-                                                                  property.rawValue,
-                                                                  property.model.facet,
-                                                                  property.type.resourceTypes,
-                                                                  defaultResourceType,
-                                                                  !isImageViewDrawable,
-                                                                  showSampleData,
-                                                                  tag.containingFile.virtualFile,
-                                                                  tag)
+    val dialog: ResourcePickerDialog = createResourcePickerDialog(dialogTitle = PICK_A_RESOURCE,
+                                                                  currentValue = property.rawValue,
+                                                                  facet = property.model.facet,
+                                                                  resourceTypes = property.type.resourceTypes,
+                                                                  defaultResourceType = defaultResourceType,
+                                                                  showColorStateLists = !isImageViewDrawable,
+                                                                  showSampleData = showSampleData,
+                                                                  file = tag.containingFile.virtualFile,
+                                                                  xmlFile = null,
+                                                                  tag = tag)
     return if (dialog.showAndGet()) dialog.resourceName else null
   }
 
