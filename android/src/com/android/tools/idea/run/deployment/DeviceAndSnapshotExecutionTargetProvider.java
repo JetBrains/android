@@ -58,7 +58,7 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
     @NotNull
     @Override
     public String getId() {
-      return myDevice.getKey();
+      return myDevice.getKey().toString();
     }
 
     @NotNull
