@@ -79,7 +79,8 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
         // copy & paste and both the compiler and Studio will flag it as an error.
         if (previewMethodsFqName.add(composableMethod)) {
           previewElements.add(PreviewElement(previewName, composableMethod,
-                                             annotatedMethod.bodyTextRange(),
+                                             previewAnnotation.toSmartPsiPointer(),
+                                             annotatedMethod.uastBody.toSmartPsiPointer(),
                                              attributesToConfiguration(previewAnnotation)))
         }
       }

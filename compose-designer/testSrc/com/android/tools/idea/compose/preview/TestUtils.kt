@@ -30,14 +30,3 @@ internal fun UFile.method(name: String): UMethod? =
   declaredMethods()
     .filter { it.name == name }
     .singleOrNull()
-
-/**
- * Asserts that the given [methodName] body has the actual given [actualBodyRange]
- */
-internal fun assertMethodTextRange(file: UFile, methodName: String, actualBodyRange: TextRange) {
-  val range = file
-    .method(methodName)
-    .bodyTextRange()
-  assertNotEquals(range, TextRange.EMPTY_RANGE)
-  assertEquals(range, actualBodyRange)
-}
