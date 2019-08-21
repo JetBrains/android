@@ -47,19 +47,6 @@ class NlEditorProviderTest : AndroidTestCase() {
     assertFalse(provider.accept(project, file.virtualFile))
   }
 
-  fun testAcceptLayoutFileInAndroidModuleOnly() {
-    val file = myFixture.addFileToProject("res/layout/my_layout.xml", layoutContent())
-    assertTrue(provider.accept(project, file.virtualFile))
-
-    // Makes the module is not an AndroidModule by removing AndroidFacet from it.
-    val modifiableModel = FacetManager.getInstance(myModule).createModifiableModel()
-    Facets.removeAllFacets(modifiableModel, AndroidFacet.ID)
-    ApplicationManager.getApplication().runWriteAction {
-      modifiableModel.commit()
-    }
-    assertFalse(provider.accept(project, file.virtualFile))
-  }
-
   fun testRegisterDrawablesIfSplitEditorIsDisabled() {
     StudioFlags.NELE_SPLIT_EDITOR.override(false)
     provider = NlEditorProvider()

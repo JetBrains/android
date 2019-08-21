@@ -46,15 +46,13 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.util.Arrays;
 import java.util.List;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Provider that accepts {@link XmlFile}s whose modules contain an {@link AndroidFacet}, and type belongs to {@link #myAcceptedTypes}.
- * Subclasses are responsible for specifying the types accepted, creating their editor using {@link #createEditor(Project, VirtualFile)},
- * and specifying their ID via {@link #getEditorTypeId()}. This parent class in turn is responsible for registering the accepted types
- * against {@link DesignerTypeRegistrar}.
+ * Provider that accepts {@link XmlFile}s whose type belongs to {@link #myAcceptedTypes}.Subclasses are responsible for specifying the types
+ * accepted, creating the editor using {@link #createEditor(Project, VirtualFile)}, and specifying their ID via {@link #getEditorTypeId()}.
+ * This parent class in turn is responsible for registering the accepted types against {@link DesignerTypeRegistrar}.
  */
 public abstract class DesignerEditorProvider implements FileEditorProvider, DumbAware {
 
@@ -76,8 +74,7 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
     PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
     if (psiFile instanceof XmlFile) {
       XmlFile xmlFile = (XmlFile) psiFile;
-      AndroidFacet facet = AndroidFacet.getInstance(xmlFile);
-      return facet != null && myAcceptedTypes.stream().anyMatch(type -> type.isResourceTypeOf(xmlFile));
+      return myAcceptedTypes.stream().anyMatch(type -> type.isResourceTypeOf(xmlFile));
     }
     return false;
   }
