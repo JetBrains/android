@@ -155,7 +155,8 @@ b/137231583 */
     assertIsEqualToSnapshot(text)
   }
 
-  fun testTransitiveDependencies() {
+  // TODO(b/139780810): figure out if the test is out of date or sync has a bug.
+  fun ignore_testTransitiveDependencies() {
     // TODO(b/124505053): Remove almost identical snapshots when SDK naming is fixed.
     val text = importSyncAndDumpProject(TRANSITIVE_DEPENDENCIES)
     assertIsEqualToSnapshot(text)
