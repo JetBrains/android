@@ -29,7 +29,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="8f111"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.host.name"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.host"/>
             </properties>
           </component>
           <component id="fd0e0" class="javax.swing.JCheckBox" binding="myHttpProxyAuthCheckBox">
@@ -39,7 +39,7 @@
             <properties>
               <margin top="2" left="1" bottom="2" right="2"/>
               <selected value="false"/>
-              <text resource-bundle="messages/CommonBundle" key="checkbox.proxy.authentication"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.auth"/>
             </properties>
           </component>
           <component id="fa7c5" class="javax.swing.JLabel">
@@ -49,7 +49,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="71b34"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.login"/>
+              <text resource-bundle="messages/UIBundle" key="auth.login.label"/>
             </properties>
           </component>
           <component id="c5cde" class="javax.swing.JLabel">
@@ -58,7 +58,7 @@
             </constraints>
             <properties>
               <horizontalAlignment value="4"/>
-              <text value="No proxy for:"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.exclude"/>
             </properties>
           </component>
           <component id="71b34" class="javax.swing.JTextField" binding="myHttpProxyLoginTextField">
@@ -94,7 +94,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value=""/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.port.number"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.port"/>
             </properties>
           </component>
           <component id="f0c81" class="com.intellij.ui.PortField" binding="myHttpProxyPortTextField">
@@ -117,7 +117,7 @@
             </constraints>
             <properties>
               <horizontalAlignment value="4"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.password"/>
+              <text resource-bundle="messages/UIBundle" key="auth.password.label"/>
             </properties>
           </component>
           <component id="60d42" class="javax.swing.JLabel">
@@ -147,7 +147,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="fd7b6"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.host.name"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.host"/>
             </properties>
           </component>
           <component id="d28cc" class="javax.swing.JCheckBox" binding="myHttpsProxyAuthCheckBox">
@@ -157,7 +157,7 @@
             <properties>
               <margin top="2" left="1" bottom="2" right="2"/>
               <selected value="false"/>
-              <text resource-bundle="messages/CommonBundle" key="checkbox.proxy.authentication"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.auth"/>
             </properties>
           </component>
           <component id="b09ec" class="javax.swing.JLabel">
@@ -166,7 +166,7 @@
             </constraints>
             <properties>
               <horizontalAlignment value="4"/>
-              <text value="No proxy for:"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.exclude"/>
             </properties>
           </component>
           <component id="33485" class="javax.swing.JTextField" binding="myHttpsProxyLoginTextField">
@@ -202,7 +202,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="7e62"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.port.number"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.port"/>
             </properties>
           </component>
           <component id="16921" class="com.intellij.ui.PortField" binding="myHttpsProxyPortTextField">
@@ -226,7 +226,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="1acb8"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.password"/>
+              <text resource-bundle="messages/UIBundle" key="auth.password.label"/>
             </properties>
           </component>
           <component id="4bbdb" class="javax.swing.JLabel">
@@ -236,7 +236,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="33485"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.login"/>
+              <text resource-bundle="messages/UIBundle" key="auth.login.label"/>
             </properties>
           </component>
           <component id="75efb" class="javax.swing.JLabel">
