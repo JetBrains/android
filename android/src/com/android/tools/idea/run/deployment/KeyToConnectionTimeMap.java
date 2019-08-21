@@ -24,7 +24,10 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 final class KeyToConnectionTimeMap {
-  private final Map<String, Instant> myMap;
+  @NotNull
+  private final Map<Key, Instant> myMap;
+
+  @NotNull
   private final Clock myClock;
 
   KeyToConnectionTimeMap() {
@@ -38,11 +41,11 @@ final class KeyToConnectionTimeMap {
   }
 
   @NotNull
-  Instant get(@NotNull String key) {
+  Instant get(@NotNull Key key) {
     return myMap.computeIfAbsent(key, k -> myClock.instant());
   }
 
-  void retainAll(@NotNull Collection<String> keys) {
+  void retainAll(@NotNull Collection<Key> keys) {
     myMap.keySet().retainAll(keys);
   }
 }

@@ -34,6 +34,7 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<State> {
   @NotNull
   private final Collection<Device> myDevices;
 
+  // TODO Delete this
   @Nullable
   private final Snapshot mySnapshot;
 
