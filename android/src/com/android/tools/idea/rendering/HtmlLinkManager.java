@@ -15,6 +15,21 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_CLASS;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
+import static com.android.SdkConstants.CLASS_CONTEXT;
+import static com.android.SdkConstants.CLASS_FRAGMENT;
+import static com.android.SdkConstants.CLASS_V4_FRAGMENT;
+import static com.android.SdkConstants.CLASS_VIEW;
+import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_FALSE;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifestManager;
@@ -22,7 +37,8 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
+import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
@@ -31,7 +47,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.ide.browsers.BrowserLauncher;
-import com.intellij.notification.*;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -47,7 +67,18 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaDirectoryService;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiImportList;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -58,11 +89,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.AlarmFactory;
 import com.intellij.util.PsiNavigateUtil;
-import org.jetbrains.android.uipreview.ChooseClassDialog;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
@@ -72,8 +98,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.ChooseClassDialog;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HtmlLinkManager {
   private static final String URL_EDIT_CLASSPATH = "action:classpath";
@@ -771,12 +800,21 @@ public class HtmlLinkManager {
     @NotNull final XmlFile file,
     @NotNull final String activityName) {
 
-    ChooseResourceDialog dialog = ChooseResourceDialog.builder()
-      .setModule(module)
-      .setTypes(EnumSet.of(ResourceType.LAYOUT))
-      .setFile(file)
-      .setHideLeftSideActions()
-      .build();
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
+
+    ResourcePickerDialog dialog = ResourceChooserHelperKt.createResourcePickerDialog(
+      "Choose a Layout",
+      null,
+      facet,
+      EnumSet.of(ResourceType.LAYOUT),
+      null,
+      true,
+      false,
+      file.getVirtualFile(),
+      file,
+      null
+    );
 
     if (dialog.showAndGet()) {
       String layout = dialog.getResourceName();
