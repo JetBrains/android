@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -246,7 +247,23 @@ public class CpuCaptureStage extends Stage {
 
   private void initTrackGroupList(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
     myTrackGroupListModel.clear();
-    // Interaction
+
+    // Interaction events, e.g. user interaction, app lifecycle.
+    initInteractionTrackGroup(selectionRange);
+
+    // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
+    if (capture instanceof AtraceCpuCapture) {
+      initDisplayTrackGroup(selectionRange, (AtraceCpuCapture)capture);
+    }
+
+    // Thread states and trace events.
+    initThreadsTrackGroup(capture);
+
+    // CPU per-core frequency and etc.
+    initCpuCoresTrackGroup();
+  }
+
+  private void initInteractionTrackGroup(@NotNull Range selectionRange) {
     TrackGroupModel interaction = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("Interaction"));
     interaction.addTrackModel(
       new TrackModel<>(
@@ -260,34 +277,38 @@ public class CpuCaptureStage extends Stage {
           new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), true))),
         ProfilerTrackRendererType.APP_LIFECYCLE,
         "Lifecycle"));
-
-    // Display
-    if (capture instanceof AtraceCpuCapture) {
-      AtraceCpuCapture atraceCapture = (AtraceCpuCapture)capture;
-      TrackGroupModel display = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("Display"));
-
-      AtraceFrameFilterConfig filterConfig =
-        new AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, capture.getMainThreadId(),
-                                    CpuFramesModel.SLOW_FRAME_RATE_US);
-      display.addTrackModel(
-        new TrackModel<>(
-          new CpuFramesModel.FrameState("Main", filterConfig, atraceCapture, selectionRange),
-          ProfilerTrackRendererType.FRAMES,
-          "Frames"));
-      display.addTrackModel(
-        new TrackModel<>(
-          new StateChartModel<EventAction>(),
-          ProfilerTrackRendererType.SURFACEFLINGER,
-          "Surfaceflinger"));
-      display.addTrackModel(
-        new TrackModel<>(
-          new StateChartModel<EventAction>(),
-          ProfilerTrackRendererType.VSYNC,
-          "Vsync"));
-    }
-
-    // Threads
-
-    // CPU cores
   }
+
+  private void initDisplayTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture atraceCapture) {
+    TrackGroupModel display = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("Display"));
+    AtraceFrameFilterConfig filterConfig =
+      new AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, atraceCapture.getMainThreadId(),
+                                  CpuFramesModel.SLOW_FRAME_RATE_US);
+    display.addTrackModel(
+      new TrackModel<>(
+        new CpuFramesModel.FrameState("Main", filterConfig, atraceCapture, selectionRange),
+        ProfilerTrackRendererType.FRAMES,
+        "Frames"));
+    display.addTrackModel(
+      new TrackModel<>(
+        new StateChartModel<EventAction>(),
+        ProfilerTrackRendererType.SURFACEFLINGER,
+        "Surfaceflinger"));
+    display.addTrackModel(
+      new TrackModel<>(
+        new StateChartModel<EventAction>(),
+        ProfilerTrackRendererType.VSYNC,
+        "Vsync"));
+  }
+
+  private void initThreadsTrackGroup(@NotNull CpuCapture capture) {
+    Set<CpuThreadInfo> threadInfos = capture.getThreads();
+    String threadsTitle = String.format(Locale.US, "Threads (%d)", threadInfos.size());
+    TrackGroupModel threads = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle(threadsTitle));
+    for (CpuThreadInfo threadInfo : threadInfos) {
+      threads.addTrackModel(new TrackModel<>(new CpuThreadTrackModel(), ProfilerTrackRendererType.CPU_THREAD, threadInfo.getName()));
+    }
+  }
+
+  private void initCpuCoresTrackGroup() {}
 }
