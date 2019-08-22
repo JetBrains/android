@@ -65,9 +65,9 @@ iml_module(
     test_coverage = True,
     # keep sorted
     test_data = [
-        "//prebuilts/studio/layoutlib:buildprop",
-        "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/framework_res",
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/android:test_deps.zip",
