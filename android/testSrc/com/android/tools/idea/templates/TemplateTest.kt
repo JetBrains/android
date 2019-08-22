@@ -292,199 +292,199 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewBroadcastReceiver() {
     // No need to try this template with multiple platforms, one is adequate
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "BroadcastReceiver")
   }
 
   @TemplateCheck
   fun testNewBroadcastReceiverWithKotlin() {
     // No need to try this template with multiple platforms, one is adequate
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "BroadcastReceiver", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewContentProvider() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "ContentProvider")
   }
 
   @TemplateCheck
   fun testNewContentProviderWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "ContentProvider", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewSliceProvider() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "SliceProvider", false)
   }
 
   @TemplateCheck
   fun testNewSliceProviderWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "SliceProvider", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewCustomView() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "CustomView")
   }
 
   @TemplateCheck
   fun testNewIntentService() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "IntentService")
   }
 
   @TemplateCheck
   fun testNewIntentServiceWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "IntentService", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewListFragment() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "ListFragment")
   }
 
   @TemplateCheck
   fun testNewListFragmentWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "ListFragment", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewModalBottomSheet() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "ModalBottomSheet")
   }
 
   @TemplateCheck
   fun testNewAppWidget() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "AppWidget")
   }
 
   @TemplateCheck
   fun testNewBlankFragment() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "BlankFragment")
   }
 
   @TemplateCheck
   fun testNewBlankFragmentWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "BlankFragment", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewSettingsFragment() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "SettingsFragment", true)
   }
 
   @TemplateCheck
   fun testNewSettingsFragmentWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "SettingsFragment", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewViewModelFragment() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "ViewModelFragment")
   }
 
   @TemplateCheck
   fun testNewViewModelFragmentWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "ViewModelFragment", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewScrollFragment() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "ScrollFragment")
   }
 
   @TemplateCheck
   fun testNewScrollFragmentWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "ScrollFragment", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewFullscreenFragment() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "FullscreenFragment")
   }
 
   @TemplateCheck
   fun testNewFullscreenFragmentWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "FullscreenFragment", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewGoogleMapsFragment() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "GoogleMapsFragment")
   }
 
   @TemplateCheck
   fun testNewGoogleMapsFragmentWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "GoogleMapsFragment", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewGoogleAdMobFragment() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "GoogleAdMobAdsFragment")
   }
 
   @TemplateCheck
   fun testNewGoogleAdMobFragmentWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "GoogleAdMobAdsFragment", false, withKotlin)
   }
 
   fun testLoginFragment() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "LoginFragment")
   }
 
   @TemplateCheck
   fun testLoginFragmentWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("fragments", "LoginFragment", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewService() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "Service")
   }
 
   @TemplateCheck
   fun testNewServiceWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "Service", false, withKotlin)
   }
 
   @TemplateCheck
   fun testNewAidlFile() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "AidlFile")
   }
 
   @TemplateCheck
   fun testNewAidlFolder() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "AidlFolder", false
     ) { templateMap, _ ->
       templateMap["newLocation"] = "foo"
@@ -493,7 +493,7 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testAndroidManifest() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "AndroidManifest", false
     ) { t, _ ->
       t["newLocation"] = "src/foo/AndroidManifest.xml"
@@ -502,7 +502,7 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testAssetsFolder() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "AssetsFolder", false
     ) { templateMap, _ ->
       templateMap["newLocation"] = "src/main/assets/"
@@ -511,7 +511,7 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testJavaAndJniFolder() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "JavaFolder", false
     ) { t, _ ->
       t["newLocation"] = "src/main/java"
@@ -524,7 +524,7 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testFontFolder() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "FontFolder", false
     ) { templateMap, _ ->
       templateMap["newLocation"] = "src/main/res/font"
@@ -533,7 +533,7 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testRawFolder() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "RawFolder", false
     ) { templateMap, _ ->
       templateMap["newLocation"] = "src/main/res/raw"
@@ -542,7 +542,7 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testXmlFolder() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "XmlFolder", false
     ) { templateMap, _ ->
       templateMap["newLocation"] = "src/main/res/xml"
@@ -551,7 +551,7 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testRenderSourceFolder() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "RsFolder", false
     ) { t, _ ->
       t["newLocation"] = "src/main/rs"
@@ -568,55 +568,55 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testNewLayoutResourceFile() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "LayoutResourceFile")
   }
 
   @TemplateCheck
   fun testNewAppActionsResourceFile() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "AppActionsResourceFile")
   }
 
   @TemplateCheck
   fun testAutomotiveMediaService() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "AutomotiveMediaService", false)
   }
 
   @TemplateCheck
   fun testAutomotiveMediaServiceWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "AutomotiveMediaService", false, withKotlin)
   }
 
   @TemplateCheck
   fun testAutomotiveMessagingService() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "AutomotiveMessagingService")
   }
 
   @TemplateCheck
   fun testAutomotiveMessagingServiceWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "AutomotiveMessagingService", false, withKotlin)
   }
 
   @TemplateCheck
   fun testWatchFaceService() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "WatchFaceService")
   }
 
   @TemplateCheck
   fun testWatchFaceServiceWithKotlin() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "WatchFaceService", true, withKotlin)
   }
 
   @TemplateCheck
   fun testNewValueResourceFile() {
-    myApiSensitiveTemplate = false
+    apiSensitiveTemplate = false
     checkCreateTemplate("other", "ValueResourceFile")
   }
 
@@ -644,7 +644,7 @@ open class TemplateTest : TemplateTestBase() {
       }
     }
 
-    override fun checkCreateTemplate(category: String, name: String, createWithProject: Boolean, customizer: ProjectStateCustomizer?) {
+    override fun checkCreateTemplate(category: String, name: String, createWithProject: Boolean, customizer: ProjectStateCustomizer) {
       templatesChecked.add(getCheckKey(category, name, createWithProject))
     }
 
