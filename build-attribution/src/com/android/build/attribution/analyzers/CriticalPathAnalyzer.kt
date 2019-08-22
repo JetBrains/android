@@ -18,6 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
+import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -152,11 +153,14 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     criticalPathDuration = 0
   }
 
-  override fun onBuildSuccess() {
+  override fun onBuildSuccess(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?) {
     calculateTasksCriticalPath()
     calculatePluginsCriticalPath()
     tasksSet.clear()
     dependenciesMap.clear()
+    if (androidGradlePluginAttributionData != null) {
+      tasksCriticalPath.forEach { it.setTaskType(androidGradlePluginAttributionData.taskNameToClassNameMap[it.taskName]) }
+    }
   }
 
   override fun onBuildFailure() {
