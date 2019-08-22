@@ -25,9 +25,7 @@ import java.io.File
  * @param path is used as part of the output message.
  */
 class ProjectImportPathValidator(path: String) : Validator<File> {
-  private val pathValidator: PathValidator = Builder().apply {
-    withCommonRules()
-  }.build(path)
+  private val pathValidator: PathValidator = Builder().withCommonRules().build(path)
 
   override fun validate(file: File) = pathValidator.validate(file)
 }
