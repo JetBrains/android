@@ -437,8 +437,43 @@ public class SqlStatementsGeneratorTest {
                             "\tFROM table2;",
                             "DROP TABLE table2;",
                             "ALTER TABLE table2_data$android_studio_tmp RENAME TO table2;",
-                            "PRAGMA foreign_key_check;");
+                            "PRAGMA foreign_key_check(table2);");
   }
+
+  @Test
+  public void testForeignKeyCheckIsAddedOnReferencedTableUpdate() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+    FieldBundle field3 = createFieldBundle("column3", "TEXT", null);
+
+    List<ForeignKeyBundle> foreignKeys =
+      Collections.singletonList(new ForeignKeyBundle("table1", "", "", Collections.singletonList(field1.getColumnName()),
+                                                     Collections.singletonList(field1.getColumnName())));
+    EntityBundle referencedEntity = createEntityBundle("table1", field1, field2);
+    EntityBundle modifiedReferencedEntity = createEntityBundle("table1", field1);
+    EntityBundle entityWithForeignKeyConstraints = new EntityBundle("table2",
+                                                                         "",
+                                                                         Arrays.asList(field1, field2, field3),
+                                                                         new PrimaryKeyBundle(false, Collections
+                                                                           .singletonList(field1.getColumnName())),
+                                                                         Collections.emptyList(),
+                                                                         foreignKeys);
+
+    testMigrationStatements(createDatabaseBundle(1, referencedEntity, entityWithForeignKeyConstraints),
+                            createDatabaseBundle(2, modifiedReferencedEntity, entityWithForeignKeyConstraints),
+                            "CREATE TABLE table1_data$android_studio_tmp\n" +
+                            "(\n" +
+                            "\tcolumn1 TEXT,\n" +
+                            "\tPRIMARY KEY (column1)\n" +
+                            ");",
+                            "INSERT INTO table1_data$android_studio_tmp (column1)\n" +
+                            "\tSELECT column1\n" +
+                            "\tFROM table1;",
+                            "DROP TABLE table1;",
+                            "ALTER TABLE table1_data$android_studio_tmp RENAME TO table1;",
+                            "PRAGMA foreign_key_check(table2);");
+  }
+
 
   @Test
   public void testDropIndex() {
