@@ -48,6 +48,7 @@ import static org.junit.Assume.assumeTrue;
 import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -175,6 +176,8 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     super.setUp();
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
+    StudioFlags.KOTLIN_DSL_PARSING.override(true);
+
     runWriteAction((ThrowableComputable<Void, Exception>)() -> {
       String basePath = myProject.getBasePath();
       assertNotNull(basePath);
@@ -215,7 +218,11 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   @After
   @Override
   public void tearDown() throws Exception {
-    super.tearDown();
+    try {
+      StudioFlags.KOTLIN_DSL_PARSING.clearOverride();
+    } finally {
+      super.tearDown();
+    }
   }
 
   @Override
