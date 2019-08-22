@@ -373,6 +373,8 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       val ext = getBlockElement(listOf("ext"), parent, null) ?: return
       val name = GradleNameElement.from(identifier) // TODO(xof): error checking: empty/qualified/etc
       val propertyElement = createExpressionElement(ext, expression, name, initializer) ?: return
+      // This Property is assigning a value to a property, so we need to set the UseAssignment to true.
+      propertyElement.setUseAssignment(true)
       propertyElement.elementType = REGULAR
       ext.setParsedElement(propertyElement)
     }
