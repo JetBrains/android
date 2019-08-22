@@ -53,9 +53,9 @@ data class ImportData(val type: String, val alias: String?) {
 /**
  * Data class for storing information related to views with IDs.
  *
- * @param id Id of the view.
- * @param viewName Name of the view. Typically the tag name: `<TextView>`.
- * @param layoutName Optional layout attribute. Only applicable to `<Merge>` or `<Include>` tags.
+ * @param id id of the view.
+ * @param viewName name of the view, typically the tag name: `<TextView>`.
+ * @param layoutName optional layout attribute, only applicable to `<Merge>` or `<Include>` tags.
  */
 data class ViewIdData(val id: String, val viewName: String, val layoutName: String?)
 
@@ -65,12 +65,12 @@ data class ViewIdData(val id: String, val viewName: String, val layoutName: Stri
  *
  * For view binding data, many of these fields will be left empty.
  *
- * @param layoutType The type of binding for the target layout.
- * @param customBindingName Value used to override the class path and/or name of the generated
- *     binding, if present.
- * @param imports Data binding imports.
- * @param variables Data binding variables.
- * @param viewIds Ids of views defined in this layout.
+ * @param layoutType the type of binding for the target layout.
+ * @param customBindingName optional value used to override the qualified class name of the
+ *     generated binding.
+ * @param imports data binding imports.
+ * @param variables data binding variables.
+ * @param viewIds ids of views defined in this layout.
  */
 data class BindingXmlData(val layoutType: BindingLayoutType,
                           val customBindingName: String?,
