@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.gradle.KotlinMPPGradleModelBuilder
 import org.jetbrains.kotlin.gradle.KotlinPlatform
 import org.jetbrains.kotlin.idea.configuration.KotlinAndroidSourceSetData
 import org.jetbrains.kotlin.idea.configuration.KotlinMPPGradleProjectResolver
+import org.jetbrains.kotlin.idea.configuration.getMppModel
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 
 @Order(ExternalSystemConstants.UNORDERED - 1)
@@ -65,7 +66,7 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
 
         KotlinMPPGradleProjectResolver.initializeModuleData(gradleModule, mainModuleData, projectDataNode, resolverCtx)
 
-        val mppModel = resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel::class.java) ?: return
+        val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
 
         val androidSourceSets = mppModel
             .targets
