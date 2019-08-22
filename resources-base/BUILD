@@ -29,8 +29,8 @@ iml_module(
     test_coverage = True,
     # keep sorted
     test_data = [
-        "//prebuilts/studio/layoutlib:data/framework_res",
-        "//prebuilts/studio/layoutlib:data/res",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/res",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
         "//tools/idea:platform-build-info",
@@ -91,11 +91,11 @@ java_binary(
 genrule(
     name = "framework_res",
     srcs = [
-        "//prebuilts/studio/layoutlib:data/res",
-        "//prebuilts/studio/layoutlib:data/res/version",
+        "//prebuilts/studio/layoutlib/data/res",
+        "//prebuilts/studio/layoutlib/data/res:version",
     ],
     outs = ["framework_res.jar"],
-    cmd = "$(JAVA) -classpath $(location :framework-res-jar-creator_deploy.jar) " + "com.android.tools.idea.resources.aar.FrameworkResJarCreator " + "$(location //prebuilts/studio/layoutlib:data/res/version)/.. $(OUTS)",
+    cmd = "$(JAVA) -classpath $(location :framework-res-jar-creator_deploy.jar) " + "com.android.tools.idea.resources.aar.FrameworkResJarCreator " + "$(location //prebuilts/studio/layoutlib/data/res:version)/.. $(OUTS)",
     toolchains = ["//prebuilts/studio/jdk:jdk_runtime"],
     tools = [
         ":framework-res-jar-creator",
