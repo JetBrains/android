@@ -73,11 +73,16 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
       }
     })
 
+    list.addListSelectionListener {
+      onSelectionChanged(list)
+    }
+
     inspector.addComponent(componentList, titleModel)
   }
 
   protected abstract fun onAdd(parent: NlComponent)
   protected abstract fun onEdit(component: NlComponent)
+  protected open fun onSelectionChanged(list: JBList<NlComponent>) {}
   protected abstract fun isApplicable(component: NlComponent): Boolean
 
   private fun refresh(component: NlComponent, model: SortedListModel<NlComponent>) {
