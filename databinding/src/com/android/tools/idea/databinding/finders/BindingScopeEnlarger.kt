@@ -89,7 +89,7 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
  * Therefore, we provide one here that simply delegates to it.
  */
 class BindingKotlinScopeEnlarger : KotlinResolveScopeEnlarger() {
-  private val delegateEnlarger = BindingScopeEnlarger()
+  private val delegateEnlarger = ResolveScopeEnlarger.EP_NAME.findExtensionOrFail(BindingScopeEnlarger::class.java)
 
   override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
     val facet = module.androidFacet?.takeIf { it.isRelevantForScopeEnlarging() } ?: return null
