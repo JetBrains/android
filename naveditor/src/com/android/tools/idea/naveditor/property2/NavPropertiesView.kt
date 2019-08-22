@@ -62,7 +62,7 @@ class NavPropertiesView(model: NelePropertiesModel) : PropertiesView<NelePropert
     tab.builders.add(DefaultValueInspectorBuilder())
     tab.builders.add(ActionInspectorBuilder(editorProvider))
     tab.builders.add(ArgumentInspectorBuilder())
-    tab.builders.add(ActionListInspectorBuilder())
+    tab.builders.add(ActionListInspectorBuilder(model))
     tab.builders.add(DeepLinkInspectorBuilder())
   }
 }
