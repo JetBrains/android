@@ -28,7 +28,6 @@ import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.resources.ResourceFolderType.COLOR;
 import static com.android.resources.ResourceFolderType.DRAWABLE;
 import static com.android.resources.ResourceFolderType.FONT;
-import static com.android.resources.ResourceFolderType.LAYOUT;
 import static com.android.resources.ResourceFolderType.VALUES;
 import static com.android.tools.idea.res.PsiProjectListener.isRelevantFile;
 import static com.android.tools.idea.resources.base.RepositoryLoader.portableFileName;
@@ -139,9 +138,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
-import org.kxml2.io.KXmlParser;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
 /**
  * The {@link ResourceFolderRepository} is leaf in the repository tree, and is used for user editable resources (e.g. the resources in the
@@ -2086,48 +2082,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         }
       }
       else {
-        if (isXmlFile(file)) {
-          if (folderInfo.folderType == LAYOUT) {
-            parseLayoutFile(file, configuration);
-          }
-          else if (folderInfo.isIdGenerating) {
-            parseIdGeneratingResourceFile(file, configuration);
-          }
+        if (isXmlFile(file) && folderInfo.isIdGenerating) {
+          parseIdGeneratingResourceFile(file, configuration);
         }
 
         BasicFileResourceItem item = createFileResourceItem(file, folderInfo.resourceType, configuration, folderInfo.isIdGenerating);
         addResourceItem(item, (ResourceFolderRepository)item.getRepository());
       }
-    }
-
-    private void parseLayoutFile(@NotNull PathString file, @NotNull RepositoryConfiguration configuration) {
-      try (InputStream stream = getInputStream(file)) {
-        ResourceSourceFile sourceFile = createResourceSourceFile(file, configuration);
-        XmlPullParser parser = new KXmlParser();
-        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-        parser.setInput(stream, null);
-
-        int event;
-        do {
-          event = parser.nextToken();
-          if (event == XmlPullParser.START_TAG) {
-            int numAttributes = parser.getAttributeCount();
-            for (int i = 0; i < numAttributes; i++) {
-              String idValue = parser.getAttributeValue(i);
-              if (idValue.startsWith(NEW_ID_PREFIX) && idValue.length() > NEW_ID_PREFIX.length()) {
-                String resourceName = idValue.substring(NEW_ID_PREFIX.length());
-                addIdResourceItem(resourceName, sourceFile);
-              }
-            }
-          }
-        } while (event != XmlPullParser.END_DOCUMENT);
-      }
-      // KXmlParser throws RuntimeException for an undefined prefix and an illegal attribute name.
-      catch (IOException | XmlPullParserException | RuntimeException e) {
-        handleParsingError(file, e);
-      }
-
-      addValueFileResources();
     }
 
     private static boolean isParsableFile(@NotNull VirtualFile file, @NotNull FolderInfo folderInfo) {
