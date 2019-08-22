@@ -297,6 +297,11 @@ public final class StudioFlags {
     "If enabled, the \"What's New\" assistant will update its contents from the web whenever it is opened.",
     true);
 
+  public static final Flag<Boolean> NELE_LAYOUT_EDITOR_ASSISTANT_ENABLED = Flag.create(
+    ASSISTANT, "layout.editor.help", "Display Help for Design Editor",
+    "If enabled, the assistant panel will display helpful guide on using the Design Editor.",
+    false);
+
   public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL = Flag.create(
     NELE, "new.property", "Enable the new Property Panel",
     "Enable the new Property Panel",

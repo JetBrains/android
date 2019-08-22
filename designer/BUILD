@@ -35,6 +35,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
@@ -77,8 +78,8 @@ iml_module(
     test_data = [
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:build.prop",
-        "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android:test_deps.zip",
