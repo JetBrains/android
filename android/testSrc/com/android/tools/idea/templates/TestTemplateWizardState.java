@@ -112,6 +112,10 @@ public class TestTemplateWizardState {
     myTemplateValues.put(key, value);
   }
 
+  public void putAll(@NotNull Map<String, Object> map) {
+    myTemplateValues.putAll(map);
+  }
+
   @Nullable
   public TemplateMetadata getTemplateMetadata() {
     return myTemplate == null ? null : myTemplate.getMetadata();
