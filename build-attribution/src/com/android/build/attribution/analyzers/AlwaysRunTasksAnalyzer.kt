@@ -16,8 +16,8 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
-import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
+import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -28,10 +28,11 @@ import org.gradle.tooling.events.task.TaskSuccessResult
  */
 class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter) : BuildEventsAnalyzer {
   private val alwaysRunTasksSet = HashSet<AlwaysRunTaskData>()
+  lateinit var alwaysRunTasks: List<AlwaysRunTaskData>
+    private set
 
   override fun receiveEvent(event: ProgressEvent) {
-    if (event is TaskFinishEvent && event.result is TaskSuccessResult && warningsFilter.applyAlwaysRunTaskFilter(
-        getTaskName(event.descriptor.taskPath), event.descriptor.originPlugin?.displayName ?: "")) {
+    if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
       (event.result as TaskSuccessResult).executionReasons?.forEach {
         if (it == TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS.rebuildReason.get() ||
             it == TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS.rebuildReason.get()) {
@@ -42,19 +43,20 @@ class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarnin
   }
 
   override fun onBuildStart() {
-    alwaysRunTasksSet.clear()
+    // nothing to be done
   }
 
-  override fun onBuildSuccess() {
-    // nothing to be done
+  override fun onBuildSuccess(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?) {
+    if (androidGradlePluginAttributionData != null) {
+      alwaysRunTasksSet.forEach { it.taskData.setTaskType(androidGradlePluginAttributionData.taskNameToClassNameMap[it.taskData.taskName]) }
+    }
+
+    alwaysRunTasks = alwaysRunTasksSet.filter { warningsFilter.applyAlwaysRunTaskFilter(it.taskData) }
+    alwaysRunTasksSet.clear()
   }
 
   override fun onBuildFailure() {
     alwaysRunTasksSet.clear()
-  }
-
-  fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {
-    return alwaysRunTasksSet.toList()
   }
 
   data class AlwaysRunTaskData(val taskData: TaskData, val reason: String)

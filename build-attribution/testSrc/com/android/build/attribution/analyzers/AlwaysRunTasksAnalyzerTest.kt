@@ -78,6 +78,7 @@ class AlwaysRunTasksAnalyzerTest {
     val alwaysRunTask = buildAttributionManager.analyzersProxy.getAlwaysRunTasks()[0]
 
     assertThat(alwaysRunTask.taskData.getTaskPath()).isEqualTo(":app:dummy")
+    assertThat(alwaysRunTask.taskData.taskType).isEqualTo("org.gradle.api.DefaultTask")
     assertThat(alwaysRunTask.taskData.originPlugin.toString()).isEqualTo("script build.gradle")
     assertThat(alwaysRunTask.reason).isEqualTo("Task has not declared any outputs despite executing actions.")
   }
@@ -86,7 +87,8 @@ class AlwaysRunTasksAnalyzerTest {
   fun testAlwaysRunTasksAnalyzerWithSuppressedWarning() {
     setUpProject()
 
-    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressAlwaysRunTaskWarning("dummy", "build.gradle")
+    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressAlwaysRunTaskWarning("org.gradle.api.DefaultTask",
+                                                                                                   "build.gradle")
 
     myProjectRule.invokeTasks("assembleDebug")
 

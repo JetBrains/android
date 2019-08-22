@@ -16,6 +16,7 @@
 package com.android.build.attribution
 
 import com.android.build.attribution.data.SuppressedWarnings
+import com.android.build.attribution.data.TaskData
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
@@ -32,9 +33,18 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
     }
   }
 
-  // TODO(b/138362804): use task class name instead of gradle's task name, to avoid having to suppress tasks per variant
-  fun applyAlwaysRunTaskFilter(taskName: String, pluginDisplayName: String): Boolean {
-    return !suppressedWarnings.alwaysRunTasks.contains(Pair(taskName, pluginDisplayName))
+  /**
+   * We identify the task that we suppress warnings for by its task class name, if not available then the task name.
+   */
+  private fun getTaskIdentifier(task: TaskData): String {
+    if (task.taskType == TaskData.UNKNOWN_TASK_TYPE) {
+      return task.taskName
+    }
+    return task.taskType
+  }
+
+  fun applyAlwaysRunTaskFilter(task: TaskData): Boolean {
+    return !suppressedWarnings.alwaysRunTasks.contains(Pair(getTaskIdentifier(task), task.originPlugin.displayName))
   }
 
   fun applyPluginSlowingConfigurationFilter(pluginDisplayName: String): Boolean {
@@ -45,8 +55,8 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
     return !suppressedWarnings.nonIncrementalAnnotationProcessors.contains(annotationProcessorClassName)
   }
 
-  fun suppressAlwaysRunTaskWarning(taskName: String, pluginDisplayName: String) {
-    suppressedWarnings.alwaysRunTasks.add(Pair(taskName, pluginDisplayName))
+  fun suppressAlwaysRunTaskWarning(taskIdentifier: String, pluginDisplayName: String) {
+    suppressedWarnings.alwaysRunTasks.add(Pair(taskIdentifier, pluginDisplayName))
   }
 
   fun suppressPluginSlowingConfigurationWarning(pluginDisplayName: String) {

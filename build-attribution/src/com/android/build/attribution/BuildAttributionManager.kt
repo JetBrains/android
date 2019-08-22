@@ -20,7 +20,7 @@ import org.gradle.tooling.events.ProgressListener
 interface BuildAttributionManager : ProgressListener {
   fun onBuildStart()
 
-  fun onBuildSuccess()
+  fun onBuildSuccess(attributionFilePath: String)
 
   fun onBuildFailure()
 }

@@ -66,6 +66,6 @@ class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter) 
   }
 
   fun getAlwaysRunTasks(): List<AlwaysRunTasksAnalyzer.AlwaysRunTaskData> {
-    return alwaysRunTasksAnalyzer.getAlwaysRunTasks()
+    return alwaysRunTasksAnalyzer.alwaysRunTasks
   }
 }
