@@ -1997,7 +1997,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "val", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "val1", REFERENCE, REGULAR, 1)
       val deps = propertyModel.dependencies
       assertSize(1, deps)
       val mapPropertyModel = deps[0]
@@ -2016,7 +2016,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "val", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "val1", REFERENCE, REGULAR, 1)
       val deps = propertyModel.dependencies
       assertSize(1, deps)
       val mapPropertyModel = deps[0]
@@ -2077,11 +2077,11 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "value2", STRING, DERIVED, 0)
       verifyPropertyModel(secondInnerMap["key5"], INTEGER_TYPE, 43, INTEGER, DERIVED, 0)
       // Delete one of these values, and change the other.
-      secondInnerMap["key4"]!!.setValue(ReferenceTo("var"))
+      secondInnerMap["key4"]!!.setValue(ReferenceTo("var1"))
       secondInnerMap["key5"]!!.delete()
 
       // Check the values are correct.
-      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var", REFERENCE, DERIVED, 1)
+      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var1", REFERENCE, DERIVED, 1)
       verifyPropertyModel(secondInnerMap["key5"], OBJECT_TYPE, null, NONE, DERIVED, 0)
 
       val thirdInnerMapModel = map["key6"]!!
@@ -2115,7 +2115,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertEquals(MAP, secondInnerMapModel.valueType)
       val secondInnerMap = secondInnerMapModel.getValue(MAP_TYPE)!!
       assertSize(1, secondInnerMap.entries)
-      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var", REFERENCE, DERIVED, 1)
+      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var1", REFERENCE, DERIVED, 1)
       assertNull(secondInnerMap["key5"])
 
       val thirdInnerMapModel = map["key6"]!!
