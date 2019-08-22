@@ -89,7 +89,7 @@ class QrScanningCujTest {
       projectView
         .selectAndroidPane()
         .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-        .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
+        .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout Resource File"))
         .setFilename("activity_main_qr_scan")
         .setRootElement("android.support.constraint.ConstraintLayout")
         .clickOk()
@@ -221,7 +221,7 @@ class QrScanningCujTest {
     ide.projectView
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-      .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
+      .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout Resource File"))
       .setFilename("barcode_capture")
       .setRootElement("FrameLayout")
       .clickOk()
