@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.model;
 
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -35,6 +36,9 @@ public class RangedSeries<E> {
 
   @NotNull
   protected final Range myIntersectRange;
+
+  @NotNull private Range myLastQueriedRange = new Range();
+  @NotNull private List<SeriesData<E>> myLastQueriedSeries = Collections.emptyList();
 
   /**
    * Creates a new RangedSeries with the {@link DataSeries} object scoped by view and data {@link Range} objects. getSeries will return
@@ -61,12 +65,27 @@ public class RangedSeries<E> {
   }
 
   /**
+   * Note - this call is frequently made by UI components on the main thread, so the last queried results are cached and returned if the
+   * query range is determined to not have changed to avoid hitting the Datastore redundantly. If the query range's max value is
+   * Long.MAX_VALUE or Double.MAX_VALUE, however, then the cache is bypassed since there might be new data that are still streaming in.
+   *
    * @return A new, immutable {@link SeriesDataList} consisting of items in the DataStore scoped to the range(s) that the RangedSeries was
    * initialized with.
    */
   @NotNull
   public List<SeriesData<E>> getSeries() {
-    return getSeriesForRange(myRange.getIntersection(myIntersectRange));
+    Range queryRange = myRange.getIntersection(myIntersectRange);
+    if (queryRange.getMax() == Long.MAX_VALUE || queryRange.getMax() == Double.MAX_VALUE) {
+      return getSeriesForRange(queryRange);
+    }
+
+    if (myLastQueriedRange.isSameAs(queryRange)) {
+      return myLastQueriedSeries;
+    }
+
+    myLastQueriedSeries = getSeriesForRange(queryRange);
+    myLastQueriedRange = queryRange;
+    return myLastQueriedSeries;
   }
 
   /**
