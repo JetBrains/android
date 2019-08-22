@@ -13,34 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.profilers.cpu;
 
 /**
- * Enum of {@link com.android.tools.adtui.model.trackgroup.TrackModel} renderer types used in profilers.
+ * Track model for CPU threads in CPU capture stage. Consists of thread states and trace events.
  */
-public enum ProfilerTrackRendererType {
-  /**
-   * For user interaction events (e.g. touch).
-   */
-  USER_INTERACTION,
-  /**
-   * For app lifecycle events (i.e. activities and fragments).
-   */
-  APP_LIFECYCLE,
-  /**
-   * For Atrace frame rendering data.
-   */
-  FRAMES,
-  /**
-   * For Atrace Surfaceflinger events.
-   */
-  SURFACEFLINGER,
-  /**
-   * For Atrace VSYNC signals.
-   */
-  VSYNC,
-  /**
-   * For CPU thread states and trace events.
-   */
-  CPU_THREAD
+public class CpuThreadTrackModel {
 }
