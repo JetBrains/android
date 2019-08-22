@@ -15,24 +15,34 @@
  */
 package org.jetbrains.android.sdk;
 
+import static com.android.SdkConstants.FN_ADB;
+import static com.google.common.truth.Truth.assertThat;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.platformToolPath;
+import static org.mockito.Mockito.when;
+
 import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestCase;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import org.mockito.Mockito;
 
 /**
  * Tests for {@link AndroidSdkUtils}.
@@ -96,6 +106,23 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
       }
     };
     assertEquals("API 100+: platform r100", AndroidSdkUtils.getTargetLabel(platformPreviewTarget));
+  }
+
+  public void testGetDebugBridgeFromSystemPropertyOverride() throws Exception {
+    File fakeAdb = createTempFile("fake-adb", "");
+    System.setProperty(AndroidSdkUtils.ADB_PATH_PROPERTY, fakeAdb.getPath());
+
+    try {
+      AndroidSdkUtils.getDebugBridge(myProject);
+    } catch(RuntimeException ex) {
+      // If the error message contains "ADB not responding." then it's using the correct ADB defined above.
+      // or else it will simply return null.
+      assertThat(ex.getMessage()).contains("ADB not responding.");
+    }
+
+    // This is required because ddmlib uses an application service and won't be terminated during project disposal.
+    // This line can be removed once (b/135555649) is resolved.
+    AdbService.getInstance().terminateDdmlib();
   }
 
   private static void createAndroidSdk(@NotNull File androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
