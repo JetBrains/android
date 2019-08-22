@@ -23,12 +23,15 @@ import com.android.tools.idea.naveditor.property2.inspector.ActionListInspectorB
 import com.android.tools.idea.naveditor.property2.inspector.ArgumentInspectorBuilder
 import com.android.tools.idea.naveditor.property2.inspector.DeepLinkInspectorBuilder
 import com.android.tools.idea.naveditor.property2.ui.ComponentList
+import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.android.tools.property.panel.impl.model.util.FakeLineType
+import java.awt.event.FocusEvent
+import javax.swing.ListModel
 
 class ComponentListInspectorBuilderTest : NavTestCase() {
   fun testActionListInspectorBuilder() {
@@ -46,7 +49,8 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
     val expected = arrayOf("action1", "action2", "action3").mapNotNull(model::find)
-    verifyPanel(fragment1, ActionListInspectorBuilder(), expected)
+    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    verifyPanel(fragment1, propertiesModel, ActionListInspectorBuilder(propertiesModel), expected)
   }
 
   fun testArgumentInspectorBuilder() {
@@ -62,7 +66,8 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
     val expected = arrayOf("argument1", "argument2", "argument3").map { name -> fragment1.children.first { it.argumentName == name } }
-    verifyPanel(fragment1, ArgumentInspectorBuilder(), expected)
+    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    verifyPanel(fragment1, propertiesModel, ArgumentInspectorBuilder(), expected)
   }
 
   fun testDeepLinkInspectorBuilder() {
@@ -78,11 +83,12 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
     val expected = arrayOf("deepLink1", "deepLink2", "deepLink3").mapNotNull(model::find)
-    verifyPanel(fragment1, DeepLinkInspectorBuilder(), expected)
+    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    verifyPanel(fragment1, propertiesModel, DeepLinkInspectorBuilder(), expected)
   }
 
-  private fun verifyPanel(component: NlComponent, builder: InspectorBuilder<NelePropertyItem>, expected: List<NlComponent>) {
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+  private fun verifyPanel(component: NlComponent, propertiesModel: NelePropertiesModel,
+                          builder: InspectorBuilder<NelePropertyItem>, expected: List<NlComponent>) {
     val provider = NelePropertiesProvider(myFacet)
     val propertiesTable = provider.getProperties(propertiesModel, null, listOf(component))
     val panel = FakeInspectorPanel()
@@ -101,4 +107,54 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
       assertEquals(expectedElement, tableModel.getElementAt(i))
     }
   }
+
+  fun testSelectionHighlighted() {
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1") {
+          action("action1", destination = "fragment2")
+          action("action2", destination = "activity1")
+          action("action3", destination = "fragment1")
+        }
+      }
+    }
+
+    val fragment1 = model.find("fragment1")!!
+
+    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    val provider = NelePropertiesProvider(myFacet)
+    val propertiesTable = provider.getProperties(propertiesModel, null, listOf(fragment1))
+    val panel = FakeInspectorPanel()
+    val builder = ActionListInspectorBuilder(propertiesModel)
+    builder.attachToInspector(panel, propertiesTable)
+
+    val componentList = panel.lines[1].component as ComponentList
+    val list = componentList.list
+    val listModel = list.model
+
+    list.selectedIndex = 0
+    verifyClientProperties(listModel, true, false, false)
+
+    list.selectedIndices = intArrayOf(1, 2)
+    verifyClientProperties(listModel, false, true, true)
+
+    list.focusListeners.forEach { it.focusLost(FocusEvent(list, FocusEvent.FOCUS_LOST)) }
+    verifyClientProperties(listModel, false, false, false)
+  }
+
+  private fun verifyClientProperties(model: ListModel<NlComponent>, vararg expectedValues: Boolean) {
+    assertEquals(model.size, expectedValues.size)
+
+    expectedValues.forEachIndexed { i, expected ->
+      val property = model.getElementAt(i).getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY)
+
+      if (expected) {
+        assertEquals(property, true)
+      }
+      else {
+        assertNull(property)
+      }
+    }
+  }
 }
+
