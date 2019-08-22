@@ -47,12 +47,12 @@ class ArchiveToGradleModuleModel(val project: Project, private val projectSyncIn
   }
 
   public override fun handleFinished() {
-    CreateModuleFromArchiveAction(
+    createModuleFromArchive(
       project,
       GRADLE_PATH_SEPARATOR + gradlePath.get().removePrefix(GRADLE_PATH_SEPARATOR),
-      archive.get(),
+      File(archive.get()),
       moveArchive.get(),
-      getContainingModule(File(archive.get()), project)).execute()
+      getContainingModule(File(archive.get()), project))
 
     if (!ApplicationManager.getApplication().isUnitTestMode) {
       assert(ApplicationManager.getApplication().isDispatchThread)
