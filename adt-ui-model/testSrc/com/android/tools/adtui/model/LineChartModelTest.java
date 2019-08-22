@@ -66,7 +66,8 @@ public class LineChartModelTest {
 
   @Test
   public void testNoUpdateOnNoLargerThanCurrentRangeMaxData() {
-    Range xRange = new Range(0, 10);
+    // See max to Long.MAX_VALUE to make sure we are querying the newly added data, to prevent RangedSeries from caching the data.
+    Range xRange = new Range(0, Long.MAX_VALUE);
     Range yRange = new Range(0, 0);
     DefaultDataSeries<Long> testSeries = new DefaultDataSeries<>();
 
@@ -102,7 +103,8 @@ public class LineChartModelTest {
 
   @Test
   public void testNegativeRanges() {
-    Range xRange = new Range(0, 10);
+    // See max to Long.MAX_VALUE to make sure we are querying the newly added data, to prevent RangedSeries from caching the data.
+    Range xRange = new Range(0, Long.MAX_VALUE);
     Range yRange = new Range(-10, -5);
     DefaultDataSeries<Long> testSeries = new DefaultDataSeries<>();
 
