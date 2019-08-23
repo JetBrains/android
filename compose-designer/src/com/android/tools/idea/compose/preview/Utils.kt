@@ -19,10 +19,10 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -30,16 +30,35 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
-import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
 
-data class PreviewConfiguration(val apiLevel: Int,
-                                val theme: String?,
-                                val width: Int,
-                                val height: Int) {
+// Max allowed API
+@VisibleForTesting const val MAX_WIDTH = 2000
+@VisibleForTesting const val MAX_HEIGHT = 2000
+
+/**
+ * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is null,
+ * this will return null.
+ */
+private fun Int?.truncate(min: Int, max: Int): Int? {
+  if (this == null) {
+    return null
+  }
+
+  if (this == UNDEFINED_DIMENSION) {
+    return UNDEFINED_DIMENSION
+  }
+
+  return minOf(maxOf(this, min), max)
+}
+
+data class PreviewConfiguration private constructor(val apiLevel: Int,
+                                                    val theme: String?,
+                                                    val width: Int,
+                                                    val height: Int) {
   fun applyTo(renderConfiguration: Configuration) {
     if (apiLevel != UNDEFINED_API_LEVEL) {
       val highestTarget = renderConfiguration.configurationManager.highestApiTarget!!
@@ -50,6 +69,24 @@ data class PreviewConfiguration(val apiLevel: Int,
     if (theme != null) {
       renderConfiguration.setTheme(theme)
     }
+  }
+
+  companion object {
+    /**
+     * Cleans the given values and creates a PreviewConfiguration. The cleaning ensures that the user inputted value are within
+     * reasonable values before the PreviewConfiguration is created
+     */
+    @JvmStatic
+    fun cleanAndGet(apiLevel: Int?,
+                    theme: String?,
+                    width: Int?,
+                    height: Int?): PreviewConfiguration =
+      // We only limit the sizes. We do not limit the API because using an incorrect API level will throw an exception that
+      // we will handle and any other error.
+      PreviewConfiguration(apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
+                           theme = theme,
+                           width = width.truncate(1, MAX_WIDTH) ?: UNDEFINED_DIMENSION,
+                           height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION)
   }
 }
 

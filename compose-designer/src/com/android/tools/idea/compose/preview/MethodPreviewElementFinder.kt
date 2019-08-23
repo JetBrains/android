@@ -28,7 +28,6 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
-import org.jetbrains.uast.UExpression
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.ULambdaExpression
 import org.jetbrains.uast.ULiteralExpression
@@ -135,10 +134,11 @@ object MethodPreviewElementFinder : PreviewElementFinder {
         previewElements.add(PreviewElement(previewName, composableMethodName,
                                            previewMethodCall.toSmartPsiPointer(),
                                            composableMethodBody.toSmartPsiPointer(),
-                                           PreviewConfiguration(apiLevel = (configuration["apiLevel"] as? Int) ?: UNDEFINED_API_LEVEL,
-                                                                theme = (configuration["theme"] as? String),
-                                                                width = configuration["width"] as? Int ?: UNDEFINED_DIMENSION,
-                                                                height = configuration["height"] as? Int ?: UNDEFINED_DIMENSION)))
+                                           PreviewConfiguration.cleanAndGet(
+                                             apiLevel = configuration["apiLevel"] as? Int,
+                                             theme = configuration["theme"] as? String,
+                                             width = configuration["width"] as? Int,
+                                             height = configuration["height"] as? Int)))
 
       override fun visitCallExpression(node: UCallExpression): Boolean {
         val previewUMethod = getPreviewMethodCall(node) ?: return false
