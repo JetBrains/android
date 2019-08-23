@@ -26,7 +26,7 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link JavaLanguageLevelModuleSetupStep}.
  */
-public class JavaLanguageLevelModuleSetupStepTest extends IdeaTestCase {
+public class JavaLanguageLevelModuleSetupStepTest extends PlatformTestCase {
   @Mock private JavaModuleModel myJavaModuleModel;
 
   private JavaLanguageLevelModuleSetupStep mySetupStep;

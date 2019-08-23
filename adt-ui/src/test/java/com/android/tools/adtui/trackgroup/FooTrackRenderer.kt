@@ -17,11 +17,11 @@ package com.android.tools.adtui.trackgroup
 
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackModel
-import java.awt.Component
 import javax.swing.JCheckBox
+import javax.swing.JComponent
 
 class FooTrackRenderer : TrackRenderer<Boolean, TestTrackRendererType> {
-  override fun render(trackModel: TrackModel<Boolean, TestTrackRendererType>): Component {
+  override fun render(trackModel: TrackModel<Boolean, TestTrackRendererType>): JComponent {
     return JCheckBox("Checked", trackModel.dataModel)
   }
 }

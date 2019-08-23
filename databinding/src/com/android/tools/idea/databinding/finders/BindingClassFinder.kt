@@ -50,10 +50,13 @@ class BindingClassFinder(project: Project) : PsiElementFinder() {
     fun findAllBindingClasses(facet: AndroidFacet): List<LightBindingClass> {
       if (!facet.isViewBindingEnabled() && !DataBindingUtil.isDataBindingEnabled(facet)) return emptyList()
 
-      val groups = ResourceRepositoryManager.getModuleResources(facet).dataBindingResourceFiles ?: return emptyList()
+      val groups = ResourceRepositoryManager.getModuleResources(facet).bindingLayoutGroups
+      if (groups.isEmpty()) {
+        return emptyList()
+      }
 
       val moduleDataBinding = ModuleDataBinding.getInstance(facet)
-      return groups.flatMap { group -> moduleDataBinding.getLightBindingClasses(group) }
+      return groups.values.flatMap { group -> moduleDataBinding.getLightBindingClasses(group) }
     }
   }
 

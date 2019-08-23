@@ -16,16 +16,18 @@
 package org.jetbrains.android.refactoring
 
 import com.android.tools.idea.gradle.project.sync.GradleFiles
+import com.android.tools.idea.res.AndroidRClassBase
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.xml.XmlFile
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.util.xml.DomManager
+import org.jetbrains.android.augment.AndroidLightField
+import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.plugins.groovy.GroovyLanguage
 
 /**
@@ -69,13 +71,15 @@ class AndroidDomUsageTypeProvider : UsageTypeProvider {
  */
 class AndroidResourceReferenceInCodeUsageTypeProvider : UsageTypeProvider {
   override fun getUsageType(element: PsiElement): UsageType? {
-    val referenceExpression = element as? PsiReferenceExpression ?: return null
-    val facet = AndroidFacet.getInstance(element) ?: return null
-    val fieldInfo = AndroidResourceUtil.getReferredResourceOrManifestField(facet, referenceExpression, false)
-    return when {
-      fieldInfo == null -> null
-      fieldInfo.isFromManifest -> PERMISSION_REFERENCE_IN_CODE
-      else -> RESOURCE_REFERENCE_IN_CODE
+    if (element !is PsiReferenceExpression && element !is KtSimpleNameExpression) {
+      return null
+    }
+    val androidLightField =
+      element.references.asSequence().map { it.resolve() }.first { it is AndroidLightField } as? AndroidLightField ?: return null
+    return when (androidLightField.containingClass.containingClass) {
+      is ManifestClass -> PERMISSION_REFERENCE_IN_CODE
+      is AndroidRClassBase -> RESOURCE_REFERENCE_IN_CODE
+      else -> null
     }
   }
 

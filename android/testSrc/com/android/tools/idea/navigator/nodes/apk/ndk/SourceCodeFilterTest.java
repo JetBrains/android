@@ -17,7 +17,7 @@ package com.android.tools.idea.navigator.nodes.apk.ndk;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 import java.io.File;
@@ -32,7 +32,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SourceCodeFilter}.
  */
-public class SourceCodeFilterTest extends IdeaTestCase {
+public class SourceCodeFilterTest extends PlatformTestCase {
   @Mock private PsiDirectory myItem;
 
   private VirtualFile mySrcFolder;

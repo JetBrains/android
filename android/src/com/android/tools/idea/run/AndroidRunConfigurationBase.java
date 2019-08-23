@@ -418,10 +418,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, test, outputKindProvider);
   }
 
-  public boolean monitorRemoteProcess() {
-    return true;
-  }
-
   @NotNull
   public final DeviceCount getDeviceCount(boolean debug) {
     return DeviceCount.fromBoolean(supportMultipleDevices() && !debug);

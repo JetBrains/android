@@ -34,8 +34,5 @@ public interface LaunchTasksProvider {
   @Nullable
   DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version);
 
-  /** Returns whether the process handler should monitor the remote process and terminate itself when the process dies. */
-  boolean monitorRemoteProcess();
-
   default void fillStats(RunStats stats) {}
 }

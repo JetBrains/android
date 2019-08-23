@@ -25,7 +25,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +41,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 /**
  * Tests for {@link ConflictSet}.
  */
-public class ConflictSetTest extends IdeaTestCase {
+public class ConflictSetTest extends PlatformTestCase {
   private AndroidProjectStub myAppModel;
   private VariantStub myAppDebugVariant;
 

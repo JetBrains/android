@@ -217,6 +217,11 @@ open class NelePropertyItem(
     return resolveValue(asResourceValue(value)) ?: value
   }
 
+  fun resolveValueAsReference(value: String?): ResourceReference? {
+    if (value == null) return null
+    return ResourceUrl.parse(value)?.resolve(defaultNamespace, namespaceResolver)
+  }
+
   fun resolveValueAsColor(value: String?): Color? {
     if (value != null && !isReferenceValue(value)) {
       return parseColor(value)
@@ -226,8 +231,7 @@ open class NelePropertyItem(
   }
 
   private fun asResourceValue(value: String?): ResourceValue? {
-    if (value == null) return null
-    return asResourceValue(ResourceUrl.parse(value)?.resolve(defaultNamespace, namespaceResolver))
+    return asResourceValue(resolveValueAsReference(value))
   }
 
   private fun asResourceValue(reference: ResourceReference?): ResourceValue? {

@@ -19,6 +19,7 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
@@ -30,22 +31,45 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 
-private val MAXIMUM_CACHE_WEIGHT_BYTES = (200 * 1024.0.pow(2)).toLong() // 200 MB
+private val SMALL_MAXIMUM_CACHE_WEIGHT_BYTES = (10 * 1024.0.pow(2)).toLong() // 10 MB
+private val LARGE_MAXIMUM_CACHE_WEIGHT_BYTES = (100 * 1024.0.pow(2)).toLong() // 100 MB
 
 /**
  * Helper class that caches the result of a computation of an [Image].
  *
  * The keys of the cache are strong references to let
- * @param cacheExpirationTime Time after which the cache expire. (Defaults to 5 minutes.)
  * @see Cache
  * @see CacheBuilder.softValues
  */
-class ImageCache(cacheExpirationTime: Long = 5,
-                 timeUnit: TimeUnit = TimeUnit.MINUTES,
-                 maximumCapacity: Long = MAXIMUM_CACHE_WEIGHT_BYTES,
-                 mergingUpdateQueue: MergingUpdateQueue? = null
+class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
+                                     private val objectToImage: Cache<DesignAsset, Image>
 ) : Disposable {
+  companion object {
+    private val largeObjectToImage by lazy { createObjectToImageCache(5, LARGE_MAXIMUM_CACHE_WEIGHT_BYTES) }
+    private val smallObjectToImage by lazy { createObjectToImageCache(1, SMALL_MAXIMUM_CACHE_WEIGHT_BYTES) }
 
+    /**
+     * Returns an ImageCache that uses an image pool of size [LARGE_MAXIMUM_CACHE_WEIGHT_BYTES] to store previews for a given [DesignAsset]
+     *
+     * @param parentDisposable Used to dispose of the returned [ImageCache], used as the parent disposable for the default
+     * [MergingUpdateQueue] when the [mergingUpdateQueue] parameter is null.
+     */
+    fun createLargeImageCache(
+      parentDisposable: Disposable,
+      mergingUpdateQueue: MergingUpdateQueue? = null
+    ) = ImageCache(mergingUpdateQueue, largeObjectToImage).apply { Disposer.register(parentDisposable, this) }
+
+    /**
+     * Returns an ImageCache that uses an image pool of size [SMALL_MAXIMUM_CACHE_WEIGHT_BYTES] to store previews for a given [DesignAsset]
+     *
+     * @param parentDisposable Used to dispose of the returned [ImageCache], used as the parent disposable for the default
+     * [MergingUpdateQueue] when the [mergingUpdateQueue] parameter is null.
+     */
+    fun createSmallImageCache(
+      parentDisposable: Disposable,
+      mergingUpdateQueue: MergingUpdateQueue? = null
+    ) = ImageCache(mergingUpdateQueue, smallObjectToImage).apply { Disposer.register(parentDisposable, this) }
+  }
 
   private val pendingFutures = HashMap<DesignAsset, CompletableFuture<*>?>()
 
@@ -74,18 +98,8 @@ class ImageCache(cacheExpirationTime: Long = 5,
     }
   }
 
-  private val objectToImage: Cache<DesignAsset, Image> = CacheBuilder.newBuilder()
-    .expireAfterAccess(cacheExpirationTime, timeUnit)
-    .softValues()
-    .weigher<DesignAsset, Image> { _, image -> imageWeigher(image) }
-    .maximumWeight(maximumCapacity)
-    .build<DesignAsset, Image>()
-
-  private fun imageWeigher(image: Image): Int {
-    if (image is BufferedImage) {
-      return image.raster.dataBuffer.size * Integer.BYTES
-    }
-    return image.getWidth(null) * image.getHeight(null) * Integer.BYTES
+  fun clear() {
+    objectToImage.invalidateAll()
   }
 
   /**
@@ -99,7 +113,6 @@ class ImageCache(cacheExpirationTime: Long = 5,
    *
    * Once the image is cached, [onImageCached] is invoked on [executor] (or the EDT if none is provided)
    */
-
   fun computeAndGet(@Async.Schedule key: DesignAsset,
                     placeholder: Image,
                     forceComputation: Boolean,
@@ -107,7 +120,6 @@ class ImageCache(cacheExpirationTime: Long = 5,
                     executor: Executor = EdtExecutorService.getInstance(),
                     computationFutureProvider: (() -> CompletableFuture<out Image?>))
     : Image {
-
     val cachedImage = objectToImage.getIfPresent(key)
     if ((cachedImage == null || forceComputation) && !pendingFutures.containsKey(key)) {
       val executeImmediately = cachedImage == null // If we don't have any image, no need to wait.
@@ -139,4 +151,19 @@ class ImageCache(cacheExpirationTime: Long = 5,
       }
     }
   }
+}
+
+private fun createObjectToImageCache(duration: Long, size: Long): Cache<DesignAsset, Image> =
+  CacheBuilder.newBuilder()
+    .expireAfterAccess(duration, TimeUnit.MINUTES)
+    .softValues()
+    .weigher<DesignAsset, Image> { _, image -> imageWeigher(image) }
+    .maximumWeight(size)
+    .build<DesignAsset, Image>()
+
+private fun imageWeigher(image: Image): Int {
+  if (image is BufferedImage) {
+    return image.raster.dataBuffer.size * Integer.BYTES
+  }
+  return image.getWidth(null) * image.getHeight(null) * Integer.BYTES
 }

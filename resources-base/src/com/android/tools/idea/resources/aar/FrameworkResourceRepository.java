@@ -254,7 +254,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
         Path cacheFile = fileNameGenerator.getCacheFile(language);
         try (Base128InputStream stream = new Base128InputStream(cacheFile)) {
           byte[] header = ResourceSerializationUtil.getCacheFileHeader(s -> writeCacheHeaderContent(cachingData, language, s));
-          if (!ResourceSerializationUtil.validateContents(header, stream)) {
+          if (!stream.validateContents(header)) {
             // Cache file header doesn't match.
             if (language.isEmpty()) {
               break; // Don't try to load language-specific resources if language-neutral ones could not be loaded.

@@ -73,18 +73,22 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
 
   init {
     fieldCache = CachedValuesManager.getManager(facet.module.project).createCachedValue(
+      // TODO(davidherman): Reliance on javaStructureModificationTracker is known to cause performance problems.
       object : ResourceCacheValueProvider<Array<PsiField>>(facet, cacheLock,
                                                            psiManager.modificationTracker.javaStructureModificationTracker) {
         override fun doCompute(): Array<PsiField> {
           val project = facet.module.project
-          val elementFactory = PsiElementFactory.SERVICE.getInstance(project)
+          val elementFactory = PsiElementFactory.getInstance(project)
           val moduleResources = ResourceRepositoryManager.getInstance(facet).existingModuleResources ?: return defaultValue()
-          val dataBindingResourceFiles = moduleResources.dataBindingResourceFiles ?: return defaultValue()
+          val groups = moduleResources.bindingLayoutGroups
+          if (groups.isEmpty()) {
+            return defaultValue()
+          }
 
-          val variableNamesSet = dataBindingResourceFiles
+          val variableNamesSet = groups.values
             .flatMap { group -> group.layouts }
-            .flatMap { layout -> layout.xml.variables }
-            .map { item -> item.name }
+            .flatMap { layout -> layout.data.variables }
+            .map { variable -> variable.name }
             .toMutableSet()
           collectVariableNamesFromUserBindables()?.let { bindables -> variableNamesSet.addAll(bindables) }
 
@@ -98,7 +102,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
 
         override fun defaultValue(): Array<PsiField> {
           val project = facet.module.project
-          return arrayOf(createPsiField(project, PsiElementFactory.SERVICE.getInstance(project), "_all"))
+          return arrayOf(createPsiField(project, PsiElementFactory.getInstance(project), "_all"))
         }
       }, false)
     setModuleInfo(facet.module, false)

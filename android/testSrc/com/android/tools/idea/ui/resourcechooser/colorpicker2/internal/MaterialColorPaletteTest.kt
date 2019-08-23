@@ -21,13 +21,13 @@ import com.android.tools.idea.ui.MaterialColors
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.Component
 import javax.swing.JComponent
 
-class MaterialColorPaletteTest : IdeaTestCase() {
+class MaterialColorPaletteTest : PlatformTestCase() {
 
   fun testCreatePickerWithColorPalette() {
     val picker = ColorPickerBuilder().addCustomComponent(object : ColorPickerComponentProvider {

@@ -215,6 +215,8 @@ open class AddActionDialog(
       selectItem(dialog.myDestinationComboBox, { entry -> entry.isReturnToSource }, true)
     }
     dialog.myIdTextField.text = generateActionId(source, destination?.id, popTo, isInclusive)
+
+    setAnimationComboBoxesEnabled(false)
   }
 
   private fun populateDestinations() {
@@ -229,6 +231,13 @@ open class AddActionDialog(
     dialog.myPopToComboBox.addItem(null)
 
     populateComboBox(dialog.myPopToComboBox, { it.isFragment || it.isNavigation })
+  }
+
+  private fun setAnimationComboBoxesEnabled(enable: Boolean) {
+    dialog.myEnterComboBox.isEnabled = enable
+    dialog.myExitComboBox.isEnabled = enable
+    dialog.myPopEnterComboBox.isEnabled = enable
+    dialog.myPopExitComboBox.isEnabled = enable
   }
 
   private fun populateComboBox(comboBox: JComboBox<DestinationListEntry>, filter: (NlComponent) -> Boolean) {
@@ -271,6 +280,12 @@ open class AddActionDialog(
     selectItem(dialog.myExitComboBox, { it.value }, ATTR_EXIT_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myPopEnterComboBox, { it.value }, ATTR_POP_ENTER_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myPopExitComboBox, { it.value }, ATTR_POP_EXIT_ANIM, AUTO_URI, existingAction)
+
+    val component = (dialog.myDestinationComboBox.selectedItem as? DestinationListEntry)?.component
+                    ?: (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component
+
+    setAnimationComboBoxesEnabled(component != null)
+
     dialog.mySingleTopCheckBox.isSelected = existingAction.singleTop == true
     dialog.myIdTextField.text = existingAction.id
     dialog.myIdTextField.isEnabled = false
@@ -378,7 +393,10 @@ open class AddActionDialog(
 
       val component = (dialog.myDestinationComboBox.selectedItem as? DestinationListEntry)?.component
                       ?: (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component
-                      ?: return@ActionListener
+
+      setAnimationComboBoxesEnabled(component != null)
+
+      component ?: return@ActionListener
 
       if (repoManager != null) {
         getAnimatorsPopupContent(repoManager, component.isFragment)

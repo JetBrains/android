@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.module;
 
 import com.android.tools.idea.project.AndroidRunConfigurations;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -33,7 +33,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidRunConfigurationSetupStep}.
  */
-public class AndroidRunConfigurationSetupStepTest extends IdeaTestCase {
+public class AndroidRunConfigurationSetupStepTest extends PlatformTestCase {
   @Mock private AndroidRunConfigurations myRunConfigurations;
 
   private AndroidRunConfigurationSetupStep mySetupStep;

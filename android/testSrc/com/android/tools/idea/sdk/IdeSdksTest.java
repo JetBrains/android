@@ -39,7 +39,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -52,7 +52,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link IdeSdks}.
  */
-public class IdeSdksTest extends IdeaTestCase {
+public class IdeSdksTest extends PlatformTestCase {
   @Mock private IdeInfo myIdeInfo;
 
   private File myAndroidSdkPath;

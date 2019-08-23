@@ -34,7 +34,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,7 +43,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link DependenciesModuleSetupStep}.
  */
-public class DependenciesModuleSetupStepTest extends IdeaTestCase {
+public class DependenciesModuleSetupStepTest extends PlatformTestCase {
   @Mock private JavaModuleDependenciesSetup myDependenciesSetup;
   @Mock private JavaModuleModel myJavaModuleModel;
 

@@ -47,7 +47,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/releaseUnitTest/out [-]
             JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/release/out [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/release [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/release
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/release [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -83,7 +83,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             JavaResource (test) : file://<PROJECT>/app/src/testRelease/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testRelease/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testRelease/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK

@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.utils.findClass
-import com.android.tools.idea.res.binding.BindingLayoutInfoFile
+import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
@@ -27,8 +27,8 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.IncorrectOperationException
-import junit.framework.Assert.fail
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -105,7 +105,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
     // Additionally, let's verify the behavior of the LightBindingClass's navigation element, for
     // code coverage purposes.
     binding.navigationElement.let { navElement ->
-      assertThat(navElement).isInstanceOf(BindingLayoutInfoFile::class.java)
+      assertThat(navElement).isInstanceOf(BindingLayoutInfo.BindingLayoutInfoFile::class.java)
       assertThat(navElement.containingFile).isSameAs(navElement)
       // This next cast has to be true or else Java code coverage will crash. More details in the
       // header docs of BindingLayoutInfoFile
@@ -118,7 +118,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
         psiClassOwner.packageName = "setting.packages.is.not.supported"
         fail()
       }
-      catch (ignored: IncorrectOperationException) {}
+      catch (expected: IncorrectOperationException) {}
     }
   }
 

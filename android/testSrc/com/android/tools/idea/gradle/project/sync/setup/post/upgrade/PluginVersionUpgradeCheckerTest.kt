@@ -20,12 +20,12 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.notification.NotificationsManager
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.PlatformTestCase
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations.initMocks
 
-class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
+class PluginVersionUpgradeCheckerTest : PlatformTestCase() {
   @Mock private lateinit var projectInfo: GradleProjectInfo
   @Mock private lateinit var upgradeReminder: TimeBasedUpgradeReminder
 

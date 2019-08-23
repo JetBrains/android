@@ -18,7 +18,7 @@ package com.android.tools.idea.apk.debugging;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link DexSourceFiles}.
  */
-public class DexSourceFilesTest extends IdeaTestCase {
+public class DexSourceFilesTest extends PlatformTestCase {
   private File myOutputFolderPath;
   private DexSourceFiles myDexSourceFiles;
 

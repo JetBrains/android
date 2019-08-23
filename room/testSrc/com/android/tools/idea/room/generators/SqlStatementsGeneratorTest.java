@@ -25,6 +25,7 @@ import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
 import com.android.tools.idea.room.migrations.generators.SqlStatementsGenerator;
 import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
+import com.android.tools.idea.room.migrations.json.IndexBundle;
 import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
 import com.android.tools.idea.room.migrations.update.EntityUpdate;
@@ -303,5 +304,96 @@ public class SqlStatementsGeneratorTest {
       "DROP TABLE table2;",
       "ALTER TABLE table2_data$android_studio_tmp RENAME TO table2;",
       "PRAGMA foreign_key_check;").inOrder();
+  }
+
+  @Test
+  public void testDropIndexUpdate() {
+    IndexBundle indexBundle = new IndexBundle("index_table_column1", false, Collections.singletonList("column1"), "");
+
+    EntityBundle entity1 = new EntityBundle("table", "", Arrays.asList(field1, field2),
+                                            new PrimaryKeyBundle(false, Collections.singletonList(field1.getColumnName())),
+                                            Collections.singletonList(indexBundle), null);
+    EntityBundle entity2 = createEntityBundle("table", Arrays.asList(field1, field2));
+
+    EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
+
+    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate)).containsExactly("DROP INDEX index_table_column1;").inOrder();
+  }
+
+  @Test
+  public void testAddIndexUpdate() {
+    IndexBundle indexBundle = new IndexBundle("index_table_column1", false, Collections.singletonList("column1"), "");
+
+    EntityBundle entity1 = createEntityBundle("table", Arrays.asList(field1, field2));
+    EntityBundle entity2 = new EntityBundle("table", "", Arrays.asList(field1, field2),
+                                            new PrimaryKeyBundle(false, Collections.singletonList(field1.getColumnName())),
+                                            Collections.singletonList(indexBundle), null);
+
+    EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
+
+    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate))
+      .containsExactly("CREATE INDEX index_table_column1 ON `table` (column1);").inOrder();
+  }
+
+  @Test
+  public void testAddUniqueIndexUpdate() {
+    IndexBundle indexBundle = new IndexBundle("index_table_column1", true, Collections.singletonList("column1"), "");
+
+    EntityBundle entity1 = createEntityBundle("table", Arrays.asList(field1, field2));
+    EntityBundle entity2 = new EntityBundle("table", "", Arrays.asList(field1, field2),
+                                            new PrimaryKeyBundle(false, Collections.singletonList(field1.getColumnName())),
+                                            Collections.singletonList(indexBundle), null);
+
+    EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
+
+    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate))
+      .containsExactly("CREATE UNIQUE INDEX index_table_column1 ON `table` (column1);").inOrder();
+  }
+
+  @Test
+  public void testRenameIndexUpdate() {
+    IndexBundle index1 = new IndexBundle("index_table_column1", false, Collections.singletonList("column1"), "");
+    IndexBundle index2 = new IndexBundle("index_column1", false, Collections.singletonList("column1"), "");
+
+    EntityBundle entity1 = new EntityBundle("table", "", Arrays.asList(field1, field2),
+                                            new PrimaryKeyBundle(false, Collections.singletonList(field1.getColumnName())),
+                                            Collections.singletonList(index1), null);
+    EntityBundle entity2 = new EntityBundle("table", "", Arrays.asList(field1, field2),
+                                            new PrimaryKeyBundle(false, Collections.singletonList(field1.getColumnName())),
+                                            Collections.singletonList(index2), null);
+
+    EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
+
+    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate))
+      .containsExactly("DROP INDEX index_table_column1;", "CREATE INDEX index_column1 ON `table` (column1);").inOrder();
+  }
+
+  @Test
+  public void testUpdateIndexOnTableChange() {
+    IndexBundle indexBundle = new IndexBundle("index_table_column1", false, Collections.singletonList("column1"), "");
+
+    EntityBundle entity1 = new EntityBundle("table", "", Arrays.asList(field1, field2, field3),
+                                            new PrimaryKeyBundle(false, Collections.singletonList(field1.getColumnName())),
+                                            Collections.singletonList(indexBundle), null);
+    EntityBundle entity2 = new EntityBundle("table", "", Arrays.asList(field1, field2),
+                                            new PrimaryKeyBundle(false, Collections.singletonList(field1.getColumnName())),
+                                            Collections.singletonList(indexBundle), null);
+
+    EntityUpdate entityUpdate = new EntityUpdate(entity1, entity2);
+
+    assertThat(SqlStatementsGenerator.getUpdateStatements(entityUpdate))
+      .containsExactly(
+        "CREATE TABLE table_data$android_studio_tmp\n" +
+        "(\n" +
+        "\tcolumn1 TEXT,\n" +
+        "\tcolumn2 TEXT,\n" +
+        "\tPRIMARY KEY (column1)\n" +
+        ");",
+        "INSERT INTO table_data$android_studio_tmp (column1, column2)\n" +
+        "\tSELECT column1, column2\n" +
+        "\tFROM `table`;",
+        "DROP TABLE `table`;",
+        "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;",
+        "CREATE INDEX index_table_column1 ON `table` (column1);").inOrder();
   }
 }

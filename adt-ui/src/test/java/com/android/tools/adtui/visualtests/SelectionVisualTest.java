@@ -16,21 +16,34 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.SelectionComponent;
+import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.DefaultConfigurableDurationData;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.DurationDataModel;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionModel;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.updater.Updatable;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.Box;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import org.jetbrains.annotations.NotNull;
 
 public class SelectionVisualTest extends VisualTest {
 
-  private SelectionComponent mySelection;
+  private RangeSelectionComponent mySelection;
 
   private Range myViewRange;
 
@@ -39,7 +52,7 @@ public class SelectionVisualTest extends VisualTest {
   private JTextField myRangeMax;
   private JTextField mySelectionMin;
   private JTextField mySelectionMax;
-  private SelectionModel mySelectionModel;
+  private RangeSelectionModel myRangeSelectionModel;
   private JPanel myComponent;
 
   @Override
@@ -61,10 +74,10 @@ public class SelectionVisualTest extends VisualTest {
     series2.add(500, new DefaultConfigurableDurationData(50, false, false));
     series2.add(750, new DefaultConfigurableDurationData(50, false, true));
 
-    mySelectionModel = new SelectionModel(mySelectionRange);
-    mySelectionModel.addConstraint(constraint1);
-    mySelectionModel.addConstraint(constraint2);
-    mySelection = new SelectionComponent(mySelectionModel, myViewRange);
+    myRangeSelectionModel = new RangeSelectionModel(mySelectionRange);
+    myRangeSelectionModel.addConstraint(constraint1);
+    myRangeSelectionModel.addConstraint(constraint2);
+    mySelection = new RangeSelectionComponent(myRangeSelectionModel, myViewRange);
 
     // Add the scene components to the list
     List<Updatable> componentsList = new ArrayList<>();
@@ -106,7 +119,7 @@ public class SelectionVisualTest extends VisualTest {
                      new Dimension(300, Integer.MAX_VALUE)));
   }
 
-  private JTextField addEntryField(String name, JPanel controls) {
+  private static JTextField addEntryField(String name, JPanel controls) {
     JPanel panel = new JPanel(new BorderLayout());
     JTextField field = new JTextField();
     panel.add(new JLabel(name), BorderLayout.WEST);
@@ -119,7 +132,7 @@ public class SelectionVisualTest extends VisualTest {
     private final DurationDataModel<DefaultConfigurableDurationData> myConstraints;
     private final Color myColor;
 
-    public DurationMarkers(DurationDataModel<DefaultConfigurableDurationData> constraints, Color color) {
+    DurationMarkers(DurationDataModel<DefaultConfigurableDurationData> constraints, Color color) {
       myConstraints = constraints;
       myColor = color;
     }

@@ -20,12 +20,12 @@ import static com.android.utils.FileUtils.join;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import org.junit.After;
 
-public class DaemonMemorySettingsTest extends IdeaTestCase {
+public class DaemonMemorySettingsTest extends PlatformTestCase {
 
   private String myGradleUserHome;
   private String myUserHome;

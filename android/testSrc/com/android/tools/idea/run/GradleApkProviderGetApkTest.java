@@ -28,7 +28,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.google.common.collect.Lists;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +45,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Test methods of {@link GradleApkProvider}.
  */
-public class GradleApkProviderGetApkTest extends IdeaTestCase {
+public class GradleApkProviderGetApkTest extends PlatformTestCase {
   private AndroidFacet myAndroidFacet;
   @Mock private AndroidModelFeatures myModelFeatures;
   @Mock private IdeVariant myVariant;

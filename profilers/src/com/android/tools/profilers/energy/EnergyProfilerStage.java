@@ -18,10 +18,10 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.EaseOutModel;
 import com.android.tools.adtui.model.Interpolatable;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionListener;
+import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.SelectionListener;
-import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
@@ -63,7 +63,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull private final EnergyUsageLegends myLegends;
   @NotNull private final EnergyUsageLegends myUsageTooltipLegends;
   @NotNull private final EnergyEventLegends myEventTooltipLegends;
-  @NotNull private final SelectionModel mySelectionModel;
+  @NotNull private final RangeSelectionModel myRangeSelectionModel;
   @NotNull private final EnergyEventsFetcher myFetcher;
   @NotNull private final StateChartModel<Common.Event> myEventModel;
   @NotNull private final EaseOutModel myInstructionsEaseOutModel;
@@ -85,15 +85,15 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myUsageTooltipLegends = new EnergyUsageLegends(myDetailedUsage, profilers.getTimeline().getTooltipRange());
     myEventTooltipLegends = new EnergyEventLegends(new DetailedEnergyEventsCount(profilers), profilers.getTimeline().getTooltipRange());
 
-    mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange());
-    mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
+    myRangeSelectionModel = new RangeSelectionModel(profilers.getTimeline().getSelectionRange());
+    myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached());
     profilers.addDependency(myAspectObserver)
-      .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
-    mySelectionModel.addListener(new SelectionListener() {
+      .onChange(ProfilerAspect.AGENT, () -> myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
+    myRangeSelectionModel.addListener(new RangeSelectionListener() {
       @Override
       public void selectionCreated() {
         setProfilerMode(ProfilerMode.EXPANDED);
-        trackRangeSelection(profilers, mySelectionModel.getSelectionRange());
+        trackRangeSelection(profilers, myRangeSelectionModel.getSelectionRange());
         profilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_ENERGY_SELECTION, true);
         myInstructionsEaseOutModel.setCurrentPercentage(1);
       }
@@ -143,8 +143,8 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
-  public SelectionModel getSelectionModel() {
-    return mySelectionModel;
+  public RangeSelectionModel getRangeSelectionModel() {
+    return myRangeSelectionModel;
   }
 
   @NotNull

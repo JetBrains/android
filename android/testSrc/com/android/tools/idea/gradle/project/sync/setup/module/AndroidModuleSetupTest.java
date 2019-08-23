@@ -28,13 +28,13 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.google.common.collect.ImmutableList;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link AndroidModuleSetup}.
  */
-public class AndroidModuleSetupTest extends IdeaTestCase {
+public class AndroidModuleSetupTest extends PlatformTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private AndroidModuleSetupStep mySetupStep1;
   @Mock private AndroidModuleSetupStep mySetupStep2;

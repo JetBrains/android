@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
-import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.WhatsNewAssistantEvent;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.actions.WhatsNewAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -64,10 +61,10 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    openWhatsNewSidePanel(Objects.requireNonNull(event.getProject()));
+    openWhatsNewSidePanel(Objects.requireNonNull(event.getProject()), false);
   }
 
-  public void openWhatsNewSidePanel(@NotNull Project project) {
+  public void openWhatsNewSidePanel(@NotNull Project project, boolean isAutoOpened) {
     WhatsNewAssistantBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewAssistantBundleCreator.class);
     if (bundleCreator == null || !bundleCreator.shouldShowWhatsNew()) {
       BrowserUtil.browse(ApplicationInfoEx.getInstanceEx().getWhatsNewUrl());
@@ -75,6 +72,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
     }
 
     openWindow(WhatsNewAssistantBundleCreator.BUNDLE_ID, project);
+    WhatsNewToolWindowListener.fireOpenEvent(project, isAutoOpened);
 
     // Only register a new listener if there isn't already one, to avoid multiple OPEN/CLOSE events
     myProjectToListenerMap.computeIfAbsent(project, this::newWhatsNewToolWindowListener);
@@ -87,7 +85,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
     return listener;
   }
 
-  private static class WhatsNewToolWindowListener implements ToolWindowManagerListener {
+  static class WhatsNewToolWindowListener implements ToolWindowManagerListener {
     @NotNull private Project myProject;
     @NotNull Map<Project, WhatsNewToolWindowListener> myProjectToListenerMap;
     private boolean isOpen;
@@ -96,7 +94,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
                                        @NotNull Map<Project, WhatsNewToolWindowListener> projectToListenerMap) {
       myProject = project;
       myProjectToListenerMap = projectToListenerMap;
-      isOpen = false;
+      isOpen = true; // Start off as opened so we don't fire an extra opened event
 
       // Need an additional listener for project close, because the below invokeLater isn't fired in time before closing
       project.getMessageBus().connect(project).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
@@ -106,7 +104,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
             return;
           }
           if (isOpen) {
-            fireClosedEvent();
+            fireClosedEvent(myProject);
             isOpen = false;
           }
           myProjectToListenerMap.remove(project);
@@ -124,7 +122,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
     }
 
     /**
-     * Fire WNA OPEN/CLOSE metrics and update the actual state after a state change is received.
+     * Fire WNA metrics and update the actual state after a state change is received.
      * The logic is wrapped in invokeLater because dragging and dropping the StripeButton temporarily
      * hides and then shows the window. Otherwise, the handler would think the window was closed,
      * even though it was only dragged.
@@ -142,28 +140,22 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
           return;
         }
         if (isOpen && !window.isVisible()) {
-          fireClosedEvent();
+          fireClosedEvent(myProject);
           isOpen = false;
         }
         else if (!isOpen && window.isVisible()){
-          fireOpenEvent();
+          fireOpenEvent(myProject, false);
           isOpen = true;
         }
       });
     }
 
-    private static void fireOpenEvent() {
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
-                         .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder()
-                                                      .setType(WhatsNewAssistantEvent.WhatsNewAssistantEventType.OPEN)));
+    private static void fireOpenEvent(@NotNull Project project, boolean isAutoOpened) {
+      WhatsNewAssistantMetricsTracker.getInstance().open(project, isAutoOpened);
     }
 
-    private static void fireClosedEvent() {
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
-                         .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder()
-                                                      .setType(WhatsNewAssistantEvent.WhatsNewAssistantEventType.CLOSED)));
+    private static void fireClosedEvent(@NotNull Project project) {
+      WhatsNewAssistantMetricsTracker.getInstance().close(project);
     }
   }
 }

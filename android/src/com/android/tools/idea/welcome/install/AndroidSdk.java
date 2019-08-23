@@ -55,7 +55,7 @@ public final class AndroidSdk extends InstallableComponent {
   @Override
   protected Collection<String> getRequiredSdkPackages() {
     Collection<String> result = Lists.newArrayList();
-    result.add(SdkConstants.FD_TOOLS);
+    result.add(SdkConstants.FD_EMULATOR);
     result.add(SdkConstants.FD_PLATFORM_TOOLS);
     String buildToolsPath = getLatestCompatibleBuildToolsPath();
     if (buildToolsPath != null) {

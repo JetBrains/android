@@ -15,37 +15,45 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
 import org.intellij.lang.annotations.Language
+import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UFile
+import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
+import org.jetbrains.uast.visitor.AbstractUastVisitor
 
 class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() {
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
       import com.android.tools.preview.Preview
-      import androidx.compose.Compose
+      import androidx.compose.Composable
 
-      @Compose
+      @Composable
       @Preview
       fun Preview1() {
       }
 
-      @Compose
+      @Composable
       @Preview(name = "preview2", apiLevel = 12)
       fun Preview2() {
       }
 
-      @Compose
+      @Composable
       @Preview(name = "preview3", width = 1, height = 2)
       fun Preview3() {
       }
 
-      @Compose
-      fun NoPreviewCompose() {
+      @Composable
+      fun NoPreviewComposable() {
 
       }
+
+      @Preview
+      fun NoComposablePreview() {
+
+      }
+
     """.trimIndent())
 
     val elements = AnnotationPreviewElementFinder.findPreviewMethods(composeTest.toUElement() as UFile)
@@ -70,5 +78,73 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
     }
+  }
+
+  fun testElementBelongsToPreviewElement() {
+    @Language("kotlin")
+    val composeTest = myFixture.addFileToProject("src/Test.kt", """
+      import com.android.tools.preview.Preview
+      import androidx.compose.Composable
+
+      @Composable
+      @Preview(name = "preview3", width = 1, height = 2)
+      fun Preview3() {
+      }
+    """.trimIndent())
+
+    var previewAnnotation: UAnnotation? = null
+    var previewMethod: UMethod? = null
+    composeTest.toUElement()?.accept(object : AbstractUastVisitor() {
+      override fun visitAnnotation(node: UAnnotation): Boolean {
+        if ("com.android.tools.preview.Preview" == node.qualifiedName) {
+          previewAnnotation = node
+        }
+        return super.visitAnnotation(node)
+      }
+
+      override fun visitMethod(node: UMethod): Boolean {
+        previewMethod = node
+        return super.visitMethod(node)
+      }
+    })
+
+    assertTrue(AnnotationPreviewElementFinder.elementBelongsToPreviewElement(previewAnnotation?.sourcePsi!!))
+    assertFalse(AnnotationPreviewElementFinder.elementBelongsToPreviewElement(previewMethod?.sourcePsi!!))
+  }
+
+  fun testFindPreviewPackage() {
+    @Language("kotlin")
+    val notPreviewAnnotation = myFixture.addFileToProject("src/com/android/notpreview/Preview.kt", """
+      package com.android.notpreview
+
+      annotation class Preview(val name: String = "",
+                               val apiLevel: Int = -1,
+                               val theme: String = "",
+                               val width: Int = -1,
+                               val height: Int = -1)
+    """.trimIndent())
+
+    @Language("kotlin")
+    val composeTest = myFixture.addFileToProject("src/Test.kt", """
+      import com.android.notpreview.Preview
+      import androidx.compose.Composable
+
+      @Composable
+      @Preview
+      fun Preview1() {
+      }
+
+      @Composable
+      @Preview(name = "preview2", apiLevel = 12)
+      fun Preview2() {
+      }
+
+      @Composable
+      @Preview(name = "preview3", width = 1, height = 2)
+      fun Preview3() {
+      }
+    """.trimIndent())
+
+    assertEquals(0, AnnotationPreviewElementFinder.findPreviewMethods(composeTest.toUElement() as UFile).size)
   }
 }

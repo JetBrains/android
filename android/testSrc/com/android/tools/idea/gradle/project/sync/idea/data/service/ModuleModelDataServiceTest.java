@@ -23,7 +23,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link ModuleModelDataService}.
  */
-public class ModuleModelDataServiceTest extends IdeaTestCase {
+public class ModuleModelDataServiceTest extends PlatformTestCase {
   private IdeModifiableModelsProviderImpl myModelsProvider;
   private MyModuleModelDataService myDataService;
 

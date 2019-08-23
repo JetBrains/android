@@ -20,7 +20,7 @@ import com.android.tools.idea.project.AndroidNotificationStub.NotificationMessag
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -38,7 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests {@link ExpiredPreviewBuildSetupStep}.
  */
-public class ExpiredPreviewBuildSetupStepIdeaTest extends IdeaTestCase {
+public class ExpiredPreviewBuildSetupStepIdeaTest extends PlatformTestCase {
   @Mock private ApplicationInfo myApplicationInfo;
 
   private AndroidNotificationStub myNotification;

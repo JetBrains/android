@@ -24,7 +24,6 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ResourceAsserts.assertThat;
-import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
 import static com.android.tools.idea.testing.AndroidTestUtils.moveCaret;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
@@ -46,15 +45,18 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
+import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
@@ -72,6 +74,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.VfsTestUtil;
 import com.intellij.util.WaitFor;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.ui.UIUtil;
@@ -92,7 +95,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.picocontainer.MutablePicoContainer;
 
 /**
  * Tests for {@link ResourceFolderRepository}.
@@ -107,6 +109,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT1 = "resourceRepository/layout.xml";
   private static final String LAYOUT2 = "resourceRepository/layout2.xml";
   private static final String LAYOUT_ID_SCAN = "resourceRepository/layout_for_id_scan.xml";
+  private static final String LAYOUT_WITHOUT_IDS = "resourceRepository/layout_without_ids.xml";
+  private static final String LAYOUT_WITH_ONE_ID = "resourceRepository/layout_with_one_id.xml";
   private static final String LAYOUT_WITH_DATA_BINDING = "resourceRepository/layout_with_data_binding.xml";
   private static final String VALUES1 = "resourceRepository/values.xml";
   private static final String VALUES_EMPTY = "resourceRepository/empty.xml";
@@ -125,16 +129,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private ResourceFolderRegistry myRegistry;
 
   @Override
-  public void tearDown() throws Exception {
-    try {
-      overrideCacheService(myOldFileCacheService);
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
-  @Override
   public void setUp() throws Exception {
     super.setUp();
     // Use a file cache that has per-test root directories instead of sharing the system directory.
@@ -148,34 +142,22 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         return super.getCachingData(project, resourceDir, directExecutor());
       }
     };
-    myOldFileCacheService = overrideCacheService(cache);
+    new IdeComponents(getProject()).replaceApplicationService(ResourceFolderRepositoryFileCache.class, cache);
     myRegistry = ResourceFolderRegistry.getInstance(getProject());
     Path file = cache.getCachingData(getProject(), getResourceDirectory(), null).getCacheFile();
     Files.deleteIfExists(file);
   }
 
-  private static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
-    MutablePicoContainer applicationContainer = (MutablePicoContainer)ApplicationManager.getApplication().getPicoContainer();
-
-    // Use a file cache that has per-test root directories instead of sharing the system directory.
-    // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
-    ResourceFolderRepositoryFileCache oldCache =
-        (ResourceFolderRepositoryFileCache)applicationContainer.getComponentInstance(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache.class.getName(), newCache);
-    return oldCache;
-  }
-
   private static void resetScanCounter() {
-    ourFullRescans = 0;
+    ResourceFolderRepository.ourFullRescans = 0;
   }
 
   private static void ensureIncremental() {
-    assertEquals(0, ourFullRescans);
+    assertEquals(0, ResourceFolderRepository.ourFullRescans);
   }
 
   private static void ensureSingleScan() {
-    assertEquals(1, ourFullRescans);
+    assertEquals(1, ResourceFolderRepository.ourFullRescans);
   }
 
   @NotNull
@@ -226,13 +208,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Verify that we generated expected data binding resources by comparing the path to all
     // XML files we plan to generate layout bindings for.
-    Set<String> actualNames = actual.getDataBindingResourceFiles().stream()
+    Set<String> actualNames = actual.getBindingLayoutGroups().values().stream()
       .flatMap(group -> group.getLayouts().stream())
-      .map(layout -> layout.getQualifiedName())
+      .map(layout -> layout.getQualifiedClassName())
       .collect(Collectors.toSet());
-    Set<String> expectedNames = expected.getDataBindingResourceFiles().stream()
+    Set<String> expectedNames = expected.getBindingLayoutGroups().values().stream()
       .flatMap(group -> group.getLayouts().stream())
-      .map(layout -> layout.getQualifiedName())
+      .map(layout -> layout.getQualifiedClassName())
       .collect(Collectors.toSet());
 
     assertThat(actualNames).isEqualTo(expectedNames);
@@ -3553,6 +3535,24 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertThat(items.get(0).getResourceValue().getValue()).isEqualTo("Fixed Animations Demo");
   }
 
+  /**
+   * Test for http://b/138841328.
+   */
+  public void testLoadAfterExternalChangeToLayout() throws Exception {
+    myFixture.copyFileToProject(LAYOUT_WITHOUT_IDS, "res/layout/layout.xml");
+
+    ResourceFolderRepository resources = createRepository(true);
+    assertThat(resources.getResources(RES_AUTO, ResourceType.ID)).isEmpty();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout")).hasSize(1);
+
+    TestUtils.waitForFileSystemTick();
+    myFixture.copyFileToProject(LAYOUT_WITH_ONE_ID, "res/layout/layout.xml");
+
+    ResourceFolderRepository resourcesReloaded = createRepository(false);
+    assertThat(resourcesReloaded.getResources(RES_AUTO, ResourceType.ID, "foo")).hasSize(1);
+    assertThat(resourcesReloaded.getResources(RES_AUTO, ResourceType.LAYOUT, "layout")).hasSize(1);
+  }
+
   public void testIdScanFromLayout() {
     // Test for https://issuetracker.google.com/37044944.
     myFixture.copyFileToProject(LAYOUT_ID_SCAN, "res/layout/layout1.xml");
@@ -3629,7 +3629,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     Future<ResourceFolderRepository> loadJob = executorService.submit(() -> createRegisteredRepository());
     ResourceFolderRepository resources = loadJob.get();
     assertNotNull(resources);
-    assertEquals(1, resources.getDataBindingResourceFiles().size());
+    assertEquals(1, resources.getBindingLayoutGroups().size());
     assertEquals("land", getOnlyItem(resources, ResourceType.LAYOUT, "layout_with_data_binding").getConfiguration().getQualifierString());
     ResourceItem dupedStringItem = resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0);
     assertNotNull(dupedStringItem);
@@ -4197,6 +4197,57 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     assertTrue(repository.hasResources(RES_AUTO, ResourceType.STRING, "from_git"));
+  }
+
+  public void testUnsavedDocument_noCache() throws Exception {
+    myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    VirtualFile resourceDirectory = getResourceDirectory();
+    VirtualFile stringsXml = VfsTestUtil.createFile(resourceDirectory,
+                                                    "values/strings.xml",
+                                                    // language=XML
+                                                    "<resources>" +
+                                                    "  <string name='onDisk'>foo bar</string>" +
+                                                    "</resources>");
+    myFixture.openFileInEditor(stringsXml);
+    moveCaret(myFixture, "name='|onDisk'");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DELETE_TO_WORD_END);
+    myFixture.type("inDocument");
+
+    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
+    assertTrue("Unsaved changes in Document", fileDocumentManager.isFileModified(stringsXml));
+    ResourceFolderRepository repository = createRepository(true);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    assertTrue(repository.hasResources(RES_AUTO, ResourceType.STRING, "inDocument"));
+    assertFalse(repository.hasResources(RES_AUTO, ResourceType.STRING, "onDisk"));
+    assertFalse(repository.hasFreshFileCache()); // Make sure we write the cache.
+    assertTrue("Unsaved changes in Document", fileDocumentManager.isFileModified(stringsXml));
+  }
+
+  public void testUnsavedDocument_cache() throws Exception {
+    myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    VirtualFile resourceDirectory = getResourceDirectory();
+    VirtualFile stringsXml = VfsTestUtil.createFile(resourceDirectory,
+                                                    "values/strings.xml",
+                                                    // language=XML
+                                                    "<resources>" +
+                                                    "  <string name='onDisk'>foo bar</string>" +
+                                                    "</resources>");
+    ResourceFolderRepository repository = createRepository(true);
+    assertFalse(repository.hasFreshFileCache()); // Make sure we write the cache.
+
+    myFixture.openFileInEditor(stringsXml);
+    moveCaret(myFixture, "name='|onDisk'");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DELETE_TO_WORD_END);
+    myFixture.type("inDocument");
+
+    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
+    assertTrue("Unsaved changes in Document", fileDocumentManager.isFileModified(stringsXml));
+
+    ResourceFolderRepository secondRepo = createRepository(true);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    assertTrue(secondRepo.hasResources(RES_AUTO, ResourceType.STRING, "inDocument"));
+    assertFalse(secondRepo.hasResources(RES_AUTO, ResourceType.STRING, "onDisk"));
+    assertTrue("Unsaved changes in Document", fileDocumentManager.isFileModified(stringsXml));
   }
 
   @Nullable

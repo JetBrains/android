@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 import java.util.UUID;
@@ -30,7 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ForcedPluginPreviewVersionUpgradeDialog}
  */
-public class ForcedPluginPreviewVersionUpgradeDialogTest extends IdeaTestCase {
+public class ForcedPluginPreviewVersionUpgradeDialogTest extends PlatformTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private LatestKnownPluginVersionProvider myLatestKnownPluginVersionProvider;
 

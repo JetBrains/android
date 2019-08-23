@@ -21,7 +21,7 @@ import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link PathTrees}.
  */
-public class PathTreesTest extends IdeaTestCase {
+public class PathTreesTest extends PlatformTestCase {
   private VirtualFile myNdkFolder;
   private VirtualFile myPlatformsFolder;
   private VirtualFile myPrebuiltsFolder;

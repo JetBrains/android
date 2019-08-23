@@ -25,6 +25,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewListener
 import com.google.common.util.concurrent.Futures
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.concurrency.EdtExecutorService
@@ -48,7 +49,7 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
     sqliteService = mock(SqliteService::class.java)
     edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
     sqliteEvaluatorController = SqliteEvaluatorController(testRootDisposable, sqliteEvaluatorView, edtExecutor)
-    sqliteDatabase = SqliteDatabase("path", sqliteService)
+    sqliteDatabase = SqliteDatabase(mock(VirtualFile::class.java),"path", sqliteService)
   }
 
   fun testSetUp() {

@@ -31,7 +31,12 @@ import com.google.common.util.concurrent.FutureCallback
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.TreeMap
@@ -71,8 +76,32 @@ class SqliteController(
   private val openDatabases: TreeMap<SqliteDatabase, SqliteSchema>
     = TreeMap(Comparator.comparing { database: SqliteDatabase -> database.name })
 
+  private val virtualFileListener: BulkFileListener
+
   init {
     Disposer.register(project, this)
+
+    virtualFileListener = object : BulkFileListener {
+      override fun before(events: MutableList<out VFileEvent>) {
+        if (openDatabases.isEmpty()) return
+
+        val toClose = mutableListOf<SqliteDatabase>()
+        for (event in events) {
+          if (event !is VFileDeleteEvent) continue
+
+          for (database in openDatabases.keys) {
+            if (VfsUtil.isAncestor(event.file, database.virtualFile, false)) {
+              toClose.add(database)
+            }
+          }
+        }
+
+        toClose.forEach { closeDatabase(it) }
+      }
+    }
+
+    val messageBusConnection = project.messageBus.connect(this)
+    messageBusConnection.subscribe(VirtualFileManager.VFS_CHANGES, virtualFileListener)
   }
 
   fun setUp() {
@@ -80,13 +109,8 @@ class SqliteController(
   }
 
   fun openSqliteDatabase(sqliteFile: VirtualFile) {
-    val existingDatabase = openDatabases.keys.firstOrNull { it.name == sqliteFile.path }
-    if (existingDatabase != null) {
-      closeDatabase(existingDatabase)
-    }
-
     val sqliteService = sqliteServiceFactory.getSqliteService(sqliteFile, PooledThreadExecutor.INSTANCE)
-    val database = SqliteDatabase(sqliteFile.path, sqliteService)
+    val database = SqliteDatabase(sqliteFile, sqliteFile.path, sqliteService)
     Disposer.register(project, database)
 
     openDatabase(database) { openDatabase ->
@@ -160,16 +184,29 @@ class SqliteController(
     openDatabases[database] = sqliteSchema
   }
 
-  private fun closeDatabase(existingDatabase: SqliteDatabase) {
-    val index = openDatabases.headMap(existingDatabase).size
+  private fun closeDatabase(database: SqliteDatabase) {
+    val tabsToClose = resultSetControllers.keys
+      .filterIsInstance<TabId.TableTab>()
+      .filter { it.database == database }
+
+    tabsToClose.forEach { closeTab(it) }
+
+    val index = openDatabases.headMap(database).size
     resultSetControllers.values
       .asSequence()
       .filterIsInstance<SqliteEvaluatorController>()
       .forEach { it.removeDatabase(index) }
-    sqliteView.removeDatabaseSchema(existingDatabase)
 
-    openDatabases.remove(existingDatabase)
-    Disposer.dispose(existingDatabase)
+    sqliteView.removeDatabaseSchema(database)
+
+    openDatabases.remove(database)
+    Disposer.dispose(database)
+  }
+
+  private fun closeTab(tabId: TabId) {
+    sqliteView.closeTab(tabId)
+    val controller = resultSetControllers.remove(tabId)
+    controller?.let(Disposer::dispose)
   }
 
   private fun updateDatabaseSchema(database: SqliteDatabase) {
@@ -212,7 +249,6 @@ class SqliteController(
   }
 
   private inner class SqliteViewListenerImpl : SqliteViewListener {
-
     override fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable) {
       val tableId = TabId.TableTab(database, table.name)
       if (tableId in resultSetControllers) {
@@ -250,10 +286,11 @@ class SqliteController(
     }
 
     override fun closeTabActionInvoked(tabId: TabId) {
-      sqliteView.closeTab(tabId)
+      closeTab(tabId)
+    }
 
-      val controller = resultSetControllers.remove(tabId)
-      controller?.let(Disposer::dispose)
+    override fun removeDatabaseActionInvoked(database: SqliteDatabase) {
+      closeDatabase(database)
     }
   }
 

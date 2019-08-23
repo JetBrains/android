@@ -17,6 +17,8 @@ package com.android.tools.idea.resources.base;
 
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
+import com.android.resources.ResourceType;
+import com.android.resources.ResourceVisibility;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -87,11 +89,32 @@ public interface LoadableResourceRepository extends SingleNamespaceResourceRepos
    *
    * @param stream the stream to read data from
    * @param configurations the repository configurations to select from when creating the ResourceSourceFile
+   * @return the created {@link ResourceSourceFile}
    */
   @NotNull
   default ResourceSourceFile deserializeResourceSourceFile(
       @NotNull Base128InputStream stream, @NotNull List<RepositoryConfiguration> configurations) throws IOException {
     return ResourceSourceFileImpl.deserialize(stream, configurations);
+  }
+
+  /**
+   * Creates a {@link BasicFileResourceItem} by reading its contents from the given stream.
+   *
+   * @param stream the stream to read data from
+   * @param resourceType the type of the resource
+   * @param name the name of the resource
+   * @param visibility the visibility of the resource
+   * @param configurations the repository configurations to select from when creating the ResourceSourceFile
+   * @return the created {@link BasicFileResourceItem}
+   */
+  @NotNull
+  default BasicFileResourceItem deserializeFileResourceItem(
+      @NotNull Base128InputStream stream,
+      @NotNull ResourceType resourceType,
+      @NotNull String name,
+      @NotNull ResourceVisibility visibility,
+      @NotNull List<RepositoryConfiguration> configurations) throws IOException {
+    return BasicFileResourceItem.deserialize(stream, resourceType, name, visibility, configurations);
   }
 
   boolean containsUserDefinedResources();

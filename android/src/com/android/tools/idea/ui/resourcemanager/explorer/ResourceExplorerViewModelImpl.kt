@@ -27,30 +27,36 @@ import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceVisibility
+import com.android.tools.idea.actions.OpenStringResourceEditorAction
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.theme.ResolutionUtils
+import com.android.tools.idea.project.getLastSyncTimestamp
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.resources.aar.AarResourceRepository
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
+import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableConfigurations
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableValue
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.xml.XmlFileImpl
@@ -60,11 +66,10 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import java.util.function.Supplier
-import kotlin.math.pow
 import kotlin.properties.Delegates
 
-private const val NO_VALUE = "No value"
 private const val UNRESOLVED_VALUE = "Could not resolve"
 
 /**
@@ -101,8 +106,15 @@ class ResourceExplorerViewModelImpl(
 
   private val dataManager = ResourceDataManager(facet)
 
-  private val listViewImageCache = ImageCache(
+  private val listViewImageCache = ImageCache.createLargeImageCache(
+    parentDisposable = this,
     mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
+
+  private val summaryImageCache: ImageCache by lazy {
+    ImageCache.createSmallImageCache(
+      parentDisposable = this,
+      mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
+  }
 
   private val resourceNotificationListener = ResourceNotificationManager.ResourceChangeListener { reason ->
     if (reason.size == 1 && reason.contains(ResourceNotificationManager.Reason.EDIT)) {
@@ -142,9 +154,39 @@ class ResourceExplorerViewModelImpl(
     { speedSearch.updatePattern(it) },
     filterInitialParams)
 
+  /** Returns actions related to the resources being displayed. These do not directly affect/interact with the [ResourceExplorerView]. */
+  override val externalActions: Collection<ActionGroup>
+    get() =
+      when (resourceTypes[resourceTypeIndex]) {
+        ResourceType.STRING -> listOf(DefaultActionGroup().apply {
+          add(object : OpenStringResourceEditorAction() {
+            override fun displayTextInToolbar() = true
+          })
+        })
+        else -> emptyList()
+      }
+
+  private val resetPreviewsOnNextSuccessfulSync = Runnable {
+    facet.module.project.runWhenSmartAndSyncedOnEdt(this, Consumer { result ->
+      if (result.isSuccessful) {
+        listViewImageCache.clear()
+        // TODO(b/138947166): Have assetPreviewManager reset its resourceResolver since this won't solve those kind of errors.
+      }
+    })
+  }
+
+
   init {
     subscribeListener(facet)
-    Disposer.register(this, listViewImageCache)
+    val project = facet.module.project
+    if (project.getLastSyncTimestamp() < 0L) {
+      // No existing successful sync, since there's a fair chance of having rendering errors, wait for next successful sync and reset cache,
+      // then re-render all assets.
+      ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(
+        onCacheClean = resetPreviewsOnNextSuccessfulSync,
+        onSourceGenerationError = Runnable { /* Do nothing */ }
+      )
+    }
   }
 
   override var assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, currentFile, listViewImageCache)
@@ -158,18 +200,7 @@ class ResourceExplorerViewModelImpl(
     AssetPreviewManagerImpl(
       facet,
       currentFile,
-      ImageCache(
-        maximumCapacity = (10 * 1024.0.pow(2)).toLong(), // 10 MB
-        mergingUpdateQueue = MergingUpdateQueue("queue",
-                                                1000,
-                                                true,
-                                                MergingUpdateQueue.ANY_COMPONENT,
-                                                this,
-                                                null,
-                                                false)
-      ).also { cache ->
-        Disposer.register(this, cache)
-      })
+      summaryImageCache)
   }
 
   override fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet) {
@@ -397,7 +428,7 @@ class ResourceExplorerViewModelImpl(
         val configuration = asset.resourceItem.getReadableConfigurations()
 
         valueMap.put("Configuration", configuration)
-        val value = resourceResolver.resolveResValue(asset.resourceItem.resourceValue)
+        val value = resourceResolver.resolveValue(asset)
         // The resolved value of the resource (eg: Value: Hello World)
         valueMap.put("Value", value?.getReadableValue()?: UNRESOLVED_VALUE)
       }
@@ -413,7 +444,7 @@ class ResourceExplorerViewModelImpl(
     }
     val resourceResolver = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(projectFile).resourceResolver
     return resourceAssetSet.assets.map { asset ->
-      val value = resourceResolver.resolveResValue(asset.resourceItem.resourceValue)
+      val value = resourceResolver.resolveValue(asset)
       var dataTypeName = ""
       dataManager.findPsiElement(asset.resourceItem)?.let { psiElement ->
         dataTypeName = getResourceDataType(asset, psiElement).takeIf { it.isNotBlank() }?.let { "${it} - " } ?: ""
@@ -453,9 +484,9 @@ data class ResourceSection(
 
 private fun userReadableLibraryName(lib: AarResourceRepository) =
   lib.libraryName?.let {
-    GradleCoordinate.parseCoordinateString(it)?.artifactId
+    GradleCoordinate.parseCoordinateString(it)?.artifactId ?: it
   }
-  ?: ""
+  ?: "library - failed name"
 
 /**
  * For a resolved resource, returns the readable name of the declared resource data type. This is usually the root of the element defined in

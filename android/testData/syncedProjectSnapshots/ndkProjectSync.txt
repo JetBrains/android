@@ -55,7 +55,7 @@ PROJECT             : testNdkProjectSync
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/arm7/debug [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/arm7/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/arm7/debug [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/arm7/debug
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/arm7/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java [-]

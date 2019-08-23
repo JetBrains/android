@@ -58,7 +58,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlin
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpgradeAppenginePluginVersionHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink
-import com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
@@ -129,7 +128,6 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is InstallNdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK
       is InstallPlatformHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_PLATFORM_HYPERLINK
       is InstallSdkPackageHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_SDK_PACKAGE_HYPERLINK
-      is SdkToolsVersionSetupStep.InstallSdkToolsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_SDK_TOOLS_HYPERLINK
       is OpenAndroidSdkManagerHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_ANDROID_SDK_MANAGER_HYPERLINK
       is BuildFileComponentVersionReader.OpenBuildFileHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_BUILD_FILE_HYPERLINK
       is OpenFileHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK

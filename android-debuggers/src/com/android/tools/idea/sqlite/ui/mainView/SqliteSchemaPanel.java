@@ -16,21 +16,28 @@
 package com.android.tools.idea.sqlite.ui.mainView;
 
 import com.intellij.ui.treeStructure.Tree;
-import javax.swing.JComponent;
+import javax.swing.JButton;
 import javax.swing.JPanel;
-import org.jetbrains.annotations.NotNull;
 
 public class SqliteSchemaPanel {
   private JPanel myComponent;
   private Tree myTree;
+  private JPanel myControlsPanel;
+  private JButton myRemoveDatabaseButton;
 
-  @NotNull
-  public JComponent getComponent() {
+  public JPanel getComponent() {
     return myComponent;
   }
 
-  @NotNull
   public Tree getTree() {
     return myTree;
+  }
+
+  public JPanel getControlsPanel() {
+    return myControlsPanel;
+  }
+
+  public JButton getRemoveDatabaseButton() {
+    return myRemoveDatabaseButton;
   }
 }

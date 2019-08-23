@@ -36,6 +36,7 @@ public interface FeatureConfig {
   boolean isPerfettoEnabled();
   boolean isPerformanceMonitoringEnabled();
   boolean isAuditsEnabled();
+  boolean isCustomEventVisualizationEnabled();
   boolean isSessionImportEnabled();
   boolean isSimpleperfHostEnabled();
   boolean isStartupCpuProfilingEnabled();
