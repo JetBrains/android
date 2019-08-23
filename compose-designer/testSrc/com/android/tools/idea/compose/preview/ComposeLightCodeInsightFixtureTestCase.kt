@@ -41,6 +41,7 @@ open class ComposeLightCodeInsightFixtureTestCase : LightCodeInsightFixtureTestC
                                val height: Int = -1)
 
       fun Preview(name: String? = null,
+                  apiLevel: Int = -1,
                   configuration: Configuration? = null,
                   children: () -> Unit) {
           children()
