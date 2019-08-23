@@ -65,7 +65,7 @@ class NavSceneTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
     val list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1050,928\n" +
@@ -103,7 +103,7 @@ class NavSceneTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
     val list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,960,928\n" +
@@ -140,7 +140,7 @@ class NavSceneTest : NavTestCase() {
 
     val list = DisplayList()
     model.surface.sceneManager!!.update()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1127,1128\n" +
@@ -178,7 +178,7 @@ class NavSceneTest : NavTestCase() {
 
     val list = DisplayList()
     model.surface.sceneManager!!.update()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1127,1128\n" +
@@ -211,7 +211,7 @@ class NavSceneTest : NavTestCase() {
     val scene = model.surface.scene!!
 
     val list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
 
     root.fragment("fragment3")
     modelBuilder.updateModel(model)
@@ -221,7 +221,7 @@ class NavSceneTest : NavTestCase() {
     moveComponentTo(scene.getSceneComponent("fragment3")!!, 380, 20)
     scene.sceneManager.layout(false)
 
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1057,928\n" +
@@ -259,7 +259,7 @@ class NavSceneTest : NavTestCase() {
     val list = DisplayList()
     model.delete(listOf(model.find("fragment2")!!))
 
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     list.clear()
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
@@ -277,7 +277,7 @@ class NavSceneTest : NavTestCase() {
     model.notifyModified(NlModel.ChangeType.EDIT)
     model.surface.sceneManager!!.update()
     list.clear()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,967,928\n" +
@@ -322,7 +322,7 @@ class NavSceneTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
 
     val view = NavView(surface, scene.sceneManager)
-    scene.layout(0, SceneContext.get(view))
+    scene.layout(0, scene.sceneManager.sceneView.context)
 
     val list = DisplayList()
     scene.buildDisplayList(list, 0, view)
@@ -355,7 +355,7 @@ class NavSceneTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
 
-    scene.layout(0, SceneContext.get(view))
+    scene.layout(0, view.context)
     scene.buildDisplayList(list, 0, view)
     assertEquals(
       "Clip,0,0,967,928\n" +
@@ -381,7 +381,7 @@ class NavSceneTest : NavTestCase() {
     val scene = model.surface.scene!!
 
     val list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     assertEquals(
@@ -434,7 +434,7 @@ class NavSceneTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
     val list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     assertEquals(
@@ -463,7 +463,7 @@ class NavSceneTest : NavTestCase() {
     val scene = model.surface.scene!!
 
     val list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     assertEquals(
@@ -493,7 +493,7 @@ class NavSceneTest : NavTestCase() {
 
     scene.sceneManager.layout(false)
     var list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     val view = NavView(model.surface as NavDesignSurface, scene.sceneManager)
     scene.buildDisplayList(list, 0, view)
 
@@ -513,7 +513,7 @@ class NavSceneTest : NavTestCase() {
     val subnav = model.find("subnav")!!
     model.surface.selectionModel.setSelection(ImmutableList.of(subnav))
     list.clear()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, view)
 
     assertEquals(
@@ -533,7 +533,7 @@ class NavSceneTest : NavTestCase() {
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!, subnav))
 
     list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     assertEquals(
@@ -567,7 +567,7 @@ class NavSceneTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
     val list = DisplayList()
-    val transform = SceneContext.get(model.surface.focusedSceneView)
+    val transform = scene.sceneManager.sceneView.context
     scene.layout(0, transform)
     scene.mouseHover(transform, 150, 30, 0)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
@@ -637,7 +637,7 @@ class NavSceneTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
     val list = DisplayList()
-    val transform = SceneContext.get(model.surface.focusedSceneView)
+    val transform = scene.sceneManager.sceneView.context
     scene.layout(0, transform)
 
     // If rectangle extends from (20, 20) to (173, 276), then the handle should be at (173, 148)
@@ -673,7 +673,7 @@ class NavSceneTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
     val list = DisplayList()
-    val sceneContext = SceneContext.get(surface.focusedSceneView)
+    val sceneContext = scene.sceneManager.sceneView.context
 
     scene.layout(0, sceneContext)
 
@@ -715,7 +715,7 @@ class NavSceneTest : NavTestCase() {
     val list = DisplayList()
     val surface = model.surface
     val scene = surface.scene!!
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,977,1028\n" +
@@ -730,7 +730,7 @@ class NavSceneTest : NavTestCase() {
     model.configuration
       .setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("wear_square", "Google"), false)
     surface.sceneManager!!.update()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,914,914\n" +
@@ -744,7 +744,7 @@ class NavSceneTest : NavTestCase() {
     list.clear()
     model.configuration.setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("tv_1080p", "Google"), false)
     surface.sceneManager!!.update()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
     assertEquals(
       "Clip,0,0,1028,972\n" +
@@ -1056,7 +1056,7 @@ class NavSceneTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     val scene = surface.scene!!
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
 
     val list = DisplayList()
     val sceneManager = scene.sceneManager as NavSceneManager
@@ -1071,7 +1071,7 @@ class NavSceneTest : NavTestCase() {
 
     modelBuilder.updateModel(model)
     model.notifyModified(NlModel.ChangeType.EDIT)
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     list.clear()
     scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
 
@@ -1085,7 +1085,7 @@ class NavSceneTest : NavTestCase() {
     assertFalse(sceneManager.isEmpty)
 
     model.delete(listOf(model.find("fragment1")!!))
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     list.clear()
     scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
 
