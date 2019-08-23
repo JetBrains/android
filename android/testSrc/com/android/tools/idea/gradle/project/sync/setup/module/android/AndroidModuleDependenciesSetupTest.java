@@ -44,7 +44,7 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTableImpl;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link AndroidModuleDependenciesSetup}.
  */
-public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
+public class AndroidModuleDependenciesSetupTest extends PlatformTestCase {
   @Mock private LibraryFilePaths myLibraryFilePaths;
 
   private AndroidModuleDependenciesSetup myDependenciesSetup;

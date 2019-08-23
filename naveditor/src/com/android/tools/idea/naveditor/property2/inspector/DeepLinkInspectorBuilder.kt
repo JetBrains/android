@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.property2.inspector
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
+import com.android.tools.idea.naveditor.model.supportsDeeplinks
 import com.android.tools.idea.naveditor.property.inspector.AddDeeplinkDialog
 import com.android.tools.idea.naveditor.property2.ui.DeepLinkCellRenderer
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -32,6 +33,8 @@ class DeepLinkInspectorBuilder : ComponentListInspectorBuilder(TAG_DEEP_LINK, "D
   override fun onEdit(component: NlComponent) {
     component.parent?.let { invokeDialog(component, it) }
   }
+
+  override fun isApplicable(component: NlComponent) = component.supportsDeeplinks
 
   private fun invokeDialog(component: NlComponent?, parent: NlComponent) {
     val dialog = AddDeeplinkDialog(component, parent)

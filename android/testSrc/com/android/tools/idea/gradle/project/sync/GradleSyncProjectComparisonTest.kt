@@ -102,7 +102,7 @@ abstract class GradleSyncProjectComparisonTest(
   private fun importSyncAndDumpProject(projectDir: String, patch: ((projectRootPath: File) -> Unit)? = null): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
-    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest().apply { generateSourcesOnSuccess = true })
+    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest())
     return project.saveAndDump()
   }
 

@@ -22,15 +22,11 @@ import com.android.tools.idea.npw.module.getModuleRoot
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY
-import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
-import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
-import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.Template
@@ -52,26 +48,31 @@ import java.util.ArrayList
 
 private val log: Logger get() = logger<NewModuleModel>()
 
-class NewModuleModel(
-  // Shared with NewProjectModule
-  val projectSyncInvoker: ProjectSyncInvoker,
-  val applicationName: StringProperty,
-  val packageName: StringValueProperty,
-  val projectLocation: StringProperty,
-  // enableCppSupport
-  // cppFlags
-  val project: OptionalProperty<Project>,
-  val projectTemplateValues: MutableMap<String, Any>,
-  val language: OptionalValueProperty<Language>,
-  val multiTemplateRenderer: MultiTemplateRenderer,
+class ExistingNewProjectModelData(project: Project, override val projectSyncInvoker: ProjectSyncInvoker) : ProjectModelData {
+  override val applicationName: StringValueProperty = StringValueProperty(message("android.wizard.module.config.new.application"))
+  override val packageName: StringValueProperty = StringValueProperty()
+  override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
+  override val enableCppSupport: BoolValueProperty = BoolValueProperty()
+  override val cppFlags: StringValueProperty = StringValueProperty("")
+  override val project: OptionalValueProperty<Project> = OptionalValueProperty(project)
+  override val projectTemplateValues: MutableMap<String, Any> = mutableMapOf()
+  override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
+  override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer(project, projectSyncInvoker)
 
+  init {
+    applicationName.addConstraint(String::trim)
+  }
+}
+
+class NewModuleModel(
+  private val projectModelData: ProjectModelData,
   val template: ObjectProperty<NamedModuleTemplate>,
   val moduleParent: String?,
   val formFactor: ObjectValueProperty<FormFactor>
-) : WizardModel() {
+) : WizardModel(), ProjectModelData by projectModelData {
 
   val isLibrary: BoolProperty = BoolValueProperty()
-  val templateValues = mutableMapOf<String, Any>()
+  val moduleTemplateValues = mutableMapOf<String, Any>()
 
   val moduleName = StringValueProperty().apply { addConstraint(String::trim) }
   // A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
@@ -83,19 +84,11 @@ class NewModuleModel(
   constructor(
     project: Project, moduleParent: String?, projectSyncInvoker: ProjectSyncInvoker, template: NamedModuleTemplate
   ) : this(
-    projectSyncInvoker = projectSyncInvoker,
-    applicationName = StringValueProperty(message("android.wizard.module.config.new.application")),
-    packageName = StringValueProperty(),
-    projectLocation = StringValueProperty(project.basePath!!),
-    project = OptionalValueProperty(project),
-    projectTemplateValues = mutableMapOf(),
-    language = OptionalValueProperty(getInitialSourceLanguage(project)),
-    multiTemplateRenderer = MultiTemplateRenderer(project, projectSyncInvoker),
+    projectModelData = ExistingNewProjectModelData(project, projectSyncInvoker),
     template = ObjectValueProperty(template),
     moduleParent = moduleParent,
     formFactor = ObjectValueProperty(FormFactor.MOBILE)
   ) {
-    applicationName.addConstraint(String::trim)
     isLibrary.addListener { updateApplicationName() }
   }
 
@@ -103,14 +96,7 @@ class NewModuleModel(
     projectModel: NewProjectModel, templateFile: File, template: NamedModuleTemplate,
     formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
   ) : this(
-    projectSyncInvoker = projectModel.projectSyncInvoker,
-    applicationName = projectModel.applicationName,
-    packageName = projectModel.packageName,
-    projectLocation = projectModel.projectLocation,
-    project = projectModel.project,
-    projectTemplateValues = projectModel.templateValues,
-    language = projectModel.language,
-    multiTemplateRenderer = projectModel.multiTemplateRenderer,
+    projectModelData = projectModel,
     template = ObjectValueProperty(template),
     moduleParent = null,
     formFactor = formFactor
@@ -139,14 +125,14 @@ class NewModuleModel(
       projectTemplateValues.also {
         it[formFactor.get().id + ATTR_INCLUDE_FORM_FACTOR] = true
         it[formFactor.get().id + ATTR_MODULE_NAME] = moduleName.get()
-        templateValues.putAll(it)
+        moduleTemplateValues.putAll(it)
       }
 
-      templateValues[ATTR_APP_TITLE] = applicationName.get()
-      templateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
+      moduleTemplateValues[ATTR_APP_TITLE] = applicationName.get()
+      moduleTemplateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
 
       val project = project.value
-      TemplateValueInjector(templateValues).apply {
+      TemplateValueInjector(moduleTemplateValues).apply {
         setProjectDefaults(project)
         setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
         if (androidSdkInfo.isPresent.get()) {
@@ -162,7 +148,7 @@ class NewModuleModel(
     override fun doDryRun(): Boolean {
       // This is done because module needs to know about all included form factors, and currently we know about them only after init run,
       // so we need to set it after all inits (thus in dryRun) TODO(qumeric): remove after adding formFactors to the project
-      templateValues.putAll(projectTemplateValues)
+      moduleTemplateValues.putAll(projectTemplateValues)
       if (templateFile.valueOrNull == null) {
         return false // If here, the user opted to skip creating any module at all, or is just adding a new Activity
       }
@@ -197,7 +183,7 @@ class NewModuleModel(
         .withOutputRoot(projectRoot)
         .withModuleRoot(moduleRoot)
         .intoOpenFiles(filesToOpen)
-        .withParams(templateValues)
+        .withParams(moduleTemplateValues)
         .build()
 
       return template.render(context, dryRun).also {

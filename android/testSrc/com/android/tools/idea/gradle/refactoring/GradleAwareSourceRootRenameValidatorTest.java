@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.refactoring;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -32,12 +33,14 @@ import java.io.File;
 public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestCase {
   private GradleAwareSourceRootRenameValidator myValidator;
   private boolean myUseSingleVariantSync;
+  private boolean myBuildAfterSync;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myValidator = new GradleAwareSourceRootRenameValidator();
     myUseSingleVariantSync = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
+    myBuildAfterSync = StudioFlags.BUILD_AFTER_SYNC_ENABLED.get();
   }
 
   @Override
@@ -45,6 +48,7 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
     try {
       // back to default value.
       GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = myUseSingleVariantSync;
+      StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(myBuildAfterSync);
     }
     finally {
       super.tearDown();
@@ -53,20 +57,20 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
 
   public void testIsInputValidWithIdeaSync() throws Exception {
     GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
+    StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(true);
     verifyErrorMessage();
   }
 
   public void testIsInputValidWithSingleVariantSync() throws Exception {
     GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
+    StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(true);
     verifyErrorMessage();
   }
 
   private void verifyErrorMessage() throws Exception {
     loadSimpleApplication();
     // Generate buildConfig.
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED);
-    request.generateSourcesOnSuccess = true;
-    requestSyncAndWait(request);
+    requestSyncAndWait(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
 
     Project project = getProject();
     File sourceRoot = new File(project.getBasePath(), "app/build/generated/source/buildConfig/debug");

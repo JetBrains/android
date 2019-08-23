@@ -183,7 +183,7 @@ java_test(
     data = COMMON_DATA + [
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:data/framework_res",
-        "//prebuilts/studio/sdk:tools/support-annotations",
+        "//prebuilts/tools/common/m2/repository/com/android/support/support-annotations/28.0.0",
         "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.1.0:aar",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -330,7 +330,7 @@ java_test(
         "//tools/base/bazel:windows": [],
         "//conditions:default": [
             "//tools/base/deploy/installer:test-installer",
-            "//tools/base/deploy/installer:bash_bridge",
+            "//tools/base/deploy/installer/tests:artifacts",
         ],
     }),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],

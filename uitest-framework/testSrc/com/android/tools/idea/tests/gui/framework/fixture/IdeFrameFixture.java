@@ -26,6 +26,7 @@ import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.fail;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
@@ -485,7 +486,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       throw syncError;
     }
 
-    if (!myGradleProjectEventListener.isSyncSkipped()) {
+    if (!myGradleProjectEventListener.isSyncSkipped() && StudioFlags.BUILD_AFTER_SYNC_ENABLED.get()) {
       waitForBuildToFinish(SOURCE_GEN);
     }
 

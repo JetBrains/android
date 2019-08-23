@@ -591,31 +591,39 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   }
 
   @NotNull
-  protected final BasicFileResourceItem createFileResourceItem(
+  private BasicFileResourceItem createFileResourceItem(
       @NotNull PathString file, @NotNull ResourceType resourceType, @NotNull RepositoryConfiguration configuration) {
     String resourceName = getResourceName(file);
     ResourceVisibility visibility = getVisibility(resourceType, resourceName);
-    String relativePath = getResRelativePath(file);
+    Density density = null;
     if (DensityBasedResourceValue.isDensityBasedResourceType(resourceType)) {
       DensityQualifier densityQualifier = configuration.getFolderConfiguration().getDensityQualifier();
       if (densityQualifier != null) {
-        Density densityValue = densityQualifier.getValue();
-        if (densityValue != null) {
-          return new BasicDensityBasedFileResourceItem(resourceType, resourceName, configuration, visibility, relativePath, densityValue);
-        }
+        density = densityQualifier.getValue();
       }
     }
-    return new BasicFileResourceItem(resourceType, resourceName, configuration, visibility, relativePath);
+    return createFileResourceItem(file, resourceType, resourceName, configuration, visibility, density);
+  }
+
+  @NotNull
+  protected final BasicFileResourceItem createFileResourceItem(@NotNull PathString file,
+                                                               @NotNull ResourceType type,
+                                                               @NotNull String name,
+                                                               @NotNull RepositoryConfiguration configuration,
+                                                               @NotNull ResourceVisibility visibility,
+                                                               @Nullable Density density) {
+    String relativePath = getResRelativePath(file);
+    return density == null ?
+           new BasicFileResourceItem(type, name, configuration, visibility, relativePath) :
+           new BasicDensityBasedFileResourceItem(type, name, configuration, visibility, relativePath, density);
   }
 
   /**
    * Resource name is the part of the file name before the first dot, e.g. for "tab_press.9.png" it is "tab_press".
    */
   @NotNull
-  private static String getResourceName(@NotNull PathString file) {
-    String filename = file.getFileName();
-    int dotPos = filename.indexOf('.');
-    return dotPos < 0 ? filename : filename.substring(0, dotPos);
+  protected static String getResourceName(@NotNull PathString file) {
+    return StringUtil.trimExtensions(file.getFileName());
   }
 
   @NotNull
@@ -1065,7 +1073,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   }
 
   @NotNull
-  private ResourceVisibility getVisibility(@NotNull ResourceType resourceType, @NotNull String resourceName) {
+  protected final ResourceVisibility getVisibility(@NotNull ResourceType resourceType, @NotNull String resourceName) {
     Set<String> names = myPublicResources.get(resourceType);
     return names != null && names.contains(getKeyForVisibilityLookup(resourceName)) ? ResourceVisibility.PUBLIC : myDefaultVisibility;
   }
@@ -1080,7 +1088,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   }
 
   @NotNull
-  private String getResRelativePath(@NotNull PathString file) {
+  protected final String getResRelativePath(@NotNull PathString file) {
     if (file.isAbsolute()) {
       return myResourceDirectoryOrFilePath.relativize(file).getPortablePath();
     }

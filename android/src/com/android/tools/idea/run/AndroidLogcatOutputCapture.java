@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellEnabledDevice;
 import com.android.ddmlib.logcat.LogCatMessage;
@@ -34,7 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,11 +40,10 @@ import org.jetbrains.annotations.NotNull;
  * A thread-safe implementation to capture logcat messages of all known client processes and dispatch them so that
  * they are shown in the Run Console window.
  */
-class AndroidLogcatOutputCapture {
+public class AndroidLogcatOutputCapture implements AutoCloseable {
   private static final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
   private static final Logger LOG = Logger.getInstance(AndroidLogcatOutputCapture.class);
 
-  @NotNull private final String myApplicationId;
   /**
    * Keeps track of the registered listener associated to each device running the application.
    */
@@ -54,11 +51,13 @@ class AndroidLogcatOutputCapture {
   @NotNull private final Map<IDevice, AndroidLogcatService.LogcatListener> myLogListeners = new HashMap<>();
   @NotNull private final Object myLock = new Object();
 
-  AndroidLogcatOutputCapture(@NotNull String applicationId) {
-    myApplicationId = applicationId;
+  @NotNull private final TextEmitter myTextEmitter;
+
+  public AndroidLogcatOutputCapture(@NotNull TextEmitter textEmitter) {
+    myTextEmitter = textEmitter;
   }
 
-  public void startCapture(@NotNull final IDevice device, int pid, @NotNull BiConsumer<String, Key> consumer) {
+  public void startCapture(@NotNull final IDevice device, int pid, @NotNull String applicationId) {
     if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
       return;
     }
@@ -67,8 +66,7 @@ class AndroidLogcatOutputCapture {
     }
 
     LOG.info(String.format("startCapture(\"%s\")", device.getName()));
-    AndroidLogcatService.LogcatListener
-      logListener = new MyLogcatListener(myApplicationId, pid, device, consumer);
+    AndroidLogcatService.LogcatListener logListener = new MyLogcatListener(applicationId, pid, device, myTextEmitter);
 
     AndroidLogcatService.getInstance().addListener(device, logListener, true);
 
@@ -76,6 +74,7 @@ class AndroidLogcatOutputCapture {
     AndroidLogcatService.LogcatListener previousListener;
     synchronized (myLock) {
       previousListener = myLogListeners.put(device, logListener);
+      MyLogcatListener.setShowDeviceName(myLogListeners.size() > 1);
     }
 
     // Outside of lock to avoid deadlock with AndroidLogcatService internal lock
@@ -83,7 +82,7 @@ class AndroidLogcatOutputCapture {
       // This should not happen (and we have never seen it happening), but removing the existing listener
       // ensures there are no memory leaks.
       LOG.warn(String.format("The device \"%s\" already has a registered logcat listener for application \"%s\". Removing it",
-                                                   device.getName(), myApplicationId));
+                             device.getName(), applicationId));
       AndroidLogcatService.getInstance().removeListener(device, previousListener);
     }
   }
@@ -94,6 +93,7 @@ class AndroidLogcatOutputCapture {
     AndroidLogcatService.LogcatListener previousListener;
     synchronized (myLock) {
       previousListener = myLogListeners.remove(device);
+      MyLogcatListener.setShowDeviceName(myLogListeners.size() > 1);
     }
 
     // Outside of lock to avoid deadlock with AndroidLogcatService internal lock
@@ -109,6 +109,7 @@ class AndroidLogcatOutputCapture {
     synchronized (myLock) {
       listeners = new ArrayList<>(myLogListeners.entrySet());
       myLogListeners.clear();
+      MyLogcatListener.setShowDeviceName(false);
     }
 
     // Outside of lock to avoid deadlock with AndroidLogcatService internal lock
@@ -117,43 +118,49 @@ class AndroidLogcatOutputCapture {
     }
   }
 
-  private final class MyLogcatListener extends ApplicationLogListener {
+  @Override
+  public void close() {
+    stopAll();
+  }
+
+  private static final class MyLogcatListener extends ApplicationLogListener {
+    private static AtomicBoolean ourShowDeviceName = new AtomicBoolean(false);
+
     private final AndroidLogcatFormatter myFormatter;
     private final IShellEnabledDevice myDevice;
     private final AtomicBoolean myIsFirstMessage;
-    private final BiConsumer<String, Key> myConsumer;
+    private final TextEmitter myTextEmitter;
 
-    private MyLogcatListener(@NotNull String packageName, int pid, @NotNull IDevice device, @NotNull BiConsumer<String, Key> consumer) {
+    private MyLogcatListener(@NotNull String packageName, int pid, @NotNull IDevice device,
+                             @NotNull TextEmitter emitter) {
       super(packageName, pid);
 
       myFormatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), new AndroidLogcatPreferences());
       myDevice = device;
       myIsFirstMessage = new AtomicBoolean(true);
-      myConsumer = consumer;
+      myTextEmitter = emitter;
+    }
+
+    public static void setShowDeviceName(boolean showDeviceName) {
+      ourShowDeviceName.set(showDeviceName);
     }
 
     @Override
     protected String formatLogLine(@NotNull LogCatMessage line) {
       String message = myFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
-
-      synchronized (myLock) {
-        switch (myLogListeners.size()) {
-          case 0:
-          case 1:
-            return message;
-          default:
-            return '[' + myDevice.getName() + "]: " + message;
-        }
+      if (ourShowDeviceName.get()) {
+        return '[' + myDevice.getName() + "]: " + message;
+      } else {
+        return message;
       }
     }
 
     @Override
     protected void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
       if (myIsFirstMessage.compareAndSet(true, false)) {
-        myConsumer.accept(LogcatOutputConfigurableProvider.BANNER_MESSAGE + '\n', ProcessOutputTypes.STDOUT);
+        myTextEmitter.emit(LogcatOutputConfigurableProvider.BANNER_MESSAGE + '\n', ProcessOutputTypes.STDOUT);
       }
-
-      myConsumer.accept(message, key);
+      myTextEmitter.emit(message, key);
     }
   }
 }

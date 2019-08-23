@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -101,7 +100,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   protected void analyze(@NotNull Project project, @NotNull AnalysisScope scope) {
     setUpNullityAnnotationDefaults(project);
 
-    if (!GradleProjects.isBuildWithGradle(project)) {
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       super.analyze(project, scope);
       return;
     }

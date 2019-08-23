@@ -25,11 +25,17 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterL
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbVisitor
+import com.android.tools.idea.lang.databinding.reference.PsiClassReference
+import com.android.tools.idea.lang.databinding.reference.PsiMethodReference
 import com.android.tools.idea.lang.databinding.reference.PsiParameterReference
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
+import com.intellij.psi.LambdaUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiSubstitutor
+import com.intellij.psi.util.MethodSignatureUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
@@ -68,21 +74,18 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       return
     }
 
+    // Delegate attribute type check to visitInferredFormalParameterList and visitFunctionRefExpr.
+    if (rootExpression is PsiDbLambdaExpression || rootExpression is PsiDbFunctionRefExpr) {
+      return
+    }
+
     val dbExprType = (rootExpression.reference as? ModelClassResolvable)?.resolvedType ?: return
     val attribute = rootExpression.containingFile.context?.parent as? XmlAttribute ?: return
 
-    val isMatchingCandidate: (PsiModelClass) -> Boolean = matched@{ attributeType ->
-      // Possible candidates:
-      // 1) A lambda that can be associated with a SAM, i.e. a class with one overridable method
-      if (rootExpression is PsiDbLambdaExpression && attributeType.allMethods.count { it.isAbstract } == 1) {
-        return@matched true
-      }
-      // 2) The type of our candidate is the same or a subclass of the target type
+    val isMatchingCandidate: (PsiModelClass) -> Boolean = { attributeType ->
+      // The candidate type is matched when it is the same or a subclass of the target type
       // Note: we use erasures so that, say, Action<ArrayList> could match Action<List>
-      if (attributeType.unwrapped.erasure().isAssignableFrom(dbExprType.unwrapped)) {
-        return@matched true
-      }
-      return@matched false
+      attributeType.unwrapped.erasure().isAssignableFrom(dbExprType.unwrapped)
     }
 
     val attributeTypes = attribute.references.filterIsInstance<PsiParameterReference>().map { it.resolvedType }
@@ -195,10 +198,58 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   override fun visitInferredFormalParameterList(parameters: PsiDbInferredFormalParameterList) {
     super.visitInferredFormalParameterList(parameters)
 
+    annotateIfLambdaParameterCountMismatch(parameters)
     parameters.inferredFormalParameterList.filter { parameter ->
       parameters.inferredFormalParameterList.count { it.text == parameter.text } > 1
     }.forEach {
       annotateError(it, DUPLICATE_CALLBACK_ARGUMENT, it.text)
+    }
+  }
+
+  /**
+   * Annotates function reference expressions if they are not matched by the attribute.
+   */
+  override fun visitFunctionRefExpr(psiDbFunctionRefExpr: PsiDbFunctionRefExpr) {
+    super.visitFunctionRefExpr(psiDbFunctionRefExpr)
+
+    val attribute = psiDbFunctionRefExpr.containingFile.context?.parent as? XmlAttribute ?: return
+    val attributeMethods = attribute.references
+      .filterIsInstance<PsiParameterReference>()
+      .mapNotNull { LambdaUtil.getFunctionalInterfaceMethod(it.resolvedType.type) }
+    if (attributeMethods.isEmpty()) {
+      return
+    }
+
+    val dbMethods = psiDbFunctionRefExpr.references
+      .filterIsInstance<PsiMethodReference>()
+      .mapNotNull { it.resolve() as? PsiMethod }
+    if (dbMethods.isNotEmpty() && dbMethods.none { method -> isMethodMatchingAttribute(method, attributeMethods) }) {
+      val listenerClassName = attribute.references
+                                .filterIsInstance<PsiParameterReference>()
+                                .firstNotNullResult { it.resolvedType.type.canonicalText } ?: "Listener"
+      annotateError(psiDbFunctionRefExpr, METHOD_SIGNATURE_MISMATCH, listenerClassName, attributeMethods[0].name, attribute.name)
+    }
+  }
+
+  private fun isMethodMatchingAttribute(method: PsiMethod, attributeMethods: List<PsiMethod>): Boolean =
+    attributeMethods.any { attributeMethod ->
+      MethodSignatureUtil.areErasedParametersEqual(method.getSignature(PsiSubstitutor.EMPTY),
+                                                   attributeMethod.getSignature(PsiSubstitutor.EMPTY))
+    }
+
+  private fun annotateIfLambdaParameterCountMismatch(parameters: PsiDbInferredFormalParameterList) {
+    val found = parameters.inferredFormalParameterList.size
+    if (found == 0) {
+      return
+    }
+
+    val lambdaExpression = parameters.parent.parent ?: return
+    // The lambdaExpression should reference a functional class from [LambdaExpressionReferenceProvider]
+    val functionalClass = lambdaExpression.references.filterIsInstance<PsiClassReference>().firstOrNull()?.resolve() as? PsiClass ?: return
+    val listenerMethod = LambdaUtil.getFunctionalInterfaceMethod(functionalClass) ?: return
+    val expected = listenerMethod.parameterList.parameters.size
+    if (found != expected) {
+      annotateError(parameters, ARGUMENT_COUNT_MISMATCH, expected, found)
     }
   }
 
@@ -208,5 +259,9 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     const val DUPLICATE_CALLBACK_ARGUMENT = "Callback parameter '%s' is not unique"
 
     const val SETTER_NOT_FOUND = "Cannot find a setter for <%s %s> that accepts parameter type '%s'"
+
+    const val ARGUMENT_COUNT_MISMATCH = "Unexpected parameter count. Expected %d, found %d."
+
+    const val METHOD_SIGNATURE_MISMATCH = "Listener class '%s' with method '%s' did not match signature of any method '%s'"
   }
 }

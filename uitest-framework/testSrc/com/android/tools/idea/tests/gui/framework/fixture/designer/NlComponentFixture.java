@@ -153,6 +153,10 @@ public class NlComponentFixture {
     return convertToViewport(rightX, midY);
   }
 
+  public SceneComponent getSceneComponent() {
+    return mySceneComponent;
+  }
+
   @NotNull
   public NlComponentFixture resizeBy(int widthBy, int heightBy) {
     Point point = getRightBottomPoint(mySceneComponent);

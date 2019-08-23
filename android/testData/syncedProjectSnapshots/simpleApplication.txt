@@ -52,7 +52,7 @@ PROJECT             : testSimpleApplication
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -95,7 +95,7 @@ PROJECT             : testSimpleApplication
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK

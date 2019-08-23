@@ -52,8 +52,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
                                             @NotNull Set<String> applicationIds,
                                             @NotNull AndroidFacet facet,
                                             @NotNull S state,
-                                            @NotNull String runConfigTypeId,
-                                            boolean monitorRemoteProcess);
+                                            @NotNull String runConfigTypeId);
 
   boolean supportsProject(@NotNull Project project);
 

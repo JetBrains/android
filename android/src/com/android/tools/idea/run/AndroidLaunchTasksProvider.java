@@ -248,16 +248,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
                                              packageIds,
                                              myFacet,
                                              androidDebuggerState,
-                                             myRunConfig.getType().getId(),
-                                             monitorRemoteProcess());
+                                             myRunConfig.getType().getId());
     }
 
     return null;
-  }
-
-  @Override
-  public boolean monitorRemoteProcess() {
-    return myRunConfig.monitorRemoteProcess();
   }
 
   private boolean shouldDeployAsInstant() {

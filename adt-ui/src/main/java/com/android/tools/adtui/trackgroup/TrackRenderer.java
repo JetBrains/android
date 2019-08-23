@@ -16,7 +16,7 @@
 package com.android.tools.adtui.trackgroup;
 
 import com.android.tools.adtui.model.trackgroup.TrackModel;
-import java.awt.Component;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,5 +30,5 @@ public interface TrackRenderer<M, R extends Enum> {
    * Renders {@link TrackModel} into a specialized UI component, to be added to a {@link Track}.
    */
   @NotNull
-  Component render(@NotNull TrackModel<M, R> trackModel);
+  JComponent render(@NotNull TrackModel<M, R> trackModel);
 }

@@ -33,7 +33,7 @@ import com.intellij.mock.MockPsiManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
@@ -42,7 +42,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class GradleRenderErrorContributorTest extends IdeaTestCase {
+public class GradleRenderErrorContributorTest extends PlatformTestCase {
   private GradleRenderErrorContributor.GradleProvider myProvider;
   private RenderErrorModel myRenderErrorModel;
   private IdeDependenciesFactory myDependenciesFactory;

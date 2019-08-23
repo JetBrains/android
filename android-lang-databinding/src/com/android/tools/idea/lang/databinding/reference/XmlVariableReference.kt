@@ -18,27 +18,30 @@ package com.android.tools.idea.lang.databinding.reference
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.res.BindingLayoutData
 import com.android.tools.idea.res.binding.BindingLayoutInfo
-import com.android.tools.idea.res.binding.PsiDataBindingResourceItem
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
-import java.lang.StringBuilder
 
 /**
  * Reference that points to a <variable> tag in a layout XML file.
  */
 internal class XmlVariableReference(element: PsiElement,
                                     resolveTo: XmlTag,
-                                    private val variable: PsiDataBindingResourceItem,
+                                    private val variable: BindingLayoutData.Variable,
                                     private val layoutInfo: BindingLayoutInfo,
                                     private val module: Module)
   : DbExprReference(element, resolveTo) {
   override val resolvedType: PsiModelClass?
     get() {
-      return DataBindingUtil.getQualifiedType(variable.typeDeclaration, layoutInfo, false)
+      val type = variable.type
+      if (type == null) {
+        return null;
+      }
+      return DataBindingUtil.getQualifiedType(type, layoutInfo.data, false)
         ?.let { name -> resolveType(name) }
         ?.let { psiType -> PsiModelClass(psiType, DataBindingMode.fromPsiElement(element)) }
     }

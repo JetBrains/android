@@ -20,18 +20,25 @@ import com.android.tools.idea.databinding.DataBindingUtil.ClassReferenceVisitor;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.utils.OffsetTrackingDecodedXmlValue;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiJavaParserFacade;
+import com.intellij.psi.PsiPrimitiveType;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceBase;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypeElement;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.GenericDomValue;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The converter for "type" attribute of "variable" element in databinding layouts.
@@ -52,7 +59,7 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
 
   @Nullable
   @Override
-  public PsiElement fromString(@Nullable @NonNls String type, @NotNull ConvertContext context) {
+  public PsiElement fromString(@Nullable String type, @NotNull ConvertContext context) {
     if (type == null) {
       return null;
     }
@@ -68,13 +75,16 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
   }
 
   @Nullable
-  private static PsiTypeElement createTypeElement(@Nullable @NonNls String type, @NotNull ConvertContext context) {
+  private static PsiTypeElement createTypeElement(@Nullable String type, @NotNull ConvertContext context) {
     if (type == null) {
       return null;
     }
 
-    BindingLayoutInfo bindingLayoutInfo = getDataBindingInfo(context);
-    type = DataBindingUtil.getQualifiedType(type, bindingLayoutInfo, false);
+    BindingLayoutInfo layoutInfo = getDataBindingInfo(context);
+    if (layoutInfo == null) {
+      return null;
+    }
+    type = DataBindingUtil.getQualifiedType(type, layoutInfo.getData(), false);
     if (type == null) {
       return null;
     }

@@ -20,14 +20,14 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.*
 import com.google.common.truth.Truth
 import com.intellij.openapi.extensions.Extensions
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import java.util.*
 
 /**
  * Tests for [DependencyManagement].
  */
-class DependencyManagementTest : IdeaTestCase() {
+class DependencyManagementTest : PlatformTestCase() {
 
   private lateinit var projectSystem: TestProjectSystem
   private lateinit var syncManager: ProjectSystemSyncManager

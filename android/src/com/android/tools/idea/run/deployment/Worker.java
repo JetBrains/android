@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,43 +15,49 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import java.util.function.Supplier;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class Worker<T> {
+final class Worker<V> {
+  @Nullable
+  private Future<V> myResultFuture;
+
   @NotNull
-  private final Supplier<? extends WorkerDelegate<T>> myDelegateSupplier;
+  private V myResult;
 
-  @Nullable
-  private WorkerDelegate<T> myDelegate;
-
-  @Nullable
-  private T myResult;
-
-  Worker(@NotNull Supplier<? extends WorkerDelegate<T>> delegateSupplier) {
-    myDelegateSupplier = delegateSupplier;
+  Worker(@NotNull V defaultResult) {
+    myResult = defaultResult;
   }
 
   @NotNull
-  T get() {
-    if (myDelegate == null) {
-      myDelegate = myDelegateSupplier.get();
-      myDelegate.start();
+  V get(@NotNull Callable<V> task) {
+    Application application = ApplicationManager.getApplication();
 
-      myResult = myDelegate.getDefault();
+    if (myResultFuture == null) {
+      myResultFuture = application.executeOnPooledThread(task);
     }
 
-    if (!myDelegate.isFinished()) {
-      assert myResult != null;
+    if (!myResultFuture.isDone()) {
       return myResult;
     }
 
-    myResult = myDelegate.get();
+    try {
+      myResult = myResultFuture.get();
+      myResultFuture = application.executeOnPooledThread(task);
 
-    myDelegate = myDelegateSupplier.get();
-    myDelegate.start();
-
-    return myResult;
+      return myResult;
+    }
+    catch (InterruptedException exception) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(exception);
+    }
+    catch (ExecutionException exception) {
+      throw new RuntimeException(exception);
+    }
   }
 }

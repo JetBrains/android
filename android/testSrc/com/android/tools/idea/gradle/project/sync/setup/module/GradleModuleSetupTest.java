@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
@@ -41,7 +41,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import org.gradle.tooling.model.GradleProject;
@@ -50,7 +50,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link GradleModuleSetup}.
  */
-public class GradleModuleSetupTest extends IdeaTestCase {
+public class GradleModuleSetupTest extends PlatformTestCase {
   @Mock private GradleModuleModels myModuleModels;
   @Mock private GradleSyncState mySyncState;
 

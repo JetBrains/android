@@ -21,7 +21,7 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
@@ -30,7 +30,7 @@ import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 /**
  * Tests for {@link Facets}.
  */
-public class FacetsTest extends IdeaTestCase {
+public class FacetsTest extends PlatformTestCase {
   public void testRemoveAllFacetsWithAndroidFacets() throws Exception {
     createAndAddAndroidFacet(myModule);
     FacetManager facetManager = FacetManager.getInstance(myModule);

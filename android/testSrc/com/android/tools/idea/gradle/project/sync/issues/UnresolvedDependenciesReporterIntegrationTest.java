@@ -70,6 +70,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnresolvedDependenciesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
+    when(mySyncIssue.getType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
   }
 
   @Override

@@ -46,7 +46,7 @@ class CpuUsageTooltipView extends ProfilerTooltipView {
 
   @Override
   protected void updateTooltip() {
-    boolean canSelect = myView.getStage().getSelectionModel().canSelectRange(myView.getTimeline().getTooltipRange());
+    boolean canSelect = myView.getStage().getRangeSelectionModel().canSelectRange(myView.getTimeline().getTooltipRange());
     if (canSelect) {
       List<SeriesData<CpuTraceInfo>>
         traceSeries =

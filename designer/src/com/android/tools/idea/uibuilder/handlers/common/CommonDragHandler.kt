@@ -81,6 +81,7 @@ internal class CommonDragHandler(editor: ViewEditor,
     }
     val result = super.update(x, y, modifiers)
     dragTarget.mouseDrag(x, y, emptyList())
+    dragTarget.component.scene.checkRequestLayoutStatus()
     return result
   }
 

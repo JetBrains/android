@@ -95,6 +95,7 @@ class DrawableIconProvider(
   private fun renderImage(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?> =
     alternateImageProvider?.invoke(dimension, designAsset)
     ?: when (designAsset.type) {
+      ResourceType.MENU,
       ResourceType.LAYOUT -> getLayoutImage(designAsset)
       ResourceType.MIPMAP,
       ResourceType.DRAWABLE -> getDrawableImage(dimension, designAsset)

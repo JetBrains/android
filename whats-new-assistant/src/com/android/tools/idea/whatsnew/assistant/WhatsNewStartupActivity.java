@@ -16,14 +16,11 @@
 package com.android.tools.idea.whatsnew.assistant;
 
 import com.android.repository.Revision;
-import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.WhatsNewAssistantEvent;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -113,12 +110,8 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
   }
 
   private static void openWhatsNewAssistant(@NotNull Project project) {
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                     .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
-                                                     .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
-                                                       WhatsNewAssistantEvent.WhatsNewAssistantEventType.AUTO_OPEN)));
     ((WhatsNewAssistantSidePanelAction)ActionManager.getInstance().getAction("WhatsNewAction"))
-      .openWhatsNewSidePanel(project);
+      .openWhatsNewSidePanel(project, true);
   }
 
   @VisibleForTesting

@@ -47,9 +47,11 @@ class AddBenchmarkModuleTest {
    * 1. The new Benchmark Module is shown in the project explorer pane.
    * 2. Open the Benchmark Module manifest and check that "android:debuggable" and
    * is set to false.
-   * 3. Open build.gradle and check that it applies both com.android.library,
-   * androidx.benchmark plugins, the test runner, and the benchmark library added
-   * as a androidTest dependency.
+   * 3. Open build.gradle and check that it applies:
+   *     - both com.android.library and androidx.benchmark plugins
+   *     - testBuildType set to "release"
+   *     - the test runner
+   *     - the benchmark library added as an androidTest dependency.
    */
   @Test
   @Throws(Exception::class)
@@ -73,8 +75,9 @@ class AddBenchmarkModuleTest {
     guiTest.getProjectFileText("benchmark/build.gradle").run {
       assertThat(this).contains("""apply plugin: 'com.android.library'""")
       assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
-      assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.AndroidBenchmarkRunner'""")
-      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:""")
+      assertThat(this).contains("""testBuildType = "release"""")
+      assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'""")
+      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark-junit4:""")
     }
   }
 
@@ -93,9 +96,11 @@ class AddBenchmarkModuleTest {
    * 1. The new Benchmark Module is shown in the project explorer pane.
    * 2. Open the Benchmark Module manifest and check that "android:debuggable" and
    * is set to false.
-   * 3. Open build.gradle and check that it applies both com.android.library,
-   * androidx.benchmark plugins, and the benchmark library added as a androidTest
-   * dependency.
+   * 3. Open build.gradle and check that it applies:
+   *     - both com.android.library and androidx.benchmark plugins
+   *     - testBuildType set to "release"
+   *     - the test runner
+   *     - the benchmark library added as an androidTest dependency.
    */
   @Test
   @Throws(Exception::class)
@@ -119,7 +124,9 @@ class AddBenchmarkModuleTest {
     guiTest.getProjectFileText("benchmark/build.gradle").run {
       assertThat(this).contains("""apply plugin: 'com.android.library'""")
       assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
-      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark:""")
+      assertThat(this).contains("""testBuildType = "release"""")
+      assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'""")
+      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark-junit4:""")
     }
   }
 }

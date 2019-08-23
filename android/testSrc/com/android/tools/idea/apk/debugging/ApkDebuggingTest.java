@@ -17,14 +17,14 @@ package com.android.tools.idea.apk.debugging;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import static com.android.tools.idea.apk.debugging.ApkDebugging.APK_DEBUGGING_PROPERTY;
 
 /**
  * Tests for {@link ApkDebugging}.
  */
-public class ApkDebuggingTest extends IdeaTestCase {
+public class ApkDebuggingTest extends PlatformTestCase {
   public void testMarkAsApkDebuggingProject() {
     Project project = getProject();
     assertFalse(ApkDebugging.isMarkedAsApkDebuggingProject(project));

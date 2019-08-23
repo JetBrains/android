@@ -27,15 +27,15 @@ import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
-import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
-import com.android.tools.adtui.model.SelectionListener;
+import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
@@ -68,7 +68,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
@@ -128,7 +127,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
-    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), getTimeline().getViewRange());
+    RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel(), getTimeline().getViewRange());
     selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(),
@@ -212,7 +211,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
-    getStage().getSelectionModel().addListener(new SelectionListener() {
+    getStage().getRangeSelectionModel().addListener(new RangeSelectionListener() {
       @Override
       public void selectionCreated() {
         myEventsPanel.setVisible(true);

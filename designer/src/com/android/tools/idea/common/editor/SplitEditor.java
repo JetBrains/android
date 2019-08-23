@@ -16,6 +16,8 @@
 package com.android.tools.idea.common.editor;
 
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
+import com.intellij.codeHighlighting.HighlightingPass;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -27,10 +29,14 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.fileEditor.TextEditorWithPreview;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.util.ArrayUtil;
+import java.util.Arrays;
+import java.util.stream.Stream;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link TextEditorWithPreview} in which {@link #myPreview} is a {@link DesignerEditor} and {@link #myEditor} contains the corresponding
@@ -43,6 +49,9 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
 
   @NotNull
   private final DesignerEditor myDesignerEditor;
+
+  @NotNull
+  private final BackgroundEditorHighlighter myBackgroundEditorHighlighter = new CompoundBackgroundHighlighter();
 
   private final MyToolBarAction myTextViewAction =
     new MyToolBarAction("Text", AllIcons.General.LayoutEditorOnly, super.getShowEditorAction(), DesignSurface.State.DEACTIVATED);
@@ -77,6 +86,12 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
   @Override
   protected ToggleAction getShowEditorAction() {
     return myTextViewAction;
+  }
+
+  @NotNull
+  @Override
+  public BackgroundEditorHighlighter getBackgroundHighlighter() {
+    return myBackgroundEditorHighlighter;
   }
 
   @NotNull
@@ -146,6 +161,12 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
     return myEditor.getEditor();
   }
 
+  @Nullable
+  @Override
+  public VirtualFile getFile() {
+    return myEditor.getFile();
+  }
+
   @Override
   public boolean canNavigateTo(@NotNull Navigatable navigatable) {
     return myEditor.canNavigateTo(navigatable);
@@ -186,6 +207,25 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
         surface.getAnalyticsManager().trackSelectEditorMode();
       }
       // TODO(b/136174865): hide editor tool windows (e.g. palette) depending on the mode selected.
+    }
+  }
+
+  private class CompoundBackgroundHighlighter implements BackgroundEditorHighlighter {
+    @NotNull
+    @Override
+    public HighlightingPass[] createPassesForEditor() {
+      HighlightingPass[] designEditorPasses = myDesignerEditor.getBackgroundHighlighter().createPassesForEditor();
+      BackgroundEditorHighlighter textEditorHighlighter = myEditor.getBackgroundHighlighter();
+      HighlightingPass[] textEditorPasses =
+        textEditorHighlighter == null ? HighlightingPass.EMPTY_ARRAY : textEditorHighlighter.createPassesForEditor();
+      return Stream.concat(Arrays.stream(designEditorPasses), Arrays.stream(textEditorPasses)).toArray(HighlightingPass[]::new);
+    }
+
+    @NotNull
+    @Override
+    public HighlightingPass[] createPassesForVisibleArea() {
+      // BackgroundEditorHighlighter#createPassesForVisibleArea is deprecated and not used, so we can safely return an empty array here.
+      return HighlightingPass.EMPTY_ARRAY;
     }
   }
 }

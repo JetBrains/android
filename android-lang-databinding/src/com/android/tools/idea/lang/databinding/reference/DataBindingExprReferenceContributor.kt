@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
@@ -29,6 +28,7 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameter
 import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterList
+import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -38,9 +38,11 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.LambdaUtil
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiLambdaExpression
 import com.intellij.psi.PsiPackage
-import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
@@ -51,7 +53,6 @@ import com.intellij.psi.xml.XmlAttribute
 import com.intellij.util.ProcessingContext
 import org.jetbrains.android.dom.converters.DataBindingVariableTypeConverter
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 /**
  * For references found inside DataBinding expressions. For references inside `<data>` tags,
@@ -66,6 +67,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbLiteralExpr::class.java), LiteralExprReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbInferredFormalParameter::class.java),
                                         InferredFormalParameterReferenceProvider())
+    registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbLambdaExpression::class.java), LambdaExpressionReferenceProvider())
   }
 
   /**
@@ -228,7 +230,6 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       val classExpr = funRefExpr.expr
       val methodExpr = funRefExpr.id
       val psiModelClass = classExpr.toModelClassResolvable()?.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
-
       return psiModelClass.findMethods(methodExpr.text, staticOnly = false)
         .map { modelMethod -> PsiMethodReference(element, modelMethod) }
         .toTypedArray()
@@ -247,36 +248,40 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
    * ```
    *
    * Example: `view1` and `view2` in `@{(view1, view2) -> model.save(view1, view2)}`
-   *
-   * These references are usually from binding methods and binding adapter methods.
-   * For example, if the expression is with `android:onClick`, we first get its binding method `android.view.View.setOnClickListener`
-   * and its only parameter type as OnClickListener. Then, we find the only method `onClick` with its parameter `android.view.View`.
    */
   private class InferredFormalParameterReferenceProvider : PsiReferenceProvider() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-      val facet = AndroidFacet.getInstance(element) ?: return arrayOf()
-      val mode = DataBindingUtil.getDataBindingMode(facet)
-
-      // Finds the first listener method associated with the XML attribute this data binding expression is assigned to.
-      // See also: DataBindingXmlAttributeReferenceContributor, which is responsible for searching through and finding the binding adapters.
-      val listenerMethod = (element.containingFile.context?.parent as? XmlAttribute)?.references?.filterIsInstance<PsiParameterReference>()
-        ?.firstNotNullResult { reference ->
-          (reference.resolve() as? PsiParameter)?.type?.let { PsiModelClass(it, mode) }
-        }
-        ?.let { psiModelClass ->
-          val listenerMethods = psiModelClass.allMethods.filter { it.isAbstract }
-          if (listenerMethods.size == 1) {
-            listenerMethods[0]
-          }
-          else null
-        } ?: return arrayOf()
-
+      val lambdaExpression = element.parent.parent.parent ?: return arrayOf()
+      val functionalClass = lambdaExpression.references
+                              .filterIsInstance<PsiClassReference>()
+                              .firstOrNull()
+                              ?.resolve() as? PsiClass
+                            ?: return arrayOf()
+      val listenerMethod = LambdaUtil.getFunctionalInterfaceMethod(functionalClass) ?: return arrayOf()
       // Associate this expression's parameters with the listener method.
       val parameter = element as PsiDbInferredFormalParameter
       val parameterList = parameter.parent as PsiDbInferredFormalParameterList
       val index = parameterList.inferredFormalParameterList.indexOf(parameter)
-      val listenerParameter = listenerMethod.psiMethod.parameterList.parameters.getOrNull(index) ?: return arrayOf()
+      val listenerParameter = listenerMethod.parameterList.parameters.getOrNull(index) ?: return arrayOf()
       return arrayOf(PsiParameterReference(element, listenerParameter))
+    }
+  }
+
+  /**
+   * Provides references for [PsiLambdaExpression]
+   *
+   * From db.bnf:
+   *
+   * ```
+   * lambdaExpression ::= lambdaParameters '->' expr
+   * ```
+   *
+   * Example: `() -> model.doSomething()`, `view -> model.save(view)`
+   */
+  private inner class LambdaExpressionReferenceProvider : PsiReferenceProvider() {
+    override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+      val functionalClass = getFunctionClassFromAssociatedAttribute(element) ?: return arrayOf()
+      return arrayOf(PsiClassReference(element, functionalClass))
     }
   }
 
@@ -310,7 +315,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         DbTokenTypes.TRUE, DbTokenTypes.FALSE -> PsiType.BOOLEAN
         DbTokenTypes.NULL -> PsiType.NULL
         DbTokenTypes.CHARACTER_LITERAL -> PsiType.CHAR
-        DbTokenTypes.STRING_LITERAL -> DataBindingUtil.parsePsiType("String", element.project, null) ?: return arrayOf()
+        DbTokenTypes.STRING_LITERAL -> DataBindingUtil.parsePsiType("java.lang.String", element.project, null) ?: return arrayOf()
         else -> return arrayOf()
       }
       return arrayOf(PsiLiteralReference(element, psiType))
@@ -318,8 +323,24 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   }
 
   /**
-   * Returns the parent XML layout info for the target [element], or `null` if that isn't possible
-   * (e.g. databinding isn't enabled for this module)
+   * Returns the functional class if referenced by the associated attribute.
+   *
+   * e.g. "android:text" is resolved to java.lang.String which is not a functional class.
+   *      "android:onClick" is resolved to OnClickListener which is a functional interface(class).
+   */
+  private fun getFunctionClassFromAssociatedAttribute(element: PsiElement): PsiClass? {
+    val attribute = element.containingFile.context?.parent as? XmlAttribute ?: return null
+    return attribute.references
+      .filterIsInstance<PsiParameterReference>()
+      .firstOrNull()
+      ?.resolvedType
+      ?.psiClass
+      ?.takeIf { LambdaUtil.isFunctionalClass(it) }
+  }
+
+  /**
+   * Returns the parent XML layout info for the target [element], or null if that isn't possible
+   * (e.g. databinding isn't enabled for this module).
    */
   private fun getParentLayoutInfo(module: Module, element: PsiElement): BindingLayoutInfo? {
     val facet = AndroidFacet.getInstance(module)?.takeIf { facet -> DataBindingUtil.isDataBindingEnabled(facet) }
@@ -333,29 +354,34 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       topLevelFile.context?.containingFile?.let { topLevelFile = it }
     }
 
-    val fileNameWithoutExtension = topLevelFile.name.substringBeforeLast('.')
-    return moduleResources.getBindingLayoutInfo(fileNameWithoutExtension)
+    val fileNameWithoutExtension = topLevelFile.name.substringBefore('.')
+    return moduleResources.getBindingLayoutInfo(fileNameWithoutExtension).firstOrNull()
   }
 
   /**
    * Given a [PsiElement] and its [simpleName] (e.g. name without any qualified prefix), attempts to find
-   * a reference for it.
+   * a reference for it. In case of name collisions variable names take precedence over imported short type names.
    */
   private fun getReferencesBySimpleName(element: PsiElement, simpleName: String): Array<PsiReference> {
     val module = ModuleUtilCore.findModuleForPsiElement(element) ?: return PsiReference.EMPTY_ARRAY
 
     // Search the parent layout file, as that will let us check if the current identifier is found
-    // somewhere in the <data> section
+    // somewhere in the <data> section.
     run {
       val layoutInfo = getParentLayoutInfo(module, element) ?: return PsiReference.EMPTY_ARRAY
+      val layoutData = layoutInfo.data
 
-      layoutInfo.psi.getItems(DataBindingResourceType.VARIABLE).values
-        .firstOrNull { variable -> simpleName == variable.name }
-        ?.let { return arrayOf(XmlVariableReference(element, it.xmlTag, it, layoutInfo, module)) }
+      layoutData.findVariable(simpleName)?.let { variable ->
+        DataBindingUtil.findVariableTag(layoutData, variable.name)?.let { variableTag ->
+          return arrayOf(XmlVariableReference(element, variableTag, variable, layoutInfo, module))
+        }
+      }
 
-      layoutInfo.psi.getItems(DataBindingResourceType.IMPORT).values
-        .firstOrNull { import -> simpleName == DataBindingUtil.getAlias(import) }
-        ?.let { return arrayOf(XmlImportReference(element, it.xmlTag, it, module)) }
+      layoutData.findImport(simpleName)?.let { import ->
+        DataBindingUtil.findImportTag(layoutData, simpleName)?.let { importTag ->
+          return arrayOf(XmlImportReference(element, importTag, import, module))
+        }
+      }
     }
 
     // If we're here, we couldn't find a reference inside the XML file. Now, we have to search

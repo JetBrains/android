@@ -16,8 +16,8 @@
 package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.RangeSelectionComponent
 import com.android.tools.adtui.RangeTooltipComponent
-import com.android.tools.adtui.SelectionComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.linechart.OverlayComponent
 import com.android.tools.adtui.instructions.InstructionsPanel
@@ -28,7 +28,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -147,7 +146,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     overlayComponent.setBounds(1, 1, 10, 10)
     overlayMouseUi.mouse.moveTo(0, 0)
     // Grab the selection component and move the mouse to set the mode to !MOVE.
-    val selectionComponent = treeWalker.descendants().filterIsInstance<SelectionComponent>()[0]
+    val selectionComponent = treeWalker.descendants().filterIsInstance<RangeSelectionComponent>()[0]
     FakeUi(selectionComponent).mouse.moveTo(0, 0)
     val mockGraphics = Mockito.mock(Graphics2D::class.java)
     Mockito.`when`(mockGraphics.create()).thenReturn(mockGraphics)
@@ -318,7 +317,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
 
     // Moving the cursor over one of the selection handles should hide the tooltip seek bar
     val treeWalker = TreeWalker(stageView.component)
-    val selection = treeWalker.descendants().filterIsInstance<SelectionComponent>().first()
+    val selection = treeWalker.descendants().filterIsInstance<RangeSelectionComponent>().first()
     val selectionPos = ui.getPosition(selection)
 
     val w = selection.width.toDouble()
@@ -329,7 +328,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
 
     // One pixel to the left of the selection range targets the min handle
     ui.mouse.moveTo(selectionPos.x + selection.width / 2 - 1, selectionPos.y)
-    assertThat(selection.mode).isEqualTo(SelectionComponent.Mode.ADJUST_MIN)
+    assertThat(selection.mode).isEqualTo(RangeSelectionComponent.Mode.ADJUST_MIN)
     assertThat(stageView.shouldShowTooltipSeekComponent()).isFalse()
   }
 

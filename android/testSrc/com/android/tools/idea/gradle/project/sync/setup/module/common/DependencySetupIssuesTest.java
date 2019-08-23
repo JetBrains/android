@@ -25,13 +25,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.List;
 
 /**
  * Tests for {@link DependencySetupIssues}.
  */
-public class DependencySetupIssuesTest extends IdeaTestCase {
+public class DependencySetupIssuesTest extends PlatformTestCase {
   private GradleSyncMessagesStub mySyncMessages;
   private DependencySetupIssues myIssues;
 

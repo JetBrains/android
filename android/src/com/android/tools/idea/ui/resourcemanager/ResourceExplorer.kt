@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbar
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbarViewModel
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
@@ -26,6 +27,8 @@ import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.JBUI
@@ -58,7 +61,7 @@ class ResourceExplorer private constructor(
   private val toolbarViewModel: ResourceExplorerToolbarViewModel,
   private val toolbar: ResourceExplorerToolbar,
   private val resourceImportDragTarget: ResourceImportDragTarget)
-  : JPanel(BorderLayout()), Disposable {
+  : JPanel(BorderLayout()), Disposable, DataProvider {
 
   var facet by Delegates.observable(facet) { _, _, newValue -> updateFacet(newValue) }
 
@@ -167,6 +170,12 @@ class ResourceExplorer private constructor(
 
   override fun dispose() {
   }
+
+  override fun getData(dataId: String): Any? =
+    when (dataId) {
+      PlatformDataKeys.HELP_ID.name -> STUDIO_HELP_PREFIX + "studio/write/resource-manager"
+      else -> null
+    }
 
   fun selectAsset(facet: AndroidFacet, path: VirtualFile) {
     updateFacet(facet)

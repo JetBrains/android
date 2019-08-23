@@ -99,4 +99,9 @@ interface RecipeExecutor {
    * Add source directory or file (if [type] is a manifest).
    */
   fun addSourceSet(type: String, name: String, dir: String)
+
+  /**
+   * Set variable in ext block of global build.gradle.
+   */
+  fun setExtVar(name: String, value: String)
 }

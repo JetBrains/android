@@ -29,7 +29,7 @@ import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.TelemetryManager.OptInStatus;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.util.BuildNumber;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.nio.file.Files;
 import org.jetbrains.android.AndroidTestCase;
@@ -37,7 +37,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-public class InstantAppSdksTest extends IdeaTestCase {
+public class InstantAppSdksTest extends PlatformTestCase {
   private @Spy InstantAppSdks myInstantAppSdks;
   private @Mock ExtendedSdk myMockLibSdk;
   private @Mock ApplicationInfo myApplicationInfo;

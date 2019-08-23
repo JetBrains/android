@@ -439,7 +439,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       if (isFirstCall && !arguments[0].isNamed()) {
         return getExpressionElement(
           parentElement,
-          arguments[0].getArgumentExpression() as PsiElement,
+          arguments[0],
           name,
           arguments[0].getArgumentExpression() as KtElement)
       }
@@ -490,7 +490,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }.mapNotNull {
       argumentExpression -> createExpressionElement(
       expressionList,
-      argumentExpression.getArgumentExpression()!!,
+      argumentExpression,
       if (argumentExpression.isNamed()) GradleNameElement.create(argumentExpression.getArgumentName()!!.text) else GradleNameElement.empty(),
       argumentExpression.getArgumentExpression() as KtExpression)
     }.forEach {

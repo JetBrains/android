@@ -20,7 +20,7 @@ import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -31,7 +31,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link NewProjectSetup}.
  */
-public class NewProjectSetupTest extends IdeaTestCase {
+public class NewProjectSetupTest extends PlatformTestCase {
   @Mock TopLevelModuleFactory myTopLevelModuleFactory;
 
   private NewProjectSetup myNewProjectSetup;

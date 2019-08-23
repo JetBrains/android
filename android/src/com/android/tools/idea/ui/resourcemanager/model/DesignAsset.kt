@@ -152,11 +152,11 @@ private fun createAsset(child: VirtualFile, root: VirtualFile, matcher: Qualifie
 }
 
 fun ResourceResolver.resolveValue(designAsset: Asset): ResourceValue? {
-  val resolvedValue = if (designAsset.resourceItem.type == ResourceType.ATTR) {
+  val resolvedValue = resolveResValue(if (designAsset.resourceItem.type == ResourceType.ATTR) {
     findItemInTheme(designAsset.resourceItem.referenceToSelf)
   } else {
-    resolveResValue(designAsset.resourceItem.resourceValue)
-  }
+    designAsset.resourceItem.resourceValue
+  })
   if (resolvedValue == null) {
     LOG.warn("${designAsset.resourceItem.name} couldn't be resolved")
   }

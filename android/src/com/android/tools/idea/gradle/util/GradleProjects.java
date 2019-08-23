@@ -16,19 +16,14 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
 import static java.lang.Boolean.TRUE;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
@@ -42,7 +37,6 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
-import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,48 +88,6 @@ public final class GradleProjects {
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {
     return GradleSettings.getInstance(project).isOfflineWork();
-  }
-
-  @Nullable
-  public static AndroidModel getAndroidModel(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    return androidFacet != null ? androidFacet.getConfiguration().getModel() : null;
-  }
-
-  /**
-   * Returns the modules to build based on the current selection in the 'Project' tool window. If the module that corresponds to the project
-   * is selected, all the modules in such projects are returned. If there is no selection, an empty array is returned.
-   *
-   * @param project     the given project.
-   * @param dataContext knows the modules that are selected. If {@code null}, this method gets the {@code DataContext} from the 'Project'
-   *                    tool window directly.
-   * @return the modules to build based on the current selection in the 'Project' tool window.
-   * @deprecated use {@link GradleProjectInfo#getModulesToBuildFromSelection(DataContext)}
-   */
-  @Deprecated
-  @NotNull
-  public static Module[] getModulesToBuildFromSelection(@NotNull Project project, @Nullable DataContext dataContext) {
-    return GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(dataContext);
-  }
-
-  @Nullable
-  public static File findModuleRootFolderPath(@NotNull Module module) {
-    File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
-    return moduleFilePath.getParentFile();
-  }
-
-  /**
-   * Indicates whether Gradle is used to build this project.
-   * Note: {@link AndroidProjectInfo#requiresAndroidModel()} indicates whether a project requires an {@link AndroidModel}.
-   * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model is
-   * Gradle-specific.
-   *
-   * @deprecated use {@link GradleProjectInfo#isBuildWithGradle()}
-   */
-  // TODO remove this method and update clients to use GradleProjectInfo instead.
-  @Deprecated
-  public static boolean isBuildWithGradle(@NotNull Project project) {
-    return GradleProjectInfo.getInstance(project).isBuildWithGradle();
   }
 
   /**

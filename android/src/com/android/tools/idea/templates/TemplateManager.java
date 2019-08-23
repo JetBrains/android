@@ -164,16 +164,6 @@ public class TemplateManager {
       }
     }
 
-    // Fall back to SDK template root
-    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-    if (sdkData != null) {
-      File location = sdkData.getLocation();
-      File folder = new File(location, FD_TOOLS + File.separator + FD_TEMPLATES);
-      if (folder.isDirectory()) {
-        return folder;
-      }
-    }
-
     return null;
   }
 

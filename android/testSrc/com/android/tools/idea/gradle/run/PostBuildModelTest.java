@@ -19,7 +19,7 @@ import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -37,7 +37,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link PostBuildModel}.
  */
-public class PostBuildModelTest extends IdeaTestCase {
+public class PostBuildModelTest extends PlatformTestCase {
   @Mock private ProjectBuildOutput myAppOutput;
   @Mock private ProjectBuildOutput myLibOutput;
   @Mock private InstantAppProjectBuildOutput myInstantAppOutput;

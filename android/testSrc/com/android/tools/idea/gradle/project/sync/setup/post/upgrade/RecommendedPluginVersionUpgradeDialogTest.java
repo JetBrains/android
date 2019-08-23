@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeDialog.RemindMeTomorrowAction;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 import java.awt.event.ActionEvent;
@@ -28,7 +28,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link RecommendedPluginVersionUpgradeDialog}.
  */
-public class RecommendedPluginVersionUpgradeDialogTest extends IdeaTestCase {
+public class RecommendedPluginVersionUpgradeDialogTest extends PlatformTestCase {
   @Mock private TimeBasedUpgradeReminder myUpgradeReminder;
 
   private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;

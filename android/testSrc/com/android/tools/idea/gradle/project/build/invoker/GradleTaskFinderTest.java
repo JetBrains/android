@@ -32,7 +32,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.nio.file.Paths;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -60,7 +60,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleTaskFinder}.
  */
-public class GradleTaskFinderTest extends IdeaTestCase {
+public class GradleTaskFinderTest extends PlatformTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private IdeAndroidProject myIdeAndroidProject;
   @Mock private IdeVariant myIdeVariant;

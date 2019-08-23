@@ -35,7 +35,6 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetConstants.TARGET_ID;
 import static com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetConstants.TARGET_TYPE_ID;
-import static com.android.tools.idea.gradle.util.GradleProjects.getModulesToBuildFromSelection;
 import static org.jetbrains.jps.api.CmdlineProtoUtil.createTargetsScope;
 
 /**
@@ -47,7 +46,8 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
   public List<TargetTypeBuildScope> getBuildTargetScopes(@NotNull CompileScope baseScope,
                                                          @NotNull Project project,
                                                          boolean forceBuild) {
-    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+    GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(project);
+    if (!gradleProjectInfo.isBuildWithGradle()) {
       return Collections.emptyList();
     }
     BuildSettings buildSettings = BuildSettings.getInstance(project);
@@ -74,14 +74,14 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
       else {
         // Triggered by menu item.
         // Make selected modules
-        modulesToBuild = getModulesToBuildFromSelection(project, null);
+        modulesToBuild = gradleProjectInfo.getModulesToBuildFromSelection(null);
       }
       buildSettings.setModulesToBuild(modulesToBuild);
       buildSettings.setBuildMode(BuildMode.ASSEMBLE);
     }
     else if (baseScope instanceof CompositeScope) {
       // Compile selected modules
-      buildSettings.setModulesToBuild(getModulesToBuildFromSelection(project, null));
+      buildSettings.setModulesToBuild(gradleProjectInfo.getModulesToBuildFromSelection(null));
       buildSettings.setBuildMode(BuildMode.COMPILE_JAVA);
     }
 

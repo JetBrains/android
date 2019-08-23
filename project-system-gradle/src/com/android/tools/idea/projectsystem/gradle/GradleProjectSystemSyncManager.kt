@@ -58,7 +58,6 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     }
 
     val request = GradleSyncInvoker.Request(trigger)
-    request.generateSourcesOnSuccess = true
     request.runInBackground = true
 
     try {

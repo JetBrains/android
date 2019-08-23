@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.parents
+import org.jetbrains.kotlin.idea.intentions.isMethodCall
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
@@ -22,6 +27,7 @@ import org.jetbrains.uast.UFile
 import org.jetbrains.uast.ULiteralExpression
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.getContainingUFile
+import org.jetbrains.uast.getContainingUMethod
 import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.resolveToUElement
 import org.jetbrains.uast.visitor.UastVisitor
@@ -84,6 +90,24 @@ private fun callExpressionToDataMap(call: UCallExpression, calledMethod: UMethod
  * one [PreviewElement] with name "Button Preview" will be returned.
  */
 object MethodPreviewElementFinder : PreviewElementFinder {
+  /**
+   * If the given [UCallExpression] is a call to a Preview method, it returns the pointer to the Preview method definition or null
+   * otherwise.
+   */
+  private fun getPreviewMethodCall(call: UCallExpression): UMethod? {
+    if (PREVIEW_NAME != call.methodName) {
+      return null
+    }
+
+    val previewMethod = (call.resolveToUElement() as? UMethod) ?: return null
+    return if (PREVIEW_PACKAGE == previewMethod.getContainingUFile()?.packageName) {
+      previewMethod
+    }
+    else {
+      null
+    }
+  }
+
   override fun findPreviewMethods(uFile: UFile): Set<PreviewElement> {
     val previewElements = mutableSetOf<PreviewElement>()
     uFile.accept(object : UastVisitor {
@@ -100,30 +124,33 @@ object MethodPreviewElementFinder : PreviewElementFinder {
                                                                 height = configuration["height"] as? Int ?: UNDEFINED_DIMENSION)))
 
       override fun visitCallExpression(node: UCallExpression): Boolean {
-        if (node.methodName != PREVIEW_NAME) {
-          // Keep looking for expressions in case there are other Prevew calls
-          return false
+        val previewUMethod = getPreviewMethodCall(node) ?: return false
+        val composableMethod = node.getContainingUMethod() ?: return false
+
+        // The method must also be annotated with @Composable
+        if (composableMethod.annotations.any { COMPOSABLE_ANNOTATION_FQN == it.qualifiedName }) {
+          val composableMethodClass = composableMethod.uastParent as UClass
+          val composableMethodName = "${composableMethodClass.qualifiedName}.${composableMethod.name}"
+
+          val parameters = callExpressionToDataMap(node, previewUMethod)
+          visitPreviewMethodCall(composableMethodName,
+                                 parameters["name"] as? String ?: "",
+                                 parameters["configuration"] as? Map<String, Any> ?: emptyMap())
         }
-
-        val composableMethod = node.getParentOfType<UMethod>() ?: return false
-        val composableMethodClass = composableMethod.uastParent as UClass
-        val composableMethodName = "${composableMethodClass.qualifiedName}.${composableMethod.name}"
-
-        val previewUMethod = node.resolveToUElement() as? UMethod ?: return false
-        if (previewUMethod.getContainingUFile()?.packageName != PREVIEW_PACKAGE) {
-          // This is not the Preview method we are looking for
-          return false
-        }
-
-        val parameters = callExpressionToDataMap(node, previewUMethod)
-        visitPreviewMethodCall(composableMethodName,
-                               parameters["name"] as? String ?: "",
-                               parameters["configuration"] as? Map<String, Any> ?: emptyMap())
 
         return super.visitCallExpression(node)
       }
     })
 
     return previewElements
+  }
+
+  override fun elementBelongsToPreviewElement(element: PsiElement): Boolean {
+    // Find if element belongs to the Preview call. It can be any of the parameters but not part of the lambda call.
+    // If we find a call expression, keep looking forward to see if any is the Preview method.
+    return element.parents()
+      .takeWhile { it !is KtLambdaExpression } // Stop at the first lambda
+      .filterIsInstance<KtCallExpression>()
+      .any { it.isMethodCall(PREVIEW_ANNOTATION_FQN) }
   }
 }

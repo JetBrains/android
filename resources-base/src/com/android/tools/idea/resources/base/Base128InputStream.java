@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * variable-length encoding for integer values.
  * @see Base128OutputStream
  */
-public class Base128InputStream extends BufferedInputStream {
+public final class Base128InputStream extends BufferedInputStream {
   @Nullable private Map<String, String> myStringCache;
 
   /**
@@ -69,7 +69,7 @@ public class Base128InputStream extends BufferedInputStream {
    * @throws IOException if an I/O error occurs
    * @throws StreamFormatException if an invalid data format is detected
    */
-  public final int readInt() throws IOException {
+  public int readInt() throws IOException {
     int b = super.read();
     if (b < 0) {
       throw StreamFormatException.prematureEndOfFile();
@@ -95,7 +95,7 @@ public class Base128InputStream extends BufferedInputStream {
    * @throws IOException if an I/O error occurs
    * @throws StreamFormatException if an invalid data format is detected
    */
-  public final long readLong() throws IOException, StreamFormatException {
+  public long readLong() throws IOException, StreamFormatException {
     int b = super.read();
     if (b < 0) {
       throw StreamFormatException.prematureEndOfFile();
@@ -123,7 +123,7 @@ public class Base128InputStream extends BufferedInputStream {
    * @throws StreamFormatException if an invalid data format is detected
    */
   @Nullable
-  public final String readString() throws IOException, StreamFormatException {
+  public String readString() throws IOException, StreamFormatException {
     int len = readInt();
     if (len < 0) {
       throw StreamFormatException.invalidFormat();
@@ -150,7 +150,7 @@ public class Base128InputStream extends BufferedInputStream {
    * @throws IOException if an I/O error occurs
    * @throws StreamFormatException if an invalid data format is detected
    */
-  public final char readChar() throws IOException, StreamFormatException {
+  public char readChar() throws IOException, StreamFormatException {
     int c = readInt();
     if ((c & 0xFFFF0000) != 0) {
       throw StreamFormatException.invalidFormat();
@@ -165,7 +165,7 @@ public class Base128InputStream extends BufferedInputStream {
    * @throws IOException if an I/O error occurs
    * @throws StreamFormatException if the stream does not contain any more data
    */
-  public final byte readByte() throws IOException {
+  public byte readByte() throws IOException {
     int b = super.read();
     if (b < 0) {
       throw StreamFormatException.prematureEndOfFile();
@@ -195,9 +195,28 @@ public class Base128InputStream extends BufferedInputStream {
   @Deprecated
   @SuppressWarnings("NonSynchronizedMethodOverridesSynchronizedMethod")
   @Override
-  public final int read() {
+  public int read() {
     throw new UnsupportedOperationException(
         "This method is disabled to prevent unintended accidental use. Please use readByte or readInt instead.");
+  }
+
+  /**
+   * Checks if the stream contains the given bytes starting from the current position.
+   * Unless the remaining part of the stream is shorter than the {@code expected} array,
+   * exactly {@code expected.length} bytes are read from the stream.
+   *
+   * @param expected expected stream content
+   * @return true if the stream content matches, false otherwise.
+   * @throws IOException in case of a premature end of stream or an I/O error
+   */
+  public boolean validateContents(@NotNull byte[] expected) throws IOException {
+    boolean result = true;
+    for (byte b : expected) {
+      if (b != readByte()) {
+        result = false;
+      }
+    }
+    return result;
   }
 
   /**
