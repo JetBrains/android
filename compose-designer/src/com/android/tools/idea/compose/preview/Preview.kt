@@ -33,9 +33,9 @@ import com.android.tools.idea.compose.preview.ComposePreviewToolbar.ForceCompile
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.rendering.RefreshRenderAction.clearCacheAndRefreshSurface
 import com.android.tools.idea.rendering.RenderSettings
+import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
@@ -364,7 +364,7 @@ fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = (this as? Co
  */
 class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
   private val LOG = Logger.getInstance(ComposeFileEditorProvider::class.java)
-  private val previewElemementProvider = AnnotationPreviewElementFinder
+  private val previewElemementProvider = MultiPreviewElementFinder(listOf(AnnotationPreviewElementFinder, MethodPreviewElementFinder))
 
   init {
     if (StudioFlags.COMPOSE_PREVIEW.get()) {
