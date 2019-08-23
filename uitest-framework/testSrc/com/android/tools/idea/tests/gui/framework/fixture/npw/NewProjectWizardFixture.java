@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -38,7 +40,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ConfigureNewAndroidProjectStepFixture<NewProjectWizardFixture> getConfigureNewAndroidProjectStep() {
-    JRootPane rootPane = findStepWithTitle("Configure your project");
+    JRootPane rootPane = findStepWithTitle(message("android.wizard.project.new.configure"));
     return new ConfigureNewAndroidProjectStepFixture<>(this, rootPane);
   }
 

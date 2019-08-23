@@ -15,24 +15,71 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.*;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
+import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS;
+import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH;
+import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE;
+import static com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER;
+import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_ICON_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
+import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
+
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.FilterComponent;
+import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.RangeSelectionComponent;
+import com.android.tools.adtui.RangeTooltipComponent;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatSeparator;
-import com.android.tools.adtui.instructions.*;
+import com.android.tools.adtui.instructions.IconInstruction;
+import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.instructions.NewRowInstruction;
+import com.android.tools.adtui.instructions.RenderInstruction;
+import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
-import com.android.tools.profilers.*;
-import com.android.tools.profilers.event.*;
-import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.JComboBoxView;
+import com.android.tools.profilers.ProfilerAction;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerCombobox;
+import com.android.tools.profilers.ProfilerComboboxCellRenderer;
+import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.ProfilerLayeredPane;
+import com.android.tools.profilers.ProfilerScrollbar;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
+import com.android.tools.profilers.StageView;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.event.LifecycleTooltip;
+import com.android.tools.profilers.event.LifecycleTooltipView;
+import com.android.tools.profilers.event.UserEventTooltip;
+import com.android.tools.profilers.event.UserEventTooltipView;
 import com.android.tools.profilers.memory.MemoryProfilerStage.LiveAllocationSamplingMode;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.FieldObject;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.ReferenceObject;
+import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
@@ -52,18 +99,26 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FontMetrics;
+import java.awt.Insets;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
-import static com.android.tools.profilers.ProfilerLayout.*;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private static Logger getLogger() {
@@ -78,7 +133,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
   @NotNull private final MemoryClassSetView myClassSetView = new MemoryClassSetView(getStage(), getIdeComponents());
   @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
-  @Nullable private SelectionComponent mySelectionComponent;
+  @Nullable private RangeSelectionComponent myRangeSelectionComponent;
   @Nullable private CaptureObject myCaptureObject = null;
 
   @NotNull private final JBSplitter myMainSplitter = new JBSplitter(false);
@@ -118,7 +173,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myInstanceDetailsSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
 
     // Do not initialize the monitor UI if it only contains heap dump data.
-    // In this case, mySelectionComponent is null and we will not build the context menu.
+    // In this case, myRangeSelectionComponent is null and we will not build the context menu.
     if (!getStage().isMemoryCaptureOnly()) {
       myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     }
@@ -356,8 +411,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @VisibleForTesting
   @Nullable
-  SelectionComponent getSelectionComponent() {
-    return mySelectionComponent;
+  RangeSelectionComponent getRangeSelectionComponent() {
+    return myRangeSelectionComponent;
   }
 
   @VisibleForTesting
@@ -413,12 +468,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
     Range viewRange = getTimeline().getViewRange();
-    mySelectionComponent = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
-    mySelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    myRangeSelectionComponent = new RangeSelectionComponent(getStage().getRangeSelectionModel(), timeline.getViewRange());
+    myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
                                 getTooltipPanel(), getProfilersView().getComponent(),
-                                () -> mySelectionComponent.shouldShowSeekComponent());
+                                () -> myRangeSelectionComponent.shouldShowSeekComponent());
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
@@ -493,7 +548,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-    final OverlayComponent overlay = new OverlayComponent(mySelectionComponent);
+    final OverlayComponent overlay = new OverlayComponent(myRangeSelectionComponent);
     overlay.addDurationDataRenderer(myGcDurationDataRenderer);
     overlayPanel.add(overlay, BorderLayout.CENTER);
 
@@ -612,7 +667,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(mySelectionComponent, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(myRangeSelectionComponent, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
@@ -635,7 +690,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private void buildContextMenu() {
-    if (mySelectionComponent == null) {
+    if (myRangeSelectionComponent == null) {
       return;
     }
 
@@ -644,7 +699,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     ProfilerAction exportHeapDumpAction = new ProfilerAction.Builder("Export...").setIcon(AllIcons.ToolbarDecorator.Export).build();
     contextMenuInstaller.installGenericContextMenu(
-      mySelectionComponent, exportHeapDumpAction,
+      myRangeSelectionComponent, exportHeapDumpAction,
       x -> getCaptureIntersectingWithMouseX(x) != null &&
            getCaptureIntersectingWithMouseX(x).isExportable(),
       x -> getIdeComponents().createExportDialog().open(
@@ -661,28 +716,28 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
               getLogger().warn(e);
             }
           }, null)));
-    contextMenuInstaller.installGenericContextMenu(mySelectionComponent, ContextMenuItem.SEPARATOR);
+    contextMenuInstaller.installGenericContextMenu(myRangeSelectionComponent, ContextMenuItem.SEPARATOR);
 
     if (!getStage().useLiveAllocationTracking()) {
-      contextMenuInstaller.installGenericContextMenu(mySelectionComponent, myAllocationAction);
-      contextMenuInstaller.installGenericContextMenu(mySelectionComponent, myStopAllocationAction);
+      contextMenuInstaller.installGenericContextMenu(myRangeSelectionComponent, myAllocationAction);
+      contextMenuInstaller.installGenericContextMenu(myRangeSelectionComponent, myStopAllocationAction);
     }
-    contextMenuInstaller.installGenericContextMenu(mySelectionComponent, myForceGarbageCollectionAction);
-    contextMenuInstaller.installGenericContextMenu(mySelectionComponent, ContextMenuItem.SEPARATOR);
-    contextMenuInstaller.installGenericContextMenu(mySelectionComponent, myHeapDumpAction);
-    contextMenuInstaller.installGenericContextMenu(mySelectionComponent, ContextMenuItem.SEPARATOR);
+    contextMenuInstaller.installGenericContextMenu(myRangeSelectionComponent, myForceGarbageCollectionAction);
+    contextMenuInstaller.installGenericContextMenu(myRangeSelectionComponent, ContextMenuItem.SEPARATOR);
+    contextMenuInstaller.installGenericContextMenu(myRangeSelectionComponent, myHeapDumpAction);
+    contextMenuInstaller.installGenericContextMenu(myRangeSelectionComponent, ContextMenuItem.SEPARATOR);
 
-    getProfilersView().installCommonMenuItems(mySelectionComponent);
+    getProfilersView().installCommonMenuItems(myRangeSelectionComponent);
   }
 
   /**
-   * Returns the memory capture object that intersects with the mouse X coordinate within {@link #mySelectionComponent}.
+   * Returns the memory capture object that intersects with the mouse X coordinate within {@link #myRangeSelectionComponent}.
    */
   @Nullable
   private CaptureObject getCaptureIntersectingWithMouseX(int mouseXLocation) {
-    assert mySelectionComponent != null;
+    assert myRangeSelectionComponent != null;
     Range range = getTimeline().getViewRange();
-    double pos = mouseXLocation / mySelectionComponent.getSize().getWidth() * range.getLength() + range.getMin();
+    double pos = mouseXLocation / myRangeSelectionComponent.getSize().getWidth() * range.getLength() + range.getMin();
     CaptureDurationData<? extends CaptureObject> durationData = getStage().getIntersectingCaptureDuration(new Range(pos, pos));
     return durationData == null ? null : durationData.getCaptureEntry().getCaptureObject();
   }
@@ -792,10 +847,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private void captureObjectFinishedLoading() {
     boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
     myAllocationButton.setEnabled(isAlive);
-    // If the capture is an imported file, mySelectionComponent is null.
-    // If it is part of a profiler session, mySelectionComponent is not null and should obtain the focus.
-    if (mySelectionComponent != null) {
-      mySelectionComponent.requestFocus();
+    // If the capture is an imported file, myRangeSelectionComponent is null.
+    // If it is part of a profiler session, myRangeSelectionComponent is not null and should obtain the focus.
+    if (myRangeSelectionComponent != null) {
+      myRangeSelectionComponent.requestFocus();
     }
     myHeapDumpButton.setEnabled(isAlive);
     if (myCaptureObject != getStage().getSelectedCapture() || myCaptureObject == null) {

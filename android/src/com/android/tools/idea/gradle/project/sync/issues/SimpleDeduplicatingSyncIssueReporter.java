@@ -117,7 +117,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     final List<NotificationHyperlink> customLinks = getCustomLinks(project, syncIssues, affectedModules, buildFileMap);
     messages
       .updateNotification(notification, notification.getMessage(), customLinks);
-    SyncIssueUsageReporterUtils.collect(usageReporter, getSupportedIssueType(), customLinks);
+    SyncIssueUsageReporterUtils.collect(usageReporter, syncIssues.get(0).getType(), customLinks);
     String message = notification.getMessage().trim();
 
     ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);

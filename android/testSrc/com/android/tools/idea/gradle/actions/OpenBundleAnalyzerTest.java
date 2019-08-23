@@ -30,7 +30,7 @@ import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.awt.Component;
 import java.io.File;
 import java.util.HashMap;
@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Tests for {@link GoToBundleLocationTask}.
  */
-public class OpenBundleAnalyzerTest extends IdeaTestCase {
+public class OpenBundleAnalyzerTest extends PlatformTestCase {
   private File myTmpDir;
   private File myBundle;
 

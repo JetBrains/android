@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.PlatformTestCase
 import org.junit.Assert
 import org.junit.Test
 import org.mockito.Mockito
@@ -24,7 +24,7 @@ import java.awt.Dimension
 import java.awt.event.MouseEvent
 import kotlin.test.assertNotEquals
 
-class ColorAdjustPanelTest : IdeaTestCase() {
+class ColorAdjustPanelTest : PlatformTestCase() {
 
   @Test
   fun testPickColorFromHueSlider() {

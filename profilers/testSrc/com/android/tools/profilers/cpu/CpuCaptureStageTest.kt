@@ -91,4 +91,16 @@ class CpuCaptureStageTest {
     val stage = CpuCaptureStage.create(profilers, name, CpuProfilerTestUtils.getTraceFile("basic.trace"))
     assertThat(stage.captureHandler.configurationText).isEqualTo(name)
   }
+
+  @Test
+  fun trackGroupModelsAreSet() {
+    val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("basic.trace"))
+    profilers.stage = stage
+    assertThat(stage.trackGroupListModel.size).isEqualTo(1)
+    val interactionTrackGroup = stage.trackGroupListModel[0]
+    assertThat(interactionTrackGroup.title).isEqualTo("Interaction")
+    assertThat(interactionTrackGroup.size).isEqualTo(2)
+    assertThat(interactionTrackGroup[0].title).isEqualTo("User")
+    assertThat(interactionTrackGroup[1].title).isEqualTo("Lifecycle")
+  }
 }

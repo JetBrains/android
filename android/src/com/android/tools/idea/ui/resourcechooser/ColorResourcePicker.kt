@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser
 
-import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
@@ -57,9 +57,11 @@ private const val ITEM_HEIGHT = 40
 
 /**
  * A dialog for picking color resources.
- * TODO: Add an API to specified default chosen color, select its category and highlight it in the list.
+ *
+ * @param configuration            The configuration information which is used to resolve the color
+ * @param initialResourceReference The default selected reference. If this is null then there is no default selected reference.
  */
-class ColorResourcePicker(configuration: Configuration): JPanel(BorderLayout()) {
+class ColorResourcePicker(configuration: Configuration, initialResourceReference: ResourceReference?): JPanel(BorderLayout()) {
   private val colorResourceModel = ColorResourceModel(configuration)
 
   private val searchField = SearchTextField()
@@ -116,7 +118,7 @@ class ColorResourcePicker(configuration: Configuration): JPanel(BorderLayout()) 
       }
 
       val selectedResource = listData[index]
-      listeners.forEach { it.colorResourcePicked(selectedResource.resourceValue) }
+      listeners.forEach { it.colorResourcePicked(selectedResource.resourceReference) }
     }
 
     scrollView = object : JBScrollPane(list, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED) {
@@ -125,16 +127,34 @@ class ColorResourcePicker(configuration: Configuration): JPanel(BorderLayout()) 
       }
     }
     // TODO? remember the previous selection?
-    box.selectedIndex = 0
 
     add(boxPanel, BorderLayout.NORTH)
     add(scrollView, BorderLayout.CENTER)
+
+    if (initialResourceReference != null) {
+      val category = colorResourceModel.findResourceCategory(initialResourceReference)
+      if (category != null) {
+        selectedCategory = category
+      }
+    }
+    val boxSelectedIndex = box.model.getIndexOf(selectedCategory)
+    box.selectedIndex = if (boxSelectedIndex != -1) boxSelectedIndex else 0
+
+    updateListData()
+
+    if (initialResourceReference != null) {
+      val itemIndex = listData.map { it.resourceReference }.indexOf(initialResourceReference)
+      if (itemIndex != -1) {
+        list.selectedIndex = itemIndex
+        list.ensureIndexIsVisible(itemIndex)
+      }
+    }
   }
 
   private fun updateListData() {
     listData.clear()
     val filter = searchField.text?.trim { it <= ' ' } ?: ""
-    colorResourceModel.getResourceValues(selectedCategory, filter).mapNotNullTo(listData) {
+    colorResourceModel.getResourceReference(selectedCategory, filter).mapNotNullTo(listData) {
       val color = colorResourceModel.resolveColor(it)
       if (color != null) ResourceCellData(it, color) else null
     }
@@ -168,7 +188,7 @@ private class MyComboBoxModel(ids: List<String>) : DefaultComboBoxModel<String>(
   override fun removeListener(listener: ValueChangedListener) = Unit
 }
 
-private data class ResourceCellData(val resourceValue: ResourceValue, val color: Color)
+private data class ResourceCellData(val resourceReference: ResourceReference, val color: Color)
 
 private const val ICON_SIZE = (ITEM_HEIGHT * 0.5).toInt()
 
@@ -203,7 +223,7 @@ private class ItemRenderer : DefaultListCellRenderer() {
                                             selected: Boolean,
                                             expanded: Boolean): Component {
     val item = value as ResourceCellData
-    idLabel.text = item.resourceValue.name
+    idLabel.text = item.resourceReference.name
     colorBrick.color = item.color
 
     if (selected) {
@@ -263,5 +283,5 @@ class ColorBrick(var color: Color = Color.WHITE): JComponent() {
 }
 
 interface ColorResourcePickerListener {
-  fun colorResourcePicked(resourceValue: ResourceValue)
+  fun colorResourcePicked(resourceReference: ResourceReference)
 }

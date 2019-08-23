@@ -22,27 +22,18 @@ import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_SINGLE_TOP
 
 class ActionInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    if(properties.first?.components?.singleOrNull()?.isAction != true) {
+    if (properties.first?.components?.singleOrNull()?.isAction != true) {
       return
     }
 
-    addAnimationProperties(inspector, properties)
     addPopBehaviorProperties(inspector, properties)
     addLaunchOptionProperties(inspector, properties)
-  }
-
-  private fun addAnimationProperties(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    addActionProperties(inspector, properties, "Animations", ATTR_ENTER_ANIM, ATTR_EXIT_ANIM, ATTR_POP_ENTER_ANIM, ATTR_POP_EXIT_ANIM)
   }
 
   private fun addPopBehaviorProperties(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {

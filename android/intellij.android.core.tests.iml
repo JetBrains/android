@@ -4,6 +4,7 @@
     <exclude-output />
     <content url="file://$MODULE_DIR$/testSrc">
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/testResources" type="java-test-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -73,9 +74,9 @@
     <orderEntry type="module" module-name="intellij.platform.credentialStore" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.lang" scope="TEST" />
     <orderEntry type="module-library">
-      <library name="instantapps-api-1.5">
+      <library name="instantapps-api">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/instantapps-api-1.5.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/instantapps-api-1.8.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

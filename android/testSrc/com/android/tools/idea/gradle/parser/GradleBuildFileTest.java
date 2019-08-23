@@ -29,7 +29,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
@@ -40,7 +40,7 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.parser.GradleBuildFile.UNRECOGNIZED_VALUE;
 
-public class GradleBuildFileTest extends IdeaTestCase {
+public class GradleBuildFileTest extends PlatformTestCase {
   private Document myDocument;
 
   @Override

@@ -20,7 +20,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link NativeLibrary}.
  */
-public class NativeLibraryTest extends IdeaTestCase {
+public class NativeLibraryTest extends PlatformTestCase {
   private NativeLibrary myLibrary;
 
   @Override

@@ -16,7 +16,7 @@
 package com.android.tools.adtui.trackgroup;
 
 import com.android.tools.adtui.model.trackgroup.TrackModel;
-import java.awt.Component;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +29,7 @@ public class DefaultTrackRenderer<M, R extends Enum> implements TrackRenderer<M,
    */
   @NotNull
   @Override
-  public Component render(@NotNull TrackModel<M, R> trackModel) {
+  public JComponent render(@NotNull TrackModel<M, R> trackModel) {
     return new JLabel(trackModel.getTitle());
   }
 }

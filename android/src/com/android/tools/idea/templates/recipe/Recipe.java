@@ -55,6 +55,7 @@ public class Recipe implements RecipeInstruction {
     @XmlElement(name = "classpath", type = ClasspathInstruction.class),
     @XmlElement(name = "dependency", type = DependencyInstruction.class),
     @XmlElement(name = "sourceSet", type =  SourceSetInstruction.class),
+    @XmlElement(name = "setExtVar", type = SetExtVarInstruction.class),
   })
   private List<RecipeInstruction> instructions = Lists.newArrayList();
 
@@ -260,6 +261,23 @@ public class Recipe implements RecipeInstruction {
       executor.addSourceSet(type, name, dir);
     }
   }
+
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class SetExtVarInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String name;
+
+    @XmlAttribute(required = true)
+    @NotNull
+    private String value;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.setExtVar(name, value);
+    }
+  }
+
 
   @SuppressWarnings({"NullableProblems", "unused"})
   private static final class ClasspathInstruction implements RecipeInstruction {

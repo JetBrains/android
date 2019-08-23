@@ -24,13 +24,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -38,7 +39,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
-public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
+public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
   @Mock private SyncIssue mySyncIssue;
   @Mock private GradleSettings myGradleSettings;
 
@@ -54,6 +55,7 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     new IdeComponents(getProject()).replaceProjectService(GradleSettings.class, myGradleSettings);
     myReporter = new UnresolvedDependenciesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
+    when(mySyncIssue.getType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
   }
 
   public void testReportWithoutDependencyAndExtraInfo() {

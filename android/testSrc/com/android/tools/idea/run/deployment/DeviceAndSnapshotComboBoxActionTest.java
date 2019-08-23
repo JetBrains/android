@@ -255,6 +255,31 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
+  public void getSelectedSnapshotSnapshotsDisabled() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 3 XL API 28")
+      .setKey("Pixel_3_XL_API_28")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setSnapshots(ImmutableList.of(new Snapshot("Snapshot 1", "snap_2019-07-31_14-14-25")))
+      .build();
+
+    Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
+
+    AnAction action = new DeviceAndSnapshotComboBoxAction(
+      () -> false,
+      project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
+      myClock);
+
+    // Act
+    action.update(myEvent);
+
+    // Assert
+    assertEquals("Pixel 3 XL API 28", myPresentation.getText());
+  }
+
+  @Test
   public void createPopupActionGroupActionsIsEmpty() {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
@@ -848,5 +873,24 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertNull(action.getSelectedSnapshot(myProject));
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
     assertEquals(TestDevices.PIXEL_2_XL_API_28, myPresentation.getText());
+  }
+
+  @Test
+  public void updateDevicesGetterReturnsDifferentLists() {
+    // Arrange
+    Device device = new PhysicalDevice.Builder()
+      .setName("Unknown Device")
+      .setKey("cd020375-1ce4-45dc-a5be-b45e5765c6f2")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Mockito.when(myDevicesGetter.get())
+      .thenReturn(Collections.emptyList())
+      .thenReturn(Collections.singletonList(device));
+
+    AnAction action = new DeviceAndSnapshotComboBoxAction(() -> false, project -> myDevicesGetter, project -> null, myClock);
+
+    // Act
+    action.update(myEvent);
   }
 }

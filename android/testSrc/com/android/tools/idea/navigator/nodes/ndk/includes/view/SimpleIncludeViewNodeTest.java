@@ -19,7 +19,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.tests.LeakCheckerRule;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.junit.ClassRule;
 
 import java.io.File;
@@ -31,7 +31,7 @@ import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeVi
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
-public class SimpleIncludeViewNodeTest extends IdeaTestCase {
+public class SimpleIncludeViewNodeTest extends PlatformTestCase {
   @ClassRule
   public static LeakCheckerRule checker = new LeakCheckerRule();
 

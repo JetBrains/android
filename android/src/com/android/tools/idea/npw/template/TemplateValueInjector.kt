@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
@@ -107,6 +106,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.jps.model.java.JpsJavaSdkType
@@ -311,7 +311,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   fun setBaseFeature(baseFeature: Module): TemplateValueInjector {
     val androidFacet = AndroidFacet.getInstance(baseFeature)!!
     val gradleFacet = GradleFacet.getInstance(baseFeature)!!
-    val rootFolder = GradleProjects.findModuleRootFolderPath(baseFeature)
+    val rootFolder = AndroidRootUtil.findModuleRootFolderPath(baseFeature)
     val resDirectories = androidFacet.mainSourceProvider.resDirectories
     assert(!resDirectories.isEmpty())
     val baseModuleResourceRoot = resDirectories.iterator().next() // Put the new resources in any of the available res directories

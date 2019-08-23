@@ -177,7 +177,6 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     assertThat(isGoogleApiTag(DEFAULT_TAG)).isFalse();
     assertThat(isGoogleApiTag(GOOGLE_APIS_X86_TAG)).isFalse();
-    assertThat(isGoogleApiTag(GLASS_TAG)).isFalse();
   }
 
   public void testGpuOtherMode() throws Exception {

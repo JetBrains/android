@@ -207,6 +207,11 @@ public final class StudioFlags {
     PROFILER, "audits", "Enable profiler audits",
     "When enabled, profiler workflows such as capturing CPU atrace captures will generate audits",
     false);
+
+  public static final Flag<Boolean> PROFILER_CUSTOM_EVENT_VISUALIZATION = Flag.create(
+    PROFILER, "custom.event.visualization", "Enable Profiler Custom Event Visualization",
+    "When enabled, profiler will track and display events defined through developer APIs",
+    false);
   //endregion
 
   //region Layout Editor
@@ -353,7 +358,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NAV_NEW_PROPERTY_PANEL = Flag.create(
     NAV_EDITOR, "new.property", "Enable the new Property Panel",
     "Enable the new Property Panel",
-    false);
+    true);
   //endregion
 
   //region Run/Debug
@@ -398,9 +403,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> SINGLE_VARIANT_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "single.variant.sync", "Enable new \"Single-Variant Sync\"",
     "Turns on Single-Variant Sync.", false);
+  public static final Flag<Boolean> BUILD_AFTER_SYNC_ENABLED =
+    Flag.create(GRADLE_IDE, "build.after.sync", "Enable building after sync", "Turns on building after sync", false);
   public static final Flag<Boolean> COMPOUND_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "compound.sync", "Enable new \"Compound Sync\"",
-    "Turns on Compound Sync.", true);
+    "Turns on Compound Sync. Building after sync must be enabled for this to take effect.", true);
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
     "Makes Gradle use development offline repositories such as /out/repo", isDevBuild());
@@ -451,6 +458,10 @@ public final class StudioFlags {
   public static final Flag<Boolean>  DYNAMIC_LAYOUT_INSPECTOR_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector", "Enable dynamic layout inspector",
     "Turns on the dynamic layout inspector.", false);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.editor", "Enable dynamic layout editor",
+    "If enabled, users can edit layout properties with live updates on a device while the dynamic layout inspector is running.",
+    false);
   //endregion
 
   //region Refactorings
@@ -496,7 +507,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> APK_DEBUG_RELOAD = Flag.create(
     NDK, "apkdebugreload", "Enable APK reloading feature",
-    "If enabled, the user will be provided with an option to reload the APK inside an APK debugging project", false);
+    "If enabled, the user will be provided with an option to reload the APK inside an APK debugging project", true);
 
   private static final FlagGroup NDK_SIDE_BY_SIDE = new FlagGroup(FLAGS, "ndk.sxs", "NDK Side by Side");
   public static final Flag<Boolean> NDK_SIDE_BY_SIDE_ENABLED = Flag.create(
@@ -528,13 +539,6 @@ public final class StudioFlags {
     "Run DOM extender",
     "When disabled AndroidDomExtender does nothing, simulating a situation where DOM extensions have not been " +
     "computed yet.",
-    true);
-
-  public static final Flag<Boolean> GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED = Flag.create(
-    EDITOR,
-    "gutter.annotator.background.enabled",
-    "Enable gutter icon annotator to be run in background.",
-    "Enable gutter icon annotator to be run after all other annotators and in the background.",
     true);
 
   public static final Flag<Boolean> MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED = Flag.create(
@@ -667,7 +671,7 @@ public final class StudioFlags {
   //region Compose
   private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
   public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
-    COMPOSE, "compose.preview.enabled", "Enable the Compose preview",
+    COMPOSE, "preview.enabled", "Enable the Compose preview",
     "If enabled, a visual preview will be available for Compose.",
     false);
   //endregion

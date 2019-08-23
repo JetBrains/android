@@ -21,7 +21,7 @@ import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.extensions.Extensions;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class HtmlLinkManagerTest extends IdeaTestCase {
+public class HtmlLinkManagerTest extends PlatformTestCase {
   public void testRunnable() {
     HtmlLinkManager manager = new HtmlLinkManager();
     final AtomicBoolean result1 = new AtomicBoolean(false);

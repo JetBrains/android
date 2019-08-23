@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GoogleMavenRepository.Companion.MAVEN_GOOGLE_CACHE_DIR_KEY
 import com.android.tools.idea.ui.GuiTestingService
@@ -28,6 +29,7 @@ import java.net.URL
 
 /** A [GoogleMavenRepository] that uses IDE mechanisms (including proxy config) to download data. */
 object IdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir()) {
+  @Slow
   override fun readUrlData(url: String, timeout: Int) = HttpRequests
     .request(URL(url).toExternalForm())
     .connectTimeout(timeout)

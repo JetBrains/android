@@ -164,6 +164,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean isAuditsEnabled = true;
 
   /**
+   * Whether custom event visualization should be visible
+   */
+  private boolean myCustomEventVisualizationEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -316,6 +321,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isAuditsEnabled() { return isAuditsEnabled; }
+
+      @Override
+      public boolean isCustomEventVisualizationEnabled() {
+        return myCustomEventVisualizationEnabled;
+      }
 
       @Override
       public boolean isSessionImportEnabled() {
@@ -479,4 +489,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void enableCpuCaptureStage(boolean enabled) { myIsCaptureStageEnabled = enabled; }
+
+  public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
 }

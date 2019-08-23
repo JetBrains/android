@@ -32,7 +32,7 @@ import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +43,7 @@ import org.mockito.verification.VerificationMode;
 /**
  * Tests for {@link GradleProjectImporter}.
  */
-public class GradleProjectImporterTest extends IdeaTestCase {
+public class GradleProjectImporterTest extends PlatformTestCase {
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private NewProjectSetup myProjectSetup;
   @Mock private ProjectFolder myProjectFolder;

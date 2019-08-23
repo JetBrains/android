@@ -22,6 +22,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -41,12 +42,6 @@ public class TrackGroup {
   public TrackGroup(@NotNull TrackGroupModel groupModel, @NotNull TrackRendererFactory rendererFactory) {
     // Caches Tracks for the list cell renderer.
     Map<Integer, Track> trackModelToComponentMap = new HashMap<>();
-    for (int i = 0; i < groupModel.size(); ++i) {
-      TrackModel trackModel = groupModel.get(i);
-      assert !trackModelToComponentMap.containsKey(trackModel.getId());
-      trackModelToComponentMap.put(trackModel.getId(),
-                                   Track.create(trackModel, rendererFactory.createRenderer(trackModel.getRendererType())));
-    }
 
     // Initializes UI components.
     DragAndDropList<TrackModel> trackList = new DragAndDropList<>(groupModel);
@@ -57,8 +52,9 @@ public class TrackGroup {
                                                     int index,
                                                     boolean isSelected,
                                                     boolean cellHasFocus) {
-        assert trackModelToComponentMap.containsKey(value.getId());
-        return trackModelToComponentMap.get(value.getId()).getComponent();
+        return trackModelToComponentMap
+          .computeIfAbsent(value.getId(), id -> Track.create(value, rendererFactory.createRenderer(value.getRendererType())))
+          .getComponent();
       }
     });
 
@@ -71,7 +67,7 @@ public class TrackGroup {
    * @return the UI component of this Track Group
    */
   @NotNull
-  public Component getComponent() {
+  public JComponent getComponent() {
     return myComponent;
   }
 }

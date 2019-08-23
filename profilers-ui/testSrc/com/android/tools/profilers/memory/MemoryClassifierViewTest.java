@@ -33,10 +33,10 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilersTestData;
@@ -770,8 +770,8 @@ public class MemoryClassifierViewTest {
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
     // Bypass the stage's selection logic and manually alter the range selection ourselves.
-    // This avoids the interaction of the SelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
-    myStage.getSelectionModel().clearListeners();
+    // This avoids the interaction of the RangeSelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
+    myStage.getRangeSelectionModel().clearListeners();
     myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
                                   MoreExecutors.directExecutor());
     myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
@@ -865,8 +865,8 @@ public class MemoryClassifierViewTest {
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
     // Bypass the stage's selection logic and manually alter the range selection ourselves.
-    // This avoids the interaction of the SelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
-    myStage.getSelectionModel().clearListeners();
+    // This avoids the interaction of the RangeSelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
+    myStage.getRangeSelectionModel().clearListeners();
     myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
                                   MoreExecutors.directExecutor());
     myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
@@ -992,8 +992,8 @@ public class MemoryClassifierViewTest {
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
     // Bypass the stage's selection logic and manually alter the range selection ourselves.
-    // This avoids the interaction of the SelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
-    myStage.getSelectionModel().clearListeners();
+    // This avoids the interaction of the RangeSelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
+    myStage.getRangeSelectionModel().clearListeners();
     myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
                                   MoreExecutors.directExecutor());
     myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));

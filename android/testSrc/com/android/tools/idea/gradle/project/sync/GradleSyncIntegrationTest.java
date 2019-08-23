@@ -621,7 +621,9 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
           "org.gradle.api.plugins.ReportingBasePlugin",
           "org.gradle.api.plugins.JavaBasePlugin",
           "com.android.build.gradle.AppPlugin",
-          "org.gradle.plugins.ide.idea.IdeaPlugin"
+          "org.gradle.plugins.ide.idea.IdeaPlugin",
+          "com.android.build.gradle.internal.plugins.AppPlugin",
+          "com.android.build.gradle.internal.plugins.VersionCheckPlugin"
         ));
         assertThat(plugins).containsExactlyElementsIn(expectedPlugins);
       }

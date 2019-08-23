@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
+import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.lang.databinding.getTestDataPath
@@ -67,6 +68,28 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <application />
       </manifest>
     """.trimIndent())
+
+    // Add a fake "BindingAdapter" to this project so the tests resolve the dependency; this is
+    // easier than finding a way to add a real dependency on the data binding library, which
+    // usually requires Gradle plugin support.
+    val databindingPackage = mode.packageName.removeSuffix(".") // Without trailing '.'
+    with(fixture.addFileToProject(
+      "src/${databindingPackage.replace('.', '/')}/BindingAdapter.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        import java.lang.annotation.ElementType;
+        import java.lang.annotation.Target;
+
+        @Target(ElementType.METHOD)
+        public @interface BindingAdapter {
+          String[] value();
+        }
+      """.trimIndent())) {
+      // The following line is needed or else we get an error for referencing a file out of bounds
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
 
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
     ModuleDataBinding.getInstance(androidFacet!!).setMode(mode)
@@ -512,5 +535,44 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
 
     val reference = fixture.getReferenceAtCaretPosition()!!
     assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+  }
+
+  @Test
+  fun dbLambdaExpressionReferencesFunctionalInterface() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${mode.bindingAdapter};
+
+      public class Model {
+        @BindingAdapter("android:onClick2")
+        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public String getString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{(<caret>) -> model.getString()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("android.view.View.OnClickListener")
   }
 }

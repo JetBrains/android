@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding
 
-
 import com.android.ide.common.resources.stripPrefixFromId
 import com.android.tools.idea.databinding.DataBindingUtil.parsePsiType
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
@@ -43,14 +42,13 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 /**
- * Tests that verify navigating between data binding components work
+ * Tests that verify that navigating between data binding components.
  */
 @RunsInEdt
 class LightBindingClassTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
-  // We want to run tests on the EDT thread, but we also need to make sure the project rule is not
-  // initialized on the EDT.
+  // We want to run tests on EDT, but we also need to make sure the project rule is not initialized on EDT.
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 

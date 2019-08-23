@@ -97,6 +97,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
@@ -193,7 +194,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     repaint();
   });
 
-  public DesignSurface(@NotNull Project project, @NotNull SelectionModel selectionModel, @NotNull Disposable parentDisposable) {
+  public DesignSurface(
+    @NotNull Project project,
+    @NotNull SelectionModel selectionModel,
+    @NotNull Disposable parentDisposable,
+    @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
     myProject = project;
@@ -270,7 +275,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     myInteractionManager.startListening();
     //noinspection AbstractMethodCallInConstructor
-    myActionManager = createActionManager();
+    myActionManager = actionManagerProvider.apply(this);
     myActionManager.registerActionsShortcuts(myLayeredPane, this);
   }
 
@@ -286,10 +291,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public float getScreenScalingFactor() {
     return 1f;
   }
-
-  // TODO: add self-type parameter DesignSurface?
-  @NotNull
-  protected abstract ActionManager<? extends DesignSurface> createActionManager();
 
   @NotNull
   protected abstract SceneManager createSceneManager(@NotNull NlModel model);
@@ -734,7 +735,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   *
+   * @see #getFitScale(Dimension, boolean)
    */
   protected double getFitScale(boolean fitInto) {
     int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
@@ -747,7 +748,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param fitInto {@link ZoomType#FIT_INTO}
    * @return The scale to make the content fit the design surface
    */
-  protected double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
+  @VisibleForTesting
+  public double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
     // Fit to zoom
     int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
     int availableHeight = myScrollPane.getHeight() - myScrollPane.getHorizontalScrollBar().getHeight();

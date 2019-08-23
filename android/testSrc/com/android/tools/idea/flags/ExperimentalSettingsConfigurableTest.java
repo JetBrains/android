@@ -20,13 +20,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link ExperimentalSettingsConfigurable}.
  */
-public class ExperimentalSettingsConfigurableTest extends IdeaTestCase {
+public class ExperimentalSettingsConfigurableTest extends PlatformTestCase {
   @Mock private GradleExperimentalSettings mySettings;
   private ExperimentalSettingsConfigurable myConfigurable;
 

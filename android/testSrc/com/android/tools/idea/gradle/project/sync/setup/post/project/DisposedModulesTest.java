@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link DisposedModules}.
  */
-public class DisposedModulesTest extends IdeaTestCase {
+public class DisposedModulesTest extends PlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();

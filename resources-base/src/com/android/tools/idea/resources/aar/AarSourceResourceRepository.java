@@ -261,7 +261,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
    */
   private boolean loadFromPersistentCache(@NotNull Path cacheFile, @NotNull byte[] fileHeader) {
     try (Base128InputStream stream = new Base128InputStream(cacheFile)) {
-      if (!ResourceSerializationUtil.validateContents(fileHeader, stream)) {
+      if (!stream.validateContents(fileHeader)) {
         return false; // Cache file header doesn't match.
       }
       loadFromStream(stream, Maps.newHashMapWithExpectedSize(1000), null);

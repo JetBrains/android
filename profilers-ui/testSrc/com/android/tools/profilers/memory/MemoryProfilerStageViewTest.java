@@ -33,14 +33,12 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.Memory.TrackStatus;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeProfilerService;
@@ -316,8 +314,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   /**
-   * The following is a regression test against implementation where 'mySelectionComponent' in MemoryProfilerStageView is a null pointer
-   * when profiler is importing a heap dump file. (Regression bug: b/117796712)
+   * The following is a regression test against implementation where 'myRangeSelectionComponent' in MemoryProfilerStageView is a null
+   * pointer when profiler is importing a heap dump file. (Regression bug: b/117796712)
    */
   @Test
   public void testLoadHeapDumpFromFileFinishLoading() throws Exception {

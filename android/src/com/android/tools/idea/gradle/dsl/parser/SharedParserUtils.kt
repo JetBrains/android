@@ -310,6 +310,9 @@ internal fun needToCreateParent(element: GradleDslElement): Boolean {
   return parent != null && parent.psiElement == null
 }
 
+/**
+ * Get the name of a dsl element by triming the parent's name parts.
+ */
 internal fun maybeTrimForParent(name: GradleNameElement, parent: GradleDslElement?): String {
   if (parent == null) return name.fullName()
 

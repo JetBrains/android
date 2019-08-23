@@ -59,7 +59,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.LinkedList;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -70,7 +70,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link PostSyncProjectSetup}.
  */
-public class PostSyncProjectSetupTest extends IdeaTestCase {
+public class PostSyncProjectSetupTest extends PlatformTestCase {
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleSyncInvoker mySyncInvoker;

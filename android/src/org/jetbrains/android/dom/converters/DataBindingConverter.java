@@ -17,12 +17,10 @@ package org.jetbrains.android.dom.converters;
 
 import static com.android.tools.idea.lang.databinding.DataBindingLangUtil.JAVA_LANG;
 
-import com.android.SdkConstants;
-import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingLangUtil;
+import com.android.tools.idea.res.BindingLayoutData;
 import com.android.tools.idea.res.binding.BindingLayoutInfo;
-import com.android.tools.idea.res.binding.PsiDataBindingResourceItem;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
@@ -66,16 +64,17 @@ import org.jetbrains.annotations.Nullable;
  */
 public class DataBindingConverter extends ResolvingConverter<PsiElement> implements CustomReferenceConverter<PsiElement> {
   @Nullable
-  private static String getImport(@NotNull String alias, @NotNull ConvertContext context) {
+  private static String getImport(@NotNull String importedShortName, @NotNull ConvertContext context) {
     BindingLayoutInfo bindingInfo = getDataBindingInfo(context);
     if (bindingInfo == null) {
       return null;
     }
-    return bindingInfo.resolveImport(alias);
+    return bindingInfo.getData().resolveImport(importedShortName);
   }
 
   /**
-   * Completion is handled by {@link com.android.tools.idea.lang.databinding.DataBindingCompletionContributor}. So, nothing to do here.
+   * Completion is handled by {@link com.android.tools.idea.lang.databinding.completion.DataBindingCompletionContributor}.
+   * So, nothing to do here.
    */
   @Override
   @NotNull
@@ -93,8 +92,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (module == null) {
       return null;
     }
-    BindingLayoutInfo bindingLayoutInfo = getDataBindingInfo(context);
-    String qualifiedName = DataBindingUtil.resolveImport(type, bindingLayoutInfo);
+    BindingLayoutInfo layoutInfo = getDataBindingInfo(context);
+    String qualifiedName = layoutInfo == null ? type : DataBindingUtil.resolveImport(type, layoutInfo.getData());
     Project project = context.getProject();
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope scope = enlargeScope(module.getModuleWithDependenciesAndLibrariesScope(false),
@@ -124,13 +123,13 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
 
   @Override
   @Nullable
-  public String toString(@Nullable PsiElement element, ConvertContext context) {
+  public String toString(@Nullable PsiElement element, @NotNull ConvertContext context) {
     if (element instanceof PsiClass) {
       String type = ((PsiClass)element).getQualifiedName();
       if (type != null) {
         BindingLayoutInfo bindingLayoutInfo = getDataBindingInfo(context);
         if (bindingLayoutInfo != null) {
-          type = unresolveImport(type, bindingLayoutInfo);
+          type = unresolveImport(type, bindingLayoutInfo.getData());
         }
       }
       return type;
@@ -147,27 +146,27 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
    * import statements.
    *
    * @param className the fully qualified class name
-   * @param bindingLayoutInfo the data binding information containing the import statements to use
+   * @param layoutData the data binding information containing the import statements to use
    * @return a shorter class name, or the original name if it doesn't match any import statement
    *
-   * @see #resolveImport
+   * @see BindingLayoutData#resolveImport
    */
-  private static String unresolveImport(String className, BindingLayoutInfo bindingLayoutInfo) {
+  private static String unresolveImport(@NotNull String className, @NotNull BindingLayoutData layoutData) {
     List<String> segments = StringUtil.split(className, ".");
     if (!segments.isEmpty()) {
-      String alias = null;
+      String importedShortName = null;
       int maxMatchedSegments = 0;
-      for (PsiDataBindingResourceItem psiImport : bindingLayoutInfo.getPsi().getItems(DataBindingResourceType.IMPORT).values()) {
-        String importedType = psiImport.getTypeDeclaration();
+      for (BindingLayoutData.Import anImport : layoutData.getImports()) {
+        String importedType = anImport.getQualifiedName();
         int matchedSegments = getNumberOfMatchedSegments(importedType, segments);
         if (matchedSegments > maxMatchedSegments) {
           maxMatchedSegments = matchedSegments;
-          alias = psiImport.getExtra(SdkConstants.ATTR_ALIAS);
+          importedShortName = anImport.getImportedShortName();
         }
       }
-      if (maxMatchedSegments != 0 && alias != null) {
+      if (maxMatchedSegments != 0) {
         segments = segments.subList(maxMatchedSegments - 1, segments.size());
-        segments.set(0, alias);
+        segments.set(0, importedShortName);
         return StringUtil.join(segments, ".");
       }
     }
@@ -261,7 +260,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
   }
 
   @Nullable
-  protected static BindingLayoutInfo getDataBindingInfo(@NotNull final ConvertContext context) {
+  protected static BindingLayoutInfo getDataBindingInfo(@NotNull ConvertContext context) {
     return DataBindingLangUtil.getBindingLayoutInfo(context.getFile());
   }
 
@@ -269,7 +268,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     private final String myReferenceTo;
     private final Module myModule;
 
-    public AliasedReference(PsiElement referenceFrom, TextRange range, String referenceTo, Module module) {
+    AliasedReference(PsiElement referenceFrom, TextRange range, String referenceTo, Module module) {
       super(referenceFrom, range, true);
       myReferenceTo = referenceTo;
       myModule = module;
@@ -356,7 +355,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
   private static class ClassReference extends PsiReferenceBase<PsiElement> {
     @NotNull private final PsiElement myResolveTo;
 
-    public ClassReference(@NotNull PsiElement element, @NotNull TextRange range, @NotNull PsiElement resolveTo) {
+    ClassReference(@NotNull PsiElement element, @NotNull TextRange range, @NotNull PsiElement resolveTo) {
       super(element, range, true);
       myResolveTo = resolveTo;
     }

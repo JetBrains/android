@@ -24,7 +24,6 @@ import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_DENSITY;
 import static com.android.builder.model.AndroidProject.PROPERTY_DEPLOY_AS_INSTANT_APP;
 import static com.android.builder.model.AndroidProject.PROPERTY_EXTRACT_INSTANT_APK;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.android.tools.idea.gradle.util.GradleProjects.getModulesToBuildFromSelection;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING;
@@ -282,7 +281,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // if not supported. The later case requires Gradle Sync, because deploy relies on the models from Gradle Sync to get Apk locations.
     if (GradleSyncState.getInstance(myProject).isSyncNeeded() != ThreeState.NO &&
         (AndroidGradleBuildConfiguration.getInstance(myProject).SYNC_PROJECT_BEFORE_BUILD ||
-         !isPostBuildSyncSupported(myProject, context, configuration))) {
+         !isPostBuildSyncSupported(context, configuration))) {
       syncNeeded = true;
     }
 
@@ -315,10 +314,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   /**
    * Returns true if there is no Android module, or all of Android modules support post build sync.
    */
-  private static boolean isPostBuildSyncSupported(@NotNull Project project,
-                                                  @NotNull DataContext context,
-                                                  @NotNull RunConfiguration configuration) {
-    Module[] modules = getModules(project, context, configuration);
+  private boolean isPostBuildSyncSupported(@NotNull DataContext context,
+                                           @NotNull RunConfiguration configuration) {
+    Module[] modules = getModules(context, configuration);
     for (Module module : modules) {
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
       if (androidModuleModel != null && !androidModuleModel.getFeatures().isPostBuildSyncSupported()) {
@@ -353,7 +351,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
 
     // Compute modules to build
-    Module[] modules = getModules(myProject, context, configuration);
+    Module[] modules = getModules(context, configuration);
 
     // Note: this before run task provider may be invoked from a context such as Java unit tests, in which case it doesn't have
     // the android run config context
@@ -546,7 +544,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @NotNull
-  private static Module[] getModules(@NotNull Project project, @Nullable DataContext context, @Nullable RunConfiguration configuration) {
+  private Module[] getModules(@Nullable DataContext context, @Nullable RunConfiguration configuration) {
     if (configuration instanceof ModuleRunProfile) {
       // If running JUnit tests for "whole project", all the modules should be compiled, but getModules() return an empty array.
       // See http://b.android.com/230678
@@ -558,7 +556,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return ((ModuleRunProfile)configuration).getModules();
     }
     else {
-      return getModulesToBuildFromSelection(project, context);
+      return myGradleProjectInfo.getModulesToBuildFromSelection(context);
     }
   }
 

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.tools.idea.debug.AndroidNativeDebugProcess;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebuggerManager;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class NativeDebugSessionFinderTest extends IdeaTestCase {
+public class NativeDebugSessionFinderTest extends PlatformTestCase {
   @Mock private XDebuggerManager myDebuggerManager;
 
   private XDebugSession myJavaDebugSession;

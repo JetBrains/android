@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.plugin;
 import com.android.Version;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link AndroidPluginGenerationIdea}.
  */
-public class AndroidPluginGenerationIdeaTest extends IdeaTestCase {
+public class AndroidPluginGenerationIdeaTest extends PlatformTestCase {
   private EmbeddedDistributionPaths myEmbeddedDistributionPaths;
 
   @Override

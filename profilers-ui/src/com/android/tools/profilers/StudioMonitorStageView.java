@@ -21,6 +21,10 @@ import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
 import com.android.tools.profilers.cpu.CpuMonitorView;
+import com.android.tools.profilers.customevent.CustomEventMonitor;
+import com.android.tools.profilers.customevent.CustomEventMonitorTooltip;
+import com.android.tools.profilers.customevent.CustomEventMonitorTooltipView;
+import com.android.tools.profilers.customevent.CustomEventMonitorView;
 import com.android.tools.profilers.energy.EnergyMonitor;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyMonitorTooltipView;
@@ -67,6 +71,12 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       binder.bind(EnergyMonitor.class, EnergyMonitorView::new);
     }
 
+    boolean isCustomEventVisualizationEnabled =
+      getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCustomEventVisualizationEnabled();
+    if (isCustomEventVisualizationEnabled) {
+      binder.bind(CustomEventMonitor.class, CustomEventMonitorView::new);
+    }
+
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
     ProfilerScrollbar sb = new ProfilerScrollbar(getTimeline(), getComponent());
@@ -97,6 +107,9 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
     if (isEnergyProfilerEnabled) {
       getTooltipBinder().bind(EnergyMonitorTooltip.class, EnergyMonitorTooltipView::new);
+    }
+    if (isCustomEventVisualizationEnabled) {
+      getTooltipBinder().bind(CustomEventMonitorTooltip.class, CustomEventMonitorTooltipView::new);
     }
 
     myViews = new ArrayList<>(stage.getMonitors().size());

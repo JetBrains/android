@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GeneratedFileWritingAccessProvider}.
  */
-public class GeneratedFileWritingAccessProviderTest extends IdeaTestCase {
+public class GeneratedFileWritingAccessProviderTest extends PlatformTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private IdeAndroidProject myAndroidProject;
   @Mock private GradleProjectInfo myProjectInfo;

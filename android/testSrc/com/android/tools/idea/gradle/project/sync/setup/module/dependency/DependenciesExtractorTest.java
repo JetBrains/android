@@ -38,7 +38,7 @@ import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.testing.Facets;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +48,7 @@ import java.util.List;
 /**
  * Tests for {@link DependenciesExtractor}.
  */
-public class DependenciesExtractorTest extends IdeaTestCase {
+public class DependenciesExtractorTest extends PlatformTestCase {
   private AndroidProjectStub myAndroidProject;
   private VariantStub myVariant;
   private ModuleFinder myModuleFinder;

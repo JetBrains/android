@@ -25,7 +25,7 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SyncErrorHandlerManager}.
  */
-public class SyncErrorHandlerManagerTest extends IdeaTestCase {
+public class SyncErrorHandlerManagerTest extends PlatformTestCase {
   @Mock private NotificationData myNotificationData;
   @Mock private SyncErrorHandler myErrorHandler1;
   @Mock private SyncErrorHandler myErrorHandler2;

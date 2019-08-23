@@ -27,7 +27,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * Tests for {@link GoToApkLocationTask}.
  */
-public class GoToApkLocationTaskTest extends IdeaTestCase {
+public class GoToApkLocationTaskTest extends PlatformTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
   private boolean isShowFilePathActionSupported;
   @Mock private AndroidNotification myMockNotification;

@@ -27,12 +27,12 @@ class ComposeFileEditorProviderTest : ComposeLightCodeInsightFixtureTestCase() {
 
     @Language("kotlin")
     val noPreviewFile = myFixture.addFileToProject("src/NoPreviews.kt", """
-      import androidx.compose.Compose
+      import androidx.compose.Composable
 
       fun method() {
       }
 
-      @Compose
+      @Composable
       fun Preview2() {
 
       }
@@ -42,10 +42,10 @@ class ComposeFileEditorProviderTest : ComposeLightCodeInsightFixtureTestCase() {
     val previewFile = myFixture.addFileToProject("src/Preview.kt", """
       import com.android.tools.preview.Preview
       import com.android.tools.preview.Configuration
-      import androidx.compose.Compose
+      import androidx.compose.Composable
 
       @Preview
-      @Compose
+      @Composable
       fun PreviewTest() {
 
       }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.res
 
-import com.android.SdkConstants
-import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.res.binding.BindingLayoutInfo
@@ -84,7 +82,7 @@ class ResourceFolderDataBindingTest {
     val file = fixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
     psiFile = PsiManager.getInstance(project).findFile(file)!!
     resources = createRepository()
-    assertEquals(1, resources.dataBindingResourceFiles.size)
+    assertEquals(1, resources.bindingLayoutGroups.size)
   }
 
   @Test
@@ -256,22 +254,12 @@ class ResourceFolderDataBindingTest {
    * Note: Pairs are name to type.
    */
   private fun assertVariables(vararg expected: Pair<String, String>) {
-    // BindingLayoutInfo classes have both raw and PSI versions of variables - verify that both of
-    // them are up to date.
-
-    val xmlVariables = getInfo()
-      .xml
+    val variables = getInfo()
+      .data
       .variables
       .map { variable -> variable.name to variable.type }
       .toSet()
-    assertEquals(expected.toSet(), xmlVariables)
-
-    val psiVariables = getInfo()
-      .psi
-      .getItems(DataBindingResourceType.VARIABLE).values
-      .map { variable -> variable.name to variable.typeDeclaration }
-      .toSet()
-    assertEquals(expected.toSet(), psiVariables)
+    assertEquals(expected.toSet(), variables)
   }
 
   /**
@@ -281,39 +269,29 @@ class ResourceFolderDataBindingTest {
    * Note: Pairs are type to alias.
    */
   private fun assertImports(vararg expected: Pair<String, String?>) {
-    // BindingLayoutInfo classes have both raw and PSI versions of imports - verify that both of
-    // them are up to date.
-
-    val xmlImports = getInfo()
-      .xml
-      .imports
-      .map { import -> import.type to import.alias }
-      .toSet()
-    assertEquals(expected.toSet(), xmlImports)
-
-    val psiImports = getInfo()
-      .psi
-      .getItems(DataBindingResourceType.IMPORT).values
-      .map { import -> import.typeDeclaration to import.getExtra(SdkConstants.ATTR_ALIAS) }
-      .toSet()
-    assertEquals(expected.toSet(), psiImports)
+    val imports = getInfo()
+        .data
+        .imports
+        .map { import -> import.qualifiedName to
+               if (import.isShortNameDerivedFromQualifiedName()) { null } else { import.importedShortName } }
+        .toSet()
+    assertEquals(expected.toSet(), imports)
   }
 
   private fun getInfo(): BindingLayoutInfo {
     val appPackage = DataBindingUtil.getGeneratedPackageName(facet)
-    return resources.dataBindingResourceFiles
-      .flatMap { group -> group.layouts }
-      .first { layout -> layout.qualifiedName == "$appPackage.databinding.LayoutWithDataBindingBinding" }
+    return resources.bindingLayoutGroups.values
+        .flatMap { group -> group.layouts }
+        .first { layout -> layout.qualifiedClassName == "$appPackage.databinding.LayoutWithDataBindingBinding" }
   }
 
   private fun getVariableTag(name: String): XmlTag {
-    val variable = getInfo()
-      .psi
-      .getItems(DataBindingResourceType.VARIABLE)
-      .values
-      .firstOrNull { it.name == name }
+    val layoutData = getInfo().data
+    val variable = layoutData.findVariable(name)
     assertNotNull("cannot find variable with name $name", variable)
-    return variable!!.xmlTag
+    val variableTag = DataBindingUtil.findVariableTag(layoutData, variable!!.name)
+    assertNotNull("Cannot find XML tag for variable with name $name", variableTag)
+    return variableTag!!
   }
 
   companion object {
@@ -325,7 +303,7 @@ class ResourceFolderDataBindingTest {
       // Use a file cache that has per-test root directories instead of sharing the system directory.
       // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
       val oldCache = applicationContainer.getComponentInstance(
-        ResourceFolderRepositoryFileCache::class.java.name) as ResourceFolderRepositoryFileCache
+          ResourceFolderRepositoryFileCache::class.java.name) as ResourceFolderRepositoryFileCache
       applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache::class.java.name)
       applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache::class.java.name, newCache)
       return oldCache

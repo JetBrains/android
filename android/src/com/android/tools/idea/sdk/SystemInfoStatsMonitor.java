@@ -24,7 +24,6 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.startup.AndroidSdkInitializer;
-import com.android.utils.NullLogger;
 import com.google.common.base.Joiner;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
@@ -101,8 +100,8 @@ public class SystemInfoStatsMonitor {
   // Upload and recalculate the state couple times a day, so we could have some
   // confidence that we drop at least one valid metric in 24 hours
   private static final int UPLOAD_INTERVAL_HOURS = 6;
-  private static final Revision LOWEST_TOOLS_REVISION_HYPERV = new Revision(25, 0, 3);
-  private static final Revision LOWEST_TOOLS_REVISION_CPU_INFO = new Revision(25, 1, 1);
+  private static final Revision LOWEST_EMULATOR_REVISION_HYPERV = new Revision(25, 0, 3);
+  private static final Revision LOWEST_EMULATOR_REVISION_CPU_INFO = new Revision(25, 1, 1);
 
   private static final int EMULATOR_CHECK_ERROR_EXIT_CODE = 100;
 
@@ -195,22 +194,22 @@ public class SystemInfoStatsMonitor {
 
   @Nullable
   private static Integer runEmulatorCheck(@NotNull String argument,
-                                          @NotNull Revision lowestToolsRevisiion,
+                                          @NotNull Revision lowestEmulatorRevision,
                                           @NotNull AndroidSdkHandler handler) throws ExecutionException {
-    LocalPackage toolsPackage = handler.getLocalPackage(SdkConstants.FD_TOOLS,
-                                                        new StudioLoggerProgressIndicator(AndroidSdkInitializer.class));
-    if (toolsPackage == null) {
-      throw new ExecutionException("No SDK tools package");
+    LocalPackage emulatorPackage = handler.getLocalPackage(SdkConstants.FD_EMULATOR,
+                                                           new StudioLoggerProgressIndicator(AndroidSdkInitializer.class));
+    if (emulatorPackage == null) {
+      throw new ExecutionException("No SDK emulator package");
     }
 
-    final Revision toolsRevision = toolsPackage.getVersion();
-    if (toolsRevision.compareTo(lowestToolsRevisiion) < 0) {
+    final Revision emulatorRevision = emulatorPackage.getVersion();
+    if (emulatorRevision.compareTo(lowestEmulatorRevision) < 0) {
       return null;
     }
 
     File checkBinary = getEmulatorCheckBinary(handler);
     if (checkBinary == null) {
-      throw new ExecutionException("No emulator-check binary in the SDK tools package");
+      throw new ExecutionException("No emulator-check binary in the SDK emulator package");
     }
     GeneralCommandLine commandLine = new GeneralCommandLine(checkBinary.getPath(), argument);
     CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
@@ -228,7 +227,7 @@ public class SystemInfoStatsMonitor {
   @NotNull
   private static HyperVState calcHyperVState(@NotNull AndroidSdkHandler handler) {
     try {
-      Integer res = runEmulatorCheck("hyper-v", LOWEST_TOOLS_REVISION_HYPERV, handler);
+      Integer res = runEmulatorCheck("hyper-v", LOWEST_EMULATOR_REVISION_HYPERV, handler);
       if (res == null) {
         return HyperVState.UNKNOWN_HYPERV_STATE;
       }
@@ -252,7 +251,7 @@ public class SystemInfoStatsMonitor {
   @NotNull
   private static EnumSet<CpuInfoFlags> calcCpuInfo(@NotNull AndroidSdkHandler handler) {
     try {
-      Integer res = runEmulatorCheck("cpu-info", LOWEST_TOOLS_REVISION_CPU_INFO, handler);
+      Integer res = runEmulatorCheck("cpu-info", LOWEST_EMULATOR_REVISION_CPU_INFO, handler);
       if (res == null) {
         return EnumSet.of(CpuInfoFlags.UNKNOWN);
       }

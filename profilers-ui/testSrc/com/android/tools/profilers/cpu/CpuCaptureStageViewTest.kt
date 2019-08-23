@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -25,11 +26,9 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.plugins.PluginNode
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class CpuCaptureStageViewTest {
   private val cpuService = FakeCpuService()
@@ -47,7 +46,7 @@ class CpuCaptureStageViewTest {
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    stage = CpuCaptureStage.create(profilers, "", File(CpuProfilerUITestUtils.VALID_TRACE_PATH))
+    stage = CpuCaptureStage.create(profilers, "", TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH))
   }
 
   @Test
@@ -67,5 +66,17 @@ class CpuCaptureStageViewTest {
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
     assertThat(stageView.component.getComponent(0)).isNotInstanceOf(StatusPanel::class.java)
+  }
+
+  @Test
+  fun trackGroupListIsInitializedAfterParsing() {
+    val stageView = CpuCaptureStageView(profilersView, stage)
+    stage.enter()
+    assertThat(stageView.trackGroupList.model.size).isEqualTo(1)
+    val interactionTrackGroup = stageView.trackGroupList.model.getElementAt(0)
+    assertThat(interactionTrackGroup.title).isEqualTo("Interaction")
+    assertThat(interactionTrackGroup.size).isEqualTo(2)
+    assertThat(interactionTrackGroup.get(0).title).isEqualTo("User")
+    assertThat(interactionTrackGroup.get(1).title).isEqualTo("Lifecycle")
   }
 }
