@@ -17,18 +17,30 @@ package com.android.tools.idea.ui.wizard;
 
 import com.android.tools.adtui.validation.Validator.Result;
 import com.android.tools.adtui.validation.Validator.Severity;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.ide.GeneralSettings;
+import com.intellij.ide.RecentProjectsManager;
+import java.io.File;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static com.android.tools.adtui.validation.Validator.Result.OK;
+import static com.android.tools.idea.ui.wizard.WizardUtils.getProjectLocationParent;
 import static com.android.tools.idea.ui.wizard.WizardUtils.getUniqueName;
 import static com.android.tools.idea.ui.wizard.WizardUtils.validatePackageName;
 import static com.google.common.truth.Truth.assertThat;
 import static org.gradle.internal.impldep.org.apache.commons.lang.StringUtils.repeat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class WizardUtilsTest {
   private final Result ERROR = new Result(Severity.ERROR, "Some error message");
   private final Result WARNING = new Result(Severity.WARNING, "Some warning message");
   private final Result INFO = new Result(Severity.INFO, "Some info message");
+
+  @Rule
+  public AndroidProjectRule projectRule = AndroidProjectRule.onDisk();
 
   @Test
   public void getUniqueNameForAlwaysOKResult() {
@@ -63,5 +75,43 @@ public class WizardUtilsTest {
   @Test
   public void validatePackageNameWithLongPackage() {
     assertThat(validatePackageName(repeat("A", 200))).isEqualTo("Package name is too long");
+  }
+
+  @Test
+  public void defaultProjectLocation() {
+    setRecentProjectLocation(null);
+    setDefaultProjectDirectory(null);
+
+    assertThat(getProjectLocationParent().getName()).isEqualTo("AndroidStudioProjects");
+  }
+
+  @Test
+  public void defaultProjectLocationSetByUser() {
+    String dpd = "default/project/directory";
+    setRecentProjectLocation(null);
+    setDefaultProjectDirectory(dpd);
+
+    File actualLocation = getProjectLocationParent();
+    assertThat(actualLocation.toString()).isEqualTo(dpd);
+  }
+
+  @Test
+  public void recentProjectLocation() {
+    String rpl = "recent/project/location";
+    setRecentProjectLocation(rpl);
+    File actualLocation = getProjectLocationParent();
+    assertThat(actualLocation.toString()).isEqualTo(rpl);
+  }
+
+  private void setRecentProjectLocation(@Nullable String recentProjectLocation) {
+    RecentProjectsManager rcpMock = mock(RecentProjectsManager.class);
+    when(rcpMock.getLastProjectCreationLocation()).thenReturn(recentProjectLocation);
+    projectRule.replaceService(RecentProjectsManager.class, rcpMock);
+  }
+
+  private void setDefaultProjectDirectory(@Nullable String defaultProjectDirectory) {
+    GeneralSettings generalSettingsMock = mock(GeneralSettings.class);
+    when(generalSettingsMock.getDefaultProjectDirectory()).thenReturn(defaultProjectDirectory);
+    projectRule.replaceService(GeneralSettings.class, generalSettingsMock);
   }
 }
