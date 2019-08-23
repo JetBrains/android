@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding.viewbinding
 
 import com.android.flags.junit.RestoreFlagRule
+import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger
 import com.android.tools.idea.databinding.finders.BindingScopeEnlarger
@@ -23,11 +24,14 @@ import com.android.tools.idea.databinding.isViewBindingEnabled
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.google.common.truth.Truth.assertThat
+import com.intellij.facet.FacetManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -35,7 +39,8 @@ import org.junit.rules.RuleChain
 
 @RunsInEdt
 class ViewBindingCompletionTest {
-  private val projectRule = AndroidGradleProjectRule()
+  private val projectRule =
+    AndroidProjectRule.withAndroidModel(createAndroidProjectBuilder(viewBindingOptions = { ViewBindingOptionsStub(true) }))
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule
@@ -54,44 +59,53 @@ class ViewBindingCompletionTest {
     get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   private val facet
-    get() = projectRule.androidFacet
+    get() = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
 
   @Before
   fun setUp() {
     StudioFlags.VIEW_BINDING_ENABLED.override(true)
+    assertThat(facet.isViewBindingEnabled()).isTrue()
+    fixture.addFileToProject("src/main/AndroidManifest.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.vb">
+        <application />
+      </manifest>
+    """.trimIndent())
 
-    fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+        <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
+            <TextView android:id="@+id/testId"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    """.trimIndent())
+
   }
 
   @Test
   fun completeViewBindingClass() {
-    lateinit var modelFile: VirtualFile
-    projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING) {
-      modelFile = addOrOverwriteFile(
-        "app/src/main/java/com/android/example/viewbinding/Model.java",
-        // language=JAVA
-        """
-          package com.android.example.viewbinding;
+    val modelFile = fixture.addFileToProject(
+      "src/main/java/test/vb/Model.java",
+      // language=JAVA
+      """
+          package test.vb;
 
-          import com.android.example.viewbinding.databinding.ActivityMainBinding;
+          import test.vb.databinding.ActivityMainBinding;
 
           public class Model {
             ActivityMainB<caret>
           }
         """.trimIndent())
-    }
-    assertThat(facet.isViewBindingEnabled()).isTrue()
 
-    fixture.configureFromExistingVirtualFile(modelFile)
+    fixture.configureFromExistingVirtualFile(modelFile.virtualFile)
 
     fixture.completeBasic()
 
     fixture.checkResult(
       // language=JAVA
       """
-        package com.android.example.viewbinding;
+        package test.vb;
 
-        import com.android.example.viewbinding.databinding.ActivityMainBinding;
+        import test.vb.databinding.ActivityMainBinding;
 
         public class Model {
           ActivityMainBinding
@@ -104,17 +118,15 @@ class ViewBindingCompletionTest {
    */
   @Test
   fun completeViewBindingField_JavaContext() {
-    lateinit var activityFile: VirtualFile
-    projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING) {
-      activityFile = addOrOverwriteFile(
-        "app/src/main/java/com/android/example/viewbinding/MainActivity.java",
-        // language=JAVA
-        """
-          package com.android.example.viewbinding;
+    val activityFile = fixture.addFileToProject(
+      "src/main/java/test/vb/MainActivity.java",
+      // language=JAVA
+      """
+          package test.vb;
 
           import android.app.Activity;
           import android.os.Bundle;
-          import com.android.example.viewbinding.databinding.ActivityMainBinding;
+          import test.vb.databinding.ActivityMainBinding;
 
           public class MainActivity extends Activity {
               @Override
@@ -125,22 +137,19 @@ class ViewBindingCompletionTest {
               }
           }
         """.trimIndent())
-    }
 
-    assertThat(facet.isViewBindingEnabled()).isTrue()
-
-    fixture.configureFromExistingVirtualFile(activityFile)
+    fixture.configureFromExistingVirtualFile(activityFile.virtualFile)
 
     fixture.completeBasic()
 
     fixture.checkResult(
       // language=JAVA
       """
-        package com.android.example.viewbinding;
+        package test.vb;
 
         import android.app.Activity;
         import android.os.Bundle;
-        import com.android.example.viewbinding.databinding.ActivityMainBinding;
+        import test.vb.databinding.ActivityMainBinding;
 
         public class MainActivity extends Activity {
             @Override
@@ -158,34 +167,30 @@ class ViewBindingCompletionTest {
    */
   @Test
   fun completeViewBindingField_KotlinContext() {
-    lateinit var testFile: VirtualFile
-    projectRule.load(TestDataPaths.PROJECT_FOR_VIEWBINDING) {
-      testFile = addOrOverwriteFile(
-        "app/src/main/java/com/android/example/viewbinding/TestUtil.kt",
-        // language=kotlin
-        """
-          package com.android.example.viewbinding
+    val testUtilFile = fixture.addFileToProject(
+      "src/main/java/test/vb/TestUtil.kt",
+      // language=kotlin
+      """
+          package test.vb
 
-          import com.android.example.viewbinding.databinding.ActivityMainBinding
+          import test.vb.databinding.ActivityMainBinding
 
           fun dummy() {
             lateinit var binding: ActivityMainBinding
             binding.test<caret>
           }
         """.trimIndent())
-    }
-    assertThat(facet.isViewBindingEnabled()).isTrue()
 
-    fixture.configureFromExistingVirtualFile(testFile)
+    fixture.configureFromExistingVirtualFile(testUtilFile.virtualFile)
 
     fixture.completeBasic()
 
     fixture.checkResult(
       // language=kotlin
       """
-          package com.android.example.viewbinding
+          package test.vb
 
-          import com.android.example.viewbinding.databinding.ActivityMainBinding
+          import test.vb.databinding.ActivityMainBinding
 
           fun dummy() {
             lateinit var binding: ActivityMainBinding
