@@ -21,9 +21,8 @@ import com.android.tools.idea.gradle.editor.ui.GradleEditorComponent;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.BulkAwareDocumentListener;
 import com.intellij.openapi.editor.event.DocumentListener;
-import com.intellij.openapi.editor.ex.DocumentBulkUpdateListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -65,26 +64,15 @@ public class GradleFileEditor extends UserDataHolderBase implements FileEditor {
       myConnection = null;
     }
     else {
-      myDocument.addDocumentListener(myDocumentListener = new DocumentListener() {
+      myDocument.addDocumentListener(myDocumentListener = new BulkAwareDocumentListener.Simple() {
         @Override
-        public void documentChanged(@NotNull DocumentEvent e) {
-          if (e.getDocument().isInBulkUpdate()) {
-            return;
-          }
+        public void afterDocumentChange(@NotNull Document document) {
           if (!myEditorTriggeredModificationInProgress) {
             refresh();
           }
         }
       });
       myConnection = project.getMessageBus().connect();
-      myConnection.subscribe(DocumentBulkUpdateListener.TOPIC, new DocumentBulkUpdateListener.Adapter() {
-        @Override
-        public void updateFinished(@NotNull Document doc) {
-          if (!myEditorTriggeredModificationInProgress) {
-            refresh();
-          }
-        }
-      });
       myConnection.subscribe(GradleEditorNotificationListener.TOPIC, new GradleEditorNotificationListener() {
         @Override
         public void beforeChange() {
