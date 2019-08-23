@@ -27,7 +27,7 @@ import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.ClassRule;
 import org.mockito.Mockito;
 
-public class TestNdkLibraryEnhancedHeadersNode extends IdeaTestCase {
+public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
   @ClassRule
   public static LeakCheckerRule checker = new LeakCheckerRule();
 

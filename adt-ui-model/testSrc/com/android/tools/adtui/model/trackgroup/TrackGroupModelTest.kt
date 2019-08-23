@@ -15,8 +15,8 @@
  */
 package com.android.tools.adtui.model.trackgroup
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
+import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import org.junit.Test
 
 class TrackGroupModelTest {
@@ -31,10 +31,10 @@ class TrackGroupModelTest {
 
     val addedTrackModel1 = trackGroupModel.get(0)
     val addedTrackModel2 = trackGroupModel.get(1)
-    assertEquals(addedTrackModel1.title, "foo")
-    assertEquals(addedTrackModel1.dataModel, 123)
-    assertEquals(addedTrackModel2.title, "bar")
-    assertEquals(addedTrackModel2.dataModel, 321)
-    assertNotEquals("Track IDs should be unique within a group", addedTrackModel1.id, addedTrackModel2.id)
+    assertThat(addedTrackModel1.title).isEqualTo("foo")
+    assertThat(addedTrackModel1.dataModel).isEqualTo(123)
+    assertThat(addedTrackModel2.title).isEqualTo("bar")
+    assertThat(addedTrackModel2.dataModel).isEqualTo(321)
+    assertWithMessage("Track IDs should be unique within a group").that(addedTrackModel1.id).isNotEqualTo(addedTrackModel2.id)
   }
 }

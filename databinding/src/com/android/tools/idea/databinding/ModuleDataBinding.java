@@ -148,22 +148,22 @@ public final class ModuleDataBinding {
       if (bindingClasses == null) {
         bindingClasses = new ArrayList<>();
 
-        // Always add a full "Binding" class
+        // Always add a full "Binding" class.
         PsiManager psiManager = PsiManager.getInstance(myModule.getProject());
         LightBindingClass bindingClass = new LightBindingClass(psiManager, new BindingClassConfig(group));
         bindingClasses.add(bindingClass);
 
-        // "Impl" classes are only necessary if we have more than a single configuration
+        // "Impl" classes are only necessary if we have more than a single configuration.
         if (group.getLayouts().size() > 1) {
           for (int layoutIndex = 0; layoutIndex < group.getLayouts().size(); layoutIndex++) {
             BindingLayoutInfo layout = group.getLayouts().get(layoutIndex);
             LightBindingClass bindingImplClass = new LightBindingClass(psiManager, new BindingImplClassConfig(group, layoutIndex));
-            layout.getPsi().setPsiClass(bindingImplClass);
+            layout.setPsiClass(bindingImplClass);
             bindingClasses.add(bindingImplClass);
           }
         }
         else {
-          group.getMainLayout().getPsi().setPsiClass(bindingClass);
+          group.getMainLayout().setPsiClass(bindingClass);
         }
 
         myLightBindingClasses.put(group, bindingClasses);

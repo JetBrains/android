@@ -23,7 +23,7 @@ import com.google.common.io.Files;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import java.io.*;
 import java.util.Properties;
@@ -38,7 +38,7 @@ import static org.easymock.EasyMock.*;
 /**
  * Tests for {@link LocalProperties}.
  */
-public class LocalPropertiesTest extends IdeaTestCase {
+public class LocalPropertiesTest extends PlatformTestCase {
   private LocalProperties myLocalProperties;
 
   @Override

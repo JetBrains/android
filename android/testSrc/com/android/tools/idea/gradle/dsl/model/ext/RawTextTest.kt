@@ -51,6 +51,8 @@ class RawTextTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetLiteral() {
+    // TODO : enable this test when extra properties are supported in kotlin.
+    assumeTrue(isGroovy())
     set {
       it.setValue(RawText("25"))
     }.validate {
@@ -60,6 +62,8 @@ class RawTextTest : GradleFileModelTestCase() {
 
   @Test
   fun textSetUnknownMethodCall() {
+    // TODO : enable this test when extra properties are supported in kotlin.
+    assumeTrue(isGroovy())
     set {
       it.setValue(RawText("getDefaultProguardFile('android.txt')"))
     }.validate {
@@ -79,6 +83,8 @@ class RawTextTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetReference() {
+    // TODO : enable this test when extra properties are supported in kotlin.
+    assumeTrue(isGroovy())
     set {
       it.setValue(RawText("prop1"))
     }.validate {
@@ -88,6 +94,8 @@ class RawTextTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetIndexReference() {
+    // TODO : enable this test when extra properties are supported in kotlin.
+    assumeTrue(isGroovy())
     set {
       it.setValue(RawText("prop1[2]"))
     }.validate {

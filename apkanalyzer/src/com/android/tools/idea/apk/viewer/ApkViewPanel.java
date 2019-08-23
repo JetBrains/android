@@ -241,7 +241,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                    .setHeaderAlignment(SwingConstants.TRAILING)
                    .setRenderer(new SizeRenderer(true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("% of Total Download size")
+                   .setName("% of Total Download Size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setRenderer(new PercentRenderer(percentProvider))

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.databinding.completion
 
-import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.lang.databinding.config.DbFile
@@ -141,24 +140,31 @@ open class DataBindingCompletionContributor : CompletionContributor() {
   private fun getDataBindingExpressionFromPosition(element: PsiElement) = element.parent.parent
 
   private fun getFile(element: PsiElement): DbFile {
-    var element = element
-    while (element !is DbFile) {
-      element = element.parent ?: throw IllegalArgumentException()
+    var result = element
+    while (result !is DbFile) {
+      result = result.parent ?: throw IllegalArgumentException()
     }
-    return element
+    return result
   }
 
   private fun autoCompleteVariablesAndUnqualifiedFunctions(file: DbFile, result: CompletionResultSet) {
     autoCompleteUnqualifiedFunctions(result)
 
-    val bindingLayoutInfo = getBindingLayoutInfo(file) ?: return
-    result.addAllElements(
-      (bindingLayoutInfo.psi.getItems(DataBindingResourceType.VARIABLE).values
-       + bindingLayoutInfo.psi.getItems(DataBindingResourceType.IMPORT).values)
-        .map { (name, _, xmlTag) ->
-          LookupElementBuilder.create(xmlTag, DataBindingUtil.convertToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
-        }
-    )
+    val bindingData = (getBindingLayoutInfo(file) ?: return).data
+
+    val variableTagNamePairs = bindingData.variables.map { variable ->
+      variable.name to DataBindingUtil.findVariableTag(bindingData, variable.name)
+    }
+    val importTagTypePairs = bindingData.imports.map { import ->
+      import.importedShortName to DataBindingUtil.findImportTag(bindingData, import.importedShortName)
+    }
+
+    result.addAllElements((variableTagNamePairs + importTagTypePairs).mapNotNull { nameToTag ->
+      val xmlTag = nameToTag.second ?: return
+      val name = nameToTag.first
+      LookupElementBuilder.create(xmlTag, DataBindingUtil.convertToJavaFieldName(name)).withInsertHandler(onCompletionHandler)
+    })
+
     JavaPsiFacade.getInstance(file.project).findPackage(CommonClassNames.DEFAULT_PACKAGE)!!
       .getClasses(ModulesScope.moduleWithLibrariesScope(file.androidFacet!!.module))
       .forEach {

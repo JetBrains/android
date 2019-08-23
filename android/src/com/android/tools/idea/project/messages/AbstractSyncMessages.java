@@ -23,7 +23,6 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
-import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueOutputEvent;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -43,13 +42,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.pom.Navigatable;
 import com.intellij.util.SystemProperties;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -105,23 +100,6 @@ public abstract class AbstractSyncMessages implements Disposable {
   public void removeAllMessages() {
     synchronized (myLock) {
       myCurrentNotifications.clear();
-    }
-  }
-
-  public void removeMessages(@NotNull String... groupNames) {
-    Set<String> groupSet = new HashSet<>(Arrays.asList(groupNames));
-    LinkedList<Object> toRemove = new LinkedList<>();
-    synchronized (myLock) {
-      for (Object id : myCurrentNotifications.keySet()) {
-        List<NotificationData> taskNotifications = myCurrentNotifications.get(id);
-        taskNotifications.removeIf(notification -> groupSet.contains(notification.getTitle()));
-        if (taskNotifications.isEmpty()) {
-          toRemove.add(id);
-        }
-      }
-      for (Object taskId : toRemove) {
-        myCurrentNotifications.remove(taskId);
-      }
     }
   }
 
@@ -246,7 +224,6 @@ public abstract class AbstractSyncMessages implements Disposable {
     }
     SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
     syncViewManager.onEvent(taskId, issueEvent);
-    syncViewManager.onEvent(taskId, new AndroidSyncIssueOutputEvent(taskId, notification));
 
     // Only include errors in the summary text output
     // This has the side effect of not opening the right hand bar if there are no failures

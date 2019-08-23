@@ -19,7 +19,7 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
@@ -29,7 +29,7 @@ import static org.easymock.EasyMock.*;
 /**
  * Tests for {@link GradleProjects}.
  */
-public class GradleProjectsTest extends IdeaTestCase {
+public class GradleProjectsTest extends PlatformTestCase {
   public void testIsGradleProjectWithRegularProject() {
     assertFalse(AndroidProjectInfo.getInstance(myProject).requiresAndroidModel());
   }
@@ -41,33 +41,4 @@ public class GradleProjectsTest extends IdeaTestCase {
     assertTrue(AndroidProjectInfo.getInstance(myProject).requiresAndroidModel());
   }
 
-  public void testGetSelectedModules() {
-    createAndAddGradleFacet(myModule);
-
-    DataContext dataContext = createMock(DataContext.class);
-    Module[] data = {myModule};
-    expect(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).andReturn(data);
-
-    replay(dataContext);
-
-    Module[] selectedModules = GradleProjects.getModulesToBuildFromSelection(myProject, dataContext);
-    assertSame(data, selectedModules);
-
-    verify(dataContext);
-  }
-
-  public void testGetSelectedModulesWithModuleWithoutAndroidGradleFacet() {
-    DataContext dataContext = createMock(DataContext.class);
-    Module[] data = {myModule};
-    expect(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).andReturn(data);
-
-    replay(dataContext);
-
-    Module[] selectedModules = GradleProjects.getModulesToBuildFromSelection(myProject, dataContext);
-    assertNotSame(data, selectedModules);
-    assertEquals(1, selectedModules.length);
-    assertSame(myModule, selectedModules[0]);
-
-    verify(dataContext);
-  }
 }

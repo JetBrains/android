@@ -15,23 +15,19 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.android.ide.common.blame.Message
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.lang.databinding.LangDataBindingTestData.PROJECT_WITH_DATA_BINDING_ANDROID_X
 import com.android.tools.idea.lang.databinding.LangDataBindingTestData.PROJECT_WITH_DATA_BINDING_SUPPORT
 import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.Truth.assertWithMessage
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.util.ui.UIUtil
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -147,7 +143,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     moveCaretToString("iew2 -> vo.save")
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
-    val parameterReference = fixture.getReferenceAtCaretPosition()!!
+    val parameterReference = (fixture.getReferenceAtCaretPosition() as PsiMultiReference).references.first { it.resolve() is PsiParameter }
 
     val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
                                                                                              false)[0].sourceElement!! as PsiMethod
@@ -165,7 +161,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     moveCaretToString("iew3 -> vo.save")
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
-    val parameterReference = fixture.getReferenceAtCaretPosition()!!
+    val parameterReference = (fixture.getReferenceAtCaretPosition() as PsiMultiReference).references.first { it.resolve() is PsiParameter }
 
     val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
                                                                                              false)[0].sourceElement!! as PsiMethod

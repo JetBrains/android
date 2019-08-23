@@ -23,13 +23,13 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.PlatformTestCase
 import org.junit.Test
 import java.io.File
 import java.nio.file.FileSystem
 import java.nio.file.Files
 
-class PathStringPoolTest : IdeaTestCase() {
+class PathStringPoolTest : PlatformTestCase() {
 
   lateinit var fs: FileSystem
 

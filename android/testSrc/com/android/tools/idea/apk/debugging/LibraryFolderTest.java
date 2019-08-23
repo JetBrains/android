@@ -17,7 +17,7 @@ package com.android.tools.idea.apk.debugging;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import java.io.IOException;
 
@@ -27,7 +27,7 @@ import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectR
 /**
  * Tests for {@link LibraryFolder}.
  */
-public class LibraryFolderTest extends IdeaTestCase {
+public class LibraryFolderTest extends PlatformTestCase {
   public void testGetName() {
     assertEquals("lib", LibraryFolder.getName());
   }

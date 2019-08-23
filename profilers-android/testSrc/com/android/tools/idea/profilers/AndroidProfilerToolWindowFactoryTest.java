@@ -34,12 +34,12 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import io.grpc.netty.NettyChannelBuilder;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 
-public class AndroidProfilerToolWindowFactoryTest extends IdeaTestCase {
+public class AndroidProfilerToolWindowFactoryTest extends PlatformTestCase {
   public void testProfilerServiceStartsCorrectlyAfterToolWindowInit() {
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false);
     TransportProxy mockProxy = mockTransportProxy();

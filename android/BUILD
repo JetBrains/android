@@ -134,7 +134,7 @@ iml_module(
         "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[module]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
-        "//tools/adt/idea/android/lib:instantapps-api-1.5",
+        "//tools/adt/idea/android/lib:instantapps-api",
         "//tools/idea/.idea/libraries:batik-transcoder",
         "//tools/idea/.idea/libraries:xml-apis-ext",
         "//tools/analytics-library/crash:analytics-crash[module]",
@@ -159,6 +159,7 @@ iml_module(
         "//prebuilts/studio/layoutlib:data/layoutlib",
         "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer.annotations[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
+        "//tools/idea/plugins/terminal:intellij.terminal[module]",
     ],
 )
 
@@ -186,7 +187,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
-        "//prebuilts/studio/sdk:typos",
         "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/android/annotations",
@@ -208,6 +208,7 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
+    test_resources = ["testResources"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
@@ -307,7 +308,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore[module, test]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module, test]",
-        "//tools/adt/idea/android/lib:instantapps-api-1.5",
+        "//tools/adt/idea/android/lib:instantapps-api",
         "//tools/analytics-library/crash:analytics-crash[module, test]",
         "//tools/idea/.idea/libraries:commons-io",
         "//tools/idea/.idea/libraries:aapt-proto",
@@ -354,8 +355,8 @@ filegroup(
         ],
         "//conditions:default": [
             "//tools/base/deploy/installer:test-installer",
-            "//tools/base/deploy/installer:bash_bridge",
             "//tools/base/deploy/installer:android-installer",
+            "//tools/base/deploy/installer/tests:artifacts",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
     }) + ["//tools/base/deploy/deployer:java_version"],
@@ -469,8 +470,9 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/arch/core/core-common/2.1.0-rc01:jar",
         "//prebuilts/tools/common/m2/repository/androidx/arch/core/core-runtime/2.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark-gradle-plugin/1.0.0-alpha03:jar",
-        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark/1.0.0-alpha03:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark-common/1.0.0-alpha04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark-gradle-plugin/1.0.0-alpha04:jar",
+        "//prebuilts/tools/common/m2/repository/androidx/benchmark/benchmark-junit4/1.0.0-alpha04:aar",
         "//prebuilts/tools/common/m2/repository/androidx/browser/browser/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/car/car/1.0.0-alpha7:aar",
         "//prebuilts/tools/common/m2/repository/androidx/cardview/cardview/1.0.0:aar",

@@ -16,10 +16,20 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.profiler.proto.Transport;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.event.EventModel;
+import com.android.tools.adtui.model.event.LifecycleEventModel;
+import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
+import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
+import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.event.LifecycleEventDataSeries;
+import com.android.tools.profilers.event.UserEventDataSeries;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -89,6 +99,8 @@ public class CpuCaptureStage extends Stage {
    */
   private final CpuCaptureHandler myCpuCaptureHandler;
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
+  private final TrackGroupListModel myTrackGroupListModel = new TrackGroupListModel();
+  private final Range myDataSelectionRangeUs = new Range();
   private State myState = State.PARSING;
 
   // Accessible only when in state analyzing
@@ -107,7 +119,7 @@ public class CpuCaptureStage extends Stage {
   }
 
   /**
-   * Create a capture stage base don a file, this is used for both importing traces as well as cached traces loaded from trace ids.
+   * Create a capture stage based on a file, this is used for both importing traces as well as cached traces loaded from trace ids.
    */
   @NotNull
   public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull String configurationName, @NotNull File captureFile) {
@@ -145,6 +157,37 @@ public class CpuCaptureStage extends Stage {
     return myCapture;
   }
 
+  private void initTrackGroupListModel(CpuCapture cpuCapture) {
+    myTrackGroupListModel.clear();
+
+    // Interaction
+    TrackGroupModel interaction = new TrackGroupModel("Interaction");
+    interaction.addTrackModel(
+      new TrackModel<>(
+        new EventModel<>(new RangedSeries<>(myDataSelectionRangeUs, new UserEventDataSeries(getStudioProfilers()))),
+        ProfilerTrackRendererType.USER_INTERACTION,
+        "User"));
+    interaction.addTrackModel(
+      new TrackModel<>(
+        new LifecycleEventModel(
+          new RangedSeries<>(myDataSelectionRangeUs, new LifecycleEventDataSeries(getStudioProfilers(), false)),
+          new RangedSeries<>(myDataSelectionRangeUs, new LifecycleEventDataSeries(getStudioProfilers(), true))),
+        ProfilerTrackRendererType.APP_LIFECYCLE,
+        "Lifecycle"));
+    myTrackGroupListModel.addTrackGroupModel(interaction);
+
+    // Display
+
+    // Threads
+
+    // CPU cores
+  }
+
+  @NotNull
+  public TrackGroupListModel getTrackGroupListModel() {
+    return myTrackGroupListModel;
+  }
+
   @Override
   public void enter() {
     getStudioProfilers().getUpdater().register(myCpuCaptureHandler);
@@ -155,7 +198,9 @@ public class CpuCaptureStage extends Stage {
       }
       else {
         myCapture = capture;
+        myDataSelectionRangeUs.set(myCapture.getRange());
         setState(State.ANALYZING);
+        initTrackGroupListModel(capture);
       }
     });
   }

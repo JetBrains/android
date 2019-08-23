@@ -74,6 +74,7 @@ public class TestNewProjectWizardState {
     return myActivityState;
   }
 
+  @NotNull
   public TestTemplateWizardState getModuleTemplateState() {
     return myModuleState;
   }

@@ -69,6 +69,8 @@ import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
  * Font selection dialog, which displays and causes the font cache to be populated.
  */
 public class MoreFontsDialog extends DialogWrapper {
+  public static final String ACTION_NAME = "More Fonts...";
+
   private static final float FONT_SIZE_IN_LIST = 16f;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 5;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 10;
@@ -111,7 +113,7 @@ public class MoreFontsDialog extends DialogWrapper {
     myValidatorPanel = new ValidatorPanel(myDisposable, new JPanel());
   }
 
-  public MoreFontsDialog(@NotNull AndroidFacet facet, @Nullable String currentValue) {
+  public MoreFontsDialog(@NotNull AndroidFacet facet, @Nullable String currentValue, @NotNull Boolean showExistingFonts) {
     super(facet.getModule().getProject());
     setTitle("Resources");
     myResourceRepository = ResourceRepositoryManager.getInstance(facet);
@@ -120,7 +122,8 @@ public class MoreFontsDialog extends DialogWrapper {
     myFontList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myFontDetailList.setMinimumSize(new Dimension(MIN_FONT_PREVIEW_WIDTH, MIN_FONT_PREVIEW_HEIGHT));
     myFontDetailList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myModel = new FontListModel(facet);
+    ProjectFonts projectFonts = showExistingFonts? new ProjectFonts(facet) : null;
+    myModel = new FontListModel(projectFonts, showExistingFonts);
     myModel.setRepopulateListener(this::repopulated);
     myDetailModel = new DefaultListModel<>();
     myCreateParams.setLayout(createGroupLayoutForCreateParams());
@@ -534,23 +537,25 @@ public class MoreFontsDialog extends DialogWrapper {
     private static final int DOWNLOAD_SIZE = 25;
 
     private final DownloadableFontCacheService myFontService;
-    private final ProjectFonts myProjectFonts;
+    @Nullable private final ProjectFonts myProjectFonts;
     private final SpeedSearchComparator myComparator;
     private final List<FontFamily> myFilteredList;
     private Runnable myRepopulateListener;
     private String myFilter;
     private int myFirstLoadedFontIndex;
     private int myLoadedFontIndex;
+    private boolean myShowFrameworkFonts;
 
-    private FontListModel(@NotNull AndroidFacet facet) {
+    private FontListModel(@Nullable ProjectFonts projectFonts, @NotNull Boolean showFrameworkFonts) {
       myFontService = DownloadableFontCacheService.getInstance();
-      myProjectFonts = new ProjectFonts(facet);
+      myProjectFonts = projectFonts;
       myComparator = new SpeedSearchComparator();
       myFilteredList = new ArrayList<>();
       myFilter = "";
       populateModel();
       myLoadedFontIndex = -1;
       myFirstLoadedFontIndex = -1;
+      myShowFrameworkFonts = showFrameworkFonts;
       myFontService.refresh(this::repopulateModel, null);
     }
 
@@ -614,8 +619,12 @@ public class MoreFontsDialog extends DialogWrapper {
 
     private void populateModel() {
       clear();
-      addFamilies("Project", myProjectFonts.getFonts());
-      addFamilies("Android", myFontService.getSystemFontFamilies());
+      if (myProjectFonts != null) {
+        addFamilies("Project", myProjectFonts.getFonts());
+      }
+      if (myShowFrameworkFonts) {
+        addFamilies("Android", myFontService.getSystemFontFamilies());
+      }
       addFamilies("Downloadable", myFontService.getFontFamilies());
       redoFiltering();
     }
@@ -632,12 +641,12 @@ public class MoreFontsDialog extends DialogWrapper {
 
     @Nullable
     public FontFamily getFont(@NotNull String name) {
-      return myProjectFonts.getFont(name);
+      return (myProjectFonts != null)? myProjectFonts.getFont(name) : null;
     }
 
     @Nullable
     public String getErrorMessage(@Nullable FontFamily family) {
-      return myProjectFonts.getErrorMessage(family);
+      return (myProjectFonts != null)? myProjectFonts.getErrorMessage(family) : null;
     }
 
     private void loadRemainingFonts() {

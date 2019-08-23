@@ -27,7 +27,11 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.ui.EmptyIcon
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -35,17 +39,15 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import javax.swing.Icon
 
-class RunSqlQueryAnnotatorTest : LightCodeInsightFixtureTestCase() {
+class RunSqlQueryAnnotatorTest : BasePlatformTestCase() {
 
-  private lateinit var ideComponents: IdeComponents
   private lateinit var mockSqliteExplorerProjectService: SqliteExplorerProjectService
 
   override fun setUp() {
     super.setUp()
     StudioFlags.SQLITE_VIEWER_ENABLED.override(true)
 
-    ideComponents = IdeComponents(project, testRootDisposable)
-    mockSqliteExplorerProjectService = ideComponents.mockProjectService(SqliteExplorerProjectService::class.java)
+    mockSqliteExplorerProjectService = IdeComponents(myFixture).mockProjectService(SqliteExplorerProjectService::class.java)
   }
 
   override fun tearDown() {
@@ -60,7 +62,7 @@ class RunSqlQueryAnnotatorTest : LightCodeInsightFixtureTestCase() {
     StudioFlags.SQLITE_VIEWER_ENABLED.override(false)
     `when`(mockSqliteExplorerProjectService.hasOpenDatabase()).thenReturn(false)
 
-    val psiFile = myFixture.configureByText(
+    myFixture.configureByText(
       JavaFileType.INSTANCE,
       // language=java
       """
@@ -85,7 +87,7 @@ class RunSqlQueryAnnotatorTest : LightCodeInsightFixtureTestCase() {
   fun testGutterIconRendererWhenDatabaseIsNotOpen() {
     `when`(mockSqliteExplorerProjectService.hasOpenDatabase()).thenReturn(false)
 
-    val psiFile = myFixture.configureByText(
+    myFixture.configureByText(
       JavaFileType.INSTANCE,
       // language=java
       """
@@ -110,7 +112,7 @@ class RunSqlQueryAnnotatorTest : LightCodeInsightFixtureTestCase() {
   fun testGutterIconRendererWhenDatabaseIsOpen() {
     `when`(mockSqliteExplorerProjectService.hasOpenDatabase()).thenReturn(true)
 
-    val psiFile = myFixture.configureByText(
+    myFixture.configureByText(
       JavaFileType.INSTANCE,
       // language=java
       """
@@ -135,7 +137,7 @@ class RunSqlQueryAnnotatorTest : LightCodeInsightFixtureTestCase() {
   fun testSqlStatementIsMadeOfMultipleStrings() {
     `when`(mockSqliteExplorerProjectService.hasOpenDatabase()).thenReturn(true)
 
-    val psiFile = myFixture.configureByText(
+    myFixture.configureByText(
       JavaFileType.INSTANCE,
       // language=java
       """
@@ -160,7 +162,7 @@ class RunSqlQueryAnnotatorTest : LightCodeInsightFixtureTestCase() {
   fun testAnnotatorWorksWithKotlin() {
     `when`(mockSqliteExplorerProjectService.hasOpenDatabase()).thenReturn(false)
 
-    val psiFile = myFixture.configureByText(
+    myFixture.configureByText(
       JavaFileType.INSTANCE,
       // language=kotlin
       """

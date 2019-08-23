@@ -145,8 +145,11 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @Nullable
   final Device getSelectedDevice(@NotNull Project project) {
-    List<Device> devices = getDevices(project);
+    return getSelectedDevice(project, getDevices(project));
+  }
 
+  @Nullable
+  private Device getSelectedDevice(@NotNull Project project, @NotNull List<Device> devices) {
     if (devices.isEmpty()) {
       return null;
     }
@@ -224,6 +227,10 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @Nullable
   final Snapshot getSelectedSnapshot(@NotNull Project project) {
+    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()) {
+      return null;
+    }
+
     Device device = getSelectedDevice(project);
 
     if (device == null) {
@@ -398,25 +405,22 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     Presentation presentation = event.getPresentation();
     updatePresentation(presentation, RunManager.getInstance(project).getSelectedConfiguration());
 
-    Device device = getSelectedDevice(project);
+    List<Device> devices = getDevices(project);
+    Device device = getSelectedDevice(project, devices);
 
     if (event.getPlace().equals(ActionPlaces.MAIN_MENU)) {
       presentation.setIcon(null);
       presentation.setText("Select Device...");
     }
+    else if (devices.isEmpty()) {
+      presentation.setIcon(null);
+      presentation.setText("No Devices");
+    }
     else {
-      Collection<Device> devices = getDevices(project);
+      assert device != null;
 
-      if (devices.isEmpty()) {
-        presentation.setIcon(null);
-        presentation.setText("No Devices");
-      }
-      else {
-        assert device != null;
-
-        presentation.setIcon(device.getIcon());
-        presentation.setText(Devices.getText(device, devices, getSelectedSnapshot(project)), false);
-      }
+      presentation.setIcon(device.getIcon());
+      presentation.setText(Devices.getText(device, devices, getSelectedSnapshot(project)), false);
     }
 
     updateExecutionTargetManager(project, device);

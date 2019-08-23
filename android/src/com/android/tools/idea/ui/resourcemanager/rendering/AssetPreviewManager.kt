@@ -81,6 +81,7 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, currentFile: VirtualFile?
       ResourceType.COLOR -> colorPreviewProvider
       ResourceType.DRAWABLE,
       ResourceType.MIPMAP,
+      ResourceType.MENU,
       ResourceType.LAYOUT -> drawablePreviewProvider
       ResourceType.FONT -> fontPreviewProvider
       else -> DefaultIconProvider.INSTANCE

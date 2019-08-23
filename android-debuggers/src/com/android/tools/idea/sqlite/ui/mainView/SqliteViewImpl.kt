@@ -81,7 +81,7 @@ class SqliteViewImpl(
     Disposer.register(parentDisposable, workBench)
 
     val definitions = mutableListOf<ToolWindowDefinition<SqliteViewContext>>()
-    definitions.add(SchemaPanelToolContent.getDefinition())
+    definitions.add(createToolWindowDefinition())
     workBench.init(sqliteEditorPanel.mainPanel, viewContext, definitions)
 
     rootPanel.layout = OverlayLayout(rootPanel)
@@ -255,6 +255,17 @@ class SqliteViewImpl(
     }
   }
 
+  private fun createToolWindowDefinition(): ToolWindowDefinition<SqliteViewContext> {
+    return ToolWindowDefinition(
+      "Open Databases",
+      AllIcons.Nodes.DataTables,
+      "OPEN_DATABASES",
+      Side.LEFT,
+      Split.TOP,
+      AutoHide.DOCKED
+    ) { SchemaPanelToolContent() }
+  }
+
   private inner class TabMouseListener : MouseAdapter() {
     override fun mouseReleased(e: MouseEvent) {
       if(e.button == 2) {
@@ -265,25 +276,30 @@ class SqliteViewImpl(
     }
   }
 
-  class SchemaPanelToolContent : ToolContent<SqliteViewContext> {
-    companion object {
-      fun getDefinition(): ToolWindowDefinition<SqliteViewContext> {
-        return ToolWindowDefinition(
-          "Open Databases",
-          AllIcons.Nodes.DataTables,
-          "OPEN_DATABASES",
-          Side.LEFT,
-          Split.TOP,
-          AutoHide.DOCKED
-        ) { SchemaPanelToolContent() }
-      }
-    }
+  inner class SchemaPanelToolContent : ToolContent<SqliteViewContext> {
 
     private val schemaPanel = SqliteSchemaPanel()
     private val tree = schemaPanel.tree
 
     init {
+      schemaPanel.removeDatabaseButton.addActionListener {
+        val databaseToRemove = tree?.selectionPaths?.mapNotNull { findDatabaseNode(it) }
+        listeners.forEach { databaseToRemove?.forEach { database -> it.removeDatabaseActionInvoked(database) } }
+      }
+
       setUpSchemaTree(tree)
+    }
+
+    private fun findDatabaseNode(treePath: TreePath): SqliteDatabase {
+      var currentPath: TreePath? = treePath
+      while (currentPath != null) {
+        val userObject = (currentPath.lastPathComponent as DefaultMutableTreeNode).userObject
+        if (userObject is SqliteDatabase)
+          return userObject
+        currentPath = currentPath.parentPath
+      }
+
+      throw NoSuchElementException("$treePath")
     }
 
     private fun setUpSchemaTree(tree: Tree) {

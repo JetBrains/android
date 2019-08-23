@@ -25,7 +25,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 import java.util.Collection;
@@ -38,7 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link JavaModuleModelDataService}.
  */
-public class JavaModuleModelDataServiceTest extends IdeaTestCase {
+public class JavaModuleModelDataServiceTest extends PlatformTestCase {
   @Mock private JavaModuleSetup myModuleSetup;
   @Mock private JavaModuleCleanupStep myCleanupStep;
   @Mock private GradleSyncState mySyncState;

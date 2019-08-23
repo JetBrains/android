@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
@@ -31,7 +31,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleNotificationExtension}.
  */
-public class GradleNotificationExtensionTest extends IdeaTestCase {
+public class GradleNotificationExtensionTest extends PlatformTestCase {
   @Mock private SyncErrorHandler myHandler1;
   @Mock private SyncErrorHandler myHandler2;
   @Mock private GradleSyncMessages mySyncMessages;

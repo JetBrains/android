@@ -19,14 +19,14 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import static com.android.tools.idea.testing.Facets.createAndAddNdkFacet;
 
 /**
  * Tests for {@link NdkModuleCleanupStep}.
  */
-public class NdkModuleCleanupStepTest extends IdeaTestCase {
+public class NdkModuleCleanupStepTest extends PlatformTestCase {
   private NdkModuleCleanupStep myCleanupStep;
 
   @Override

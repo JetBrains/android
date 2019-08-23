@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.SdkConstants.FD_EMULATOR;
-import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.emulatorSupportsSnapshotManagement;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.emulatorSupportsWebp;
 import static com.google.common.truth.Truth.assertThat;
@@ -130,9 +129,6 @@ public class AvdWizardUtilsTest {
     assertThat(emulatorSupportsWebp(createMockSdk("25.2.3", FD_EMULATOR))).isTrue();
     assertThat(emulatorSupportsWebp(createMockSdk("25.3.0", FD_EMULATOR))).isTrue();
     assertThat(emulatorSupportsWebp(createMockSdk("26.0.0", FD_EMULATOR))).isTrue();
-
-    assertThat(emulatorSupportsWebp(createMockSdk("25.2.0", FD_TOOLS))).isFalse();
-    assertThat(emulatorSupportsWebp(createMockSdk("25.2.3", FD_TOOLS))).isTrue();
 
     assertThat(emulatorSupportsWebp(createMockSdk("25.2.3", "irrelevant"))).isFalse();
   }

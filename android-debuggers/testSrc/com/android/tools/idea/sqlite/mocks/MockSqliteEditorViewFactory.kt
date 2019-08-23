@@ -35,5 +35,5 @@ open class MockSqliteEditorViewFactory : SqliteEditorViewFactory {
 
   override fun createTableView(): TableView = tableView
 
-  override fun createEvaluatorView(project: Project, provider: SchemaProvider): SqliteEvaluatorView = sqliteEvaluatorView
+  override fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider): SqliteEvaluatorView = sqliteEvaluatorView
 }

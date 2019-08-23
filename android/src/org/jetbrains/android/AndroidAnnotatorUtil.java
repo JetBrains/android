@@ -22,6 +22,7 @@ import static com.android.SdkConstants.DOT_XML;
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -254,35 +255,6 @@ public class AndroidAnnotatorUtil {
     return null;
   }
 
-  /** Looks up the resource item of the given type and name for the given configuration, if any. */
-  @Nullable
-  public static ResourceValue findResourceValue(@NotNull ResourceType type,
-                                                @NotNull String name,
-                                                boolean isFramework,
-                                                @NotNull Module module,
-                                                @NotNull Configuration configuration) {
-    if (isFramework) {
-      ResourceRepository frameworkResources = configuration.getFrameworkResources();
-      if (frameworkResources == null) {
-        return null;
-      }
-      List<ResourceItem> items = frameworkResources.getResources(ResourceNamespace.ANDROID, type, name);
-      if (items.isEmpty()) {
-        return null;
-      }
-      return items.get(0).getResourceValue();
-    } else {
-      LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(module);
-      if (appResources == null) {
-        return null;
-      }
-      if (!appResources.hasResources(ResourceNamespace.TODO(), type, name)) {
-        return null;
-      }
-      return ResourceRepositoryUtil.getConfiguredValue(appResources, type, name, configuration.getFullConfig());
-    }
-  }
-
   /**
    * Picks a suitable configuration to use for resource resolution within a given file.
    *
@@ -332,16 +304,19 @@ public class AndroidAnnotatorUtil {
   public static class ColorRenderer extends GutterIconRenderer {
     private final PsiElement myElement;
     private final Color myColor;
+    private final ResourceReference myResourceReference;
     private final Consumer<String> mySetColorTask;
     private final boolean myIncludeClickAction;
     @Nullable private final Configuration myConfiguration;
 
     public ColorRenderer(@NotNull PsiElement element,
                          @Nullable Color color,
+                         @Nullable ResourceReference resourceReference,
                          boolean includeClickAction,
                          @Nullable Configuration configuration) {
       myElement = element;
       myColor = color;
+      myResourceReference = resourceReference;
       myIncludeClickAction = includeClickAction;
       mySetColorTask = createSetColorTask(myElement);
       myConfiguration = configuration;
@@ -408,13 +383,13 @@ public class AndroidAnnotatorUtil {
       JComponent popupContent;
       if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && myConfiguration != null) {
         // Use tabbed panel instead.
-        ColorResourcePicker resourcePicker = new ColorResourcePicker(myConfiguration);
+        ColorResourcePicker resourcePicker = new ColorResourcePicker(myConfiguration, myResourceReference);
         // TODO: Use relative resource url instead.
         resourcePicker.addColorResourcePickerListener(resource -> setColorStringAttribute(resource.getResourceUrl().toString()));
         popupContent = new HorizontalTabbedPanelBuilder()
           .addTab("Resources", resourcePicker)
           .addTab("Custom", colorPicker)
-          .setDefaultPage(1)
+          .setDefaultPage(myResourceReference != null ? 0 : 1)
           .build();
       }
       else {

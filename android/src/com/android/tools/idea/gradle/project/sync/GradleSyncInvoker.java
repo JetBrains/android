@@ -34,7 +34,6 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
-import com.android.tools.idea.gradle.project.build.output.AndroidGradleSyncTextConsoleView;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
@@ -52,7 +51,6 @@ import com.intellij.build.events.Failure;
 import com.intellij.build.events.impl.FailureResultImpl;
 import com.intellij.build.events.impl.FinishBuildEventImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
-import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
@@ -234,7 +232,7 @@ public class GradleSyncInvoker {
     }
 
     CountDownLatch latch =
-      (ApplicationManager.getApplication().isUnitTestMode() && request.generateSourcesOnSuccess && GradleSyncState.isCompoundSync())
+      (ApplicationManager.getApplication().isUnitTestMode() && GradleSyncState.isCompoundSync())
       ? createSourceGenerationLatch(project)
       : null;
 
@@ -324,11 +322,7 @@ public class GradleSyncInvoker {
     String workingDir = toCanonicalPath(getBaseDirPath(project).getPath());
     DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Preparing for sync", workingDir, currentTimeMillis());
     SyncViewManager syncManager = ServiceManager.getService(project, SyncViewManager.class);
-    syncManager.onEvent(taskId, new StartBuildEventImpl(buildDescriptor, "Running pre sync checks...").withContentDescriptorSupplier(
-      () -> {
-        AndroidGradleSyncTextConsoleView consoleView = new AndroidGradleSyncTextConsoleView(project);
-        return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");
-      }));
+    syncManager.onEvent(taskId, new StartBuildEventImpl(buildDescriptor, "Running pre sync checks..."));
     return taskId;
   }
 
@@ -341,7 +335,6 @@ public class GradleSyncInvoker {
     public final GradleSyncStats.Trigger trigger;
 
     public boolean runInBackground = true;
-    public boolean generateSourcesOnSuccess = true;
     public boolean cleanProject;
     public boolean useCachedGradleModels;
     public boolean skipAndroidPluginUpgrade;
@@ -353,9 +346,7 @@ public class GradleSyncInvoker {
     @VisibleForTesting
     @NotNull
     public static Request testRequest() {
-      Request request = new Request(TRIGGER_TEST_REQUESTED);
-      request.generateSourcesOnSuccess = false;
-      return request;
+      return new Request(TRIGGER_TEST_REQUESTED);
     }
 
     public Request(@NotNull GradleSyncStats.Trigger trigger) {
@@ -378,7 +369,6 @@ public class GradleSyncInvoker {
       Request request = (Request)o;
       return trigger == request.trigger &&
              runInBackground == request.runInBackground &&
-             generateSourcesOnSuccess == request.generateSourcesOnSuccess &&
              cleanProject == request.cleanProject &&
              useCachedGradleModels == request.useCachedGradleModels &&
              skipAndroidPluginUpgrade == request.skipAndroidPluginUpgrade &&
@@ -390,7 +380,7 @@ public class GradleSyncInvoker {
     @Override
     public int hashCode() {
       return Objects
-        .hash(trigger, runInBackground, generateSourcesOnSuccess, cleanProject, useCachedGradleModels, skipAndroidPluginUpgrade,
+        .hash(trigger, runInBackground, cleanProject, useCachedGradleModels, skipAndroidPluginUpgrade,
               forceFullVariantsSync, skipPreSyncChecks, variantOnlySyncOptions);
     }
 
@@ -399,7 +389,6 @@ public class GradleSyncInvoker {
       return "RequestSettings{" +
              "trigger=" + trigger +
              ", runInBackground=" + runInBackground +
-             ", generateSourcesOnSuccess=" + generateSourcesOnSuccess +
              ", cleanProject=" + cleanProject +
              ", useCachedGradleModels=" + useCachedGradleModels +
              ", skipAndroidPluginUpgrade=" + skipAndroidPluginUpgrade +

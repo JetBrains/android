@@ -34,6 +34,7 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.Arrays.asList;
 
 import com.android.annotations.concurrency.WorkerThread;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -93,6 +94,7 @@ public class GradleSyncExecutor {
 
   @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
+    boolean shouldBuildAfterSync = StudioFlags.BUILD_AFTER_SYNC_ENABLED.get();
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.useCachedGradleModels) {
       ProjectBuildFileChecksums buildFileChecksums = ProjectBuildFileChecksums.findFor((myProject));
       if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
@@ -101,7 +103,7 @@ public class GradleSyncExecutor {
         if (cache != null && !dataNodeCaches.isCacheMissingModels(cache) && !areCachedFilesMissing(myProject)) {
           PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
           setupRequest.usingCachedGradleModels = true;
-          setupRequest.generateSourcesAfterSync = true;
+          setupRequest.generateSourcesAfterSync = shouldBuildAfterSync;
           setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
 
           setSkipAndroidPluginUpgrade(request, setupRequest);
@@ -123,13 +125,13 @@ public class GradleSyncExecutor {
 
     // Setup the settings for setup.
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = request.generateSourcesOnSuccess && !GradleSyncState.isCompoundSync();
+    setupRequest.generateSourcesAfterSync = shouldBuildAfterSync && !GradleSyncState.isCompoundSync();
     setupRequest.cleanProjectAfterSync = request.cleanProject;
     setupRequest.usingCachedGradleModels = false;
 
     // Setup the settings for the resolver.
     // We enable compound sync if we have been requested to generate sources and compound sync is enabled.
-    boolean shouldUseCompoundSync = request.generateSourcesOnSuccess && GradleSyncState.isCompoundSync();
+    boolean shouldUseCompoundSync = shouldBuildAfterSync && GradleSyncState.isCompoundSync();
     // We also pass through whether single variant sync should be enabled on the resolver, this allows fetchGradleModels to turn this off
     boolean shouldUseSingleVariantSync = !request.forceFullVariantsSync && GradleSyncState.isSingleVariantSync();
     // We also need to pass the listener so that the callbacks can be used

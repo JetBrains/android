@@ -48,10 +48,10 @@ open class ComposeLightCodeInsightFixtureTestCase : LightCodeInsightFixtureTestC
     """.trimIndent())
 
     @Language("kotlin")
-    val composeAnnotation = myFixture.addFileToProject("src/android/compose/Compose.kt", """
+    val composeAnnotation = myFixture.addFileToProject("src/android/compose/Composable.kt", """
       package androidx.compose
 
-      annotation class Compose()
+      annotation class Composable()
     """.trimIndent())
   }
 

@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.*;
@@ -29,7 +29,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link CleanProjectAction}.
  */
-public class CleanProjectActionTest extends IdeaTestCase {
+public class CleanProjectActionTest extends PlatformTestCase {
   private CleanProjectAction myAction;
   @Mock private GradleProjectBuilder myGradleProjectBuilder;
   @Mock private GradleBuildState myGradleBuildState;

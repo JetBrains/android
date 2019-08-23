@@ -28,7 +28,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.project.AndroidKtsSupportNotification.DisableAndroidKtsNotificationHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.List;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -36,7 +36,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link AndroidKtsSupportNotification}
  */
-public class AndroidKtsSupportNotificationTest extends IdeaTestCase {
+public class AndroidKtsSupportNotificationTest extends PlatformTestCase {
   @Mock private AndroidNotification myAndroidNotification;
 
   @Override

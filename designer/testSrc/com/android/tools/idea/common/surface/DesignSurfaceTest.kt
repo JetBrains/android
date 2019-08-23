@@ -130,7 +130,15 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 }
 
-private class TestDesignSurface(project: Project, disposible: Disposable) : DesignSurface(project, SelectionModel(), disposible) {
+private class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
+  override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) = Unit
+
+  override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
+
+  override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>) = DefaultActionGroup()
+}
+
+private class TestDesignSurface(project: Project, disposible: Disposable) : DesignSurface(project, SelectionModel(), disposible, java.util.function.Function { TestActionManager(it) }) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
@@ -148,14 +156,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable) : Desi
   }
 
   override fun getSceneScalingFactor() = factor
-
-  override fun createActionManager() = object : ActionManager<DesignSurface>(this) {
-    override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) = Unit
-
-    override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
-
-    override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>) = DefaultActionGroup()
-  }
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 

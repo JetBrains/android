@@ -19,14 +19,14 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import static com.android.tools.idea.testing.Facets.createAndAddJavaFacet;
 
 /**
  * Tests for {@link JavaModuleCleanupStep}.
  */
-public class JavaModuleCleanupStepTest extends IdeaTestCase {
+public class JavaModuleCleanupStepTest extends PlatformTestCase {
   private JavaModuleCleanupStep myCleanupStep;
 
   @Override

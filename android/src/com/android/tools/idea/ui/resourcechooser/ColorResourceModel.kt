@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.ui.resourcechooser
 
-import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceVisitor
 import com.android.resources.ResourceType
+import com.android.resources.ResourceVisibility
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.resolveColor
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ImmutableList
 import org.intellij.lang.annotations.MagicConstant
 
 /**
@@ -39,7 +41,7 @@ class ColorResourceModel(configuration: Configuration) {
   }
 
   val categories = listOf(Category.PROJECT, Category.LIBRARY, Category.FRAMEWORK)
-  private val resourceMaps = mutableMapOf<String, List<ResourceValue>>()
+  private val resourceMaps = mutableMapOf<String, List<ResourceReference>>()
 
   private val resourceResolver = configuration.resourceResolver
   private val project = configuration.module.project
@@ -47,14 +49,15 @@ class ColorResourceModel(configuration: Configuration) {
   init {
     val repoManager = ResourceRepositoryManager.getInstance(configuration.module)
 
-    val projectResourceBuilder = ImmutableList.Builder<ResourceValue>()
-    val libraryResourceBuilder = ImmutableList.Builder<ResourceValue>()
+    val projectResources = ArrayList<ResourceReference>()
+    val libraryResources = ArrayList<ResourceReference>()
     repoManager?.appResources?.accept(object : ResourceVisitor {
       override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
-        resourceItem.resourceValue?.let {
+        resourceItem.referenceToSelf.let {
           when {
-            it.libraryName == null -> projectResourceBuilder.add(it)
-            else -> libraryResourceBuilder.add(it)
+            resourceItem.libraryName == null -> projectResources.add(it)
+            resourceItem !is ResourceItemWithVisibility || resourceItem.visibility == ResourceVisibility.PUBLIC -> libraryResources.add(it)
+            else -> Unit
           }
         }
         return ResourceVisitor.VisitResult.CONTINUE
@@ -63,23 +66,32 @@ class ColorResourceModel(configuration: Configuration) {
       override fun shouldVisitResourceType(resourceType: ResourceType) = resourceType == ResourceType.COLOR
     })
 
-    val frameworkResourceBuilder = ImmutableList.Builder<ResourceValue>()
-    repoManager?.getFrameworkResources(emptySet())?.accept(object : ResourceVisitor {
-      override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
-        resourceItem.resourceValue?.let { frameworkResourceBuilder.add(it) }
-        return ResourceVisitor.VisitResult.CONTINUE
-      }
+    val frameworkResources = ArrayList<ResourceReference>()
+    repoManager?.getFrameworkResources(emptySet())
+      ?.getPublicResources(ResourceNamespace.ANDROID, ResourceType.COLOR)
+      ?.mapTo(frameworkResources) { it.referenceToSelf }
 
-      override fun shouldVisitResourceType(resourceType: ResourceType) = resourceType == ResourceType.COLOR
-    })
-
-    resourceMaps[Category.PROJECT] = projectResourceBuilder.build()
-    resourceMaps[Category.LIBRARY] = libraryResourceBuilder.build()
-    resourceMaps[Category.FRAMEWORK] = frameworkResourceBuilder.build()
+    resourceMaps[Category.PROJECT] = projectResources.apply { sort() }
+    resourceMaps[Category.LIBRARY] = libraryResources.apply { sort() }
+    resourceMaps[Category.FRAMEWORK] = frameworkResources.apply { sort() }
   }
 
-  fun getResourceValues(@MagicConstant(valuesFromClass = Category::class) category: String, filter: String?) =
-    resourceMaps[category]?.filter { it.resourceUrl.name.contains(filter ?: "") }?.toList() ?: emptyList()
+  fun getResourceReference(@MagicConstant(valuesFromClass = Category::class) category: String, filter: String?) =
+    resourceMaps[category]?.let {
+      if (filter == null) it
+      else it.filter { ref -> ref.resourceUrl.name.contains(filter) }
+    } ?: emptyList()
 
-  fun resolveColor(resourceValue: ResourceValue) = resourceResolver.resolveColor(resourceValue, project)
+  fun resolveColor(resourceReference: ResourceReference) =
+    resourceResolver.resolveColor(resourceResolver.getResolvedResource(resourceReference), project)
+
+  @MagicConstant(valuesFromClass = Category::class)
+  fun findResourceCategory(resourceReference: ResourceReference): String? {
+    for (valueMap in resourceMaps) {
+      if (valueMap.value.contains(resourceReference)) {
+        return valueMap.key
+      }
+    }
+    return null
+  }
 }

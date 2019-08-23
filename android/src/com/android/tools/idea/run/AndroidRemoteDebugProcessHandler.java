@@ -42,17 +42,14 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements SwappableProcessHandler {
 
   private final Project myProject;
-  private final boolean myDetachWhenDoneMonitoring;
 
-  public AndroidRemoteDebugProcessHandler(Project project, boolean detachWhenDoneMonitoring) {
+  public AndroidRemoteDebugProcessHandler(Project project) {
     myProject = project;
-    myDetachWhenDoneMonitoring = detachWhenDoneMonitoring;
 
     putCopyableUserData(SwappableProcessHandler.EXTENSION_KEY, this);
   }
 
-  // This is copied from com.intellij.debugger.engine.RemoteDebugProcessHandler#startNotify
-  // and modified to only terminate on debug detach if myDetachWhenDoneMonitoring is true.
+  // This is copied from com.intellij.debugger.engine.RemoteDebugProcessHandler#startNotify.
   @Override
   public void startNotify() {
     final DebugProcess debugProcess = DebuggerManager.getInstance(myProject).getDebugProcess(this);
@@ -60,9 +57,7 @@ public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements 
       @Override
       public void processDetached(@NotNull DebugProcess process, boolean closedByUser) {
         debugProcess.removeDebugProcessListener(this);
-        if (myDetachWhenDoneMonitoring) {
-          notifyProcessDetached();
-        }
+        notifyProcessDetached();
       }
     };
     debugProcess.addDebugProcessListener(listener);
@@ -72,9 +67,7 @@ public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements 
     finally {
       if (debugProcess.isDetached()) {
         debugProcess.removeDebugProcessListener(listener);
-        if (myDetachWhenDoneMonitoring) {
-          notifyProcessDetached();
-        }
+        notifyProcessDetached();
       }
     }
   }

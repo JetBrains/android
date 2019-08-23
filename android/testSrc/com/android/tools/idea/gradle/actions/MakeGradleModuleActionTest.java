@@ -23,7 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.verify;
@@ -33,7 +33,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link MakeGradleModuleAction}.
  */
-public class MakeGradleModuleActionTest extends IdeaTestCase {
+public class MakeGradleModuleActionTest extends PlatformTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private AnActionEvent myActionEvent;

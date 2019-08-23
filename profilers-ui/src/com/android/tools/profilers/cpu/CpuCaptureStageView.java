@@ -15,11 +15,23 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.DragAndDropList;
+import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
+import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
+import com.android.tools.adtui.trackgroup.TrackGroup;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
+import com.google.common.annotations.VisibleForTesting;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.JComponent;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.ListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -27,9 +39,14 @@ import org.jetbrains.annotations.NotNull;
  * all captures of type {@link Cpu.CpuTraceType} are supported.
  */
 public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
+  private static final ProfilerTrackRendererFactory TRACK_RENDERER_FACTORY = new ProfilerTrackRendererFactory();
+
+  @NotNull
+  private final JList<TrackGroupModel> myTrackGroupList;
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
+    myTrackGroupList = createTrackGroups(stage.getTrackGroupListModel());
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     updateComponents();
   }
@@ -44,11 +61,40 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private JComponent createAnalyzingComponents() {
-    return new JPanel();
+    JPanel container = new JPanel(new BorderLayout());
+    container.add(myTrackGroupList, BorderLayout.CENTER);
+    return container;
   }
 
   @Override
   public JComponent getToolbar() {
     return new JPanel();
+  }
+
+  /**
+   * Creates a JList containing all the track groups in this stage.
+   */
+  private static JList<TrackGroupModel> createTrackGroups(@NotNull TrackGroupListModel trackGroupListModel) {
+    // Caches TrackGroupViews for the list cell renderer.
+    Map<Integer, TrackGroup> trackGroupMap = new HashMap<>();
+
+    DragAndDropList<TrackGroupModel> trackGroupList = new DragAndDropList<>(trackGroupListModel);
+    trackGroupList.setCellRenderer(new ListCellRenderer<TrackGroupModel>() {
+      @Override
+      public Component getListCellRendererComponent(JList<? extends TrackGroupModel> list,
+                                                    TrackGroupModel value,
+                                                    int index,
+                                                    boolean isSelected,
+                                                    boolean cellHasFocus) {
+        return trackGroupMap.computeIfAbsent(value.getId(), id -> new TrackGroup(value, TRACK_RENDERER_FACTORY)).getComponent();
+      }
+    });
+    return trackGroupList;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  protected final JList<TrackGroupModel> getTrackGroupList() {
+    return myTrackGroupList;
   }
 }

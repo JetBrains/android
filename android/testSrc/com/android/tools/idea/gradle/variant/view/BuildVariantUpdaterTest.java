@@ -44,7 +44,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.HashSet;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -66,7 +66,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link BuildVariantUpdater}.
  */
-public class BuildVariantUpdaterTest extends IdeaTestCase {
+public class BuildVariantUpdaterTest extends PlatformTestCase {
   @Mock private IdeModifiableModelsProvider myModifiableModelsProvider;
   @Mock private IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @Mock private AndroidModuleSetupStep mySetupStepToInvoke;
@@ -329,9 +329,8 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
 
       // Check the BuildAction has its property set to generate sources and the sync request not
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
-      request.generateSourcesOnSuccess = true;
       request.variantOnlySyncOptions =
-        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect, null, true);
+        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect, null, false);
       verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());
     }
     finally {
@@ -361,7 +360,6 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
 
       // Check the BuildAction has its property set to not generate sources and the sync request does
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
-      request.generateSourcesOnSuccess = true;
       request.variantOnlySyncOptions =
         new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect);
       verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());

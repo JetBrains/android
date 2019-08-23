@@ -23,7 +23,6 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
-  com.android.tools.idea.RunSqlQueryAnnotatorTest.class,  // b/137415731
   com.android.tools.idea.debuggers.AndroidDebuggersTestSuite.class  // a suite mustn't contain itself
 })
 public class AndroidDebuggersTestSuite extends IdeaTestSuiteBase {

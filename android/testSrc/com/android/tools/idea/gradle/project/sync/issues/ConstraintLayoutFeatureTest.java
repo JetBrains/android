@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link ConstraintLayoutFeature}.
  */
-public class ConstraintLayoutFeatureTest extends IdeaTestCase {
+public class ConstraintLayoutFeatureTest extends PlatformTestCase {
   public void testIsSupportedInSdkManagerWithNoModel() {
     // The module does not have a model. This happens when this is a new project, and modules have not been set up yet.
     assertTrue(ConstraintLayoutFeature.isSupportedInSdkManager(getModule()));
