@@ -18,7 +18,6 @@ package com.android.tools.idea.common.scene.target
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.canShowBelow
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
@@ -81,8 +80,9 @@ class ComponentAssistantViewAction @JvmOverloads constructor(
     val panelFactory = panelFactoryFactory(selectedComponent) ?: return
     val sceneComponent = editor.scene.getSceneComponent(selectedComponent) ?: return
 
-    val designSurface = sceneComponent.scene.designSurface
-    val context = SceneContext.get(designSurface.focusedSceneView)
+    val scene = sceneComponent.scene
+    val designSurface = scene.designSurface
+    val context = scene.sceneManager.sceneView.context
     val assistantContext = ComponentAssistantFactory.Context(selectedComponent) { cancel ->
       if (cancel) popup.cancel() else popup.close()
     }

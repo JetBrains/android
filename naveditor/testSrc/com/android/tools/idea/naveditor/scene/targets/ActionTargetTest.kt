@@ -148,7 +148,7 @@ class ActionTargetTest : NavTestCase() {
 
     scene.sceneManager.layout(false)
     val list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
     // Arrows should be down for 2 and 3, right for 4, up for 5 and 6
