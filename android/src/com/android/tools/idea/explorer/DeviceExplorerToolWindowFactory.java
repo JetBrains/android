@@ -18,6 +18,7 @@ package com.android.tools.idea.explorer;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemRendererFactory;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -26,11 +27,9 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
+import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
-
-import java.util.concurrent.Executor;
 
 public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
   public static final String TOOL_WINDOW_ID = "Device File Explorer";
@@ -45,19 +44,17 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     Executor edtExecutor = EdtExecutorService.getInstance();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
 
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(project),
-                                                                        edtExecutor,
-                                                                        taskExecutor,
-                                                                        project);
+    AdbDeviceFileSystemService adbService = ServiceManager.getService(project, AdbDeviceFileSystemService.class);
+    DeviceExplorerFileManager fileManager = ServiceManager.getService(project, DeviceExplorerFileManager.class);
 
-    DeviceFileSystemRendererFactory deviceFileSystemRendererFactory = new AdbDeviceFileSystemRendererFactory(service);
-    DeviceExplorerFileManager fileManager = new DeviceExplorerFileManagerImpl(project, edtExecutor);
+    DeviceFileSystemRendererFactory deviceFileSystemRendererFactory = new AdbDeviceFileSystemRendererFactory(adbService);
 
     DeviceExplorerModel model = new DeviceExplorerModel();
 
     DeviceExplorerViewImpl view = new DeviceExplorerViewImpl(project, deviceFileSystemRendererFactory, model);
     DeviceExplorerController controller =
-      new DeviceExplorerController(project, model, view, service, fileManager, edtExecutor, taskExecutor);
+      new DeviceExplorerController(project, model, view, adbService, fileManager, edtExecutor, taskExecutor);
+
     controller.setup();
 
     ContentManager contentManager = toolWindow.getContentManager();

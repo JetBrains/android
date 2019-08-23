@@ -36,6 +36,7 @@ import com.intellij.openapi.fileTypes.ex.FileTypeChooser;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtilRt;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,8 +63,8 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private Supplier<Path> myDefaultDownloadPath;
 
-  public DeviceExplorerFileManagerImpl(@NotNull Project project, @NotNull Executor edtExecutor) {
-    this(project, edtExecutor,
+  private DeviceExplorerFileManagerImpl(@NotNull Project project) {
+    this(project, new FutureCallbackExecutor(EdtExecutorService.getInstance()),
          () -> Paths.get(DeviceFileExplorerSettings.getInstance().getDownloadLocation()));
   }
 

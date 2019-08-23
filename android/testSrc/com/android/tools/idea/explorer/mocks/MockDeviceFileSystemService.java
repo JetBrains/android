@@ -16,24 +16,23 @@
 package com.android.tools.idea.explorer.mocks;
 
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
-import com.android.tools.idea.util.FutureUtils;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener;
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.util.FutureUtils;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
+import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class MockDeviceFileSystemService implements DeviceFileSystemService {
+public class MockDeviceFileSystemService implements DeviceFileSystemService<DeviceFileSystem> {
   public static int OPERATION_TIMEOUT_MILLIS = 10;
 
   @NotNull private final Project myProject;
@@ -57,15 +56,6 @@ public class MockDeviceFileSystemService implements DeviceFileSystemService {
   }
 
   @Override
-  public void dispose() {
-    for (Iterator<MockDeviceFileSystem> i = myDevices.iterator(); i.hasNext();) {
-      MockDeviceFileSystem device = i.next();
-      i.remove();
-      myListeners.forEach(listener -> listener.deviceRemoved(device));
-    }
-  }
-
-  @Override
   public void addListener(@NotNull DeviceFileSystemServiceListener listener) {
     myListeners.add(listener);
   }
@@ -81,13 +71,13 @@ public class MockDeviceFileSystemService implements DeviceFileSystemService {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> start() {
+  public ListenableFuture<Void> start(@NotNull Supplier<File> adbSupplier) {
     return FutureUtils.delayedValue(null, OPERATION_TIMEOUT_MILLIS);
   }
 
   @NotNull
   @Override
-  public ListenableFuture<Void> restart() {
+  public ListenableFuture<Void> restart(@NotNull Supplier<File> adbSupplier) {
     ListenableFuture<Void> futureResult = FutureUtils.delayedValue(null, OPERATION_TIMEOUT_MILLIS);
 
     myEdtExecutor.addCallback(futureResult, new FutureCallback<Void>() {

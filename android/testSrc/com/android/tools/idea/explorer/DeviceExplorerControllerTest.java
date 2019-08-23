@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.explorer;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -63,9 +64,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.ui.UIBundle;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -214,7 +212,6 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       myFile2 = null;
 
       if (myMockService != null) {
-        Disposer.dispose(myMockService);
         myMockService = null;
       }
 
@@ -264,7 +261,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     String setupErrorMessage = "<Unique error message>";
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
-    when(service.start()).thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
+    when(service.start(any()))
+      .thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
     DeviceExplorerController controller = createController(myMockView, service);
 
     // Act
@@ -279,7 +277,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   public void testStartControllerUnexpectedFailure() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
-    when(service.start()).thenReturn(Futures.immediateFailedFuture(new RuntimeException()));
+    when(service.start(any()))
+      .thenReturn(Futures.immediateFailedFuture(new RuntimeException()));
     DeviceExplorerController controller = createController(myMockView, service);
 
     // Act
@@ -311,8 +310,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     String setupErrorMessage = "<Unique error message>";
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
-    when(service.start()).thenReturn(Futures.immediateFuture(null));
-    when(service.restart()).thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
+    when(service.start(any())).thenReturn(Futures.immediateFuture(null));
+    when(service.restart(any())).thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
     when(service.getDevices()).thenReturn(Futures.immediateFuture(new ArrayList<>()));
     DeviceExplorerController controller = createController(myMockView, service);
 
@@ -330,7 +329,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     String setupErrorMessage = "<Unique error message>";
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
-    when(service.start()).thenReturn(Futures.immediateFuture(null));
+    when(service.start(any()))
+      .thenReturn(Futures.immediateFuture(null));
     when(service.getDevices()).thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
     DeviceExplorerController controller = createController(myMockView, service);
 

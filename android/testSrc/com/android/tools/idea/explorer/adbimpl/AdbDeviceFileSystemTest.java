@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceState;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
@@ -24,15 +27,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import org.hamcrest.core.IsInstanceOf;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
-import org.junit.*;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TestRule;
-
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -42,9 +36,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.hamcrest.core.IsInstanceOf;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TestRule;
 
 public class AdbDeviceFileSystemTest {
   private static final long TIMEOUT_MILLISECONDS = 30_000;
@@ -67,14 +69,10 @@ public class AdbDeviceFileSystemTest {
                                                                               PooledThreadExecutor.INSTANCE,
                                                                               1,
                                                                               myParentDisposable);
-    ExecutorService taskExecutor = PooledThreadExecutor.INSTANCE;
     myMockDevice = new MockDdmlibDevice();
-    Function<Void, File> adbRuntimeError = aVoid -> {
-      throw new RuntimeException("No Adb for unit tests");
-    };
-    AdbDeviceFileSystemService service =
-      new AdbDeviceFileSystemService(adbRuntimeError, myCallbackExecutor, taskExecutor, myParentDisposable);
-    myFileSystem = new AdbDeviceFileSystem(service, myMockDevice.getIDevice());
+    FutureCallbackExecutor taskExecutor = new FutureCallbackExecutor(PooledThreadExecutor.INSTANCE);
+    FutureCallbackExecutor edtExecutor = new FutureCallbackExecutor(myCallbackExecutor);
+    myFileSystem = new AdbDeviceFileSystem(myMockDevice.getIDevice(), edtExecutor, taskExecutor);
     UniqueFileNameGenerator fileNameGenerator = new UniqueFileNameGenerator() {
       private int myNextId;
 
@@ -290,9 +288,9 @@ public class AdbDeviceFileSystemTest {
     // Assert
     assertThat(result).isNotNull();
     DeviceFileEntry app = result.stream()
-                                .filter(entry -> entry.getName().equals("com.example.rpaquay.myapplication-2"))
-                                .findFirst()
-                                .orElse(null);
+      .filter(entry -> entry.getName().equals("com.example.rpaquay.myapplication-2"))
+      .findFirst()
+      .orElse(null);
     assertThat(app).isNotNull();
 
     // Act

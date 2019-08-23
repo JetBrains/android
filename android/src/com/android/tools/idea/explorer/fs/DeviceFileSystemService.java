@@ -16,10 +16,10 @@
 package com.android.tools.idea.explorer.fs;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.Disposable;
-import org.jetbrains.annotations.NotNull;
-
+import java.io.File;
 import java.util.List;
+import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Abstraction over ADB devices and their corresponding file system.
@@ -29,7 +29,7 @@ import java.util.List;
  * the registered {@link DeviceFileSystemServiceListener} instances. Events are always fired on the EDT
  * thread.
  */
-public interface DeviceFileSystemService<S extends DeviceFileSystem> extends Disposable {
+public interface DeviceFileSystemService<S extends DeviceFileSystem> {
   void addListener(@NotNull DeviceFileSystemServiceListener listener);
 
   void removeListener(@NotNull DeviceFileSystemServiceListener listener);
@@ -38,14 +38,14 @@ public interface DeviceFileSystemService<S extends DeviceFileSystem> extends Dis
    * Starts the service, usually after registering one or more {@link DeviceFileSystemServiceListener}.
    */
   @NotNull
-  ListenableFuture<Void> start();
+  ListenableFuture<Void> start(@NotNull Supplier<File> adbSupplier);
 
   /**
    * Restarts the service, usually as the result of a user action when/if the service has become
    * unreliable.
    */
   @NotNull
-  ListenableFuture<Void> restart();
+  ListenableFuture<Void> restart(@NotNull Supplier<File> adbSupplier);
 
   /**
    * Returns the list of currently known devices.

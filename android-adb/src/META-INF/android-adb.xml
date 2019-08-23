@@ -18,6 +18,9 @@
     <applicationService serviceImplementation="com.android.tools.idea.adb.AdbService" />
     <applicationService serviceImplementation="com.android.tools.idea.adb.AdbOptionsService" />
     <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider" />
+
+    <projectService serviceInterface="com.android.tools.idea.device.fs.DeviceFileDownloaderService"
+                    serviceImplementation="com.android.tools.idea.explorer.DeviceFileDownloaderServiceImpl" />
   </extensions>
 
   <extensionPoints>

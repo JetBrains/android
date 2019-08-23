@@ -92,6 +92,7 @@ import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -173,7 +174,7 @@ public class DeviceExplorerController {
   public void setup() {
     myView.setup();
     myView.startRefresh("Initializing ADB");
-    ListenableFuture<Void> future = myService.start();
+    ListenableFuture<Void> future = myService.start(() -> AndroidSdkUtils.getAdb(myProject));
     myEdtExecutor.addListener(future, myView::stopRefresh);
     myEdtExecutor.addCallback(future, new FutureCallback<Void>() {
       @Override
@@ -190,7 +191,7 @@ public class DeviceExplorerController {
 
   public void restartService() {
     myView.startRefresh("Restarting ADB");
-    ListenableFuture<Void> future = myService.restart();
+    ListenableFuture<Void> future = myService.restart(() -> AndroidSdkUtils.getAdb(myProject));
     myEdtExecutor.addListener(future, myView::stopRefresh);
     myEdtExecutor.addCallback(future, new FutureCallback<Void>() {
       @Override

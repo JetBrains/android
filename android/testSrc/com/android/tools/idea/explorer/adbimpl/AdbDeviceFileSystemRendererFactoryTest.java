@@ -24,14 +24,10 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.util.concurrency.EdtExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
-
-import java.util.concurrent.TimeUnit;
 
 public class AdbDeviceFileSystemRendererFactoryTest extends AndroidTestCase {
   private static final long TIMEOUT_MILLISECONDS = 30_000;
@@ -59,11 +55,7 @@ public class AdbDeviceFileSystemRendererFactoryTest extends AndroidTestCase {
 
   public void testCreateMethodWorks() throws Exception {
     // Prepare
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(getProject()),
-                                                                        EdtExecutorService.getInstance(),
-                                                                        PooledThreadExecutor.INSTANCE,
-                                                                        getProject());
-    disposeOnTearDown(service);
+    AdbDeviceFileSystemService service = AdbDeviceFileSystemService.getInstance(getProject());
     AdbDeviceFileSystemRendererFactory factory = new AdbDeviceFileSystemRendererFactory(service);
     DeviceNamePropertiesFetcher fetcher = new DeviceNamePropertiesFetcher(new FutureCallback<DeviceNameProperties>() {
       @Override
