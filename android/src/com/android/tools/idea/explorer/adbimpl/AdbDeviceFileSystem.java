@@ -25,28 +25,30 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 public class AdbDeviceFileSystem implements DeviceFileSystem {
-  @NotNull private final AdbDeviceFileSystemService myService;
   @NotNull private final IDevice myDevice;
   @NotNull private final AdbDeviceCapabilities myDeviceCapabilities;
   @NotNull private final AdbFileListing myFileListing;
   @NotNull private final AdbFileOperations myFileOperations;
   @NotNull private final AdbFileTransfer myFileTransfer;
+  @NotNull private final FutureCallbackExecutor myEdtExecutor;
+  @NotNull private final FutureCallbackExecutor myTaskExecutor;
 
-  public AdbDeviceFileSystem(@NotNull AdbDeviceFileSystemService service, @NotNull IDevice device) {
-    myService = service;
+  public AdbDeviceFileSystem(@NotNull IDevice device, @NotNull Executor edtExecutor, @NotNull Executor taskExecutor) {
+    myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
+    myTaskExecutor = new FutureCallbackExecutor(taskExecutor);
     myDevice = device;
     myDeviceCapabilities = new AdbDeviceCapabilities(myDevice);
-    myFileListing = new AdbFileListing(myDevice, myDeviceCapabilities, service.getTaskExecutor());
-    myFileOperations = new AdbFileOperations(myDevice, myDeviceCapabilities, service.getTaskExecutor());
-    myFileTransfer = new AdbFileTransfer(myDevice, myFileOperations, service.getEdtExecutor(), service.getTaskExecutor());
+    myFileListing = new AdbFileListing(myDevice, myDeviceCapabilities, myTaskExecutor);
+    myFileOperations = new AdbFileOperations(myDevice, myDeviceCapabilities, myTaskExecutor);
+    myFileTransfer = new AdbFileTransfer(myDevice, myFileOperations, myEdtExecutor, myTaskExecutor);
   }
 
   boolean isDevice(@Nullable IDevice device) {
@@ -80,7 +82,7 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
 
   @NotNull
   FutureCallbackExecutor getTaskExecutor() {
-    return myService.getTaskExecutor();
+    return myTaskExecutor;
   }
 
   @NotNull

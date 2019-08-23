@@ -18,8 +18,8 @@ package com.android.tools.idea.explorer;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,10 @@ import org.jetbrains.annotations.NotNull;
  * Manage files synchronized between devices and the local file system
  */
 public interface DeviceExplorerFileManager {
-  public static com.intellij.openapi.util.Key<String> DEVICE_PATH_KEY = Key.create("DEVICE_PATH_KEY");
+  @NotNull
+  static DeviceExplorerFileManager getInstance(Project project) {
+    return ServiceManager.getService(project, DeviceExplorerFileManager.class);
+  }
 
   /**
    * Returns the default {@link Path} where to store the {@code entry} on the local file system.
