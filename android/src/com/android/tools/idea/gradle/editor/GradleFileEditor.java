@@ -24,7 +24,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.ex.DocumentBulkUpdateListener;
-import com.intellij.openapi.editor.ex.DocumentEx;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -69,8 +68,7 @@ public class GradleFileEditor extends UserDataHolderBase implements FileEditor {
       myDocument.addDocumentListener(myDocumentListener = new DocumentListener() {
         @Override
         public void documentChanged(@NotNull DocumentEvent e) {
-          Document document = e.getDocument();
-          if (document instanceof DocumentEx && ((DocumentEx)document).isInBulkUpdate()) {
+          if (e.getDocument().isInBulkUpdate()) {
             return;
           }
           if (!myEditorTriggeredModificationInProgress) {
