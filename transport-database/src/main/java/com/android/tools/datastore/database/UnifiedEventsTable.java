@@ -150,7 +150,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
 
     HashMap<Long, EventGroup.Builder> builderGroups = new HashMap<>();
     // The string format allows for altering the group by results for +1 and -1 queries.
-    String sql = "SELECT [Data]%s From [UnifiedEventsTable] WHERE Kind = ? %s";
+    String sql = "SELECT Data From [UnifiedEventsTable] WHERE Kind = ? %s";
     StringBuilder filter = new StringBuilder();
     baseParams.add(request.getKind().getNumber());
 
@@ -174,18 +174,17 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       baseParams.add(request.getCommandId());
     }
 
-    String sqlBefore = String.format(sql, ", MAX(Timestamp), MAX(ROWID)", filter.toString() + " AND Timestamp < ? GROUP BY GroupId");
-    String sqlAfter = String.format(sql, ", MIN(Timestamp), MIN(ROWID)", filter.toString() + " AND Timestamp > ? GROUP BY GroupId");
+    String sqlBefore = String.format(sql, filter.toString() + " AND Timestamp < ? ORDER BY ROWID DESC LIMIT 1");
+    String sqlAfter = String.format(sql, filter.toString() + " AND Timestamp > ? ORDER BY ROWID ASC LIMIT 1");
     ArrayList<Object> inRangeQueryParams = new ArrayList<>(baseParams);
-
-    if (request.getFromTimestamp() != 0) {
+    if (request.getFromTimestamp() > 0) {
       beforeRangeParams = new ArrayList<>(baseParams);
       beforeRangeParams.add(request.getFromTimestamp());
       filter.append(" AND Timestamp >= ?");
       inRangeQueryParams.add(request.getFromTimestamp());
     }
 
-    if (request.getToTimestamp() != 0) {
+    if (request.getToTimestamp() > 0 && request.getToTimestamp() != Long.MAX_VALUE) {
       afterRangeParams = new ArrayList<>(baseParams);
       afterRangeParams.add(request.getToTimestamp());
       filter.append(" AND Timestamp <= ?");
@@ -201,7 +200,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
 
     // Query example:
     // SELECT [Data] From [UnifiedEventsTable] WHERE Kind = ? AND Timestamp >= ? AND Timestamp <= ?;
-    String query = String.format(sql, "", filter.toString());
+    String query = String.format(sql, filter.toString());
     gatherEvents(query, inRangeQueryParams, builderGroups, (unused) -> true);
 
     // Gather after range events if needed.
