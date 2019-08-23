@@ -20,6 +20,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.editor.DesignFileEditor
+import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.android.tools.idea.common.editor.SmartAutoRefresher
 import com.android.tools.idea.common.editor.SmartRefreshable
 import com.android.tools.idea.common.editor.ToolbarActionGroups
@@ -49,7 +50,6 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.TextEditor
-import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -169,6 +169,11 @@ private class PreviewEditor(private val psiFile: PsiFile,
    * List of [PreviewElement] being rendered by this editor
    */
   var previewElements: List<PreviewElement> = emptyList()
+
+  /**
+   * Callback called after refresh has happened
+   */
+  var onRefresh: (() -> Unit)? = null
 
   /**
    * [WorkBench] used to contain all the preview elements.
@@ -294,6 +299,8 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
         // Make sure all notifications are cleared-up
         EditorNotifications.getInstance(project).updateNotifications(file)
+
+        onRefresh?.invoke()
       }
 
   }
@@ -335,7 +342,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) : Toolba
 }
 
 private class ComposeTextEditorWithPreview constructor(editor: TextEditor, val preview: PreviewEditor) :
-  TextEditorWithPreview(editor, preview, "Compose Editor")
+  SeamlessTextEditorWithPreview(editor, preview, "Compose Editor")
 
 /**
  * Returns the Compose [PreviewEditor] or null if this [FileEditor] is not a Compose preview.
@@ -408,6 +415,10 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
           EditorNotifications.getInstance(project).updateNotifications(file)
         }
       }
+    }
+
+    previewEditor.onRefresh = {
+      composeEditorWithPreview.isPureTextEditor = previewEditor.previewElements.isEmpty()
     }
 
     PsiDocumentManager.getInstance(project).getDocument(psiFile)!!.addDocumentListener(object: DocumentListener {
