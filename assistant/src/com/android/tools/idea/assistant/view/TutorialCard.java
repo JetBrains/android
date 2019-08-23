@@ -86,7 +86,7 @@ public class TutorialCard extends CardViewPanel {
 
     if (!myHideChooserAndNavigationBar) {
       // TODO: Add a short label to the xml and use that here instead.
-      add(new HeaderNav(feature.getName(), myListener), BorderLayout.NORTH);
+      add(new HeaderNav(feature.getName()), BorderLayout.NORTH);
     }
 
     add(myContentsScroller, BorderLayout.CENTER);
@@ -167,7 +167,7 @@ public class TutorialCard extends CardViewPanel {
     c.gridy++;
 
     TutorialDescription description = new TutorialDescription();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("<p class=\"description\">").append(myTutorial.getDescription());
     if (myTutorial.getRemoteLink() != null && myTutorial.getRemoteLinkLabel() != null) {
       sb.append("<br><br><a href=\"").append(myTutorial.getRemoteLink()).append("\" target=\"_blank\">")
@@ -247,10 +247,9 @@ public class TutorialCard extends CardViewPanel {
    * TODO: Consider stealing more from NavBarPanel.
    */
   private class HeaderNav extends JPanel {
-
     public final String ROOT_TITLE = "<html><b>" + myBundle.getName() + "</b> &nbsp;&rsaquo;</html>";
 
-    HeaderNav(String location, ActionListener listener) {
+    HeaderNav(@NotNull String location) {
       super(new HorizontalLayout(5, SwingConstants.CENTER));
       setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
@@ -263,13 +262,11 @@ public class TutorialCard extends CardViewPanel {
   }
 
   private class FooterNav extends JPanel {
-    private final String BACK_LABEL = "Back to " + myBundle.getName();
-
     FooterNav() {
       super(new FlowLayout(FlowLayout.LEADING));
       setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor()));
       setOpaque(false);
-      add(new BackButton(BACK_LABEL));
+      add(new BackButton("Back to " + myBundle.getName()));
     }
   }
 
@@ -334,11 +331,11 @@ public class TutorialCard extends CardViewPanel {
 
     public Direction myDirection;
 
-    public StepButton(String label, Direction direction, ActionListener listener) {
+    private StepButton(@Nullable String label, @NotNull Direction direction, @NotNull ActionListener listener) {
       super(label, TutorialChooser.NAVIGATION_KEY, listener);
       myDirection = direction;
       if (Direction.NEXT == direction) {
-        setIcon(AllIcons.Diff.CurrentLine);
+        setIcon(AllIcons.Actions.Forward);
         setHorizontalTextPosition(LEFT);
       }
       else {
@@ -356,8 +353,7 @@ public class TutorialCard extends CardViewPanel {
 
   // Determine why the border, contentfill, etc are reset to default on theme change. Note that this doesn't persist across restart.
   private class BackButton extends NavigationButton {
-
-    public BackButton(String label) {
+    private BackButton(@Nullable String label) {
       super(label, TutorialChooser.NAVIGATION_KEY, myListener);
       setIcon(AllIcons.Actions.Back);
       setHorizontalTextPosition(RIGHT);
