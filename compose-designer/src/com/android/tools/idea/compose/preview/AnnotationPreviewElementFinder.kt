@@ -33,19 +33,19 @@ import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.getContainingUMethod
 import org.jetbrains.uast.visitor.UastVisitor
 
-private fun UAnnotation.findAttributeIntValue(name: String, defaultValue: Int) =
-  findAttributeValue(name)?.evaluate() as? Int ?: defaultValue
+private fun UAnnotation.findAttributeIntValue(name: String) =
+  findAttributeValue(name)?.evaluate() as? Int
 
 /**
  * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
  */
 private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
-  val apiLevel = node.findAttributeIntValue("apiLevel", UNDEFINED_API_LEVEL)
+  val apiLevel = node.findAttributeIntValue("apiLevel")
   val theme = node.findAttributeValue("theme")?.evaluateString()?.nullize()
-  val width = node.findAttributeIntValue("width", UNDEFINED_DIMENSION)
-  val height = node.findAttributeIntValue("height", UNDEFINED_DIMENSION)
+  val width = node.findAttributeIntValue("width")
+  val height = node.findAttributeIntValue("height")
 
-  return PreviewConfiguration(apiLevel, theme, width, height)
+  return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height)
 }
 
 /**
