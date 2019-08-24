@@ -70,7 +70,8 @@ class DeclaredAttributesInspectorBuilderTest {
     builder.attachToInspector(util.inspector, util.properties)
     util.checkTitle(0, InspectorSection.DECLARED.title, true)
     val tableModel = util.checkTable(1).tableModel
-    assertThat(util.inspector.lines).hasSize(2)
+    util.checkEmptyTableIndicator(2)
+    assertThat(util.inspector.lines).hasSize(3)
 
     // Check that there are 3 attributes
     assertThat(tableModel.items.map { it.name })
@@ -89,7 +90,8 @@ class DeclaredAttributesInspectorBuilderTest {
     builder.attachToInspector(util.inspector, util.properties)
     val titleModel = util.checkTitle(0, InspectorSection.DECLARED.title, true)
     val tableModel = util.checkTable(1).tableModel
-    assertThat(util.inspector.lines).hasSize(2)
+    util.checkEmptyTableIndicator(2)
+    assertThat(util.inspector.lines).hasSize(3)
 
     titleModel.expanded = false
     util.performAction(0, 0, StudioIcons.Common.ADD)
