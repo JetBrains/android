@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider
+import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupportProvider
@@ -70,6 +71,7 @@ class DeclaredAttributesInspectorBuilder(
     val deleteRowAction = DeleteRowAction(declaredTableModel)
     val titleModel = inspector.addExpandableTitle(InspectorSection.DECLARED.title, false, addNewRow, deleteRowAction)
     val tableLineModel = inspector.addTable(declaredTableModel, false, tableUIProvider, titleModel)
+    inspector.addComponent(EmptyTablePanel(addNewRow, tableLineModel), titleModel)
     addNewRow.titleModel = titleModel
     addNewRow.lineModel = tableLineModel
     deleteRowAction.titleModel = titleModel
