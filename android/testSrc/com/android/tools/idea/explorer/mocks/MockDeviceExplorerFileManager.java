@@ -89,12 +89,12 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
 
   @Override
   @NotNull
-  public ListenableFuture<Void> openFileInEditor(@NotNull DeviceFileEntry deviceFileEntry, @NotNull Path localPath, boolean focusEditor) {
+  public ListenableFuture<Void> openFile(@NotNull DeviceFileEntry deviceFileEntry, @NotNull Path localPath) {
     myOpenFileInEditorTracker.produce(localPath);
     if (myOpenFileInEditorError != null) {
       return Futures.immediateFailedFuture(myOpenFileInEditorError);
     }
-    return myFileManagerImpl.openFileInEditor(deviceFileEntry, localPath, focusEditor);
+    return myFileManagerImpl.openFile(deviceFileEntry, localPath);
   }
 
   @Override

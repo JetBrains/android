@@ -154,7 +154,6 @@ iml_module(
         "//tools/idea/.idea/libraries:NanoXML",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:perfetto-proto",
-        "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
         "//prebuilts/studio/layoutlib/data:layoutlib_native",
         "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer.annotations[module]",

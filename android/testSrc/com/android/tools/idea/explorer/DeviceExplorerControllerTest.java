@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.explorer;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,7 +35,6 @@ import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService;
-import com.android.tools.idea.explorer.mocks.MockFileOpener;
 import com.android.tools.idea.util.FutureUtils;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -459,45 +456,6 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     verify(mockFileHandler).getAdditionalDevicePaths(
       eq(myFile1.getFullPath()),
-      argThat(new Utils.VirtualFilePathArgumentMatcher("/device-explorer-temp/TestDevice-1/file1.txt"))
-    );
-  }
-
-  public void testFileOpenerExtensionIsCalled() throws Exception {
-    MockFileOpener mockFileOpener = spy(MockFileOpener.class);
-    PlatformTestUtil.registerExtension(Extensions.getRootArea(), FileOpener.EP_NAME, mockFileOpener, getTestRootDisposable());
-
-    downloadFile(() -> {
-      // Send a VK_ENTER key event
-      fireEnterKey(myMockView.getTree());
-    });
-
-    pumpEventsAndWaitForFuture(mockFileOpener.tracker.consume());
-
-    verify(mockFileOpener).canOpenFile(argThat(new Utils.VirtualFilePathArgumentMatcher("/device-explorer-temp/TestDevice-1/file1.txt")));
-    verify(mockFileOpener).openFile(
-      eq(getProject()),
-      argThat(new Utils.VirtualFilePathArgumentMatcher("/device-explorer-temp/TestDevice-1/file1.txt"))
-    );
-  }
-
-  public void testFileOpenerExtensionIsNotCalled() throws Exception {
-    MockFileOpener mockFileOpener = spy(MockFileOpener.class);
-    when(mockFileOpener.canOpenFile(any(VirtualFile.class))).thenReturn(false);
-
-    PlatformTestUtil.registerExtension(Extensions.getRootArea(), FileOpener.EP_NAME, mockFileOpener, getTestRootDisposable());
-
-    downloadFile(() -> {
-      // Send a VK_ENTER key event
-      fireEnterKey(myMockView.getTree());
-
-      pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
-    });
-    pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
-
-    verify(mockFileOpener).canOpenFile(argThat(new Utils.VirtualFilePathArgumentMatcher("/device-explorer-temp/TestDevice-1/file1.txt")));
-    verify(mockFileOpener, times(0)).openFile(
-      eq(getProject()),
       argThat(new Utils.VirtualFilePathArgumentMatcher("/device-explorer-temp/TestDevice-1/file1.txt"))
     );
   }

@@ -18,6 +18,7 @@ package com.android.tools.idea.explorer;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
@@ -44,9 +45,9 @@ public interface DeviceExplorerFileManager {
   ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress);
 
   /**
-   * Opens a previously downloaded file in an editor window. If the file contents is
-   * not recognized, the implementation may open a dialog box asking the user to pick
-   * the best editor type.
+   * Opens a previously downloaded file and gives focus to the open component.
+   * If the file contents is not recognized,
+   * the implementation may open a dialog box asking the user to pick the best editor type.
    *
    * <ul>
    * <li>Completes with a {@link RuntimeException} if the file can not be opened.</li>
@@ -55,5 +56,5 @@ public interface DeviceExplorerFileManager {
    * </ul>
    */
   @NotNull
-  ListenableFuture<Void> openFileInEditor(@NotNull DeviceFileEntry entry, @NotNull Path localPath, boolean focusEditor);
+  ListenableFuture<Void> openFile(@NotNull DeviceFileEntry entry, @NotNull Path localPath);
 }
