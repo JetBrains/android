@@ -26,9 +26,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.ide.actions.OpenFileAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.fileTypes.FileType;
@@ -152,8 +152,8 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
 
   @Override
   @NotNull
-  public ListenableFuture<Void> openFileInEditor(@NotNull DeviceFileEntry entry, @NotNull Path localPath, boolean focusEditor) {
-    return openFileInEditorWorker(entry, localPath, focusEditor);
+  public ListenableFuture<Void> openFile(@NotNull DeviceFileEntry entry, @NotNull Path localPath) {
+    return openFileInEditorWorker(entry, localPath);
   }
 
   @NotNull
@@ -179,9 +179,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     return path.get();
   }
 
-  private ListenableFuture<Void> openFileInEditorWorker(@NotNull DeviceFileEntry entry,
-                                                        @NotNull Path localPath,
-                                                        boolean focusEditor) {
+  private ListenableFuture<Void> openFileInEditorWorker(@NotNull DeviceFileEntry entry, @NotNull Path localPath) {
     ListenableFuture<VirtualFile> futureFile = DeviceExplorerFilesUtils.findFile(localPath);
 
     return myEdtExecutor.transform(futureFile, file -> {
@@ -195,10 +193,8 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
         throw new CancellationException("Operation cancelled by user");
       }
 
-      FileEditor[] editors = FileEditorManager.getInstance(myProject).openFile(file, focusEditor);
-      if (editors.length == 0) {
-        throw new RuntimeException(String.format("Unable to open file \"%s\" in editor", localPath));
-      }
+      OpenFileAction.openFile(file, myProject);
+
       myTemporaryEditorFiles.add(file);
       return null;
     });

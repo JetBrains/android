@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,39 @@
  */
 package com.android.tools.idea.editors.sqlite
 
+import com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.fileTypes.INativeFileType
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import javax.swing.Icon
 
 /**
  * The [FileType] used to identify Sqlite files.
  */
-object SqliteFileType : FileType {
+object SqliteFileType : INativeFileType {
+  override fun getDefaultExtension() = "db"
 
-  override fun getName(): String = "SQLite"
+  override fun getIcon(): Icon = AllIcons.Providers.Sqlite
 
-  override fun getDescription(): String = "Android SQLite database"
+  override fun useNativeIcon() = false
 
-  override fun getDefaultExtension(): String = ""
+  override fun getName() = "SQLite"
 
-  override fun getIcon(): Icon? = AllIcons.Providers.Sqlite
+  override fun getDescription() = "Android SQLite database"
 
-  override fun isBinary(): Boolean = true
+  override fun isBinary() = true
 
-  override fun isReadOnly(): Boolean = true
+  override fun isReadOnly() = false
 
   override fun getCharset(file: VirtualFile, content: ByteArray): String? = null
+
+  override fun openFileInAssociatedApplication(project: Project, file: VirtualFile): Boolean {
+    if (!SqliteViewer.isFeatureEnabled)
+      return false
+
+    val sqliteExplorerProjectService = SqliteExplorerProjectService.getInstance(project)
+    sqliteExplorerProjectService.openSqliteDatabase(file)
+    return true
+  }
 }
