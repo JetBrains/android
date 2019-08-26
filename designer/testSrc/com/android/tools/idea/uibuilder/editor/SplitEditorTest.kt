@@ -57,6 +57,7 @@ class SplitEditorTest : AndroidTestCase() {
         return mock(JComponent::class.java)
       }
     }
+    CommonUsageTracker.NOP_TRACKER.resetLastTrackedEvent()
   }
 
   fun testTrackingModeChange() {
