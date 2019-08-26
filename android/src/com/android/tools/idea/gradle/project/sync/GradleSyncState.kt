@@ -346,6 +346,7 @@ open class GradleSyncState(
     val causeMessage : String = when {
       !message.isNullOrBlank() -> message
       !throwableMessage.isNullOrBlank() -> throwableMessage
+      GradleSyncMessages.getInstance(project).errorDescription.isNotEmpty() -> GradleSyncMessages.getInstance(project).errorDescription
       else -> "Unknown cause".also { LOG.warn(IllegalStateException("No error message given")) }
     }
     val resultMessage = "Gradle sync failed: $causeMessage (${formatDuration(syncEndTimeStamp - syncStartedTimeStamp)})"
