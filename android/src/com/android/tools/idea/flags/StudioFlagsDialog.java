@@ -26,6 +26,7 @@ import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -295,6 +296,26 @@ public final class StudioFlagsDialog extends DialogWrapper {
           choicesPanel.add(onButton);
           choicesPanel.add(offButton);
           return choicesPanel;
+        }
+      };
+    }
+    else if (flag.get().getClass() == String.class) {
+      Flag<String> stringFlag = ((Flag<String>)flag);
+      return new FlagEditor<String>() {
+        FlagProperty<String> myFlagProperty = new FlagProperty<>(stringFlag);
+
+        @NotNull
+        @Override
+        public FlagProperty<String> flagProperty() {
+          return myFlagProperty;
+        }
+
+        @NotNull
+        @Override
+        public JComponent editorComponent() {
+          JTextField textField = new JTextField();
+          myBindings.bindTwoWay(new TextProperty(textField), myFlagProperty);
+          return textField;
         }
       };
     }
