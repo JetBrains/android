@@ -28,9 +28,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.perflib.heap.SnapshotBuilder;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
-import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerAspect;
@@ -42,7 +39,6 @@ import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.truth.Truth;
 import java.io.ByteArrayOutputStream;
-import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -82,7 +78,8 @@ public class MemoryProfilerTest {
     MemoryProfiler memoryProfiler = new MemoryProfiler(myStudioProfiler);
     memoryProfiler.stopProfiling(TEST_SESSION);
     Truth.assertThat(myMemoryService.getProcessId()).isEqualTo(FAKE_PID);
-    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
+    // We stop any ongoing (legacy or jvmti) allocation tracking session before stopping the memory profiler.
+    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(1);
   }
 
   @Test
@@ -127,14 +124,6 @@ public class MemoryProfilerTest {
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
 
-    MemoryData memoryData = MemoryData.newBuilder()
-      .setEndTimestamp(1)
-      .addAllocSamplingRateEvents(
-        AllocationSamplingRateEvent.newBuilder()
-          .setTimestamp(TimeUnit.MICROSECONDS.toNanos(0))
-          .setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(1)))
-      .build();
-    myMemoryService.setMemoryData(memoryData);
     myStudioProfiler.stop();
     // Agent is still determined to be attached for the stopped session.
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
