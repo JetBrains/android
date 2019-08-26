@@ -44,7 +44,9 @@ import com.intellij.util.SystemProperties;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,6 +76,24 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   public int getMessageCount(@NotNull String groupName) {
     return countNotifications(notification -> notification.getTitle().equals(groupName));
+  }
+
+  /**
+   * @return A string description containing sync issue groups, for example, "Unresolved dependencies".
+   */
+  @NotNull
+  public String getErrorDescription() {
+    Set<String> errorGroups = new LinkedHashSet<>();
+    synchronized (myLock) {
+      for (List<NotificationData> notificationDataList : myCurrentNotifications.values()) {
+        for (NotificationData notificationData : notificationDataList) {
+          if (notificationData.getNotificationCategory() == NotificationCategory.ERROR) {
+            errorGroups.add(notificationData.getTitle());
+          }
+        }
+      }
+    }
+    return String.join(", ", errorGroups);
   }
 
   private int countNotifications(@NotNull Predicate<NotificationData> condition) {
@@ -179,6 +199,7 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   /**
    * Show all pending events on the Build View, using the given taskId as parent. It clears the pending notifications after showing them.
+   *
    * @param taskId id of task associated with this sync.
    * @return The list of failures on the events associated to taskId.
    */
@@ -230,7 +251,8 @@ public abstract class AbstractSyncMessages implements Disposable {
         myShownFailures.computeIfAbsent(taskId, key -> new ArrayList<>())
           .addAll(((AndroidSyncIssueEventResult)issueEvent.getResult()).getFailures());
       }
-    } else {
+    }
+    else {
       // Only emit the event if it's not an error. Errors are saved in myShownFailures and will be emitted at the end of sync as part of FinishBuildEvent.
       // FinishBuildEvent is better to emit errors since the failures in FinishBuildEvent has better format of simplified node titles and clickable hyperlinks.
       ServiceManager.getService(myProject, SyncViewManager.class).onEvent(taskId, issueEvent);
