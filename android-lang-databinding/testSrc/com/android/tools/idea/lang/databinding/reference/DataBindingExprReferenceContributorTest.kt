@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.lang.databinding.getTestDataPath
@@ -23,6 +22,8 @@ import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -73,8 +74,10 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     // easier than finding a way to add a real dependency on the data binding library, which
     // usually requires Gradle plugin support.
     val databindingPackage = mode.packageName.removeSuffix(".") // Without trailing '.'
+    val databindingSrcPath = "src/${databindingPackage.replace('.', '/')}"
+
     with(fixture.addFileToProject(
-      "src/${databindingPackage.replace('.', '/')}/BindingAdapter.java",
+      "$databindingSrcPath/BindingAdapter.java",
       // language=java
       """
         package $databindingPackage;
@@ -91,8 +94,66 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
 
+    with(fixture.addFileToProject(
+      "$databindingSrcPath/InverseBindingAdapter.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        import java.lang.annotation.ElementType;
+        import java.lang.annotation.Target;
+
+        @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+        public @interface InverseBindingAdapter {
+            String attribute();
+            String event() default "";
+        }
+      """.trimIndent())) {
+      // The following line is needed or else we get an error for referencing a file out of bounds
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
+    with(fixture.addFileToProject(
+      "$databindingSrcPath/InverseBindingMethods.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        import java.lang.annotation.ElementType;
+        import java.lang.annotation.Target;
+
+        @Target(ElementType.TYPE)
+        public @interface InverseBindingMethods {
+            InverseBindingMethod[] value();
+        }
+      """.trimIndent())) {
+      // The following line is needed or else we get an error for referencing a file out of bounds
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
+    with(fixture.addFileToProject(
+      "src/${databindingPackage.replace('.', '/')}/InverseBindingMethod.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        import java.lang.annotation.ElementType;
+        import java.lang.annotation.Target;
+
+        @Target(ElementType.ANNOTATION_TYPE)
+        public @interface InverseBindingMethod {
+            Class type();
+            String attribute();
+            String event() default "";
+            String method() default "";
+        }
+      """.trimIndent())) {
+      // The following line is needed or else we get an error for referencing a file out of bounds
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(mode)
+    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = mode
   }
 
   @Test
@@ -574,5 +635,186 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
 
     val reference = fixture.getReferenceAtCaretPosition()!!
     assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("android.view.View.OnClickListener")
+  }
+
+  @Test
+  fun dbAttributeReferencesInverseBindingAdapter() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${mode.bindingAdapter};
+      import ${mode.inverseBindingAdapter};
+
+      public class Model {
+        @BindingAdapter("text2")
+        public void bindDummyValue(View view, String s) {}
+        @InverseBindingAdapter(attribute = "text2")
+        public static String getDummyValue(View view) {}
+        public String getString()
+        public void setString(String s)
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            app:t<caret>ext2="@={model.string}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "getDummyValue" }).isTrue()
+  }
+
+  @Test
+  fun dbAttributeReferencesInverseBindingMethodWithDefaultGetter() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import android.widget.TextView;
+      import ${mode.bindingAdapter};
+      import ${mode.inverseBindingMethod};
+      import ${mode.inverseBindingMethods};
+
+      @InverseBindingMethods({@InverseBindingMethod(
+        type = android.widget.TextView.class,
+        attribute = "android:text")})
+      public class Model {
+        @BindingAdapter("android:text")
+        public void bindDummyValue(TextView view, String s) {}
+        public String setString(String s) {}
+        public String getString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:tex<caret>t="@={model.string}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "getText" }).isTrue()
+  }
+
+  @Test
+  fun dbAttributeReferencesInverseBindingMethodWithDefaultBooleanGetter() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import android.widget.ToggleButton;
+      import ${mode.bindingAdapter};
+      import ${mode.inverseBindingMethod};
+      import ${mode.inverseBindingMethods};
+
+      @InverseBindingMethods({
+              @InverseBindingMethod(type = ToggleButton.class, attribute = "android:checked"),
+      })
+      public class Model {
+        @BindingAdapter("android:checked")
+        public void bindDummyValue(View view, boolean s) {}
+        public String setBoolean(String s) {}
+        public String getBoolean() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <ToggleButton
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:checke<caret>d="@={model.boolean}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "isChecked" }).isTrue()
+  }
+
+  @Test
+  fun dbAttributeReferencesInverseBindingMethodWithCustomGetter() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import android.widget.TextView;
+      import ${mode.bindingAdapter};
+      import ${mode.inverseBindingMethod};
+      import ${mode.inverseBindingMethods};
+
+      @InverseBindingMethods({@InverseBindingMethod(
+        type = android.widget.TextView.class,
+        attribute = "android:text2",
+        method = "getText")})
+      public class Model {
+        @BindingAdapter("android:text2")
+        public void bindDummyValue(TextView view, String s) {}
+        public String setString(String s) {}
+        public String getString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:tex<caret>t2="@={model.string}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "getText" }).isTrue()
   }
 }

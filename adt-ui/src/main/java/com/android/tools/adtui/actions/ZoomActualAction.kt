@@ -22,10 +22,6 @@ object ZoomActualAction : SetZoomAction(ZoomType.ACTUAL) {
   // TODO: register shortcuts
   override fun update(event: AnActionEvent) {
     super.update(event)
-    val zoomable = event.getData(ZOOMABLE_KEY)
-    event.presentation.isEnabled = zoomable?.let {
-      // TODO: add canZoomActual method to Zoomable instead of trying infer if the action is enabled.
-      (zoomable.canZoomIn() && zoomable.scale < 1) || (zoomable.canZoomOut() && zoomable.scale > 1)
-    }?: false
+    event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomToActual() ?: false
   }
 }

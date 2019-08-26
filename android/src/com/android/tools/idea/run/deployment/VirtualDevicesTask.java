@@ -42,41 +42,41 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
+  private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
+
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
-  VirtualDevicesTask(@Nullable LaunchCompatibilityChecker checker) {
+  VirtualDevicesTask(boolean selectDeviceSnapshotComboBoxSnapshotsEnabled, @Nullable LaunchCompatibilityChecker checker) {
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
     myChecker = checker;
   }
 
   @NotNull
   @Override
   public Collection<VirtualDevice> call() {
-    return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).stream()
-      .map(this::newDisconnectedDevice)
+    Stream<AvdInfo> avds = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).stream();
+
+    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
+      return avds
+        .map(avd -> newDisconnectedDevice(avd, null))
+        .collect(Collectors.toList());
+    }
+
+    return avds
+      .flatMap(this::newDisconnectedDevices)
       .collect(Collectors.toList());
   }
 
   @NotNull
-  private VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avdInfo) {
-    AndroidDevice device = new LaunchableAndroidDevice(avdInfo);
+  private Stream<VirtualDevice> newDisconnectedDevices(@NotNull AvdInfo avd) {
+    Collection<Snapshot> snapshots = getSnapshots(avd);
 
-    VirtualDevice.Builder builder = new VirtualDevice.Builder()
-      .setName(AvdManagerConnection.getAvdDisplayName(avdInfo))
-      .setKey(avdInfo.getName())
-      .setAndroidDevice(device)
-      .setSnapshots(getSnapshots(avdInfo));
-
-    if (myChecker == null) {
-      return builder.build();
+    if (snapshots.isEmpty()) {
+      return Stream.of(newDisconnectedDevice(avd, null));
     }
 
-    LaunchCompatibility compatibility = myChecker.validate(device);
-
-    return builder
-      .setValid(!compatibility.isCompatible().equals(ThreeState.NO))
-      .setValidityReason(compatibility.getReason())
-      .build();
+    return snapshots.stream().map(snapshot -> newDisconnectedDevice(avd, snapshot));
   }
 
   @NotNull
@@ -137,5 +137,28 @@ final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
     }
 
     return new Snapshot(name, fallbackName);
+  }
+
+  @NotNull
+  private VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avd, @Nullable Snapshot snapshot) {
+    AndroidDevice device = new LaunchableAndroidDevice(avd);
+
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(AvdManagerConnection.getAvdDisplayName(avd))
+      // TODO Set a proper key when you have a snapshot
+      .setKey(avd.getName())
+      .setAndroidDevice(device)
+      .setSnapshot(snapshot);
+
+    if (myChecker == null) {
+      return builder.build();
+    }
+
+    LaunchCompatibility compatibility = myChecker.validate(device);
+
+    return builder
+      .setValid(!compatibility.isCompatible().equals(ThreeState.NO))
+      .setValidityReason(compatibility.getReason())
+      .build();
   }
 }

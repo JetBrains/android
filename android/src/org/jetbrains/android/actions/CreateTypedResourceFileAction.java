@@ -49,6 +49,9 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.xml.refactoring.XmlTagInplaceRenamer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
@@ -59,10 +62,6 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -208,13 +207,6 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
           return true;
         }
         e = e.getParent();
-      }
-
-      final ResourceFolderType targetFolderType = TARGET_RESOURCE_FOLDER_TYPE.getData(context);
-      boolean validFolderType = targetFolderType != null && targetFolderType.getName().equals(resourceType);
-      if (validFolderType && element instanceof PsiDirectory && AndroidResourceUtil.isResourceDirectory((PsiDirectory)element)) {
-        // If given an specific resource type folder, just verify the given PsiElement is the base res directory (e.g: .../res)
-        return true;
       }
       return false;
     });

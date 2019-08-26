@@ -18,7 +18,6 @@
 package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
-import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -34,7 +33,6 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       externalName = $externalName
       moduleFileDirectoryPath = $moduleFileDirectoryPath
       externalConfigPath = $linkedExternalProjectPath""".replaceIndent("        ")
-    is ImportedModule -> name
     is GradleModuleModel -> "\n" + """
       moduleName = $moduleName
       taskNames = ${taskNames.take(3)}...

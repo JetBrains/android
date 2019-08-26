@@ -59,13 +59,13 @@ public class CommandLineArgsTest extends PlatformTestCase {
     initMocks(this);
     new IdeComponents(getProject(), getTestRootDisposable()).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
 
-    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, false /* do not apply Java library plugin */);
+    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts);
   }
 
   public void testGetWithDefaultOptions() {
     List<String> args = myArgs.get(getProject());
     check(args);
-    verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    verify(myInitScripts, times(1)).addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
   }
 
   public void testGetWhenIncludingLocalMavenRepo() {
@@ -74,15 +74,8 @@ public class CommandLineArgsTest extends PlatformTestCase {
     Project project = getProject();
     List<String> args = myArgs.get(project);
     check(args);
-    verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    verify(myInitScripts, times(1)).addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
     verify(myInitScripts, times(1)).addLocalMavenRepoInitScriptCommandLineArg(args);
-  }
-
-  public void testGetWhenApplyingJavaPlugin() {
-    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, true /* apply Java library plugin */);
-    List<String> args = myArgs.get(getProject());
-    check(args);
-    verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
   }
 
   public void testGetWithAndroidStudio() {
@@ -131,12 +124,17 @@ public class CommandLineArgsTest extends PlatformTestCase {
     assertThat(args).contains("-P" + PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL + "=true");
   }
 
+  public void testStacktraceArgumentApplied() {
+    assertThat(myArgs.get(getProject())).contains("--stacktrace");
+  }
+
   private static void check(@NotNull List<String> args) {
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_ADVANCED + "=true");
     assertThat(args).contains("-P" + PROPERTY_INVOKED_FROM_IDE + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_ADVANCED + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_VERSIONED + "=" + MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD);
+    //noinspection deprecation Still needs to be injected for AGP 3.5.
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD + "=true");
   }
 }

@@ -61,7 +61,7 @@ enum class NelePropertyType {
   val resourceTypes: EnumSet<ResourceType>
     get() = when (this) {
       ANIM -> EnumSet.of(ResourceType.ANIM)
-      ANIMATOR -> EnumSet.of(ResourceType.ANIMATOR)
+      ANIMATOR -> EnumSet.of(ResourceType.ANIMATOR, ResourceType.ANIM)
       ARRAY -> EnumSet.of(ResourceType.ARRAY)
       BOOLEAN -> EnumSet.of(ResourceType.BOOL)
       COLOR -> EnumSet.of(ResourceType.COLOR)

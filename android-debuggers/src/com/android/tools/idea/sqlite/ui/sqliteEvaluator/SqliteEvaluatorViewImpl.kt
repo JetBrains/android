@@ -16,9 +16,9 @@
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
-import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
@@ -44,7 +44,7 @@ class SqliteEvaluatorViewImpl(override val project: Project, private val schemaP
     evaluatorPanel.root.add(tableView.component, BorderLayout.CENTER)
     evaluatorPanel.evaluateButton.addActionListener {
       listeners.forEach {
-        it.evaluateSqlActionInvoked((evaluatorPanel.schemaComboBox.selectedItem as ComboBoxItem).database, editorTextField.text)
+        it.evaluateSqlActionInvoked(evaluatorPanel.schemaComboBox.selectedItem as SqliteDatabase, editorTextField.text)
       }
     }
 
@@ -57,10 +57,14 @@ class SqliteEvaluatorViewImpl(override val project: Project, private val schemaP
     FileDocumentManager.getInstance().getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
   }
 
-  override fun addDatabase(database: SqliteDatabase, databaseName: String, index: Int) {
-    evaluatorPanel.schemaComboBox.insertItemAt(ComboBoxItem(database, databaseName), index)
+  override fun addDatabase(database: SqliteDatabase, index: Int) {
+    evaluatorPanel.schemaComboBox.insertItemAt(ComboBoxItem(database, database.name), index)
     if (evaluatorPanel.schemaComboBox.selectedIndex == -1) evaluatorPanel.schemaComboBox.selectedIndex = 0
     setSchemaFromSelectedItem()
+  }
+
+  override fun selectDatabase(database: SqliteDatabase) {
+    evaluatorPanel.schemaComboBox.selectedItem = database
   }
 
   override fun removeDatabase(index: Int) {

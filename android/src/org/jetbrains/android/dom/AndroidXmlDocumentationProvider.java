@@ -17,11 +17,14 @@ import static com.intellij.psi.xml.XmlTokenType.XML_DATA_CHARACTERS;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.utils.Pair;
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.lang.Language;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.module.Module;
@@ -81,6 +84,9 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
   @Override
   public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
+    if (element instanceof ResourceReferencePsiElement) {
+      return ((ResourceReferencePsiElement)element).getPresentableText();
+    }
     if (element instanceof LazyValueResourceElementWrapper) {
       ValueResourceInfo info = ((LazyValueResourceElementWrapper)element).getResourceInfo();
       return "value resource '" + info.getName() + "' [" + info.getContainingFile().getName() + "]";
@@ -98,7 +104,10 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     if (element instanceof ProvidedDocumentationPsiElement) {
       return ((ProvidedDocumentationPsiElement)element).getDocumentation();
     }
-
+    if (element instanceof ResourceReferencePsiElement) {
+      ResourceUrl resourceUrl = ((ResourceReferencePsiElement)element).getResourceReference().getResourceUrl();
+      return generateDoc(originalElement, resourceUrl);
+    }
     if (element instanceof LazyValueResourceElementWrapper) {
       LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
       ValueResourceInfo resourceInfo = wrapper.getResourceInfo();

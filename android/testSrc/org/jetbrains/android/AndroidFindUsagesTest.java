@@ -418,7 +418,10 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
                       "                         |~~~~~~\n" +
                       "MyView.java:14:\n" +
                       "  int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
-                      "                                    |~~~~~~~~~~~~~    \n";
+                      "                                    |~~~~~~~~~~~~~    \n" +
+                      "values/attrs.xml:4:\n" +
+                      "  <attr name=\"answer\">\n" +
+                      "              |~~~~~~ \n";
     assertEquals(expected, describeUsages(references));
   }
 
@@ -462,6 +465,9 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
     String expected = "MyView.java:12:\n" +
                       "  int attribute = R.attr.newAttr;\n" +
                       "                         |~~~~~~~\n" +
+                      "values/attrs.xml:3:\n" +
+                      "  <attr name=\"newAttr\" format=\"boolean\" />\n" +
+                      "              |~~~~~~~                    \n" +
                       "values/style.xml:3:\n" +
                       "  <item name=\"newAttr\">true</item>\n" +
                       "              |~~~~~~~            \n";
@@ -508,6 +514,9 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
     String expected = "MyView.java:12:\n" +
                       "  int attribute = R.attr.newAttr;\n" +
                       "                         |~~~~~~~\n" +
+                      "values/attrs.xml:3:\n" +
+                      "  <attr name=\"newAttr\" format=\"boolean\" />\n" +
+                      "              |~~~~~~~                    \n" +
                       "values/style.xml:3:\n" +
                       "  <item name=\"newAttr\">true</item>\n" +
                       "              |~~~~~~~            \n";

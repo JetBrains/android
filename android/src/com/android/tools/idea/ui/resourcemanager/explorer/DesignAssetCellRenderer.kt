@@ -53,7 +53,8 @@ fun createIcon(color: Color?): BufferedImage = UIUtil.createImage(
 }
 
 fun createFailedIcon(dimension: Dimension): BufferedImage {
-  val image =  UIUtil.createImage(dimension.width, dimension.height, BufferedImage.TYPE_INT_ARGB)
+  @Suppress("UndesirableClassUsage") // Dimensions for BufferedImage are pre-scaled.
+  val image =  BufferedImage(dimension.width, dimension.height, BufferedImage.TYPE_INT_ARGB)
   val label = JBLabel("Failed preview", StudioIcons.Common.WARNING, SwingConstants.CENTER).apply {
     verticalTextPosition = SwingConstants.BOTTOM
     horizontalTextPosition = SwingConstants.CENTER

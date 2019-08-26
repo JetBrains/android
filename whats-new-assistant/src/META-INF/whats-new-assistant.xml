@@ -29,5 +29,6 @@
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.WhatsNewUpdateStableAction"/>
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.WhatsNewDismissAction"/>
     <panelFactory implementation="com.android.tools.idea.whatsnew.assistant.UpdateStatusPanelFactory"/>
+    <scrollHandler implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewScrollHandler"/>
   </extensions>
 </idea-plugin>

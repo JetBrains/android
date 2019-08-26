@@ -16,11 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
-import com.android.tools.adtui.actions.ZoomInAction
-import com.android.tools.adtui.actions.ZoomLabelAction
-import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.adtui.actions.ZoomShortcut
-import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -29,6 +24,7 @@ import com.android.tools.idea.common.editor.SmartAutoRefresher
 import com.android.tools.idea.common.editor.SmartRefreshable
 import com.android.tools.idea.common.editor.SourceCodeChangeListener
 import com.android.tools.idea.common.editor.ToolbarActionGroups
+import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
@@ -54,7 +50,6 @@ import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -166,19 +161,20 @@ private class PreviewEditor(private val psiFile: PsiFile,
       setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true)
     }
 
-  private val actionsToolbar = ActionsToolbar(this@PreviewEditor, surface)
-
-  private val editorPanel = JPanel(BorderLayout()).apply {
-    add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
-    add(surface, BorderLayout.CENTER)
-  }
-
   /**
    * [WorkBench] used to contain all the preview elements.
    */
   override val workbench = WorkBench<DesignSurface>(project, "Compose Preview", this).apply {
     isOpaque = true
-    init(editorPanel, surface, listOf())
+
+    val actionsToolbar = ActionsToolbar(this@PreviewEditor, surface)
+    val surfacePanel = JPanel(BorderLayout()).apply {
+      add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
+      add(surface, BorderLayout.CENTER)
+    }
+    val issueErrorSplitter = IssuePanelSplitter(surface, surfacePanel)
+
+    init(issueErrorSplitter, surface, listOf())
     showLoading("Waiting for build to finish...")
   }
 
@@ -285,13 +281,10 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) : Toolba
     ForceCompileAndRefreshAction()
   ))
 
-  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOf(
-    ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction, mySurface, this),
-    ZoomLabelAction,
-    ZoomShortcut.ZOOM_IN.registerForAction(ZoomInAction, mySurface, this),
-    ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction, mySurface, this),
-    IssueNotificationAction(surface)
-  ))
+  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
+    addAll(getZoomActionsWithShortcuts(surface, this@ComposePreviewToolbar))
+    add(IssueNotificationAction(surface))
+  }
 }
 
 private class ComposeTextEditorWithPreview constructor(editor: TextEditor, val preview: PreviewEditor) :
@@ -306,6 +299,8 @@ fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = (this as? Co
  * Provider for Compose Preview editors.
  */
 class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
+  private val previewElemementProvider = AnnotationPreviewElementFinder
+
   init {
     if (StudioFlags.COMPOSE_PREVIEW.get()) {
       DesignerTypeRegistrar.register(object : DesignerEditorFileType {
@@ -323,19 +318,13 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
       return false
     }
 
-    // Indexing might not be ready so we use this hack for now (looking for the import FQCN)
-    return VfsUtil.loadText(file).contains(PREVIEW_ANNOTATION_FQN)
-
-    // Ideally, we should look at the AST for the @Preview annotations. This currently triggers an IndexNotReadyException
-    // dumb mode but we should be able to look at the AST without hitting that.
-    //return findPreviewMethods(project, file).isNotEmpty()
+    return previewElemementProvider.hasPreviewMethods(project, file)
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = getInstance().createEditor(project, file) as TextEditor
-    val previewProvider = AnnotationPreviewElementFinder
-    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewProvider)
+    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewElemementProvider)
     val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor, previewEditor)
 
     // Queue to avoid refreshing notifications on every key stroke
@@ -364,7 +353,7 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
     }
 
     PsiManager.getInstance(project).addPsiTreeChangeListener(SourceCodeChangeListener(psiFile) { psiElement ->
-      val isPreviewElementChange = previewProvider.elementBelongsToPreviewElement(psiElement)
+      val isPreviewElementChange = previewElemementProvider.elementBelongsToPreviewElement(psiElement)
 
       if (isPreviewElementChange) {
         // The change belongs to a PreviewElement declaration. No need to rebuild, we can just refresh

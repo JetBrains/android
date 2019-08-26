@@ -79,4 +79,11 @@ class CpuCaptureStageViewTest {
     assertThat(interactionTrackGroup.get(0).title).isEqualTo("User")
     assertThat(interactionTrackGroup.get(1).title).isEqualTo("Lifecycle")
   }
+
+  @Test
+  fun analysisPanelIsInitializedAfterParsing() {
+    val stageView = CpuCaptureStageView(profilersView, stage)
+    stage.enter()
+    assertThat(stageView.analysisPanel.component.size).isNotSameAs(0)
+  }
 }

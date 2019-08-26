@@ -24,7 +24,6 @@ import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersion
 import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.IMPORTED_MODULE;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
@@ -56,8 +55,8 @@ import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.java.model.GradlePluginModel;
-import com.android.model.sources.SourcesAndJavadocArtifacts;
+import com.android.ide.gradle.model.GradlePluginModel;
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
@@ -75,7 +74,6 @@ import com.android.tools.idea.gradle.project.sync.SelectedVariants;
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
-import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
@@ -152,7 +150,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(false /* do not apply Java library plugin */), new ProjectImportErrorHandler(), new ProjectFinder(),
+    this(new CommandLineArgs(), new ProjectImportErrorHandler(), new ProjectFinder(),
          new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(), new IdeaJavaModuleModelFactory(),
          new IdeDependenciesFactory());
   }
@@ -304,8 +302,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     populateSourcesAndJavadocModel(gradleModule);
-    ImportedModule importedModule = new ImportedModule(gradleModule.getName());
-    ideModule.createChild(IMPORTED_MODULE, importedModule);
 
     // do not derive module root dir based on *.iml file location
     File moduleRootDirPath = toSystemDependentPath(ideModule.getData().getLinkedExternalProjectPath());

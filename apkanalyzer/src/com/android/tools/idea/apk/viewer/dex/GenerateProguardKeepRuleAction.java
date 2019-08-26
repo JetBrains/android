@@ -173,6 +173,8 @@ public class GenerateProguardKeepRuleAction extends AnAction {
       .setResizable(true)
       .setMovable(true)
       .setTitle("Proguard keep rules for " + node.getName())
+      .setFocusable(true)
+      .setRequestFocus(true)
       .createPopup();
     Disposer.register(popup, () -> EditorFactory.getInstance().releaseEditor(editor));
 

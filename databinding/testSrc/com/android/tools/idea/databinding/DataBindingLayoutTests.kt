@@ -79,7 +79,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
       </manifest>
     """.trimIndent())
 
-    ModuleDataBinding.getInstance(androidFacet).setMode(mode)
+    ModuleDataBinding.getInstance(androidFacet).dataBindingMode = mode
   }
 
   @Test

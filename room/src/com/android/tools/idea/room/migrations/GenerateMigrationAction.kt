@@ -28,6 +28,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.roots.JavaProjectRootsUtil
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
@@ -58,10 +59,14 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
       val oldSchema = SchemaBundle.deserialize(files[0].inputStream)
       val newSchema = SchemaBundle.deserialize(files[1].inputStream)
       WriteCommandAction.runWriteCommandAction(project) {
-        val javaMigrationClassGenerator = JavaMigrationClassGenerator(project)
-        javaMigrationClassGenerator.createMigrationClass(migrationDialog.targetDirectory,
-                                                         migrationDialog.targetPackage,
-                                                         DatabaseUpdate(oldSchema.database, newSchema.database))
+        try {
+          val javaMigrationClassGenerator = JavaMigrationClassGenerator(project)
+          javaMigrationClassGenerator.createMigrationClass(migrationDialog.targetDirectory,
+                                                           migrationDialog.targetPackage,
+                                                           DatabaseUpdate(oldSchema.database, newSchema.database))
+        } catch (e : Exception) {
+          Messages.showInfoMessage(project, e.message, "Failed to generate a migration")
+        }
       }
     }
   }

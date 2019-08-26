@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.common.editor;
 
-import com.android.tools.adtui.actions.ZoomInAction;
-import com.android.tools.adtui.actions.ZoomLabelAction;
-import com.android.tools.adtui.actions.ZoomOutAction;
-import com.android.tools.adtui.actions.ZoomToFitAction;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -33,12 +29,7 @@ public final class SetZoomActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-
-    group.add(ZoomOutAction.INSTANCE);
-    group.add(ZoomLabelAction.INSTANCE);
-    group.add(ZoomInAction.INSTANCE);
-    group.add(ZoomToFitAction.INSTANCE);
-
+    group.addAll(getZoomActions());
     return group;
   }
 }

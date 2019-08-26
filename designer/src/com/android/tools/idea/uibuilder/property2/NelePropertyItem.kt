@@ -99,8 +99,9 @@ open class NelePropertyItem(
   open val componentName: String,
   open val libraryName: String,
   val model: NelePropertiesModel,
-  val optionalValue: Any?,
-  val components: List<NlComponent>
+  val components: List<NlComponent>,
+  val optionalValue1: Any? = null,
+  val optionalValue2: Any? = null
 ) : PropertyItem {
 
   override var value: String?
@@ -150,6 +151,13 @@ open class NelePropertyItem(
 
   open val delegate: NelePropertyItem?
     get() = this
+
+  // TODO: Change the namespace property above to be of type ResourceReference
+  val asReference: ResourceReference?
+    get() {
+      val ns = ResourceNamespace.fromNamespaceUri(namespace) ?: return null
+      return ResourceReference.attr(ns, name)
+    }
 
   // TODO: Use the namespace resolver in ResourceHelper when it no longer returns [ResourceNamespace.Resolver.TOOLS_ONLY].
   // We need to find the prefix even when namespacing is turned off.
@@ -203,7 +211,7 @@ open class NelePropertyItem(
 
   val designProperty: NelePropertyItem
     get() = if (namespace == TOOLS_URI) this else
-      NelePropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, optionalValue, components)
+      NelePropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, components, optionalValue1, optionalValue2)
 
   override fun equals(other: Any?) =
     when (other) {
@@ -331,7 +339,7 @@ open class NelePropertyItem(
       return tags
     }
     if (type == NelePropertyType.ID) {
-      return IdEnumSupport(this).values.map { it.value }
+      return IdEnumSupport(this).values.mapNotNull { it.value }
     }
     val values = mutableListOf<String>()
     val attrDefinition = definition

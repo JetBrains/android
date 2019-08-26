@@ -15,30 +15,39 @@
  */
 package com.android.tools.idea.res.psi
 
+import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_NAME
+import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.AndroidRClassBase
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.getResourceName
 import com.android.tools.idea.res.isValueBased
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.res.resourceNamespace
+import com.intellij.psi.ElementDescriptionLocation
+import com.intellij.psi.ElementDescriptionProvider
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.find.findUsages.FindUsagesHandler
+import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.FakePsiElement
+import com.intellij.psi.impl.compiled.ClsFieldImpl
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
+import com.intellij.usageView.UsageViewTypeLocation
 import com.intellij.refactoring.rename.RenameHandler
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
@@ -70,6 +79,7 @@ data class ResourceReferencePsiElement(
       return when (element) {
         is ResourceReferencePsiElement -> element
         is AndroidLightField -> convertAndroidLightField(element)
+        is ClsFieldImpl -> convertClsFieldImpl(element)
         is XmlAttributeValue -> convertXmlAttributeValue(element)
         is PsiFile -> convertPsiFile(element)
         is LazyValueResourceElementWrapper -> ResourceReferencePsiElement(element.resourceInfo.resource.referenceToSelf, element.manager)
@@ -89,12 +99,30 @@ data class ResourceReferencePsiElement(
     }
 
     private fun convertAndroidLightField(element: AndroidLightField) : ResourceReferencePsiElement? {
-      if (element.containingClass?.containingClass !is AndroidRClassBase) {
-        return null
-      }
+      val grandClass = element.containingClass.containingClass as? AndroidRClassBase ?: return null
       val resourceClassName = AndroidResourceUtil.getResourceClassName(element) ?: return null
       val resourceType = ResourceType.fromClassName(resourceClassName) ?: return null
-      return ResourceReferencePsiElement(ResourceReference(ResourceNamespace.TODO(), resourceType, element.name), element.manager)
+      val facet = element.androidFacet
+      val namespacing = facet?.let { ResourceRepositoryManager.getInstance(it).namespacing }
+      val resourceNamespace = if (AaptOptions.Namespacing.DISABLED == namespacing) {
+        ResourceNamespace.RES_AUTO
+      }
+      else {
+        ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
+      }
+      return ResourceReferencePsiElement(ResourceReference(resourceNamespace, resourceType, element.name), element.manager)
+    }
+
+    /**
+     * This is for compiled framework resources in Java/Kotlin files.
+     */
+    private fun convertClsFieldImpl(element: ClsFieldImpl) : ResourceReferencePsiElement? {
+      val containingClass = element.containingClass ?: return null
+      if (containingClass.containingClass?.qualifiedName != SdkConstants.CLASS_R) {
+        return null
+      }
+      val resourceType = containingClass.name?.let { ResourceType.fromClassName(it) } ?: return null
+      return ResourceReferencePsiElement(ResourceReference(ResourceNamespace.ANDROID, resourceType, element.name), element.manager)
     }
 
     /**
@@ -133,7 +161,22 @@ data class ResourceReferencePsiElement(
 
   override fun isWritable() = false
 
-  override fun getName() = null
+  override fun getContainingFile(): PsiFile? = null
+
+  override fun getName() = resourceReference.name
 
   override fun isEquivalentTo(element: PsiElement) = create(element) == this
+
+  /**
+   * Element description for Android resources.
+   */
+  class ResourceReferencePsiElementDescriptorProvider : ElementDescriptionProvider {
+    override fun getElementDescription(element: PsiElement, location: ElementDescriptionLocation): String? {
+      val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return null
+      return when (location) {
+        is UsageViewTypeLocation -> "${resourceReference.resourceType.displayName} Resource"
+        else -> resourceReference.name
+      }
+    }
+  }
 }

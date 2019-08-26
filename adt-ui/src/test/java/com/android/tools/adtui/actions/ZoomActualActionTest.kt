@@ -41,17 +41,19 @@ class ZoomActualActionTest {
   val zoomAction = ZoomActualAction
 
   @Before
-  fun setUp () {
+  fun setUp() {
     `when`(dataContext.getData(ZOOMABLE_KEY)).thenReturn(zoomable)
-    `when`(zoomable.canZoomIn()).thenReturn(true)
-    `when`(zoomable.canZoomOut()).thenReturn(true)
+    `when`(zoomable.canZoomToActual()).thenReturn(true)
   }
 
   @Test
   fun testZoomActualEnabled() {
-    testEnabled(1.0, false)
-    testEnabled(1.5, true)
-    testEnabled(0.5, true)
+    val event = getActionEvent()
+    zoomAction.update(event)
+    assertThat(event.presentation.isEnabled).isTrue()
+    `when`(zoomable.canZoomToActual()).thenReturn(false)
+    zoomAction.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
   }
 
   @Test
@@ -61,13 +63,6 @@ class ZoomActualActionTest {
     verify(zoomable).zoom(ZoomType.ACTUAL)
   }
 
-  private fun testEnabled(scale: Double, expected: Boolean) {
-    `when`(zoomable.scale).thenReturn(scale)
-    val event = getActionEvent()
-    zoomAction.update(event)
-    assertThat(event.presentation.isEnabled).isEqualTo(expected)
-  }
-
-  private fun getActionEvent(): AnActionEvent
-    = AnActionEvent(null, dataContext, "Place", zoomAction.templatePresentation.clone(), actionManager, 0)
+  private fun getActionEvent(): AnActionEvent = AnActionEvent(null, dataContext, "Place", zoomAction.templatePresentation.clone(),
+                                                              actionManager, 0)
 }

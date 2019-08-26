@@ -39,20 +39,4 @@ public final class CreateTypedResourceFileActionTest extends AndroidTestCase {
     // Should fail when the directory is not a type specific resource directory (e.g: res/drawable).
     assertFalse(CreateTypedResourceFileAction.doIsAvailable(myDataContext, ResourceFolderType.DRAWABLE.getName()));
   }
-
-  public void testDoIsAvailableForGivenFolderType() {
-    myDataContext.put(CommonDataKeys.PSI_ELEMENT, myFixture.addFileToProject("res/values.xml", "").getParent());
-    for (ResourceFolderType folderType: ResourceFolderType.values()) {
-      myDataContext.put(CreateResourceActionBase.TARGET_RESOURCE_FOLDER_TYPE, folderType);
-      assertTrue("Failed for " + folderType.name(), CreateTypedResourceFileAction.doIsAvailable(myDataContext, folderType.getName()));
-    }
-
-    myDataContext = new MapDataContext();
-    myDataContext.put(CreateResourceActionBase.TARGET_RESOURCE_FOLDER_TYPE, ResourceFolderType.DRAWABLE);
-    // Should fail if there's no given 'res' directory.
-    assertFalse(CreateTypedResourceFileAction.doIsAvailable(myDataContext, ResourceFolderType.DRAWABLE.getName()));
-    // Should fail if there's a different typed 'res' directory.
-    myDataContext.put(CommonDataKeys.PSI_ELEMENT, myFixture.addFileToProject("res/color/my_color.xml", "").getParent());
-    assertFalse(CreateTypedResourceFileAction.doIsAvailable(myDataContext, ResourceFolderType.DRAWABLE.getName()));
-  }
 }

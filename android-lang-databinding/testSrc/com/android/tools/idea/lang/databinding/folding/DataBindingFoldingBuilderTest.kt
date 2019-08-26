@@ -51,7 +51,7 @@ class DataBindingFoldingBuilderTest {
     fixture.testDataPath = "${getTestDataPath()}/projects/common"
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(DataBindingMode.ANDROIDX)
+    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
   @Test

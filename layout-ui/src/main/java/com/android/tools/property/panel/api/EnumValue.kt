@@ -44,7 +44,7 @@ interface EnumValue {
   /**
    * The actual value to read/write to a [PropertyItem].
    */
-  val value: String
+  val value: String?
 
   /**
    * The value to display in a ComboBox popup control.
@@ -53,7 +53,7 @@ interface EnumValue {
    * user-friendly representation of it.
    */
   val display: String
-    get() = value
+    get() = value ?: ""
 
   /**
    * If true, display a separator above this value in the ComboBox popup.
@@ -112,5 +112,6 @@ interface EnumValue {
     fun indented(value: String, display: String): EnumValue = IndentedItemWithDisplayEnumValue(value, display)
     fun action(action: AnAction): BaseActionEnumValue = ActionEnumValue(action)
     val DEFAULT_RENDERER: ListCellRenderer<EnumValue> = EnumValueListCellRenderer()
+    val EMPTY: EnumValue = ItemEnumValue(null)
   }
 }

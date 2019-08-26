@@ -139,10 +139,11 @@ class ResourceExplorerDialogTest {
   private fun createResourcePickerDialog(showSampleData: Boolean): ResourceExplorerDialog {
     var explorerDialog: ResourceExplorerDialog? = null
     runInEdtAndWait {
-      explorerDialog = ResourceExplorerDialog(AndroidFacet.getInstance(projectRule.module)!!,
-                                              setOf(ResourceType.DRAWABLE),
-                                              showSampleData,
-                                              null)
+      explorerDialog = ResourceExplorerDialog(facet = AndroidFacet.getInstance(projectRule.module)!!,
+                                              initialResourceUrl = null,
+                                              supportedTypes = setOf(ResourceType.DRAWABLE),
+                                              showSampleData = showSampleData,
+                                              currentFile = null)
     }
     assertThat(explorerDialog).isNotNull()
     explorerDialog?.let { view ->

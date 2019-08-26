@@ -21,15 +21,12 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.binding.BindingLayoutGroup;
-import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
@@ -39,11 +36,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
@@ -85,12 +80,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @GuardedBy("ITEM_MAP_LOCK")
   private final ResourceTable myCachedMaps = new ResourceTable();
-
-  @GuardedBy("ITEM_MAP_LOCK")
-  private Map<String, BindingLayoutGroup> myBindingLayoutGroups = new HashMap<>();
-
-  @GuardedBy("ITEM_MAP_LOCK")
-  private long myBindingLayoutGroupsModificationCount = -1;
 
   MultiResourceRepository(@NotNull String displayName) {
     super(displayName);
@@ -230,35 +219,15 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @Override
   @NotNull
-  public Collection<BindingLayoutInfo> getBindingLayoutInfo(@NotNull String layoutName) {
+  public Collection<BindingLayoutData> getBindingLayoutData(@NotNull String layoutName) {
     synchronized (ITEM_MAP_LOCK) {
       for (LocalResourceRepository child : myLocalResources) {
-        Collection<BindingLayoutInfo> infos = child.getBindingLayoutInfo(layoutName);
-        if (!infos.isEmpty()) {
-          return infos;
+        Collection<BindingLayoutData> layoutData = child.getBindingLayoutData(layoutName);
+        if (!layoutData.isEmpty()) {
+          return layoutData;
         }
       }
       return ImmutableList.of();
-    }
-  }
-
-  @Override
-  @NotNull
-  public Map<String, BindingLayoutGroup> getBindingLayoutGroups() {
-    synchronized (ITEM_MAP_LOCK) {
-      long modificationCount = getModificationCount();
-      if (myBindingLayoutGroupsModificationCount == modificationCount) {
-        return myBindingLayoutGroups;
-      }
-
-      ImmutableMap.Builder<String, BindingLayoutGroup> groups = ImmutableMap.builder();
-      for (LocalResourceRepository child : myLocalResources) {
-        Map<String, BindingLayoutGroup> childGroups = child.getBindingLayoutGroups();
-        groups.putAll(childGroups);
-      }
-      myBindingLayoutGroups = groups.build();
-      myBindingLayoutGroupsModificationCount = modificationCount;
-      return myBindingLayoutGroups;
     }
   }
 

@@ -22,11 +22,14 @@ import static com.android.SdkConstants.NEW_ID_PREFIX;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.SdkConstants.TAG_ATTR;
 import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.resources.ResourceType.ATTR;
 import static com.android.resources.ResourceType.STYLEABLE;
+import static com.android.resources.ResourceType.STYLE_ITEM;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.util.PathString;
 import com.android.resources.FolderTypeRelationship;
@@ -36,6 +39,7 @@ import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Collections2;
@@ -73,6 +77,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlElement;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
@@ -95,8 +100,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.android.augment.AndroidLightField;
+import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.ResourceElement;
+import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.dom.resources.Style;
+import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -153,7 +161,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
           // then it is value resource
           XmlTag tag = PsiTreeUtil.getParentOfType(computedElement, XmlTag.class);
           return tag != null &&
-                 DomManager.getDomManager(tag.getProject()).getDomElement(tag) instanceof ResourceElement &&
+                 ResourcesDomFileDescription.isResourcesFile((XmlFile)computedElement.getContainingFile()) &&
                  manager.getValueResourceType(tag) != null;
         }
       }
@@ -213,6 +221,9 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     }
     else if (computedElement instanceof ResourceFieldElementWrapper) {
       prepareResourceFieldRenaming(((ResourceFieldElementWrapper)computedElement).getWrappedElement(), newName, allRenames);
+    }
+    else if (computedElement instanceof ResourceReferencePsiElement) {
+      prepareValueResourceRenaming(computedElement, newName, allRenames, facet);
     }
   }
 
@@ -352,7 +363,15 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
         final String s = AndroidResourceUtil.isIdDeclaration(value)
                          ? NEW_ID_PREFIX + newResName
                          : newResName;
-        allRenames.put(new ValueResourceElementWrapper(value), s);
+        String className = AndroidResourceUtil.getResourceClassName(field);
+        if (className != null) {
+          ResourceType type = ResourceType.fromClassName(className);
+          // Attr and StyleItems should not be added to the allRenames list as their name attributes resolve to ResourceReferencePsiElement
+          // and will be found in usages.
+          if (!ATTR.equals(type) && !STYLE_ITEM.equals(type)) {
+            allRenames.put(new ValueResourceElementWrapper(value), s);
+          }
+        }
 
         // Also rename the dependent fields, e.g. if you rename <declare-styleable name="Foo">,
         // we have to rename not just R.styleable.Foo but the also R.styleable.Foo_* attributes
@@ -397,11 +416,22 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     assert type != null;
     Project project = tag.getProject();
     DomElement domElement = DomManager.getDomManager(project).getDomElement(tag);
-    assert domElement instanceof ResourceElement;
-    String name = ((ResourceElement)domElement).getName().getValue();
-    assert name != null;
+    assert domElement instanceof ResourceElement || domElement instanceof Attr;
+    String resourceName;
+    if (domElement instanceof ResourceElement) {
+      resourceName = ((ResourceElement)domElement).getName().getValue();
+    } else {
+      ResourceReference resourceReference = ((Attr)domElement).getName().getValue();
+      if (resourceReference == null) {
+        return;
+      }
+      resourceName = resourceReference.getName();
+    }
+    if (resourceName == null) {
+      return;
+    }
 
-    List<ResourceElement> resources = localResourceManager.findValueResources(ResourceNamespace.TODO(), type.getName(), name);
+    List<ResourceElement> resources = localResourceManager.findValueResources(ResourceNamespace.TODO(), type.getName(), resourceName);
     for (ResourceElement resource : resources) {
       XmlElement xmlElement = resource.getName().getXmlAttributeValue();
       if (!element.getManager().areElementsEquivalent(element, xmlElement)) {
@@ -418,23 +448,23 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
       // List of styles that will be renamed.
       HashSet<String> renamedStyles = new HashSet<>();
-      renamedStyles.add(name);
+      renamedStyles.add(resourceName);
 
-      final String stylePrefix = name + ".";
+      final String stylePrefix = resourceName + ".";
       Collection<String> renameCandidates;
       Collection<String> allStyles = repoManager.getAppResources().getResources(ResourceNamespace.TODO(), type).keySet();
       renameCandidates = Collections2.filter(allStyles, styleName -> styleName.startsWith(stylePrefix));
 
-      for (String resourceName : ORDER_BY_LENGTH.sortedCopy(renameCandidates)) {
-        // resourceName.lastIndexOf will never return -1 because we've filtered all names that
+      for (String renameCandidate : ORDER_BY_LENGTH.sortedCopy(renameCandidates)) {
+        // renameCandidate.lastIndexOf will never return -1 because we've filtered all names that
         // do not contain stylePrefix
-        String parentName = resourceName.substring(0, resourceName.lastIndexOf('.'));
+        String parentName = renameCandidate.substring(0, renameCandidate.lastIndexOf('.'));
         if (!renamedStyles.contains(parentName)) {
           // This resource's parent wasn't affected by the rename
           continue;
         }
 
-        for (ResourceElement resource : localResourceManager.findValueResources(ResourceNamespace.TODO(), type.getName(), resourceName)) {
+        for (ResourceElement resource : localResourceManager.findValueResources(ResourceNamespace.TODO(), type.getName(), renameCandidate)) {
           if (!(resource instanceof Style) || ((Style)resource).getParentStyle().getXmlAttributeValue() != null) {
             // This element is not a style or does have an explicit parent so we do not rename it.
             continue;
@@ -443,9 +473,9 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
           XmlAttributeValue xmlElement = resource.getName().getXmlAttributeValue();
 
           if (xmlElement != null) {
-            String newStyleName = newName + StringUtil.trimStart(resourceName, name);
+            String newStyleName = newName + StringUtil.trimStart(renameCandidate, resourceName);
             allRenames.put(new ValueResourceElementWrapper(xmlElement), newStyleName);
-            renamedStyles.add(resourceName);
+            renamedStyles.add(renameCandidate);
           }
         }
       }
@@ -469,14 +499,14 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       for (PsiField resField : styleableFields) {
         String fieldName = resField.getName();
         String newAttributeName;
-        if (isDeclareStyleable && fieldName.startsWith(name)) {
-          newAttributeName = newName + fieldName.substring(name.length());
+        if (isDeclareStyleable && fieldName.startsWith(resourceName)) {
+          newAttributeName = newName + fieldName.substring(resourceName.length());
         }
         else if (isAttr && style != null) {
           newAttributeName = style + '_' + newName;
         }
         else {
-          newAttributeName = name;
+          newAttributeName = resourceName;
         }
         String escaped = AndroidResourceUtil.getFieldNameByResourceName(newAttributeName);
         allRenames.put(resField, escaped);
@@ -731,6 +761,11 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
         DomElement domElement = DomManager.getDomManager(tag.getProject()).getDomElement(tag);
         if (domElement instanceof ResourceElement) {
           return ((ResourceElement)domElement).getName().getValue();
+        } else if (domElement instanceof Attr) {
+          ResourceReference resourceReference = ((Attr)domElement).getName().getValue();
+          if (resourceReference != null) {
+            return resourceReference.getName();
+          }
         }
       }
     }
