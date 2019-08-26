@@ -110,12 +110,8 @@ public class MemoryProfiler extends StudioProfiler {
   @Override
   public void stopProfiling(Common.Session session) {
     try {
-      Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
-        .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(session.getSessionId()).build());
-      // Only stops live tracking if one is available.
-      if (response.getData().getLiveAllocationEnabled() && isUsingLiveAllocation(myProfilers, session)) {
-        trackAllocations(myProfilers, session, false, null);
-      }
+      // Stop any ongoing allocation tracking sessions (either legacy or jvmti-based).
+      trackAllocations(myProfilers, session, false, null);
     }
     catch (StatusRuntimeException e) {
       getLogger().info(e);

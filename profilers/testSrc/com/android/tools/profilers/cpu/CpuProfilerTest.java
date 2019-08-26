@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
@@ -66,7 +67,7 @@ public class CpuProfilerTest {
   @Before
   public void setUp() {
     myIdeServices = new FakeIdeProfilerServices();
-    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeServices, new FakeTimer());
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeServices, myTimer);
   }
 
   @Test
@@ -94,6 +95,21 @@ public class CpuProfilerTest {
   }
 
   @Test
+  public void stopMonitoringStopsOngoingTraces() {
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    assertThat(myCpuService.getStartStopCapturingSession()).isNull();
+
+    myCpuProfiler.stopProfiling(FAKE_SESSION);
+    // No ongoing so we don't expect stop tracing to be called.
+    assertThat(myCpuService.getStartStopCapturingSession()).isNull();
+
+    // There is an ongoing trace so stop tracing should be called.
+    myCpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder().setTraceId(1).setFromTimestamp(10).setToTimestamp(-1).build());
+    myCpuProfiler.stopProfiling(FAKE_SESSION);
+    assertThat(myCpuService.getStartStopCapturingSession()).isEqualTo(FAKE_SESSION);
+  }
+
+  @Test
   public void importedSessionListenerShouldBeRegistered() {
     // Enable the import trace flag
     myIdeServices.enableImportTrace(true);
@@ -117,7 +133,8 @@ public class CpuProfilerTest {
 
     myCpuProfiler = new CpuProfiler(myProfilers);
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    Common.Session session = sessionsManager.createImportedSessionLegacy("name.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0);
+    Common.Session session =
+      sessionsManager.createImportedSessionLegacy("name.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0);
     sessionsManager.update();
     // Expect setting the session to fail, because session manager shouldn't be aware of Common.SessionMetaData.SessionType.CPU_CAPTURE,
     // as we didn't register a listener for this type of captures.
