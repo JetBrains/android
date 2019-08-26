@@ -25,6 +25,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
@@ -167,11 +168,16 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     Map<String, PropertiesTable<NelePropertyItem>> allProperties = new LinkedHashMap<>();
     allProperties.put(tag.getLocalName(), PropertiesTable.Companion.create(properties));
 
-    XmlElementDescriptor[] subTagDescriptors = elementDescriptor.getElementsDescriptors(tag);
-    for (XmlElementDescriptor descriptor : subTagDescriptors) {
-      Table<String, String, NelePropertyItem> subTagProperties =
-        loadFromStyleableName(descriptor.getName(), localAttrDefs, model, tagPointer, components);
-      allProperties.put(descriptor.getName(), PropertiesTable.Companion.create(subTagProperties));
+    if (tag.getLocalName().equals(MotionSceneAttrs.Tags.CONSTRAINT)) {
+      XmlElementDescriptor[] subTagDescriptors = elementDescriptor.getElementsDescriptors(tag);
+      for (XmlElementDescriptor descriptor : subTagDescriptors) {
+        String subTagName = descriptor.getName();
+        if (!subTagName.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
+          Table<String, String, NelePropertyItem> subTagProperties =
+            loadFromStyleableName(descriptor.getName(), localAttrDefs, model, tagPointer, components);
+          allProperties.put(descriptor.getName(), PropertiesTable.Companion.create(subTagProperties));
+        }
+      }
     }
     return allProperties;
   }

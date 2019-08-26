@@ -87,6 +87,6 @@ class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) : 
                 "text-decoration: none; " +
                 "} " +
                 "</style></head>"
-    return "<html>$style<body>Use <a href=\"1\">+</a> to add $actionText for easy access</body></html>"
+    return "<html>$style<body>Use <a href=\"1\">+</a> to $actionText for easy access</body></html>"
   }
 }
