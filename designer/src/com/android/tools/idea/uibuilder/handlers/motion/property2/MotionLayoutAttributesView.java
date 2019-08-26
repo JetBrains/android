@@ -36,6 +36,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.property2.model.SelectedComponentModel;
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider;
 import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider;
+import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel;
 import com.android.tools.idea.uibuilder.property2.ui.SelectedComponentPanel;
 import com.android.tools.property.panel.api.EditorProvider;
 import com.android.tools.property.panel.api.FilteredPTableModel;
@@ -134,7 +135,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         case MotionSceneAttrs.Tags.CONSTRAINT:
           NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
           DesignSurface surface = targetId == null ? null : targetId.getModel().getSurface();
-          addCustomLayoutComponent(inspector, component, surface);
           addPropertyTable(inspector, label, myModel, targetId);
           break;
 
@@ -159,7 +159,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           addPropertyTable(inspector, label, myModel);
           break;
       }
-      addSubTagSections(inspector, tag, model);
+      if (tag.getLocalName().equals(MotionSceneAttrs.Tags.CONSTRAINT)) {
+        addSubTagSections(inspector, tag, model);
+      }
       if (hasCustomAttributes(tag)) {
         addCustomAttributes(inspector, any, model);
       }
@@ -225,6 +227,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction(tableModel);
       InspectorLineModel title = inspector.addExpandableTitle("CustomAttributes", true, addFieldAction, deleteFieldAction);
       TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
+      inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
       deleteFieldAction.setLineModel(lineModel);
     }
 
@@ -241,6 +244,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       DeleteMotionFieldAction deleteFieldAction = new DeleteMotionFieldAction(tableModel);
       InspectorLineModel title = inspector.addExpandableTitle(titleName, true, addFieldAction, deleteFieldAction);
       TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
+      inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
       addFieldAction.setLineModel(lineModel);
       deleteFieldAction.setLineModel(lineModel);
     }
