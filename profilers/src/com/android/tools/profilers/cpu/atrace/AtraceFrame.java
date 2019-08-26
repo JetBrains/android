@@ -19,6 +19,8 @@ import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.event.EventAction;
 import com.intellij.util.Function;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import trebuchet.model.base.SliceGroup;
 
@@ -94,6 +96,8 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
 
   private final FrameThread myThread;
 
+  private final List<SliceGroup> mySlices;
+
   /**
    * Constructs a basic frame that has no slice information.
    */
@@ -105,6 +109,7 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
     myThreadId = threadId;
     myPerfClass = PerfClass.NOT_SET;
     myThread = thread;
+    mySlices = new ArrayList<>();
   }
 
   public FrameThread getThread() {
@@ -197,6 +202,7 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
    * @param range      Range of the sliceGroup.
    */
   public void addSlice(@NotNull SliceGroup sliceGroup, @NotNull Range range) {
+    mySlices.add(sliceGroup);
     myTotalRangeSeconds.setMin(Math.min(myTotalRangeSeconds.getMin(), range.getMin()));
     myTotalRangeSeconds.setMax(Math.max(myTotalRangeSeconds.getMax(), range.getMax()));
     myCpuTimeSeconds += sliceGroup.getCpuTime();
@@ -206,5 +212,9 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
     else {
       myPerfClass = PerfClass.GOOD;
     }
+  }
+
+  public List<SliceGroup> getSlices() {
+    return mySlices;
   }
 }

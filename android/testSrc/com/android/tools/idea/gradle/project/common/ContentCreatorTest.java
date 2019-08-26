@@ -31,7 +31,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link com.android.tools.idea.gradle.project.common.GradleInitScripts.ContentCreator}.
  */
 public class ContentCreatorTest extends PlatformTestCase {
-  @Mock private GradleInitScripts.JavaLibraryPluginJars myJavaLibraryPluginJars;
+  @Mock private GradleInitScripts.AndroidStudioToolingPluginJars myJavaLibraryPluginJars;
   private GradleInitScripts.ContentCreator myContentCreator;
 
   @Override
@@ -73,10 +73,10 @@ public class ContentCreatorTest extends PlatformTestCase {
                       "    }\n" +
                       "}\n" +
                       "allprojects {\n" +
-                      "    apply plugin: com.android.java.model.builder.JavaLibraryPlugin\n" +
+                      "    apply plugin: com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin\n" +
                       "}\n";
 
-    String content = myContentCreator.createApplyJavaLibraryPluginInitScriptContent();
+    String content = myContentCreator.createAndroidStudioToolingPluginInitScriptContent();
     assertEquals(expected, content);
   }
 
@@ -90,15 +90,15 @@ public class ContentCreatorTest extends PlatformTestCase {
                       "    }\n" +
                       "}\n" +
                       "allprojects {\n" +
-                      "    apply plugin: com.android.java.model.builder.JavaLibraryPlugin\n" +
+                      "    apply plugin: com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin\n" +
                       "}\n";
 
-    String content = myContentCreator.createApplyJavaLibraryPluginInitScriptContent();
+    String content = myContentCreator.createAndroidStudioToolingPluginInitScriptContent();
     assertEquals(expected, content);
   }
 
   public void testGetJarPathContainsKotlinRuntime() {
-    GradleInitScripts.JavaLibraryPluginJars javaLibraryPluginJars = new GradleInitScripts.JavaLibraryPluginJars();
+    GradleInitScripts.AndroidStudioToolingPluginJars javaLibraryPluginJars = new GradleInitScripts.AndroidStudioToolingPluginJars();
     List<String> jarPaths = javaLibraryPluginJars.getJarPaths();
     assertThat(jarPaths).hasSize(3);
     assertThat(jarPaths).contains(getJarPathForClass(KType.class));

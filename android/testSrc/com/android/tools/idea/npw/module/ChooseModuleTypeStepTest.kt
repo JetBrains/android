@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.module
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider
-import com.android.tools.idea.npw.java.NewJavaModuleDescriptionProvider
+import com.android.tools.idea.npw.java.NewLibraryModuleDescriptionProvider
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.mockito.Mockito
@@ -38,15 +38,15 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
 
   fun testSortFullModuleEntries() {
     assertThat(sort("Z", "Import .JAR/.AAR Package", "Android Library", "Phone & Tablet Module", "Wear OS Module", "Android TV Module",
-                    "Import Gradle Project", "Import Eclipse ADT Project", "Google Cloud Module", "Java Library", "Benchmark Module",
+                    "Import Gradle Project", "Import Eclipse ADT Project", "Google Cloud Module", "Java or Kotlin Library", "Benchmark Module",
                     "A")).containsExactly("Phone & Tablet Module", "Android Library", "Wear OS Module", "Android TV Module",
-                                          "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library",
-                                          "Google Cloud Module", "Benchmark Module", "A", "Z").inOrder()
+                                          "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package",
+                                          "Java or Kotlin Library", "Google Cloud Module", "Benchmark Module", "A", "Z").inOrder()
   }
 
   fun testSortExistingModuleEntries() {
     val providers = listOf(ImportModuleGalleryEntryProvider(), NewAndroidModuleDescriptionProvider(),
-                           NewDynamicAppModuleDescriptionProvider(), NewJavaModuleDescriptionProvider(),
+                           NewDynamicAppModuleDescriptionProvider(), NewLibraryModuleDescriptionProvider(),
                            NewBenchmarkModuleDescriptionProvider())
     val moduleDescriptions = providers.flatMap { it.getDescriptions(project) }
 
@@ -55,7 +55,7 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
     val expectedEntries = listOf(
       "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant Dynamic Feature Module",
       "Automotive Module", "Wear OS Module", "Android TV Module", "Android Things Module", "Import Gradle Project",
-      "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library", "Benchmark Module")
+      "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java or Kotlin Library", "Benchmark Module")
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }

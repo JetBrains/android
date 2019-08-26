@@ -18,14 +18,15 @@ package com.android.tools.idea.databinding;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.databinding.index.ViewIdInfo;
+import com.android.tools.idea.databinding.index.BindingXmlData;
+import com.android.tools.idea.databinding.index.ImportData;
+import com.android.tools.idea.databinding.index.ViewIdData;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.BindingLayoutData;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.res.binding.BindingLayoutInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.project.Project;
@@ -53,6 +54,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.GenericAttributeValue;
 import java.util.List;
+import java.util.function.Function;
 import org.jetbrains.android.dom.layout.Import;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -137,8 +139,8 @@ public final class DataBindingUtil {
    * otherwise.
    */
   @Nullable
-  public static PsiType resolveViewPsiType(@NotNull ViewIdInfo viewIdInfo, @NotNull AndroidFacet facet) {
-    String viewClassName = getViewClassName(viewIdInfo, facet);
+  public static PsiType resolveViewPsiType(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
+    String viewClassName = getViewClassName(viewIdData, facet);
     if (StringUtil.isNotEmpty(viewClassName)) {
       return parsePsiType(viewClassName, facet, null);
     }
@@ -146,21 +148,21 @@ public final class DataBindingUtil {
   }
 
   /**
-   * Receives a {@link ViewIdInfo} and returns the name of the View class that is implied by it.
+   * Receives a {@link ViewIdData} and returns the name of the View class that is implied by it.
    * May return null if it cannot find anything reasonable (e.g. it is a merge but does not have data binding)
    */
   @Nullable
-  private static String getViewClassName(@NotNull ViewIdInfo viewIdInfo, @NotNull AndroidFacet facet) {
-    String viewName = viewIdInfo.getViewName();
-    if (viewName != null && viewName.indexOf('.') == -1) {
+  private static String getViewClassName(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
+    String viewName = viewIdData.getViewName();
+    if (viewName.indexOf('.') == -1) {
       if (VIEW_PACKAGE_ELEMENTS.contains(viewName)) {
         return SdkConstants.VIEW_PKG_PREFIX + viewName;
       } else if (SdkConstants.WEB_VIEW.equals(viewName)) {
         return SdkConstants.ANDROID_WEBKIT_PKG + viewName;
       } else if (SdkConstants.VIEW_MERGE.equals(viewName)) {
-        return getViewClassNameFromMergeTag(viewIdInfo, facet);
+        return getViewClassNameFromMergeTag(viewIdData, facet);
       } else if (SdkConstants.VIEW_INCLUDE.equals(viewName)) {
-        return getViewClassNameFromIncludeTag(viewIdInfo, facet);
+        return getViewClassNameFromIncludeTag(viewIdData, facet);
       } else if (SdkConstants.VIEW_STUB.equals(viewName)) {
         DataBindingMode mode = getDataBindingMode(facet);
         return mode.viewStubProxy;
@@ -172,14 +174,14 @@ public final class DataBindingUtil {
   }
 
   @NotNull
-  private static String getViewClassNameFromIncludeTag(@NotNull ViewIdInfo viewIdInfo, @NotNull AndroidFacet facet) {
-    String reference = getViewClassNameFromLayoutAttribute(viewIdInfo.getLayoutName(), facet);
+  private static String getViewClassNameFromIncludeTag(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
+    String reference = getViewClassNameFromLayoutAttribute(viewIdData.getLayoutName(), facet);
     return reference == null ? SdkConstants.CLASS_VIEW : reference;
   }
 
   @Nullable
-  private static String getViewClassNameFromMergeTag(@NotNull ViewIdInfo viewIdInfo, @NotNull AndroidFacet facet) {
-    return getViewClassNameFromLayoutAttribute(viewIdInfo.getLayoutName(), facet);
+  private static String getViewClassNameFromMergeTag(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
+    return getViewClassNameFromLayoutAttribute(viewIdData.getLayoutName(), facet);
   }
 
   @Nullable
@@ -195,11 +197,60 @@ public final class DataBindingUtil {
     if (resourceUrl == null || resourceUrl.type != ResourceType.LAYOUT) {
       return null;
     }
-    BindingLayoutInfo info = Iterables.getFirst(moduleResources.getBindingLayoutInfo(resourceUrl.name), null);
-    if (info == null) {
+    BindingLayoutData data = Iterables.getFirst(moduleResources.getBindingLayoutData(resourceUrl.name), null);
+    if (data == null) {
       return null;
     }
-    return info.getQualifiedClassName();
+    return getQualifiedBindingName(facet, data);
+  }
+
+  /**
+   * Returns the qualified path of a class name that should be used for a generated layout binding
+   * class, or {@code null} if the current {@link AndroidFacet} doesn't currently provide a valid
+   * module package.
+   *
+   * By default, a layout called "layout.xml" causes a class to get generated with the qualified
+   * path "(module-package).databinding.LayoutBinding".
+   *
+   * This value can be overridden using the {@code <data class=...>} attribute, with a few
+   * accepted patterns:
+   *
+   * "custom.path.CustomBinding"  -- generates --> "custom.path.CustomBinding"
+   * "CustomBinding"              -- generates --> "(module-package).databinding.CustomBinding
+   * ".custom.path.CustomBinding" -- generates --> "(module-package).custom.path.CustomBinding
+   */
+  @Nullable
+  public static String getQualifiedBindingName(@NotNull AndroidFacet facet, @NotNull BindingLayoutData data) {
+    String modulePackage = MergedManifestManager.getSnapshot(facet).getPackage();
+    if (modulePackage == null) {
+      return null;
+    }
+
+    String customBindingName = data.getCustomBindingName();
+    if (customBindingName == null || customBindingName.isEmpty()) {
+      return modulePackage + ".databinding." + convertToJavaClassName(data.getFile().getName()) + "Binding";
+    }
+    else {
+      int firstDotIndex = customBindingName.indexOf('.');
+
+      if (firstDotIndex < 0) {
+        return modulePackage + ".databinding." + customBindingName;
+      }
+      else {
+        int lastDotIndex = customBindingName.lastIndexOf('.');
+        String packageName;
+        if (firstDotIndex == 0) {
+          // A custom name like ".ExampleBinding" generates a binding class in the module package.
+          packageName = modulePackage + customBindingName.substring(0, lastDotIndex);
+        }
+        else {
+          packageName = customBindingName.substring(0, lastDotIndex);
+        }
+        String simpleClassName = customBindingName.substring(lastDotIndex + 1);
+        return packageName + "." + simpleClassName;
+      }
+    }
+
   }
 
   /**
@@ -407,6 +458,10 @@ public final class DataBindingUtil {
     return string.startsWith(SdkConstants.PREFIX_BINDING_EXPR) || string.startsWith(SdkConstants.PREFIX_TWOWAY_BINDING_EXPR);
   }
 
+  public static boolean isTwoWayBindingExpression(@NotNull String string) {
+    return string.startsWith(SdkConstants.PREFIX_TWOWAY_BINDING_EXPR);
+  }
+
   /**
    * The &lt;import&gt; tag supports an optional alias tag in addition to the required type tag.
    * This method fetches a final type, which is either set to the alias (if present) or the simple
@@ -455,22 +510,45 @@ public final class DataBindingUtil {
   }
 
   /**
+   * See header docs for {@link #getQualifiedType(Project, String, boolean, Function)}.
+   */
+  @Nullable
+  public static String getQualifiedType(@NotNull Project project,
+                                        @NotNull String nameOrAlias,
+                                        @NotNull BindingLayoutData layoutData,
+                                        boolean qualifyJavaLang) {
+    return getQualifiedType(project, nameOrAlias, qualifyJavaLang, className -> resolveImport(className, layoutData));
+  }
+
+  /**
+   * See header docs for {@link #getQualifiedType(Project, String, boolean, Function)}.
+   */
+  @Nullable
+  public static String getQualifiedType(@NotNull Project project,
+                                        @NotNull String nameOrAlias,
+                                        @NotNull BindingXmlData bindingData,
+                                        boolean qualifyJavaLang) {
+    return getQualifiedType(project, nameOrAlias, qualifyJavaLang, className -> resolveImport(className, bindingData));
+  }
+
+  /**
    * Returns the fully qualified name of the class referenced by {@code nameOrAlias}.
    * <p>
    * It is not guaranteed that the class will exist. The name returned here uses '.' for inner classes (like import declarations) and
    * not '$' as used by JVM.
    *
-   * @param nameOrAlias a fully qualified name, or an alias as declared in an {@code <import>}, or an inner class of an alias
-   * @param layoutData layout data containing import statements
-   * @param qualifyJavaLang qualify names of java.lang classes
+   * @param nameOrAlias a fully qualified name, or an alias as declared in an {@code <import>}, or an inner class of an alias.
+   * @param qualifyJavaLang qualify names of java.lang classes.
+   * @param importResolver A function which, given a class name, returns its resolved (qualified) name, or null if not possible.
    * @return the qualified name of the class, otherwise, if {@code qualifyJavaLang} is false and {@code nameOrAlias} doesn't match any
-   *     imports, the unqualified name of the class, or, if {@code qualifyJavaLang} is true and the class name cannot be resolved, null
+   *     imports, the unqualified name of the class, or, if {@code qualifyJavaLang} is true and the class name cannot be resolved, null.
    */
   @Nullable
-  public static String getQualifiedType(@NotNull String nameOrAlias,
-                                        @NotNull BindingLayoutData layoutData,
-                                        boolean qualifyJavaLang) {
-    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(layoutData.getFacet().getModule().getProject());
+  private static String getQualifiedType(@NotNull Project project,
+                                         @NotNull String nameOrAlias,
+                                         boolean qualifyJavaLang,
+                                         @NotNull Function<String, String> importResolver) {
+    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     PsiJavaParserFacade parser = psiFacade.getParserFacade();
     PsiType psiType;
     try {
@@ -500,7 +578,7 @@ public final class DataBindingUtil {
           String className = reference.isQualified() ? reference.getQualifiedName() : reference.getReferenceName();
           if (className != null) {
             int nameLength = className.length();
-            className = resolveImport(className, layoutData);
+            className = importResolver.apply(className);
             if (qualifyJavaLang && className.indexOf('.') < 0) {
               className = qualifyClassName(className, parser);
               if (className == null) {
@@ -545,18 +623,37 @@ public final class DataBindingUtil {
   }
 
   /**
+   * See header docs for {@link #resolveImport(String, Function)}
+   */
+  @NotNull
+  public static String resolveImport(@NotNull String className, @NotNull BindingLayoutData layoutData) {
+    return resolveImport(className, shortName -> layoutData.resolveImport(shortName));
+  }
+
+  /**
+   * See header docs for {@link #resolveImport(String, Function)}
+   */
+  @NotNull
+  public static String resolveImport(@NotNull String className, @NotNull BindingXmlData bindingData) {
+    return resolveImport(className, shortName -> {
+      ImportData anImport = bindingData.findImport(shortName);
+      return anImport != null ? anImport.getType() : null;
+    });
+  }
+
+  /**
    * Resolves a class name using import statements in the data binding information.
    *
    * @param className the class name, possibly not qualified. The class name may contain dots if it corresponds to a nested class.
-   * @param layoutData the layout data that may contain import statements to use for class resolution.
+   * @param shortNameResolver Backing logic that handles the import.
    * @return the fully qualified class name, or the original name if the first segment of {@code className} doesn't match
    *     any import statement.
    */
   @NotNull
-  public static String resolveImport(@NotNull String className, @NotNull BindingLayoutData layoutData) {
+  private static String resolveImport(@NotNull String className, @NotNull Function<String, String> shortNameResolver) {
     int dotOffset = className.indexOf('.');
     String firstSegment = dotOffset >= 0 ? className.substring(0, dotOffset) : className;
-    String importedType = layoutData.resolveImport(firstSegment);
+    String importedType = shortNameResolver.apply(firstSegment);
     if (importedType == null) {
       return className;
     }
@@ -564,13 +661,13 @@ public final class DataBindingUtil {
   }
 
   @Nullable
-  public static XmlFile findXmlFile(@NotNull BindingLayoutData bindingData) {
-    return (XmlFile)PsiManager.getInstance(bindingData.getFacet().getModule().getProject()).findFile(bindingData.getFile());
+  public static XmlFile findXmlFile(@NotNull Project project, @NotNull BindingLayoutData bindingData) {
+    return (XmlFile)PsiManager.getInstance(project).findFile(bindingData.getFile());
   }
 
   @Nullable
-  private static XmlTag findDataTag(@NotNull BindingLayoutData bindingData) {
-    XmlFile xmlFile = findXmlFile(bindingData);
+  private static XmlTag findDataTag(@NotNull Project project, @NotNull BindingLayoutData bindingData) {
+    XmlFile xmlFile = findXmlFile(project, bindingData);
     if (xmlFile != null) {
       XmlTag rootTag = xmlFile.getRootTag();
       if (rootTag != null && rootTag.getName().equals("layout")) {
@@ -582,8 +679,8 @@ public final class DataBindingUtil {
   }
 
   @Nullable
-  public static XmlTag findVariableTag(@NotNull BindingLayoutData bindingData, @NotNull String variableName) {
-    XmlTag dataTag = findDataTag(bindingData);
+  public static XmlTag findVariableTag(@NotNull Project project, @NotNull BindingLayoutData bindingData, @NotNull String variableName) {
+    XmlTag dataTag = findDataTag(project, bindingData);
     if (dataTag != null) {
       for (XmlTag tag : dataTag.getSubTags()) {
         if (tag.getName().equals("variable")) {
@@ -599,8 +696,8 @@ public final class DataBindingUtil {
   }
 
   @Nullable
-  public static XmlTag findImportTag(@NotNull BindingLayoutData bindingData, @NotNull String simpleImportedName) {
-    XmlTag dataTag = findDataTag(bindingData);
+  public static XmlTag findImportTag(@NotNull Project project, @NotNull BindingLayoutData bindingData, @NotNull String simpleImportedName) {
+    XmlTag dataTag = findDataTag(project, bindingData);
     if (dataTag != null) {
       for (XmlTag tag : dataTag.getSubTags()) {
         if (tag.getName().equals("import")) {

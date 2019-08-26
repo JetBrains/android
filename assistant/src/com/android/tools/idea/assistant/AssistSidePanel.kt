@@ -82,7 +82,7 @@ class AssistSidePanel(private val actionId: String,
 
     // Config provided, use that with the default bundle.
     if (config != null) {
-      val task = AssistantGetBundleFromConfigTask(project, config, AssistantLoadingCallback())
+      val task = AssistantGetBundleFromConfigTask(project, config, AssistantLoadingCallback(), bundleCreator.bundleId)
       task.queue()
     }
     else {

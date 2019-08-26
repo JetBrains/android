@@ -114,6 +114,8 @@ class DeviceViewPanel(
 
   override fun canZoomToFit() = true
 
+  override fun canZoomToActual() = viewSettings.scalePercent < 100 && canZoomIn() || viewSettings.scalePercent > 100 && canZoomOut()
+
   override fun getData(dataId: String): Any? {
     if (ZOOMABLE_KEY.`is`(dataId)) {
       return this

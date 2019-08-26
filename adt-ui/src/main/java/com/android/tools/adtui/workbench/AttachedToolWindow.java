@@ -311,6 +311,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       myPanel.add(createHeader(myContent.supportsFiltering(), myContent.getAdditionalActions()), BorderLayout.NORTH);
       myPanel.add(myContent.getComponent(), BorderLayout.CENTER);
     }
+    myPanel.putClientProperty(ToolContent.TOOL_CONTENT_KEY, myContent);
   }
 
   @Override

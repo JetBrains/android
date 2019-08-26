@@ -20,9 +20,10 @@ import com.android.tools.property.panel.api.PropertiesView
 import com.android.tools.property.panel.api.Watermark
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.property2.inspector.AllAttributesInspectorBuilder
-import com.android.tools.idea.uibuilder.property2.inspector.BasicAttributesInspectorBuilder
+import com.android.tools.idea.uibuilder.property2.inspector.CommonAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.ComponentActionsInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.DeclaredAttributesInspectorBuilder
+import com.android.tools.idea.uibuilder.property2.inspector.FavoritesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.IdInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.LayoutInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.SelectedComponentBuilder
@@ -51,7 +52,7 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
       }
       basic.builders.add(IdInspectorBuilder(editorProvider))
       basic.builders.add(LayoutInspectorBuilder(model.project, editorProvider))
-      basic.builders.add(BasicAttributesInspectorBuilder(model.project, editorProvider))
+      basic.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
       val advanced = addTab(ADVANCED_PAGE)
       advanced.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
       advanced.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
@@ -64,7 +65,8 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
       tab.builders.add(IdInspectorBuilder(editorProvider))
       tab.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
       tab.builders.add(LayoutInspectorBuilder(model.facet.module.project, editorProvider))
-      tab.builders.add(BasicAttributesInspectorBuilder(model.project, editorProvider))
+      tab.builders.add(FavoritesInspectorBuilder(model, enumSupportProvider))
+      tab.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
       tab.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
     }
   }

@@ -117,7 +117,7 @@ class LightBindingClassTest {
       </manifest>
     """.trimIndent())
 
-    ModuleDataBinding.getInstance(facet).setMode(DataBindingMode.ANDROIDX)
+    ModuleDataBinding.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
   @Test
@@ -139,6 +139,50 @@ class LightBindingClassTest {
     val fields = binding.fields
     val tags = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
+  }
+
+  @Test
+  fun addingAndRemovingLayoutFilesUpdatesTheCache() {
+    val firstFile = fixture.addFileToProject("res/layout/activity_first.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout />
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class FirstActivity {}")
+
+    // This find forces a cache to be initialized
+    val firstBinding = fixture.findClass("test.db.databinding.ActivityFirstBinding", context) as LightBindingClass?
+    assertThat(firstBinding).isNotNull()
+
+    fixture.addFileToProject("res/layout/activity_second.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout />
+      </layout>
+    """.trimIndent())
+
+    // This second file should be findable, meaning the cache was updated
+    val secondBinding = fixture.findClass("test.db.databinding.ActivitySecondBinding", context) as LightBindingClass?
+    assertThat(secondBinding).isNotNull()
+
+    // Make sure alternate layouts are found by searching for its BindingImpl
+    assertThat(fixture.findClass("test.db.databinding.ActivitySecondBindingLandImpl", context)).isNull()
+
+    fixture.addFileToProject("res/layout-land/activity_second.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout />
+      </layout>
+    """.trimIndent())
+
+    assertThat(fixture.findClass("test.db.databinding.ActivitySecondBindingLandImpl", context)).isNotNull()
+
+    // We also should be returning the same "ActivityFirstBinding" light class, not a new instance
+    assertThat(fixture.findClass("test.db.databinding.ActivityFirstBinding", context)).isEqualTo(firstBinding)
+
+    WriteCommandAction.runWriteCommandAction(project) { firstFile.delete() }
+    assertThat(fixture.findClass("test.db.databinding.ActivityFirstBinding", context)).isNull()
   }
 
   @Test

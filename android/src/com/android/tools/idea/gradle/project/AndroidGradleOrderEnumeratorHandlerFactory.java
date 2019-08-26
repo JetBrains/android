@@ -6,9 +6,11 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.io.FilePaths;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.roots.OrderRootType;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler.FactoryImpl;
@@ -19,6 +21,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.plugins.gradle.settings.GradleLocalSettings;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.util.io.FileUtil.join;
@@ -50,6 +53,17 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
   @NotNull
   @Override
   public GradleOrderEnumeratorHandler createHandler(@NotNull Module module) {
+    String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
+    // Always recurse for Android modules.
+    boolean shouldRecurse = AndroidModuleModel.get(module) != null;
+    if (rootProjectPath != null && !shouldRecurse) {
+      // Only recurse when the Gradle version is less than 2.5. This is taken from the GradleOrderEnumeratorHandler to make sure that
+      // for non-android modules we return a consistent value.
+      String gradleVersion = GradleLocalSettings.getInstance(module.getProject()).getGradleVersion(rootProjectPath);
+      shouldRecurse = gradleVersion != null && GradleVersion.version(gradleVersion).compareTo(GradleVersion.version("2.5")) < 0;
+    }
+    final boolean finalShouldRecurse = shouldRecurse;
+
     return new GradleOrderEnumeratorHandler(module) {
       @Override
       public boolean shouldAddRuntimeDependenciesToTestCompilationClasspath() {
@@ -63,7 +77,7 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
 
       @Override
       public boolean shouldProcessDependenciesRecursively() {
-        return true;
+        return finalShouldRecurse;
       }
 
       @Override

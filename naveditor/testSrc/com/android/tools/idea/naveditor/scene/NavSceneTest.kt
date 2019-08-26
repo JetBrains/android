@@ -456,7 +456,7 @@ class NavSceneTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1", layout = "activity_main") {
-          deeplink("https://www.android.com/")
+          deeplink("deepLink", "https://www.android.com/")
         }
       }
     }

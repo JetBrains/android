@@ -21,6 +21,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_ACTIVITY;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE_STATE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_FONT_SCALE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_NAME;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_NIGHT_MODE;
@@ -207,6 +208,8 @@ public class Configuration implements Disposable, ModificationTracker {
 
   private long myModificationCount;
 
+  private float myFontScale = 1f;
+
   /**
    * Creates a new {@linkplain Configuration}
    */
@@ -235,7 +238,6 @@ public class Configuration implements Disposable, ModificationTracker {
    * @return a new configuration
    */
   @NotNull
-  @VisibleForTesting
   public static Configuration create(@NotNull ConfigurationManager manager,
                                      @Nullable VirtualFile file,
                                      @NotNull FolderConfiguration editedConfig) {
@@ -301,6 +303,7 @@ public class Configuration implements Disposable, ModificationTracker {
     copy.myUiMode = original.getUiMode();
     copy.myNightMode = original.getNightMode();
     copy.myDisplayName = original.getDisplayName();
+    copy.myFontScale = original.myFontScale;
 
     return copy;
   }
@@ -350,6 +353,8 @@ public class Configuration implements Disposable, ModificationTracker {
     //if (!matcher.isCurrentFileBestMatchFor(editedConfig)) {
       matcher.adaptConfigSelection(true /*needBestMatch*/);
     //}
+
+    destination.myFontScale = source.myFontScale;
 
     return destination;
   }
@@ -956,6 +961,21 @@ public class Configuration implements Disposable, ModificationTracker {
       myTheme = theme;
       checkThemePrefix();
       updated(CFG_THEME);
+    }
+  }
+
+  /**
+   * Sets user preference for the scaling factor for fonts, relative to the base density scaling.
+   * See {@link android.content.res.Configuration#fontScale}
+   *
+   * @param fontScale The new scale. Must be greater than 0
+   */
+  public void setFontScale(float fontScale) {
+    assert fontScale > 0f : "fontScale must be greater than 0";
+
+    if (myFontScale != fontScale) {
+      myFontScale = fontScale;
+      updated(CFG_FONT_SCALE);
     }
   }
 

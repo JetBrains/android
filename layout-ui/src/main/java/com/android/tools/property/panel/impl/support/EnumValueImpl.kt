@@ -45,8 +45,8 @@ sealed class EnumValueImpl : EnumValue {
   }
 }
 
-data class ItemEnumValue(override val value: String) : EnumValueImpl() {
-  override fun toString() = value
+data class ItemEnumValue(override val value: String?) : EnumValueImpl() {
+  override fun toString() = value ?: ""
 }
 
 data class IndentedItemEnumValue(override val value: String) : EnumValueImpl() {
@@ -67,9 +67,9 @@ data class IndentedItemWithDisplayEnumValue(override val value: String, override
   override fun toString() = value
 }
 
-internal data class GenericEnumValue(override val value: String, override val display: String, override val header: String,
+internal data class GenericEnumValue(override val value: String?, override val display: String, override val header: String,
                                      override val indented: Boolean, override val separator: Boolean) : EnumValueImpl() {
-  override fun toString() = value
+  override fun toString() = value ?: ""
 }
 
 sealed class BaseActionEnumValue(val action: AnAction) : EnumValue {

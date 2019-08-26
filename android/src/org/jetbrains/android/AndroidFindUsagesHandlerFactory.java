@@ -22,6 +22,7 @@ import com.android.annotations.concurrency.WorkerThread;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceFolderRepository;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.google.common.collect.ObjectArrays;
 import com.intellij.codeInsight.daemon.impl.IdentifierHighlighterPass;
 import com.intellij.find.findUsages.FindUsagesHandler;
@@ -72,6 +73,9 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
   @WorkerThread
   @Override
   public boolean canFindUsages(@NotNull PsiElement element) {
+    if (element instanceof ResourceReferencePsiElement) {
+      return true;
+    }
     if (element instanceof LazyValueResourceElementWrapper) {
       return true;
     }
@@ -157,6 +161,9 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
   @Override
   @Nullable
   public FindUsagesHandler createFindUsagesHandler(@NotNull PsiElement element, boolean forHighlightUsages) {
+    if (element instanceof ResourceReferencePsiElement) {
+      return new MyFindUsagesHandler(element, PsiElement.EMPTY_ARRAY);
+    }
     AndroidFacet facet = AndroidFacet.getInstance(element.getContainingFile());
     if (facet == null) {
       return null;

@@ -38,8 +38,10 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition
  * found this property item will act as a delegate to the matched property.
  */
 class NeleNewPropertyItem(model: NelePropertiesModel,
-                          var properties: PropertiesTable<NelePropertyItem>)
-  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", "", model, null, listOf()), NewPropertyItem,
+                          var properties: PropertiesTable<NelePropertyItem>,
+                          val filter: (NelePropertyItem) -> Boolean = { true },
+                          val delegateUpdated: (NeleNewPropertyItem) -> Unit = {})
+  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", "", model, listOf()), NewPropertyItem,
     FlagsPropertyItem<NeleFlagPropertyItem> {
 
   override var namespace: String = ""
@@ -53,6 +55,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
       namespace = propertyNamespace
       field = propertyName
       delegate = findDelegate(propertyNamespace, propertyName)
+      delegateUpdated(this)
 
       // Give the model a change to hide expanded flag items
       model.firePropertyValueChangeIfNeeded()
@@ -165,7 +168,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
   private fun getPropertyNamesWithPrefix(): List<String> {
     val resolver = namespaceResolver
     val result = properties.values
-      .filter { it.rawValue == null }
+      .filter { filter(it) }
       .map { getPropertyNameWithPrefix(it, resolver) }
       .toMutableList()
     properties.values

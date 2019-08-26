@@ -31,7 +31,6 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.ui.GuiTestingService;
@@ -53,33 +52,25 @@ public class CommandLineArgs {
   @NotNull private final ApplicationInfo myApplicationInfo;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
-  private final boolean myIsNewSync;
 
-  public CommandLineArgs(boolean isNewSync) {
-    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(), isNewSync);
+  public CommandLineArgs() {
+    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance());
   }
 
   @VisibleForTesting
   CommandLineArgs(@NotNull ApplicationInfo applicationInfo,
                   @NotNull IdeInfo ideInfo,
-                  @NotNull GradleInitScripts initScripts,
-                  boolean isNewSync) {
+                  @NotNull GradleInitScripts initScripts) {
     myApplicationInfo = applicationInfo;
     myIdeInfo = ideInfo;
     myInitScripts = initScripts;
-    myIsNewSync = isNewSync;
   }
 
   @NotNull
   public List<String> get(@Nullable Project project) {
     List<String> args = new ArrayList<>();
 
-    myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
-
-    if (myIsNewSync) {
-      myInitScripts.addApplyKaptModelBuilderInitScript(args);
-      myInitScripts.addApplyBuildScriptClasspathModelBuilderInitScript(args);
-    }
+    myInitScripts.addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
 
     // http://b.android.com/201742, let's make sure the daemon always runs in headless mode.
     args.add("-Djava.awt.headless=true");
@@ -91,6 +82,9 @@ public class CommandLineArgs {
         Collections.addAll(args, extraOptions);
       }
     }
+
+    // Always add the --stacktrace option to aid in the debugging of any issues in sync.
+    args.add("--stacktrace");
 
     // These properties tell the Android Gradle plugin that we are performing a sync and not a build.
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY, true));
@@ -104,7 +98,8 @@ public class CommandLineArgs {
       // Example of version to pass: 2.4.0.6
       args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, myApplicationInfo.getStrictVersion()));
     }
-    // Skip download of source and javadoc jars during Gradle sync, this flag has no effect on AGP prior to 3.5.
+    // Skip download of source and javadoc jars during Gradle sync, this flag only has effect on AGP 3.5.
+    //noinspection deprecation AGP 3.6 and above do not download sources at all.
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD, true));
 
     if (project != null) {

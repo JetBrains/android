@@ -53,14 +53,7 @@ class SelectedComponentModel(
       // TODO: Get another icon for multiple components
       return StudioIcons.LayoutEditor.Palette.VIEW_SWITCHER
     }
-    val component = components[0]
 
-    if (!component.hasNlComponentInfo) {
-      return StudioIcons.LayoutEditor.Palette.VIEW
-    }
-
-    val manager = ViewHandlerManager.get(component.model.project)
-    val handler = manager.getHandler(component) ?: return StudioIcons.LayoutEditor.Palette.VIEW
-    return handler.getIcon(component)
+    return components[0].mixin?.icon ?: StudioIcons.LayoutEditor.Palette.VIEW
   }
 }

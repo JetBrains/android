@@ -51,7 +51,7 @@ class AllAttributesInspectorBuilderTest {
     util.loadProperties()
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    util.checkTitle(0, "All Attributes")
+    util.checkTitle(0, InspectorSection.ALL.title)
     val items = util.checkTable(1).tableModel.items
     Truth.assertThat(util.inspector.lines).hasSize(2)
 

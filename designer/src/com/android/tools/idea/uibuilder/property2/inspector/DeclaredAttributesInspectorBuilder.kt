@@ -31,28 +31,26 @@ import com.android.tools.property.panel.api.TableLineModel
 import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.ptable2.PTableItem
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 import org.jetbrains.android.formatter.AttributeComparator
 
-private const val DECLARED_TITLE = "Declared Attributes"
-private const val ADD_PROPERTY_ACTION_TITLE = "Add Property"
-private const val DELETE_ROW_ACTION_TITLE = "Remove Selected Property"
+private const val ADD_PROPERTY_ACTION_TITLE = "Add Attribute"
+private const val DELETE_ROW_ACTION_TITLE = "Remove Selected Attribute"
 
 /**
  * Comparator that is sorting [PTableItem] in Android sorting order.
  * This implies layout attributes first and layout_width before layout_height.
  */
-val androidSortOrder: Comparator<PTableItem> = AttributeComparator<PTableItem> { it.name }
+val androidSortOrder: Comparator<PTableItem> = AttributeComparator { it.name }
 
 class DeclaredAttributesInspectorBuilder(
   private val model: NelePropertiesModel,
   enumSupportProvider: EnumSupportProvider<NelePropertyItem>
 ) : InspectorBuilder<NelePropertyItem> {
 
-  private val newPropertyInstance = NeleNewPropertyItem(model, PropertiesTable.emptyTable())
+  private val newPropertyInstance = NeleNewPropertyItem(model, PropertiesTable.emptyTable(), { it.rawValue == null }, {})
   private val nameControlTypeProvider = SimpleControlTypeProvider<NeleNewPropertyItem>(ControlType.TEXT_EDITOR)
   private val nameEditorProvider = EditorProvider.createForNames<NeleNewPropertyItem>()
   private val controlTypeProvider = NeleTwoStateBooleanControlTypeProvider(enumSupportProvider)
@@ -62,7 +60,7 @@ class DeclaredAttributesInspectorBuilder(
     NelePropertyItem::class.java, controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    if (properties.isEmpty) {
+    if (properties.isEmpty || !InspectorSection.DECLARED.visible) {
       return
     }
     newPropertyInstance.properties = properties
@@ -70,41 +68,41 @@ class DeclaredAttributesInspectorBuilder(
     val declaredTableModel = FilteredPTableModel.create(model, { item -> item.rawValue != null }, androidSortOrder)
     val addNewRow = AddNewRowAction(declaredTableModel, newPropertyInstance)
     val deleteRowAction = DeleteRowAction(declaredTableModel)
-    val titleModel = inspector.addExpandableTitle(DECLARED_TITLE, false, addNewRow, deleteRowAction)
+    val titleModel = inspector.addExpandableTitle(InspectorSection.DECLARED.title, false, addNewRow, deleteRowAction)
     val tableLineModel = inspector.addTable(declaredTableModel, false, tableUIProvider, titleModel)
     addNewRow.titleModel = titleModel
     addNewRow.lineModel = tableLineModel
     deleteRowAction.titleModel = titleModel
     deleteRowAction.lineModel = tableLineModel
   }
-}
 
-private class AddNewRowAction(
-  val tableModel: FilteredPTableModel<NelePropertyItem>,
-  val newProperty: NeleNewPropertyItem
-): AnAction(null, ADD_PROPERTY_ACTION_TITLE, AllIcons.General.Add) {
+  private class AddNewRowAction(
+    val tableModel: FilteredPTableModel<NelePropertyItem>,
+    val newProperty: NeleNewPropertyItem
+  ) : AnAction(null, ADD_PROPERTY_ACTION_TITLE, StudioIcons.Common.ADD) {
 
-  var titleModel: InspectorLineModel? = null
-  var lineModel: TableLineModel? = null
+    var titleModel: InspectorLineModel? = null
+    var lineModel: TableLineModel? = null
 
-  override fun actionPerformed(event: AnActionEvent) {
-    titleModel?.expanded = true
-    val model = lineModel ?: return
-    val nextItem = tableModel.addNewItem(newProperty)
-    model.requestFocus(nextItem)
+    override fun actionPerformed(event: AnActionEvent) {
+      titleModel?.expanded = true
+      val model = lineModel ?: return
+      val nextItem = tableModel.addNewItem(newProperty)
+      model.requestFocus(nextItem)
+    }
   }
-}
 
-private class DeleteRowAction(
-  private val tableModel: FilteredPTableModel<NelePropertyItem>
-) : AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
+  private class DeleteRowAction(
+    private val tableModel: FilteredPTableModel<NelePropertyItem>
+  ) : AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
 
-  var titleModel: InspectorLineModel? = null
-  var lineModel: TableLineModel? = null
+    var titleModel: InspectorLineModel? = null
+    var lineModel: TableLineModel? = null
 
-  override fun actionPerformed(event: AnActionEvent) {
-    titleModel?.expanded = true
-    val selected = lineModel?.selectedItem as? NelePropertyItem ?: return
-    tableModel.deleteItem(selected)
+    override fun actionPerformed(event: AnActionEvent) {
+      titleModel?.expanded = true
+      val selected = lineModel?.selectedItem as? NelePropertyItem ?: return
+      tableModel.deleteItem(selected)
+    }
   }
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.model.sources.SourcesAndJavadocArtifact;
-import com.android.model.sources.SourcesAndJavadocArtifacts;
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact;
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
 import com.intellij.openapi.project.Project;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.components.ServiceManager;

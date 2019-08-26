@@ -71,7 +71,7 @@ class IdEnumSupportTest {
     val util = SupportTestUtil(projectRule, TEXT_VIEW, BUTTON, TEXT_VIEW, BUTTON, parentTag = RELATIVE_LAYOUT)
     val textView = util.findSiblingById("textview1")!!
     val property = NelePropertyItem(
-      ANDROID_URI, ATTR_LAYOUT_ALIGN_START, NelePropertyType.ID, null, "", "", util.model, null, listOf(textView))
+      ANDROID_URI, ATTR_LAYOUT_ALIGN_START, NelePropertyType.ID, null, "", "", util.model, listOf(textView))
     val enumSupport = IdEnumSupport(property)
     assertThat(enumSupport.values.map { it.display }).containsExactly("@id/button2", "@id/textview3", "@id/button4")
   }
@@ -82,7 +82,7 @@ class IdEnumSupportTest {
     val textView = util.findSiblingById("textview1")!!
     val definition = AttributeDefinition(ResourceNamespace.TODO(), SdkConstants.ATTR_LAYOUT_START_TO_END_OF)
     val property = NelePropertyItem(
-      AUTO_URI, SdkConstants.ATTR_LAYOUT_START_TO_END_OF, NelePropertyType.ID, definition, "", "", util.model, null, listOf(textView))
+      AUTO_URI, SdkConstants.ATTR_LAYOUT_START_TO_END_OF, NelePropertyType.ID, definition, "", "", util.model, listOf(textView))
     definition.setValueMappings(mapOf(Pair("parent", 0)))
     val enumSupport = IdEnumSupport(property)
     assertThat(enumSupport.values.map { it.display }).containsExactly("@id/button2", "@id/textview3", "@id/button4", "parent")
@@ -93,7 +93,7 @@ class IdEnumSupportTest {
     val util = SupportTestUtil(projectRule, CHIP, CHIP, CHIP, parentTag = CHIP_GROUP)
     val group = util.components[0].parent!!
     val property = NelePropertyItem(
-      AUTO_URI, ATTR_CHECKED_CHIP, NelePropertyType.ID, null, "", "", util.model, null, listOf(group))
+      AUTO_URI, ATTR_CHECKED_CHIP, NelePropertyType.ID, null, "", "", util.model, listOf(group))
     val enumSupport = IdEnumSupport(property)
     assertThat(enumSupport.values.map { it.display }).containsExactly("@id/chip1", "@id/chip2", "@id/chip3")
   }
@@ -103,7 +103,7 @@ class IdEnumSupportTest {
     val util = SupportTestUtil(projectRule, TEXT_VIEW, BUTTON, TEXT_VIEW, BUTTON, parentTag = RELATIVE_LAYOUT)
     val textView = util.findSiblingById("textview1")!!
     val property = NelePropertyItem(ANDROID_URI, SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE, NelePropertyType.ID,
-                                    null, "", "", util.model, null, listOf(textView))
+                                    null, "", "", util.model, listOf(textView))
     val enumSupport = IdEnumSupport(property)
     assertThat(enumSupport.values.map { it.display }).containsExactly("@id/relativelayout", "@id/button2", "@id/textview3", "@id/button4")
   }

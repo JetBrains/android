@@ -64,7 +64,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
     fixture.testDataPath = "${getTestDataPath()}/projects/common"
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(dataBindingMode)
+    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = dataBindingMode
   }
 
   @Test

@@ -2,8 +2,12 @@ package org.jetbrains.android.dom
 
 import com.android.SdkConstants
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
@@ -288,16 +292,10 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       </resources>""".trimIndent())
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.moveCaret("android:textS|tyle")
-    val navigationElement = myFixture.elementAtCaret.navigationElement
-    assertThat(navigationElement.parentOfType(XmlTag::class)!!.text).isEqualTo(
-      //language=XML
-      """
-      <attr name="textStyle">
-              <flag name="normal" value="0" />
-              <flag name="bold" value="1" />
-              <flag name="italic" value="2" />
-          </attr>""".trimIndent())
-    assertThat(navigationElement.containingFile.parent!!.name + "/" + navigationElement.containingFile.name).isEqualTo("values/attrs.xml")
+    val fakePsiElement = myFixture.elementAtCaret
+    assertThat(fakePsiElement).isInstanceOf(ResourceReferencePsiElement::class.java)
+    assertThat((fakePsiElement as ResourceReferencePsiElement).resourceReference)
+      .isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "textStyle"))
   }
 
   fun testStylesItemReferenceResAuto() {
@@ -312,11 +310,10 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       </resources>""".trimIndent())
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.moveCaret("la|yout_behavior")
-    val navigationElement = myFixture.elementAtCaret.navigationElement
-    assertThat(navigationElement.parentOfType(XmlTag::class)!!.text).isEqualTo(
-      //language=XML
-      """<attr name="layout_behavior" format="string" />""")
-    assertThat(navigationElement.containingFile.parent!!.name + "/" + navigationElement.containingFile.name).isEqualTo("values/coordinatorlayout_attrs.xml")
+    val fakePsiElement = myFixture.elementAtCaret
+    assertThat(fakePsiElement).isInstanceOf(ResourceReferencePsiElement::class.java)
+    assertThat((fakePsiElement as ResourceReferencePsiElement).resourceReference)
+      .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "layout_behavior"))
   }
 
   fun testStylesItemCompletionAndroid() {

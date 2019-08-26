@@ -23,6 +23,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_AD
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_RESET_MAP_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ALL_BUILD_TYPES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_APPLICATION_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_ASSIGNMENT_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_APPEND_STATEMENTS;
@@ -46,10 +47,13 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SE
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_AND_RESET_MAP_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_FROM_EMPTY;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.CUSTOM;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -1319,6 +1323,25 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(signingConfigPropertyModel, STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
     assertThat(signingConfigPropertyModel.getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
     assertThat(signingConfigPropertyModel.toSigningConfig().name(), equalTo("myConfig"));
+  }
+
+  // This test just makes sure its parsed correctly, if we decide to support these this test should be changed to
+  // verify the correct behaviour.
+  @Test
+  public void testAllBuildTypes() throws Exception {
+    writeToBuildFile(BUILD_TYPE_MODEL_ALL_BUILD_TYPES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertSize(2, android.buildTypes());
+    BuildTypeModel releaseBuildTypeModel = android.buildTypes().stream().filter(type -> type.name().equals("release")).findFirst().orElse(null);
+    BuildTypeModel debugBuildTypeModel = android.buildTypes().stream().filter(type -> type.name().equals("debug")).findFirst().orElse(null);
+
+    verifyPropertyModel(releaseBuildTypeModel.minifyEnabled(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
+    verifyPropertyModel(releaseBuildTypeModel.applicationIdSuffix(), STRING_TYPE, "releaseSuffix", STRING, REGULAR, 0);
+
+    verifyPropertyModel(debugBuildTypeModel.minifyEnabled(), BOOLEAN_TYPE, false, BOOLEAN, REGULAR, 0);
+    verifyPropertyModel(debugBuildTypeModel.applicationIdSuffix(), STRING_TYPE, "debugSuffix", STRING, REGULAR, 0);
   }
 
   @NotNull

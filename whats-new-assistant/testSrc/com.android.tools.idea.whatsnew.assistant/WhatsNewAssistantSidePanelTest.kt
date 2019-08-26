@@ -101,6 +101,7 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
     }
 
     // Tab title will be set after assistant content finishes loading
+    WhatsNewAssistantMetricsTracker.getInstance().open(project, false) // Needed since creating AssistSidePanel calls metrics
     AssistSidePanel(WhatsNewAssistantBundleCreator.BUNDLE_ID, project, callback)
     FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     TestCase.assertEquals("Test What's New from Server", completeFuture.get())

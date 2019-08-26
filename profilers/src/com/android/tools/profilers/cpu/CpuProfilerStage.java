@@ -980,6 +980,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myFramesModel;
   }
 
+  @NotNull
+  public CaptureModel getCaptureModel() { return myCaptureModel; }
+
   /**
    * @return completableFuture from {@link CpuCaptureParser}.
    * If {@link CpuCaptureParser} doesn't manaCpge the trace, this method will start parsing it.

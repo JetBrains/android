@@ -24,7 +24,6 @@ public final class GroupNames {
   public static final String SDK_SETUP_ISSUES = "SDK Setup Issues";
   public static final String VARIANT_SELECTION_CONFLICTS = "Variant Selection Conflicts";
   public static final String GENERATED_SOURCES = "Generated Sources";
-  public static final String GRADLE_EXECUTION_ERRORS = "Gradle Execution Errors";
 
   private GroupNames() {
   }

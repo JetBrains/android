@@ -17,7 +17,6 @@ package com.android.tools.idea.res
 
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.TestDataPaths
-import com.android.tools.idea.res.binding.BindingLayoutInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.ApplicationManager
@@ -82,7 +81,6 @@ class ResourceFolderDataBindingTest {
     val file = fixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
     psiFile = PsiManager.getInstance(project).findFile(file)!!
     resources = createRepository()
-    assertEquals(1, resources.bindingLayoutGroups.size)
   }
 
   @Test
@@ -248,14 +246,13 @@ class ResourceFolderDataBindingTest {
   }
 
   /**
-   * Asserts all variables declared in the xml are found up-to-date in the current [BindingLayoutInfo].
-   * See also: [getInfo]
+   * Asserts all variables declared in the xml are found up-to-date in the current [BindingLayoutData].
+   * See also: [getLayoutData]
    *
    * Note: Pairs are name to type.
    */
   private fun assertVariables(vararg expected: Pair<String, String>) {
-    val variables = getInfo()
-      .data
+    val variables = getLayoutData()
       .variables
       .map { variable -> variable.name to variable.type }
       .toSet()
@@ -263,14 +260,13 @@ class ResourceFolderDataBindingTest {
   }
 
   /**
-   * Asserts all imports declared in the xml are found up-to-date in the current [BindingLayoutInfo]
-   * See also: [getInfo]
+   * Asserts all imports declared in the xml are found up-to-date in the current [BindingLayoutData]
+   * See also: [getLayoutData]
    *
    * Note: Pairs are type to alias.
    */
   private fun assertImports(vararg expected: Pair<String, String?>) {
-    val imports = getInfo()
-        .data
+    val imports = getLayoutData()
         .imports
         .map { import -> import.qualifiedName to
                if (import.isShortNameDerivedFromQualifiedName()) { null } else { import.importedShortName } }
@@ -278,18 +274,15 @@ class ResourceFolderDataBindingTest {
     assertEquals(expected.toSet(), imports)
   }
 
-  private fun getInfo(): BindingLayoutInfo {
-    val appPackage = DataBindingUtil.getGeneratedPackageName(facet)
-    return resources.bindingLayoutGroups.values
-        .flatMap { group -> group.layouts }
-        .first { layout -> layout.qualifiedClassName == "$appPackage.databinding.LayoutWithDataBindingBinding" }
+  private fun getLayoutData(): BindingLayoutData {
+    return resources.getBindingLayoutData("layout_with_data_binding").first()
   }
 
   private fun getVariableTag(name: String): XmlTag {
-    val layoutData = getInfo().data
+    val layoutData = getLayoutData()
     val variable = layoutData.findVariable(name)
     assertNotNull("cannot find variable with name $name", variable)
-    val variableTag = DataBindingUtil.findVariableTag(layoutData, variable!!.name)
+    val variableTag = DataBindingUtil.findVariableTag(project, layoutData, variable!!.name)
     assertNotNull("Cannot find XML tag for variable with name $name", variableTag)
     return variableTag!!
   }

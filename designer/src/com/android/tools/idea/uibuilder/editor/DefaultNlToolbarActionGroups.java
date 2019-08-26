@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import static com.android.tools.adtui.actions.ZoomShortcut.ZOOM_ACTUAL;
-import static com.android.tools.adtui.actions.ZoomShortcut.ZOOM_FIT;
-import static com.android.tools.adtui.actions.ZoomShortcut.ZOOM_IN;
-import static com.android.tools.adtui.actions.ZoomShortcut.ZOOM_OUT;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.DESIGN_MODE;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.NEXT_DEVICE;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.REFRESH_LAYOUT;
@@ -26,11 +22,6 @@ import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.SWITCH
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.TOGGLE_ISSUE_PANEL;
 
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.adtui.actions.ZoomActualAction;
-import com.android.tools.adtui.actions.ZoomInAction;
-import com.android.tools.adtui.actions.ZoomLabelAction;
-import com.android.tools.adtui.actions.ZoomOutAction;
-import com.android.tools.adtui.actions.ZoomToFitAction;
 import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
 import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
@@ -50,6 +41,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import icons.StudioIcons;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -102,18 +94,8 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-
-    AnAction zoomActual = ZOOM_ACTUAL.registerForAction(ZoomActualAction.INSTANCE, mySurface, this);
-    zoomActual.getTemplatePresentation().setVisible(false); // Hide this action for now.
-
-    group.add(ZOOM_OUT.registerForAction(ZoomOutAction.INSTANCE, mySurface, this));
-    group.add(ZoomLabelAction.INSTANCE);
-    group.add(ZOOM_IN.registerForAction(ZoomInAction.INSTANCE, mySurface, this));
-    group.add(ZOOM_FIT.registerForAction(ZoomToFitAction.INSTANCE, mySurface, this));
-    group.add(zoomActual);
-    group.addSeparator();
+    addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
     group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
-
     return group;
   }
 }

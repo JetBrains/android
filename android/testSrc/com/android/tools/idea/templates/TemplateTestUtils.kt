@@ -38,8 +38,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
-import com.android.tools.idea.templates.TemplateTest.ATTR_CREATE_ACTIVITY
-import com.android.tools.idea.templates.TemplateTest.TEST_FEWER_API_VERSIONS
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
@@ -78,6 +76,18 @@ import java.nio.file.Files
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
 import kotlin.streams.toList
+
+/**
+ * The following templates are known to be broken! We need to work through these and fix them such that tests on them can be re-enabled.
+ */
+internal fun isBroken(templateName: String): Boolean {
+  // See http://b.android.com/253296
+
+  if (SystemInfo.isWindows) {
+    if ("AidlFile" == templateName) return true
+  }
+  return false
+}
 
 /**
  * Is the given api level interesting for testing purposes? This is used to skip gaps,
@@ -204,9 +214,15 @@ private const val nonAsciiChars = "你所有的基地都属于我们"
 internal fun getModifiedProjectName(projectName: String, activityState: TestTemplateWizardState?): String = when {
   SystemInfo.isWindows -> "app"
   // Bug 137161906
-  projectName.startsWith("BasicActivity") && activityState != null &&
+  usesSafeArgs(projectName) && activityState != null &&
   Language.KOTLIN.toString() == activityState.getString(ATTR_LANGUAGE) -> projectName
   else -> "$projectName$specialChars,$nonAsciiChars"
+}
+
+private fun usesSafeArgs(projectName: String): Boolean {
+  return projectName.startsWith("BasicActivity") ||
+    projectName.startsWith("NavigationDrawerActivity") ||
+    projectName.startsWith("BottomNavigationActivity")
 }
 
 /**
@@ -316,7 +332,7 @@ internal fun shutDownGradleConnection(connection: ProjectConnection, projectRoot
 }
 
 internal fun lintIfNeeded(project: Project) {
-  if (TemplateTest.CHECK_LINT) {
+  if (CHECK_LINT) {
     val lintMessage = getLintIssueMessage(project, Severity.INFORMATIONAL, setOf(ManifestDetector.TARGET_NEWER))
     if (lintMessage != null) {
       TestCase.fail(lintMessage)
@@ -349,3 +365,13 @@ internal fun getOption(option: Element): Option {
 
   return Option(optionId, optionMinSdk, optionMinBuildApi)
 }
+
+internal fun getCheckKey(category: String, name: String, createWithProject: Boolean) = "$category:$name:$createWithProject"
+
+internal fun findTemplate(category: String, name: String): File {
+  val templateRootFolder = TemplateManager.getTemplateRootFolder()!!
+  val file = File(templateRootFolder, category + File.separator + name)
+  assertTrue(file.path, file.exists())
+  return file
+}
+

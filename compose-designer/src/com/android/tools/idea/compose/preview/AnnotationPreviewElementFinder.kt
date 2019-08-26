@@ -16,10 +16,14 @@ package com.android.tools.idea.compose.preview
  * limitations under the License.
  */
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
@@ -33,26 +37,32 @@ private fun UAnnotation.findAttributeIntValue(name: String, defaultValue: Int) =
   findAttributeValue(name)?.evaluate() as? Int ?: defaultValue
 
 /**
+ * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
+ */
+private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
+  val apiLevel = node.findAttributeIntValue("apiLevel", UNDEFINED_API_LEVEL)
+  val theme = node.findAttributeValue("theme")?.evaluateString()?.nullize()
+  val width = node.findAttributeIntValue("width", UNDEFINED_DIMENSION)
+  val height = node.findAttributeIntValue("height", UNDEFINED_DIMENSION)
+
+  return PreviewConfiguration(apiLevel, theme, width, height)
+}
+
+/**
  * [PreviewElementFinder] that uses `@Preview` annotations.
  */
 object AnnotationPreviewElementFinder : PreviewElementFinder {
-  /**
-   * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
-   */
-  private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
-    val apiLevel = node.findAttributeIntValue("apiLevel", UNDEFINED_API_LEVEL)
-    val theme = node.findAttributeValue("theme")?.evaluateString()?.nullize()
-    val width = node.findAttributeIntValue("width", UNDEFINED_DIMENSION)
-    val height = node.findAttributeIntValue("height", UNDEFINED_DIMENSION)
-
-    return PreviewConfiguration(apiLevel, theme, width, height)
-  }
+  override fun hasPreviewMethods(project: Project, file: VirtualFile): Boolean =
+    PsiTreeUtil.findChildrenOfType(PsiManager.getInstance(project).findFile(file), KtImportDirective::class.java)
+      .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() }
 
   /**
    * Returns all the `@Composable` methods in the [uFile] that are also tagged with `@Preview`.
+   * The order of the elements will be the same as the order of the composable methods.
    */
-  override fun findPreviewMethods(uFile: UFile): Set<PreviewElement> {
-    val previewMethodsFqNames = mutableSetOf<PreviewElement>()
+  override fun findPreviewMethods(uFile: UFile): List<PreviewElement> {
+    val previewMethodsFqName = mutableSetOf<String>()
+    val previewElements = mutableListOf<PreviewElement>()
     uFile.accept(object : UastVisitor {
       // Return false so we explore all the elements in the file (in case there are multiple @Preview elements)
       override fun visitElement(node: UElement): Boolean = false
@@ -65,8 +75,13 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
         val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
         val previewName = previewAnnotation.findAttributeValue("name")?.evaluateString() ?: ""
 
-        previewMethodsFqNames.add(PreviewElement(previewName, composableMethod,
-                                                 attributesToConfiguration(previewAnnotation)))
+        // If the same composable method is found multiple times, only keep the first one. This usually will happen during
+        // copy & paste and both the compiler and Studio will flag it as an error.
+        if (previewMethodsFqName.add(composableMethod)) {
+          previewElements.add(PreviewElement(previewName, composableMethod,
+                                             annotatedMethod.bodyTextRange(),
+                                             attributesToConfiguration(previewAnnotation)))
+        }
       }
 
       override fun visitAnnotation(node: UAnnotation): Boolean {
@@ -88,7 +103,7 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
       }
     })
 
-    return previewMethodsFqNames
+    return previewElements
   }
 
   override fun elementBelongsToPreviewElement(element: PsiElement): Boolean {

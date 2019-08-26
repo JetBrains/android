@@ -71,11 +71,6 @@ public final class StudioFlags {
     "Show new version of the Welcome Wizard when Studio starts",
     false);
 
-  public static final Flag<Boolean> NPW_USE_HOME_FOLDER_AS_EXTRA_TEMPLATE_ROOT_FOLDER = Flag.create(
-    NPW, "home.template.root", "Use .android folder as a Template Root Folder",
-    "Let the user keep templates in the .android folder such that they are kept after a Studio install/upgrade",
-    true);
-
   public static final Flag<Boolean> NPW_FIRST_RUN_SHOW = Flag.create(
     NPW, "first.run.wizard.show", "Show Welcome Wizard always",
     "Show the Welcome Wizard when Studio starts",
@@ -351,6 +346,16 @@ public final class StudioFlags {
     NELE, "display.model.name", "Display Model Name",
     "Enable the feature which can display the model name in Layout Editor.",
     true);
+
+  public static final Flag<Boolean> NELE_CUSTOM_VIEW_PREVIEW = Flag.create(
+    NELE, "show.custom.view.preview", "Show Custom View Preview",
+    "Enable the feature which shows a graphical preview for Android custom View classes.",
+    false);
+
+  public static final Flag<Boolean> NELE_DESIGN_SURFACE_ZOOM = Flag.create(
+    NELE, "design.surface.zoom", "Zoom panel in Design Surface",
+    "Enable zoom controls in the design surface, substitutes any zoom controls on the top toolbar of the editor.",
+    false);
   //endregion
 
   //region Navigation Editor

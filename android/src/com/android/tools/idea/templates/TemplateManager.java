@@ -182,7 +182,7 @@ public class TemplateManager {
     List<File> folders = new ArrayList<>();
 
     String homeFolder = AndroidLocation.getFolderWithoutWrites();
-    if (homeFolder != null && StudioFlags.NPW_USE_HOME_FOLDER_AS_EXTRA_TEMPLATE_ROOT_FOLDER.get()) {
+    if (homeFolder != null) {
       // Look in $userhome/.android/templates
       File templatesFolder = new File(homeFolder, FD_TEMPLATES);
       if (templatesFolder.isDirectory()) {
