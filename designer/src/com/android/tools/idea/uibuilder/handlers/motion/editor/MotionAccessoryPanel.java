@@ -21,7 +21,6 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -31,8 +30,8 @@ import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentDelegate;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
@@ -81,7 +80,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   MotionEditor mMotionEditor = new MotionEditor();
   public static final String TIMELINE = "Timeline";
   private SmartPsiElementPointer<XmlTag> mSelectedConstraintTag;
-  private NlComponentDelegate myNlComponentDelegate = new MotionLayoutComponentDelegate(this);
 
   MotionLayoutComponentHelper myMotionHelper;
   private String mSelectedStartConstraintId;
@@ -131,6 +129,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     SelectionModel designSurfaceSelection = myDesignSurface.getSelectionModel();
     ImmutableList<NlComponent> dsSelection = designSurfaceSelection.getSelection();
     designSurfaceSelection.addListener((model, selection) -> handleSelectionChanged(model, selection));
+
     mMotionEditor.addSelectionListener(new MotionEditorSelector.Listener() {
       @Override
       public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
@@ -207,6 +206,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             if (xmlTag == null) {
               return;
             }
+            // TODO: is that mSelectedConstraintTag still going to be useful now we don't try to derive from CL handler?
             mSelectedConstraintTag = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(xmlTag);
           }
           break;
@@ -241,7 +241,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         }
       }
     });
-    myMotionScene = getMotionScene(myMotionLayoutNlComponent);
+    myMotionScene = MotionUtils.getMotionScene(myMotionLayoutNlComponent);
     mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
     MTag[] cSet = myMotionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET);
     if (DEBUG) {
@@ -260,7 +260,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
         mLastSelection = null;
         myLastSelectedTags = null;
-        myMotionScene = getMotionScene(myMotionLayoutNlComponent);
+        myMotionScene = MotionUtils.getMotionScene(myMotionLayoutNlComponent);
         mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
         fireSelectionChanged(Collections.singletonList(mySelection));
       }
@@ -311,7 +311,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   private void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    // Prevent repeated section of the same objectSnChanged(desig
     if (selection.size() == myLayoutSelectedId.size()) {
       int count = 0;
       for (NlComponent component : selection) {
@@ -354,32 +353,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     fireSelectionChanged(selection);
   }
 
-  MotionSceneTag getMotionScene(NlComponent motionLayout) {
-    String ref = motionLayout.getAttribute(SdkConstants.AUTO_URI, "layoutDescription");
-    int index = ref.lastIndexOf("@xml/");
-    String fileName = ref.substring(index + 5);
-    if (fileName == null || fileName.isEmpty()) {
-      return null;
-    }
-
-    // let's open the file
-    AndroidFacet facet = motionLayout.getModel().getFacet();
-
-    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
-      .getModuleResources(facet).getResourceDirs());
-    if (resourcesXML.isEmpty()) {
-      return null;
-    }
-    VirtualFile directory = resourcesXML.get(0);
-    VirtualFile virtualFile = directory.findFileByRelativePath(fileName + ".xml");
-
-    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, virtualFile);
-
-    MotionSceneTag motionSceneModel = MotionSceneTag.parse(motionLayout, myProject, virtualFile, xmlFile);
-
-    return motionSceneModel;
-  }
-
   @NotNull
   @Override
   public JPanel getPanel() {
@@ -403,9 +376,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
 
     NlComponent component = selection.get(0);
-    if (component != mySelection) {
-      myNlComponentDelegate.clearCaches();
-    }
 
     mySelection = component;
     if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {

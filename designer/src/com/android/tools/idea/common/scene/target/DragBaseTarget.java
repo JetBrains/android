@@ -142,6 +142,18 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
     return Target.DRAG_LEVEL;
   }
 
+  public void fillComponentModification(ComponentModification modification) {
+    // nothing to do by default
+  }
+
+  public void applyComponentModification(ComponentModification modification) {
+    modification.apply();
+  }
+
+  public void commitComponentModification(ComponentModification modification) {
+    modification.commit();
+  }
+
   @Override
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     if (myComponent.getParent() == null) {
@@ -168,8 +180,9 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
     int snappedX = myTargetSnapper.trySnapHorizontal(x).orElse(x);
     int snappedY = myTargetSnapper.trySnapVertical(y).orElse(y);
     ComponentModification modification = new ComponentModification(component, "Drag");
+    fillComponentModification(modification);
     updateAttributes(modification, snappedX, snappedY);
-    modification.apply();
+    applyComponentModification(modification);
     component.fireLiveChangeEvent();
     myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     myChangedComponent = true;
@@ -188,6 +201,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
       }
       NlComponent component = myComponent.getAuthoritativeNlComponent();
       ComponentModification modification = new ComponentModification(component, "Drag");
+      fillComponentModification(modification);
       x -= myOffsetX;
       y -= myOffsetY;
       int snappedX = myTargetSnapper.trySnapHorizontal(x).orElse(x);
@@ -196,10 +210,10 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
         myTargetSnapper.applyNotches(modification);
       }
       updateAttributes(modification, snappedX, snappedY);
-      modification.apply();
+      applyComponentModification(modification);
 
       if (commitChanges) {
-        modification.commit();
+        commitComponentModification(modification);
       }
     }
     if (myChangedComponent) {

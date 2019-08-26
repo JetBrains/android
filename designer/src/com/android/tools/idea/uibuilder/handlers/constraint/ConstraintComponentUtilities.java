@@ -205,7 +205,7 @@ public final class ConstraintComponentUtilities {
     ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_END_OF, AnchorTarget.Type.LEFT);
   }
 
-  private static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialAttributes = new HashMap<>();
+  public static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialAttributes = new HashMap<>();
 
   static {
     ourPotentialAttributes.put(AnchorTarget.Type.LEFT, Pair.of(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF));
@@ -214,14 +214,14 @@ public final class ConstraintComponentUtilities {
     ourPotentialAttributes.put(AnchorTarget.Type.BOTTOM, Pair.of(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF));
   }
 
-  private static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialLTRAttributes = new HashMap<>();
+  public static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialLTRAttributes = new HashMap<>();
 
   static {
     ourPotentialLTRAttributes.put(AnchorTarget.Type.LEFT, Pair.of(ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_START_TO_END_OF));
     ourPotentialLTRAttributes.put(AnchorTarget.Type.RIGHT, Pair.of(ATTR_LAYOUT_END_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF));
   }
 
-  private static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialRTLAttributes = new HashMap<>();
+  public static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialRTLAttributes = new HashMap<>();
 
   static {
     ourPotentialRTLAttributes.put(AnchorTarget.Type.LEFT, Pair.of(ATTR_LAYOUT_END_TO_END_OF, ATTR_LAYOUT_END_TO_START_OF));
@@ -739,7 +739,7 @@ public final class ConstraintComponentUtilities {
       if (component == null) {
         return false;
       }
-      ConstraintAnchorTarget selectedTarget = (ConstraintAnchorTarget)AnchorTarget.findAnchorTarget(component, type);
+      AnchorTarget selectedTarget = AnchorTarget.findAnchorTarget(component, type);
       if (selectedTarget != null) {
         NlComponent nlComponent = component.getNlComponent();
         ComponentModification modification = new ComponentModification(nlComponent, "Constraint Disconnected");

@@ -85,6 +85,7 @@ public class NlComponent implements NlAttributesHolder {
   private final ListenerCollection<ChangeListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final ChangeEvent myChangeEvent = new ChangeEvent(this);
   private NlComponentDelegate myDelegate;
+  private NlComponentModificationDelegate myComponentModificationDelegate;
 
   /**
    * Current open attributes transaction or null if none is open
@@ -112,6 +113,14 @@ public class NlComponent implements NlAttributesHolder {
   public void setDelegate(@Nullable NlComponentDelegate delegate) {
     myDelegate = delegate;
   }
+
+
+  public void setComponentModificationDelegate(@Nullable NlComponentModificationDelegate delegate) {
+    myComponentModificationDelegate = delegate;
+  }
+
+  @Nullable
+  public NlComponentModificationDelegate getComponentModificationDelegate() { return myComponentModificationDelegate; }
 
   public void setMixin(@NotNull XmlModelComponentMixin mixin) {
     assert myMixin == null;
