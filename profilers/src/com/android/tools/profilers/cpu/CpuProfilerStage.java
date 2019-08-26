@@ -536,43 +536,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
 
     setCaptureState(CaptureState.STOPPING);
-    if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      assert getStudioProfilers().getProcess() != null;
-      Commands.Command stopCommand = Commands.Command.newBuilder()
-        .setStreamId(mySession.getStreamId())
-        .setPid(mySession.getPid())
-        .setType(Commands.Command.CommandType.STOP_CPU_TRACE)
-        .setStopCpuTrace(Cpu.StopCpuTrace.newBuilder().setConfiguration(myInProgressTraceInfo.getConfiguration()).build())
-        .build();
-      Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
-        Transport.ExecuteRequest.newBuilder().setCommand(stopCommand).build());
-      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.CPU_TRACE_STATUS,
-                                                                         getStudioProfilers().getIdeServices().getMainExecutor(),
-                                                                         event -> event.getCommandId() == response.getCommandId(),
-                                                                         () -> mySession.getStreamId(),
-                                                                         () -> mySession.getPid(),
-                                                                         event -> {
-                                                                           stopCapturingCallback(
-                                                                             event.getCpuTraceStatus().getTraceStopStatus());
-                                                                           // unregisters the listener.
-                                                                           return true;
-                                                                         });
-      getStudioProfilers().getTransportPoller().registerListener(statusListener);
-    }
-    else {
-      CpuProfilingAppStopRequest request = CpuProfilingAppStopRequest.newBuilder()
-        .setTraceType(myInProgressTraceInfo.getConfiguration().getUserOptions().getTraceType())
-        .setTraceMode(myInProgressTraceInfo.getConfiguration().getUserOptions().getTraceMode())
-        .setSession(mySession)
-        // This is needed to stop an ongoing trace and should be handled via an explicit stop-trace command in the new pipeline.
-        // In the new pipeline, we can potentially pass the same info down via EndSession.
-        .setAppName(getStudioProfilers().getProcess() != null ? getStudioProfilers().getProcess().getName() : "")
-        .build();
-      CompletableFuture.supplyAsync(
-        () -> getCpuClient().stopProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
-        .thenAcceptAsync(response -> this.stopCapturingCallback(response.getStatus()),
-                         getStudioProfilers().getIdeServices().getMainExecutor());
-    }
+    CpuProfiler.stopTracing(getStudioProfilers(), mySession, myInProgressTraceInfo.getConfiguration(), this::stopCapturingCallback);
   }
 
   public long getCaptureElapsedTimeUs() {

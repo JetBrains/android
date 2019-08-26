@@ -29,6 +29,7 @@ import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
+import io.grpc.StatusRuntimeException
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.TimeUnit
 
@@ -184,6 +185,12 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
         errorMessage = "App is not running"
       }.build()
       sendStopStatusEvent(command, status)
+
+      val record = legacyProfilingRecord.get(pid)
+      if (record != null) {
+        val endTimeNs = getDeviceTimestamp(record)
+        sendStopTraceEvent(command, record.traceInfo!!.setToTimestamp(endTimeNs).build())
+      }
     }
     else {
       val record = legacyProfilingRecord.get(pid)
@@ -204,7 +211,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
           }
           record!!.stopLatch.await()
 
-          val endTimeNs = transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
+          val endTimeNs = getDeviceTimestamp(record)
           sendStopStatusEvent(command, record.traceInfo!!.stopStatus)
           sendStopTraceEvent(command, record.traceInfo!!.setToTimestamp(endTimeNs).build())
         }
@@ -221,6 +228,18 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
 
     // Remove the entry if there exists one.
     legacyProfilingRecord.remove(pid)
+  }
+
+  private fun getDeviceTimestamp(record: LegacyCpuTraceRecord): Long {
+    var endTimeNs: Long
+    try {
+      endTimeNs = transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
+    }
+    catch (exception: StatusRuntimeException) {
+      endTimeNs = record.traceInfo!!.fromTimestamp + 1
+    }
+
+    return endTimeNs
   }
 
   private fun sendStartStatusEvent(command: Commands.Command, startStatus: Cpu.TraceStartStatus) {
