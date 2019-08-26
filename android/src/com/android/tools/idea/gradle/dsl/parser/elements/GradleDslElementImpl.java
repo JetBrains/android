@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -347,6 +348,15 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         ExtDslElement ext = file.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
         if (ext != null) {
           results.putAll(ext.getPropertyElements());
+        }
+        // Add properties files properties
+        GradleDslFile propertiesFile = file.getSiblingDslFile();
+        if (propertiesFile != null) {
+          // Only properties with no qualifier are picked up by build scripts.
+          Map<String, GradleDslElement> filteredProperties =
+            propertiesFile.getPropertyElements().entrySet().stream().filter(entry -> !entry.getKey().contains("."))
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+          results.putAll(filteredProperties);
         }
         // Add BuildScriptExt properties.
         BuildScriptDslElement buildScriptElement = file.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
