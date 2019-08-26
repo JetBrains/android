@@ -60,6 +60,12 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
       fun Preview3() {
       }
 
+      // This preview element will be found but the ComposeViewAdapter won't be able to render it
+      @Composable
+      @Preview(name = "Preview with parameters")
+      fun PreviewWithParametrs(i: Int) {
+      }
+
       @Composable
       fun NoPreviewComposable() {
 
@@ -73,7 +79,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
     """.trimIndent()).toUElement() as UFile
 
     val elements = AnnotationPreviewElementFinder.findPreviewMethods(composeTest)
-    assertEquals(3, elements.size)
+    assertEquals(4, elements.size)
     elements[1].let {
       assertEquals("preview2", it.displayName)
       assertEquals(12, it.configuration.apiLevel)
@@ -102,6 +108,10 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
 
       assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
       assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
+    }
+
+    elements[3].let {
+      assertEquals("Preview with parameters", it.displayName)
     }
   }
 

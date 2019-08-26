@@ -63,6 +63,15 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
         }
       }
 
+      // This preview element will be found but the ComposeViewAdapter won't be able to render it
+      @Composable
+      fun PreviewWithParametrs(i: Int) {
+        Preview(name = "Preview with parameters") {
+          Button("preview3") {
+          }
+        }
+      }
+
       @Composable
       fun NoPreviewComposable() {
 
@@ -77,7 +86,7 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
     """.trimIndent()).toUElement() as UFile
 
     val elements = MethodPreviewElementFinder.findPreviewMethods(composeTest)
-    assertEquals(3, elements.size)
+    assertEquals(4, elements.size)
     elements[1].let {
       assertEquals("preview2", it.displayName)
       assertEquals(12, it.configuration.apiLevel)
@@ -102,6 +111,10 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
       assertEquals("{ Button(\"preview1\") { } }", it.previewBodyAsCompactText())
+    }
+
+    elements[3].let {
+      assertEquals("Preview with parameters", it.displayName)
     }
   }
 
