@@ -129,7 +129,7 @@ abstract class PsDependencyCollectionBase<out ModuleT, LibraryDependencyT, JarDe
 }
 
 fun ArtifactDependencyModel.toKey(): String =
-  PsArtifactDependencySpec.create(group().forceString(), name().toString(), version().toString()).toString()
+  PsArtifactDependencySpec.create(group().toString(), name().forceString(), version().toString()).toString()
 
 fun FileDependencyModel.toKey(): String = file().asString().orEmpty()
 
