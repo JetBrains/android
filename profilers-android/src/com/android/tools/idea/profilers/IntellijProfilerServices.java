@@ -56,12 +56,17 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.search.ProjectScope;
+import com.intellij.psi.search.searches.AllClassesSearch;
+import com.intellij.util.Query;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -119,6 +124,17 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public Executor getPoolExecutor() {
     return ApplicationManager.getApplication()::executeOnPooledThread;
+  }
+
+  @Override
+  public Set<String> getAllProjectClasses() {
+    Query<PsiClass> query = AllClassesSearch.INSTANCE.search(ProjectScope.getProjectScope(myProject), myProject);
+
+    Set<String> classNames = new HashSet<>();
+    query.forEach(aClass -> {
+      classNames.add(aClass.getQualifiedName());
+    });
+    return classNames;
   }
 
   @Override

@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import com.android.testutils.TestUtils;
@@ -37,21 +36,21 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.adapters.instancefilters.ActivityLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.google.common.truth.Truth;
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -196,7 +195,6 @@ public class HeapDumpCaptureObjectTest {
     assertEquals(0, capture.getHeapSets().size());
   }
 
-
   @Test
   public void testHeapDumpActivityLeak() throws Exception {
     HeapDumpInfo dumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build();
@@ -216,11 +214,13 @@ public class HeapDumpCaptureObjectTest {
 
     long allInstanceCount = capture.getInstances().count();
     Truth.assertThat(allInstanceCount).isGreaterThan(1L);
-    List<CaptureObjectInstanceFilter> filters = new ArrayList<>(capture.getSupportedInstanceFilters());
-    Truth.assertThat(filters).hasSize(1);
+    Set<CaptureObjectInstanceFilter> filters = capture.getSupportedInstanceFilters();
+    Optional<CaptureObjectInstanceFilter> leakFilter =
+      filters.stream().filter(filter -> filter instanceof ActivityLeakInstanceFilter).findAny();
+    Truth.assertThat(leakFilter.isPresent()).isTrue();
 
     CountDownLatch addFilterLatch = new CountDownLatch(1);
-    capture.addInstanceFilter(filters.get(0), Runnable::run);
+    capture.addInstanceFilter(leakFilter.get(), Runnable::run);
     // Wait for the filter to finish running on the off-main-thread executor.
     capture.getInstanceFilterExecutor().submit(addFilterLatch::countDown);
     addFilterLatch.await();
@@ -231,7 +231,7 @@ public class HeapDumpCaptureObjectTest {
     Truth.assertThat(leakedInstance.getClassEntry().getSimpleClassName()).isEqualTo("ImageDetailActivity");
 
     CountDownLatch removeFilterLatch = new CountDownLatch(1);
-    capture.removeInstanceFilter(filters.get(0), Runnable::run);
+    capture.removeInstanceFilter(leakFilter.get(), Runnable::run);
     // Wait for the filter to finish running on the off-main-thread executor.
     capture.getInstanceFilterExecutor().submit(removeFilterLatch::countDown);
     removeFilterLatch.await();

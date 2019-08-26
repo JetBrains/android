@@ -27,7 +27,10 @@ import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -188,6 +191,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Nullable private Notification myNotification;
 
+  @NotNull private final Set<String> myProjectClasses = new HashSet<>();
+
   public FakeIdeProfilerServices() {
     myPersistentPreferences = new FakeProfilerPreferences();
     myTemporaryPreferences = new FakeProfilerPreferences();
@@ -217,6 +222,17 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setNativeFrameSymbolizer(@NotNull NativeFrameSymbolizer symbolizer) {
     myFakeSymbolizer = symbolizer;
+  }
+
+  @Override
+  public Set<String> getAllProjectClasses() {
+    return myProjectClasses;
+  }
+
+  public void addProjectClasses(String... classNames) {
+    for (int i = 0; i < classNames.length; i++) {
+      myProjectClasses.add(classNames[i]);
+    }
   }
 
   @NotNull

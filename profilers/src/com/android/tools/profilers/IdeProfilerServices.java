@@ -23,6 +23,7 @@ import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -41,6 +42,12 @@ public interface IdeProfilerServices {
    */
   @NotNull
   Executor getPoolExecutor();
+
+  /**
+   * @return all classes that belong to the current project (excluding dependent libraries).
+   */
+  @NotNull
+  Set<String> getAllProjectClasses();
 
   /**
    * Saves a file to the file system and have IDE internal state reflect this file addition.
