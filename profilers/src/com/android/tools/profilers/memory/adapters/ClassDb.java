@@ -16,13 +16,12 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A class that shares class name {@link String}s, and provides facilities for splitting the class name to its constituent parts.
