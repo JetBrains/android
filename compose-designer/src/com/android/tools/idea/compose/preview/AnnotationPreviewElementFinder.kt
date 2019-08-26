@@ -16,6 +16,7 @@ package com.android.tools.idea.compose.preview
  * limitations under the License.
  */
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -90,7 +91,8 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
           val uMethod = node.getContainingUMethod()
           uMethod?.let {
             if (!it.parameterList.isEmpty) {
-              error("Preview methods must not have any parameters")
+              // We do not fail here. The ComposeViewAdapter will throw an exception that will be surfaced to the user
+              Logger.getInstance(AnnotationPreviewElementFinder::class.java).debug("Preview methods must not have any parameters")
             }
 
             // The method must also be annotated with @Composable
