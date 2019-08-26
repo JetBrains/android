@@ -17,7 +17,7 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.plugins.PluginManagerConfigurableNewLayout;
+import com.intellij.ide.plugins.PluginManagerConfigurable;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -55,7 +55,7 @@ public class OpenFirebaseAssistantQuickFix implements AndroidLintQuickFix {
                                    "has to be enabled in the <a href=\"plugins\">Plugins</a> dialog in %1$s.</html>",
                                    ShowSettingsUtil.getSettingsMenuName());
     NotificationListener listener = (notification, event) -> {
-      ShowSettingsUtil.getInstance().showSettingsDialog(null, PluginManagerConfigurableNewLayout.class);
+      ShowSettingsUtil.getInstance().showSettingsDialog(null, PluginManagerConfigurable.class);
       notification.expire();
     };
     Notification notification =
