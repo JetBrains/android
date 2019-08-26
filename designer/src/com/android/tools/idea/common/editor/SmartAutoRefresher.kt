@@ -30,7 +30,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.ui.EditorNotifications
 import java.util.function.Consumer
 
-
 interface SmartRefreshable : Disposable {
   fun refresh()
 }
@@ -50,6 +49,9 @@ class SmartAutoRefresher(psiFile: PsiFile,
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
 
+  private fun BuildStatus?.isSuccess(): Boolean =
+    this == BuildStatus.SKIPPED || this == BuildStatus.SUCCESS
+
   /**
    * Method triggered on successful gradle build.
    */
@@ -64,7 +66,10 @@ class SmartAutoRefresher(psiFile: PsiFile,
    * the project has synced and is smart.
    */
   private fun initPreviewWhenSmartAndSynced() {
-    refresh()
+    val status = GradleBuildState.getInstance(project)?.summary?.status
+    if (status.isSuccess()) {
+      refresh()
+    }
 
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       override fun buildStarted(context: BuildContext) {
@@ -73,7 +78,9 @@ class SmartAutoRefresher(psiFile: PsiFile,
 
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
-        refresh()
+        if (status.isSuccess()) {
+          refresh()
+        }
       }
     }, refreshable)
   }

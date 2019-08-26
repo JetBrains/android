@@ -25,17 +25,16 @@ import java.sql.JDBCType
  */
 data class SqliteDatabase(
   val virtualFile: VirtualFile,
-  val name: String,
   val sqliteService: SqliteService
 ) : Disposable {
+
+  // TODO(b/139525976)
+  val name = virtualFile.path.split("data/data/").getOrNull(1)?.replace("databases/", "")
+             ?: virtualFile.path
 
   override fun dispose() {
     sqliteService.closeDatabase().get()
   }
-}
-
-fun SqliteDatabase.getFormattedSqliteDatabaseName(): String {
-  return name.split("data/data/")[1].replace("databases/", "")
 }
 
 /** Representation of the Sqlite database schema */

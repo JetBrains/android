@@ -59,8 +59,21 @@ class AndroidPsiTreeChangePreprocessor : PsiTreeChangePreprocessor, SimpleModifi
                 return
             }
 
-            val file = event.file ?: return
+            val file = event.file
+            if (file == null) {
+                // We can't be sure what changed, so we conservatively increment the counter.
+                // This can happen if a file is added or deleted, since we might get a PROP_UNLOADED_PSI event with no associated PSI.
+                incModificationCount()
+                return
+            }
+
             if (!checkIfLayoutFile(file)) return
+
+            if (child == null || !child.isValid) {
+                // We can't be sure what changed, so we conservatively increment the counter.
+                incModificationCount()
+                return
+            }
 
             val xmlAttribute = findXmlAttribute(child) ?: return
             val name = xmlAttribute.name

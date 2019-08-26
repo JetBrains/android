@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.npw.project.ConfigureAndroidProjectStep">
-  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="19" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-    <margin top="0" left="5" bottom="0" right="0"/>
+  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="16" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="445" height="641"/>
     </constraints>
     <properties/>
     <border type="none"/>
     <children>
-      <component id="b07f9" class="javax.swing.JLabel">
+      <component id="b07f9" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
             <preferred-size width="-1" height="24"/>
           </grid>
         </constraints>
@@ -21,9 +21,9 @@
           <verticalAlignment value="0"/>
         </properties>
       </component>
-      <component id="df734" class="javax.swing.JLabel">
+      <component id="df734" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="3" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>
@@ -32,7 +32,7 @@
           <verticalAlignment value="0"/>
         </properties>
       </component>
-      <component id="ef020" class="javax.swing.JLabel">
+      <component id="ef020" class="com.intellij.ui.components.JBLabel">
         <constraints>
           <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -45,7 +45,7 @@
       </component>
       <component id="9116" class="javax.swing.JTextField" binding="myAppName">
         <constraints>
-          <grid row="1" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
         </constraints>
@@ -55,15 +55,15 @@
       </component>
       <component id="21da5" class="javax.swing.JTextField" binding="myPackageName">
         <constraints>
-          <grid row="4" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
         </constraints>
         <properties/>
       </component>
-      <component id="c6a43" class="javax.swing.JLabel">
+      <component id="c6a43" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="6" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>
@@ -74,7 +74,7 @@
       </component>
       <component id="4f4fc" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myProjectLocation">
         <constraints>
-          <grid row="7" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+          <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
         </constraints>
@@ -120,7 +120,7 @@
       <grid id="e0f3a" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
-          <grid row="1" column="0" row-span="18" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="1" column="0" row-span="15" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="250" height="-1"/>
             <maximum-size width="250" height="-1"/>
           </grid>
@@ -128,23 +128,28 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="ff026" class="javax.swing.JLabel" binding="myTemplateIconTitle">
+          <component id="ff026" class="com.intellij.ui.components.JBLabel" binding="myTemplateIconTitle">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
+              <font size="14"/>
               <horizontalAlignment value="0"/>
               <horizontalTextPosition value="0"/>
               <text value="Template Label"/>
               <verticalTextPosition value="3"/>
             </properties>
           </component>
-          <component id="bedde" class="javax.swing.JLabel" binding="myTemplateIconDetail">
+          <component id="bedde" class="com.intellij.ui.components.JBLabel" binding="myTemplateIconDetail">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
+              <componentStyle value="REGULAR"/>
+              <font size="11"/>
+              <fontColor value="BRIGHTER"/>
               <horizontalAlignment value="0"/>
+              <horizontalTextPosition value="0"/>
               <text value="Detail"/>
             </properties>
           </component>
@@ -161,7 +166,7 @@
       </grid>
       <vspacer id="45f83">
         <constraints>
-          <grid row="15" column="1" row-span="4" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="15" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
       <component id="25f85" class="javax.swing.JCheckBox" binding="myWearCheck">

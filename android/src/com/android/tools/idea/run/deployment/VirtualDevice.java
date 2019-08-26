@@ -39,11 +39,8 @@ final class VirtualDevice extends Device {
   static final ImmutableCollection<Snapshot> DEFAULT_SNAPSHOT_COLLECTION = ImmutableList.of(Snapshot.DEFAULT);
   private static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
-  /**
-   * Snapshot directory names displayed to the developer.
-   */
-  @NotNull
-  private final ImmutableCollection<Snapshot> mySnapshots;
+  @Nullable
+  private final Snapshot mySnapshot;
 
   @NotNull
   static VirtualDevice newConnectedDevice(@NotNull VirtualDevice virtualDevice,
@@ -58,17 +55,13 @@ final class VirtualDevice extends Device {
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(connectedDevice.getAndroidDevice())
-      .setSnapshots(virtualDevice.mySnapshots)
+      .setSnapshot(virtualDevice.mySnapshot)
       .build();
   }
 
   static final class Builder extends Device.Builder {
-    @NotNull
-    private ImmutableCollection<Snapshot> mySnapshots;
-
-    Builder() {
-      mySnapshots = ImmutableList.of();
-    }
+    @Nullable
+    private Snapshot mySnapshot;
 
     @NotNull
     Builder setName(@NotNull String name) {
@@ -108,8 +101,8 @@ final class VirtualDevice extends Device {
     }
 
     @NotNull
-    Builder setSnapshots(@NotNull ImmutableCollection<Snapshot> snapshots) {
-      mySnapshots = snapshots;
+    Builder setSnapshot(@Nullable Snapshot snapshot) {
+      mySnapshot = snapshot;
       return this;
     }
 
@@ -122,7 +115,7 @@ final class VirtualDevice extends Device {
 
   private VirtualDevice(@NotNull Builder builder) {
     super(builder);
-    mySnapshots = builder.mySnapshots;
+    mySnapshot = builder.mySnapshot;
   }
 
   @NotNull
@@ -139,7 +132,8 @@ final class VirtualDevice extends Device {
   @NotNull
   @Override
   ImmutableCollection<Snapshot> getSnapshots() {
-    return mySnapshots;
+    // TODO Delete Device::getSnapshots?
+    return mySnapshot == null ? ImmutableList.of() : ImmutableList.of(mySnapshot);
   }
 
   @NotNull
@@ -183,7 +177,7 @@ final class VirtualDevice extends Device {
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice()) &&
-           mySnapshots.equals(device.mySnapshots);
+           Objects.equals(mySnapshot, device.mySnapshot);
   }
 
   @Override
@@ -195,6 +189,6 @@ final class VirtualDevice extends Device {
       getKey(),
       getConnectionTime(),
       getAndroidDevice(),
-      mySnapshots);
+      mySnapshot);
   }
 }

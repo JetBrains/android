@@ -35,7 +35,6 @@ com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.configurations.ConfigurationMatcher.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.configurations.ResourceResolverCache.getResourceResolver
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.editors.theme.ThemeResolver.resolveNonFrameworkThemes
-com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.folding.ResourceFoldingBuilder.getAppResources
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.naveditor.scene.ThumbnailManager.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.naveditor.structure.HostPanel.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.res.ModuleRClass$ModuleResourcesSource.getResourceRepository
@@ -49,7 +48,6 @@ com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.ui.resourcechooser.preview.ResourceDrawablePanel.getResolutionChain
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.actions.CreateXmlResourceDialog.lambda$new$0
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.AndroidResourceRenameResourceProcessor.findExistingNameConflicts
-com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.AndroidXmlSchemaProvider.getResourceNamespaces
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.resourceManagers.LocalResourceManager.getResourceRepository
 com.android.tools.idea.res.ResourceRepositoryManager.getFrameworkResources|com.android.tools.idea.res.ResourceHelper.isAccessible
 com.android.tools.idea.res.ResourceRepositoryManager.getLibraryResources|com.android.tools.idea.res.ResourceRepositoryManager.getAppResources

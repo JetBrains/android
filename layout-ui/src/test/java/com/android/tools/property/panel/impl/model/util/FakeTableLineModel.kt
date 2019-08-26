@@ -15,9 +15,11 @@
  */
 package com.android.tools.property.panel.impl.model.util
 
+import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
 import com.android.tools.property.panel.api.TableLineModel
+import com.google.common.truth.Truth
 
 class FakeTableLineModel(
   override val tableModel: PTableModel,
@@ -43,6 +45,17 @@ class FakeTableLineModel(
 
   override fun refresh() {
     tableModel.refresh()
+  }
+
+  fun checkItemCount(rows: Int) {
+    Truth.assertThat(rows).isEqualTo(tableModel.items.size)
+  }
+
+  fun checkItem(row: Int, namespace: String, attribute: String) {
+    Truth.assertThat(row).isLessThan(tableModel.items.size)
+    val item = tableModel.items[row] as PropertyItem
+    Truth.assertThat(item.namespace).isEqualTo(namespace)
+    Truth.assertThat(item.name).isEqualTo(attribute)
   }
 }
 

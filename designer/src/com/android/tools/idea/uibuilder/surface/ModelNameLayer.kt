@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
 import com.android.tools.idea.common.surface.Layer
 import com.intellij.ui.JBColor
-import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Rectangle
-import java.awt.geom.Rectangle2D
 
 internal class ModelNameLayer(private val myScreenView: ScreenViewBase) : Layer() {
   /**
@@ -28,26 +27,24 @@ internal class ModelNameLayer(private val myScreenView: ScreenViewBase) : Layer(
    */
   private val myCachedRectangle = Rectangle()
 
-  override fun paint(g2d: Graphics2D) {
+  override fun paint(originalGraphics: Graphics2D) {
     val modelName = myScreenView.sceneManager.model.modelDisplayName ?: return
-    val clipBounds = g2d.clipBounds
-    val originalColor = g2d.color
+    val g2d = originalGraphics.create() as Graphics2D
+    try {
+      myScreenView.surface.getRenderableBoundsForInvisibleComponents(myScreenView, myCachedRectangle)
+      g2d.clip(myCachedRectangle)
+      g2d.color = JBColor.foreground()
 
-    myScreenView.surface.getRenderableBoundsForInvisibleComponents(myScreenView, myCachedRectangle)
-    Rectangle2D.intersect(myCachedRectangle, clipBounds, myCachedRectangle)
+      val font = g2d.font
+      val fontHeight = g2d.getFontMetrics(font).height
 
-    g2d.clip = myCachedRectangle
-    g2d.color = JBColor.foreground()
-
-    val font = g2d.font
-    val metrics = g2d.getFontMetrics(font)
-    val fontHeight = metrics.height
-
-    val x = myScreenView.x
-    val y = myScreenView.y - (myScreenView.nameLabelHeight - fontHeight)
-    g2d.drawString(modelName, x, y)
-
-    g2d.color = originalColor
-    g2d.clip = clipBounds
+      val x = myScreenView.x
+      val y = myScreenView.y - (myScreenView.nameLabelHeight - fontHeight)
+      g2d.setRenderingHints(HQ_RENDERING_HINTS)
+      g2d.drawString(modelName, x, y)
+    }
+    finally {
+      g2d.dispose()
+    }
   }
 }

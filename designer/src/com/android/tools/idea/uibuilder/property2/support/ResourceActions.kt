@@ -32,8 +32,8 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
+import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog
-import com.android.tools.idea.ui.resourcemanager.ResourceExplorerDialog
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.intellij.openapi.actionSystem.AnAction
@@ -99,22 +99,15 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
     val isImageViewDrawable = hasImageTag.isPresent &&
                               (SdkConstants.ATTR_SRC_COMPAT == propertyName || SdkConstants.ATTR_SRC == propertyName)
     val showSampleData = SdkConstants.TOOLS_URI == property.namespace
-    val dialog: ResourcePickerDialog =
-      if (StudioFlags.RESOURCE_EXPLORER_PICKER.get())
-        ResourceExplorerDialog(property.model.facet,
-                               property.type.resourceTypes,
-                               showSampleData,
-                               tag.containingFile.virtualFile)
-      else ChooseResourceDialog.builder()
-        .setModule(module)
-        .setTypes(property.type.resourceTypes)
-        .setCurrentValue(property.rawValue)
-        .setTag(tag)
-        .setDefaultType(defaultResourceType)
-        .setFilterColorStateLists(isImageViewDrawable)
-        .setShowSampleDataPicker(showSampleData)
-        .build()
-    dialog.title = PICK_A_RESOURCE
+    val dialog: ResourcePickerDialog = createResourcePickerDialog(PICK_A_RESOURCE,
+                                                                  property.rawValue,
+                                                                  property.model.facet,
+                                                                  property.type.resourceTypes,
+                                                                  defaultResourceType,
+                                                                  !isImageViewDrawable,
+                                                                  showSampleData,
+                                                                  tag.containingFile.virtualFile,
+                                                                  tag)
     return if (dialog.showAndGet()) dialog.resourceName else null
   }
 

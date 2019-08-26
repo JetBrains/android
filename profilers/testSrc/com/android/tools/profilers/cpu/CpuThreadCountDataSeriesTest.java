@@ -98,14 +98,26 @@ public class CpuThreadCountDataSeriesTest {
     // Threads count by thread2 state change to RUNNING
     SeriesData<Long> seriesData = seriesDataList.get(0);
     assertNotNull(seriesData);
-    assertEquals(TimeUnit.SECONDS.toMicros(6), seriesData.x, 0);
+    // In the new pipeline, we only return the -1 thread state, so the timestamp of that event is 8 instead of the first thread state
+    // activity at t = 6.
+    long timestamp = myIsUnifiedPipeline ? TimeUnit.SECONDS.toMicros(8) : TimeUnit.SECONDS.toMicros(6);
+    assertEquals(timestamp, seriesData.x, 0);
     assertEquals(1, (long)seriesData.value);
 
     // Threads count by thread2 state change to DEAD
     seriesData = seriesDataList.get(1);
     assertNotNull(seriesData);
-    assertEquals(TimeUnit.SECONDS.toMicros(15), seriesData.x, 0);
-    assertEquals(0, (long)seriesData.value);
+
+    if (myIsUnifiedPipeline) {
+      // In the new pipeline, we only return the +1 thread state, so we wouldn't reach the dead thread state at t = 15, but rather the
+      // series count to the end of the query range.
+      assertEquals(TimeUnit.SECONDS.toMicros(11), seriesData.x, 0);
+      assertEquals(1, (long)seriesData.value);
+    }
+    else {
+      assertEquals(TimeUnit.SECONDS.toMicros(15), seriesData.x, 0);
+      assertEquals(0, (long)seriesData.value);
+    }
   }
 
   @Test
@@ -135,8 +147,17 @@ public class CpuThreadCountDataSeriesTest {
     // Threads count by thread2 state change to DEAD
     seriesData = seriesDataList.get(3);
     assertNotNull(seriesData);
-    assertEquals(TimeUnit.SECONDS.toMicros(15), seriesData.x, 0);
-    assertEquals(0, (long)seriesData.value); // Both threads are dead now
+    if (myIsUnifiedPipeline) {
+      // In the new pipeline, we only return the +1 thread state, so we wouldn't reach the dead thread state at t = 15, but rather the
+      // series count to the end of the query range.
+      assertEquals(TimeUnit.SECONDS.toMicros(10), seriesData.x, 0);
+      assertEquals(1, (long)seriesData.value);
+    }
+    else {
+      assertEquals(TimeUnit.SECONDS.toMicros(15), seriesData.x, 0);
+      assertEquals(0, (long)seriesData.value); // Both threads are dead now
+    }
+
   }
 
   @Test
@@ -148,7 +169,10 @@ public class CpuThreadCountDataSeriesTest {
     // Threads count by thread2 state change to RUNNING
     SeriesData<Long> seriesData = seriesDataList.get(0);
     assertNotNull(seriesData);
-    assertEquals(TimeUnit.SECONDS.toMicros(6), seriesData.x, 0);
+    // In the new pipeline, we only return the -1 thread state, so the timestamp of that event is 8 instead of the first thread state
+    // activity at t = 6.
+    long timestamp = myIsUnifiedPipeline ? TimeUnit.SECONDS.toMicros(8) : TimeUnit.SECONDS.toMicros(6);
+    assertEquals(timestamp, seriesData.x, 0);
     assertEquals(1, (long)seriesData.value); // thread2 is alive
 
     // Threads count by thread2 state change to DEAD

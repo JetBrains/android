@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.DragAndDropList;
+import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.trackgroup.TrackGroup;
@@ -28,6 +29,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.HashMap;
 import java.util.Map;
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
+import com.intellij.ui.JBSplitter;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -41,14 +44,23 @@ import org.jetbrains.annotations.NotNull;
 public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private static final ProfilerTrackRendererFactory TRACK_RENDERER_FACTORY = new ProfilerTrackRendererFactory();
 
-  @NotNull
   private final JList<TrackGroupModel> myTrackGroupList;
+  private final CpuAnalysisPanel myAnalysisPanel;
+  private final JBSplitter mySplitter = new JBSplitter(false, 0.5f);
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
     myTrackGroupList = createTrackGroups(stage.getTrackGroupListModel());
+    myAnalysisPanel = new CpuAnalysisPanel(stage);
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
+    stage.getMinimapModel().getRangeSelectionModel().addDependency(this)
+      .onChange(RangeSelectionModel.Aspect.SELECTION, this::updateTrackGroupList);
     updateComponents();
+  }
+
+  @Override
+  public JComponent getToolbar() {
+    return new JPanel();
   }
 
   private void updateComponents() {
@@ -62,13 +74,16 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   private JComponent createAnalyzingComponents() {
     JPanel container = new JPanel(new BorderLayout());
+    container.add(new CpuCaptureMinimapView(getStage().getMinimapModel()).getComponent(), BorderLayout.NORTH);
     container.add(myTrackGroupList, BorderLayout.CENTER);
-    return container;
+    mySplitter.setFirstComponent(container);
+    mySplitter.setSecondComponent(myAnalysisPanel.getComponent());
+    return mySplitter;
   }
 
-  @Override
-  public JComponent getToolbar() {
-    return new JPanel();
+  private void updateTrackGroupList() {
+    // Force JList cell renderer to validate.
+    myTrackGroupList.updateUI();
   }
 
   /**
@@ -96,5 +111,11 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   @NotNull
   protected final JList<TrackGroupModel> getTrackGroupList() {
     return myTrackGroupList;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  protected final CpuAnalysisPanel getAnalysisPanel() {
+    return myAnalysisPanel;
   }
 }

@@ -63,7 +63,7 @@ abstract class ModuleModel(
       val filesToOpen = mutableListOf<File>()
 
       val context = Builder.newContext(template, project)
-        .withCommandName(message("android.wizard.module.new.module.header"))
+        .withCommandName(message("android.wizard.module.new.module.command"))
         .withDryRun(dryRun)
         .withShowErrors(true)
         .withOutputRoot(projectRoot)

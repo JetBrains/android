@@ -58,6 +58,7 @@ public class CpuThreadSliceInfo extends CpuThreadInfo {
     return myProcessId;
   }
 
+  @NotNull
   public String getProcessName() {
     return myProcessName;
   }

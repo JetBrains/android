@@ -23,6 +23,7 @@ import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
 import static com.intellij.openapi.roots.ui.configuration.ModulesProvider.EMPTY_MODULES_PROVIDER;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 import com.android.SdkConstants;
@@ -167,7 +168,7 @@ public class AndroidImportProjectAction extends AnAction {
 
   private static boolean isSelectedFileValid(@Nullable Project project, @NotNull VirtualFile file) {
     ProjectImportPathValidator validator = new ProjectImportPathValidator("project file");
-    Validator.Result result = validator.validate(file.getPath());
+    Validator.Result result = validator.validate(virtualToIoFile(file));
     if (result.getSeverity() != Validator.Severity.OK) {
       boolean isError = result.getSeverity() == Validator.Severity.ERROR;
       Messages.showInfoMessage(project, result.getMessage(), isError ? "Cannot Import Project" : "Project Import Warning");
@@ -182,7 +183,7 @@ public class AndroidImportProjectAction extends AnAction {
   protected AddModuleWizard createImportWizard(@NotNull VirtualFile file) throws IOException, ConfigurationException {
     VirtualFile target = findImportTarget(file);
     VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
-    File targetDirFile = VfsUtilCore.virtualToIoFile(targetDir);
+    File targetDirFile = virtualToIoFile(targetDir);
 
     if (isAdtProjectLocation(file)) {
       importAdtProject(file);

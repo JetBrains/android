@@ -66,10 +66,10 @@ open class CpuProfilerMemoryLoadTestBase {
     ensureGc()
   }
 
-  private fun logMemoryUsed(metricName: String) {
+  private fun getMemoryUsed(): Long {
     val memoryUsage = ManagementFactory.getMemoryMXBean()
     ensureGc()
-    myMemoryBenchmark.log(metricName + "-Used", memoryUsage.heapMemoryUsage.used / 1024)
+    return memoryUsage.heapMemoryUsage.used
   }
 
   private fun ensureGc() {
@@ -85,7 +85,7 @@ open class CpuProfilerMemoryLoadTestBase {
    */
   protected fun loadCaptureAndReport(name:String, fileName:File?) {
     // Start as clean as we can.
-    ensureGc()
+    val before = getMemoryUsed()
     // Enable flags that allow us to import all traces.
     myIdeServices.enableImportTrace(true)
     myIdeServices.enableAtrace(true)
@@ -102,7 +102,8 @@ open class CpuProfilerMemoryLoadTestBase {
       stage.studioProfilers.stage = stage
       cpuStageView = CpuProfilerStageView(myProfilersView!!, stage)
     })
-    logMemoryUsed(name + "-Load-Capture")
+    val after = getMemoryUsed()
+    myMemoryBenchmark.log(name + "-Load-Capture" + "-Used", (after - before) / 1024)
     // Test the stage view just to hold a reference in case the compiler attempts to be smart.
     assertThat(cpuStageView).isNotNull()
   }

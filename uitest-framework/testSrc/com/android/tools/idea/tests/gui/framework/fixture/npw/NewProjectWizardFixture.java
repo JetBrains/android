@@ -46,7 +46,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ChooseAndroidProjectStepFixture<NewProjectWizardFixture> getChooseAndroidProjectStep() {
-    JRootPane rootPane = findStepWithTitle("Choose your project");
+    JRootPane rootPane = findStepWithTitle(message("android.wizard.project.new.choose"));
     return new ChooseAndroidProjectStepFixture<>(this, rootPane);
   }
 

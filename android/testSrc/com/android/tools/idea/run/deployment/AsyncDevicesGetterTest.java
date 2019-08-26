@@ -46,7 +46,7 @@ public final class AsyncDevicesGetterTest {
     Clock clock = Mockito.mock(Clock.class);
     Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
-    myGetter = new AsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock));
+    myGetter = new AsyncDevicesGetter(myRule.getProject(), () -> false, new KeyToConnectionTimeMap(clock));
   }
 
   @Test

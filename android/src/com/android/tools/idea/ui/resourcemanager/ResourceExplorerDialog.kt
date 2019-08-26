@@ -24,22 +24,42 @@ import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.JBUI
+import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 import javax.swing.BorderFactory
 
-/** A [ResourceExplorer] used in a dialog for resource picking. */
+/**
+ * A [ResourceExplorer] used in a dialog for resource picking.
+ *
+ * @param facet The current [AndroidFacet], used to determine the module in the ResourceExplorer.
+ * @param initialResourceUrl The resourceUrl (@string/name) of the initial value, if any.
+ * @param supportedTypes The supported [ResourceType]s that can be picked.
+ * @param showSampleData Includes [ResourceType.SAMPLE_DATA] resources as options to pick.
+ * @param currentFile The [VirtualFile] that may have an specific preview configuration.
+ */
 class ResourceExplorerDialog(
-  facet: AndroidFacet, forTypes: Set<ResourceType>, showSampleData: Boolean, currentFile: VirtualFile?
+  facet: AndroidFacet,
+  initialResourceUrl: String?,
+  supportedTypes: Set<ResourceType>,
+  showSampleData: Boolean,
+  currentFile: VirtualFile?
 ): ResourcePickerDialog(facet.module.project) {
 
   @TestOnly // TODO: consider getting this in a better way.
   val resourceExplorerPanel = ResourceExplorer.createResourcePicker(
-    facet, forTypes, showSampleData, currentFile, this::updateSelectedResource, this::doSelectResource)
+    facet, supportedTypes, showSampleData, currentFile, this::updateSelectedResource, this::doSelectResource)
 
   private var pickedResourceName: String? = null
 
   init {
+    initialResourceUrl?.let { stringValue ->
+      ResourceValue.reference(stringValue)?.takeIf { it.resourceName != null && it.type != null }?.let { value ->
+        // Get the resource name and type from the given resource url and try to select it in the ResourceExplorer.
+        // Eg: From '@android:color/color_primary' we select 'color_primary' under 'Color' resources.
+        resourceExplorerPanel.selectAsset(value.resourceName!!, value.type!!, newResource = false)
+      }
+    }
     init()
     doValidate()
   }

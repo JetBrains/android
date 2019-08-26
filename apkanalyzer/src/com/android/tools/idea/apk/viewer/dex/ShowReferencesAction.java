@@ -177,6 +177,8 @@ public class ShowReferencesAction extends AnAction {
       .setResizable(true)
       .setMovable(true)
       .setTitle("References to " + node.getName())
+      .setFocusable(true)
+      .setRequestFocus(true)
       .createPopup();
     popup.showInBestPositionFor(e.getDataContext());
   }

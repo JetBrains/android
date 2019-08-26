@@ -52,7 +52,7 @@ public class FlameChartTest {
     main.getChildren().get(1).addChild(newNode("C", 21, 25));
     main.getChildren().get(1).addChild(newNode("C", 25, 30));
 
-    CaptureNode flameChartNode = new CaptureDetails.FlameChart(new Range(0, 71), main).getNode();
+    CaptureNode flameChartNode = new CaptureDetails.FlameChart(new Range(0, 71), main, null).getNode();
     // main [0..71]
     assertEquals(0, flameChartNode.getStart());
     assertEquals(71, flameChartNode.getEnd());
@@ -102,7 +102,7 @@ public class FlameChartTest {
     main.addChild(newNode("C", 30, 50));
     main.addChild(newNode("A", 50, 60));
 
-    CaptureNode flameChartNode = new CaptureDetails.FlameChart(new Range(0, 60), main).getNode();
+    CaptureNode flameChartNode = new CaptureDetails.FlameChart(new Range(0, 60), main, null).getNode();
     assertEquals(0, flameChartNode.getStart());
     assertEquals(60, flameChartNode.getEnd());
     assertEquals("main", flameChartNode.getData().getName());
@@ -128,7 +128,7 @@ public class FlameChartTest {
     main.addChild(newNode("C", 50, 100));
 
     Range selection = new Range(0, 100);
-    CaptureDetails.FlameChart flameChart = new CaptureDetails.FlameChart(selection, main);
+    CaptureDetails.FlameChart flameChart = new CaptureDetails.FlameChart(selection, main, null);
 
     CaptureNode root = flameChart.getNode();
     assertEquals(100, root.getDuration());

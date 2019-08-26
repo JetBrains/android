@@ -26,7 +26,6 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
@@ -109,8 +108,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of());
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -132,8 +130,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of());
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -155,8 +152,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of());
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -225,8 +221,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of());
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
 
     Device device1 = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device1));
@@ -244,7 +239,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setName("Pixel XL API 28")
       .setKey("Pixel_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of())
       .build();
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Arrays.asList(builder.build(), device2));
@@ -261,7 +255,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setName("Pixel 3 XL API 28")
       .setKey("Pixel_3_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of(new Snapshot("Snapshot 1", "snap_2019-07-31_14-14-25")))
+      .setSnapshot(new Snapshot("Snapshot 1", "snap_2019-07-31_14-14-25"))
       .build();
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -298,8 +292,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of());
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -366,8 +359,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device.Builder virtualDeviceBuilder = new VirtualDevice.Builder()
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of());
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
 
     Device.Builder physicalDeviceBuilder = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
@@ -416,7 +408,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
+      .setSnapshot(Snapshot.DEFAULT);
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -451,7 +443,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of(new Snapshot("snap_2018-08-07_16-27-58")));
+      .setSnapshot(new Snapshot("snap_2018-08-07_16-27-58"));
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -628,8 +620,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of());
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -654,8 +645,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of());
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -681,8 +671,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of());
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
 
     Device device1 = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device1));
@@ -691,7 +680,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setName("Pixel XL API 28")
       .setKey("Pixel_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of())
       .build();
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
@@ -770,7 +758,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
+      .setSnapshot(Snapshot.DEFAULT);
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -797,7 +785,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
+      .setSnapshot(Snapshot.DEFAULT);
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -825,7 +813,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
+      .setSnapshot(Snapshot.DEFAULT);
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
@@ -852,8 +840,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(TestDevices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshots(ImmutableList.of());
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class));
 
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));

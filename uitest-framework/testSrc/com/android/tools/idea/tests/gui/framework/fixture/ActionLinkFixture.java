@@ -59,6 +59,31 @@ public class ActionLinkFixture extends JComponentFixture<ActionLinkFixture, Acti
     return new ActionLinkFixture(robot, actionLink);
   }
 
+  @NotNull
+  public static ActionLinkFixture findByActionText(@NotNull final String text,
+                                                   @NotNull final Robot robot,
+                                                   @NotNull final Container container) {
+    final Ref<ActionLink> actionLinkRef = new Ref<>();
+    Wait.seconds(1).expecting("ActionLink with text '" + text + "' to be found")
+      .until(() -> {
+        Collection<ActionLink> found = robot.finder().findAll(container, new GenericTypeMatcher<ActionLink>(ActionLink.class) {
+          @Override
+          protected boolean isMatching(@NotNull ActionLink actionLink) {
+              String gotText = actionLink.getText();
+              return gotText.equals(text);
+          }
+        });
+        if (found.size() == 1) {
+          actionLinkRef.set(getFirstItem(found));
+          return true;
+        }
+        return false;
+      });
+
+    ActionLink actionLink = actionLinkRef.get();
+    return new ActionLinkFixture(robot, actionLink);
+  }
+
   private ActionLinkFixture(@NotNull Robot robot, @NotNull ActionLink target) {
     super(ActionLinkFixture.class, robot, target);
   }

@@ -21,7 +21,7 @@ import static java.util.Collections.emptyList;
 
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.java.model.GradlePluginModel;
+import com.android.ide.gradle.model.GradlePluginModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;

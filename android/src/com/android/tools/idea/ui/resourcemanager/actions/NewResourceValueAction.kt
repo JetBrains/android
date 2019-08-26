@@ -26,11 +26,12 @@ import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
 
 /**
- * [AnAction] that calls the [CreateXmlResourceDialog] to create new resources in a project.
+ * [AnAction] wrapper that calls the [CreateXmlResourceDialog] to create new resources in a project.
  */
 class NewResourceValueAction(
   private val type: ResourceType,
-  private val facet: AndroidFacet
+  private val facet: AndroidFacet,
+  private val createdResourceCallback: (String, ResourceType) -> Unit
 ): AnAction("${type.displayName} Value") {
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -41,10 +42,10 @@ class NewResourceValueAction(
                                          true,
                                          null,
                                          null)
-    dialog.title = "New Value Resource"
+    dialog.title = "New ${type.displayName} Value"
     if (!dialog.showAndGet()) return
     val module = facet.module
-    val project = module.getProject()
+    val project = module.project
     val resDir = dialog.resourceDirectory
     if (resDir == null) {
       AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module))
@@ -57,6 +58,9 @@ class NewResourceValueAction(
     if (!AndroidResourceUtil.createValueResource(project, resDir, resName, type, fileName, dirNames, resValue)) {
       return
     }
-    PsiDocumentManager.getInstance(module.getProject()).commitAllDocuments()
+    PsiDocumentManager.getInstance(module.project).commitAllDocuments()
+
+    // Show/open/select created resource.
+    createdResourceCallback(resName, type)
   }
 }

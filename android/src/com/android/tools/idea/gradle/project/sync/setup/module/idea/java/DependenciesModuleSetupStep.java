@@ -105,6 +105,7 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
       if (androidFacet == null) {
         ModuleOrderEntry entry = moduleModel.addModuleOrderEntry(found);
         entry.setExported(getExported());
+        entry.setScope(parseScope(dependency.getScope()));
       }
       else {
         // If it depends on an android module, we should skip that.

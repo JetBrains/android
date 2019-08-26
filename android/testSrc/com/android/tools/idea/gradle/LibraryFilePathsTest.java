@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle;
 import static com.android.tools.idea.gradle.LibraryFilePaths.getLibraryId;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.model.sources.SourcesAndJavadocArtifact;
-import com.android.model.sources.SourcesAndJavadocArtifactIdentifier;
-import com.android.model.sources.SourcesAndJavadocArtifacts;
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact;
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifactIdentifier;
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.io.File;
 import java.util.Arrays;

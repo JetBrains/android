@@ -24,7 +24,10 @@ import com.android.tools.idea.res.BindingLayoutType
 import com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.res.BindingLayoutType.VIEW_BINDING_LAYOUT
 import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.DefaultFileTypeSpecificInputFilter
 import com.intellij.util.indexing.FileBasedIndex
@@ -42,18 +45,25 @@ import com.intellij.util.xml.NanoXmlBuilder
 import com.intellij.util.xml.NanoXmlUtil
 import java.io.DataInput
 import java.io.DataOutput
-
+import java.io.Reader
 
 /**
  * File based index for data binding layout xml files.
  */
-class BindingXmlIndex : FileBasedIndexExtension<String, IndexedLayoutInfo>() {
+class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
   companion object {
     @JvmField
-    val NAME = ID.create<String, IndexedLayoutInfo>("BindingXmlIndex")
+    val NAME = ID.create<String, BindingXmlData>("BindingXmlIndex")
 
-    @JvmStatic
-    fun getKeyForFile(file: VirtualFile) = FileBasedIndex.getFileId(file).toString()
+    private fun getKeyForFile(file: VirtualFile) = FileBasedIndex.getFileId(file).toString()
+
+    private fun getDataForFile(file: VirtualFile, scope: GlobalSearchScope): BindingXmlData? {
+      val index = FileBasedIndex.getInstance()
+      return index.getValues(NAME, getKeyForFile(file), scope).firstOrNull()
+    }
+
+    fun getDataForFile(project: Project, file: VirtualFile) = getDataForFile(file, GlobalSearchScope.fileScope(project, file))
+    fun getDataForFile(psiFile: PsiFile) = getDataForFile(psiFile.virtualFile, GlobalSearchScope.fileScope(psiFile))
   }
 
   override fun getKeyDescriptor(): KeyDescriptor<String> {
@@ -65,99 +75,157 @@ class BindingXmlIndex : FileBasedIndexExtension<String, IndexedLayoutInfo>() {
   /**
    * Defines the data externalizer handling the serialization/de-serialization of indexed information.
    */
-  override fun getValueExternalizer(): DataExternalizer<IndexedLayoutInfo> {
-    return object : DataExternalizer<IndexedLayoutInfo> {
-      override fun save(out: DataOutput, value: IndexedLayoutInfo?) {
+  override fun getValueExternalizer(): DataExternalizer<BindingXmlData> {
+    return object : DataExternalizer<BindingXmlData> {
+      override fun save(out: DataOutput, value: BindingXmlData?) {
         value ?: return
         writeINT(out, value.layoutType.ordinal)
-        writeINT(out, value.importCount)
-        writeINT(out, value.variableCount)
+        IOUtil.writeUTF(out, value.customBindingName ?: "")
+
+        writeINT(out, value.imports.size)
+        for (import in value.imports) {
+          IOUtil.writeUTF(out, import.type)
+          IOUtil.writeUTF(out, import.alias ?: "")
+        }
+
+        writeINT(out, value.variables.size)
+        for (variable in value.variables) {
+          IOUtil.writeUTF(out, variable.name)
+          IOUtil.writeUTF(out, variable.type)
+        }
+
         writeINT(out, value.viewIds.size)
-        for (idInfo in value.viewIds) {
-          IOUtil.writeUTF(out, idInfo.id)
-          IOUtil.writeUTF(out, idInfo.viewName ?: "")
-          IOUtil.writeUTF(out, idInfo.layoutName ?: "")
+        for (viewId in value.viewIds) {
+          IOUtil.writeUTF(out, viewId.id)
+          IOUtil.writeUTF(out, viewId.viewName)
+          IOUtil.writeUTF(out, viewId.layoutName ?: "")
         }
       }
 
-      override fun read(`in`: DataInput): IndexedLayoutInfo {
+      override fun read(`in`: DataInput): BindingXmlData {
         val layoutType = BindingLayoutType.values()[readINT(`in`)]
-        val importCount = readINT(`in`)
-        val variableCount = readINT(`in`)
-        val idList = mutableListOf<ViewIdInfo>()
-        for (i in 1..readINT(`in`)) {
-          idList.add(ViewIdInfo(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`).ifEmpty { null },
-                                IOUtil.readUTF(`in`).ifEmpty { null }))
+        val customBindingName = IOUtil.readUTF(`in`).ifEmpty { null }
+
+        val imports = mutableListOf<ImportData>()
+        for (i in 0 until readINT(`in`)) {
+          imports.add(ImportData(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`).ifEmpty { null }))
         }
-        return IndexedLayoutInfo(layoutType, importCount, variableCount, idList)
+        val variables = mutableListOf<VariableData>()
+        for (i in 0 until readINT(`in`)) {
+          variables.add(VariableData(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`)))
+        }
+
+        val viewIds = mutableListOf<ViewIdData>()
+        for (i in 1..readINT(`in`)) {
+          viewIds.add(ViewIdData(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`),
+                                 IOUtil.readUTF(`in`).ifEmpty { null }))
+        }
+        return BindingXmlData(layoutType, customBindingName, imports, variables, viewIds)
       }
     }
   }
 
-  override fun getName(): ID<String, IndexedLayoutInfo> {
+  override fun getName(): ID<String, BindingXmlData> {
     return NAME
   }
 
-  override fun getIndexer(): DataIndexer<String, IndexedLayoutInfo, FileContent> {
+  override fun getIndexer(): DataIndexer<String, BindingXmlData, FileContent> {
     return DataIndexer { inputData ->
-      var importCount = 0
-      var variableCount = 0
       var isDataBindingLayout = false
-      val idList = mutableListOf<ViewIdInfo>()
-      NanoXmlUtil.parse(CharArrayUtil.readerFromCharSequence(inputData.contentAsText), object : NanoXmlBuilder {
-        var id: String? = null
-        var viewName: String? = null
+      var customBindingName: String? = null
+      val variables = mutableListOf<VariableData>()
+      val imports = mutableListOf<ImportData>()
+      val viewIds = mutableListOf<ViewIdData>()
+
+      class TagData(val name: String) {
+        var importType: String? = null
+        var importAlias: String? = null
+
+        var variableName: String? = null
+        var variableType: String? = null
+
         var viewClass: String? = null
-        var layoutName: String? = null
+        var viewId: String? = null
+        var viewLayout: String? = null
+      }
+
+      NanoXmlUtil.parse(EscapingXmlReader(inputData.contentAsText), object : NanoXmlBuilder {
+        var currTag: TagData? = null
+
+        override fun startElement(name: String, nsPrefix: String?, nsURI: String?, systemID: String, lineNr: Int) {
+          currTag = TagData(name)
+          if (name == TAG_LAYOUT) {
+            isDataBindingLayout = true
+          }
+        }
 
         override fun addAttribute(key: String, nsPrefix: String?, nsURI: String?, value: String, type: String) {
-          if (nsURI == SdkConstants.ANDROID_URI) {
-            when (key) {
-              // Used to determine view type of <View>.
-              SdkConstants.ATTR_CLASS -> viewClass = value
-              // Used to determine view type of <Merge> and <Include>.
-              SdkConstants.ATTR_LAYOUT -> layoutName = value
-              SdkConstants.ATTR_ID -> id = stripPrefixFromId(value)
-            }
+          val currTag = currTag!! // Always valid inside tags
+          when (currTag.name) {
+            SdkConstants.TAG_DATA ->
+              when (key) {
+                SdkConstants.ATTR_CLASS -> customBindingName = value
+              }
+
+            SdkConstants.TAG_IMPORT ->
+              when (key) {
+                SdkConstants.ATTR_TYPE -> currTag.importType = value
+                SdkConstants.ATTR_ALIAS -> currTag.importAlias = value
+              }
+
+            SdkConstants.TAG_VARIABLE ->
+              when (key) {
+                SdkConstants.ATTR_NAME -> currTag.variableName = value
+                SdkConstants.ATTR_TYPE -> currTag.variableType = value
+              }
+
+            else ->
+              if (nsURI == SdkConstants.ANDROID_URI) {
+                when (key) {
+                  // Used to determine view type of <View>.
+                  SdkConstants.ATTR_CLASS -> currTag.viewClass = value
+                  // Used to determine view type of <Merge> and <Include>.
+                  SdkConstants.ATTR_LAYOUT -> currTag.viewLayout = value
+                  SdkConstants.ATTR_ID -> currTag.viewId = stripPrefixFromId(value)
+                }
+              }
           }
         }
 
         override fun elementAttributesProcessed(name: String, nsPrefix: String?, nsURI: String?) {
-          id?.let {
-            if (SdkConstants.VIEW_TAG == viewName) {
-              viewName = viewClass
+          val currTag = currTag!! // Always valid inside tags
+          when (currTag.name) {
+            SdkConstants.TAG_DATA -> {
+              // Nothing to do here, but case needed to avoid ending up in default branch
             }
-            idList.add(ViewIdInfo(it, viewName, layoutName))
-          }
-          resetVariables()
-        }
 
-        override fun startElement(name: String, nsPrefix: String?, nsURI: String?, systemID: String, lineNr: Int) {
-          if (name == TAG_LAYOUT) {
-            isDataBindingLayout = true
-          }
-          when (name) {
-            SdkConstants.TAG_VARIABLE -> variableCount++
-            SdkConstants.TAG_IMPORT -> importCount++
-            else -> viewName = name
-          }
-        }
+            SdkConstants.TAG_IMPORT ->
+              if (currTag.importType != null) {
+                imports.add(ImportData(currTag.importType!!, currTag.importAlias))
+              }
 
-        private fun resetVariables() {
-          id = null
-          viewName = null
-          viewClass = null
-          layoutName = null
+            SdkConstants.TAG_VARIABLE ->
+              if (currTag.variableName != null && currTag.variableType != null) {
+                variables.add(VariableData(currTag.variableName!!, currTag.variableType!!))
+              }
+
+            else ->
+              if (currTag.viewId != null) {
+                // Tag should either be something like <TextView>, <Button>, etc.
+                // OR the special-case <view class="path.to.CustomView"/>
+                val viewName = if (currTag.name != SdkConstants.VIEW_TAG) currTag.name else currTag.viewClass
+                if (viewName != null) {
+                  viewIds.add(ViewIdData(currTag.viewId!!, viewName, currTag.viewLayout))
+                }
+              }
+            }
+
+          this.currTag = null
         }
       })
-      if (isDataBindingLayout) {
-        mapOf(getKeyForFile(inputData.file) to
-                IndexedLayoutInfo(DATA_BINDING_LAYOUT, importCount, variableCount, idList))
-      }
-      else {
-        mapOf(getKeyForFile(inputData.file) to
-                IndexedLayoutInfo(VIEW_BINDING_LAYOUT, 0, 0, idList))
-      }
+
+      val layoutType = if (isDataBindingLayout) DATA_BINDING_LAYOUT else VIEW_BINDING_LAYOUT
+      mapOf(getKeyForFile(inputData.file) to BindingXmlData(layoutType, customBindingName, imports, variables, viewIds))
     }
   }
 
@@ -172,36 +240,55 @@ class BindingXmlIndex : FileBasedIndexExtension<String, IndexedLayoutInfo>() {
     }
   }
 
-  override fun getVersion() = 2
+  override fun getVersion() = 3
 }
 
 /**
- * Data class for storing information related to view viewIds
+ * Reader that attempts to escape known codes (e.g. "&lt;") on the fly as it reads.
+ *
+ * It seems that NanoXml does not itself translate escape characters, instead skipping over them.
+ * So, we have to intercept them ourselves. For the attributes we parse, we only care about a
+ * subset of all potentially escaped characters -- specifically '<' and '>', which can be used
+ * in generic types. The rest, we can skip over, which NanoXml would have done anyway.
  */
-data class ViewIdInfo(
-  /** Id of the view. */
-  val id: String,
+private class EscapingXmlReader(text: CharSequence): Reader() {
+  private val delegate = CharArrayUtil.readerFromCharSequence(text)
+  private val buffer = StringBuilder()
 
-  /** Name of the view. Typically the tag name: <TextView>. */
-  val viewName: String?,
+  override fun read(cbuf: CharArray, off: Int, len: Int): Int {
+    var numRead = 0
+    while (numRead < len) {
+      var nextChar: Char = delegate.read().takeIf { it >= 0 }?.toChar() ?: break
+      var skipChar = false
+      if (nextChar == '&') {
+        assert(buffer.isEmpty())
 
-  /** Optional layout attribute. Only applicable to <Merge> or <Include> tags. */
-  val layoutName: String?
-)
+        buffer.append(nextChar)
+        while (true) {
+          nextChar = delegate.read().takeIf { it >= 0 }?.toChar() ?: break
+          buffer.append(nextChar)
+          if (nextChar == ';')
+            break
+        }
 
-/**
- * Data class for storing the indexed content of a data binding <layout> tag.
- */
-data class IndexedLayoutInfo(
-  /** Type of layout. */
-  val layoutType: BindingLayoutType,
+        when (buffer.toString()) {
+          "&lt;" -> nextChar = '<'
+          "&gt;" -> nextChar = '>'
+          else -> skipChar = true
+        }
+        buffer.clear()
+      }
 
-  /** Number of data binding import elements. */
-  val importCount: Int,
+      if (!skipChar) {
+        cbuf[off + numRead] = nextChar
+        ++numRead
+      }
+    }
 
-  /** Number of data binding variable elements. */
-  val variableCount: Int,
+    return if (numRead > 0) numRead else -1
+  }
 
-  /** Ids of views defined in this layout. */
-  val viewIds: List<ViewIdInfo>
-)
+  override fun close() {
+    delegate.close()
+  }
+}

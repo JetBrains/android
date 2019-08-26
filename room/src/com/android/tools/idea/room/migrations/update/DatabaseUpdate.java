@@ -16,9 +16,14 @@
 package com.android.tools.idea.room.migrations.update;
 
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
+import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
+import com.google.common.base.Preconditions;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,6 +33,10 @@ public class DatabaseUpdate {
   private Map<String, EntityBundle> newEntities;
   private Map<String, EntityBundle> deletedEntities;
   private Map<String, EntityUpdate> modifiedEntities;
+
+  private List<DatabaseViewBundle> deletedViews;
+  private List<DatabaseViewBundle> newOrModifiedViews;
+
   private int currentVersion;
   private int previousVersion;
 
@@ -36,6 +45,9 @@ public class DatabaseUpdate {
    * @param newDatabase current version of the database
    */
   public DatabaseUpdate(@NotNull DatabaseBundle oldDatabase, @NotNull DatabaseBundle newDatabase) {
+    checkDatabase(oldDatabase);
+    checkDatabase(newDatabase);
+
     previousVersion = oldDatabase.getVersion();
     currentVersion = newDatabase.getVersion();
     deletedEntities = new HashMap<>(oldDatabase.getEntitiesByTableName());
@@ -51,6 +63,33 @@ public class DatabaseUpdate {
       } else {
         newEntities.put(newEntity.getTableName(), newEntity);
       }
+    }
+
+    deletedViews = new ArrayList<>();
+    newOrModifiedViews = new ArrayList<>();
+
+    if (oldDatabase.getViews().isEmpty()) {
+      if (!newDatabase.getViews().isEmpty()) {
+        newOrModifiedViews.addAll(newDatabase.getViews());
+      }
+    } else if (newDatabase.getViews().isEmpty()) {
+      deletedViews.addAll(oldDatabase.getViews());
+    } else {
+      Map<String, DatabaseViewBundle> oldViews =
+        oldDatabase.getViews().stream().collect(Collectors.toMap(DatabaseViewBundle::getViewName, view -> view));
+      for (DatabaseViewBundle newView : newDatabase.getViews()) {
+        DatabaseViewBundle oldView = oldViews.get(newView.getViewName());
+        if (oldView != null) {
+          if (!oldView.isSchemaEqual(newView)) {
+            newOrModifiedViews.add(newView);
+          } else {
+            oldViews.remove(newView.getViewName());
+          }
+        } else {
+          newOrModifiedViews.add(newView);
+        }
+      }
+      deletedViews.addAll(oldViews.values());
     }
   }
 
@@ -69,11 +108,28 @@ public class DatabaseUpdate {
     return deletedEntities;
   }
 
+  @NotNull
+  public List<DatabaseViewBundle> getNewOrModifiedViews() {
+    return newOrModifiedViews;
+  }
+
+  @NotNull
+  public List<DatabaseViewBundle> getDeletedViews() {
+    return deletedViews;
+  }
+
   public int getCurrentVersion() {
     return currentVersion;
   }
 
   public int getPreviousVersion() {
     return previousVersion;
+  }
+
+  private void checkDatabase(@NotNull DatabaseBundle databaseBundle) {
+    Preconditions.checkArgument(databaseBundle.getEntities() != null,
+                                "Invalid DatabaseBundle object: the list of entities is null.");
+    Preconditions.checkArgument(databaseBundle.getViews() != null,
+                                "Invalid DatabaseBundle object: the list of views is null.");
   }
 }

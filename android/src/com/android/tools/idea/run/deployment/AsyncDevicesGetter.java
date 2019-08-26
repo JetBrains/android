@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
 import com.google.common.annotations.VisibleForTesting;
@@ -26,11 +27,13 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,13 +46,16 @@ public class AsyncDevicesGetter {
   private final Project myProject;
 
   @NotNull
-  private final KeyToConnectionTimeMap myMap;
+  private final BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @NotNull
   private final Worker<Collection<VirtualDevice>> myVirtualDevicesWorker;
 
   @NotNull
   private final Worker<Collection<ConnectedDevice>> myConnectedDevicesWorker;
+
+  @NotNull
+  private final KeyToConnectionTimeMap myMap;
 
   @NotNull
   private final DeviceNamePropertiesFetcher myDevicePropertiesFetcher;
@@ -59,16 +65,20 @@ public class AsyncDevicesGetter {
 
   @SuppressWarnings("unused")
   private AsyncDevicesGetter(@NotNull Project project) {
-    this(project, new KeyToConnectionTimeMap());
+    this(project, () -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(), new KeyToConnectionTimeMap());
   }
 
   @VisibleForTesting
-  AsyncDevicesGetter(@NotNull Project project, @NotNull KeyToConnectionTimeMap map) {
+  AsyncDevicesGetter(@NotNull Project project,
+                     @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabled,
+                     @NotNull KeyToConnectionTimeMap map) {
     myProject = project;
-    myMap = map;
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
 
     myVirtualDevicesWorker = new Worker<>(Collections.emptyList());
     myConnectedDevicesWorker = new Worker<>(Collections.emptyList());
+
+    myMap = map;
     myDevicePropertiesFetcher = new DeviceNamePropertiesFetcher(new DefaultCallback<>(), project);
   }
 
@@ -84,10 +94,15 @@ public class AsyncDevicesGetter {
 
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
 
-    Callable<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(myChecker);
-    Callable<Collection<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(myProject, myChecker);
+    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean()) {
+      Callable<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(false, myChecker);
+      Callable<Collection<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(myProject, myChecker);
 
-    return getImpl(myVirtualDevicesWorker.get(virtualDevicesTask), myConnectedDevicesWorker.get(connectedDevicesTask));
+      return getImpl(myVirtualDevicesWorker.get(virtualDevicesTask), myConnectedDevicesWorker.get(connectedDevicesTask));
+    }
+
+    // TODO Reconcile the virtual devices with the connected ones. Retain the connected device keys in the map.
+    return new ArrayList<>(myVirtualDevicesWorker.get(new VirtualDevicesTask(true, myChecker)));
   }
 
   /**

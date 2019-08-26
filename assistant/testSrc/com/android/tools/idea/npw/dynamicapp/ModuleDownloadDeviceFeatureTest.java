@@ -49,36 +49,36 @@ public class ModuleDownloadDeviceFeatureTest {
     assertThat(validatorPanel.hasErrors().get()).isTrue();
     assertThat(getValidationText(validatorPanel)).isEqualTo("Device feature value must be set");
 
-    deviceFeatureModel.deviceFeatureValue().set("test<");
+    deviceFeatureModel.deviceFeatureValue.set("test<");
     assertThat(validatorPanel.hasErrors().get()).isTrue();
     assertThat(getValidationText(validatorPanel)).isEqualTo("Illegal character '<' in Name 'test<'");
 
-    deviceFeatureModel.deviceFeatureValue().set("\"test");
+    deviceFeatureModel.deviceFeatureValue.set("\"test");
     assertThat(validatorPanel.hasErrors().get()).isTrue();
     assertThat(getValidationText(validatorPanel)).isEqualTo("Illegal character '\"' in Name '\"test'");
 
-    deviceFeatureModel.deviceFeatureValue().set("\"tes&t");
+    deviceFeatureModel.deviceFeatureValue.set("\"tes&t");
     assertThat(validatorPanel.hasErrors().get()).isTrue();
     assertThat(getValidationText(validatorPanel)).isEqualTo("Illegal character '\"' in Name '\"tes&t'");
 
-    deviceFeatureModel.deviceFeatureValue().set("<\"tes&t");
+    deviceFeatureModel.deviceFeatureValue.set("<\"tes&t");
     assertThat(validatorPanel.hasErrors().get()).isTrue();
     assertThat(getValidationText(validatorPanel)).isEqualTo("Illegal character '<' in Name '<\"tes&t'");
 
-    deviceFeatureModel.deviceFeatureType().set(DeviceFeatureKind.GL_ES_VERSION);
+    deviceFeatureModel.deviceFeatureType.set(DeviceFeatureKind.GL_ES_VERSION);
 
-    deviceFeatureModel.deviceFeatureValue().set("&<\"tes&t");
+    deviceFeatureModel.deviceFeatureValue.set("&<\"tes&t");
     assertThat(validatorPanel.hasErrors().get()).isTrue();
     assertThat(getValidationText(validatorPanel)).isEqualTo("Illegal character '&' in OpenGL ES Version '&<\"tes&t'");
 
-    deviceFeatureModel.deviceFeatureValue().set("test&<\"tes&t");
+    deviceFeatureModel.deviceFeatureValue.set("test&<\"tes&t");
     assertThat(validatorPanel.hasErrors().get()).isTrue();
     assertThat(getValidationText(validatorPanel)).isEqualTo("Illegal character '&' in OpenGL ES Version 'test&<\"tes&t'");
 
-    deviceFeatureModel.deviceFeatureValue().set("test");
+    deviceFeatureModel.deviceFeatureValue.set("test");
     assertThat(validatorPanel.hasErrors().get()).isFalse();
 
-    deviceFeatureModel.deviceFeatureValue().set("");
+    deviceFeatureModel.deviceFeatureValue.set("");
     assertThat(validatorPanel.hasErrors().get()).isTrue();
     assertThat(getValidationText(validatorPanel)).isEqualTo("Device feature value must be set");
   }
