@@ -77,7 +77,6 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
@@ -154,11 +153,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
-  @SwingCoordinate private int myScreenX = DEFAULT_SCREEN_OFFSET_X;
-  @SwingCoordinate private int myScreenY = DEFAULT_SCREEN_OFFSET_Y;
   private boolean myIsCanvasResizing = false;
   private boolean myShowModelNames = false;
-  private boolean myStackVertically;
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
   private boolean myCentered;
@@ -172,6 +168,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * Allows customizing the generation of {@link SceneManager}s
    */
   private final BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider;
+
+  private SurfaceLayoutManager myLayoutManager = new SingleDirectionLayoutManager(DEFAULT_SCREEN_OFFSET_X,
+                                                                                  DEFAULT_SCREEN_OFFSET_Y,
+                                                                                  SCREEN_DELTA,
+                                                                                  SCREEN_DELTA);
 
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
@@ -319,95 +320,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   public Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
-    if (rectangle == null) {
-      rectangle = new Rectangle();
-    }
-    List<SceneView> sceneViews = new ArrayList<>();
-    Iterator<SceneManager> managerIterator = myModelToSceneManagers.values().iterator();
-    // If there is no SceneManager then this function shouldn't be called. (The input argument SceneView is from SceneManager.)
-    assert managerIterator.hasNext();
-    SceneManager primaryManager = managerIterator.next();
-    sceneViews.add(primaryManager.getSceneView());
-    if (mySceneMode == SceneMode.BOTH) {
-      SceneView secondarySceneView = ((LayoutlibSceneManager)primaryManager).getSecondarySceneView();
-      if (secondarySceneView != null) {
-        // menu and preference always has only one SceneView even scene mode is both.
-        sceneViews.add(secondarySceneView);
-      }
-    }
-    managerIterator.forEachRemaining(it -> sceneViews.add(it.getSceneView()));
-
-    Rectangle viewRect = myScrollPane.getViewport().getViewRect();
-    if (sceneViews.size() == 1) {
-      rectangle.setBounds(viewRect);
-      return rectangle;
-    }
-
-    int leftBound = viewRect.x;
-    int topBound = viewRect.y;
-    int rightBound = viewRect.x + viewRect.width;
-    int bottomBound = viewRect.y + viewRect.height;
-
-    int index = sceneViews.indexOf(sceneView);
-    assert index != -1;
-    int lastSceneViewIndex = sceneViews.size() - 1;
-    if (myStackVertically) {
-      rectangle.x = leftBound;
-      rectangle.width = rightBound - leftBound;
-
-      // Calculate top bound.
-      if (index == 0) {
-        // The top-most SceneView can render to the top edge of DesignSurface.
-        rectangle.y = topBound;
-      }
-      else {
-        // The top side of SceneView shouldn't cover other SceneViews.
-        SceneView previousSceneView = sceneViews.get(index - 1);
-        int previousBottom = previousSceneView.getY() + previousSceneView.getSize().height;
-        rectangle.y = Math.max(topBound, (previousBottom + sceneView.getY() - sceneView.getNameLabelHeight()) / 2);
-      }
-
-      // Calculate bottom bound (represent by height).
-      if (index == lastSceneViewIndex) {
-        // The last SceneView can render to the bottom edge of DesignSurface.
-        rectangle.height = bottomBound - rectangle.y;
-      }
-      else {
-        // The bottom side of SceneView shouldn't cover other SceneViews.
-        SceneView nextSceneView = sceneViews.get(index + 1);
-        int bottom = sceneView.getY() + sceneView.getSize().height;
-        rectangle.height = Math.min(bottomBound, (bottom + nextSceneView.getY() - nextSceneView.getNameLabelHeight()) / 2) - rectangle.y;
-      }
-    }
-    else {
-      rectangle.y = topBound;
-      rectangle.height = bottomBound - topBound;
-
-      // Calculate left bound.
-      if (index == 0) {
-        // The left-most SceneView can render to the left edge of DesignSurface.
-        rectangle.x = leftBound;
-      }
-      else {
-        // The left side of SceneView shouldn't cover other SceneViews.
-        SceneView previousSceneView = sceneViews.get(index - 1);
-        int previousRight = previousSceneView.getX() + previousSceneView.getSize().width;
-        rectangle.x = Math.max(leftBound, (previousRight + sceneView.getX()) / 2);
-      }
-
-      // Calculate right bound (represent by width).
-      if (index == lastSceneViewIndex) {
-        // The last SceneView can render to the right edge of DesignSurface.
-        rectangle.width = rightBound - rectangle.x;
-      }
-      else {
-        // The right side of SceneView shouldn't cover other SceneViews.
-        SceneView nextSceneView = sceneViews.get(index + 1);
-        int right = sceneView.getX() + sceneView.getSize().width;
-        rectangle.width = Math.min(rightBound, (right + nextSceneView.getX()) / 2) - rectangle.x;
-      }
-    }
-    return rectangle;
+    return myLayoutManager.getRenderableBoundsForInvisibleComponents(sceneView,
+                                                                     getSceneViews(),
+                                                                     myScrollPane.getWidth(),
+                                                                     myScrollPane.getHeight(),
+                                                                     myScrollPane.getViewport().getViewRect(),
+                                                                     rectangle);
   }
 
   /**
@@ -443,14 +361,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   public Dimension getScrolledAreaSize() {
-    int contentWidth = getRequiredWidth();
-    int contentHeight = getRequiredHeight();
-    if (contentWidth <= 0 || contentHeight <= 0) {
-      // There is no scrollable area, return null. This may happen when there is no Model, SceneManager, or SceneView.
+    List<SceneView> sceneViews = getSceneViews();
+    Dimension dimension = myLayoutManager.getRequiredSize(sceneViews, myScrollPane.getWidth(), myScrollPane.getHeight(), null);
+    if (dimension.width <= 0 || dimension.height <= 0) {
       return null;
     }
-    return new Dimension(contentWidth + 2 * DEFAULT_SCREEN_OFFSET_X,
-                         contentHeight + 2 * DEFAULT_SCREEN_OFFSET_Y);
+    dimension.setSize(dimension.width + 2 * DEFAULT_SCREEN_OFFSET_X, dimension.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
+    return dimension;
   }
 
   public void setAdaptiveIconShape(@NotNull ShapeMenuAction.AdaptiveIconShape adaptiveIconShape) {
@@ -477,19 +394,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public void show(@NotNull AccessoryPanel.Type type, boolean show) {
     showInspectorAccessoryPanel(show);
-  }
-
-  /**
-   * Returns true if we want to arrange screens vertically instead of horizontally
-   */
-  private static boolean isVerticalScreenConfig(@SwingCoordinate int availableWidth,
-                                                @SwingCoordinate int availableHeight,
-                                                @SwingCoordinate @NotNull Dimension preferredSize) {
-    boolean stackVertically = preferredSize.width > preferredSize.height;
-    if (availableWidth > 10 && availableHeight > 3 * availableWidth / 2) {
-      stackVertically = true;
-    }
-    return stackVertically;
   }
 
   public void setCentered(boolean centered) {
@@ -522,136 +426,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   protected void layoutContent() {
-    Iterator<SceneManager> iterator = myModelToSceneManagers.values().iterator();
-    if (!iterator.hasNext()) {
-      return;
-    }
-    LayoutlibSceneManager primaryManager = (LayoutlibSceneManager)iterator.next();
-    Dimension primarySceneViewSize = primaryManager.getSceneView().getSize();
-
-    // Position primary screen
     int availableWidth = myScrollPane.getWidth();
     int availableHeight = myScrollPane.getHeight();
-    myStackVertically = isVerticalScreenConfig(availableWidth, availableHeight, primarySceneViewSize);
-
-    // First find the top-left position of primary SceneView.
-    if (!myIsCanvasResizing) {
-      // If we are resizing the canvas, do not relocate the primary SceneView.
-      if (myCentered && availableWidth > 10 && availableHeight > 10) {
-        int requiredWidth = getRequiredWidth();
-        int requiredHeight = getRequiredHeight();
-        myScreenX = Math.max((availableWidth - requiredWidth) / 2, DEFAULT_SCREEN_OFFSET_X);
-        myScreenY = Math.max((availableHeight - requiredHeight) / 2, DEFAULT_SCREEN_OFFSET_Y);
-      }
-      else {
-        myScreenX = DEFAULT_SCREEN_OFFSET_X;
-        myScreenY = DEFAULT_SCREEN_OFFSET_Y;
-      }
-    }
-
-    // Calculate the positions of all scenes by using the position of primary SceneView.
-    int nextX = myScreenX;
-    int nextY = myScreenY;
-    for (SceneManager manager : myModelToSceneManagers.values()) {
-      SceneView sceneView = manager.getSceneView();
-      SceneView secondView = ((LayoutlibSceneManager)manager).getSecondarySceneView();
-
-      if (myStackVertically) {
-        // top/bottom stacking
-        nextY += sceneView.getNameLabelHeight();
-        sceneView.setLocation(nextX, nextY);
-        nextY += sceneView.getSize().height + SCREEN_DELTA;
-        if (secondView != null) {
-          nextY += secondView.getNameLabelHeight();
-          secondView.setLocation(nextX, nextY);
-          nextY += secondView.getSize().height + SCREEN_DELTA;
-        }
-      }
-      else {
-        // left/right ordering
-        sceneView.setLocation(nextX, myScreenY);
-        nextX += sceneView.getSize().width + SCREEN_DELTA;
-        if (secondView != null) {
-          secondView.setLocation(nextX, nextY);
-          nextX += secondView.getSize().width + SCREEN_DELTA;
-        }
-      }
-    }
+    myLayoutManager.layout(getSceneViews(), availableWidth, availableHeight, myIsCanvasResizing);
 
     revalidate();
     repaint();
-  }
-
-  /**
-   * Take the largest width when stacking vertically or combine all of them otherwise. <br>
-   * When combining the width, all spaces between different {@link SceneView}s are included.
-   *
-   * @return the required width to display all {@link SceneView}s.
-   */
-  private int getRequiredWidth() {
-    int requiredWidth = 0;
-    if (myStackVertically) {
-      for (SceneManager sceneManager : myModelToSceneManagers.values()) {
-        SceneView view = sceneManager.getSceneView();
-        requiredWidth = Math.max(requiredWidth, view.getSize().width);
-        SceneView secondView = ((LayoutlibSceneManager)sceneManager).getSecondarySceneView();
-        if (secondView != null) {
-          requiredWidth = Math.max(requiredWidth, secondView.getSize().width);
-        }
-      }
-    }
-    else {
-      for (SceneManager sceneManager : myModelToSceneManagers.values()) {
-        SceneView view = sceneManager.getSceneView();
-        requiredWidth += view.getSize().width;
-        requiredWidth += SCREEN_DELTA;
-        SceneView secondView = ((LayoutlibSceneManager)sceneManager).getSecondarySceneView();
-        if (secondView != null) {
-          requiredWidth += secondView.getSize().width;
-          requiredWidth += SCREEN_DELTA;
-        }
-      }
-      // Remove tailed space.
-      requiredWidth -= SCREEN_DELTA;
-    }
-    return Math.max(0, requiredWidth);
-  }
-
-  /**
-   * Combine all heights when stacking vertically or take the largest one otherwise.<br>
-   * When combining the width, all spaces between different {@link SceneView}s are included.
-   *
-   * @return the required height to display all {@link SceneView}s.
-   */
-  private int getRequiredHeight() {
-    int requiredHeight = 0;
-    if (myStackVertically) {
-      for (SceneManager sceneManager : myModelToSceneManagers.values()) {
-        SceneView view = sceneManager.getSceneView();
-        requiredHeight += view.getNameLabelHeight();
-        requiredHeight += view.getSize().height;
-        requiredHeight += SCREEN_DELTA;
-        SceneView secondView = ((LayoutlibSceneManager)sceneManager).getSecondarySceneView();
-        if (secondView != null) {
-          requiredHeight += secondView.getNameLabelHeight();
-          requiredHeight += secondView.getSize().height;
-          requiredHeight += SCREEN_DELTA;
-        }
-      }
-      // Remove tailed space.
-      requiredHeight -= SCREEN_DELTA;
-    }
-    else {
-      for (SceneManager sceneManager : myModelToSceneManagers.values()) {
-        SceneView view = sceneManager.getSceneView();
-        requiredHeight = Math.max(requiredHeight, view.getSize().height);
-        SceneView secondView = ((LayoutlibSceneManager)sceneManager).getSecondarySceneView();
-        if (secondView != null) {
-          requiredHeight = Math.max(requiredHeight, secondView.getSize().height);
-        }
-      }
-    }
-    return Math.max(0, requiredHeight);
   }
 
   @Override
@@ -671,13 +451,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   @SwingCoordinate
   public int getContentOriginX() {
-    return myScreenX;
+    return getSceneViews().stream().mapToInt(it -> it.getX()).min().orElse(0);
   }
 
   @Override
   @SwingCoordinate
   public int getContentOriginY() {
-    return myScreenY;
+    return getSceneViews().stream().mapToInt(it -> it.getY()).min().orElse(0);
   }
 
   @Override
@@ -718,18 +498,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   @NotNull
   public Dimension getContentSize(@Nullable Dimension dimension) {
-    if (dimension == null) {
-      dimension = new Dimension();
-    }
-
-    int width = getRequiredWidth();
-    int height = getRequiredHeight();
-    if (width == 0 && height == 0) {
+    List<SceneView> sceneViews = getSceneViews();
+    dimension = myLayoutManager.getRequiredSize(sceneViews, myScrollPane.getWidth(), myScrollPane.getHeight(), dimension);
+    if (dimension.width == 0 && dimension.height == 0) {
       dimension.setSize(0, 0);
-      return dimension;
     }
-
-    dimension.setSize(width, height);
     return dimension;
   }
 
@@ -743,35 +516,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   protected Dimension getPreferredContentSize(@SwingCoordinate int availableWidth, @SwingCoordinate int availableHeight) {
-    int requiredWidth = 0;
-    int requiredHeight = 0;
-
-    for (SceneManager sceneManager : myModelToSceneManagers.values()) {
-      Dimension size = sceneManager.getSceneView().getPreferredSize();
-      SceneView secondarySceneView = ((LayoutlibSceneManager)sceneManager).getSecondarySceneView();
-      if (myStackVertically) {
-        requiredWidth = Math.max(requiredWidth, size.width);
-
-        requiredHeight += size.height;
-        requiredHeight += SCREEN_DELTA;
-        if (secondarySceneView != null) {
-          requiredHeight += size.height;
-          requiredHeight += SCREEN_DELTA;
-        }
-      }
-      else {
-        requiredWidth += size.width;
-        requiredWidth += SCREEN_DELTA;
-        if (secondarySceneView != null) {
-          requiredWidth += size.width;
-          requiredWidth += SCREEN_DELTA;
-        }
-
-        requiredHeight = Math.max(requiredHeight, size.height);
-      }
-    }
-
-    return new Dimension(requiredWidth, requiredHeight);
+    List<SceneView> sceneViews = getSceneViews();
+    return myLayoutManager.getPreferredSize(sceneViews, myScrollPane.getWidth(), myScrollPane.getHeight(), null);
   }
 
   @Override

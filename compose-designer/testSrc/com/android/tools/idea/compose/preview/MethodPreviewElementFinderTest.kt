@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.intellij.openapi.util.TextRange
 import org.intellij.lang.annotations.Language
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UFile
@@ -23,6 +24,7 @@ import org.jetbrains.uast.ULocalVariable
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.AbstractUastVisitor
+import org.junit.Assert.assertNotEquals
 
 class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() {
   fun testFindPreviewAnnotations() {
@@ -61,29 +63,61 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
           }
         }
       }
-    """.trimIndent())
+    """.trimIndent()).toUElement() as UFile
 
-    val elements = MethodPreviewElementFinder.findPreviewMethods(composeTest.toUElement() as UFile)
+    val elements = MethodPreviewElementFinder.findPreviewMethods(composeTest)
     assertEquals(3, elements.size)
-    elements.single { it.name == "preview2" }.let {
+    elements[1].let {
       assertEquals("preview2", it.name)
       assertEquals(12, it.configuration.apiLevel)
       assertNull(it.configuration.theme)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+
+      assertMethodTextRange(composeTest, "Preview2", it.textRange)
     }
 
-    elements.single { it.name == "preview3" }.let {
+    elements[2].let {
       assertEquals("preview3", it.name)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
+
+      assertMethodTextRange(composeTest, "Preview3", it.textRange)
     }
 
-    elements.single { it.name.isEmpty()}.let {
+    elements[0].let {
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+
+      assertMethodTextRange(composeTest, "Preview1", it.textRange)
     }
+  }
+
+  fun testNoDuplicatePreviewElements() {
+    @Language("kotlin")
+    val composeTest = myFixture.addFileToProject("src/Test.kt", """
+      import com.android.tools.preview.Preview
+      import com.android.tools.preview.Configuration
+      import androidx.compose.Composable
+
+      @Composable
+      fun Preview1() {
+        Preview() {
+        }
+      }
+
+      @Composable
+      fun Preview1() {
+        Preview(name = "preview2", configuration = Configuration(apiLevel = 12)) {
+        }
+      }
+    """.trimIndent()).toUElement() as UFile
+
+    val elements = MethodPreviewElementFinder.findPreviewMethods(composeTest)
+    assertEquals(1, elements.size)
+    // Check that we keep the first element
+    assertEmpty(elements[0].name)
   }
 
   fun testElementBelongsToPreviewElement() {

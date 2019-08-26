@@ -35,7 +35,17 @@ public class CpuUsage extends LineChartModel {
   @NotNull private final Range myCpuRange;
   @NotNull private final RangedContinuousSeries myCpuSeries;
 
+  /**
+   * Instantiates CPU usage model using profiler timeline ranges.
+   */
   public CpuUsage(@NotNull StudioProfilers profilers) {
+    this(profilers, profilers.getTimeline().getViewRange(), profilers.getTimeline().getDataRange());
+  }
+
+  /**
+   * Instantiates CPU usage model using the provided view and data ranges.
+   */
+  public CpuUsage(@NotNull StudioProfilers profilers, @NotNull Range viewRange, @NotNull Range dataRange) {
     myCpuRange = new Range(0, 100);
     DataSeries<Long> series;
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
@@ -50,8 +60,7 @@ public class CpuUsage extends LineChartModel {
     else {
       series = new LegacyCpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), false);
     }
-    myCpuSeries = new RangedContinuousSeries(getCpuSeriesLabel(), profilers.getTimeline().getViewRange(), myCpuRange, series,
-                                             profilers.getTimeline().getDataRange());
+    myCpuSeries = new RangedContinuousSeries(getCpuSeriesLabel(), viewRange, myCpuRange, series, dataRange);
     add(myCpuSeries);
   }
 

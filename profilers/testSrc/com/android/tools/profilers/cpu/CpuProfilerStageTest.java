@@ -853,6 +853,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void captureStageTransitionTest() throws Exception {
     myServices.enableCpuCaptureStage(false);
+    myServices.enableEventsPipeline(true);
     // Needs to be set true else null is inserted into the capture parser.
     myServices.setShouldParseLongTraces(true);
     // Try to parse a simpleperf trace with ART config.

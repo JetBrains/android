@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.sqlite.SqliteServiceFactoryImpl
 import com.android.tools.idea.sqlite.controllers.SqliteController
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactoryImpl
 import com.android.tools.idea.sqlite.ui.mainView.SqliteView
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewImpl
@@ -63,7 +64,13 @@ interface SqliteExplorerProjectService {
    * Runs the query passed as argument in the Sqlite Inspector.
    */
   @UiThread
-  fun runQuery(query: String)
+  fun runQuery(database: SqliteDatabase, query: String)
+
+  /**
+   * Returns a list of the currently open [SqliteDatabase].
+   */
+  @UiThread
+  fun getOpenDatabases(): Set<SqliteDatabase>
 }
 
 class SqliteExplorerProjectServiceImpl(
@@ -97,7 +104,10 @@ class SqliteExplorerProjectServiceImpl(
   override fun hasOpenDatabase() = controller.hasOpenDatabase()
 
   @UiThread
-  override fun runQuery(query: String) {
-    controller.runSqlStatement(query)
+  override fun runQuery(database: SqliteDatabase, query: String) {
+    controller.runSqlStatement(database, query)
   }
+
+  @UiThread
+  override fun getOpenDatabases(): Set<SqliteDatabase> = controller.getOpenDatabases()
 }

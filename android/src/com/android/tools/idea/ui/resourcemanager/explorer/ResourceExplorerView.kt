@@ -146,10 +146,13 @@ class ResourceExplorerView(
 
   private var updatePending = false
 
+  private var populateResourcesFuture: CompletableFuture<List<ResourceSection>>? = null
+
   /** Reference to the last [CompletableFuture] used to search for filtered resources in other modules */
   private var searchFuture: CompletableFuture<List<ResourceSection>>? = null
 
   private var fileToSelect: VirtualFile? = null
+  private var resourceToSelect: String? = null
 
   private var previewSize = DEFAULT_CELL_WIDTH
     set(value) {
@@ -176,6 +179,16 @@ class ResourceExplorerView(
   private val sectionListModel: SectionListModel = SectionListModel()
   private val dragHandler = resourceDragHandler(resourceImportDragTarget)
 
+  private val resourcesTabsPanel = OverflowingTabbedPaneWrapper().apply {
+    resourcesBrowserViewModel.resourceTypes.forEach {
+      tabbedPane.addTab(it.displayName, null)
+    }
+    tabbedPane.addChangeListener { event ->
+      val index = (event.source as JTabbedPane).model.selectedIndex
+      resourcesBrowserViewModel.resourceTypeIndex = index
+    }
+  }
+
   private val topActionsPanel = JPanel().apply {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
     isOpaque = false
@@ -183,15 +196,7 @@ class ResourceExplorerView(
 
   private val headerPanel = JPanel().apply {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    add(OverflowingTabbedPaneWrapper().apply {
-      resourcesBrowserViewModel.resourceTypes.forEach {
-        tabbedPane.addTab(it.displayName, null)
-      }
-      tabbedPane.addChangeListener { event ->
-        val index = (event.source as JTabbedPane).model.selectedIndex
-        resourcesBrowserViewModel.resourceTypeIndex = index
-      }
-    })
+    add(resourcesTabsPanel)
     add(topActionsPanel)
   }
 
@@ -383,6 +388,7 @@ class ResourceExplorerView(
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
 
     resourcesBrowserViewModel.resourceChangedCallback = {
+      resourcesTabsPanel.tabbedPane.selectedIndex = resourcesBrowserViewModel.resourceTypeIndex
       populateExternalActions()
       populateResourcesLists()
       populateSearchLinkLabels()
@@ -505,15 +511,15 @@ class ResourceExplorerView(
     val selectedValue = sectionList.selectedValue
     val selectedIndices = sectionList.selectedIndices
     updatePending = true
-
-    val future = resourcesBrowserViewModel.getCurrentModuleResourceLists()
+    populateResourcesFuture?.cancel(true)
+    populateResourcesFuture = resourcesBrowserViewModel.getCurrentModuleResourceLists()
       .whenCompleteAsync(BiConsumer { resourceLists, _ ->
         updatePending = false
         displayResources(resourceLists)
         selectIndicesIfNeeded(selectedValue, selectedIndices)
       }, EdtExecutorService.getInstance())
 
-    if (!future.isDone) {
+    if (populateResourcesFuture?.isDone == false) {
       JobScheduler.getScheduler().schedule(
         { GuiUtils.invokeLaterIfNeeded(this::displayLoading, ModalityState.defaultModalityState()) },
         DELAY_BEFORE_LOADING_STATE,
@@ -522,7 +528,7 @@ class ResourceExplorerView(
   }
 
   private fun displayLoading() {
-    if (!updatePending) {
+    if (populateResourcesFuture?.isDone?: true) {
       return
     }
     sectionListModel.clear()
@@ -562,8 +568,13 @@ class ResourceExplorerView(
 
   private fun selectIndicesIfNeeded(selectedValue: Any?, selectedIndices: List<IntArray?>) {
     val finalFileToSelect = fileToSelect
+    val finalResourceToSelect = resourceToSelect
     if (finalFileToSelect != null) {
+      // Attempt to select resource by file, if it was pending.
       selectAsset(finalFileToSelect)
+    } else if (finalResourceToSelect != null) {
+      // Attempt to select resource by name, if it was pending.
+      selectAsset(finalResourceToSelect, recentlyAdded = false)
     }
     else if (selectedValue != null) {
       // Attempt to reselect the previously selected element
@@ -576,28 +587,53 @@ class ResourceExplorerView(
         sectionList.selectedIndices = selectedIndices
       }
     }
+
+    // Guarantee that any other pending selection is cancelled. Having more than one of these is unintended behavior.
+    fileToSelect = null
+    resourceToSelect = null
   }
 
+  /**
+   * Selects a [ResourceAssetSet] by a given [VirtualFile]. Depending of the file, the currently displayed resource type may change to
+   * select the right resource.
+   */
   fun selectAsset(virtualFile: VirtualFile) {
+    if (virtualFile.isDirectory) return
+
     resourcesBrowserViewModel.resourceTypeIndex = resourcesBrowserViewModel.getTabIndexForFile(virtualFile)
-    if (virtualFile.isDirectory) {
-      return
-    }
     if (updatePending) {
       fileToSelect = virtualFile
     }
     else {
-      doSelectAsset(virtualFile)
+      doSelectAsset { assetSet ->
+        assetSet.designAssets.any { it.file == virtualFile }.also { if (it) fileToSelect = null }
+      }
     }
   }
 
-  private fun doSelectAsset(file: VirtualFile) {
-    fileToSelect = null
+  /**
+   * Selects a listed [ResourceAssetSet] by its name.
+   *
+   * @param resourceName Name to look for in existing lists of resources.
+   * @param recentlyAdded The resource might not be listed yet if it was recently added (awaiting resource notification).
+   */
+  fun selectAsset(resourceName: String, recentlyAdded: Boolean) {
+    if (updatePending || recentlyAdded) {
+      resourceToSelect = resourceName
+    }
+    if (!updatePending) {
+      doSelectAsset { assetSet ->
+        (assetSet.name == resourceName).also { if (it) resourceToSelect = null }
+      }
+    }
+  }
+
+  private fun doSelectAsset(isDesiredAssetSet: (ResourceAssetSet) -> Boolean) {
     sectionList.getLists()
       .filterIsInstance<AssetListView>()
       .forEachIndexed { listIndex, list ->
         for (assetIndex in 0 until list.model.size) {
-          if (list.model.getElementAt(assetIndex).designAssets.any { it.file == file }) {
+          if (isDesiredAssetSet(list.model.getElementAt(assetIndex))) {
             sectionList.selectedIndex = listIndex to assetIndex
             sectionList.scrollToSelection()
             list.requestFocusInWindow()
@@ -678,6 +714,7 @@ class ResourceExplorerView(
 
   override fun dispose() {
     DnDManager.getInstance().unregisterTarget(resourceImportDragTarget, this)
+    populateResourcesFuture?.cancel(true)
     searchFuture?.cancel(true)
   }
 

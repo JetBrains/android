@@ -84,9 +84,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   //
   override fun parse() {
     ApplicationManager.getApplication().assertReadAccessAllowed()
-    psiFile.script!!.blockExpression.statements.map {
+    psiFile.script?.blockExpression?.statements?.map {
       if (it is KtScriptInitializer) it.body else it
-    }.requireNoNulls().forEach {
+    }?.requireNoNulls()?.forEach {
       it.accept(this, dslFile)
     }
   }

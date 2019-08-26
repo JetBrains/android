@@ -48,7 +48,6 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
-import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
@@ -326,14 +325,6 @@ fun setupTestProjectFromAndroidModel(
       basePath.path
     ),
     projectDataNode
-  )
-
-  moduleDataNode.addChild(
-    DataNode<ImportedModule>(
-      AndroidProjectKeys.IMPORTED_MODULE,
-      ImportedModule(projectName),
-      projectDataNode
-    )
   )
 
   moduleDataNode.addChild(

@@ -148,8 +148,8 @@ object NavModelBuilderUtil {
       action.apply(f)
     }
 
-    fun deeplink(uri: String, autoVerify: Boolean = false) {
-      addChild(DeepLinkComponentDescriptor(uri, autoVerify), null)
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false) {
+      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify), null)
     }
 
     fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
@@ -179,8 +179,8 @@ object NavModelBuilderUtil {
       action.apply(f)
     }
 
-    fun deeplink(uri: String, autoVerify: Boolean = false) {
-      addChild(DeepLinkComponentDescriptor(uri, autoVerify), null)
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false) {
+      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify), null)
     }
 
     fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
@@ -211,8 +211,8 @@ object NavModelBuilderUtil {
       layout?.let { withAttribute(TOOLS_URI, ATTR_LAYOUT, layout) }
     }
 
-    fun deeplink(uri: String, autoVerify: Boolean = false) {
-      addChild(DeepLinkComponentDescriptor(uri, autoVerify), null)
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false) {
+      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify), null)
     }
 
     fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
@@ -226,8 +226,9 @@ object NavModelBuilderUtil {
     }
   }
 
-  class DeepLinkComponentDescriptor(uri: String, autoVerify: Boolean) : NavComponentDescriptor(TAG_DEEP_LINK) {
+  class DeepLinkComponentDescriptor(id: String, uri: String, autoVerify: Boolean) : NavComponentDescriptor(TAG_DEEP_LINK) {
     init {
+      id("@+id/$id")
       withAttribute(AUTO_URI, ATTR_URI, uri)
       if (autoVerify) {
         withAttribute(ANDROID_URI, ATTR_AUTO_VERIFY, "true")

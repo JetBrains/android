@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
-import com.android.tools.idea.sqlite.model.getFormattedSqliteDatabaseName
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewListener
 import com.google.common.util.concurrent.FutureCallback
@@ -72,11 +71,12 @@ class SqliteEvaluatorController(
   }
 
   fun addDatabase(database: SqliteDatabase, index: Int) {
-    view.addDatabase(database, database.getFormattedSqliteDatabaseName(), index)
+    view.addDatabase(database, index)
   }
 
   fun evaluateSqlStatement(database: SqliteDatabase, sqlStatement: String) {
     view.showSqliteStatement(sqlStatement)
+    view.selectDatabase(database)
 
     // TODO(b/137259344) after introducing the SQL parser this bit should become a bit nicer
     when {

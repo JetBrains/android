@@ -15,24 +15,25 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.BindingLayoutGroup
+import com.android.tools.idea.databinding.BindingLayout
 import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.findVariableTag
 import com.android.tools.idea.databinding.getViewBindingClassName
 import com.android.tools.idea.databinding.index.BindingXmlIndex
-import com.android.tools.idea.databinding.index.ViewIdInfo
-import com.android.tools.idea.res.BindingLayoutData
+import com.android.tools.idea.databinding.index.ViewIdData
+import com.android.tools.idea.databinding.index.VariableData
 import com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT
-import com.android.tools.idea.res.binding.BindingLayoutGroup
-import com.android.tools.idea.res.binding.BindingLayoutInfo
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlTag
-import com.intellij.util.indexing.FileBasedIndex
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * All values needed to generate a specific [LightBindingClass]
  */
 interface LightBindingClassConfig {
-  val targetLayout: BindingLayoutInfo
+  val facet: AndroidFacet
+
+  val targetLayout: BindingLayout
 
   /**
    * The fully-qualified name of the class which this class inherits from.
@@ -58,7 +59,7 @@ interface LightBindingClassConfig {
    * variables from alternate layouts in the group. This is why we need to return the XML tags
    * explicitly, as they may refer to a layout configuration outside of our own.
    */
-  val variableTags: List<Pair<BindingLayoutData.Variable, XmlTag>>
+  val variableTags: List<Pair<VariableData, XmlTag>>
 
   /**
    * Returns a list of all views with IDs that fields should be created for,
@@ -66,7 +67,7 @@ interface LightBindingClassConfig {
    *
    * Note: These fields should only get generated for the base "Binding" class.
    */
-  val viewIds: List<ViewIdInfo>
+  val viewIds: List<ViewIdData>
 
   /**
    * Returns `true` if the generated light binding class should have a full method API, e.g.
@@ -81,22 +82,22 @@ interface LightBindingClassConfig {
   fun settersShouldBeAbstract(): Boolean
 }
 
-private val BindingLayoutGroup.aggregatedVariables: List<Pair<BindingLayoutData.Variable, XmlTag>>
-  get() {
-    val aggregatedVariables = mutableListOf<Pair<BindingLayoutData.Variable, XmlTag>>()
-    val alreadySeen = mutableSetOf<String>()
-    for (layout in layouts) {
-      val layoutData = layout.data
-      for (variable in layoutData.variables) {
-        val variableTag = DataBindingUtil.findVariableTag(layoutData, variable.name)
-        if (variableTag != null && alreadySeen.add(variable.name)) {
-          aggregatedVariables.add(variable to variableTag)
-        }
+private fun BindingLayoutGroup.getAggregatedVariables(): List<Pair<VariableData, XmlTag>> {
+  val aggregatedVariables = mutableListOf<Pair<VariableData, XmlTag>>()
+  val alreadySeen = mutableSetOf<String>()
+  for (layout in layouts) {
+    val xmlFile = layout.toXmlFile()
+    val layoutData = layout.data
+    for (variable in layoutData.variables) {
+      val variableTag = xmlFile.findVariableTag(variable.name)
+      if (variableTag != null && alreadySeen.add(variable.name)) {
+        aggregatedVariables.add(variable to variableTag)
       }
     }
-
-    return aggregatedVariables
   }
+
+  return aggregatedVariables
+}
 
 /**
  * Used to generate a "Binding" class.
@@ -104,36 +105,32 @@ private val BindingLayoutGroup.aggregatedVariables: List<Pair<BindingLayoutData.
  * A "Binding" class should always be created. "BindingImpl"s should only be created if there
  * are multiple layout configurations.
  */
-class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingClassConfig {
-  override val targetLayout: BindingLayoutInfo
+class BindingClassConfig(override val facet: AndroidFacet, private val group: BindingLayoutGroup) : LightBindingClassConfig {
+  override val targetLayout: BindingLayout
     get() = group.mainLayout
 
   override val superName: String
     get() {
       // Main layout generates a binding class that inherits from the ViewDataBinding classes.
       return if (targetLayout.data.layoutType === DATA_BINDING_LAYOUT) {
-        ModuleDataBinding.getInstance(targetLayout.data.facet).dataBindingMode.viewDataBinding
+        ModuleDataBinding.getInstance(facet).dataBindingMode.viewDataBinding
       }
       else {
-        targetLayout.data.facet.module.project.getViewBindingClassName()
+        facet.module.project.getViewBindingClassName()
       }
     }
 
   override val className = group.mainLayout.className
   override val qualifiedName = group.mainLayout.qualifiedClassName
 
-  override val variableTags: List<Pair<BindingLayoutData.Variable, XmlTag>>
-    get() = group.aggregatedVariables
+  override val variableTags: List<Pair<VariableData, XmlTag>>
+    get() = group.getAggregatedVariables()
 
-  override val viewIds: List<ViewIdInfo>
+  override val viewIds: List<ViewIdData>
     get() {
       return group.layouts
-        .mapNotNull { info -> DataBindingUtil.findXmlFile(info.data) }
-        .flatMap { xmlFile ->
-          FileBasedIndex.getInstance()
-            .getValues(BindingXmlIndex.NAME, BindingXmlIndex.getKeyForFile(xmlFile.virtualFile), GlobalSearchScope.fileScope(xmlFile))
-        }
-        .flatMap { indexedInfo -> indexedInfo.viewIds }
+        .mapNotNull { layout -> BindingXmlIndex.getDataForFile(layout.toXmlFile()) }
+        .flatMap { data -> data.viewIds }
     }
 
   override fun shouldGenerateGettersAndStaticMethods() = true
@@ -149,8 +146,10 @@ class BindingClassConfig(private val group: BindingLayoutGroup) : LightBindingCl
  * This config should only be used when there are alternate layouts defined in addition to the main
  * one; otherwise, just use [BindingClassConfig].
  */
-class BindingImplClassConfig(private val group: BindingLayoutGroup, private val layoutIndex: Int) : LightBindingClassConfig {
-  override val targetLayout: BindingLayoutInfo
+class BindingImplClassConfig(override val facet: AndroidFacet,
+                             private val group: BindingLayoutGroup,
+                             private val layoutIndex: Int) : LightBindingClassConfig {
+  override val targetLayout: BindingLayout
     get() = group.layouts[layoutIndex]
 
   /**
@@ -164,10 +163,10 @@ class BindingImplClassConfig(private val group: BindingLayoutGroup, private val 
   override val className = targetLayout.className + targetLayout.getImplSuffix()
   override val qualifiedName = targetLayout.qualifiedClassName + targetLayout.getImplSuffix()
 
-  override val variableTags: List<Pair<BindingLayoutData.Variable, XmlTag>>
-    get() = group.aggregatedVariables
+  override val variableTags: List<Pair<VariableData, XmlTag>>
+    get() = group.getAggregatedVariables()
 
-  override val viewIds: List<ViewIdInfo>
+  override val viewIds: List<ViewIdData>
     get() = listOf() // Only provided by base "Binding" class.
 
   override fun shouldGenerateGettersAndStaticMethods() = false

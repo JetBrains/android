@@ -232,7 +232,7 @@ class NavLogEventTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation {
         custom("mycustomactivity", id = "customactivity") {
-          deeplink("http://example.com")
+          deeplink("deepLink", "http://example.com")
         }
         custom("mycustomdestination", id = "customdestination")
         fragment("f1") {

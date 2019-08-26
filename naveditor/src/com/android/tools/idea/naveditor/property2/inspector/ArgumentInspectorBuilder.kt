@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.property2.inspector
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
+import com.android.tools.idea.naveditor.model.argumentName
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.supportsArguments
@@ -27,7 +28,8 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.C
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.EDIT_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 
-class ArgumentInspectorBuilder : ComponentListInspectorBuilder(TAG_ARGUMENT, "Arguments", ArgumentCellRenderer()) {
+class ArgumentInspectorBuilder
+  : ComponentListInspectorBuilder(TAG_ARGUMENT, "Arguments", ArgumentCellRenderer(), compareBy { it.argumentName }) {
   override fun onAdd(parent: NlComponent) {
     invokeDialog(null, parent)
   }

@@ -68,7 +68,6 @@ iml_module(
         "//tools/idea/plugins/groovy/structuralsearch-groovy:intellij.groovy.structuralSearch",
         "//tools/adt/idea/android:intellij.android.core.tests",
         "//tools/idea/plugins/git4idea/remote-servers-git-java:intellij.java.remoteServers.git",
-        "//tools/idea/plugins/terminal:intellij.terminal",
         "//tools/idea/jps/javac-ref-scanner-8:intellij.java.jps.javacRefScanner8",
         "//tools/idea/plugins/stats-collector:intellij.statsCollector",
         "//tools/idea/plugins/stream-debugger:intellij.java.debugger.streams",
@@ -266,6 +265,8 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
+        "qa_unreliable",  # b/139761045
+        "qa_sanity_unreliable",  # b/139761045
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -434,8 +435,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddNewBuildTypeTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/128547019
-        "qa_sanity_unreliable",  # b/128547019
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -529,8 +528,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/113117406
-        "qa_sanity_unreliable",  # b/113117406
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -584,8 +581,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.CreateNewFlavorsTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/128547019
-        "qa_sanity_unreliable",  # b/128547019
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -875,8 +870,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.CreateNavGraphTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",
-        "qa_sanity_unreliable",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1822,6 +1815,18 @@ java_test(
         "requires-fakeroot",
         "requires_emulator",
         "slow",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "NdkSxsTest",
+    data = COMMON_DATA,
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.NdkSxsTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

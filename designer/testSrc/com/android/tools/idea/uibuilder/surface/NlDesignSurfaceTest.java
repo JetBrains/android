@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;

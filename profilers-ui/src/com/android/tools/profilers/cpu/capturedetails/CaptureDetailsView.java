@@ -30,7 +30,7 @@ import java.awt.*;
 /**
  * A Base class for TopDown, BottomUp, CallChart and FlameChart details view.
  */
-abstract class CaptureDetailsView {
+public abstract class CaptureDetailsView {
   protected static final String CARD_EMPTY_INFO = "Empty content";
   protected static final String CARD_CONTENT = "Content";
 

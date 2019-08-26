@@ -19,6 +19,7 @@ import com.android.tools.property.ptable2.PTableModel
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.intellij.openapi.actionSystem.AnAction
+import javax.swing.JComponent
 
 enum class FakeLineType {
   TITLE, PROPERTY, TABLE, PANEL, SEPARATOR
@@ -31,6 +32,7 @@ open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
   override var parent: InspectorLineModel? = null
   var actions = listOf<AnAction>()
   open val tableModel: PTableModel? = null
+  open val component: JComponent? = null
   var title: String? = null
   var editorModel: PropertyEditorModel? = null
   var expandable = false
@@ -51,3 +53,5 @@ open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
     expanded = initiallyExpanded
   }
 }
+
+class FakeComponentLineModel(override val component: JComponent) : FakeInspectorLineModel(FakeLineType.PANEL)

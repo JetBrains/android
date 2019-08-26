@@ -38,13 +38,14 @@ interface SqliteEvaluatorView {
   fun addListener(listener: SqliteEvaluatorViewListener)
   fun removeListener(listener: SqliteEvaluatorViewListener)
   fun showSqliteStatement(sqliteStatement: String)
+
   /**
    * Adds a new [SqliteDatabase] at a specific position among other databases.
    * @param database The database to add.
-   * @param databaseName The name to use in the UI for this database.
    * @param index The index at which the database should be added.
    */
-  fun addDatabase(database: SqliteDatabase, databaseName: String, index: Int)
+  fun addDatabase(database: SqliteDatabase, index: Int)
+  fun selectDatabase(database: SqliteDatabase)
   fun removeDatabase(index: Int)
 }
 

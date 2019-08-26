@@ -214,19 +214,14 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
     manager.collectLazyResourceElements(namespace,
                                         resourceType.getName(),
                                         resourceName,
-                                        false,
+                                        true,
                                         context,
                                         resourceList);
 
     if (manager instanceof LocalResourceManager) {
       LocalResourceManager localManager = (LocalResourceManager)manager;
 
-      if (resourceType.equals(ResourceType.ATTR)) {
-        for (Attr attr : localManager.findAttrs(namespace, resourceName)) {
-          resourceList.add(attr.getName().getXmlAttributeValue());
-        }
-      }
-      else if (resourceType.equals(ResourceType.STYLEABLE)) {
+      if (resourceType.equals(ResourceType.STYLEABLE)) {
         for (DeclareStyleable styleable : localManager.findStyleables(namespace, resourceName)) {
           resourceList.add(styleable.getName().getXmlAttributeValue());
         }

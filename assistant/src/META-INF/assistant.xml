@@ -23,5 +23,7 @@
                     interface="com.android.tools.idea.assistant.AssistantBundleCreator"/>
     <extensionPoint qualifiedName="com.android.tools.idea.assistant.panelFactory"
                     interface="com.android.tools.idea.assistant.PanelFactory"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.assistant.scrollHandler"
+                    interface="com.android.tools.idea.assistant.ScrollHandler"/>
   </extensionPoints>
 </idea-plugin>

@@ -611,7 +611,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
         Collection<String> plugins = gradleFacet.getGradleModuleModel().getGradlePlugins();
         // The main project module will not contain a list of plugins
         List<String> expectedPlugins = new ArrayList<>(Arrays.asList(
-          "com.android.java.model.builder.JavaLibraryPlugin",
+          "com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin",
           "org.gradle.buildinit.plugins.BuildInitPlugin",
           "org.gradle.buildinit.plugins.WrapperPlugin",
           "org.gradle.api.plugins.HelpTasksPlugin",

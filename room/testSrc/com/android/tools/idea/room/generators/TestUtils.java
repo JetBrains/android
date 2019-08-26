@@ -32,8 +32,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class TestUtils {
   @NotNull
-  public static DatabaseBundle createDatabaseBundle(int version, @NotNull List<EntityBundle> entities) {
-    return new DatabaseBundle(version, "", entities, null, null);
+  public static DatabaseBundle createDatabaseBundle(int version, @NotNull EntityBundle... entities) {
+    return new DatabaseBundle(version, "", Arrays.asList(entities), Collections.emptyList(), null);
   }
 
   @NotNull
@@ -47,12 +47,12 @@ public class TestUtils {
   }
 
   @NotNull
-  public static EntityBundle createEntityBundle(@NotNull String tableName, @NotNull List<FieldBundle> fields) {
+  public static EntityBundle createEntityBundle(@NotNull String tableName, @NotNull FieldBundle... fields) {
     return new EntityBundle(tableName,
                             "",
-                            fields,
-                            new PrimaryKeyBundle(false, Collections.singletonList(fields.get(0).getColumnName())),
-                            null,
-                            null);
+                            Arrays.asList(fields),
+                            new PrimaryKeyBundle(false, Collections.singletonList(fields[0].getColumnName())),
+                            Collections.emptyList(),
+                            Collections.emptyList());
   }
 }

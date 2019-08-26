@@ -16,8 +16,10 @@
 package com.android.tools.idea.assistant.view;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.tools.idea.assistant.ScrollHandler;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.StepData;
+import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -34,7 +36,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
 import javax.swing.BorderFactory;
+import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
@@ -43,6 +47,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Generic view for tutorial content. Represents a single view in a collection
@@ -51,55 +56,43 @@ import org.jetbrains.annotations.NotNull;
  * related service.
  */
 public class TutorialCard extends CardViewPanel {
+  @NotNull private final JBScrollPane myContentsScroller;
+  @NotNull private final TutorialData myTutorial;
+  @NotNull private final Project myProject;
+  @NotNull private final TutorialBundleData myBundle;
+  @Nullable private final ScrollHandler myScrollHandler;
 
-  @NotNull
-  private final TutorialData myTutorial;
-  @NotNull
-  private final FeatureData myFeature;
-  @NotNull
-  private final Project myProject;
   private final boolean myHideChooserAndNavigationBar;
-  private final boolean myIsStepByStep;
-  @NotNull
-  private final JBScrollPane myContentsScroller;
-
-  /**
-   * Partial label used in the back button.
-   */
-  @NotNull
-  private final String myTutorialsTitle;
-  private final boolean myHideStepIndex;
-
+  private boolean myAdjustmentListenerInitialized;
   private int myStepIndex;
 
-  TutorialCard(@NotNull ActionListener listener,
+  TutorialCard(@NotNull FeaturesPanel featuresPanel,
                @NotNull TutorialData tutorial,
                @NotNull FeatureData feature,
-               @NotNull String tutorialsTitle,
-               @NotNull Project project,
                boolean hideChooserAndNavigationalBar,
-               boolean isStepByStep,
-               boolean hideStepIndex) {
-    super(listener);
+               @NotNull TutorialBundleData bundle) {
+    super(featuresPanel);
     myContentsScroller = new JBScrollPane();
-    myTutorialsTitle = tutorialsTitle;
     myTutorial = tutorial;
-    myFeature = feature;
-    myProject = project;
+    myProject = featuresPanel.getProject();
+    myBundle = bundle;
     myHideChooserAndNavigationBar = hideChooserAndNavigationalBar;
-    myIsStepByStep = isStepByStep;
-    myHideStepIndex = hideStepIndex;
     myStepIndex = 0;
+
+    myScrollHandler = ScrollHandler.EP_NAME.getExtensionList().stream()
+      .filter(handler -> handler.getId().equals(bundle.getBundleCreatorId()))
+      .findAny()
+      .orElse(null);
 
     if (!myHideChooserAndNavigationBar) {
       // TODO: Add a short label to the xml and use that here instead.
-      add(new HeaderNav(myFeature.getName(), myListener), BorderLayout.NORTH);
+      add(new HeaderNav(feature.getName(), myListener), BorderLayout.NORTH);
     }
 
     add(myContentsScroller, BorderLayout.CENTER);
 
     // add nav for step by step tutorials
-    if (myIsStepByStep) {
+    if (myBundle.isStepByStep()) {
       add(new StepByStepFooter(), BorderLayout.SOUTH);
     }
     redraw();
@@ -124,6 +117,30 @@ public class TutorialCard extends CardViewPanel {
     JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
     verticalScrollBar.setValue(verticalScrollBar.getMinimum());
     horizontalScrollBar.setValue(horizontalScrollBar.getMinimum());
+
+    if (!myAdjustmentListenerInitialized) {
+      myAdjustmentListenerInitialized = true;
+
+      if (myScrollHandler != null) {
+        // Dispatch scrolledToBottom to the correct extension, can be used for metrics
+        myContentsScroller.getVerticalScrollBar().addAdjustmentListener(this::trackScrolledToBottom);
+
+        // If the window is opened large enough that a scrollbar is not needed, we consider this as scrolled to bottom
+        if (!myContentsScroller.getVerticalScrollBar().isShowing()) {
+          myScrollHandler.scrolledToBottom(myProject);
+        }
+      }
+    }
+  }
+
+  private void trackScrolledToBottom(@NotNull AdjustmentEvent event) {
+    if (myScrollHandler == null || event.getValueIsAdjusting()) {
+      return;
+    }
+    BoundedRangeModel model = ((JScrollBar)event.getAdjustable()).getModel();
+    if (model.getExtent() + event.getValue() >= model.getMaximum()) {
+      myScrollHandler.scrolledToBottom(myProject);
+    }
   }
 
   // update the view
@@ -165,8 +182,9 @@ public class TutorialCard extends CardViewPanel {
     // Add extra padding for tutorial steps.
     c.insets = JBUI.insets(0, 5, 0, 5);
 
-    if (myIsStepByStep) {
-      contents.add(new TutorialStep(myTutorial.getSteps().get(myStepIndex), myStepIndex, myListener, myProject, myHideStepIndex), c);
+    boolean hideStepIndex = myBundle.hideStepIndex();
+    if (myBundle.isStepByStep()) {
+      contents.add(new TutorialStep(myTutorial.getSteps().get(myStepIndex), myStepIndex, myListener, myProject, hideStepIndex), c);
       c.gridy++;
     }
     else {
@@ -174,7 +192,7 @@ public class TutorialCard extends CardViewPanel {
       int numericLabel = 0;
 
       for (StepData step : myTutorial.getSteps()) {
-        TutorialStep stepDisplay = new TutorialStep(step, numericLabel, myListener, myProject, myHideStepIndex);
+        TutorialStep stepDisplay = new TutorialStep(step, numericLabel, myListener, myProject, hideStepIndex);
         contents.add(stepDisplay, c);
         c.gridy++;
         numericLabel++;
@@ -230,7 +248,7 @@ public class TutorialCard extends CardViewPanel {
    */
   private class HeaderNav extends JPanel {
 
-    public final String ROOT_TITLE = "<html><b>" + myTutorialsTitle + "</b> &nbsp;&rsaquo;</html>";
+    public final String ROOT_TITLE = "<html><b>" + myBundle.getName() + "</b> &nbsp;&rsaquo;</html>";
 
     HeaderNav(String location, ActionListener listener) {
       super(new HorizontalLayout(5, SwingConstants.CENTER));
@@ -245,7 +263,7 @@ public class TutorialCard extends CardViewPanel {
   }
 
   private class FooterNav extends JPanel {
-    private final String BACK_LABEL = "Back to " + myTutorialsTitle;
+    private final String BACK_LABEL = "Back to " + myBundle.getName();
 
     FooterNav() {
       super(new FlowLayout(FlowLayout.LEADING));
