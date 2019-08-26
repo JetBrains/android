@@ -41,8 +41,10 @@ import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
+import com.android.tools.profilers.memory.adapters.instancefilters.ProjectClassesInstanceFilter;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import gnu.trove.TLongObjectHashMap;
 import java.io.OutputStream;
@@ -99,7 +101,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   private final MemoryProfilerStage myStage;
 
-  private final Set<CaptureObjectInstanceFilter> mySupportedInstanceFilters = Collections.singleton(new ActivityLeakInstanceFilter());
+  private final Set<CaptureObjectInstanceFilter> mySupportedInstanceFilters;
 
   private final Set<CaptureObjectInstanceFilter> myCurrentInstanceFilters = new HashSet<>();
 
@@ -118,6 +120,9 @@ public class HeapDumpCaptureObject implements CaptureObject {
     myProguardMap = proguardMap;
     myFeatureTracker = featureTracker;
     myStage = stage;
+
+    mySupportedInstanceFilters = ImmutableSet.of(new ActivityLeakInstanceFilter(),
+                                                 new ProjectClassesInstanceFilter(myStage.getStudioProfilers().getIdeServices()));
   }
 
   @NotNull

@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.intellij.ui.components.JBCheckBox;
-import javax.swing.DefaultComboBoxModel;
+import com.intellij.util.ui.JBEmptyBorder;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -54,6 +54,7 @@ public class MemoryInstanceFilterView extends AspectObserver {
 
     for (CaptureObjectInstanceFilter supportedFilter : captureObject.getSupportedInstanceFilters()) {
       JBCheckBox filterCheckBox = new JBCheckBox(supportedFilter.getDisplayName());
+      filterCheckBox.setBorder(new JBEmptyBorder(0, 2, 0, 2));
       filterCheckBox.addActionListener(l -> {
         if (filterCheckBox.isSelected()) {
           captureObject.addInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
