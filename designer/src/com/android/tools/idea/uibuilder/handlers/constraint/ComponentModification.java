@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentDelegate;
+import com.android.tools.idea.common.model.NlComponentModificationDelegate;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.utils.Pair;
 import com.intellij.psi.xml.XmlTag;
@@ -38,16 +39,24 @@ public class ComponentModification implements NlAttributesHolder {
 
   private final NlComponent myComponent;
   private final NlComponentDelegate myComponentDelegate;
+  private final NlComponentModificationDelegate myDelegate;
   private final String myLabel;
 
   public ComponentModification(@NotNull NlComponent component, @NotNull String label) {
     myComponent = component;
     myLabel = label;
     myComponentDelegate = myComponent.getDelegate();
-    List<AttributeSnapshot> attributeSnapshots = component.getAttributes();
-    for (AttributeSnapshot snapshot : attributeSnapshots) {
-      setAttribute(snapshot.namespace, snapshot.name, snapshot.value);
+    myDelegate = myComponent.getComponentModificationDelegate();
+
+    if (myDelegate != null) {
+      myDelegate.initializeModification(this);
+    } else {
+      component.startAttributeTransaction();
     }
+  }
+
+  public String getLabel() {
+    return myLabel;
   }
 
   public NlComponent getComponent() {
@@ -58,12 +67,21 @@ public class ComponentModification implements NlAttributesHolder {
 
   @Override
   public void setAttribute(@Nullable String namespace, @NotNull String name, @Nullable String value) {
-    myAttributes.put(Pair.of(namespace, name), value);
+    if (myDelegate != null) {
+      myDelegate.setAttribute(myAttributes, namespace, name, value);
+    } else {
+      AttributesTransaction transaction = myComponent.startAttributeTransaction();
+      transaction.setAttribute(namespace, name, value);
+    }
   }
 
   @Override
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
-    return myAttributes.get(Pair.of(namespace, attribute));
+    if (myDelegate != null) {
+      return myDelegate.getAttribute(myAttributes, namespace, attribute);
+    }
+    AttributesTransaction transaction = myComponent.startAttributeTransaction();
+    return transaction.getAttribute(namespace, attribute);
   }
 
   public HashMap<Pair<String, String>, String> getAttributes() { return myAttributes; }
@@ -74,53 +92,30 @@ public class ComponentModification implements NlAttributesHolder {
   }
 
   public void apply() {
-    if (myComponentDelegate != null && myComponentDelegate.handlesApply(this)) {
-      myComponentDelegate.apply(this);
-      AttributesTransaction transaction = myComponent.startAttributeTransaction();
-      for (Pair<String, String> key : myAttributes.keySet()) {
-        String value = myAttributes.get(key);
-        transaction.setAttribute(key.getFirst(), key.getSecond(), value);
-      }
-      transaction.apply();
-    } else {
-        AttributesTransaction transaction = myComponent.startAttributeTransaction();
-        for (Pair<String, String> key : myAttributes.keySet()) {
-          String value = myAttributes.get(key);
-          transaction.setAttribute(key.getFirst(), key.getSecond(), value);
-        }
-        transaction.apply();
+    if (myDelegate != null) {
+      myDelegate.applyModification(this);
+      return;
     }
+    directApply();
+  }
+
+  public void directApply() {
+    AttributesTransaction transaction = myComponent.startAttributeTransaction();
+    transaction.apply();
   }
 
   public void commit() {
-    if (myComponentDelegate != null && myComponentDelegate.handlesCommit(this)) {
-      myComponentDelegate.commit(this);
-      myComponent.clearTransaction(); // make sure to clean things here too
-
-      // We have to verify if there is attributes that need to be committed to the component directly
-      AttributesTransaction transaction = null;
-      for (Pair<String, String> key : myAttributes.keySet()) {
-        if (!myComponentDelegate.commitToMotionScene(key)) {
-          String value = myAttributes.get(key);
-          if (transaction == null) {
-            transaction = myComponent.startAttributeTransaction();
-          }
-          transaction.setAttribute(key.getFirst(), key.getSecond(), value);
-        }
-      }
-      if (transaction != null) {
-        transaction.apply();
-        NlWriteCommandActionUtil.run(myComponent, myLabel, transaction::commit);
-      }
-    } else {
-      AttributesTransaction transaction = myComponent.startAttributeTransaction();
-      for (Pair<String, String> key : myAttributes.keySet()) {
-        String value = myAttributes.get(key);
-        transaction.setAttribute(key.getFirst(), key.getSecond(), value);
-      }
-      transaction.apply();
-      NlWriteCommandActionUtil.run(myComponent, myLabel, transaction::commit);
+    if (myDelegate != null) {
+      myDelegate.commitModification(this);
+      return;
     }
+    directCommit();
+  }
+
+  public void directCommit() {
+    AttributesTransaction transaction = myComponent.startAttributeTransaction();
+    transaction.apply();
+    NlWriteCommandActionUtil.run(myComponent, myLabel, transaction::commit);
   }
 
   public void commitTo(XmlTag view) {

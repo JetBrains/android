@@ -56,6 +56,10 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTar
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAccessoryPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionLayoutInterface;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutAnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutDragTarget;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutResizeBaseTarget;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutResizeTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
@@ -97,10 +101,10 @@ public class MotionLayoutHandler extends ViewGroupHandler /* implements NlCompon
     sceneComponent.setNotchProvider(new ConstraintLayoutNotchProvider());
     return ImmutableList.of(
       new LassoTarget(),
-      new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, false),
-      new ConstraintAnchorTarget(AnchorTarget.Type.TOP, false),
-      new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, false),
-      new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, false)
+      new MotionLayoutAnchorTarget(AnchorTarget.Type.LEFT, true),
+      new MotionLayoutAnchorTarget(AnchorTarget.Type.TOP, true),
+      new MotionLayoutAnchorTarget(AnchorTarget.Type.RIGHT, true),
+      new MotionLayoutAnchorTarget(AnchorTarget.Type.BOTTOM, true)
     );
   }
 
@@ -110,6 +114,7 @@ public class MotionLayoutHandler extends ViewGroupHandler /* implements NlCompon
     ImmutableList.Builder<Target> listBuilder = new ImmutableList.Builder<>();
 
     NlComponent nlComponent = childComponent.getAuthoritativeNlComponent();
+    nlComponent.setComponentModificationDelegate(new MotionLayoutComponentModificationDelegate());
 
     ViewInfo vi = NlComponentHelperKt.getViewInfo(nlComponent);
     if (vi != null) {
@@ -142,15 +147,15 @@ public class MotionLayoutHandler extends ViewGroupHandler /* implements NlCompon
     childComponent.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
 
     listBuilder.add(
-      new ConstraintDragTarget(),
-      new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
-      new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
-      new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
-      new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM),
-      new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, false),
-      new ConstraintAnchorTarget(AnchorTarget.Type.TOP, false),
-      new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, false),
-      new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, false)
+      new MotionLayoutDragTarget(),
+      new MotionLayoutResizeTarget(MotionLayoutResizeBaseTarget.Type.LEFT_TOP),
+      new MotionLayoutResizeTarget(MotionLayoutResizeBaseTarget.Type.LEFT_BOTTOM),
+      new MotionLayoutResizeTarget(MotionLayoutResizeBaseTarget.Type.RIGHT_TOP),
+      new MotionLayoutResizeTarget(MotionLayoutResizeBaseTarget.Type.RIGHT_BOTTOM),
+      new MotionLayoutAnchorTarget(AnchorTarget.Type.LEFT, false),
+      new MotionLayoutAnchorTarget(AnchorTarget.Type.TOP, false),
+      new MotionLayoutAnchorTarget(AnchorTarget.Type.RIGHT, false),
+      new MotionLayoutAnchorTarget(AnchorTarget.Type.BOTTOM, false)
     );
 
     int baseline = NlComponentHelperKt.getBaseline(childComponent.getNlComponent());
@@ -159,7 +164,7 @@ public class MotionLayoutHandler extends ViewGroupHandler /* implements NlCompon
       baseline = info.getBaseLine();
     }
     if (baseline > 0) {
-      listBuilder.add(new ConstraintAnchorTarget(AnchorTarget.Type.BASELINE, false));
+      listBuilder.add(new MotionLayoutAnchorTarget(AnchorTarget.Type.BASELINE, false));
     }
 
     return listBuilder.build();
@@ -167,7 +172,7 @@ public class MotionLayoutHandler extends ViewGroupHandler /* implements NlCompon
 
   @Override
   public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
-    return ImmutableList.of(new ConstraintPlaceholder(component));
+    return ImmutableList.of(new MotionLayoutPlaceholder(component));
   }
 
   @Override

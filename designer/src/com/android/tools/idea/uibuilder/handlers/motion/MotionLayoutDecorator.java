@@ -218,8 +218,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
     String id = null;
     ConnectionType type = ConnectionType.SAME;
 
-    String state = motionLayout.getState();
-    if (state != null && !state.equals("motion_base")) {
+    if (!MotionUtils.isInBaseState(motionLayout)) {
       Object properties = child.getNlComponent().getClientProperty(MOTION_LAYOUT_PROPERTIES);
       if (properties != null && properties instanceof MotionAttributes) {
         MotionAttributes attrs = (MotionAttributes)properties;
