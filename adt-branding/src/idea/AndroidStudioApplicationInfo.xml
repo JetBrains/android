@@ -19,7 +19,7 @@
   <version major="0" minor="0" micro="0" patch="0" full="dev build" eap="true" />
   <company name="Google" url="http://developer.android.com"/>
   <build number="AI-__BUILD__" date="__BUILD_DATE__"/>
-  <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="C6C6C5" progressY="297" progressHeight="3" />
+  <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="d7effe" progressY="397" progressHeight="3" />
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
   <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size12="/artwork/toolWindowProject_AS.png" ico="artwork/androidstudio.ico"/>
   <package code="AI"/> <!-- used only in adrt -->
