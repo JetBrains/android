@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import org.jetbrains.uast.UFile
 
 private val filePositionComparator = Comparator.comparingInt<PreviewElement> {
@@ -38,7 +37,4 @@ class MultiPreviewElementFinder(private val finders: List<PreviewElementFinder>)
     finders.flatMap { it.findPreviewMethods(uFile) }
       .distinctBy { it.composableMethodFqn }
       .sortedWith(filePositionComparator)
-
-  override fun elementBelongsToPreviewElement(element: PsiElement): Boolean =
-    finders.any { it.elementBelongsToPreviewElement(element) }
 }

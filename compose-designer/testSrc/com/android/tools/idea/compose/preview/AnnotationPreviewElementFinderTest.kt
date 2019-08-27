@@ -18,11 +18,8 @@ package com.android.tools.idea.compose.preview
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.impl.source.tree.injected.changesHandler.range
 import org.intellij.lang.annotations.Language
-import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UFile
-import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
-import org.jetbrains.uast.visitor.AbstractUastVisitor
 import org.junit.Assert
 
 /**
@@ -136,38 +133,6 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
     assertEquals(1, elements.size)
     // Check that we keep the first element
     assertEmpty(elements[0].displayName)
-  }
-
-  fun testElementBelongsToPreviewElement() {
-    @Language("kotlin")
-    val composeTest = myFixture.addFileToProject("src/Test.kt", """
-      import com.android.tools.preview.Preview
-      import androidx.compose.Composable
-
-      @Composable
-      @Preview(name = "preview3", width = 1, height = 2)
-      fun Preview3() {
-      }
-    """.trimIndent())
-
-    var previewAnnotation: UAnnotation? = null
-    var previewMethod: UMethod? = null
-    composeTest.toUElement()?.accept(object : AbstractUastVisitor() {
-      override fun visitAnnotation(node: UAnnotation): Boolean {
-        if ("com.android.tools.preview.Preview" == node.qualifiedName) {
-          previewAnnotation = node
-        }
-        return super.visitAnnotation(node)
-      }
-
-      override fun visitMethod(node: UMethod): Boolean {
-        previewMethod = node
-        return super.visitMethod(node)
-      }
-    })
-
-    assertTrue(AnnotationPreviewElementFinder.elementBelongsToPreviewElement(previewAnnotation?.sourcePsi!!))
-    assertFalse(AnnotationPreviewElementFinder.elementBelongsToPreviewElement(previewMethod?.sourcePsi!!))
   }
 
   fun testFindPreviewPackage() {
