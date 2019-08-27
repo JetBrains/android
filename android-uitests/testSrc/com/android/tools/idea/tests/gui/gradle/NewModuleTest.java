@@ -79,6 +79,7 @@ public class NewModuleTest {
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyClass.java")).isFile();
+    assertAbout(file()).that(guiTest.getProjectPath("mylib/.gitignore")).isFile();
   }
 
   @Test
