@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.visual.VisualizationView
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
@@ -29,7 +30,7 @@ enum class SceneMode(val displayName: String,
   BOTH("Design + Blueprint", ::ScreenView, ::BlueprintView),
   SCREEN_COMPOSE_ONLY("Compose", { surface, manager -> ScreenView(surface, manager, true, false) }, visibleToUser = false),
   RESIZABLE_PREVIEW("Preview", ::ScreenView, visibleToUser = false),
-  VISUALIZATION("Visualization", ::ScreenView, visibleToUser = false);
+  VISUALIZATION("Visualization", ::VisualizationView, visibleToUser = false);
 
   operator fun next(): SceneMode {
     val values = values().filter { it.visibleToUser }
