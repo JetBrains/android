@@ -86,7 +86,9 @@ import static com.intellij.openapi.ui.Messages.*;
  */
 public class GradleBuildInvoker {
   @NotNull private final Project myProject;
-  @NotNull private final FileDocumentManager myDocumentManager;
+
+  private final FileDocumentManager myDocumentManager;
+
   @NotNull private final GradleTasksExecutorFactory myTaskExecutorFactory;
 
   @NotNull private final Set<AfterGradleInvocationTask> myAfterTasks = new LinkedHashSet<>();
@@ -100,19 +102,26 @@ public class GradleBuildInvoker {
     return project.getService(GradleBuildInvoker.class);
   }
 
-  public GradleBuildInvoker(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
-    this(project, FileDocumentManager.getInstance(), new GradleTasksExecutorFactory(), new NativeDebugSessionFinder(project));
+  public GradleBuildInvoker(@NotNull Project project) {
+    this(project, null, new GradleTasksExecutorFactory(), new NativeDebugSessionFinder(project));
   }
 
   @VisibleForTesting
   protected GradleBuildInvoker(@NotNull Project project,
-                               @NotNull FileDocumentManager documentManager,
+                               @Nullable FileDocumentManager documentManager,
                                @NotNull GradleTasksExecutorFactory tasksExecutorFactory,
                                @NotNull NativeDebugSessionFinder nativeDebugSessionFinder) {
     myProject = project;
     myDocumentManager = documentManager;
     myTaskExecutorFactory = tasksExecutorFactory;
     myNativeDebugSessionFinder = nativeDebugSessionFinder;
+  }
+
+  protected FileDocumentManager getFileDocumentManager() {
+    if (myDocumentManager != null) {
+      return myDocumentManager;
+    }
+    return FileDocumentManager.getInstance();
   }
 
   public void cleanProject() {
@@ -316,6 +325,7 @@ public class GradleBuildInvoker {
   /**
    * @deprecated use {@link GradleBuildInvoker#executeTasks(File, List)}
    */
+  @Deprecated
   public void executeTasks(@NotNull List<String> gradleTasks) {
     File path = getBaseDirPath(myProject);
     executeTasks(path, gradleTasks, myOneTimeGradleOptions);
@@ -481,7 +491,7 @@ public class GradleBuildInvoker {
     }
     GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper);
     Runnable executeTasksTask = () -> {
-      myDocumentManager.saveAllDocuments();
+      getFileDocumentManager().saveAllDocuments();
       executor.queue();
     };
 

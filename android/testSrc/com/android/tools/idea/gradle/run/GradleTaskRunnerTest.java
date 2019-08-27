@@ -93,7 +93,12 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
 
   private static class GradleBuildInvokerStub extends GradleBuildInvoker {
     GradleBuildInvokerStub(@NotNull Project project) {
-      super(project, mock(FileDocumentManager.class));
+      super(project);
+    }
+
+    @Override
+    protected FileDocumentManager getFileDocumentManager() {
+      return mock(FileDocumentManager.class);
     }
 
     @Override
