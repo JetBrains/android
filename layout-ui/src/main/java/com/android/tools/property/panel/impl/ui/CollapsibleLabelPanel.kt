@@ -100,7 +100,7 @@ class CollapsibleLabelPanel(
   }
 
   private fun toHtml(text: String): String {
-    return "<html>" + HtmlEscapers.htmlEscaper().escape(text) + "</html>"
+    return "<html><nobr>${HtmlEscapers.htmlEscaper().escape(text)}</nobr></html>"
   }
 }
 

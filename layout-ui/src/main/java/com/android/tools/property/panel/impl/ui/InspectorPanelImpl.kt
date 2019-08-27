@@ -26,6 +26,7 @@ import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.util.ui.JBUI
 import java.awt.Component
+import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
@@ -143,6 +144,12 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
       hideExpansion()
     }
 
+    override fun doFillBackground(height: Int, width: Int, g: Graphics2D) {
+      val panel = expandedLabel?.panel ?: return
+      g.color = panel.background
+      g.fillRect(0, 0, width, height)
+    }
+
     override fun isPaintBorder(): Boolean {
       return false
     }
@@ -180,11 +187,15 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
      */
     private inner class MousePreprocessor : MouseMotionAdapter() {
       override fun mouseMoved(event: MouseEvent) {
-        val point = SwingUtilities.convertPoint(event.component, event.point, myComponent)
-        if (myComponent.contains(point)) {
-          val component = myComponent.getComponentAt(point.x, point.y)
+        val pointInMyComponent = SwingUtilities.convertPoint(event.component, event.point, myComponent)
+        if (myComponent.contains(pointInMyComponent)) {
+          val component = myComponent.getComponentAt(pointInMyComponent.x, pointInMyComponent.y)
           if (component is CollapsibleLabelPanel) {
-            handleSelectionChange(component.label, true)
+            val pointInLabelPanel = SwingUtilities.convertPoint(myComponent, pointInMyComponent, component)
+            val label = component.getComponentAt(pointInLabelPanel.x, pointInLabelPanel.y)
+            if (component.label == label) {
+              handleSelectionChange(component.label, true)
+            }
           }
         }
         else {
