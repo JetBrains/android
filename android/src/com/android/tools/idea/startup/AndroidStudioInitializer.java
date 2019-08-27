@@ -210,14 +210,26 @@ public class AndroidStudioInitializer implements Runnable {
   private static void disableIdeaJUnitConfigurations() {
     // First we unregister the ConfigurationProducers, and after the ConfigurationType
     RunConfigurationProducer.EP_NAME.getPoint(null).unregisterExtensions((className, adapter) -> {
-      Class<?> clazz = adapter.getImplementationClass();
+      Class<?> clazz;
+      try {
+        clazz = adapter.getImplementationClass();
+      }
+      catch (ClassNotFoundException e) {
+        return true;
+      }
+
       // In AndroidStudio these ConfigurationProducers are replaced
       return !ReflectionUtil.isAssignable(JUnitConfigurationProducer.class, clazz) || ReflectionUtil.isAssignable(AndroidJUnitConfigurationProducer.class, clazz);
     }, /* stopAfterFirstMatch = */ false);
 
     ConfigurationType.CONFIGURATION_TYPE_EP.getPoint(null).unregisterExtensions((className, adapter) -> {
       // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
-      return !ReflectionUtil.isAssignable(JUnitConfigurationProducer.class, adapter.getImplementationClass());
+      try {
+        return !ReflectionUtil.isAssignable(JUnitConfigurationProducer.class, adapter.getImplementationClass());
+      }
+      catch (ClassNotFoundException e) {
+        return true;
+      }
     }, /* stopAfterFirstMatch = */ false);
 
     // We hide actions registered by the JUnit plugin and instead we use those registered in android-junit.xml
