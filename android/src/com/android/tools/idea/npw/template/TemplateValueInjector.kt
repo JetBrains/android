@@ -32,7 +32,6 @@ import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getInitialDomain
-import com.android.tools.idea.npw.model.getKotlinVersion
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
@@ -110,6 +109,7 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.jps.model.java.JpsJavaSdkType
+import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 import java.io.File
 import java.util.HashMap
 
@@ -336,7 +336,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   private fun addKotlinVersion() {
-    val kotlinVersion = getKotlinVersion()
+    val kotlinVersion = bundledRuntimeVersion()
     // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     myTemplateValues[ATTR_KOTLIN_VERSION] = kotlinVersion
     myTemplateValues[ATTR_KOTLIN_EAP_REPO] = setOf("rc", "eap", "-M").any { it in kotlinVersion }
