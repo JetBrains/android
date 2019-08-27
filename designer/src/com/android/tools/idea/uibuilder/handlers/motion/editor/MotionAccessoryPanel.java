@@ -48,6 +48,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -65,8 +66,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   NlComponentTag myMotionLayoutTag;
   NlComponent myMotionLayoutNlComponent;
   MotionSceneTag myMotionScene;
+  HashSet<String> myLayoutSelectedId = new HashSet<>();
   ViewGroupHandler.AccessoryPanelVisibility mVisibility;
-  MotionEditor mMotionEditor = new MotionEditor() ;
+  MotionEditor mMotionEditor = new MotionEditor();
   public static final String TIMELINE = "Timeline";
   private SmartPsiElementPointer<XmlTag> mSelectedConstraintTag;
   private NlComponentDelegate myNlComponentDelegate = new MotionLayoutComponentDelegate(this);
@@ -88,12 +90,13 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         if (applyMotionSceneValue != null && applyMotionSceneValue.equals("false")) {
           WriteCommandAction.runWriteCommandAction(project, () -> {
             // let's get rid of it, as it's the default.
-            myMotionLayoutTag.mComponent.setAttribute(SdkConstants.TOOLS_URI,"applyMotionScene",null);
+            myMotionLayoutTag.mComponent.setAttribute(SdkConstants.TOOLS_URI, "applyMotionScene", null);
           });
         }
-      } else {
+      }
+      else {
         WriteCommandAction.runWriteCommandAction(project, () -> {
-          myMotionLayoutTag.mComponent.setAttribute(SdkConstants.TOOLS_URI,"applyMotionScene","false");
+          myMotionLayoutTag.mComponent.setAttribute(SdkConstants.TOOLS_URI, "applyMotionScene", "false");
         });
       }
     }
@@ -121,7 +124,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         mLastSelection = selection;
         myLastSelectedTag = computeSelectedTagForPropertyPanel(tag);
         switch (selection) {
-          case CONSTRAINT_SET:   {
+          case CONSTRAINT_SET: {
             String id = tag[0].getAttributeValue("id");
             if (DEBUG) {
               Debug.log("id of constraint set " + id);
@@ -133,11 +136,12 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             if (TEMP_HACK_FORCE_APPLY) {
               applyMotionSceneValue(true);
             }
-          } break;
+          }
+          break;
           case TRANSITION:
             String start = stripID(tag[0].getAttributeValue("constraintSetStart"));
             String end = stripID(tag[0].getAttributeValue("constraintSetEnd"));
-            myMotionHelper.setTransition(start,end);
+            myMotionHelper.setTransition(start, end);
             break;
           case LAYOUT: {
             if (TEMP_HACK_FORCE_APPLY) {
@@ -146,7 +150,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             selectOnDesignSurface(tag);
             myMotionHelper.setState(null);
             mSelectedConstraintId = null;
-          } break;
+          }
+          break;
           case CONSTRAINT: {
             // TODO: This should always be a WrapMotionScene (remove this code when bug is fixed):
             XmlTag xmlTag = null;
@@ -156,13 +161,13 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             }
             else if (tag[0] instanceof NlComponentTag) {
               xmlTag = ((NlComponentTag)tag[0]).mComponent.getTag();
-
             }
             if (xmlTag == null) {
               return;
             }
             mSelectedConstraintTag = SmartPointerManager.getInstance(xmlTag.getProject()).createSmartPsiElementPointer(xmlTag);
-          } break;
+          }
+          break;
           case LAYOUT_VIEW:
           case KEY_FRAME_GROUP:
             // The NelePropertiesModel should be handling the properties in these cases...
@@ -186,7 +191,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       }
     });
     myMotionScene = getMotionScene(myMotionLayoutNlComponent);
-    mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag,"","");
+    mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
     parent.putClientProperty(TIMELINE, this);
     if (DEBUG) {
       Debug.log("harness " + parent);
@@ -198,16 +203,17 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     for (int i = 0; i < tag.length; i++) {
       MTag mTag = tag[i];
       if (mTag instanceof NlComponentTag) {
-        list.add( ((NlComponentTag)mTag).mComponent);
+        list.add(((NlComponentTag)mTag).mComponent);
       }
     }
 
     if (DEBUG) {
-      Debug.log(" set section "+tag.length+" "+tag[0].getTagName());
+      Debug.log(" set section " + tag.length + " " + tag[0].getTagName());
     }
     if (list.size() > 0) {
       myDesignSurface.getSelectionModel().setSelection(list);
-    } else {
+    }
+    else {
       myDesignSurface.getSelectionModel().setSelection(Arrays.asList(myMotionLayoutNlComponent));
     }
   }
@@ -229,12 +235,39 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   private void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    if (mMotionEditor != null) {
-      if (myMotionScene == null) {
-        myMotionScene = getMotionScene(myMotionLayoutNlComponent);
+    // Prevent repeated section of the same objectS
+    if (selection.size() == myLayoutSelectedId.size()) {
+      int count = 0;
+      for (NlComponent component : selection) {
+        if (myLayoutSelectedId.contains(component.getId())) {
+          count++;
+        }
       }
-      mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag,"","");
+      if (count == selection.size()) {
+        return;
+      }
     }
+    myLayoutSelectedId.clear();
+    for (NlComponent component : selection) {
+      if (myLayoutSelectedId.add(component.getId())) ;
+    }
+
+    if (selection.size() > 0) {
+      for (NlComponent component : selection) {
+        String tagName = component.getTagName();
+        String id = component.getId();
+        MTag tag = mMotionEditor.getMeModel().findTag(tagName, id);
+        if (tag != null) {
+          if (tag instanceof NlComponentTag) {
+            mMotionEditor.setSelection(MotionEditorSelector.Type.LAYOUT_VIEW, new MTag[]{tag});
+          }
+          else {
+            mMotionEditor.setSelection(MotionEditorSelector.Type.CONSTRAINT, new MTag[]{tag});
+          }
+        }
+      }
+    }
+    //    mMotionEditorSelector.notifyListeners(type, tags);
     fireSelectionChanged(selection);
   }
 
@@ -262,7 +295,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
     MotionSceneTag motionSceneModel = MotionSceneTag.parse(motionLayout, project, virtualFile, xmlFile);
 
-    return  motionSceneModel;
+    return motionSceneModel;
   }
 
   @NotNull
@@ -274,7 +307,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   @NotNull
   @Override
   public JPanel createPanel(AccessoryPanel.Type type) {
-    return new JPanel() {{setBackground(Color.RED);}};
+    return new JPanel() {{
+      setBackground(Color.RED);
+    }};
   }
 
   @Override
@@ -344,7 +379,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (mLastSelection == MotionEditorSelector.Type.LAYOUT) {
       myMotionHelper.setState(null);
       mSelectedConstraintId = null;
-    } else if (mLastSelection == MotionEditorSelector.Type.CONSTRAINT_SET) {
+    }
+    else if (mLastSelection == MotionEditorSelector.Type.CONSTRAINT_SET) {
       myMotionHelper.setState(mSelectedConstraintId);
     }
 
@@ -413,10 +449,12 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   public SmartPsiElementPointer<XmlTag> getSelectedConstraint() {
     return mSelectedConstraintTag;
   }
+
   @Override
   public String getSelectedConstraintSet() {
     return mSelectedConstraintId;
   }
+
   // TODO: merge with the above parse function
   @Override
   @Nullable

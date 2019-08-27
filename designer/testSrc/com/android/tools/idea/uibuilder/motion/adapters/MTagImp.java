@@ -403,4 +403,9 @@ public class MTagImp implements MTag {
   public TagWriter getChildTagWriter(String name) {
     return new TagWriterImp(name, this);
   }
+
+  @Override
+  public TagWriter getTagWriter() {
+    return null;
+  }
 }

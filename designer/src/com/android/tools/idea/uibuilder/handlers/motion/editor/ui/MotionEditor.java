@@ -262,6 +262,11 @@ public class MotionEditor extends JPanel {
 
   }
 
+  public void setSelection(MotionEditorSelector.Type type , MTag[] tag) {
+    mSelectedTag = tag[0];
+    notifyListeners(type,tag);
+  }
+
   void constraintSetSelection() {
 
     int index = mCombinedListPanel.getSelectedConstraintSet();
