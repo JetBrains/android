@@ -113,8 +113,7 @@ we rescan it and replace the file-based resource items ([ResourceItem](ResourceI
 necessary, meaning the initial initialization of the repository is much faster. The plain file-based XML data structures are also more
 memory efficient than the PSI-based ones.
 
-Thus it is important that a ResourceItem can be used in place of a PsiResourceItem. Data Binding files are one case that are
-not handled by the file-based parsers at all, and are handled by the PSI-based parser.
+Thus it is important that a ResourceItem can be used in place of a PsiResourceItem.
 
 ### Parallel Initialization
 
