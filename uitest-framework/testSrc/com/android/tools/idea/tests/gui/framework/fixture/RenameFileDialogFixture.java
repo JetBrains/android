@@ -54,7 +54,7 @@ public class RenameFileDialogFixture implements ContainerFixture<JDialog> {
   @NotNull
   public IdeFrameFixture clickRefactor() {
     GuiTests.findAndClickRefactorButton(this);
-    Wait.seconds(1).expecting(target().getTitle() + " dialog to disappear")
+    Wait.seconds(2).expecting(target().getTitle() + " dialog to disappear")
       .until(() -> !target().isShowing());
     return myIdeFrameFixture;
   }
@@ -62,7 +62,7 @@ public class RenameFileDialogFixture implements ContainerFixture<JDialog> {
   @NotNull
   public IdeFrameFixture clickCancel() {
     GuiTests.findAndClickCancelButton(this);
-    Wait.seconds(1).expecting(target().getTitle() + " dialog to disappear")
+    Wait.seconds(2).expecting(target().getTitle() + " dialog to disappear")
       .until(() -> !target().isShowing());
     return myIdeFrameFixture;
   }
