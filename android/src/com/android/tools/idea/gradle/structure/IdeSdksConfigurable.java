@@ -138,6 +138,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   private String mySelectedComponentId;
   private boolean mySdkLoadingRequested = false;
   private JLabel myJdkWarningLabel;
+  private boolean myIsJavaHomeValid;
 
   public IdeSdksConfigurable(@Nullable Configurable host, @Nullable Project project) {
     myHost = host;
@@ -225,6 +226,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     if (!isModified()) {
       return;
     }
+    setJdkWarningVisibility();
     if (validateJdkPath(getJdkLocation()) == null) {
       throw new ConfigurationException(generateChooseValidJdkDirectoryError());
     }
@@ -375,7 +377,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     String javaHomePath = getJdkFromJavaHome();
     if (javaHomePath != null) {
       File validatedPath = validateJdkPath(new File(javaHomePath));
-      if (validatedPath != null) {
+      myIsJavaHomeValid = validatedPath != null;
+      if (myIsJavaHomeValid) {
         comboBox.addItem(new LabelAndFileForLocation("JAVA_HOME", validatedPath));
       }
     }
@@ -406,7 +409,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
             ApplicationManager.getApplication().invokeLater(() -> setJdkLocationComboBox(((LabelAndFileForLocation)selectedItem).getFile()));
           }
           else if (selectedItem instanceof LabelAndPath) {
-            ApplicationManager.getApplication().invokeLater(() -> comboBox.setSelectedItem(((LabelAndPath)selectedItem).getPath()));
+            ApplicationManager.getApplication().invokeLater(() -> setJdkLocationComboBox(((LabelAndPath)selectedItem).getPath()));
           }
         }
       }
@@ -416,7 +419,11 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   }
 
   private static void setComboBoxFile(@NotNull JComboBox comboBox, @NotNull File file) {
-    comboBox.setSelectedItem(toSystemDependentName(file.getPath()));
+    setComboBoxPath(comboBox, file.getPath());
+  }
+
+  private static void setComboBoxPath(@NotNull JComboBox comboBox, @NotNull String path) {
+    comboBox.setSelectedItem(toSystemDependentName(path));
   }
 
   private void createSdkLocationTextField() {
@@ -748,14 +755,17 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     return null;
   }
 
-  private void setJdkLocationComboBox(@NotNull File path) {
-    setComboBoxFile(myJdkLocationComboBox.getComboBox(), path);
+  private void setJdkLocationComboBox(@NotNull File file) {
+    setJdkLocationComboBox(file.getPath());
+  }
+
+  private void setJdkLocationComboBox(@NotNull String path) {
+    setComboBoxPath(myJdkLocationComboBox.getComboBox(), path);
     setJdkWarningVisibility();
   }
 
   private void setJdkWarningVisibility() {
-    File jdkLocation = getJdkLocation();
-    boolean visible = !IdeSdks.isSameAsJavaHomeJdk(jdkLocation);
+    boolean visible = myIsJavaHomeValid && !IdeSdks.isSameAsJavaHomeJdk(getJdkLocation());
     myJdkWarningLink.setVisible(visible);
     myJdkWarningLabel.setVisible(visible);
   }
