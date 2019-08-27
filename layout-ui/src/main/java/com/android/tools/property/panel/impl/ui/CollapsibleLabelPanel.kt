@@ -33,21 +33,22 @@ import javax.swing.JPanel
 import javax.swing.border.Border
 
 /**
- * A label to show text with or without trailing ellipsis and an optional expansion control.
+ * A panel to show text and an optional control for collapsing/expanding a section.
  *
  * When the text on this label is too wide for the allowable space, this label can can either
  * show training ellipsis or clip the text. In this way the control can be used in connection
  * with an [ExpandableItemsHandler].
  *
- * An expansion control is optionally shown and expansion logic is included.
+ * The control for collapsing/expanding a section is represented by a button with an image
+ * controlled by the specified [model].
  */
-class CollapsibleLabel(
+class CollapsibleLabelPanel(
   val model: CollapsibleLabelModel,
   fontSize: UIUtil.FontSize,
   fontStyle: Int,
   vararg actions: AnAction
 ) : JPanel(BorderLayout()) {
-  private val label = MyLabel(model.name, fontSize, fontStyle)
+  val label = ExpandableLabel(model.name, this, fontSize, fontStyle)
 
   // The label wil automatically display ellipsis at the end of a string that is too long for the width
   private val valueWithTrailingEllipsis = model.name
@@ -70,7 +71,9 @@ class CollapsibleLabel(
 
   var innerBorder: Border?
     get() = label.border
-    set(value) { label.border = value}
+    set(value) {
+      label.border = value
+    }
 
   init {
     background = secondaryPanelBackground
@@ -99,31 +102,42 @@ class CollapsibleLabel(
   private fun toHtml(text: String): String {
     return "<html>" + HtmlEscapers.htmlEscaper().escape(text) + "</html>"
   }
+}
 
-  private class MyLabel(label: String, val fontSize: UIUtil.FontSize, val fontStyle: Int): JBLabel(label) {
-    private var initialized = false
+/**
+ * A label that works with an [ExpandableItemsHandler].
+ *
+ * See [InspectorPanelImpl].
+ */
+class ExpandableLabel(
+  label: String,
+  val panel: CollapsibleLabelPanel,
+  private val fontSize: UIUtil.FontSize,
+  private val fontStyle: Int
+): JBLabel(label) {
 
-    init {
+  private var initialized = false
+
+  init {
+    setFont()
+    initialized = true
+  }
+
+  override fun contains(x: Int, y: Int): Boolean {
+    return isVisible && super.contains(x, y)
+  }
+
+  override fun updateUI() {
+    super.updateUI()
+    if (initialized) {
       setFont()
-      initialized = true
     }
+  }
 
-    override fun contains(x: Int, y: Int): Boolean {
-      return isVisible && super.contains(x, y)
-    }
-
-    override fun updateUI() {
-      super.updateUI()
-      if (initialized) {
-        setFont()
-      }
-    }
-
-    private fun setFont() {
-      font = UIUtil.getLabelFont(fontSize)
-      if (fontStyle != Font.PLAIN) {
-        font = font.deriveFont(fontStyle)
-      }
+  private fun setFont() {
+    font = UIUtil.getLabelFont(fontSize)
+    if (fontStyle != Font.PLAIN) {
+      font = font.deriveFont(fontStyle)
     }
   }
 }
