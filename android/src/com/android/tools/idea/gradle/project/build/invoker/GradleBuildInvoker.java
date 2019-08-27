@@ -101,7 +101,7 @@ public class GradleBuildInvoker {
   }
 
   public GradleBuildInvoker(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
-    this(project, documentManager, new GradleTasksExecutorFactory(), new NativeDebugSessionFinder(project));
+    this(project, FileDocumentManager.getInstance(), new GradleTasksExecutorFactory(), new NativeDebugSessionFinder(project));
   }
 
   @VisibleForTesting
