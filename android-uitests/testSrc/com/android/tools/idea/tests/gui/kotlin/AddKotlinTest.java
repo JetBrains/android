@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import static com.android.tools.idea.npw.model.HelpersKt.getKotlinVersion;
 import static com.google.common.truth.Truth.assertThat;
+import static org.jetbrains.kotlin.idea.versions.KotlinRuntimeLibraryUtilKt.bundledRuntimeVersion;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -167,7 +167,7 @@ public class AddKotlinTest {
 
     String newBuildGradleContents = buildGradleContents.replaceAll(
       "ext\\.kotlin_version.*=.*",
-      "ext.kotlin_version = '" + getKotlinVersion() + '\'')
+      "ext.kotlin_version = '" + bundledRuntimeVersion() + '\'')
       .replaceAll(
         "mavenCentral\\(\\)",
         ""
