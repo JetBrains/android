@@ -24,10 +24,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.ui.AbstractExpandableItemsHandler
-import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
 import java.awt.Component
-import java.awt.Insets
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
@@ -65,7 +63,7 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
     add(component, Placement.LINE)
   }
 
-  fun addLineElement(label: CollapsibleLabel, component: JComponent) {
+  fun addLineElement(label: CollapsibleLabelPanel, component: JComponent) {
     add(label, Placement.LEFT)
     add(component, Placement.RIGHT)
   }
@@ -84,7 +82,7 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
     if (!contains(point)) {
       return null
     }
-    val component = getComponentAt(point.x, point.y) as? CollapsibleLabel ?: return null
+    val component = getComponentAt(point.x, point.y) as? CollapsibleLabelPanel ?: return null
     return PropertyTooltip.setToolTip(this, event, component.model.editorModel?.property, forValue = false, text = "")
   }
 
@@ -95,11 +93,11 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
    * that are too wide, but remove the ellipsis when the text is expanded.
    */
   private class ExpandableLabelHandler(component: InspectorPanelImpl) :
-    AbstractExpandableItemsHandler<CollapsibleLabel, JPanel>(component) {
+    AbstractExpandableItemsHandler<ExpandableLabel, JPanel>(component) {
 
     private val mousePreprocessor: MousePreprocessor
     private val renderer: JLabel
-    private var expandedLabel: CollapsibleLabel? = null
+    private var expandedLabel: ExpandableLabel? = null
 
     init {
       mousePreprocessor = MousePreprocessor()
@@ -111,7 +109,7 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
       glassPane.addMouseMotionPreprocessor(mousePreprocessor, parent)
     }
 
-    override fun getCellRendererAndBounds(key: CollapsibleLabel): ComponentBounds? {
+    override fun getCellRendererAndBounds(key: ExpandableLabel): ComponentBounds? {
       if (expandedLabel != key) {
         // Hide any previously expanded label
         hideExpansion()
@@ -136,7 +134,7 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
 
       // Record the label being expanded and hide the ellipsis at the end of the text.
       expandedLabel = key
-      expandedLabel?.model?.showEllipses = false
+      expandedLabel?.panel?.model?.showEllipses = false
       return ComponentBounds.create(renderer, overlayBounds(key))
     }
 
@@ -149,27 +147,26 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
       return false
     }
 
-    override fun getVisibleRect(key: CollapsibleLabel): Rectangle {
+    override fun getVisibleRect(key: ExpandableLabel): Rectangle {
       return SwingUtilities.convertRectangle(key, key.visibleRect, myComponent)
     }
 
-    override fun getCellKeyForPoint(point: Point): CollapsibleLabel? {
+    override fun getCellKeyForPoint(point: Point): ExpandableLabel? {
       val component = myComponent.getComponentAt(point.x, point.y)
-      return component as? CollapsibleLabel
+      return (component as? CollapsibleLabelPanel)?.label
     }
 
     private fun hideExpansion(): Boolean {
       val wasExpanded = expandedLabel != null
-      expandedLabel?.model?.showEllipses = true
+      expandedLabel?.panel?.model?.showEllipses = true
       expandedLabel = null
       return wasExpanded
     }
 
-    private fun overlayBounds(key: CollapsibleLabel): Rectangle {
-      val bounds = Rectangle(key.location, key.preferredSize)
-      val insets = key.border?.getBorderInsets(key) ?: Insets(0, 0, 0, 0)
-      JBInsets.removeFrom(bounds, insets)
-      bounds.height = (myComponent.layout as? InspectorLayoutManager)?.getRowHeight(key) ?: key.preferredSize.height
+    private fun overlayBounds(key: ExpandableLabel): Rectangle {
+      val preferredSize = key.preferredSize
+      val bounds = Rectangle(SwingUtilities.convertPoint(key.panel, key.location, key.panel.parent), preferredSize)
+      bounds.height = (myComponent.layout as? InspectorLayoutManager)?.getRowHeight(key) ?: preferredSize.height
       bounds.width += JBUI.scale(RIGHT_OVERLAY_MARGIN) // Give a little extra room in the overlay
       return bounds
     }
@@ -178,7 +175,7 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
      * Adapter for preprocessing all mouse move events on the IdeGlassPane.
      *
      * If the mouse is on top of the inspector, start investigating any
-     * [CollapsibleLabel] under the mouse. Otherwise reset any existing
+     * [CollapsibleLabelPanel] under the mouse. Otherwise reset any existing
      * label expansion.
      */
     private inner class MousePreprocessor : MouseMotionAdapter() {
@@ -186,8 +183,8 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
         val point = SwingUtilities.convertPoint(event.component, event.point, myComponent)
         if (myComponent.contains(point)) {
           val component = myComponent.getComponentAt(point.x, point.y)
-          if (component is CollapsibleLabel) {
-            handleSelectionChange(component, true)
+          if (component is CollapsibleLabelPanel) {
+            handleSelectionChange(component.label, true)
           }
         }
         else {
