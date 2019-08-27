@@ -467,8 +467,12 @@ public class GuiTestRule implements TestRule {
   }
 
   @NotNull
-  public String getProjectFileText(@NotNull String fileRelPath) throws IOException {
-    return asCharSource(getProjectPath(fileRelPath), UTF_8).read();
+  public String getProjectFileText(@NotNull String fileRelPath) {
+    try {
+      return asCharSource(getProjectPath(fileRelPath), UTF_8).read();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @NotNull
