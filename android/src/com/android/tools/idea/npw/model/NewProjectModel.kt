@@ -33,6 +33,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.Template
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
@@ -159,6 +160,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       projectTemplateValues[ATTR_CPP_FLAGS] = cppFlags.get()
       projectTemplateValues[ATTR_TOP_OUT] = project.value.basePath ?: ""
       projectTemplateValues[ATTR_IS_NEW_PROJECT] = true
+      projectTemplateValues[ATTR_APP_TITLE] = applicationName.get()
 
       TemplateValueInjector(projectTemplateValues)
         .setProjectDefaults(project.value)
