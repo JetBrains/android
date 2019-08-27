@@ -104,7 +104,7 @@ public class NewProjectTest {
   }
 
   @Test
-  public void testInferNullity() throws IOException {
+  public void testInferNullity() {
     // Creates a new default project, adds a nullable API and then invokes Infer Nullity and
     // confirms that it adds nullability annotations.
     newProject("Test Infer Nullity Application").withPackageName("my.pkg").create(guiTest);
@@ -151,7 +151,7 @@ public class NewProjectTest {
   }
 
   @Test
-  public void testGradleWrapperIsExecutable() throws Exception {
+  public void testGradleWrapperIsExecutable() {
     Assume.assumeTrue("Is Unix", SystemInfo.isUnix);
     newProject("Test Application").withBriefNames().create(guiTest);
 
@@ -175,7 +175,7 @@ public class NewProjectTest {
    */
   @RunIn(TestGroup.QA)
   @Test
-  public void latestSupportLibraryWhileDndLayouts() throws Exception {
+  public void latestSupportLibraryWhileDndLayouts() {
     IdeFrameFixture ideFrameFixture = newProject("Test Application").withMinSdk("26").create(guiTest);
 
     ideFrameFixture.getEditor()
@@ -194,7 +194,7 @@ public class NewProjectTest {
   }
 
   @Test
-  public void androidXmlFormatting() throws IOException {
+  public void androidXmlFormatting() {
     newProject("P").create(guiTest);
 
     String actualXml = guiTest.getProjectFileText("app/src/main/res/layout/activity_main.xml");
