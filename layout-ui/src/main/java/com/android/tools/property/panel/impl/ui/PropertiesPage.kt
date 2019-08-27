@@ -124,7 +124,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addTitle(title: String, vararg actions: AnAction): InspectorLineModel {
     addSeparatorBeforeTitle()
     val model = TitleLineModel(title)
-    val label = CollapsibleLabel(model, UIUtil.FontSize.NORMAL, Font.BOLD, *actions)
+    val label = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD, *actions)
     label.isOpaque = true
     label.innerBorder = JBUI.Borders.empty(TITLE_SEPARATOR_HEIGHT, 0)
     label.border = JBUI.Borders.merge(JBUI.Borders.empty(0, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, 0, 0),
@@ -139,7 +139,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addCustomEditor(editorModel: PropertyEditorModel, editor: JComponent, parent: InspectorLineModel?): InspectorLineModel {
     addSeparatorAfterTitle(parent)
     val model = CollapsibleLabelModel(editorModel.property.name, editorModel)
-    val label = CollapsibleLabel(model, UIUtil.FontSize.SMALL, Font.PLAIN)
+    val label = CollapsibleLabelPanel(model, UIUtil.FontSize.SMALL, Font.PLAIN)
     label.border = JBUI.Borders.emptyLeft(LEFT_HORIZONTAL_CONTENT_BORDER_SIZE)
     editorModel.lineModel = model
     addLine(model, parent)
