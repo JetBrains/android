@@ -94,7 +94,7 @@ class PathValidator
       withCommonRules()
       withError(IS_EMPTY)
       withError(PATH_NOT_WRITABLE)
-      withWarning(NON_EMPTY_DIRECTORY)
+      withError(NON_EMPTY_DIRECTORY)
       return this
     }
 
