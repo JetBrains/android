@@ -29,9 +29,9 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 
 /**
- * Validates the module name and its location
+ * Validates the module name and its location.
  */
-class ModuleValidator(private val projectPath: StringProperty) : Validator<String?> {
+class ModuleValidator(private val projectPath: StringProperty) : Validator<String> {
   private var project : Project? = null // May be null for new projects
   private val pathValidator: PathValidator = PathValidator.createDefault("module location")
   private val ILLEGAL_CHAR_MATCHER =
@@ -42,7 +42,7 @@ class ModuleValidator(private val projectPath: StringProperty) : Validator<Strin
   }
 
   override fun validate(name: String): Result {
-    val illegalCharIdx = ILLEGAL_CHAR_MATCHER!!.indexIn(name)
+    val illegalCharIdx = ILLEGAL_CHAR_MATCHER.indexIn(name)
     return when {
       name.isEmpty() -> Result(Severity.ERROR, message("android.wizard.validate.empty.module.name"))
       project != null && ModuleManager.getInstance(project!!).findModuleByName(name) != null ->
