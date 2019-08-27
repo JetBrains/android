@@ -66,6 +66,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinFileType
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 
 /** Preview element name */
@@ -392,7 +393,7 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
 
     // Queue to avoid refreshing notifications on every key stroke
     val modificationQueue = MergingUpdateQueue("Notifications Update queue",
-                                               100,
+                                               TimeUnit.SECONDS.toMillis(1).toInt(),
                                                true,
                                                null,
                                                composeEditorWithPreview)
