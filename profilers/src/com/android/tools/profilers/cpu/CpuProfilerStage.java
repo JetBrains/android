@@ -470,6 +470,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .setInitiationType(TraceInitiationType.INITIATED_BY_UI)
       .setTempPath(traceFilePath) // TODO b/133321803 switch back to having daemon generates and provides the path.
       .setUserOptions(config.toProto())
+      .addAllSymbolDirs(getStudioProfilers().getIdeServices().getNativeSymbolsDirectories())
       .build();
 
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
