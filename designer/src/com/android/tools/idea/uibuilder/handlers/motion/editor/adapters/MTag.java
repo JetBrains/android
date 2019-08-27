@@ -73,6 +73,12 @@ public interface MTag {
 
   public TagWriter getChildTagWriter(String name);
 
+  /**
+   * Provide the tag write version of this tag
+   * @return
+   */
+  public TagWriter getTagWriter();
+
   interface TagWriter extends MTag {
     void setAttribute(String type, String attribute, String value);
     MTag commit();
