@@ -184,4 +184,9 @@ public class NlComponentTag implements MTag {
   public TagWriter getChildTagWriter(String name) {
     return null; // TODO WE NEED TagWriter. But currently we do not write NLComponents
   }
+
+  @Override
+  public TagWriter getTagWriter() {
+    return null;
+  }
 }

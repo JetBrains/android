@@ -366,7 +366,34 @@ class ConstraintSetPanel extends JPanel {
     return new ArrayList<MTag>();
   }
 
+
   public void setListeners(MotionEditorSelector listeners) {
     mListeners = listeners;
+    mListeners.addSelectionListener(new MotionEditorSelector.Listener() {
+      boolean in = false;
+      @Override
+      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
+        if (in) { // simple block for selection triggering selection.
+          return;
+        }
+        in = true;
+        HashSet<String> selectedSet = new HashSet<>();
+
+        for (int i = 0; i < tag.length; i++) {
+          MTag mTag = tag[i];
+          String id = Utils.stripID(mTag.getAttributeValue("id"));
+
+          selectedSet.add(id);
+        }
+        mConstraintSetTable.clearSelection();
+        for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
+          String id = (String) mConstraintSetModel.getValueAt(i, 1);
+          if (selectedSet.contains(id)) {
+            mConstraintSetTable.addRowSelectionInterval(i, i);
+          }
+        }
+        in = false;
+      }
+    });
   }
 }
