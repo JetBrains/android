@@ -25,6 +25,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.HashMap;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The Writer form of the WrapMotionScene used when you are modifying the tag.
@@ -37,6 +38,16 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
   public MotionSceneTagWriter(MotionSceneTag parent, String type) {
     super(null, parent);
     mType = type;
+  }
+
+  /**
+   * Create tag writer version of tag
+   *
+   * @param tag
+   */
+  public MotionSceneTagWriter(MotionSceneTag tag) {
+    super(tag.myXmlTag, tag.mParent);
+    mType = tag.getTagName();
   }
 
   @Override
@@ -65,7 +76,12 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     if (root == null) {
       return null;
     }
-    myXmlTag = createConstraint(mType, this, root);
+    if (myXmlTag != null) { // this already exist
+      update(this, root);
+    }
+    else {
+      myXmlTag = createConstraint(mType, this, root);
+    }
     MotionSceneTag result = new MotionSceneTag(myXmlTag, mParent);
     for (MTag child : myChildren) {
       if (child instanceof MotionSceneTagWriter) {
@@ -77,6 +93,19 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
       mParent.myChildren.add(result);
     }
     return result;
+  }
+
+  private static void update(MotionSceneTagWriter tag, MotionSceneTag.Root root) {
+    String command = "Set attributes";
+    WriteCommandAction.<XmlTag>runWriteCommandAction(root.mProject, "set", null, () -> {
+      for (String key : tag.mNewAttrList.keySet()) {
+        Attribute attr = tag.mNewAttrList.get(key);
+        String namespace = MotionSceneAttrs.lookupName(attr);
+        tag.myXmlTag.setAttribute(attr.mAttribute, namespace, attr.mValue);
+      }
+    }, root.mXmlFile);
+
+    saveAndNotify(root.mXmlFile, root.mModel);
   }
 
   private static MotionSceneTag.Root getRoot(MotionSceneTag tag) {
@@ -123,6 +152,19 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
 
     saveAndNotify(xmlFile, root.mModel);
     return createdTag;
+  }
+
+  public void deleteTag(@NotNull String command) {
+    MotionSceneTag.Root root = getRoot(this);
+
+    Runnable operation = () -> {
+      myXmlTag.delete();
+    };
+    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(root.mProject, root.mVirtualFile);
+
+    WriteCommandAction.runWriteCommandAction(root.mProject, command, null, operation, xmlFile);
+
+    mParent.myChildren.remove(this);
   }
 
   /**

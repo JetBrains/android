@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -188,5 +189,37 @@ public class MeModel {
       tags.add(view);
     }
     return tags.toArray(new MTag[0]);
+  }
+
+  public MTag findTag(String type, String id) {
+    if (mSelectedType == null) {
+      return null;
+    }
+
+    if (mSelected == null || mSelected.length == 0) {
+      return null;
+    }
+    MTag tag = mSelected[0];
+    switch (mSelectedType) {
+      case TRANSITION:
+      case KEY_FRAME_GROUP:
+        break;
+      case CONSTRAINT:
+        tag = tag.getParent(); // for constraint we need to go up a level to the constraint set
+      case CONSTRAINT_SET:
+        MTag[] look = tag.getChildTags("id", id);
+        if (look != null && look.length > 0) {
+          return look[0];
+        }
+        MTag[] layoutView = layout.getChildTags();
+        for (int i = 0; i < layoutView.length; i++) {
+          MTag mTag = layoutView[i];
+          String viewId = Utils.stripID(mTag.getAttributeValue("id"));
+          if (viewId!=null &&  id.equals(viewId)) {
+            return mTag;
+          }
+        }
+    }
+    return null;
   }
 }

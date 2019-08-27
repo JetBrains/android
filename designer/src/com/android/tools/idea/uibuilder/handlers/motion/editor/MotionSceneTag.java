@@ -218,6 +218,11 @@ public class MotionSceneTag implements MTag {
     return new MotionSceneTagWriter(this, name);
   }
 
+  @Override
+  public MotionSceneTagWriter getTagWriter() {
+    return new MotionSceneTagWriter(this);
+  }
+
   static class Root extends MotionSceneTag {
     Project mProject;
     VirtualFile mVirtualFile;
