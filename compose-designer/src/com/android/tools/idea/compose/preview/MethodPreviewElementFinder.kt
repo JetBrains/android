@@ -17,14 +17,9 @@ package com.android.tools.idea.compose.preview
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.parents
-import org.jetbrains.kotlin.idea.intentions.isMethodCall
-import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtImportDirective
-import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
@@ -166,14 +161,5 @@ object MethodPreviewElementFinder : PreviewElementFinder {
     })
 
     return previewElements
-  }
-
-  override fun elementBelongsToPreviewElement(element: PsiElement): Boolean {
-    // Find if element belongs to the Preview call. It can be any of the parameters but not part of the lambda call.
-    // If we find a call expression, keep looking forward to see if any is the Preview method.
-    return element.parents()
-      .takeWhile { it !is KtLambdaExpression } // Stop at the first lambda
-      .filterIsInstance<KtCallExpression>()
-      .any { it.isMethodCall(PREVIEW_ANNOTATION_FQN) }
   }
 }
