@@ -27,10 +27,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.UtilKt;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
-import org.picocontainer.MutablePicoContainer;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,38 +42,18 @@ import java.util.List;
  * Tests the ResourceFolderRepositoryFileCache.
  */
 public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
-
-  private ResourceFolderRepositoryFileCache myOldFileCacheService;
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     ResourceFolderRepositoryFileCache cache = new ResourceFolderRepositoryFileCacheImpl(
       new File(myFixture.getTempDirPath()));
-    myOldFileCacheService = overrideCacheService(cache);
+    overrideCacheService(cache);
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      overrideCacheService(myOldFileCacheService);
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
-  private static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
-    MutablePicoContainer applicationContainer = (MutablePicoContainer)
-      ApplicationManager.getApplication().getPicoContainer();
-
+  private void overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
     // Use a file cache that has per-test root directories instead of sharing the system directory.
     // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
-    ResourceFolderRepositoryFileCache oldCache =
-      (ResourceFolderRepositoryFileCache)applicationContainer.getComponentInstance(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache.class.getName(), newCache);
-    return oldCache;
+    UtilKt.replaceServiceInstance(ApplicationManager.getApplication(), ResourceFolderRepositoryFileCache.class, newCache, getTestRootDisposable());
   }
 
   private VirtualFile getResourceDir() {
