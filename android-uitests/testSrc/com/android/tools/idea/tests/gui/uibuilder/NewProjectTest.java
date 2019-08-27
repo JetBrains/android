@@ -194,11 +194,10 @@ public class NewProjectTest {
   }
 
   @Test
-  public void androidXmlFormatting() {
-    String actualXml = newProject("P").create(guiTest)
-      .getEditor()
-      .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR)
-      .getCurrentFileContents();
+  public void androidXmlFormatting() throws IOException {
+    newProject("P").create(guiTest);
+
+    String actualXml = guiTest.getProjectFileText("app/src/main/res/layout/activity_main.xml");
 
     @Language("XML")
     String expectedXml =
