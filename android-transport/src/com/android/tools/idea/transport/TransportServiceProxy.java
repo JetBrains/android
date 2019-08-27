@@ -104,6 +104,7 @@ public class TransportServiceProxy extends ServiceProxy
   private Thread myEventsListenerThread;
   private final Map<CommandType, TransportProxy.ProxyCommandHandler> myCommandHandlers = new HashMap<>();
   private final List<TransportEventPreprocessor> myEventPreprocessors = new ArrayList<>();
+  private final List<TransportBytesPreprocessor> myDataPreprocessors = new ArrayList<>();
   @NotNull private final Map<String, ByteString> myProxyBytesCache;
 
   // Cache the latest event timestamp we received from the daemon, which is used for closing all still-opened event groups when
@@ -147,6 +148,13 @@ public class TransportServiceProxy extends ServiceProxy
    */
   public void registerEventPreprocessor(TransportEventPreprocessor eventPreprocessor) {
     myEventPreprocessors.add(eventPreprocessor);
+  }
+
+  /**
+   * Registers an event preprocessor that preprocesses events in {@link #getEvents(GetEventsRequest, StreamObserver)}.
+   */
+  public void registerDataPreprocessor(TransportBytesPreprocessor dataPreprocessor) {
+    myDataPreprocessors.add(dataPreprocessor);
   }
 
   /**
@@ -344,15 +352,23 @@ public class TransportServiceProxy extends ServiceProxy
   }
 
   public void getBytes(@NotNull BytesRequest request, StreamObserver<BytesResponse> responseObserver) {
+    BytesResponse.Builder response;
     synchronized (myProxyBytesCache) {
       if (myProxyBytesCache.containsKey(request.getId())) {
-        responseObserver.onNext(BytesResponse.newBuilder().setContents(myProxyBytesCache.get(request.getId())).build());
+        response = BytesResponse.newBuilder().setContents(myProxyBytesCache.get(request.getId()));
         // Removes cache to save memory once it has been requested/cached by the datastore.
         myProxyBytesCache.remove(request.getId());
       }
       else {
-        responseObserver.onNext(myServiceStub.getBytes(request));
+        response = myServiceStub.getBytes(request).toBuilder();
       }
+      // Run registered preprocessors.
+      for (TransportBytesPreprocessor preprocessor : myDataPreprocessors) {
+        if (preprocessor.shouldPreprocess(request)) {
+          response.setContents(preprocessor.preprocessBytes(request.getId(), response.getContents()));
+        }
+      }
+      responseObserver.onNext(response.build());
       responseObserver.onCompleted();
     }
   }

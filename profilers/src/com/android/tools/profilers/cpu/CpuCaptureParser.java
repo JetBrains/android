@@ -406,9 +406,6 @@ public class CpuCaptureParser {
     CompletableFuture<CpuCapture> future =
       CompletableFuture.supplyAsync(() -> {
         ByteString processedBytes = traceBytes;
-        if (myServices.getFeatureConfig().isSimpleperfHostEnabled() && profilerType == CpuTraceType.SIMPLEPERF) {
-          processedBytes = myServices.getSimpleperfTracePreProcessor().preProcessTrace(traceBytes);
-        }
         metadata.setTraceFileSizeBytes(processedBytes.size());
         boolean failedToPreProcess = processedBytes.equals(TracePreProcessor.FAILURE);
         if (failedToPreProcess) {
