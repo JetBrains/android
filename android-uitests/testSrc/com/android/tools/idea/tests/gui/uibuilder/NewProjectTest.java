@@ -223,6 +223,12 @@ public class NewProjectTest {
     assertThat(actualXml).isEqualTo(expectedXml);
   }
 
+  @Test
+  public void hasProjectNameInGradleSettings() throws IOException {
+    newProject("P").create(guiTest);
+    assertThat(guiTest.getProjectFileText("settings.gradle")).contains("rootProject.name='P'");
+  }
+
   @NotNull
   private static NewProjectDescriptor newProject(@NotNull String name) {
     return new NewProjectDescriptor(name);
