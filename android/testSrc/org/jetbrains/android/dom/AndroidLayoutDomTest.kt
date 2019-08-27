@@ -22,6 +22,7 @@ import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection
 import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
@@ -1938,6 +1939,16 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     val textAgain = TargetElementUtil.findReference(myFixture.editor, myFixture.editor.caretModel.offset)
     assertThat(textAgain).isNotNull()
     assertThat(textAgain!!.canonicalText).isEqualTo("textView")
+
+    //Add leading whitespace to an id in the constraint_referenced_ids
+    myFixture.moveCaret("app:constraint_referenced_ids=\"textView,|")
+    myFixture.type("  ")
+    PsiDocumentManager.getInstance(myFixture.project).commitAllDocuments()
+    myFixture.moveCaret("app:constraint_referenced_ids=\"textView,  edit|Text\"")
+    val secondId = TargetElementUtil.findReference(myFixture.editor, myFixture.editor.caretModel.offset)
+    assertThat(secondId).isNotNull()
+    assertThat(secondId?.rangeInElement).isEqualTo(TextRange(12, 20))
+    assertThat(secondId!!.canonicalText).isEqualTo("editText")
   }
 
   fun testConstraintReferencedCompletion() {
