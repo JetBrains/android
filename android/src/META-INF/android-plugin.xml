@@ -828,8 +828,6 @@
     <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
                     interface="org.jetbrains.android.uipreview.ViewLoaderExtension"
                     area="IDEA_PROJECT"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.npw.template.convertJavaToKotlinProvider"
-                    interface="com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
     <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
