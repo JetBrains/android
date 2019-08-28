@@ -15,132 +15,18 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleItemResourceValue;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.res.StateList;
-import com.android.tools.idea.res.StateListState;
-import com.android.utils.Pair;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-import java.util.List;
+import java.awt.Color;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("UseJBColor")
 public class ColorUtils {
-  private static final Logger LOG = Logger.getInstance(ColorUtils.class);
-  private static final @NotNull ImmutableSetMultimap<String, String> CONTRAST_MAP;
-  private static final @NotNull ImmutableSet<String> BACKGROUND_ATTRIBUTES;
-
   // Recommended minimum contrast ratio between colors for safe readability
   private static final double THRESHOLD = 4.5;
   private static final String DISABLED_PREFIX = "Disabled";
-
-  static {
-    /* Pairs which contrast needs to be checked. Adding more pairs where will automatically add them to the CONTRAST_MAP */
-    Pair[] contrastPairs = new Pair[] {
-      Pair.of("textColor", "colorBackground"),
-      Pair.of("textColor", "colorPrimary"),
-      Pair.of("textColorPrimary", "colorButtonNormal"),
-      Pair.of("textColorPrimary", "colorPrimary"),
-      Pair.of("textColorPrimary", "colorBackground")
-    };
-
-    ImmutableSetMultimap.Builder<String, String> contrastMapBuilder = ImmutableSetMultimap.builder();
-    ImmutableSet.Builder<String> backgroundAttributesBuilder = ImmutableSet.builder();
-    //noinspection unchecked
-    for (Pair<String, String> pair : contrastPairs) {
-      contrastMapBuilder.put(pair.getFirst(), pair.getSecond());
-      contrastMapBuilder.put(pair.getSecond(), pair.getFirst());
-
-      backgroundAttributesBuilder.add(pair.getSecond());
-    }
-    CONTRAST_MAP = contrastMapBuilder.build();
-    BACKGROUND_ATTRIBUTES = backgroundAttributesBuilder.build();
-  }
-
-  /**
-   * @param styleAttributeName the name of a style attribute we want to check for contrast issues
-   * Returns the set of {@link StyleItemResourceValue} that have to be checked in the current theme for contrast against a particular attribute.
-   */
-  @NotNull
-  public static ImmutableSet<StyleItemResourceValue> getContrastItems(@NotNull ThemeEditorContext context, @NotNull String styleAttributeName) {
-    Set<String> contrastColorSet = CONTRAST_MAP.get(styleAttributeName);
-    if (contrastColorSet == null) {
-      return ImmutableSet.of();
-    }
-
-    ImmutableSet.Builder<StyleItemResourceValue> contrastItemsBuilder = ImmutableSet.builder();
-    ConfiguredThemeEditorStyle currentTheme = context.getCurrentTheme();
-    assert currentTheme != null;
-
-    for (String contrastColor : contrastColorSet) {
-      StyleItemResourceValue contrastItem = ThemeEditorUtils.resolveItemFromParents(currentTheme, contrastColor, false);
-      if (contrastItem == null) {
-        contrastItem = ThemeEditorUtils.resolveItemFromParents(currentTheme, contrastColor, true);
-      }
-      if (contrastItem != null) {
-        contrastItemsBuilder.add(contrastItem);
-      }
-    }
-    return contrastItemsBuilder.build();
-  }
-
-  /**
-   * @param styleAttributeName the name of a style attribute we want to check for contrast issues
-   * @return all the colors the attribute needs to be checked against, each associated with the appropriate description
-   */
-  @NotNull
-  public static ImmutableMap<String, Color> getContrastColorsWithDescription(@NotNull ThemeEditorContext context,
-                                                                             @NotNull String styleAttributeName) {
-    ImmutableMap.Builder<String, Color> contrastColorsBuilder = ImmutableMap.builder();
-    ResourceResolver styleResourceResolver = context.getResourceResolver();
-    assert styleResourceResolver != null;
-    Project project = context.getProject();
-
-    Set<StyleItemResourceValue> contrastItems = getContrastItems(context, styleAttributeName);
-    for (StyleItemResourceValue contrastItem : contrastItems) {
-      StateList stateList = ResourceHelper.resolveStateList(styleResourceResolver, contrastItem, project);
-      if (stateList != null) {
-        List<StateListState> disabledStates = stateList.getDisabledStates();
-        for (StateListState stateListState : stateList.getStates()) {
-          Color stateListColor = ResourceHelper
-            .resolveColor(styleResourceResolver, styleResourceResolver.findResValue(stateListState.getValue(), false), project);
-          if (stateListColor != null) {
-            try {
-              stateListColor = ResourceHelper.makeColorWithAlpha(styleResourceResolver, stateListColor, stateListState.getAlpha());
-            }
-            catch (NumberFormatException e) {
-              // If the alpha value is not valid, Android uses 1.0, so nothing more needs to be done, we can use stateListColor directly
-              LOG.warn(String.format(ResourceHelper.ALPHA_FLOATING_ERROR_FORMAT, stateList.getDirName(), stateList.getFileName()));
-            }
-            String disabledPrefix = disabledStates.contains(stateListState) ? DISABLED_PREFIX : "";
-            contrastColorsBuilder.put(disabledPrefix +
-                                      ThemeEditorUtils.generateWordEnumeration(stateListState.getAttributesNames(false)) +
-                                      " <b>" +
-                                      contrastItem.getAttrName() +
-                                      "</b>", stateListColor);
-          }
-        }
-      }
-      else {
-        Color resolvedColor = ResourceHelper.resolveColor(styleResourceResolver, contrastItem, project);
-        if (resolvedColor != null) {
-          contrastColorsBuilder.put("<b>" + contrastItem.getAttrName() + "</b>", resolvedColor);
-        }
-      }
-    }
-    return contrastColorsBuilder.build();
-  }
 
   /**
    * @param contrastColorsWithDescription all the colors to be tested, and their associated description
@@ -233,14 +119,6 @@ public class ColorUtils {
       return 1;
     }
     return (foregroundAlpha * foregroundComponent + backgroundAlpha * backgroundComponent * (1 - foregroundAlpha)) / (255.0f * alpha);
-  }
-
-  /**
-   * Indicates whether the attribute represents a background color
-   * The attribute needs to be in the contrast map
-   */
-  public static boolean isBackgroundAttribute(String text) {
-    return BACKGROUND_ATTRIBUTES.contains(text);
   }
 
   /**
