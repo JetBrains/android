@@ -71,7 +71,7 @@ import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -429,7 +429,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
                                        projectSystem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
@@ -479,7 +479,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
                                        projectSystem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)

@@ -24,12 +24,14 @@ import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRenderer
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.registerExtension
 import com.intellij.util.ui.UIUtil
 import org.junit.BeforeClass
 import org.junit.ClassRule
@@ -162,7 +164,7 @@ class StubRenderer : DesignAssetRenderer {
   fun hasRendered() = latch.count == 0L
 
   fun registerAsExtension(disposable: Disposable) {
-    PlatformTestUtil.registerExtension(ExtensionPointName.create<DesignAssetRenderer>("com.android.resourceViewer"),
+    ApplicationManager.getApplication().registerExtension(ExtensionPointName.create<DesignAssetRenderer>("com.android.resourceViewer"),
                                        this,
                                        disposable)
   }

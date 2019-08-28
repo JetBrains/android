@@ -34,7 +34,7 @@ import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,7 +106,7 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
     ViewHandlerManager viewManager = getProject().getComponent(ViewHandlerManager.class);
     assertNull(viewManager.getHandler("TestTag"));
     viewManager.clearCache();
-    PlatformTestUtil.registerExtension(Extensions.getArea(getProject()),
+    ServiceContainerUtil.registerExtension(getProject(),
                                        ViewHandlerManager.EP_NAME,
                                        provider,
                                        getTestRootDisposable());
