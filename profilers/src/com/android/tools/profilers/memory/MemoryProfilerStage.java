@@ -296,20 +296,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
-    // TODO Optimize this to not include non-legacy allocation tracking information.
-    MemoryData data = myClient
-      .getData(MemoryRequest.newBuilder().setSession(mySessionData).setStartTime(Long.MIN_VALUE).setEndTime(Long.MAX_VALUE).build());
-    List<AllocationsInfo> allocationsInfos = data.getAllocationsInfoList();
-    AllocationsInfo lastInfo = allocationsInfos.isEmpty() ? null : allocationsInfos.get(allocationsInfos.size() - 1);
-    myTrackingAllocations = lastInfo != null && (lastInfo.getLegacy() && lastInfo.getEndTime() == Long.MAX_VALUE);
-    if (myTrackingAllocations) {
-      myPendingCaptureStartTime = lastInfo.getStartTime();
-      myPendingLegacyAllocationStartTimeNs = lastInfo.getStartTime();
-    }
-    else {
-      myPendingCaptureStartTime = INVALID_START_TIME;
-      myPendingLegacyAllocationStartTimeNs = INVALID_START_TIME;
-    }
+    updateAllocationTrackingStatus();
   }
 
   @Override
@@ -531,9 +518,14 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public long getAllocationTrackingElapsedTimeNs() {
     if (myTrackingAllocations) {
-      TimeResponse timeResponse = getStudioProfilers().getClient().getTransportClient()
-        .getCurrentTime(TimeRequest.newBuilder().setStreamId(getStudioProfilers().getDevice().getDeviceId()).build());
-      return timeResponse.getTimestampNs() - myPendingLegacyAllocationStartTimeNs;
+      try {
+        TimeResponse timeResponse = getStudioProfilers().getClient().getTransportClient()
+          .getCurrentTime(TimeRequest.newBuilder().setStreamId(mySessionData.getStreamId()).build());
+        return timeResponse.getTimestampNs() - myPendingLegacyAllocationStartTimeNs;
+      }
+      catch (StatusRuntimeException exception) {
+        getLogger().warn(exception);
+      }
     }
     return INVALID_START_TIME;
   }
@@ -809,6 +801,23 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     myLiveAllocationSamplingMode = mode;
     myAspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE);
+  }
+
+  private void updateAllocationTrackingStatus() {
+    List<AllocationsInfo> allocationsInfos = MemoryProfiler.getAllocationInfosForSession(getStudioProfilers().getClient(),
+                                                                                         mySessionData,
+                                                                                         new Range(Long.MIN_VALUE, Long.MAX_VALUE),
+                                                                                         getStudioProfilers().getIdeServices());
+    AllocationsInfo lastInfo = allocationsInfos.isEmpty() ? null : allocationsInfos.get(allocationsInfos.size() - 1);
+    myTrackingAllocations = lastInfo != null && (lastInfo.getLegacy() && lastInfo.getEndTime() == Long.MAX_VALUE);
+    if (myTrackingAllocations) {
+      myPendingCaptureStartTime = lastInfo.getStartTime();
+      myPendingLegacyAllocationStartTimeNs = lastInfo.getStartTime();
+    }
+    else {
+      myPendingCaptureStartTime = INVALID_START_TIME;
+      myPendingLegacyAllocationStartTimeNs = INVALID_START_TIME;
+    }
   }
 
   @Nullable

@@ -232,6 +232,7 @@ public class MemoryProfiler extends StudioProfiler {
       .setStartTime(sessionStartTimeNs)
       .setEndTime(sessionEndTimeNs)
       .setLegacy(true)
+      .setSuccess(true)
       .build();
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       Common.Event heapDumpEvent = Common.Event.newBuilder()
@@ -380,14 +381,15 @@ public class MemoryProfiler extends StudioProfiler {
                                                                    @NotNull Common.Session session,
                                                                    @NotNull Range rangeUs,
                                                                    @NotNull IdeProfilerServices profilerService) {
-
+    long fromTimestamp = rangeUs.getMin() == Long.MIN_VALUE ? Long.MIN_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
+    long toTimestamp = rangeUs.getMax() == Long.MAX_VALUE ? Long.MAX_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
     if (profilerService.getFeatureConfig().isUnifiedPipelineEnabled()) {
       Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
         .setStreamId(session.getStreamId())
         .setPid(session.getPid())
         .setKind(Common.Event.Kind.MEMORY_ALLOC_TRACKING)
-        .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
-        .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+        .setFromTimestamp(fromTimestamp)
+        .setToTimestamp(toTimestamp)
         .build();
       Transport.GetEventGroupsResponse response = client.getTransportClient().getEventGroups(request);
 
@@ -395,15 +397,26 @@ public class MemoryProfiler extends StudioProfiler {
       for (Transport.EventGroup group : response.getGroupsList()) {
         // We only need the last event to get the most recent HeapDumpInfo
         Common.Event lastEvent = group.getEvents(group.getEventsCount() - 1);
-        infos.add(lastEvent.getMemoryAllocTracking().getInfo());
+        AllocationsInfo info = lastEvent.getMemoryAllocTracking().getInfo();
+        if (info.equals(AllocationsInfo.getDefaultInstance())) {
+          // A default instance means that we have a generically ended group due to device disconnect.
+          // In those case, we look for the start event and use its AllocationsInfo instead.
+          assert group.getEventsCount() > 1;
+          info = group.getEvents(0).getMemoryAllocTracking().getInfo();
+          if (info.getLegacy() && info.getEndTime() == Long.MAX_VALUE) {
+            info = info.toBuilder().setEndTime(session.getEndTimestamp()).setSuccess(false).build();
+          }
+        }
+
+        infos.add(info);
       }
       return infos;
     }
     else {
       MemoryRequest dataRequest = MemoryRequest.newBuilder()
         .setSession(session)
-        .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
-        .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+        .setStartTime(fromTimestamp)
+        .setEndTime(toTimestamp)
         .build();
       return client.getMemoryClient().getData(dataRequest).getAllocationsInfoList();
     }
