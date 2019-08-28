@@ -35,6 +35,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.rendering.RefreshRenderAction.clearCacheAndRefreshSurface
+import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
@@ -67,6 +68,7 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+import java.util.function.Supplier
 import javax.swing.JPanel
 
 /** Preview element name */
@@ -156,7 +158,14 @@ private class PreviewEditor(private val psiFile: PsiFile,
     .setIsPreview(true)
     .showModelNames()
     .setSceneManagerProvider { surface, model ->
-      NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+      val settingsProvider = Supplier {
+        // For the compose preview we always use live rendering enabled to make use of the image pool. Also
+        // we customize the quality setting and set it to the minimum for now to optimize for rendering speed.
+        // For now we just render at 70% quality to get a good balance of speed/memory vs rendering quality.
+        RenderSettings.getProjectSettings(project)
+          .copy(quality = 0.7f, useLiveRendering = true)
+      }
+      LayoutlibSceneManager(model, surface, settingsProvider).apply {
         enableTransparentRendering()
         enableShrinkRendering()
       }
