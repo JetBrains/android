@@ -45,7 +45,7 @@ class AnnotationProcessorsAnalyzer(override val warningsFilter: BuildAttribution
           updateAnnotationProcessorCompilationTime(it.className, it.duration)
 
           if (it.type == JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.UNKNOWN &&
-              warningsFilter.applyAnnotationProcessorFilter(it.className)) {
+              warningsFilter.applyNonIncrementalAnnotationProcessorFilter(it.className)) {
             nonIncrementalAnnotationProcessorsSet.add(it.className)
           }
         }
