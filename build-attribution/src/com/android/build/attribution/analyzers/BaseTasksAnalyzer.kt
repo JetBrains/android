@@ -13,9 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.data
+package com.android.build.attribution.analyzers
 
-data class SuppressedWarnings(val alwaysRunTasks: MutableSet<Pair<String, String>> = HashSet(),
-                              val pluginsSlowingConfiguration: MutableSet<String> = HashSet(),
-                              val nonIncrementalAnnotationProcessors: MutableSet<String> = HashSet(),
-                              val noncacheableTasks: MutableSet<Pair<String, String>> = HashSet())
+import com.android.build.attribution.data.TaskContainer
+import com.android.build.attribution.data.TaskData
+import org.gradle.tooling.events.task.TaskFinishEvent
+
+abstract class BaseTasksAnalyzer(private val taskContainer: TaskContainer) {
+  open fun onBuildStart() {
+    taskContainer.clear()
+  }
+
+  fun getTask(taskPath: String): TaskData? {
+    return taskContainer.getTask(taskPath)
+  }
+
+  fun getTask(event: TaskFinishEvent): TaskData {
+    return taskContainer.getTask(event)
+  }
+}
