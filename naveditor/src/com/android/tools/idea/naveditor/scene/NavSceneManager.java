@@ -104,7 +104,7 @@ public class NavSceneManager extends SceneManager {
   private SceneDecoratorFactory myDecoratorFactory;
 
   public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface, @NotNull RenderSettings settings) {
-    super(model, surface, settings);
+    super(model, surface, () -> settings);
     createSceneView();
     myLayoutAlgorithms = ImmutableList.of(
       new NewDestinationLayoutAlgorithm(),

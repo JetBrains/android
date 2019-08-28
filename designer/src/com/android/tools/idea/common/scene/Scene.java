@@ -44,7 +44,6 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
@@ -57,7 +56,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.JBUI;
@@ -74,7 +72,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.intellij.lang.annotations.JdkConstants;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -137,7 +134,7 @@ public class Scene implements SelectionListener, Disposable {
 
   @NotNull private FilterType myFilterType = FilterType.NONE;
 
-  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface, @NotNull RenderSettings renderSettings) {
+  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface, @NotNull boolean useLiveRendering) {
     myDesignSurface = surface;
     mySceneManager = sceneManager;
 
@@ -163,7 +160,7 @@ public class Scene implements SelectionListener, Disposable {
       return true;
     });
 
-    myIsLiveRenderingEnabled = renderSettings.getUseLiveRendering();
+    myIsLiveRenderingEnabled = useLiveRendering;
 
     Disposer.register(sceneManager, this);
   }
