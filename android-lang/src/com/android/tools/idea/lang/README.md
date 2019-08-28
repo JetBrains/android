@@ -3,7 +3,7 @@ Custom language support
 
 There are a couple of custom languages that the Android plugin needs to support. Implementations were added over time and by different
 people, so they don't all follow the same conventions, but all are based on Grammar-Kit, which is the recommended way of creating parsers.
-This document was written while implementing SQL support, so most examples are from the [roomSql](roomSql/) package. Documentation for
+This document was written while implementing SQL support, so most examples are from the [androidSql](androidSql/) package. Documentation for
 adding a new language to the IDE is available in the IntelliJ SDK docs, but here we keep additional notes that may be useful for engineers
 tackling this problem in the future.
 
@@ -13,7 +13,7 @@ are hand-written and customized/optimized as needed.
 ## Parsing
 
 There are three stages to parsing: finding tokens (lexing), building the AST and building the PSI tree. These parts are defined in
-a `ParserDefinition` extension class (see e.g. [RoomSqlParserDefinition](roomSql/parser/Parser.kt)).
+a `ParserDefinition` extension class (see e.g. [AndroidSqlParserDefinition](./androidSql/parser/Parser.kt)).
 
 ### Lexing
 
@@ -39,7 +39,7 @@ We define our tokens in the `*.bnf` files. They can be:
    name (COMMA) will be used to define the `IElementType` constant.
 
 Based on this, Grammar-Kit generates an `IElementType` for every type of token, as well as a `*.flex` file, which (through a right-click
-action provided by the Grammar-Kit plugin) can be used to generate a Flex lexer, e.g. `_RoomSqlLexer`. We use the standard `FlexAdapter`
+action provided by the Grammar-Kit plugin) can be used to generate a Flex lexer, e.g. `_AndroidSqlLexer`. We use the standard `FlexAdapter`
 class to turn this into a `Lexer` instance.
 
 Here's an example of how all of this (may not) work together. Suppose we define a token for comments in the `*.bnf` file:
@@ -66,7 +66,6 @@ unterminated token is valid:
 
  * For comments, make the closing sequence (`*/`) optional. This way everything until the end of file is considered a comment, which is what
    we want usually.
- * Unterminated strings should be recognized as `BAD_CHARACTER`. See `_RoomSqlLexer.flex` for a way to implement it.
 
 ### Building the AST
 
