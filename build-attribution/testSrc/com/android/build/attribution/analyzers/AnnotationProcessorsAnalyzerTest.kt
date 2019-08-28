@@ -95,9 +95,9 @@ class AnnotationProcessorsAnalyzerTest {
   fun testNonIncrementalAnnotationProcessorsAnalyzerWithSuppressedWarnings() {
     setUpProject()
 
-    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressWarningsForAnnotationProcessor(
+    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNonIncrementalAnnotationProcessorWarning(
       "dagger.internal.codegen.ComponentProcessor")
-    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressWarningsForAnnotationProcessor(
+    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNonIncrementalAnnotationProcessorWarning(
       "com.google.auto.value.processor.AutoValueProcessor")
 
     myProjectRule.invokeTasks("assembleDebug")
