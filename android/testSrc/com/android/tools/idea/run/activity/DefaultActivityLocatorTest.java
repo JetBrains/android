@@ -17,19 +17,9 @@ package com.android.tools.idea.run.activity;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.MergedManifestManager;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.psi.PsiClass;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static org.mockito.Mockito.mock;
@@ -45,49 +35,27 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     return true;
   }
 
-  private void renameClass(@NotNull String oldName, @NotNull String newName) {
-    PsiClass classToRename = myFixture.findClass(oldName);
-    myFixture.renameElement(classToRename, newName, true, true);
-  }
-
-  private void runAndWaitForMergedManifestUpdate(@NotNull Runnable runnable) throws Exception {
-    CountDownLatch mergedManifestUpdated = new CountDownLatch(1);
-    MergedManifestManager.setUpdateCallback(myModule, mergedManifestUpdated::countDown);
-    runnable.run();
-    mergedManifestUpdated.await(2, TimeUnit.SECONDS);
-  }
-
-  @Nullable
-  private static String computeDefaultActivity(@NotNull AndroidFacet facet, @Nullable IDevice device) {
-    List<DefaultActivityLocator.ActivityWrapper> activities = DefaultActivityLocator.getActivitiesFromMergedManifest(facet);
-    return DefaultActivityLocator.computeDefaultActivity(facet, device, activities);
-  }
-
-  private static <T> T computeInBackgroundThread(Callable<T> callable) throws Exception {
-    return ApplicationManager.getApplication().executeOnPooledThread(callable).get(2, TimeUnit.SECONDS);
-  }
-
-  public void testActivity() {
+  public void testActivity() throws Exception {
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null));
+    assertEquals("com.example.unittest.Launcher", DefaultActivityLocator.computeDefaultActivity(myFacet, null, false));
   }
 
-  public void testActivityAlias() {
+  public void testActivityAlias() throws Exception {
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("LauncherAlias", computeDefaultActivity(myFacet, null));
+    assertEquals("LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet, null, false));
   }
 
   // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
   // preference to the one that also has category DEFAULT
-  public void testPreferDefaultCategoryActivity() {
+  public void testPreferDefaultCategoryActivity() throws Exception {
     myFixture.copyFileToProject(RUN_CONFIG_DEFAULT + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("com.example.unittest.LauncherAlias", computeDefaultActivity(myFacet, null));
+    assertEquals("com.example.unittest.LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet, null, false));
   }
 
   // tests that when there are multiple launcher activities, then we pick the leanback launcher for a TV device
@@ -102,11 +70,11 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
 
     IDevice tv = mock(IDevice.class);
     when(tv.supportsFeature(IDevice.HardwareFeature.TV)).thenReturn(true);
-    assertEquals("com.example.unittest.TvLauncher", computeDefaultActivity(myFacet, tv));
+    assertEquals("com.example.unittest.TvLauncher", DefaultActivityLocator.computeDefaultActivity(myFacet, tv, false));
 
     IDevice device = mock(IDevice.class);
     when(tv.supportsFeature(IDevice.HardwareFeature.TV)).thenReturn(false);
-    assertEquals("com.example.unittest.DefaultLauncher", computeDefaultActivity(myFacet, device));
+    assertEquals("com.example.unittest.DefaultLauncher", DefaultActivityLocator.computeDefaultActivity(myFacet, device, false));
   }
 
   // tests that when there are multiple launcher activities, we exclude the ones with android:enabled="false"
@@ -114,7 +82,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ENABLED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("LaunchActivity", computeDefaultActivity(myFacet, null));
+    assertEquals("LaunchActivity", DefaultActivityLocator.computeDefaultActivity(myFacet, null, false));
 
     // make sure that the dom based approach to getting values works as well
     final Manifest manifest = myFacet.getManifest();
@@ -124,53 +92,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   public void testLauncherActivityIntent() throws Exception {
     myFixture.copyFileToProject(RUN_CONFIG_MANIFESTS + "/InvalidCategory.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     assertNull("No launchable activity registration is present in the manifest, but one was detected",
-               computeDefaultActivity(myFacet, null));
-  }
-
-  public void testBlockStrategy_blocksOnFreshMergedManifest() {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override("BLOCK");
-
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
-                                "src/com/example/unittest/Launcher.java");
-
-    assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null));
-    renameClass("com.example.unittest.Launcher", "NewLauncher");
-    assertEquals("com.example.unittest.NewLauncher", computeDefaultActivity(myFacet, null));
-  }
-
-  public void testStaleStrategy_blocksBackgroundThreadOnFreshMergedManifest() throws Exception {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override("STALE");
-
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
-                                "src/com/example/unittest/Launcher.java");
-
-    assertEquals("com.example.unittest.Launcher", computeInBackgroundThread(() -> computeDefaultActivity(myFacet, null)));
-    renameClass("com.example.unittest.Launcher", "NewLauncher");
-    assertEquals("com.example.unittest.NewLauncher", computeInBackgroundThread(() -> computeDefaultActivity(myFacet, null)));
-  }
-
-  public void testStaleStrategy_usesStaleManifestOnEdt() throws Exception {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override("STALE");
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
-                                "src/com/example/unittest/Launcher.java");
-
-    // We've never computed the merged manifest, so DefaultActivityLocator won't have a stale manifest to get activities from.
-    runAndWaitForMergedManifestUpdate(() -> assertNull(computeDefaultActivity(myFacet, null)));
-    // But we should have triggered a merged manifest recompute in a background thread to ensure the manifest is eventually
-    // available in future calls.
-    assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null));
-
-    renameClass("com.example.unittest.Launcher", "NewLauncher");
-
-    // Forced to use a stale view of the merged manifest, DefaultActivityLauncher picks an activity that no longer exists.
-    runAndWaitForMergedManifestUpdate(
-      () -> assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null)));
-    // But it eventually is able to identify the correct class once the merged manifest has been recomputed.
-    assertEquals("com.example.unittest.NewLauncher", computeDefaultActivity(myFacet, null));
+               DefaultActivityLocator.computeDefaultActivity(myFacet, null, false));
   }
 }
