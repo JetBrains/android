@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.room.migrations
 
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.room.migrations.generators.JavaMigrationClassGenerator
+import com.android.tools.idea.room.migrations.generators.JavaMigrationTestGenerator
 import com.android.tools.idea.room.migrations.json.SchemaBundle
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate
 import com.intellij.openapi.actionSystem.AnAction
@@ -45,9 +47,11 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
     if (files.size == 2) {
       files.sortBy { it.nameWithoutExtension }
       val module = ModuleUtilCore.findModuleForFile(files[0], project) ?: return
-      val targetPackage = getDefaultTargetPackage(project, module, files[0]) ?: return
-      val targetDirectory = getDefaultTargetDirectory(project, module) ?: return
-      val migrationDialog = GenerateMigrationDialog(project, targetPackage, targetDirectory)
+      val databaseClassQualifiedName = getDatabaseClassFullyQualifiedName(project, module, files[0]) ?: return
+      val targetPackage = getDefaultTargetPackage(databaseClassQualifiedName, project) ?: return
+      val migrationClassDirectory = getMigrationDefaultTargetDirectory(project, module) ?: return
+      val migrationTestDirectory = getTestDefaultTargetDirectory(project, module) ?: return
+      val migrationDialog = GenerateMigrationDialog(project, targetPackage, migrationClassDirectory, migrationTestDirectory)
 
       if (!ApplicationManager.getApplication().isUnitTestMode) {
         migrationDialog.show()
@@ -61,9 +65,18 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
       WriteCommandAction.runWriteCommandAction(project) {
         try {
           val javaMigrationClassGenerator = JavaMigrationClassGenerator(project)
-          javaMigrationClassGenerator.createMigrationClass(migrationDialog.targetDirectory,
-                                                           migrationDialog.targetPackage,
-                                                           DatabaseUpdate(oldSchema.database, newSchema.database))
+          val databaseUpdate = DatabaseUpdate(oldSchema.database, newSchema.database)
+          val migrationClass = javaMigrationClassGenerator.createMigrationClass(migrationDialog.migrationClassDirectory,
+                                                                                databaseUpdate)
+          if (!migrationClass.qualifiedName.isNullOrEmpty()) {
+            val javaMigrationTestGenerator = JavaMigrationTestGenerator(project)
+            javaMigrationTestGenerator.createMigrationTest(migrationDialog.migrationTestDirectory,
+                                                           databaseClassQualifiedName,
+                                                           migrationClass.qualifiedName!!,
+                                                           databaseUpdate.previousVersion,
+                                                           databaseUpdate.currentVersion)
+          }
+
         } catch (e : Exception) {
           Messages.showInfoMessage(project, e.message, "Failed to generate a migration")
         }
@@ -71,7 +84,7 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
     }
   }
 
-  private fun getDefaultTargetDirectory(project: Project, module: Module): PsiDirectory? {
+  private fun getMigrationDefaultTargetDirectory(project: Project, module: Module): PsiDirectory? {
     return module.rootManager.contentEntries.asSequence()
       .flatMap { it.getSourceFolders(JavaSourceRootType.SOURCE).asSequence() }
       .filterNot { JavaProjectRootsUtil.isForGeneratedSources(it) }
@@ -80,19 +93,35 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
       ?.let { PsiManager.getInstance(project).findDirectory(it) }
   }
 
-  private fun getDefaultTargetPackage(project: Project, module: Module, schemaJsonFile: VirtualFile): PsiPackage? {
+  private fun getTestDefaultTargetDirectory(project: Project, module: Module): PsiDirectory? {
+    val testScopes = TestArtifactSearchScopes.getInstance(module)
+
+    return module.rootManager.contentEntries.asSequence()
+      .flatMap { it.getSourceFolders(JavaSourceRootType.TEST_SOURCE).asSequence() }
+      .filterNot { JavaProjectRootsUtil.isForGeneratedSources(it) }
+      .mapNotNull { it.file }
+      .filter { testScopes?.isAndroidTestSource(it) ?: true }
+      .firstOrNull()
+      ?.let { PsiManager.getInstance(project).findDirectory(it) }
+  }
+
+  private fun getDefaultTargetPackage(databaseFullyQualifiedName : String, project: Project): PsiPackage? {
+    val packageName = StringUtil.getPackageName(databaseFullyQualifiedName)
+
+    return JavaPsiFacade.getInstance(project).findPackage(packageName)
+  }
+
+  /**
+   * Finds the fully qualified name of the database to be migrated based on a JSON file which contains its schema.
+   */
+  private fun getDatabaseClassFullyQualifiedName(project: Project, module: Module, schemaJsonFile: VirtualFile): String? {
     if (!schemaJsonFile.parent.isDirectory) {
       return null
     }
-
-    // The schema JSON files seem to always be generated in a directory/package which is named after the fully qualified name of the class
-    // that describes the database.
     val databaseClass = JavaPsiFacade.getInstance(project).findClass(schemaJsonFile.parent.name,
                                                                      module.getModuleWithDependenciesAndLibrariesScope(false))
                         ?: return null
 
-    val packageName = databaseClass.qualifiedName?.let { StringUtil.getPackageName(it) } ?: return null
-
-    return JavaPsiFacade.getInstance(project).findPackage(packageName)
+    return databaseClass.qualifiedName
   }
 }
