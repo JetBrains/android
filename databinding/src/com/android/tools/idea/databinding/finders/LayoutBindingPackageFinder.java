@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.databinding.finders;
 
-import com.android.tools.idea.databinding.BindingLayoutGroup;
 import com.android.tools.idea.databinding.BindingLayout;
-import com.android.tools.idea.databinding.DataBindingProjectComponent;
+import com.android.tools.idea.databinding.BindingLayoutGroup;
+import com.android.tools.idea.databinding.LayoutBindingProjectComponent;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
@@ -53,12 +53,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * See also: https://issuetracker.google.com/37120280
  */
-public class DataBindingPackageFinder extends PsiElementFinder {
-  private final DataBindingProjectComponent myComponent;
+public class LayoutBindingPackageFinder extends PsiElementFinder {
+  private final LayoutBindingProjectComponent myComponent;
   private final CachedValue<Map<String, PsiPackage>> myPackageCache;
 
-  public DataBindingPackageFinder(@NotNull Project project) {
-    myComponent = project.getComponent(DataBindingProjectComponent.class);
+  public LayoutBindingPackageFinder(@NotNull Project project) {
+    myComponent = project.getComponent(LayoutBindingProjectComponent.class);
     myPackageCache = CachedValuesManager.getManager(project).createCachedValue(
       new ProjectResourceCachedValueProvider<Map<String, PsiPackage>, Set<String>>(myComponent) {
 
@@ -69,7 +69,7 @@ public class DataBindingPackageFinder extends PsiElementFinder {
           for (Set<String> result : results) {
             for (String qualifiedPackage : result) {
               if (!merged.containsKey(qualifiedPackage)) {
-                merged.put(qualifiedPackage, myComponent.getOrCreateDataBindingPsiPackage(qualifiedPackage));
+                merged.put(qualifiedPackage, myComponent.getOrCreatePsiPackage(qualifiedPackage));
               }
             }
           }

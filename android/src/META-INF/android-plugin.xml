@@ -90,6 +90,10 @@
       <loadForDefaultProject/>
     </component>
     <component>
+      <implementation-class>com.android.tools.idea.databinding.LayoutBindingProjectComponent</implementation-class>
+      <loadForDefaultProject/>
+    </component>
+    <component>
       <implementation-class>com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener</implementation-class>
     </component>
   </project-components>
