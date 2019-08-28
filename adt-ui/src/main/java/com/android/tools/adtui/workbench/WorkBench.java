@@ -90,9 +90,12 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * @param project the project associated with this work space.
    * @param name a name used to identify this type of {@link WorkBench}. Also used for associating properties.
    * @param fileEditor the file editor this work space is associated with.
+   * @param parentDisposable the parent {@link Disposable} this WorkBench will be attached to.
    */
-  public WorkBench(@NotNull Project project, @NotNull String name, @Nullable FileEditor fileEditor) {
+  public WorkBench(@NotNull Project project, @NotNull String name, @Nullable FileEditor fileEditor, @NotNull Disposable parentDisposable) {
     this(project, name, fileEditor, InitParams.createParams(project), DetachedToolWindowManager.getInstance(project));
+
+    Disposer.register(parentDisposable, this);
   }
 
   /**
