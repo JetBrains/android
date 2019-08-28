@@ -19,12 +19,12 @@ import com.android.SdkConstants.CLASS_PARCELABLE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.testing.IdeComponents
 import com.intellij.ide.util.TreeClassChooser
 import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.ClassUtil
+import com.intellij.testFramework.replaceService
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 
@@ -158,7 +158,7 @@ class AddArgumentDialogTest : NavTestCase() {
     val customParcelable = mock(PsiClass::class.java)
     `when`(customParcelable.qualifiedName).thenReturn("custom.Parcelable")
     `when`(classChooser.selected).thenReturn(customParcelable)
-    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+    project.replaceService(TreeClassChooserFactory::class.java, classChooserFactory, testRootDisposable)
 
     val fragment1 = model.find("fragment1")!!
     val dialog = AddArgumentDialog(null, fragment1)
@@ -179,7 +179,7 @@ class AddArgumentDialogTest : NavTestCase() {
     val classChooser = mock(TreeClassChooser::class.java)
     `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull())).thenReturn(classChooser)
     `when`(classChooser.selected).thenReturn(null)
-    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+    project.replaceService(TreeClassChooserFactory::class.java, classChooserFactory, testRootDisposable)
 
     val fragment1 = model.find("fragment1")!!
     val dialog = AddArgumentDialog(null, fragment1)

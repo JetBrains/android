@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.NotNullLazyKey;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.util.pico.DefaultPicoContainer;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +35,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 
@@ -73,12 +73,15 @@ public final class IdeComponents implements Disposable {
     return mock;
   }
 
-  public <T> void replaceApplicationService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    doReplaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, myUndoQueue);
+  @NotNull
+  public static <T> T mockApplicationService(@NotNull Class<T> serviceType, @NotNull Disposable parentDisposable) {
+    T mock = mock(serviceType);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), serviceType, mock, parentDisposable);
+    return mock;
   }
 
-  public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    doReplaceService(myProject, serviceType, newServiceInstance, myUndoQueue);
+  public <T> void replaceApplicationService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
+    doReplaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, myUndoQueue);
   }
 
   public void replaceProjectDumbService(@NotNull DumbService newServiceInstance) {
@@ -110,10 +113,9 @@ public final class IdeComponents implements Disposable {
   }
 
   @NotNull
-  public <T> T mockProjectService(@NotNull Class<T> serviceType) {
+  public <T> T mockProjectService(@NotNull Class<T> serviceType, @NotNull Disposable parentDisposable) {
     T mock = mock(serviceType);
-    assertNotNull(myProject);
-    doReplaceService(myProject, serviceType, mock, myUndoQueue);
+    ServiceContainerUtil.replaceService(myProject, serviceType, mock, parentDisposable);
     return mock;
   }
 

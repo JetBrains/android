@@ -20,11 +20,11 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.build.invoker.TestBuildAction;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.TimeoutUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -41,13 +41,11 @@ import java.util.concurrent.TimeUnit;
 import static org.mockito.Mockito.mock;
 
 public class GradleTaskRunnerTest extends AndroidGradleTestCase {
-
   public void testExecuteTask() throws InterruptedException {
     Project project = getProject();
 
     GradleBuildInvokerStub buildInvoker = new GradleBuildInvokerStub(project);
-    IdeComponents ideComponents = new IdeComponents(project);
-    ideComponents.replaceProjectService(GradleBuildInvoker.class, buildInvoker);
+    ServiceContainerUtil.replaceService(project, GradleBuildInvoker.class, buildInvoker, getTestRootDisposable());
 
     GradleTaskRunner runner = GradleTaskRunner.newRunner(project);
     CountDownLatch countDownLatch = new CountDownLatch(1);

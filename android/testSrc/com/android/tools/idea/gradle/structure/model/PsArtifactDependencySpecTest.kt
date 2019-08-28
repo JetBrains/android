@@ -33,7 +33,7 @@ class PsArtifactDependencySpecTest : JavaProjectTestCase() {
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-    IdeComponents(myProject).mockProjectService(PsUISettings::class.java)
+    IdeComponents(myProject).mockProjectService(PsUISettings::class.java, testRootDisposable)
   }
 
   fun testCreate_empty() {

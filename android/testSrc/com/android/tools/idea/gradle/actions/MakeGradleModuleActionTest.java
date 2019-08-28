@@ -18,12 +18,12 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.verify;
@@ -47,8 +47,9 @@ public class MakeGradleModuleActionTest extends JavaProjectTestCase {
     initMocks(this);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
-    new IdeComponents(project).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
+    ServiceContainerUtil.replaceService(project, GradleProjectInfo.class, myProjectInfo, getTestRootDisposable());
+    ServiceContainerUtil
+      .replaceService(project, GradleBuildInvoker.class, myBuildInvoker, getTestRootDisposable());
 
     when(myActionEvent.getDataContext()).thenReturn(myDataContext);
 

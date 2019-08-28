@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -26,6 +25,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -59,7 +59,8 @@ public class ModuleDisposerTest extends JavaProjectTestCase {
       }
     });
 
-    new IdeComponents(myProject).replaceProjectService(GradleSyncState.class, mySyncState);
+    ServiceContainerUtil
+      .replaceService(myProject, GradleSyncState.class, mySyncState, getTestRootDisposable());
 
     myModuleDisposer = new ModuleDisposer(myIdeInfo);
   }

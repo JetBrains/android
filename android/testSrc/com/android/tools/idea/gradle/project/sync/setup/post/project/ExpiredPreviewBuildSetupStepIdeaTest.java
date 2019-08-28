@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.project.AndroidNotificationStub;
 import com.android.tools.idea.project.AndroidNotificationStub.NotificationMessage;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -30,9 +30,7 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static java.util.Calendar.MONTH;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -48,7 +46,7 @@ public class ExpiredPreviewBuildSetupStepIdeaTest extends JavaProjectTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myNotification = AndroidNotificationStub.replaceSyncMessagesService(getProject());
+    myNotification = AndroidNotificationStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     mySetupStep = new ExpiredPreviewBuildSetupStep(myApplicationInfo);
   }
 

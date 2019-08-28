@@ -69,6 +69,7 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -1418,7 +1419,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       myFixture.setUp();
 
       Project project = myFixture.getProject();
-      new IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
+      ServiceContainerUtil.replaceService(project, PostProjectBuildTasksExecutor.class,
+                                          mock(PostProjectBuildTasksExecutor.class), getTestRootDisposable());
       setUpSdks(project);
       projectDir = Projects.getBaseDirPath(project);
       moduleState.put(ATTR_PROJECT_LOCATION, projectDir.getPath());

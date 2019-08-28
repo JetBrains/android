@@ -20,14 +20,14 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tets for {@link ForcedPluginPreviewVersionUpgradeStep}.
+ * Test for {@link ForcedPluginPreviewVersionUpgradeStep}.
  */
 public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends JavaProjectTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
@@ -59,9 +59,9 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends JavaProjectTe
     when(myPluginInfo.getPluginGeneration()).thenReturn(myPluginGeneration);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
-    new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
-    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    ServiceContainerUtil.replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(project, AndroidPluginVersionUpdater.class, myVersionUpdater, getTestRootDisposable());
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     myVersionUpgrade = new ForcedPluginPreviewVersionUpgradeStep();
   }
@@ -72,6 +72,9 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends JavaProjectTe
       if (myOriginalTestDialog != null) {
         ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(myOriginalTestDialog);
       }
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();

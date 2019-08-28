@@ -19,16 +19,16 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.*;
+import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.NotificationUpdate;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -46,8 +46,8 @@ public class UnresolvedDependenciesReporterTest extends JavaProjectTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    mySyncMessages = replaceSyncMessagesService(getProject());
-    new IdeComponents(getProject()).replaceProjectService(GradleSettings.class, myGradleSettings);
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
+    ServiceContainerUtil.replaceService(getProject(), GradleSettings.class, myGradleSettings, getTestRootDisposable());
     myReporter = new UnresolvedDependenciesReporter();
   }
 

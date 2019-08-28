@@ -39,7 +39,7 @@ public class VersionIncompatibilityTest extends JavaProjectTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   public void testReportMessagesWithWarning() {

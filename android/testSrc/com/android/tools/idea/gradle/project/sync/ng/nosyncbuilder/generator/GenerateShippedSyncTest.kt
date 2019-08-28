@@ -44,6 +44,7 @@ import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.testFramework.ThreadTracker
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
+import com.intellij.testFramework.replaceService
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.mockito.Mockito.mock
@@ -116,8 +117,7 @@ class GenerateShippedSyncTest : AndroidTestBase() {
     val projectBuilder = factory.createFixtureBuilder(projectName)
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture)
     myFixture!!.setUp()
-    IdeComponents(myFixture.project).replaceProjectService(PostProjectBuildTasksExecutor::class.java,
-                                                           mock(PostProjectBuildTasksExecutor::class.java))
+    myFixture.project.replaceService(PostProjectBuildTasksExecutor::class.java, mock(PostProjectBuildTasksExecutor::class.java), testRootDisposable)
 
     val projectDir: File = Projects.getBaseDirPath(myFixture!!.project)
 

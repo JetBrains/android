@@ -8,7 +8,6 @@ import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
@@ -39,10 +38,7 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.testFramework.InspectionTestUtil;
-import com.intellij.testFramework.InspectionsKt;
-import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.ThreadTracker;
+import com.intellij.testFramework.*;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
@@ -78,7 +74,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   private boolean myUseCustomSettings;
   private ComponentStack myApplicationComponentStack;
   private ComponentStack myProjectComponentStack;
-  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
@@ -158,7 +153,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
     myProjectComponentStack = new ComponentStack(getProject());
-    myIdeComponents = new IdeComponents(myFixture);
 
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
@@ -438,17 +432,17 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    myIdeComponents.replaceProjectService(serviceType, newServiceInstance);
+    ServiceContainerUtil.replaceService(getProject(), serviceType, newServiceInstance, getTestRootDisposable());
   }
 
   protected final static class MyAdditionalModuleData {
-    final AndroidModuleFixtureBuilder myModuleFixtureBuilder;
+    final AndroidModuleFixtureBuilder<?> myModuleFixtureBuilder;
     final String myDirName;
     final int myProjectType;
     final boolean myIsMainModuleDependency;
 
     private MyAdditionalModuleData(
-      @NotNull AndroidModuleFixtureBuilder moduleFixtureBuilder, @NotNull String dirName, int projectType, boolean isMainModuleDependency) {
+      @NotNull AndroidModuleFixtureBuilder<?> moduleFixtureBuilder, @NotNull String dirName, int projectType, boolean isMainModuleDependency) {
       myModuleFixtureBuilder = moduleFixtureBuilder;
       myDirName = dirName;
       myProjectType = projectType;
@@ -506,7 +500,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
   }
 
-  public static void removeFacetOn(@NotNull Disposable disposable, @NotNull Facet facet) {
+  public static void removeFacetOn(@NotNull Disposable disposable, @NotNull Facet<?> facet) {
     Disposer.register(disposable, () -> WriteAction.run(() -> {
       Module module = facet.getModule();
       if (!module.isDisposed()) {

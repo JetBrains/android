@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.*;
@@ -40,8 +40,9 @@ public class CleanProjectActionTest extends JavaProjectTestCase {
     initMocks(this);
 
     myAction = new CleanProjectAction();
-    new IdeComponents(myProject).replaceProjectService(GradleProjectBuilder.class, myGradleProjectBuilder);
-    new IdeComponents(myProject).replaceProjectService(GradleBuildState.class, myGradleBuildState);
+    ServiceContainerUtil.replaceService(myProject, GradleProjectBuilder.class, myGradleProjectBuilder, getTestRootDisposable());
+    ServiceContainerUtil
+      .replaceService(myProject, GradleBuildState.class, myGradleBuildState, getTestRootDisposable());
   }
 
   public void testCleanPerformed() {

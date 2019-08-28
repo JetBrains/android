@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
+import org.mockito.Mock;
+
+import java.io.File;
+import java.io.IOException;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.project.Project;
-
-import java.io.File;
-import java.io.IOException;
-
-import com.intellij.testFramework.JavaProjectTestCase;
-import org.mockito.Mock;
 
 /**
  * Tests for {@link ReImportGradleProjectAction}.
@@ -61,7 +60,8 @@ public class ReImportGradleProjectActionTest extends JavaProjectTestCase {
    */
   public void testDoUpdateWithSyncInProgress() {
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
+    ServiceContainerUtil
+      .replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
     when(mySyncState.isSyncInProgress()).thenReturn(true);
 
     myAction.doUpdate(myEvent, project);

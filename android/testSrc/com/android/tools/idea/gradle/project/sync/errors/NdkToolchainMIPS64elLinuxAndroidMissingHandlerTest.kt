@@ -35,7 +35,7 @@ class NdkToolchainMIPS64elLinuxAndroidMissingHandlerTest : AndroidGradleTestCase
   @Before
   override fun setUp() {
     super.setUp()
-    syncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project)
+    syncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
   }
 
   @Test

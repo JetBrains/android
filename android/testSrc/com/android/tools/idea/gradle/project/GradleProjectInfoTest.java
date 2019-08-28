@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -29,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
@@ -154,7 +154,7 @@ public class GradleProjectInfoTest extends JavaProjectTestCase {
     when(summary.getSyncTimestamp()).thenReturn(timestamp);
 
     GradleSyncState syncState = mock(GradleSyncState.class);
-    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
+    ServiceContainerUtil.replaceService(getProject(), GradleSyncState.class, syncState, getTestRootDisposable());
     when(syncState.getSummary()).thenReturn(summary);
   }
 

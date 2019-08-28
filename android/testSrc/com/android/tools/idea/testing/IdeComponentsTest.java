@@ -17,6 +17,7 @@ package com.android.tools.idea.testing;
 
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import static org.mockito.Mockito.mock;
@@ -25,7 +26,6 @@ import static org.mockito.Mockito.mock;
  * Tests for {@link IdeComponents}.
  */
 public class IdeComponentsTest extends JavaProjectTestCase {
-
   public void testReplaceApplicationService() {
     SdkSync originalSdkSync = SdkSync.getInstance();
     try (TempDisposable scope = new TempDisposable()){
@@ -40,11 +40,12 @@ public class IdeComponentsTest extends JavaProjectTestCase {
 
   public void testReplaceProjectService() {
     GradleSettings originalSettings = GradleSettings.getInstance(getProject());
-    try (TempDisposable scope = new TempDisposable()){
+    try (TempDisposable scope = new TempDisposable()) {
       GradleSettings mockSettings = mock(GradleSettings.class);
-      new IdeComponents(getProject(), scope).replaceProjectService(GradleSettings.class, mockSettings);
+      ServiceContainerUtil.replaceService(getProject(), GradleSettings.class, mockSettings, scope);
       assertSame(mockSettings, GradleSettings.getInstance(getProject()));
-    } finally {
+    }
+    finally {
       assertSame(originalSettings, GradleSettings.getInstance(getProject()));
     }
   }

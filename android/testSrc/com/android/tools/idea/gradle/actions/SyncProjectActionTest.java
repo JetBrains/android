@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
@@ -54,7 +54,7 @@ public class SyncProjectActionTest extends LightPlatformTestCase {
   public void testDoPerform() {
     Project project = getProject();
     BuildVariantView buildVariantView = mock(BuildVariantView.class);
-    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(BuildVariantView.class, buildVariantView);
+    ServiceContainerUtil.replaceService(project, BuildVariantView.class, buildVariantView, getTestRootDisposable());
 
     myAction.doPerform(myEvent, project);
 
@@ -65,7 +65,7 @@ public class SyncProjectActionTest extends LightPlatformTestCase {
 
   public void testDoUpdateWithSyncInProgress() {
     Project project = getProject();
-    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncState.class, mySyncState);
+    ServiceContainerUtil.replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
     when(mySyncState.isSyncInProgress()).thenReturn(true);
 
     myAction.doUpdate(myEvent, project);
@@ -75,7 +75,7 @@ public class SyncProjectActionTest extends LightPlatformTestCase {
 
   public void testDoUpdateWithSyncNotInProgress() {
     Project project = getProject();
-    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncState.class, mySyncState);
+    ServiceContainerUtil.replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
     when(mySyncState.isSyncInProgress()).thenReturn(false);
 
     myAction.doUpdate(myEvent, project);

@@ -90,7 +90,7 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
 
   public void testFixAndReportFoundIssues() {
     Project project = getProject();
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     myStrategy.getModules().add("app");
     myStrategy.fixAndReportFoundIssues();
@@ -105,7 +105,7 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
 
   public void testFixAndReportFoundIssuesWithNoIssues() {
     Project project = getProject();
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     myStrategy.getModules().clear();
     myStrategy.fixAndReportFoundIssues();

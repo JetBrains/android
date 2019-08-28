@@ -44,7 +44,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(SyncIssue.class);
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myReporter = new UnhandledIssuesReporter();
   }
 

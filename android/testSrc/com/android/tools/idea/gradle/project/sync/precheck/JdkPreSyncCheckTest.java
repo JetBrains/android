@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.precheck;
 
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
@@ -47,7 +47,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     myMockIdeSdks = new IdeComponents(getProject()).mockApplicationService(IdeSdks.class);
     assertSame(myMockIdeSdks, IdeSdks.getInstance());
 
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     myJdkPreSyncCheck = new JdkPreSyncCheck();
   }

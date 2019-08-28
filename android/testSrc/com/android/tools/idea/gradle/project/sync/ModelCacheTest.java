@@ -31,14 +31,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ModelCacheTest extends AndroidGradleTestCase {
-  private IdeComponents myIdeComponents;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-
-    myIdeComponents = new IdeComponents(project);
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
@@ -53,7 +49,7 @@ public class ModelCacheTest extends AndroidGradleTestCase {
     // Simulate data node cache is missing modules.
     //noinspection unchecked
     DataNode<ProjectData> cache = mock(DataNode.class);
-    DataNodeCaches dataNodeCaches = myIdeComponents.mockProjectService(DataNodeCaches.class);
+    DataNodeCaches dataNodeCaches = new IdeComponents(getProject()).mockProjectService(DataNodeCaches.class, getTestRootDisposable());
     when(dataNodeCaches.getCachedProjectData()).thenReturn(cache);
     when(dataNodeCaches.isCacheMissingModels(cache)).thenReturn(true);
 

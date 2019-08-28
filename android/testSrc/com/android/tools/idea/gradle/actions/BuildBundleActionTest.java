@@ -39,6 +39,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -73,10 +74,10 @@ public class BuildBundleActionTest extends JavaProjectTestCase {
     super.setUp();
     initMocks(this);
 
-    new IdeComponents(myProject).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
-    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
-    new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
-    new IdeComponents(myProject).replaceProjectService(AndroidPluginVersionUpdater.class, myAndroidPluginVersionUpdater);
+    ServiceContainerUtil.replaceService(myProject, GradleBuildInvoker.class, myBuildInvoker, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myGradleProjectInfo, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(myProject, ProjectStructure.class, myProjectStructure, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(myProject, AndroidPluginVersionUpdater.class, myAndroidPluginVersionUpdater, getTestRootDisposable());
     new IdeComponents(myProject).replaceApplicationService(IdeInfo.class, myIdeInfo);
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
     myAction = new BuildBundleAction();

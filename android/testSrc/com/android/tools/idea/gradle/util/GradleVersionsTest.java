@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
@@ -30,9 +31,7 @@ import static com.intellij.util.ThreeState.NO;
 import static com.intellij.util.ThreeState.YES;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link GradleVersions}.
@@ -132,7 +131,8 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
   @NotNull
   private GradleSyncState createMockGradleSyncState() {
     GradleSyncState syncState = mock(GradleSyncState.class);
-    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
+    ServiceContainerUtil
+      .replaceService(getProject(), GradleSyncState.class, syncState, getTestRootDisposable());
     return syncState;
   }
 

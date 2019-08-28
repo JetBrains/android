@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
-import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +72,7 @@ public class LayoutRenderingIssueValidationStrategyTest extends AndroidGradleTes
 
   // See https://code.google.com/p/android/issues/detail?id=170841
   public void testFixAndReportFoundIssues() {
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     myStrategy.setModelVersion(GradleVersion.parse("1.2.0"));
     myStrategy.fixAndReportFoundIssues();
@@ -87,7 +87,7 @@ public class LayoutRenderingIssueValidationStrategyTest extends AndroidGradleTes
   }
 
   public void testFixAndReportFoundIssuesWithNoIssues() {
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     myStrategy.setModelVersion(null);
     myStrategy.fixAndReportFoundIssues();

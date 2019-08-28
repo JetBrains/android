@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class Jdk8RequiredErrorHandlerTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   public void testHandleError() throws Exception {

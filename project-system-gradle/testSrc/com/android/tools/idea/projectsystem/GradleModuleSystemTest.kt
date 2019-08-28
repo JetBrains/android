@@ -51,7 +51,7 @@ class GradleModuleSystemTest : JavaProjectTestCase() {
 
   override fun setUp() {
     super.setUp()
-    gradleDependencyManager = IdeComponents(myProject).mockProjectService(GradleDependencyManager::class.java)
+    gradleDependencyManager = IdeComponents(myProject).mockProjectService(GradleDependencyManager::class.java, testRootDisposable)
     gradleModuleSystem = GradleModuleSystem(myModule, mavenRepository)
     assertThat(gradleModuleSystem.getResolvedDependentLibraries()).isEmpty()
   }

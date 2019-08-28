@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -44,7 +44,8 @@ public class MissingPlatformsSetupStepTest extends LightPlatformTestCase {
     super.setUp();
     Project project = getProject();
     mySyncMessages = new MySyncMessages(project);
-    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncMessages.class, mySyncMessages);
+    ServiceContainerUtil
+      .replaceService(project, GradleSyncMessages.class, mySyncMessages, getTestRootDisposable());
 
     mySetupStep = new MissingPlatformsSetupStep();
   }

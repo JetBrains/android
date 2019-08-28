@@ -37,10 +37,8 @@ import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.*;
-import static com.intellij.openapi.util.io.FileUtil.appendToFile;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
+import static com.intellij.openapi.util.io.FileUtil.*;
 
 public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTest {
 
@@ -52,7 +50,7 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
   @Override
   public void testSyncIssueWithNonMatchingVariantAttributes() throws Exception {
     Project project = getProject();
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
     loadProject(DEPENDENT_MODULES);

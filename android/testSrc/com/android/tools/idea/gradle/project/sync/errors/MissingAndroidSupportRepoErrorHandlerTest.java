@@ -35,7 +35,7 @@ public class MissingAndroidSupportRepoErrorHandlerTest extends AndroidGradleTest
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   public void testHandleError() throws Exception {

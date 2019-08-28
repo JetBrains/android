@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
-import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.ide.file.BatchFileChangeListener
@@ -33,6 +32,7 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.impl.stores.BatchUpdateListener
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.JavaProjectTestCase
+import com.intellij.testFramework.replaceService
 import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
@@ -64,8 +64,7 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
     AndroidTestCase.addAndroidFacet(module)
 
     val indexingSuspenderService = IndexingSuspender(project, true)
-    val ideComponents = IdeComponents(project)
-    ideComponents.replaceProjectService(IndexingSuspender::class.java, indexingSuspenderService)
+    project.replaceService(IndexingSuspender::class.java, indexingSuspenderService, batchFileUpdateConnection)
 
     // Ensure the services are replaced globally as expected. If not, there is a bug in IdeComponents implementation,
     // and it doesn't make sense to execute this test further.

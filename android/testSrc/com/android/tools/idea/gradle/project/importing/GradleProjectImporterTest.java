@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -71,7 +70,7 @@ public class GradleProjectImporterTest extends JavaProjectTestCase {
     when(projectFolderFactory.create(myProjectFolderPath)).thenReturn(myProjectFolder);
 
     // Replace GradleSettings service with a mock.
-    new IdeComponents(project).replaceProjectService(GradleSettings.class, myGradleSettings);
+    ServiceContainerUtil.replaceService(project, GradleSettings.class, myGradleSettings, getTestRootDisposable());
     assertSame(GradleSettings.getInstance(project), myGradleSettings);
 
     ServiceContainerUtil.registerServiceInstance(project, GradleProjectInfo.class, myGradleProjectInfo);
