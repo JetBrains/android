@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.lang.proguard
 
+import com.android.tools.idea.lang.AndroidParsingTestCase
 import com.android.tools.idea.lang.proguard.grammar.ProguardLexer
-import com.intellij.psi.PsiErrorElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.testFramework.ParsingTestCase
 
-abstract class ProguardParserTest : ParsingTestCase("no_data_path_needed",
-                                                    ProguardFileType.INSTANCE.defaultExtension,
-                                                    ProguardParserDefinition()
+abstract class ProguardParserTest : AndroidParsingTestCase(
+  ProguardFileType.INSTANCE.defaultExtension,
+  ProguardParserDefinition()
 ) {
   override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
 
-  // TODO(xof): duplicate code with our other parser tests (e.g. RoomSqlParserTest)
   protected fun checkLex(input: String) {
     assert(getErrorMessage(input) == null, lazyMessage = { toParseTreeText(input) })
 
@@ -40,19 +36,6 @@ abstract class ProguardParserTest : ParsingTestCase("no_data_path_needed",
     }
   }
 
-  protected fun toParseTreeText(input: String): String {
-    val psiFile = createPsiFile("in-memory", input)
-    return toParseTreeText(psiFile, true, false).trim()
-  }
-
-  private fun getErrorMessage(input: String): String? {
-    val psiFile = createPsiFile("in-memory", input)
-    return getErrorMessage(psiFile)
-  }
-
-  private fun getErrorMessage(psiFile: PsiFile?) = PsiTreeUtil.findChildOfType(psiFile, PsiErrorElement::class.java)?.errorDescription
-
-  // TODO(xof): this one isn't duplicate but probably it should be available
   protected fun checkNotLex(input: String, expectedLexerError: String? = null) {
     try {
       checkLex(input)

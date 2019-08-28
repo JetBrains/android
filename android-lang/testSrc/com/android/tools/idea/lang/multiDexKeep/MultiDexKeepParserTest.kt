@@ -16,13 +16,10 @@
 package com.android.tools.idea.lang.multiDexKeep
 
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.psi.PsiErrorElement
-import com.intellij.psi.PsiFile
+import com.android.tools.idea.lang.AndroidParsingTestCase
 import com.intellij.psi.TokenType
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.testFramework.ParsingTestCase
 
-class MultiDexKeepParserTest : ParsingTestCase("", MultiDexKeepFileType.INSTANCE.defaultExtension, MultiDexKeepParserDefinition()) {
+class MultiDexKeepParserTest : AndroidParsingTestCase(MultiDexKeepFileType.INSTANCE.defaultExtension, MultiDexKeepParserDefinition()) {
   override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
 
   override fun setUp() {
@@ -49,18 +46,6 @@ class MultiDexKeepParserTest : ParsingTestCase("", MultiDexKeepFileType.INSTANCE
       lexer.advance()
     }
   }
-
-  private fun toParseTreeText(input: String): String {
-    val psiFile = createPsiFile("multidex-config.txt", input)
-    return toParseTreeText(psiFile, true, false).trim()
-  }
-
-  private fun getErrorMessage(input: String): String? {
-    val psiFile = createPsiFile("multidex-config.txt", input)
-    return getErrorMessage(psiFile)
-  }
-
-  private fun getErrorMessage(psiFile: PsiFile?) = PsiTreeUtil.findChildOfType(psiFile, PsiErrorElement::class.java)?.errorDescription
 
   fun testParseResultOnFailure() {
     assertEquals(
