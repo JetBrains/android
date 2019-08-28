@@ -98,6 +98,24 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
   }
 
   @Test
+  fun testDataBindingInspection_resolvedToViewId() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <TextView
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{view_id.getText()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
   fun testDataBindingInspection_unresolvedIdentifier() {
     fixture.addClass("""
       package test.langdb;
