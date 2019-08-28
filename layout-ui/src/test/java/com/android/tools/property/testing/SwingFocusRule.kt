@@ -17,6 +17,7 @@ package com.android.tools.property.testing
 
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.ExpirableRunnable
 import com.intellij.openapi.util.SystemInfo
@@ -224,6 +225,8 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     override fun getLastFocusedFrame(): IdeFrame? = null
 
     override fun toFront(c: JComponent?) {}
+
+    override fun getProject(): Project? = null
 
     override fun requestFocus(c: Component, forced: Boolean): ActionCallback = ActionCallback.DONE
 
