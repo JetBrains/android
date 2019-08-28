@@ -76,7 +76,6 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -99,6 +98,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.GuardedBy;
 import javax.swing.Timer;
@@ -113,7 +113,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
 public class LayoutlibSceneManager extends SceneManager {
 
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
-  private final RenderSettings myRenderSettings;
+  private final Supplier<RenderSettings> myRenderSettingsProvider;
 
   @Nullable private SceneView mySecondarySceneView;
 
@@ -202,10 +202,10 @@ public class LayoutlibSceneManager extends SceneManager {
 
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface designSurface,
-                                  @NotNull RenderSettings settings,
+                                  @NotNull Supplier<RenderSettings> settingsProvider,
                                   @NotNull Executor renderTaskDisposerExecutor) {
-    super(model, designSurface, settings);
-    myRenderSettings = settings;
+    super(model, designSurface, settingsProvider);
+    myRenderSettingsProvider = settingsProvider;
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     createSceneView();
     updateTrackingConfiguration();
@@ -238,8 +238,10 @@ public class LayoutlibSceneManager extends SceneManager {
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
   }
 
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
-    this(model, designSurface, RenderSettings.getProjectSettings(model.getProject()), PooledThreadExecutor.INSTANCE);
+  public LayoutlibSceneManager(@NotNull NlModel model,
+                               @NotNull DesignSurface designSurface,
+                               @NotNull Supplier<RenderSettings> renderSettingsProvider) {
+    this(model, designSurface, renderSettingsProvider, PooledThreadExecutor.INSTANCE);
   }
 
   @NotNull
@@ -881,7 +883,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @VisibleForTesting
   @NotNull
   protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
-    RenderSettings settings = myRenderSettings;
+    RenderSettings settings = myRenderSettingsProvider.get();
     if (!settings.getUseLiveRendering()) {
       // When we are not using live rendering, we do not need the pool
       taskBuilder.disableImagePool();
