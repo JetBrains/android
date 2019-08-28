@@ -24,7 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class WhatsNewAssistantSidePanelActionTest {
+public class WhatsNewSidePanelActionTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
@@ -41,7 +41,7 @@ public class WhatsNewAssistantSidePanelActionTest {
 
   @Test
   public void updateProjectIsNull() {
-    WhatsNewAssistantSidePanelAction action = new WhatsNewAssistantSidePanelAction();
+    WhatsNewSidePanelAction action = new WhatsNewSidePanelAction();
     action.update(myEvent);
 
     Truth.assertThat(myPresentation.isEnabled()).isFalse();
@@ -49,7 +49,7 @@ public class WhatsNewAssistantSidePanelActionTest {
 
   @Test
   public void updateProjectIsNotNull() {
-    WhatsNewAssistantSidePanelAction action = new WhatsNewAssistantSidePanelAction();
+    WhatsNewSidePanelAction action = new WhatsNewSidePanelAction();
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
     action.update(myEvent);
 
@@ -58,7 +58,7 @@ public class WhatsNewAssistantSidePanelActionTest {
 
   @Test
   public void updateProjectIsNullThenChanges() {
-    WhatsNewAssistantSidePanelAction action = new WhatsNewAssistantSidePanelAction();
+    WhatsNewSidePanelAction action = new WhatsNewSidePanelAction();
     action.update(myEvent);
 
     Truth.assertThat(myPresentation.isEnabled()).isFalse();
