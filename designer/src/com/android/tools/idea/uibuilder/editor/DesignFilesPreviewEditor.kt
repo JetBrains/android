@@ -44,7 +44,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
   override fun getEditorId() = DESIGN_FILES_PREVIEW_EDITOR_ID
 
   override fun createEditorPanel(): DesignerEditorPanel {
-    val workBench = WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this)
+    val workBench = WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this)
     val surface: (panel: DesignerEditorPanel) -> DesignSurface = {
       NlDesignSurface.build(myProject, this).apply {
         setCentered(true)
