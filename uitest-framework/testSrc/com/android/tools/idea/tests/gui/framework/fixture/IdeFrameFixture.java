@@ -659,6 +659,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return openFromMenu(WelcomeFrameFixture::find, "File", "Close Project");
   }
 
+  public IdeFrameFixture closeProjectWithPrompt() {
+    myIsClosed = true;
+    requestFocusIfLost(); // "Close Project" can be disabled if no component has focus
+    return invokeMenuPath("File", "Close Project");
+  }
+
   public boolean isClosed() {
     return myIsClosed;
   }
