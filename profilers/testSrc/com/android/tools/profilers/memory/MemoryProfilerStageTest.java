@@ -137,7 +137,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Prepares the AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
-      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).build()).build());
+      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setSuccess(true)).build());
     myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
 
     // The timeline has reset at this point so we need to advance the current time so data range is advanced during the next update.
@@ -714,7 +714,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Prepares a finished AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
-      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true)).build());
+      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setSuccess(true)).build());
     myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
 
     // Advancing time (data range) - stage should select it since the tracking session is now done.
