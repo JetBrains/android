@@ -121,6 +121,13 @@ public class MotionSceneAttrs {
   public static final String ATTR_LOCKED = "locked";
   public static final String ATTR_CONSTRAINT_LAYOUT_DESCRIPTION = "layoutDescription";
 
+  public static final String MOTION_ANIMATE_RELATIVE_TO = "animate_relativeTo";
+  public static final String MOTION_TRANSITION_EASING = "transitionEasing";
+  public static final String MOTION_PATH_MOTION_ARC = "pathMotionArc";
+  public static final String MOTION_MOTION_STAGGER= "motionStagger";
+  public static final String MOTION_MOTION_PATH_ROTATE = "motionPathRotate";
+  public static final String MOTION_DRAW_PATH = "drawPath";
+
   ///////////////////////////////// PLATFORM INDEPENDENT ACCESS ////////////////////////////
   public static class Tags {
     public static final String TRANSITION = "Transition";
@@ -321,8 +328,6 @@ public class MotionSceneAttrs {
 
   }
 
-
-
   private static HashSet<String> layout_tags = new HashSet<>(Arrays.asList(
     ATTR_ANDROID_LAYOUT_WIDTH,
     ATTR_ANDROID_LAYOUT_HEIGHT,
@@ -411,7 +416,26 @@ public class MotionSceneAttrs {
     ATTR_ANDROID_TRANSLATIONZ
   ));
 
+  private static HashSet<String> ourMotion_tags = new HashSet<>(Arrays.asList(
+    MOTION_ANIMATE_RELATIVE_TO,
+    MOTION_TRANSITION_EASING,
+    MOTION_DRAW_PATH,
+    MOTION_MOTION_PATH_ROTATE,
+    MOTION_MOTION_STAGGER,
+    MOTION_PATH_MOTION_ARC
+  ));
 
+
+  public static String[] ourCustomAttribute = {
+    "customColorValue",
+    "customColorDrawableValue",
+    "customIntegerValue",
+    "customFloatValue",
+    "customStringValue",
+    "customDimension",
+    "customPixelDimension",
+    "customBoolean"
+  };
   public static boolean copyToConstraint(MTag.Attribute attr) {
     return layout_tags.contains(attr.mAttribute) || MotionLayout.LAYOUT_ATTRS.contains(attr.mAttribute);
   }

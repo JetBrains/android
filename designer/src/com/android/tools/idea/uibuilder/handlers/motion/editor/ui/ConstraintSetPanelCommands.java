@@ -123,8 +123,23 @@ public class ConstraintSetPanelCommands {
 
   }
 
-  public static void overrideConstraint(MTag selected, MTag ConstraintSet) {
-
+  /**
+   * Convert from Constraint that is divided into sections into one that overrides all constraints
+   * @param selected
+   * @param ConstraintSet
+   */
+  public static void convertFromSectioned(MTag selected, MTag ConstraintSet) {
+    MTag[] child = selected.getChildTags();
+    MTag.TagWriter writer = selected.getTagWriter();
+    for (int i = 0; i < child.length; i++) {
+      MTag mTag = child[i];
+      HashMap<String, MTag.Attribute> attrs = mTag.getAttrList();
+      for (MTag.Attribute value : attrs.values()) {
+        writer.setAttribute(value.mNamespace,value.mAttribute,value.mValue);
+      }
+      mTag.deleteTag();
+    }
+    writer.commit();
   }
 
 }

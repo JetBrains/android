@@ -29,7 +29,7 @@ import java.util.List;
 public class NlComponentTag implements MTag {
   NlComponent mComponent;
   NlComponentTag mParent;
-
+  public final static String MOTION_LAYOUT_PROPERTIES = "motionLayoutProperties";
   NlComponentTag(NlComponent component, NlComponentTag parent) {
     mComponent = component;
     mParent = parent;
@@ -48,6 +48,16 @@ public class NlComponentTag implements MTag {
   @Override
   public void deleteTag() {
     // TODO WE NEED THE ABILITY TO DELETE TAGS
+  }
+
+  @Override
+  public void setClientData(Object motionAttributes) {
+    mComponent.putClientProperty(MOTION_LAYOUT_PROPERTIES, motionAttributes );
+  }
+
+  @Override
+  public Object getClientData() {
+    return mComponent.getClientProperty(MOTION_LAYOUT_PROPERTIES);
   }
 
   @Override
@@ -128,7 +138,7 @@ public class NlComponentTag implements MTag {
     for (AttributeSnapshot value : mComponent.getAttributes()) {
       System.out.println(space + "   " + value.name + "=\"" + value.value + "\"");
     }
-    for (MTag child : children) {
+    for (MTag child : getChildTags()) {
       child.print(space + "   ");
     }
     System.out.println(space + "</" + getTagName() + ">");
@@ -153,7 +163,7 @@ public class NlComponentTag implements MTag {
     }
     ret += (" >\n");
 
-    for (MTag child : children) {
+    for (MTag child : getChildTags()) {
       ret += child.toFormalXmlString(space + "  ");
     }
     ret += space + "</" + getTagName() + ">\n";
@@ -174,7 +184,7 @@ public class NlComponentTag implements MTag {
     }
     out.println(" >");
 
-    for (MTag child : children) {
+    for (MTag child : getChildTags()) {
       child.printFormal(space + "  ", out);
     }
     out.println(space + "</" + getTagName() + ">");

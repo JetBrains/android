@@ -43,6 +43,7 @@ public class MTagImp implements MTag {
   private static final boolean DEBUG = false;
   String name;
   MTagImp parent;
+  Object clientData;
   HashMap<String, Attribute> mAttrList = new HashMap<>();
 
   @Override
@@ -60,6 +61,15 @@ public class MTagImp implements MTag {
 
   }
 
+  @Override
+  public void setClientData(Object clientData) {
+    this.clientData = clientData;
+  }
+
+  @Override
+  public Object getClientData() {
+    return this.clientData;
+  }
   ArrayList<MTag> mChildren = new ArrayList<>();
 
   @Override
