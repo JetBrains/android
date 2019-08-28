@@ -449,7 +449,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> RESOURCE_EXPLORER_PICKER = Flag.create(
     RESOURCES_MANAGEMENT, "picker", "Enable the resource explorer as picker",
     "If enabled, the new resource management tools are used for the resource picker in the property panel.",
-    false);
+    true);
   //endregion
 
   //region Layout Inspector
