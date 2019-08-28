@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.TestActionEvent;
 import org.mockito.Mock;
 
@@ -45,8 +46,8 @@ public class MakeGradleProjectActionTest extends JavaProjectTestCase {
     initMocks(this);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
-    new IdeComponents(project).replaceProjectService(ProjectStructure.class, myProjectStructure);
+    ServiceContainerUtil.replaceService(project, GradleBuildInvoker.class, myBuildInvoker, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(project, ProjectStructure.class, myProjectStructure, getTestRootDisposable());
 
     myAction = new MakeGradleProjectAction();
   }
