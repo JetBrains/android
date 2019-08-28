@@ -23,70 +23,76 @@ import com.android.tools.property.ptable2.PTableCellRenderer
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
-import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.Insets
 import java.awt.event.MouseEvent
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JTable
 import kotlin.math.max
 
 const val LEFT_STANDARD_INDENT = 2
+const val RIGHT_STANDARD_INDENT = 2
 const val MIN_SPACING = 2
 const val DEPTH_INDENT = 8
 
 /**
  * Table cell renderer for the name of a [PTableItem].
  */
-class DefaultNameTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
+class DefaultNameTableCellRenderer : PTableCellRenderer {
   private val standardIndent = JBUI.scale(LEFT_STANDARD_INDENT)
   private val minSpacing = JBUI.scale(MIN_SPACING)
   private val depthIndent = JBUI.scale(DEPTH_INDENT)
   private val iconWidth = UIUtil.getTreeCollapsedIcon().iconWidth
+  private val label = RendererLabel()
 
   override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, depth: Int,
-                                  isSelected: Boolean, hasFocus: Boolean): JComponent {
-    clear()
-    append(item.name)
-    setPaintFocusBorder(false)
-    setFocusBorderAroundIcon(true)
-    font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-    myBorder = JBUI.Borders.empty()
+                                  isSelected: Boolean, hasFocus: Boolean, isExpanded: Boolean): JComponent {
+    label.text = if (isExpanded) "<html><nobr>${item.name}</nobr></html>" else item.name
+    label.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+    label.isOpaque = true
     var indent = standardIndent + depth * depthIndent
     when {
       item is PTableGroupItem -> {
-        icon = UIUtil.getTreeNodeIcon(table.isExpanded(item), isSelected, hasFocus)
-        iconTextGap = max(iconWidth - icon.iconWidth, minSpacing)
+        label.icon = UIUtil.getTreeNodeIcon(table.isExpanded(item), isSelected, hasFocus)
+        label.iconTextGap = max(iconWidth - label.icon.iconWidth, minSpacing)
       }
       item is PropertyItem && item.namespaceIcon != null -> {
-        icon = item.namespaceIcon?.let { if (isSelected && hasFocus) ColoredIconGenerator.generateWhiteIcon(it) else it }
-        iconTextGap = max(iconWidth - icon.iconWidth, minSpacing)
+        label.icon = item.namespaceIcon?.let { if (isSelected && hasFocus) ColoredIconGenerator.generateWhiteIcon(it) else it }
+        label.iconTextGap = max(iconWidth - label.icon.iconWidth, minSpacing)
       }
-      else -> indent += iconWidth + minSpacing
+      else -> {
+        label.icon = null
+        label.iconTextGap = 0
+        indent += iconWidth + minSpacing
+      }
     }
     if (isSelected && hasFocus) {
-      foreground = UIUtil.getTreeSelectionForeground(true)
-      background = UIUtil.getTreeSelectionBackground(true)
+      label.foreground = UIUtil.getTreeSelectionForeground(true)
+      label.background = UIUtil.getTreeSelectionBackground(true)
     }
     else {
-      foreground = table.foregroundColor
-      background = table.backgroundColor
+      label.foreground = table.foregroundColor
+      label.background = table.backgroundColor
     }
-    ipad = Insets(0, indent, 0, 0)
-    return this
+    label.border = BorderFactory.createEmptyBorder(0, indent, 0, JBUI.scale(RIGHT_STANDARD_INDENT))
+    return label
   }
 
-  override fun getToolTipText(event: MouseEvent): String? {
-    // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
-    val component = event.source as? JTable ?: return null
-    val tableRow = component.rowAtPoint(event.point)
-    val tableColumn = component.columnAtPoint(event.point)
-    if (tableRow < 0 || tableColumn < 0) {
-      return null
+  private class RendererLabel : JBLabel() {
+
+    override fun getToolTipText(event: MouseEvent): String? {
+      // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
+      val component = event.source as? JTable ?: return null
+      val tableRow = component.rowAtPoint(event.point)
+      val tableColumn = component.columnAtPoint(event.point)
+      if (tableRow < 0 || tableColumn < 0) {
+        return null
+      }
+      val item = component.getValueAt(tableRow, tableColumn)
+      val property = item as? PropertyItem ?: return null
+      return PropertyTooltip.setToolTip(component, event, property, forValue = tableColumn == 1, text = "")
     }
-    val item = component.getValueAt(tableRow, tableColumn)
-    val property = item as? PropertyItem ?: return null
-    return PropertyTooltip.setToolTip(component, event, property, forValue = tableColumn == 1, text = "")
   }
 }
