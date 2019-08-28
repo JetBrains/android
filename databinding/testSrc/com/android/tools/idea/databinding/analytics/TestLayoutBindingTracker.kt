@@ -19,12 +19,12 @@ import com.intellij.openapi.project.Project
 
 
 /**
- * Overwrites methods in [DataBindingTracker] so it can be run in unit tests.
+ * Overwrites methods in [LayoutBindingTracker] so it can be run in unit tests.
  *
- * Normally we would use dependency injection, but [DataBindingTracker] is a project service which
+ * Normally we would use dependency injection, but [LayoutBindingTracker] is a project service which
  * gets instantiated by IntelliJ.
  */
-class TestDataBindingTracker constructor(project: Project) : DataBindingTracker(project) {
+class TestLayoutBindingTracker constructor(project: Project) : LayoutBindingTracker(project) {
   override fun runInBackground(runnable: Runnable) {
     runnable.run()
   }
