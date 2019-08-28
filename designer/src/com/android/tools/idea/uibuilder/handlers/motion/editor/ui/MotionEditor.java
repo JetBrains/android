@@ -24,11 +24,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Cre
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateTransition;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
@@ -37,6 +32,24 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 
 /**
  * The main MotionEditor Panel
@@ -63,6 +76,11 @@ public class MotionEditor extends JPanel {
   CreateOnSwipe mCreateOnSwipe = new CreateOnSwipe();
   CreateTransition mCreateTransition = new CreateTransition();
   JSplitPane mTopPanel;
+
+  public void setSelection(MotionEditorSelector.Type type, MTag[] tag) {
+    mSelectedTag = tag[0];
+    notifyListeners(type, tag);
+  }
 
   enum LayoutMode {
     VERTICAL_LAYOUT,
@@ -92,6 +110,7 @@ public class MotionEditor extends JPanel {
       public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
         if (DEBUG) {
           Debug.log(" selectionChanged  " + selection);
+          Debug.logStack(" selectionChanged  " + selection,5);
         }
         mMeModel.setSelected(selection, tag);
       }
@@ -178,7 +197,7 @@ public class MotionEditor extends JPanel {
     return mSelectedTag;
   }
 
-  private void selectTag(MTag tag) {
+  public void selectTag(MTag tag) {
     mSelectedTag = tag;
     mCombinedListPanel.selectTag(tag);
   }
@@ -259,12 +278,6 @@ public class MotionEditor extends JPanel {
     } else {
       transitionSelection();
     }
-
-  }
-
-  public void setSelection(MotionEditorSelector.Type type , MTag[] tag) {
-    mSelectedTag = tag[0];
-    notifyListeners(type,tag);
   }
 
   void constraintSetSelection() {
@@ -278,8 +291,6 @@ public class MotionEditor extends JPanel {
         mCardLayout.show(mCenterPanel, CONSTRAINTSET_PANEL);
         MTag selectedConstraintSet = c_sets[index - 1];
         mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
-        notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET,
-          new MTag[]{selectedConstraintSet});
         notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET,
           new MTag[]{selectedConstraintSet});
         mSelectedTag = selectedConstraintSet;

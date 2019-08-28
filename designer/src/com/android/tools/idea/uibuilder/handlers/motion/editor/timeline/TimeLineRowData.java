@@ -25,7 +25,7 @@ import java.util.HashMap;
 /**
  * Data that populates a Timeline row.
  */
-class TimeLineRowData {
+public class TimeLineRowData {
   public static final boolean DEBUG = false;
   String mKey;
   String mRef;

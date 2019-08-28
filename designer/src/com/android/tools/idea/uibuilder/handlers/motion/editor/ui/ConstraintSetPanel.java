@@ -16,13 +16,11 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -31,6 +29,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableModel;
 
 /**
  * This displays the constraint panel
@@ -90,15 +100,13 @@ class ConstraintSetPanel extends JPanel {
     @Override
     public void actionPerformed(ActionEvent e) {
       ConstraintSetPanelCommands.moveConstraint(mSelectedTag, mConstraintSet);
-
     }
   };
 
-  AbstractAction overrideConstraint = new AbstractAction("Override all constraints") {
+  AbstractAction overrideConstraint = new AbstractAction("Convert from sectioned constraints") {
     @Override
     public void actionPerformed(ActionEvent e) {
-      ConstraintSetPanelCommands.overrideConstraint(mSelectedTag, mConstraintSet);
-
+      ConstraintSetPanelCommands.convertFromSectioned(mSelectedTag, mConstraintSet);
     }
   };
   AbstractAction limitConstraint = new AbstractAction("Limit constraints to sections") {
@@ -119,9 +127,9 @@ class ConstraintSetPanel extends JPanel {
     JCheckBox cbox = new JCheckBox("All");
     cbox.setSelected(true);
     cbox.addActionListener(e -> {
-        showAll = cbox.isSelected();
-        buildTable();
-      }
+                             showAll = cbox.isSelected();
+                             buildTable();
+                           }
     );
     JLabel label;
     left.add(label = new JLabel("ConstraintSet (", MEIcons.LIST_STATE, SwingConstants.LEFT));
@@ -134,7 +142,8 @@ class ConstraintSetPanel extends JPanel {
     makeRightMenu(right);
     right.add(cbox);
 
-    mConstraintSetTable.getSelectionModel().addListSelectionListener(e -> {
+    mConstraintSetTable.getSelectionModel().addListSelectionListener(
+      e -> {
         int index = mConstraintSetTable.getSelectedRow();
         int[] allSelect = mConstraintSetTable.getSelectedRows();
 
@@ -156,10 +165,9 @@ class ConstraintSetPanel extends JPanel {
           (mDisplayedRows.size() == 0) ? new MTag[0] : new MTag[]{mSelectedTag = mDisplayedRows.get(index)};
         mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT, tag);
         enableMenuItems(tag);
-
       }
     );
-    JScrollPane transitionProperties = new JScrollPane(mConstraintSetTable);
+    JScrollPane transitionProperties = new MEScrollPane(mConstraintSetTable);
     transitionProperties.setBorder(BorderFactory.createEmptyBorder());
     add(transitionProperties, BorderLayout.CENTER);
     add(top, BorderLayout.NORTH);
@@ -187,7 +195,8 @@ class ConstraintSetPanel extends JPanel {
       moveConstraint.setEnabled(true);
       overrideConstraint.setEnabled(true);
       limitConstraint.setEnabled(true);
-    } else {
+    }
+    else {
       createConstraint.setEnabled(true);
       createSectionedConstraint.setEnabled(true);
       clearConstraint.setEnabled(false);
@@ -217,7 +226,7 @@ class ConstraintSetPanel extends JPanel {
     int noc = tag.getChildTags().length;
     String end = tag.getAttributeValue("constraintSetEnd");
     return "<html> <b> " + cid + " </b><br>" + noc + " Constraint" + ((noc == 1) ? "" : "s")
-      + "</html>";
+           + "</html>";
   }
 
   public void buildTable() {
@@ -226,7 +235,8 @@ class ConstraintSetPanel extends JPanel {
     mDisplayedRows.clear();
     if (mConstraintSet == null) {
       return;
-    } else {
+    }
+    else {
       MTag[] sets = mConstraintSet.getChildTags("Constraint");
       String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
 
@@ -303,7 +313,8 @@ class ConstraintSetPanel extends JPanel {
   private String getMask(ArrayList<MTag> children, HashMap<String, Attribute> attrs, String id) {
     if (children.size() == 0 || attrs.size() > 1 && id != null) {
       return "all";
-    } else {
+    }
+    else {
       String mask = "";
       for (MTag child : children) {
         mask += (mask.equals("") ? "" : "|") + child.getTagName();
@@ -321,7 +332,7 @@ class ConstraintSetPanel extends JPanel {
     int[] row = mConstraintSetTable.getSelectedRows();
     String[] selected = new String[row.length];
     for (int i = 0; i < row.length; i++) {
-      selected[i] = (String) mConstraintSetModel.getValueAt(row[i], 1);
+      selected[i] = (String)mConstraintSetModel.getValueAt(row[i], 1);
     }
     mMeModel = meModel;
     mConstraintSet = constraintSet;
@@ -339,7 +350,7 @@ class ConstraintSetPanel extends JPanel {
 
     HashSet<String> selectedSet = new HashSet<>(Arrays.asList(selected));
     for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
-      String id = (String) mConstraintSetModel.getValueAt(i, 1);
+      String id = (String)mConstraintSetModel.getValueAt(i, 1);
       if (selectedSet.contains(id)) {
         mConstraintSetTable.addRowSelectionInterval(i, i);
       }
@@ -356,7 +367,8 @@ class ConstraintSetPanel extends JPanel {
           ArrayList<MTag> ret = getDerived(constraintSets, also);
           ret.add(0, constraintSets[i]);
           return ret;
-        } else {
+        }
+        else {
           ArrayList<MTag> ret = new ArrayList<>();
           ret.add(constraintSets[i]);
           return ret;
@@ -366,11 +378,11 @@ class ConstraintSetPanel extends JPanel {
     return new ArrayList<MTag>();
   }
 
-
   public void setListeners(MotionEditorSelector listeners) {
     mListeners = listeners;
     mListeners.addSelectionListener(new MotionEditorSelector.Listener() {
       boolean in = false;
+
       @Override
       public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
         if (in) { // simple block for selection triggering selection.
@@ -387,7 +399,7 @@ class ConstraintSetPanel extends JPanel {
         }
         mConstraintSetTable.clearSelection();
         for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
-          String id = (String) mConstraintSetModel.getValueAt(i, 1);
+          String id = (String)mConstraintSetModel.getValueAt(i, 1);
           if (selectedSet.contains(id)) {
             mConstraintSetTable.addRowSelectionInterval(i, i);
           }

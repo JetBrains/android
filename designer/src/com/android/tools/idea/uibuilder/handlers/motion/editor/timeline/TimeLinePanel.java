@@ -134,7 +134,7 @@ public class TimeLinePanel extends JPanel {
     }
   }
 
-  class METimeLine extends JPanel {
+  public class METimeLine extends JPanel {
     JPanel pad = new JPanel() {
       @Override
       public void paintComponent(Graphics g) {
@@ -362,10 +362,7 @@ public class TimeLinePanel extends JPanel {
         groupSelected();
       }
     });
-    myTimer = new Timer(30, e -> {
-      progress();
-    });
-    myTimer.setRepeats(true);
+    createTimer();
   }
 
   public void addTimeLineListener(TimeLineListener timeLineListener) {
@@ -377,7 +374,20 @@ public class TimeLinePanel extends JPanel {
       listener.command(cmd, value);
     }
   }
-
+  private void createTimer() {
+    if (myTimer == null) {
+      myTimer = new Timer(30, e -> {
+        progress();
+      });
+    myTimer.setRepeats(true);
+    }
+  }
+  private void destroyTimer() {
+    if (myTimer != null) {
+      myTimer.stop();
+      myTimer = null;
+    }
+  }
   private void performCommand(TimelineCommands e) {
     switch (e) {
       case PLAY:
