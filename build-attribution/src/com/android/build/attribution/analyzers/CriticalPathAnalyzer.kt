@@ -17,8 +17,8 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -29,7 +29,8 @@ import kotlin.math.max
 /**
  * An analyzer for calculating the critical path, that is the path of tasks determining the total build duration.
  */
-class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter) : BuildEventsAnalyzer {
+class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter, taskContainer: TaskContainer)
+  : BaseTasksAnalyzer(taskContainer), BuildEventsAnalyzer {
   private val tasksSet = HashSet<TaskData>()
   private val dependenciesMap = HashMap<TaskData, List<TaskData>>()
 
@@ -48,7 +49,7 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     }
 
     if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
-      val task = TaskData.createTaskData(event)
+      val task = getTask(event)
       val dependenciesList = ArrayList<TaskData>()
 
       event.descriptor.dependencies.forEach { dependency ->
@@ -146,6 +147,7 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
   }
 
   override fun onBuildStart() {
+    super.onBuildStart()
     tasksSet.clear()
     dependenciesMap.clear()
     tasksCriticalPath.clear()
@@ -153,14 +155,11 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     criticalPathDuration = 0
   }
 
-  override fun onBuildSuccess(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?) {
+  override fun onBuildSuccess() {
     calculateTasksCriticalPath()
     calculatePluginsCriticalPath()
     tasksSet.clear()
     dependenciesMap.clear()
-    if (androidGradlePluginAttributionData != null) {
-      tasksCriticalPath.forEach { it.setTaskType(androidGradlePluginAttributionData.taskNameToClassNameMap[it.taskName]) }
-    }
   }
 
   override fun onBuildFailure() {

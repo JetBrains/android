@@ -20,3 +20,12 @@ import com.android.build.attribution.data.PluginData
 fun isAndroidGradlePlugin(plugin: PluginData): Boolean {
   return plugin.displayName == "com.android.application"
 }
+
+fun isAndroidPlugin(plugin: PluginData): Boolean {
+  return plugin.displayName == "com.android.application" ||
+         plugin.displayName == "com.android.library" ||
+         plugin.displayName == "com.android.instantapp" ||
+         plugin.displayName == "com.android.feature" ||
+         plugin.displayName == "com.android.dynamic-feature" ||
+         plugin.displayName == "com.android.test"
+}
