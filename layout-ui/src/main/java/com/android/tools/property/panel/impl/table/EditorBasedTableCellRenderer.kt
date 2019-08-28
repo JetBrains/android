@@ -54,9 +54,9 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
   private val depthIndent = JBUI.scale(DEPTH_INDENT)
 
   override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, depth: Int,
-                                  isSelected: Boolean, hasFocus: Boolean): JComponent? {
+                                  isSelected: Boolean, hasFocus: Boolean, isExpanded: Boolean): JComponent? {
     if (!itemClass.isInstance(item)) {
-      return defaultRenderer.getEditorComponent(table, item, column, depth, isSelected, hasFocus)
+      return defaultRenderer.getEditorComponent(table, item, column, depth, isSelected, hasFocus, isExpanded)
     }
     val property = itemClass.cast(item)
     val controlType = controlTypeProvider(property)

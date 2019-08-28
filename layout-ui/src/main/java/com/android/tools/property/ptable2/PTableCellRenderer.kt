@@ -25,6 +25,11 @@ interface PTableCellRenderer {
   /**
    * Returns component for rendering the [column] of the specified [item].
    *
+   * The [depth] indicates how deeply nested the [item] should be shown in the [table].
+   * If [isSelected] the item should be shown as selected.
+   * If [hasFocus] the item should be shown with focus colors.
+   * If [isExpanded] the item should be shown without ellipsis (the user is hovering over the item).
+   *
    * A return value of null means the cell is empty.
    */
   fun getEditorComponent(table: PTable,
@@ -32,7 +37,8 @@ interface PTableCellRenderer {
                          column: PTableColumn,
                          depth: Int,
                          isSelected: Boolean,
-                         hasFocus: Boolean): JComponent?
+                         hasFocus: Boolean,
+                         isExpanded: Boolean): JComponent?
 }
 
 class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
@@ -42,7 +48,8 @@ class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
                                   column: PTableColumn,
                                   depth: Int,
                                   isSelected: Boolean,
-                                  hasFocus: Boolean): JComponent? {
+                                  hasFocus: Boolean,
+                                  isExpanded: Boolean): JComponent? {
     clear()
     setPaintFocusBorder(hasFocus)
     font = table.activeFont
