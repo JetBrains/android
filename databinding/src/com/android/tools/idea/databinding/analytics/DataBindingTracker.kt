@@ -50,8 +50,6 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
     }
   }
 
-  // TODO(b/123721754): Track whether data binding is enabled on a per module basis.
-  // Currently, one module is data binding enabled = entire project is data binding enabled.
   private fun isDataBindingEnabled() = ModuleManager.getInstance(project).modules
     .mapNotNull { it.androidFacet }
     .any { DataBindingUtil.isDataBindingEnabled(it) }
