@@ -18,6 +18,7 @@ package com.android.tools.idea.room.migrations
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.MapDataContext
+import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.AndroidTestCase
 
@@ -70,13 +71,19 @@ class GenerateRoomMigrationActionTest : AndroidTestCase() {
       class FooDb {}
     """.trimIndent());
 
+    val testSrc = myFixture.tempDirFixture.findOrCreateDir("testDir")
+    PsiTestUtil.addSourceRoot(myFixture.module, testSrc, true);
+
     val context = MapDataContext()
     context.put(CommonDataKeys.VIRTUAL_FILE_ARRAY.name, arrayOf(jsonOne, jsonTwo))
     context.put(CommonDataKeys.PROJECT, myFixture.project)
 
     GenerateRoomMigrationAction().actionPerformed(TestActionEvent(context))
 
-    val migration = myFixture.findClass("com.example.Migration_2_3")
+    val migration = myFixture.findClass("Migration_2_3")
     assertThat(migration).isNotNull()
+
+    val test = myFixture.findClass("FooDbMigrationTest")
+    assertThat(test).isNotNull()
   }
 }
