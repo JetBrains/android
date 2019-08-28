@@ -15,8 +15,37 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.profilers.StudioProfilers;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Track model for CPU threads in CPU capture stage. Consists of thread states and trace events.
  */
 public class CpuThreadTrackModel {
+  private final DataSeries<CpuProfilerStage.ThreadState> myThreadStateDataSeries;
+  private final StateChartModel<CpuProfilerStage.ThreadState> myThreadStateChartModel;
+
+  public CpuThreadTrackModel(@NotNull StudioProfilers profilers, @NotNull Range range, @NotNull CpuCapture capture, int threadId) {
+    myThreadStateDataSeries = new CpuThreadStateDataSeries(profilers.getClient().getTransportClient(),
+                                                           profilers.getSession().getStreamId(),
+                                                           profilers.getSession().getPid(),
+                                                           threadId,
+                                                           capture);
+    myThreadStateChartModel = new StateChartModel<>();
+    myThreadStateChartModel.addSeries(new RangedSeries<>(range, myThreadStateDataSeries));
+  }
+
+  @NotNull
+  public DataSeries<CpuProfilerStage.ThreadState> getThreadStateDataSeries() {
+    return myThreadStateDataSeries;
+  }
+
+  @NotNull
+  public StateChartModel<CpuProfilerStage.ThreadState> getThreadStateChartModel() {
+    return myThreadStateChartModel;
+  }
 }
