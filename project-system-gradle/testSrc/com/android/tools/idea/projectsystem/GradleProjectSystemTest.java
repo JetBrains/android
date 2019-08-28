@@ -30,11 +30,10 @@ public class GradleProjectSystemTest extends JavaProjectTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    ideComponents.mockProjectService(GradleDependencyManager.class, getTestRootDisposable());
-    ideComponents.mockProjectService(GradleProjectBuilder.class, getTestRootDisposable());
+    IdeComponents.mockProjectService(myProject, GradleDependencyManager.class, getTestRootDisposable());
+    IdeComponents.mockProjectService(myProject, GradleProjectBuilder.class, getTestRootDisposable());
 
-    GradleProjectInfo gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class, getTestRootDisposable());
+    GradleProjectInfo gradleProjectInfo = IdeComponents.mockProjectService(myProject, GradleProjectInfo.class, getTestRootDisposable());
     when(gradleProjectInfo.isBuildWithGradle()).thenReturn(true);
   }
 

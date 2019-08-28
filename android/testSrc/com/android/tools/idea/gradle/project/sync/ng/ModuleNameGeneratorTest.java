@@ -15,28 +15,25 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.project.Project;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.GradleProject;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+
+import java.io.File;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import static com.android.tools.idea.gradle.project.sync.ng.ModuleNameGenerator.deduplicateModuleNames;
 import static com.android.tools.idea.gradle.project.sync.ng.ModuleNameGenerator.getModuleNameByModulePath;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Collections.emptySet;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
-import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.openapi.project.Project;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.gradle.tooling.model.BuildIdentifier;
-import org.gradle.tooling.model.GradleProject;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 /**
  * Tests for {@link ModuleNameGenerator}.
@@ -100,8 +97,8 @@ public class ModuleNameGeneratorTest extends AndroidTestCase {
     assertThat(names.get("/tmp/project2/nested2/lib")).isEqualTo("project2.nested2.lib");
   }
 
-  private static void setUseQualifiedModuleNames(@NotNull Project project, boolean useQualifiedModuleNames) {
-    GradleProjectSettingsFinder finder = new IdeComponents(project).mockApplicationService(GradleProjectSettingsFinder.class);
+  private void setUseQualifiedModuleNames(@NotNull Project project, boolean useQualifiedModuleNames) {
+    GradleProjectSettingsFinder finder = IdeComponents.mockApplicationService(GradleProjectSettingsFinder.class, getTestRootDisposable());
     GradleProjectSettings settings = mock(GradleProjectSettings.class);
     when(finder.findGradleProjectSettings(project)).thenReturn(settings);
     when(settings.isUseQualifiedModuleNames()).thenReturn(useQualifiedModuleNames);

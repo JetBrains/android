@@ -34,7 +34,6 @@ import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.Template.CATEGORY_PROJECTS
 import com.android.tools.idea.templates.TemplateMetadata.*
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
 import com.intellij.idea.IdeaTestApplication
 import com.intellij.openapi.application.ApplicationManager
@@ -95,9 +94,7 @@ class GenerateShippedSyncTest : AndroidTestBase() {
     // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
-    IdeComponents(null) {}.replaceApplicationService(
-      RepositoryUrlManager::class.java,
-      RepositoryUrlManager(IdeGoogleMavenRepository, true))
+    ApplicationManager.getApplication().replaceService(RepositoryUrlManager::class.java, RepositoryUrlManager(IdeGoogleMavenRepository, true), testRootDisposable)
 
     StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true)
 

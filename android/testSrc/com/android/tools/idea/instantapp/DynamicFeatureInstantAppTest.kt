@@ -16,14 +16,7 @@
 package com.android.tools.idea.instantapp
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.AndroidAppRunConfigurationBase
-import com.android.tools.idea.run.AndroidLaunchTasksProvider
-import com.android.tools.idea.run.AndroidProgramRunner
-import com.android.tools.idea.run.AndroidRunConfigurationType
-import com.android.tools.idea.run.ConsolePrinter
-import com.android.tools.idea.run.GradleApkProvider
-import com.android.tools.idea.run.GradleApplicationIdProvider
-import com.android.tools.idea.run.LaunchOptions
+import com.android.tools.idea.run.*
 import com.android.tools.idea.run.tasks.DynamicAppDeployTaskContext
 import com.android.tools.idea.run.tasks.RunInstantAppTask
 import com.android.tools.idea.run.tasks.SplitApkDeployTask
@@ -78,7 +71,7 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
       .setSkipNoopApkInstallations(true)
       .setForceStopRunningApp(true)
 
-    instantAppSdks = IdeComponents(null, testRootDisposable).mockApplicationService(InstantAppSdks::class.java)
+    instantAppSdks = IdeComponents.mockApplicationService(InstantAppSdks::class.java, testRootDisposable)
   }
 
   fun testDeployInstantAppAsInstantAPK() {

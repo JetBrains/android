@@ -38,7 +38,7 @@ public class AndroidPluginGenerationIdeaTest extends JavaProjectTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myEmbeddedDistributionPaths = new IdeComponents(myProject).mockApplicationService(EmbeddedDistributionPaths.class);
+    myEmbeddedDistributionPaths = IdeComponents.mockApplicationService(EmbeddedDistributionPaths.class, getTestRootDisposable());
   }
 
   public void testGetLatestKnownVersion() throws IOException {

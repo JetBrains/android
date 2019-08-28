@@ -114,16 +114,12 @@ class AndroidProjectRule private constructor(
     return this
   }
 
-  fun <T : Any> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) {
-    fixture.project.replaceService(serviceType, newServiceInstance, fixture.projectDisposable)
-  }
-
   fun <T : Any> replaceService(serviceType: Class<T>, newServiceInstance: T) {
     ApplicationManager.getApplication().replaceService(serviceType, newServiceInstance, fixture.projectDisposable)
   }
 
   fun <T> mockProjectService(serviceType: Class<T>): T {
-    return IdeComponents(fixture).mockProjectService(serviceType, fixture.projectDisposable)
+    return IdeComponents.mockProjectService(fixture.project, serviceType, fixture.projectDisposable)
   }
 
   override fun before(description: Description) {
