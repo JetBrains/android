@@ -16,10 +16,10 @@
 package org.jetbrains.android.facet;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.framework.detection.DetectedFrameworkDescription;
 import com.intellij.framework.detection.FrameworkDetectionContext;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 
 import java.util.Collections;
@@ -48,7 +48,7 @@ public class AndroidFrameworkDetectorTest extends JavaProjectTestCase {
   }
 
   public void testDetectWithGradleProject() {
-    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
+    ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myProjectInfo, getTestRootDisposable());
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
 
     List<? extends DetectedFrameworkDescription> descriptions = myDetector.detect(Collections.emptyList(), myContext);
@@ -56,7 +56,7 @@ public class AndroidFrameworkDetectorTest extends JavaProjectTestCase {
   }
 
   public void testDetectWithProjectWithBuildFile() {
-    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
+    ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myProjectInfo, getTestRootDisposable());
     when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
     when(myProjectInfo.hasTopLevelGradleBuildFile()).thenReturn(true);
 
