@@ -42,13 +42,13 @@ import org.mockito.stubbing.Answer;
 public class WhatsNewStartupActivityTest extends AndroidTestCase {
   private static final long TIMEOUT_MILLISECONDS = 30000;
 
-  private WhatsNewAssistantURLProvider mockUrlProvider;
+  private WhatsNewURLProvider mockUrlProvider;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
 
-    mockUrlProvider = Mockito.mock(WhatsNewAssistantURLProvider.class);
+    mockUrlProvider = Mockito.mock(WhatsNewURLProvider.class);
     File serverFile = new File(myFixture.getTestDataPath(), "whatsnewassistant/server-3.3.0.xml");
     Mockito.when(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(new URL("file:" + serverFile.getPath()));
 
@@ -97,8 +97,8 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
    * Test that asynchronous version checking for What's New Assistant works
    */
   public void testCheckVersionTask() {
-    WhatsNewAssistantBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME
-      .findExtension(WhatsNewAssistantBundleCreator.class);
+    WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME
+      .findExtension(WhatsNewBundleCreator.class);
     bundleCreator.setStudioRevision(Revision.parseRevision("3.3.0"));
     bundleCreator.setURLProvider(mockUrlProvider);
     bundleCreator.setAllowDownload(true);
@@ -107,7 +107,7 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
     SettableFuture<Boolean> completeFuture = SettableFuture.create();
 
     // WhatsNewStartupActivity does this normally in production
-    new WhatsNewAssistantCheckVersionTask(getProject(), new BooleanCallback(completeFuture)).queue();
+    new WhatsNewCheckVersionTask(getProject(), new BooleanCallback(completeFuture)).queue();
     try {
       FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertTrue(completeFuture.get());
@@ -123,8 +123,8 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
    */
   public void testStartupTips() {
     // Make local bundle guaranteed to be available, so we don't try to open browser in tests
-    WhatsNewAssistantBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME
-      .findExtension(WhatsNewAssistantBundleCreator.class);
+    WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME
+      .findExtension(WhatsNewBundleCreator.class);
     bundleCreator.setStudioRevision(Revision.parseRevision("3.3.0"));
     bundleCreator.setURLProvider(mockUrlProvider);
     bundleCreator.setAllowDownload(false);

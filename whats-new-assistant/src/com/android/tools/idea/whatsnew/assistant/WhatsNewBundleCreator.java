@@ -43,13 +43,13 @@ import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
+public class WhatsNewBundleCreator implements AssistantBundleCreator {
   public static final String BUNDLE_ID = "DeveloperServices.WhatsNewAssistant";
 
   private static AssistantBundleCreator ourTestCreator = null;
 
-  @NotNull private WhatsNewAssistantURLProvider myURLProvider;
-  @NotNull private WhatsNewAssistantConnectionOpener myConnectionOpener;
+  @NotNull private WhatsNewURLProvider myURLProvider;
+  @NotNull private WhatsNewConnectionOpener myConnectionOpener;
   @NotNull private Revision myStudioRevision;
 
   @NotNull private Revision myLastSeenVersion;
@@ -59,23 +59,23 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   /**
    * Constructor initializes default production field, will be replaced in testing
    */
-  public WhatsNewAssistantBundleCreator() {
-    this(new WhatsNewAssistantURLProvider(),
+  public WhatsNewBundleCreator() {
+    this(new WhatsNewURLProvider(),
          Revision.safeParseRevision(ApplicationInfo.getInstance().getStrictVersion()),
-         new WhatsNewAssistantConnectionOpener(),
+         new WhatsNewConnectionOpener(),
          true);
   }
 
-  public WhatsNewAssistantBundleCreator(@NotNull WhatsNewAssistantURLProvider urlProvider,
-                                        @NotNull Revision studioRevision) {
-    this(urlProvider, studioRevision, new WhatsNewAssistantConnectionOpener(), true);
+  public WhatsNewBundleCreator(@NotNull WhatsNewURLProvider urlProvider,
+                               @NotNull Revision studioRevision) {
+    this(urlProvider, studioRevision, new WhatsNewConnectionOpener(), true);
   }
 
   @VisibleForTesting
-  public WhatsNewAssistantBundleCreator(@NotNull WhatsNewAssistantURLProvider urlProvider,
-                                        @NotNull Revision studioRevision,
-                                        @NotNull WhatsNewAssistantConnectionOpener connectionOpener,
-                                        boolean allowDownload) {
+  public WhatsNewBundleCreator(@NotNull WhatsNewURLProvider urlProvider,
+                               @NotNull Revision studioRevision,
+                               @NotNull WhatsNewConnectionOpener connectionOpener,
+                               boolean allowDownload) {
     myURLProvider = urlProvider;
     myConnectionOpener = connectionOpener;
     myStudioRevision = studioRevision;
@@ -91,7 +91,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   }
 
   @VisibleForTesting
-  void setURLProvider(@NotNull WhatsNewAssistantURLProvider urlProvider) {
+  void setURLProvider(@NotNull WhatsNewURLProvider urlProvider) {
     myURLProvider = urlProvider;
   }
 
@@ -118,7 +118,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
    */
   @Nullable
   @Override
-  public WhatsNewAssistantBundle getBundle(@NotNull Project project) {
+  public WhatsNewBundle getBundle(@NotNull Project project) {
     assert ApplicationManager.getApplication().isUnitTestMode() || !ApplicationManager.getApplication().isDispatchThread();
 
     // Must download any updated xml first
@@ -152,7 +152,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     //   a) newly installed Android Studio - isNewStudioVersion already takes care of auto-show
     //   b) no network the last time Studio was opened, so last seen version would have been the
     //      same as default resource, typically 0.
-    WhatsNewAssistantBundle oldBundle = parseBundle();
+    WhatsNewBundle oldBundle = parseBundle();
     if (oldBundle != null) {
       myLastSeenVersion = oldBundle.getVersion();
     }
@@ -161,7 +161,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     updateConfig();
 
     // Parse and return the new bundle
-    WhatsNewAssistantBundle newBundle = parseBundle();
+    WhatsNewBundle newBundle = parseBundle();
     if (newBundle != null) {
       if (myLastSeenVersion.equals(Revision.NOT_SPECIFIED)) {
         return true;
@@ -177,8 +177,8 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
    * @return the bundle, or {@code null} if there is an error while parsing
    */
   @Nullable
-  private WhatsNewAssistantBundle parseBundle() {
-    WhatsNewAssistantBundle bundle = parseBundleWorker();
+  private WhatsNewBundle parseBundle() {
+    WhatsNewBundle bundle = parseBundleWorker();
     if (bundle != null)
       return bundle;
 
@@ -201,11 +201,11 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
    * @return the bundle, or {@code null} if there is an error while parsing
    */
   @Nullable
-  private WhatsNewAssistantBundle parseBundleWorker() {
+  private WhatsNewBundle parseBundleWorker() {
     try (InputStream configStream = openConfigStream()) {
       if (configStream == null)
         return null;
-      return DefaultTutorialBundle.parse(configStream, WhatsNewAssistantBundle.class, getBundleId());
+      return DefaultTutorialBundle.parse(configStream, WhatsNewBundle.class, getBundleId());
     }
     catch (Exception e) {
       getLog().warn("Error parsing bundle", e);
@@ -315,7 +315,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
       if (stream == null) {
         return false;
       }
-      WhatsNewAssistantBundle bundle = DefaultTutorialBundle.parse(stream, WhatsNewAssistantBundle.class, getBundleId());
+      WhatsNewBundle bundle = DefaultTutorialBundle.parse(stream, WhatsNewBundle.class, getBundleId());
       // If Studio version is 0.0.0 (dev build) then return true, as an exception so we can show local file for editing
       return myStudioRevision.equals(Revision.parseRevision("0.0.0rc0")) || isBundleRevisionSame(bundle.getVersion());
     }
@@ -345,7 +345,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   }
 
   private static Logger getLog() {
-    return Logger.getInstance(WhatsNewAssistantBundleCreator.class);
+    return Logger.getInstance(WhatsNewBundleCreator.class);
   }
 }
 

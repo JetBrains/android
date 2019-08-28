@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  * which will be used to automatically open on startup if Android Studio
  * version is the same but WNA config is higher version
  */
-public class WhatsNewAssistantBundle extends DefaultTutorialBundle {
+public class WhatsNewBundle extends DefaultTutorialBundle {
   // Version is represented as major.minor.configVersion, where configVersion starts at 0
   // and should be incremented when TW team wants the panel to auto-show.
   @XmlAttribute(name = "version")

@@ -22,9 +22,9 @@ import org.junit.runner.RunWith;
 @SuppressWarnings("JUnitTestClassNamingConvention")
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
-  WhatsNewAssistantTestSuite.class
+  WhatsNewTestSuite.class
 })
-public class WhatsNewAssistantTestSuite extends IdeaTestSuiteBase {
+public class WhatsNewTestSuite extends IdeaTestSuiteBase {
 
   static {
     symlinkToIdeaHome(

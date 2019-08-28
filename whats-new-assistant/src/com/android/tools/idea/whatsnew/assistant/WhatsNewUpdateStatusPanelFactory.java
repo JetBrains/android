@@ -22,12 +22,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Singleton extension that creates Panels that show update status in WNA
  */
-public final class UpdateStatusPanelFactory implements PanelFactory {
+public final class WhatsNewUpdateStatusPanelFactory implements PanelFactory {
   @NotNull public static final String FACTORY_ID = "wna.update.status";
-  @NotNull private final WhatsNewAssistantMetricsTracker myMetricsTracker;
+  @NotNull private final WhatsNewMetricsTracker myMetricsTracker;
 
-  public UpdateStatusPanelFactory() {
-    myMetricsTracker = new WhatsNewAssistantMetricsTracker();
+  public WhatsNewUpdateStatusPanelFactory() {
+    myMetricsTracker = new WhatsNewMetricsTracker();
   }
 
 
@@ -44,7 +44,7 @@ public final class UpdateStatusPanelFactory implements PanelFactory {
   }
 
   @NotNull
-  public WhatsNewAssistantMetricsTracker getMetricsTracker() {
+  public WhatsNewMetricsTracker getMetricsTracker() {
     return myMetricsTracker;
   }
 
@@ -56,7 +56,7 @@ public final class UpdateStatusPanelFactory implements PanelFactory {
     // TODO: Apply the rest of ag/8023957 when UpdateChecker refactor is merged
 
     private UpdateStatusPanel(@NotNull Project project) {
-      WhatsNewAssistantMetricsTracker.getInstance().updateFlow(project);
+      WhatsNewMetricsTracker.getInstance().updateFlow(project);
     }
   }
 }

@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project
 import org.apache.http.concurrent.FutureCallback
 import java.lang.RuntimeException
 
-class WhatsNewAssistantCheckVersionTask(
+class WhatsNewCheckVersionTask(
   project: Project,
   private val uiCallback: FutureCallback<Boolean>
   ): Task.Backgroundable(project, "Checking What's New Assistant version...") {
@@ -30,7 +30,7 @@ class WhatsNewAssistantCheckVersionTask(
   private var isNewVersion = false
 
   override fun run(indicator: ProgressIndicator) {
-    val bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewAssistantBundleCreator::class.java)
+    val bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator::class.java)
     isNewVersion = bundleCreator!!.isNewConfigVersion
   }
 

@@ -39,9 +39,9 @@ import java.io.InputStream
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
-class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
+class WhatsNewSidePanelTest : AndroidTestCase() {
   private val TIMEOUT_MILLISECONDS: Long = 30000
-  private lateinit var mockUrlProvider: WhatsNewAssistantURLProvider
+  private lateinit var mockUrlProvider: WhatsNewURLProvider
 
   private val studioRevision = Revision.parseRevision("3.3.0")
 
@@ -49,7 +49,7 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
     super.setUp()
 
     // Mock url provider to simulate webserver and also class resource file
-    mockUrlProvider = mock(WhatsNewAssistantURLProvider::class.java)
+    mockUrlProvider = mock(WhatsNewURLProvider::class.java)
 
     val serverFile = File(myFixture.testDataPath).resolve("whatsnewassistant/server-3.3.0.xml")
     Mockito.`when`(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:" + serverFile.path))
@@ -70,8 +70,8 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
    */
   @Test
   fun testPanelTitle() {
-    val bundleCreator: WhatsNewAssistantBundleCreator? = AssistantBundleCreator.EP_NAME
-      .findExtension(WhatsNewAssistantBundleCreator::class.java)
+    val bundleCreator: WhatsNewBundleCreator? = AssistantBundleCreator.EP_NAME
+      .findExtension(WhatsNewBundleCreator::class.java)
     bundleCreator!!.setURLProvider(mockUrlProvider)
     bundleCreator.setStudioRevision(studioRevision)
     bundleCreator.setAllowDownload(true)
@@ -93,8 +93,8 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
     }
 
     // Tab title will be set after assistant content finishes loading
-    WhatsNewAssistantMetricsTracker.getInstance().open(project, false) // Needed since creating AssistSidePanel calls metrics
-    AssistSidePanel(WhatsNewAssistantBundleCreator.BUNDLE_ID, project, callback)
+    WhatsNewMetricsTracker.getInstance().open(project, false) // Needed since creating AssistSidePanel calls metrics
+    AssistSidePanel(WhatsNewBundleCreator.BUNDLE_ID, project, callback)
     FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     TestCase.assertEquals("Test What's New from Server", completeFuture.get())
   }
