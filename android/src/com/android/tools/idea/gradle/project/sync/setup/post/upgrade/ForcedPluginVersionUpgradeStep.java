@@ -79,7 +79,7 @@ public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep 
 
     if (userAcceptsForcedUpgrade) {
       AndroidPluginVersionUpdater versionUpdater = AndroidPluginVersionUpdater.getInstance(project);
-      versionUpdater.updatePluginVersionAndSync(recommended, GradleVersion.parse(GRADLE_LATEST_VERSION), pluginInfo.getPluginVersion());
+      versionUpdater.updatePluginVersionAndSync(recommended, GradleVersion.parse(GRADLE_LATEST_VERSION));
     }
     else {
       String[] text = {
