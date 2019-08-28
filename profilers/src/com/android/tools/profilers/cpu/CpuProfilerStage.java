@@ -1048,7 +1048,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
       if (finishedTraceToSelect != null) {
         myInProgressTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance();
-        setAndSelectCapture(finishedTraceToSelect.getTraceId());
+        if (finishedTraceToSelect.getStopStatus().getStatus() == Cpu.TraceStopStatus.Status.SUCCESS) {
+          setAndSelectCapture(finishedTraceToSelect.getTraceId());
+        }
+        else {
+          setCaptureState(CaptureState.IDLE);
+        }
 
         // When API-initiated tracing ends, we want to update the config combo box back to the entry before API tracing.
         // This is done by fire aspect PROFILING_CONFIGURATION.
