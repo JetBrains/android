@@ -22,10 +22,11 @@ import com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositor
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -45,12 +46,9 @@ import static org.mockito.Mockito.when;
  * Tests for {@link AddGoogleMavenRepositoryHyperlink}.
  */
 public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase {
-  private IdeComponents myIdeComponents;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myIdeComponents = new IdeComponents(getProject());
   }
 
   public void testExecuteWithGradle3dot5() throws Exception {
@@ -174,7 +172,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     prepareProjectForImport(SIMPLE_APPLICATION);
     Project project = getProject();
     GradleVersions spyVersions = spy(GradleVersions.getInstance());
-    myIdeComponents.replaceApplicationService(GradleVersions.class, spyVersions);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleVersions.class, spyVersions, getTestRootDisposable());
     when(spyVersions.getGradleVersion(project)).thenReturn(GradleVersion.parse(version));
 
     // Make sure no repositories are listed
