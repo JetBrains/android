@@ -34,14 +34,14 @@ import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
-public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction {
+public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
   @NotNull
   private static WhatsNewAction action = new WhatsNewAction();
 
   @NotNull
   private final Map<Project, WhatsNewToolWindowListener> myProjectToListenerMap;
 
-  public WhatsNewAssistantSidePanelAction() {
+  public WhatsNewSidePanelAction() {
     myProjectToListenerMap = new HashMap<>();
   }
 
@@ -65,14 +65,14 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
   }
 
   public void openWhatsNewSidePanel(@NotNull Project project, boolean isAutoOpened) {
-    WhatsNewAssistantBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewAssistantBundleCreator.class);
+    WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator.class);
     if (bundleCreator == null || !bundleCreator.shouldShowWhatsNew()) {
       BrowserUtil.browse(ApplicationInfoEx.getInstanceEx().getWhatsNewUrl());
       return;
     }
 
     WhatsNewToolWindowListener.fireOpenEvent(project, isAutoOpened);
-    openWindow(WhatsNewAssistantBundleCreator.BUNDLE_ID, project);
+    openWindow(WhatsNewBundleCreator.BUNDLE_ID, project);
 
     // Only register a new listener if there isn't already one, to avoid multiple OPEN/CLOSE events
     myProjectToListenerMap.computeIfAbsent(project, this::newWhatsNewToolWindowListener);
@@ -152,11 +152,11 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
     }
 
     private static void fireOpenEvent(@NotNull Project project, boolean isAutoOpened) {
-      WhatsNewAssistantMetricsTracker.getInstance().open(project, isAutoOpened);
+      WhatsNewMetricsTracker.getInstance().open(project, isAutoOpened);
     }
 
     private static void fireClosedEvent(@NotNull Project project) {
-      WhatsNewAssistantMetricsTracker.getInstance().close(project);
+      WhatsNewMetricsTracker.getInstance().close(project);
     }
   }
 }
