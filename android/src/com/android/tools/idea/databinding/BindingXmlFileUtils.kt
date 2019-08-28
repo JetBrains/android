@@ -18,8 +18,10 @@ package com.android.tools.idea.databinding
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.index.ImportData
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 /**
  * This file contains extension methods that help the data binding codebase search an [XmlFile] for
@@ -32,7 +34,7 @@ import com.intellij.psi.xml.XmlTag
  */
 fun XmlFile.findVariableTag(name: String): XmlTag? {
   val dataTag = findDataTag() ?: return null
-  for (tag in dataTag.findSubTags("variable")) {
+  for (tag in dataTag.findSubTags(SdkConstants.TAG_VARIABLE)) {
     val currName = tag.getAttributeValue(SdkConstants.ATTR_NAME) ?: return null
     if (name == StringUtil.unescapeXmlEntities(currName)) {
       return tag
@@ -49,7 +51,7 @@ fun XmlFile.findVariableTag(name: String): XmlTag? {
  */
 fun XmlFile.findImportTag(shortName: String): XmlTag? {
   val dataTag = findDataTag() ?: return null
-  for (tag in dataTag.findSubTags("import")) {
+  for (tag in dataTag.findSubTags(SdkConstants.TAG_IMPORT)) {
     val alias = tag.getAttributeValue(SdkConstants.ATTR_ALIAS)
     if (alias == null) {
       val type = tag.getAttributeValue(SdkConstants.ATTR_TYPE) ?: continue
@@ -72,9 +74,34 @@ fun XmlFile.findImportTag(shortName: String): XmlTag? {
  */
 private fun XmlFile.findDataTag(): XmlTag? {
   val rootTag = rootTag ?: return null
-  if (rootTag.name == "layout") {
-    return rootTag.findFirstSubTag("data")
+  if (rootTag.name == SdkConstants.TAG_LAYOUT) {
+    return rootTag.findFirstSubTag(SdkConstants.TAG_DATA)
   }
 
   return null
+}
+
+/**
+ * Finds the first attribute in the format of android:id="[name]".
+ */
+fun XmlFile.findIdAttribute(name: String): XmlAttribute? {
+  val rootTag = rootTag ?: return null
+  if (rootTag.name == SdkConstants.TAG_LAYOUT) {
+    return rootTag.findIdAttribute(name)
+  }
+  return null
+}
+
+/**
+ * Recursively go through all XML tags to find the attribute in the format of android:id="[name]".
+ */
+private fun XmlTag.findIdAttribute(name: String): XmlAttribute? {
+  attributes.firstOrNull { attribute ->
+    attribute.name == SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_ID && attribute.value == SdkConstants.NEW_ID_PREFIX + name
+  }?.let { validAttribute ->
+    return validAttribute
+  }
+  return subTags.firstNotNullResult { tag ->
+    tag.findIdAttribute(name)
+  }
 }

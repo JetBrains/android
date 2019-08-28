@@ -24,6 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -816,5 +817,26 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
 
     val reference = fixture.getReferenceAtCaretPosition()!!
     assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "getText" }).isTrue()
+  }
+
+  @Test
+  fun dbSimpleNameReferencesViewId() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <TextView
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{vie<caret>w_id.getText()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    val xmlAttribute = reference.resolve() as XmlAttribute
+    assertThat(xmlAttribute.name).isEqualTo("android:id")
+    assertThat(xmlAttribute.value).isEqualTo("@+id/view_id")
   }
 }
