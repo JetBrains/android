@@ -92,11 +92,10 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends PlatformTestC
   }
 
   public void testPerformUpgradeWhenUserAcceptsUpgrade() {
-    GradleVersion alphaPluginVersion = GradleVersion.parse("2.0.0-alpha9");
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
     when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
     when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
-    when(myPluginInfo.getPluginVersion()).thenReturn(alphaPluginVersion);
+    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.0.0-alpha9"));
 
     // Simulate user accepting the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
@@ -105,7 +104,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends PlatformTestC
     assertTrue(upgraded);
 
     verify(mySyncState).syncSucceeded();
-    verify(myVersionUpdater).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), alphaPluginVersion);
+    verify(myVersionUpdater).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
 
