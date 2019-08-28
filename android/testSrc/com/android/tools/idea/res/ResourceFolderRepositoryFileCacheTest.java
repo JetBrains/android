@@ -27,7 +27,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.UtilKt;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +53,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   private void overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
     // Use a file cache that has per-test root directories instead of sharing the system directory.
     // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
-    UtilKt.replaceServiceInstance(ApplicationManager.getApplication(), ResourceFolderRepositoryFileCache.class, newCache, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ResourceFolderRepositoryFileCache.class, newCache, getTestRootDisposable());
   }
 
   private VirtualFile getResourceDir() {
