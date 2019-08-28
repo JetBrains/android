@@ -25,7 +25,7 @@ import java.nio.file.Paths
 
 const val WNA_CACHE_DIR_KEY = "whatsnew"
 
-open class WhatsNewAssistantURLProvider {
+open class WhatsNewURLProvider {
   /**
    * Gets URL for config xml for the current version from webserver
    * @return URL for config xml file
@@ -47,7 +47,7 @@ open class WhatsNewAssistantURLProvider {
     return getConfigCacheDir().resolve("$version.xml")
   }
 
-  open fun getResourceFileAsStream(bundleCreator: WhatsNewAssistantBundleCreator?, version: String): InputStream? {
+  open fun getResourceFileAsStream(bundleCreator: WhatsNewBundleCreator?, version: String): InputStream? {
     return bundleCreator?.javaClass?.getResourceAsStream("/whats-new-assistant.xml")
   }
 

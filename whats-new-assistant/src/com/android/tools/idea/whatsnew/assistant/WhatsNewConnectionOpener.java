@@ -20,7 +20,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import org.jetbrains.annotations.NotNull;
 
-public class WhatsNewAssistantConnectionOpener {
+public class WhatsNewConnectionOpener {
   /**
    * Opens a connection to a URL
    */

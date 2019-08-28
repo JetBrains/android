@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <actions>
-    <action id="WhatsNewAction" class="com.android.tools.idea.whatsnew.assistant.WhatsNewAssistantSidePanelAction" overrides="true"/>
+    <action id="WhatsNewAction" class="com.android.tools.idea.whatsnew.assistant.WhatsNewSidePanelAction" overrides="true"/>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -25,10 +25,10 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
-    <assistantBundleCreator implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewAssistantBundleCreator"/>
+    <assistantBundleCreator implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewBundleCreator"/>
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.WhatsNewUpdateStableAction"/>
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.WhatsNewDismissAction"/>
-    <panelFactory implementation="com.android.tools.idea.whatsnew.assistant.UpdateStatusPanelFactory"/>
+    <panelFactory implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewUpdateStatusPanelFactory"/>
     <scrollHandler implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewScrollHandler"/>
   </extensions>
 </idea-plugin>

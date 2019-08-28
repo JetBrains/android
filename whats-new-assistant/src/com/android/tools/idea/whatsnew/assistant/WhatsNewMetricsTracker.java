@@ -26,20 +26,20 @@ import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
-public final class WhatsNewAssistantMetricsTracker {
+public final class WhatsNewMetricsTracker {
   @NotNull private final Map<Project, MetricsEventBuilder> myProjectToBuilderMap;
 
-  WhatsNewAssistantMetricsTracker() {
+  WhatsNewMetricsTracker() {
     myProjectToBuilderMap = new HashMap<>();
   }
 
   @NotNull
-  public static WhatsNewAssistantMetricsTracker getInstance() {
-    return Objects.requireNonNull(PanelFactory.EP_NAME.findExtension(UpdateStatusPanelFactory.class)).getMetricsTracker();
+  public static WhatsNewMetricsTracker getInstance() {
+    return Objects.requireNonNull(PanelFactory.EP_NAME.findExtension(WhatsNewUpdateStatusPanelFactory.class)).getMetricsTracker();
   }
 
   void open(@NotNull Project project, boolean isAutoOpened) {
-    // An extra "open" can fire when the window is already open and the user manually uses the WhatsNewAssistantSidePanelAction
+    // An extra "open" can fire when the window is already open and the user manually uses the WhatsNewSidePanelAction
     // again, so in this case just ignore the call and treat the original open as the actual beginning
     myProjectToBuilderMap.computeIfAbsent(project, p -> {
       MetricsEventBuilder eventBuilder = new MetricsEventBuilder();

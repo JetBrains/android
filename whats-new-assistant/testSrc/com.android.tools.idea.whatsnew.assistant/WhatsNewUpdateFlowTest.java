@@ -46,20 +46,20 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 @RunWith(JUnit4.class)
-public final class WhatsNewAssistantUpdateFlowTest {
+public final class WhatsNewUpdateFlowTest {
   private static final String REVISION = "3.6.0";
 
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
-  private WhatsNewAssistantBundleCreator myBundleCreator;
+  private WhatsNewBundleCreator myBundleCreator;
 
   @Before
   public void mockUrlProvider() throws MalformedURLException {
     myRule.getFixture().setTestDataPath(TestUtils.getWorkspaceFile("tools/adt/idea/android/testData").getPath());
-    myBundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewAssistantBundleCreator.class);
+    myBundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator.class);
 
-    WhatsNewAssistantURLProvider mockUrlProvider = Mockito.mock(WhatsNewAssistantURLProvider.class);
+    WhatsNewURLProvider mockUrlProvider = Mockito.mock(WhatsNewURLProvider.class);
 
     // Version 3.6.10 with update buttons, to simulate server-side incrementing for auto-show
     File serverFile = new File(myRule.getFixture().getTestDataPath(), "whatsnewassistant/update-flow.xml");
@@ -87,7 +87,7 @@ public final class WhatsNewAssistantUpdateFlowTest {
   public void doesNotHaveUpdateFlowButtons() {
     // Disabling the downloading means it will be loaded from the default resource
     myBundleCreator.setAllowDownload(false);
-    WhatsNewAssistantBundle bundle = myBundleCreator.getBundle(ProjectManager.getInstance().getDefaultProject());
+    WhatsNewBundle bundle = myBundleCreator.getBundle(ProjectManager.getInstance().getDefaultProject());
 
     // Verify correct bundle loaded from default resource
     assertNotNull(bundle);
@@ -95,7 +95,7 @@ public final class WhatsNewAssistantUpdateFlowTest {
     assertEquals("Test What's New from Class Resource", bundle.getName());
 
     // Needed since creating AssistSidePanel calls metrics
-    WhatsNewAssistantMetricsTracker.getInstance().open(myRule.getProject(), false);
+    WhatsNewMetricsTracker.getInstance().open(myRule.getProject(), false);
     AssistSidePanel sidePanel = new AssistSidePanel(myBundleCreator.getBundleId(), myRule.getProject(), null);
     List<StatefulButton.ActionButton> actionButtons = UIUtil.findComponentsOfType(sidePanel, StatefulButton.ActionButton.class);
 
@@ -104,7 +104,7 @@ public final class WhatsNewAssistantUpdateFlowTest {
 
   @Test
   public void hasUpdateFlowButtons() {
-    WhatsNewAssistantBundle bundle = myBundleCreator.getBundle(ProjectManager.getInstance().getDefaultProject());
+    WhatsNewBundle bundle = myBundleCreator.getBundle(ProjectManager.getInstance().getDefaultProject());
 
     // Verify correct bundle loaded from "server"
     assertNotNull(bundle);
@@ -112,7 +112,7 @@ public final class WhatsNewAssistantUpdateFlowTest {
     assertEquals("Test What's New Update Flow from Server", bundle.getName());
 
     // Needed since creating AssistSidePanel calls metrics
-    WhatsNewAssistantMetricsTracker.getInstance().open(myRule.getProject(), false);
+    WhatsNewMetricsTracker.getInstance().open(myRule.getProject(), false);
     AssistSidePanel sidePanel = new AssistSidePanel(myBundleCreator.getBundleId(), myRule.getProject(), null);
     List<StatefulButton.ActionButton> actionButtons = UIUtil.findComponentsOfType(sidePanel, StatefulButton.ActionButton.class);
 
