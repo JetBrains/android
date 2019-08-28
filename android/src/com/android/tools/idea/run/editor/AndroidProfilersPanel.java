@@ -188,7 +188,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
     // Update plugin version
     AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(myProject);
-    AndroidPluginVersionUpdater.UpdateResult result = updater.updatePluginVersion(pluginVersion, gradleVersion, null);
+    AndroidPluginVersionUpdater.UpdateResult result = updater.updatePluginVersion(pluginVersion, gradleVersion);
     if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
       requestSync();
     } else {
