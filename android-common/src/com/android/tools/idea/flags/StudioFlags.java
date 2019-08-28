@@ -282,21 +282,6 @@ public final class StudioFlags {
     "If enabled, user can access the Connection Assistant under \"Tools\" and \"Deploy Target Dialog\"",
     true);
 
-  public static final Flag<Boolean> WHATS_NEW_ASSISTANT_ENABLED = Flag.create(
-    ASSISTANT, "whats.new.enabled", "Enable the \"What's New\" assistant",
-    "If enabled, user can access the \"What's New\" assistant under \"Help\" and \"What's New in Android Studio\"",
-    true);
-
-  public static final Flag<Boolean> WHATS_NEW_ASSISTANT_AUTO_SHOW = Flag.create(
-    ASSISTANT, "whats.new.auto.show", "Displays the \"What's New\" assistant on first start",
-    "If enabled, the \"What's New\" assistant will be displayed the first time user opens a new version of Android Studio.",
-    true);
-
-  public static final Flag<Boolean> WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT = Flag.create(
-    ASSISTANT, "whats.new.download", "Downloads \"What's New\" assistant content from web",
-    "If enabled, the \"What's New\" assistant will update its contents from the web whenever it is opened.",
-    true);
-
   public static final Flag<Boolean> NELE_LAYOUT_EDITOR_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "layout.editor.help", "Display Help for Design Editor",
     "If enabled, the assistant panel will display helpful guide on using the Design Editor.",
