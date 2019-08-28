@@ -360,7 +360,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_DESIGN_SURFACE_ZOOM = Flag.create(
     NELE, "design.surface.zoom", "Zoom panel in Design Surface",
     "Enable zoom controls in the design surface, substitutes any zoom controls on the top toolbar of the editor.",
-    false);
+    true);
   //endregion
 
   //region Navigation Editor
