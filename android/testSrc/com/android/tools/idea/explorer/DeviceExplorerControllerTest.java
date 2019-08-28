@@ -50,7 +50,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -68,7 +67,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.ui.UIBundle;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.tree.TreeModelAdapter;
@@ -449,7 +448,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
   public void testFileHandlerExtensionIsCalled() throws Exception {
     FileHandler mockFileHandler = mock(FileHandler.class);
-    PlatformTestUtil.registerExtension(Extensions.getRootArea(), FileHandler.EP_NAME, mockFileHandler, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(ApplicationManager.getApplication(), FileHandler.EP_NAME, mockFileHandler, getTestRootDisposable());
 
     downloadFile(() -> {
       // Send a VK_ENTER key event
