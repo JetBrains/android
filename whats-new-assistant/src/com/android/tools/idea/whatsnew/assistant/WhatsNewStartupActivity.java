@@ -18,7 +18,6 @@ package com.android.tools.idea.whatsnew.assistant;
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.GeneralSettings;
@@ -45,7 +44,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
   @Override
   public void runActivity(@NotNull Project project) {
     WhatsNewAssistantBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewAssistantBundleCreator.class);
-    if (bundleCreator == null || !(bundleCreator.shouldShowWhatsNew() && StudioFlags.WHATS_NEW_ASSISTANT_AUTO_SHOW.get())) {
+    if (bundleCreator == null || !bundleCreator.shouldShowWhatsNew()) {
       return;
     }
 
@@ -80,7 +79,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
   }
 
   private static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project) {
-    hideTipsAndOpenWhatsNewAssistant(project, null);
+    hideTipsAndOpenWhatsNewAssistant(project, GeneralSettings.getInstance(), null);
   }
 
   /**
@@ -89,16 +88,18 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
    * @param project
    */
   @VisibleForTesting
-  static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project, @Nullable FutureCallback<? super Boolean> callback) {
-    boolean showTipsOnStartup = GeneralSettings.getInstance().isShowTipsOnStartup();
+  static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project,
+                                               @NotNull GeneralSettings generalSettings,
+                                               @Nullable FutureCallback<? super Boolean> callback) {
+    boolean showTipsOnStartup = generalSettings.isShowTipsOnStartup();
     if (showTipsOnStartup)
-      GeneralSettings.getInstance().setShowTipsOnStartup(false);
+      generalSettings.setShowTipsOnStartup(false);
 
     // Restore to the setting that user had before, if applicable
     openWhatsNewAssistant(project);
     if (showTipsOnStartup) {
       ApplicationManager.getApplication().invokeLater(() -> {
-        GeneralSettings.getInstance().setShowTipsOnStartup(true);
+        generalSettings.setShowTipsOnStartup(true);
         if (callback != null)
           callback.completed(true);
       });
