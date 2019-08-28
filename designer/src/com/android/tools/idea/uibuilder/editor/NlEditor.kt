@@ -49,7 +49,7 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
   override fun getEditorId() = NL_EDITOR_ID
 
   override fun createEditorPanel() =
-    DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this),
+    DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this),
                         { NlDesignSurface.build(myProject, this).apply { setCentered(true) } }, { toolWindowDefinitions(it) },
                         if (StudioFlags.NELE_MOTION_LAYOUT_ANIMATIONS.get()) this::addMotionLayoutAnimationToolbar else null)
 
