@@ -16,22 +16,26 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 
 /**
  * A way of interaction between the build events analyzers and the build attribution manager.
  * Used to fetch the final data from the analyzers after the build is complete.
  */
-class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter) {
-  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter)
+class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter, taskContainer: TaskContainer) {
+  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter, taskContainer)
   private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter)
-  private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter)
+  private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer)
+  private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(warningsFilter, taskContainer)
   private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter)
 
-  fun getAnalyzers(): List<BuildEventsAnalyzer> = listOf(alwaysRunTasksAnalyzer,
-                                                         annotationProcessorsAnalyzer,
-                                                         criticalPathAnalyzer,
-                                                         projectConfigurationAnalyzer)
+  fun getBuildEventsAnalyzers(): List<BuildEventsAnalyzer> = listOf(alwaysRunTasksAnalyzer,
+                                                                    annotationProcessorsAnalyzer,
+                                                                    criticalPathAnalyzer,
+                                                                    projectConfigurationAnalyzer)
+
+  fun getBuildAttributionReportAnalyzers(): List<BuildAttributionReportAnalyzer> = listOf(noncacheableTasksAnalyzer)
 
   fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getAnnotationProcessorsData()
@@ -67,5 +71,9 @@ class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter) 
 
   fun getAlwaysRunTasks(): List<AlwaysRunTasksAnalyzer.AlwaysRunTaskData> {
     return alwaysRunTasksAnalyzer.alwaysRunTasks
+  }
+
+  fun getNoncacheableTasks(): List<TaskData> {
+    return noncacheableTasksAnalyzer.noncacheableTasks
   }
 }

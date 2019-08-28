@@ -17,6 +17,7 @@ package com.android.build.attribution
 
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
+import com.android.build.attribution.data.TaskContainer
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
@@ -30,16 +31,22 @@ class BuildAttributionManagerImpl(
   private val myProject: Project,
   private val myBuildContentManager: BuildContentManager
 ) : BuildAttributionManager {
+  private val taskContainer = TaskContainer()
   @get:VisibleForTesting
-  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(myProject))
-  private val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getAnalyzers())
+  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(myProject), taskContainer)
+  private val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getBuildEventsAnalyzers(),
+                                                             analyzersProxy.getBuildAttributionReportAnalyzers())
 
   override fun onBuildStart() {
     analyzersWrapper.onBuildStart()
   }
 
   override fun onBuildSuccess(attributionFilePath: String) {
-    analyzersWrapper.onBuildSuccess(AndroidGradlePluginAttributionData.load(File(attributionFilePath)))
+    val attributionData = AndroidGradlePluginAttributionData.load(File(attributionFilePath))
+    if (attributionData != null) {
+      taskContainer.updateTasksData(attributionData)
+    }
+    analyzersWrapper.onBuildSuccess(attributionData)
 
     // TODO: add proper UI
     logBuildAttributionResults()
@@ -110,6 +117,16 @@ class BuildAttributionManagerImpl(
           stringBuilder.append(
             "Task ${alwaysRunTaskData.taskData.getTaskPath()} from ${alwaysRunTaskData.taskData.originPlugin} ")
             .appendln("runs on every build because ${alwaysRunTaskData.reason}")
+        }
+      }
+    }
+
+    analyzersProxy.getNoncacheableTasks().let {
+      if (it.isNotEmpty()) {
+        stringBuilder.appendln("Non-cacheable tasks:")
+        it.forEach { taskData ->
+          stringBuilder.appendln(
+            "Task ${taskData.getTaskPath()} from ${taskData.originPlugin} is not cacheable and will run even if its inputs are unchanged")
         }
       }
     }

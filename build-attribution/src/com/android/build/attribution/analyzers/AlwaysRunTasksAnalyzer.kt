@@ -16,8 +16,8 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -26,7 +26,8 @@ import org.gradle.tooling.events.task.TaskSuccessResult
 /**
  * Analyzer for reporting tasks that always run due to misconfiguration.
  */
-class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter) : BuildEventsAnalyzer {
+class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter, taskContainer: TaskContainer)
+  : BaseTasksAnalyzer(taskContainer), BuildEventsAnalyzer {
   private val alwaysRunTasksSet = HashSet<AlwaysRunTaskData>()
   lateinit var alwaysRunTasks: List<AlwaysRunTaskData>
     private set
@@ -36,21 +37,13 @@ class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarnin
       (event.result as TaskSuccessResult).executionReasons?.forEach {
         if (it == TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS.rebuildReason.get() ||
             it == TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS.rebuildReason.get()) {
-          alwaysRunTasksSet.add(AlwaysRunTaskData(TaskData.createTaskData(event), it))
+          alwaysRunTasksSet.add(AlwaysRunTaskData(getTask(event), it))
         }
       }
     }
   }
 
-  override fun onBuildStart() {
-    // nothing to be done
-  }
-
-  override fun onBuildSuccess(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?) {
-    if (androidGradlePluginAttributionData != null) {
-      alwaysRunTasksSet.forEach { it.taskData.setTaskType(androidGradlePluginAttributionData.taskNameToClassNameMap[it.taskData.taskName]) }
-    }
-
+  override fun onBuildSuccess() {
     alwaysRunTasks = alwaysRunTasksSet.filter { warningsFilter.applyAlwaysRunTaskFilter(it.taskData) }
     alwaysRunTasksSet.clear()
   }
