@@ -18,12 +18,12 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2
 import com.android.SdkConstants
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.junit.Test
@@ -202,12 +202,12 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
     val file = myFixture.copyFileToProject("motion/scene.xml", "res/xml/scene.xml")
     val xmlFile = AndroidPsiUtils.getPsiFileSafely(project, file) as XmlFile
     val tag = extractTag(xmlFile.rootTag!!, tagName)!!
-    val tagPointer = SmartPointerManager.getInstance(project).createSmartPsiElementPointer(tag)
+    val motionTag = MotionSceneTag(tag, null)
     val nlModel = createNlModel()
     val textView = nlModel.components[0].getChild(0)!!
     val provider = MotionLayoutPropertyProvider(myFacet)
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
-    return provider.getAllProperties(model, tagPointer, listOf(textView))
+    return provider.getAllProperties(model, motionTag, listOf(textView))
   }
 
   private fun createNlModel(): SyncNlModel {
