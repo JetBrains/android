@@ -21,7 +21,7 @@ import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
 import com.google.common.collect.ImmutableList;
 import com.intellij.testFramework.JavaProjectTestCase;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -65,9 +65,7 @@ public class HtmlLinkManagerTest extends JavaProjectTestCase {
       .addAll(TestRepositories.PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem testProjectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil
-      .registerExtension(getProject().getExtensionArea(), ProjectSystemUtil.getEP_NAME(), testProjectSystem,
-                         getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(getProject(), ProjectSystemUtil.getEP_NAME(), testProjectSystem, getTestRootDisposable());
 
     // try multiple invalid links
     HtmlLinkManager.handleAddDependency("addDependency:", myModule);

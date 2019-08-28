@@ -20,14 +20,13 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.*
 import com.google.common.truth.Truth
 import com.intellij.testFramework.JavaProjectTestCase
-import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.registerExtension
 import java.util.*
 
 /**
  * Tests for [DependencyManagement].
  */
 class DependencyManagementTest : JavaProjectTestCase() {
-
   private lateinit var projectSystem: TestProjectSystem
   private lateinit var syncManager: ProjectSystemSyncManager
 
@@ -35,7 +34,7 @@ class DependencyManagementTest : JavaProjectTestCase() {
     super.setUp()
     projectSystem = TestProjectSystem(myProject, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS,
                                       lastSyncResult = ProjectSystemSyncManager.SyncResult.UNKNOWN)
-    PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(project.extensionArea, EP_NAME, projectSystem, testRootDisposable)
+    project.registerExtension<AndroidProjectSystemProvider>(EP_NAME, projectSystem, testRootDisposable)
     syncManager = projectSystem.getSyncManager()
   }
 

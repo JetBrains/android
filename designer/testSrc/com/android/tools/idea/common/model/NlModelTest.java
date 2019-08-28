@@ -45,7 +45,7 @@ import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -369,8 +369,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil.registerExtension(myModule.getProject().getExtensionArea(), ProjectSystemUtil.getEP_NAME(),
-                                       projectSytem, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSytem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -410,8 +409,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil.registerExtension(myModule.getProject().getExtensionArea(), ProjectSystemUtil.getEP_NAME(),
-                                       projectSytem, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSytem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -447,8 +445,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil.registerExtension(myModule.getProject().getExtensionArea(), ProjectSystemUtil.getEP_NAME(),
-                                       projectSytem, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSytem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
