@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton
 import com.android.tools.idea.ui.resourcemanager.ResourceExplorerDialog
 import org.fest.swing.core.Robot
 
-// TODO(b/133323508): Substitute uses of ChooseResourceDialogFixture with this once StudioFlags.RESOURCE_EXPLORER_PICKER is set to true.
 class ResourceExplorerDialogFixture private constructor(
   robot: Robot,
   dialogAndWrapper: DialogAndWrapper<ResourceExplorerDialog>
