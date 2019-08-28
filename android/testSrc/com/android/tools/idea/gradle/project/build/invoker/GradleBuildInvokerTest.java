@@ -65,7 +65,7 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
     myModules = new Module[]{getModule()};
 
     myTaskFinder = IdeComponents.mockApplicationService(GradleTaskFinder.class, getTestRootDisposable());
-    myBuildSettings = new IdeComponents(myProject).mockProjectService(BuildSettings.class, getTestRootDisposable());
+    myBuildSettings = IdeComponents.mockProjectService(myProject, BuildSettings.class, getTestRootDisposable());
 
     myBuildInvoker = new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
   }

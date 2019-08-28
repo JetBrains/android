@@ -48,7 +48,7 @@ public class LibraryNodeTest extends JavaProjectTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myIdeSdks = new IdeComponents(getProject()).mockApplicationService(IdeSdks.class);
+    myIdeSdks = IdeComponents.mockApplicationService(IdeSdks.class, getTestRootDisposable());
   }
 
   public void testGetChildren() throws IOException {

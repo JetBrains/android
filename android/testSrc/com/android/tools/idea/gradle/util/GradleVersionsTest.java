@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -39,14 +39,12 @@ import static org.mockito.Mockito.*;
 public class GradleVersionsTest extends AndroidGradleTestCase {
   private GradleProjectSettingsFinder mySettingsFinder;
   private GradleVersions myGradleVersions;
-  private IdeComponents myIdeComponents;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySettingsFinder = mock(GradleProjectSettingsFinder.class);
     myGradleVersions = new GradleVersions(mySettingsFinder);
-    myIdeComponents = new IdeComponents(getProject());
   }
 
   public void testReadGradleVersionFromGradleSyncState() throws Exception {
@@ -107,7 +105,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
 
     // Check exactly 4
     GradleVersions spyVersions = spy(myGradleVersions);
-    myIdeComponents.replaceApplicationService(GradleVersions.class, spyVersions);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleVersions.class, spyVersions, getTestRootDisposable());
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(4,0,0));
     assertTrue(GradleVersions.getInstance().isGradle4OrNewer(project));
 

@@ -99,14 +99,10 @@ import static org.mockito.Mockito.*;
  * Integration tests for 'Gradle Sync'.
  */
 public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
-  private IdeComponents myIdeComponents;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-
-    myIdeComponents = new IdeComponents(project);
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
@@ -420,7 +416,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   }
 
   public void testGradleSyncActionAfterFailedSync() {
-    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
+    IdeInfo ideInfo = IdeComponents.mockApplicationService(IdeInfo.class, getTestRootDisposable());
     when(ideInfo.isAndroidStudio()).thenReturn(true);
 
     SyncProjectAction action = new SyncProjectAction();

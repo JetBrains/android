@@ -189,8 +189,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
     ServiceContainerUtil
       .replaceService(myProject, GradleSyncState.class, syncState, getTestRootDisposable());
     when(syncState.isSyncNeeded()).thenReturn(YES);
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    GradleSyncInvoker syncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker.class);
+    GradleSyncInvoker syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
     doAnswer(new Answer() {
       @Override
       public Object answer(InvocationOnMock invocation) {
@@ -226,7 +225,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
-      GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
+      GradleSyncInvoker syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
 
       GradleFacet gradleFacet = createAndAddGradleFacet(getModule());
       GradleModuleModel gradleModel = mock(GradleModuleModel.class);
@@ -259,7 +258,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
     try {
       StudioFlags.COMPOUND_SYNC_ENABLED.override(false);
 
-      GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
+      GradleSyncInvoker syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
 
       GradleFacet gradleFacet = createAndAddGradleFacet(getModule());
       GradleModuleModel gradleModel = mock(GradleModuleModel.class);

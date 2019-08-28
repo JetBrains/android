@@ -37,7 +37,7 @@ public class AndroidGradleProjectStartupActivityTest extends JavaProjectTestCase
   protected void setUp() throws Exception {
     super.setUp();
     mySyncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
-    myGradleProjectInfo = new IdeComponents(myProject).mockProjectService(GradleProjectInfo.class, getTestRootDisposable());
+    myGradleProjectInfo = IdeComponents.mockProjectService(myProject, GradleProjectInfo.class, getTestRootDisposable());
     myStartupActivity = new AndroidGradleProjectStartupActivity();
   }
 
@@ -45,6 +45,9 @@ public class AndroidGradleProjectStartupActivityTest extends JavaProjectTestCase
   protected void tearDown() throws Exception {
     try {
       myGradleProjectInfo = null;
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();

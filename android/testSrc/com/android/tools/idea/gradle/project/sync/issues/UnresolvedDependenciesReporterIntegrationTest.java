@@ -53,7 +53,6 @@ import static org.mockito.Mockito.*;
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
 public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradleTestCase {
-  private IdeComponents myIdeComponents;
   private SyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnresolvedDependenciesReporter myReporter;
@@ -64,7 +63,6 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     mySyncIssue = mock(SyncIssue.class);
     // getMessage() is NotNull but message is unused for dependencies.
     when(mySyncIssue.getMessage()).thenReturn("");
-    myIdeComponents = new IdeComponents(getProject());
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myReporter = new UnresolvedDependenciesReporter();
   }
@@ -72,7 +70,6 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   @Override
   protected void tearDown() throws Exception {
     try {
-      myIdeComponents = null;
       mySyncMessagesStub = null;
     }
     finally {
@@ -110,7 +107,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   }
 
   public void testReportWithConstraintLayout() throws Exception {
-    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
+    IdeInfo ideInfo = IdeComponents.mockApplicationService(IdeInfo.class, getTestRootDisposable());
     when(ideInfo.isAndroidStudio()).thenReturn(true);
 
     loadSimpleApplication();

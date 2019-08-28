@@ -22,8 +22,8 @@ import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testing.IdeComponents;
-import com.google.android.instantapps.sdk.api.RunHandler;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
+import com.google.android.instantapps.sdk.api.RunHandler;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.AndroidTestCase;
@@ -37,9 +37,7 @@ import java.net.URL;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class RunInstantAppTaskTest extends AndroidTestCase {
   private final String DEVICE_ID = "dev1234";
@@ -58,7 +56,8 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
-    instantAppSdks = new IdeComponents(null, getTestRootDisposable()).mockApplicationService(InstantAppSdks.class);
+    new IdeComponents(null, getTestRootDisposable());
+    instantAppSdks = IdeComponents.mockApplicationService(InstantAppSdks.class, getTestRootDisposable());
     when(instantAppSdks.loadLibrary()).thenReturn(sdkLib);
     when(sdkLib.getRunHandler()).thenReturn(runHandler);
 

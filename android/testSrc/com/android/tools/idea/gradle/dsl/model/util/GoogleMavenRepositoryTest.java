@@ -23,8 +23,9 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl;
 import com.android.tools.idea.gradle.dsl.model.repositories.MavenRepositoryModelImpl;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -46,7 +47,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myGradleVersions = spy(GradleVersions.getInstance());
-    new IdeComponents(getProject()).replaceApplicationService(GradleVersions.class, myGradleVersions);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleVersions.class, myGradleVersions, getTestRootDisposable());
   }
 
   @Test

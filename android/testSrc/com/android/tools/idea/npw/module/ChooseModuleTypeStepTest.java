@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.npw.module;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.mockito.Mockito.when;
-
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider;
@@ -27,14 +24,18 @@ import com.android.tools.idea.npw.java.NewJavaModuleDescriptionProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.hamcrest.Matcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.mockito.Mockito.when;
 
 public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
 
@@ -43,7 +44,7 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     super.setUp();
 
     // Enable instant Apps (We can remove this later, when the SDK is made public)
-    when(new IdeComponents(getProject()).mockApplicationService(InstantAppSdks.class).isInstantAppSdkEnabled()).thenReturn(true);
+    when(IdeComponents.mockApplicationService(InstantAppSdks.class, getTestRootDisposable()).isInstantAppSdkEnabled()).thenReturn(true);
   }
 
   @Override

@@ -49,7 +49,7 @@ public class ModelCacheTest extends AndroidGradleTestCase {
     // Simulate data node cache is missing modules.
     //noinspection unchecked
     DataNode<ProjectData> cache = mock(DataNode.class);
-    DataNodeCaches dataNodeCaches = new IdeComponents(getProject()).mockProjectService(DataNodeCaches.class, getTestRootDisposable());
+    DataNodeCaches dataNodeCaches = IdeComponents.mockProjectService(getProject(), DataNodeCaches.class, getTestRootDisposable());
     when(dataNodeCaches.getCachedProjectData()).thenReturn(cache);
     when(dataNodeCaches.isCacheMissingModels(cache)).thenReturn(true);
 

@@ -50,10 +50,9 @@ class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
 
     syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker::class.java, testRootDisposable)
 
-    val ideComponents = IdeComponents(project)
-    ideComponents.mockProjectService(GradleDependencyManager::class.java, testRootDisposable)
-    ideComponents.mockProjectService(GradleProjectBuilder::class.java, testRootDisposable)
-    gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo::class.java, testRootDisposable)
+    IdeComponents.mockProjectService(project, GradleDependencyManager::class.java, testRootDisposable)
+    IdeComponents.mockProjectService(project, GradleProjectBuilder::class.java, testRootDisposable)
+    gradleProjectInfo = IdeComponents.mockProjectService(project, GradleProjectInfo::class.java, testRootDisposable)
     `when`<Boolean>(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
 
     syncManager = GradleProjectSystemSyncManager(myProject)

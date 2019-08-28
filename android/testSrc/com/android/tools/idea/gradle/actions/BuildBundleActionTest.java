@@ -30,11 +30,11 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.testing.Facets;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
@@ -78,7 +78,7 @@ public class BuildBundleActionTest extends JavaProjectTestCase {
     ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myGradleProjectInfo, getTestRootDisposable());
     ServiceContainerUtil.replaceService(myProject, ProjectStructure.class, myProjectStructure, getTestRootDisposable());
     ServiceContainerUtil.replaceService(myProject, AndroidPluginVersionUpdater.class, myAndroidPluginVersionUpdater, getTestRootDisposable());
-    new IdeComponents(myProject).replaceApplicationService(IdeInfo.class, myIdeInfo);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), IdeInfo.class, myIdeInfo, getTestRootDisposable());
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
     myAction = new BuildBundleAction();
   }
@@ -89,7 +89,11 @@ public class BuildBundleActionTest extends JavaProjectTestCase {
       if (myDefaultTestDialog != null) {
         Messages.setTestDialog(myDefaultTestDialog);
       }
-    } finally {
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
+    finally {
       super.tearDown();
     }
   }
@@ -137,7 +141,7 @@ public class BuildBundleActionTest extends JavaProjectTestCase {
     verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any());
   }
 
-  public void testUpdateGradlePluginCanceledNotification() throws InterruptedException {
+  public void testUpdateGradlePluginCanceledNotification() {
     Module appModule = createModule("app1");
     setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject, myIdeVariant, myMainArtifact);
     when(myMainArtifact.getBundleTaskName()).thenReturn(null);
