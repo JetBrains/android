@@ -16,6 +16,9 @@
 package com.android.tools.idea.lang.databinding.reference
 
 import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.findIdAttribute
+import com.android.tools.idea.databinding.findImportTag
+import com.android.tools.idea.databinding.findVariableTag
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
@@ -32,8 +35,6 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterL
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
-import com.android.tools.idea.databinding.findImportTag
-import com.android.tools.idea.databinding.findVariableTag
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -380,6 +381,12 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       bindingData.findImport(simpleName)?.let { import ->
         xmlFile.findImportTag(simpleName)?.let { importTag ->
           return arrayOf(XmlImportReference(element, importTag, import, module))
+        }
+      }
+
+      bindingData.findViewId(simpleName)?.let { viewId ->
+        xmlFile.findIdAttribute(viewId.id)?.let { attribute ->
+          return arrayOf(XmlAttributeReference(element, attribute))
         }
       }
     }
