@@ -59,7 +59,8 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
     val androidGradlePlugin = pluginsConfigurationData.find { isAndroidGradlePlugin(it.plugin) } ?: return
 
     pluginsConfigurationData.filter {
-      it.configurationDuration > androidGradlePlugin.configurationDuration && warningsFilter.applyPluginFilter(it.plugin.displayName)
+      it.configurationDuration > androidGradlePlugin.configurationDuration &&
+      warningsFilter.applyPluginSlowingConfigurationFilter(it.plugin.displayName)
     }.let {
       if (it.isNotEmpty()) {
         pluginsSlowingConfiguration.add(ProjectConfigurationData(it, project, totalConfigurationTime))

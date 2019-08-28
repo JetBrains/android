@@ -71,7 +71,7 @@ class ProjectConfigurationAnalyzerTest {
 
   @Test
   fun testProjectConfigurationAnalyzerWithSuppressedWarnings() {
-    warningsFilter.suppressWarningsForPlugin(pluginC.displayName)
+    warningsFilter.suppressPluginSlowingConfigurationWarning(pluginC.displayName)
 
     sendProjectConfigurationEventsToAnalyzer()
 

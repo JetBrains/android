@@ -86,7 +86,7 @@ class AlwaysRunTasksAnalyzerTest {
   fun testAlwaysRunTasksAnalyzerWithSuppressedWarning() {
     setUpProject()
 
-    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressWarningsForTask("dummy")
+    BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressAlwaysRunTaskWarning("dummy", "build.gradle")
 
     myProjectRule.invokeTasks("assembleDebug")
 
