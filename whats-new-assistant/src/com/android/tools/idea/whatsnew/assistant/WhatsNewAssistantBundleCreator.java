@@ -19,7 +19,6 @@ import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.DefaultTutorialBundle;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -55,23 +54,28 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
 
   @NotNull private Revision myLastSeenVersion;
 
+  private boolean myAllowDownload;
+
   /**
    * Constructor initializes default production field, will be replaced in testing
    */
   public WhatsNewAssistantBundleCreator() {
     this(new WhatsNewAssistantURLProvider(),
          Revision.safeParseRevision(ApplicationInfo.getInstance().getStrictVersion()),
-         new WhatsNewAssistantConnectionOpener());
+         new WhatsNewAssistantConnectionOpener(),
+         true);
   }
 
   public WhatsNewAssistantBundleCreator(@NotNull WhatsNewAssistantURLProvider urlProvider,
                                         @NotNull Revision studioRevision) {
-    this(urlProvider, studioRevision, new WhatsNewAssistantConnectionOpener());
+    this(urlProvider, studioRevision, new WhatsNewAssistantConnectionOpener(), true);
   }
 
+  @VisibleForTesting
   public WhatsNewAssistantBundleCreator(@NotNull WhatsNewAssistantURLProvider urlProvider,
                                         @NotNull Revision studioRevision,
-                                        @NotNull WhatsNewAssistantConnectionOpener connectionOpener) {
+                                        @NotNull WhatsNewAssistantConnectionOpener connectionOpener,
+                                        boolean allowDownload) {
     myURLProvider = urlProvider;
     myConnectionOpener = connectionOpener;
     myStudioRevision = studioRevision;
@@ -82,6 +86,8 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     }
 
     myLastSeenVersion = Revision.NOT_SPECIFIED;
+
+    myAllowDownload = allowDownload;
   }
 
   @VisibleForTesting
@@ -92,6 +98,11 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   @VisibleForTesting
   void setStudioRevision(@NotNull Revision revision) {
     myStudioRevision = revision;
+  }
+
+  @VisibleForTesting
+  void setAllowDownload(boolean allowDownload) {
+    myAllowDownload = allowDownload;
   }
 
   @NotNull
@@ -221,7 +232,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
    */
   private void updateConfig() {
     // Download XML from server and overwrite the local file
-    if (StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.get() && !myStudioRevision.equals(Revision.parseRevision("0.0.0rc0"))) {
+    if (myAllowDownload && !myStudioRevision.equals(Revision.parseRevision("0.0.0rc0"))) {
       URL webConfig = myURLProvider.getWebConfig(getStudioRevision());
       Path localConfigPath = myURLProvider.getLocalConfig(getStudioRevision());
       downloadConfig(webConfig, localConfigPath);
@@ -287,7 +298,7 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
 
   @VisibleForTesting
   static boolean shouldShowReleaseNotes() {
-    if (!(StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.get() && IdeInfo.getInstance().isAndroidStudio())) return false;
+    if (!IdeInfo.getInstance().isAndroidStudio()) return false;
 
     Optional<AssistantBundleCreator> creator = getCreator();
     // We can't test if the config file exists until after the download attempt, which occurs later

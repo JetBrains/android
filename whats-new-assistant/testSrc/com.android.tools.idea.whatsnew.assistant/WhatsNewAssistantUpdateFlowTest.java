@@ -23,7 +23,6 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.assistant.AssistSidePanel;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.view.StatefulButton;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.util.ui.UIUtil;
@@ -37,7 +36,6 @@ import java.nio.file.Path;
 import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,12 +53,6 @@ public final class WhatsNewAssistantUpdateFlowTest {
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
   private WhatsNewAssistantBundleCreator myBundleCreator;
-
-  @Before
-  public void enableFlags() {
-    StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.override(true);
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(true);
-  }
 
   @Before
   public void mockUrlProvider() throws MalformedURLException {
@@ -88,19 +80,13 @@ public final class WhatsNewAssistantUpdateFlowTest {
 
     myBundleCreator.setURLProvider(mockUrlProvider);
     myBundleCreator.setStudioRevision(Revision.parseRevision(REVISION));
-  }
-
-  @After
-  public void restoreFlags() {
-    StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.clearOverride();
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.clearOverride();
+    myBundleCreator.setAllowDownload(true);
   }
 
   @Test
   public void doesNotHaveUpdateFlowButtons() {
     // Disabling the downloading means it will be loaded from the default resource
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false);
-
+    myBundleCreator.setAllowDownload(false);
     WhatsNewAssistantBundle bundle = myBundleCreator.getBundle(ProjectManager.getInstance().getDefaultProject());
 
     // Verify correct bundle loaded from default resource
