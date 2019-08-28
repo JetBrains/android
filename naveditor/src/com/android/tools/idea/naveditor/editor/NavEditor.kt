@@ -42,7 +42,7 @@ open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file,
   override fun getEditorId() = NAV_EDITOR_ID
 
   override fun createEditorPanel() =
-    DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this),
+    DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this),
                         { NavDesignSurface(myProject, it, this) })
     { listOf(propertyPanelDefinition(it), StructurePanel.StructurePanelDefinition()) }
 
