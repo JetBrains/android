@@ -257,7 +257,7 @@ public class CpuCaptureStage extends Stage {
     }
 
     // Thread states and trace events.
-    initThreadsTrackGroup(capture);
+    initThreadsTrackGroup(selectionRange, capture);
 
     // CPU per-core frequency and etc.
     initCpuCoresTrackGroup();
@@ -301,12 +301,16 @@ public class CpuCaptureStage extends Stage {
         "Vsync"));
   }
 
-  private void initThreadsTrackGroup(@NotNull CpuCapture capture) {
+  private void initThreadsTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
     Set<CpuThreadInfo> threadInfos = capture.getThreads();
     String threadsTitle = String.format(Locale.US, "Threads (%d)", threadInfos.size());
     TrackGroupModel threads = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle(threadsTitle));
     for (CpuThreadInfo threadInfo : threadInfos) {
-      threads.addTrackModel(new TrackModel<>(new CpuThreadTrackModel(), ProfilerTrackRendererType.CPU_THREAD, threadInfo.getName()));
+      threads.addTrackModel(
+        new TrackModel<>(
+          new CpuThreadTrackModel(getStudioProfilers(), selectionRange, capture, threadInfo.getId()),
+          ProfilerTrackRendererType.CPU_THREAD,
+          threadInfo.getName()));
     }
   }
 
