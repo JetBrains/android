@@ -1,0 +1,175 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.databinding.analytics
+
+import com.android.flags.junit.RestoreFlagRule
+import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.databinding.isViewBindingEnabled
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.createAndroidProjectBuilder
+import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.intellij.facet.FacetManager
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+
+class ViewBindingTrackerTest {
+  @get:Rule
+  val projectRule =
+    AndroidProjectRule.withAndroidModel(createAndroidProjectBuilder(viewBindingOptions = { ViewBindingOptionsStub(true) }))
+
+  @get:Rule
+  val viewBindingFlagRule = RestoreFlagRule(StudioFlags.VIEW_BINDING_ENABLED)
+
+  /**
+   * Expose the underlying project rule fixture directly.
+   *
+   * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
+   * [AndroidProjectRule] is initialized to use the disk.
+   */
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
+
+  private val facet
+    get() = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
+
+  @Before
+  fun setUp() {
+    StudioFlags.VIEW_BINDING_ENABLED.override(true)
+    assertThat(facet.isViewBindingEnabled()).isTrue()
+    fixture.addFileToProject("src/main/AndroidManifest.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
+        <application />
+      </manifest>
+    """.trimIndent())
+  }
+
+  @Test
+  fun trackViewBindingPollingMetadata() {
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+        <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
+            <TextView android:id="@+id/testId"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    """.trimIndent())
+
+    val tracker = TestUsageTracker(VirtualTimeScheduler())
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      try {
+        UsageTracker.setWriterForTest(tracker)
+        val syncState = GradleSyncState.getInstance(projectRule.project)
+        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED), null)
+        syncState.syncSucceeded()
+        val viewBindingPollMetadata = tracker.usages
+          .map { it.studioEvent }
+          .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
+          .map { it.dataBindingEvent.viewBindingMetadata }
+          .lastOrNull()
+
+        assertThat(viewBindingPollMetadata!!.viewBindingEnabled).isTrue()
+        assertThat(viewBindingPollMetadata.layoutXmlCount).isEqualTo(1)
+      }
+      finally {
+        tracker.close()
+        UsageTracker.cleanAfterTesting()
+      }
+    }
+  }
+
+  @Test
+  fun trackNonViewBindingEnabledProject() {
+    StudioFlags.VIEW_BINDING_ENABLED.override(false)
+    assertThat(facet.isViewBindingEnabled()).isFalse()
+
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+        <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
+            <TextView android:id="@+id/testId"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    """.trimIndent())
+
+    val tracker = TestUsageTracker(VirtualTimeScheduler())
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      try {
+        UsageTracker.setWriterForTest(tracker)
+        val syncState = GradleSyncState.getInstance(projectRule.project)
+        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED), null)
+        syncState.syncSucceeded()
+        val viewBindingPollMetadata = tracker.usages
+          .map { it.studioEvent }
+          .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
+          .map { it.dataBindingEvent.viewBindingMetadata }
+          .lastOrNull()
+
+        assertThat(viewBindingPollMetadata).isNull()
+      }
+      finally {
+        tracker.close()
+        UsageTracker.cleanAfterTesting()
+      }
+    }
+  }
+
+  @Test
+  fun trackViewBindingProjectWithIgnoredLayouts() {
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+        <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
+            <TextView android:id="@+id/testId"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    """.trimIndent())
+    fixture.addFileToProject("src/main/res/layout/activity_ignored.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+        <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools" tools:viewBindingIgnore="true">
+            <TextView android:id="@+id/testId"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    """.trimIndent())
+
+    val tracker = TestUsageTracker(VirtualTimeScheduler())
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      try {
+        UsageTracker.setWriterForTest(tracker)
+        val syncState = GradleSyncState.getInstance(projectRule.project)
+        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED), null)
+        syncState.syncSucceeded()
+        val viewBindingPollMetadata = tracker.usages
+          .map { it.studioEvent }
+          .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
+          .map { it.dataBindingEvent.viewBindingMetadata }
+          .lastOrNull()
+
+        assertThat(viewBindingPollMetadata!!.layoutXmlCount).isEqualTo(1)
+      }
+      finally {
+        tracker.close()
+        UsageTracker.cleanAfterTesting()
+      }
+    }
+  }
+}

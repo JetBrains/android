@@ -28,7 +28,7 @@
     <moduleService serviceImplementation="com.android.tools.idea.databinding.ModuleDataBinding" />
     <xml.elementDescriptorProvider implementation="com.android.tools.idea.databinding.xml.DataBindingDomElementDescriptorProvider" order="first"/>
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
-                    serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingTracker"
+                    serviceImplementation="com.android.tools.idea.databinding.analytics.LayoutBindingTracker"
                     overrides="true"/>
 
     <annotator language="kotlin" implementationClass="com.android.tools.idea.databinding.validation.DataBindingKotlinAnnotator" />
