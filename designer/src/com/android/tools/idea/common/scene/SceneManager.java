@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -50,12 +51,12 @@ abstract public class SceneManager implements Disposable {
   @NotNull private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
 
-  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull RenderSettings renderSettings) {
+  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull Supplier<RenderSettings> renderSettingsProvider) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
 
-    myScene = new Scene(this, myDesignSurface, renderSettings);
+    myScene = new Scene(this, myDesignSurface, renderSettingsProvider.get().getUseLiveRendering());
   }
 
   /**
