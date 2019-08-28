@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -139,6 +140,11 @@ public class MotionSceneTag implements MTag {
       child.print(space + "   ");
     }
     System.out.println(space + "</" + getTagName() + ">");
+  }
+
+  @Nullable
+  public XmlTag getXmlTag() {
+    return myXmlTag != null && myXmlTag.isValid() ? myXmlTag : null;
   }
 
   @Override

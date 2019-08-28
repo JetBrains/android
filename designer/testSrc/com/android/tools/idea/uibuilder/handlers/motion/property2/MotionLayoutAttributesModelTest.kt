@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.TransitionConstraintSetStart
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionDesignSurfaceEdits
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilEventsProcessed
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
@@ -156,7 +157,7 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
 
   private class MotionAccessoryPanel: AccessoryPanelInterface, MotionDesignSurfaceEdits {
     val listeners = mutableListOf<AccessorySelectionListener>()
-    var tag: SmartPsiElementPointer<XmlTag>? = null
+    var tag: MotionSceneTag? = null
 
     override fun getPanel(): JPanel {
       throw Error("should not be called")
@@ -206,8 +207,10 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
       throw Error("should not be called")
     }
 
-    fun select(tag: SmartPsiElementPointer<XmlTag>?, component: NlComponent?) {
-      this.tag = tag
+    fun select(tagPointer: SmartPsiElementPointer<XmlTag>?, component: NlComponent?) {
+      tag = null
+      val xmlTag = tagPointer?.element ?: return
+      this.tag = MotionSceneTag(xmlTag, null)
       val list = if (component != null) listOf(component) else emptyList()
       listeners.forEach { it.selectionChanged(this, list) }
     }
