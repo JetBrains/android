@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.databinding.cache
 
-import com.android.tools.idea.databinding.DataBindingProjectComponent
 import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.LayoutBindingProjectComponent
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.intellij.openapi.project.Project
@@ -40,7 +40,7 @@ private val BR_CLASS_NAME_LIST = arrayOf(DataBindingUtil.BR)
  * See [LightBrClass]
  */
 class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
-  private val component = project.getComponent(DataBindingProjectComponent::class.java)
+  private val component = project.getComponent(LayoutBindingProjectComponent::class.java)
   private val allFieldNamesCache: CachedValue<Array<String>>
 
   init {
