@@ -38,19 +38,34 @@ import org.jetbrains.annotations.Nullable;
 
 public class GenerateMigrationDialog extends DialogWrapper {
   private static final String DIALOG_TITLE = "Generate a Room Migration";
+  private static final String TARGET_PACKAGE_LABEL = "Choose target package package";
+  private static final String MIGRATION_CLASS_COMBO_BOX_LABEL = "Choose destination directory for the migration class";
+  private static final String MIGRATION_TEST_COMBO_BOX_LABEL = "Choose destination directory for the migration test";
   private Project project;
   private PsiPackage targetPackage;
-  private PsiDirectory targetDirectory;
-  private DestinationFolderComboBox targetDirectoryComboBox;
+  private PsiDirectory migrationClassDirectory;
+  private PsiDirectory migrationTestDirectory;
+  private DestinationFolderComboBox migrationClassDirectoryComboBox;
+  private DestinationFolderComboBox migrationTestDirectoryComboBox;
   private ReferenceEditorComboWithBrowseButton targetPackageComboBox;
 
   public GenerateMigrationDialog(@NotNull Project project,
                                  @NotNull PsiPackage targetPackage,
-                                 @NotNull PsiDirectory targetDirectory) {
+                                 @NotNull PsiDirectory migrationClassDirectory,
+                                 @NotNull PsiDirectory migrationTestDirectory) {
     super(project, false);
     this.project = project;
     this.targetPackage = targetPackage;
-    this.targetDirectory = targetDirectory;
+    this.migrationClassDirectory = migrationClassDirectory;
+    this.migrationTestDirectory = migrationTestDirectory;
+
+    targetPackageComboBox = new PackageNameReferenceEditorCombo(targetPackage.getQualifiedName(), project, "", TARGET_PACKAGE_LABEL);
+
+    migrationClassDirectoryComboBox = createDestinationFolderComboBox();
+    migrationClassDirectoryComboBox.setData(project, migrationClassDirectory, targetPackageComboBox.getChildComponent());
+
+    migrationTestDirectoryComboBox = createDestinationFolderComboBox();
+    migrationTestDirectoryComboBox.setData(project, migrationTestDirectory, targetPackageComboBox.getChildComponent());
 
     setTitle(DIALOG_TITLE);
     init();
@@ -58,11 +73,20 @@ public class GenerateMigrationDialog extends DialogWrapper {
 
   @Override
   protected void doOKAction() {
-    final MoveDestination moveDestination = targetDirectoryComboBox.selectDirectory(PackageWrapper.create(targetPackage), false);
-    if (moveDestination != null) {
-      targetDirectory = targetDirectory != null
-                        ? WriteAction.compute(() -> moveDestination.getTargetDirectory(targetDirectory))
-                        : null;
+    final MoveDestination classMoveDestination =
+      migrationClassDirectoryComboBox.selectDirectory(PackageWrapper.create(targetPackage), false);
+    if (classMoveDestination != null) {
+      migrationClassDirectory = migrationClassDirectory != null
+                                ? WriteAction.compute(() -> classMoveDestination.getTargetDirectory(migrationClassDirectory))
+                                : null;
+    }
+
+    final MoveDestination testMoveDestination =
+      migrationTestDirectoryComboBox.selectDirectory(PackageWrapper.create(targetPackage), false);
+    if (testMoveDestination != null) {
+      migrationTestDirectory = migrationTestDirectory != null
+                               ? WriteAction.compute(() -> testMoveDestination.getTargetDirectory(migrationTestDirectory))
+                               : null;
     }
     super.doOKAction();
   }
@@ -72,15 +96,18 @@ public class GenerateMigrationDialog extends DialogWrapper {
   protected JComponent createCenterPanel() {
     JPanel centerPanel = new JPanel(new BorderLayout());
     centerPanel.add(createTargetPackagePanel(), BorderLayout.NORTH);
-    centerPanel.add(createTargetDirectoryPanel(), BorderLayout.SOUTH);
+
+    JPanel directoriesPanel = new JPanel((new BorderLayout()));
+    directoriesPanel.add(createTargetDirectoryPanel(migrationClassDirectoryComboBox, MIGRATION_CLASS_COMBO_BOX_LABEL), BorderLayout.NORTH);
+    directoriesPanel.add(createTargetDirectoryPanel(migrationTestDirectoryComboBox, MIGRATION_TEST_COMBO_BOX_LABEL), BorderLayout.SOUTH);
+
+    centerPanel.add(directoriesPanel, BorderLayout.SOUTH);
 
     return centerPanel;
   }
 
-  private JPanel createTargetDirectoryPanel() {
-    final JPanel targetDirectoryPanel = new JPanel(new BorderLayout());
-    final JBLabel label = new JBLabel(RefactoringBundle.message("target.destination.folder"));
-    targetDirectoryComboBox = new DestinationFolderComboBox() {
+  private DestinationFolderComboBox createDestinationFolderComboBox() {
+    return new DestinationFolderComboBox() {
       @Override
       public String getTargetPackage() {
         if (packageWasChanged()) {
@@ -89,12 +116,17 @@ public class GenerateMigrationDialog extends DialogWrapper {
         return targetPackage.getQualifiedName();
       }
     };
+  }
+
+  private JPanel createTargetDirectoryPanel(@NotNull DestinationFolderComboBox comboBox,
+                                            @NotNull String labelText) {
+    final JPanel targetDirectoryPanel = new JPanel(new BorderLayout());
+    final JBLabel label = new JBLabel(labelText);
 
     targetDirectoryPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-    targetDirectoryComboBox.setData(project, targetDirectory, targetPackageComboBox.getChildComponent());
-    targetDirectoryPanel.add(targetDirectoryComboBox, BorderLayout.CENTER);
+    targetDirectoryPanel.add(comboBox, BorderLayout.CENTER);
     targetDirectoryPanel.add(label, BorderLayout.NORTH);
-    label.setLabelFor(targetDirectoryComboBox);
+    label.setLabelFor(comboBox);
 
     return targetDirectoryPanel;
   }
@@ -102,10 +134,6 @@ public class GenerateMigrationDialog extends DialogWrapper {
   private JPanel createTargetPackagePanel() {
     JPanel targetPackagePanel = new JPanel(new BorderLayout());
     final JBLabel label = new JBLabel(RefactoringBundle.message("choose.destination.package"));
-
-    targetPackageComboBox =
-      new PackageNameReferenceEditorCombo(targetPackage.getQualifiedName(), project, "GenerateMigrationDialog.RecentsKey",
-                                          RefactoringBundle.message("choose.destination.package"));
 
     targetPackagePanel.add(targetPackageComboBox, BorderLayout.CENTER);
     targetPackagePanel.add(label, BorderLayout.NORTH);
@@ -126,14 +154,19 @@ public class GenerateMigrationDialog extends DialogWrapper {
     PsiDirectory[] newDirectories = newPackage.getDirectories(GlobalSearchScope.projectScope(project));
     if (newDirectories.length > 0) {
       targetPackage = newPackage;
-      targetDirectory = newDirectories[0];
-      targetDirectoryComboBox.setData(project, targetDirectory, targetPackageComboBox.getChildComponent());
+      migrationClassDirectory = newDirectories[0];
+      migrationClassDirectoryComboBox.setData(project, migrationClassDirectory, targetPackageComboBox.getChildComponent());
     }
   }
 
   @NotNull
-  public PsiDirectory getTargetDirectory() {
-    return targetDirectory;
+  public PsiDirectory getMigrationClassDirectory() {
+    return migrationClassDirectory;
+  }
+
+  @NotNull
+  public PsiDirectory getMigrationTestDirectory() {
+    return migrationTestDirectory;
   }
 
   @NotNull
