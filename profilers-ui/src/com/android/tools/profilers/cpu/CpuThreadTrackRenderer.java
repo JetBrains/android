@@ -15,9 +15,15 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
+import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +35,23 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
   @NotNull
   @Override
   public JComponent render(@NotNull TrackModel<CpuThreadTrackModel, ProfilerTrackRendererType> trackModel) {
-    return new JPanel();
+    StateChart<CpuProfilerStage.ThreadState> stateChart =
+      new StateChart<>(trackModel.getDataModel().getThreadStateChartModel(), new CpuThreadColorProvider());
+    stateChart.setHeightGap(0.0f);
+
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(stateChart, BorderLayout.CENTER);
+    return panel;
+  }
+
+  private static class CpuThreadColorProvider extends StateChartColorProvider<CpuProfilerStage.ThreadState> {
+    private EnumColors<CpuProfilerStage.ThreadState> myEnumColors = ProfilerColors.THREAD_STATES.build();
+
+    @NotNull
+    @Override
+    public Color getColor(boolean isMouseOver, @NotNull CpuProfilerStage.ThreadState value) {
+      myEnumColors.setColorIndex(isMouseOver ? 1 : 0);
+      return myEnumColors.getColor(value);
+    }
   }
 }
