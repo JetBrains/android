@@ -30,8 +30,8 @@ class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarnin
   private val alwaysRunTasksSet = HashSet<AlwaysRunTaskData>()
 
   override fun receiveEvent(event: ProgressEvent) {
-    if (event is TaskFinishEvent && event.result is TaskSuccessResult && warningsFilter.applyTaskFilter(
-        getTaskName(event.descriptor.taskPath))) {
+    if (event is TaskFinishEvent && event.result is TaskSuccessResult && warningsFilter.applyAlwaysRunTaskFilter(
+        getTaskName(event.descriptor.taskPath), event.descriptor.originPlugin?.displayName ?: "")) {
       (event.result as TaskSuccessResult).executionReasons?.forEach {
         if (it == TaskExecutionMode.NO_OUTPUTS_WITHOUT_ACTIONS.rebuildReason.get() ||
             it == TaskExecutionMode.NO_OUTPUTS_WITH_ACTIONS.rebuildReason.get()) {
