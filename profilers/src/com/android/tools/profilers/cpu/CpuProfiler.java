@@ -279,8 +279,21 @@ public class CpuProfiler extends StudioProfiler {
         .map(group -> {
           // We only care about the CpuTraceInfo stored in the very last event in the group.
           Common.Event event = group.getEvents(group.getEventsCount() - 1);
-          Cpu.CpuTraceData traceData = event.getCpuTrace();
-          return traceData.hasTraceStarted() ? traceData.getTraceStarted().getTraceInfo() : traceData.getTraceEnded().getTraceInfo();
+          CpuTraceInfo info = event.getCpuTrace().hasTraceStarted() ?
+                              event.getCpuTrace().getTraceStarted().getTraceInfo() : event.getCpuTrace().getTraceEnded().getTraceInfo();
+          if (info.equals(CpuTraceInfo.getDefaultInstance())) {
+            // A default instance means that we have a generically ended group due to device disconnect.
+            // In those case, we look for the start event and use its CpuTraceInfo instead.
+            assert group.getEventsCount() > 1;
+            info = group.getEvents(0).getCpuTrace().getTraceStarted().getTraceInfo();
+            if (info.getToTimestamp() == -1) {
+              info = info.toBuilder()
+                .setToTimestamp(session.getEndTimestamp())
+                .setStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.APP_PROCESS_DIED))
+                .build();
+            }
+          }
+          return info;
         })
         .sorted(Comparator.comparingLong(CpuTraceInfo::getFromTimestamp))
         .collect(Collectors.toList());
@@ -337,7 +350,6 @@ public class CpuProfiler extends StudioProfiler {
                                  @NotNull Cpu.CpuTraceConfiguration configuration,
                                  @Nullable Consumer<Cpu.TraceStopStatus> responseHandler) {
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      assert profilers.getProcess() != null;
       Commands.Command stopCommand = Commands.Command.newBuilder()
         .setStreamId(session.getStreamId())
         .setPid(session.getPid())

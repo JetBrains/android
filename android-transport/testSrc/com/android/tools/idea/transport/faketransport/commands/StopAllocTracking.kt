@@ -18,48 +18,44 @@ package com.android.tools.idea.transport.faketransport.commands
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Memory
 import java.util.concurrent.TimeUnit
 
-class StopCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
-  var stopStatus: Cpu.TraceStopStatus = Cpu.TraceStopStatus.getDefaultInstance()
-  var traceDurationNs: Long = TimeUnit.SECONDS.toNanos(1)
-  var lastTraceInfo: Cpu.CpuTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance()
+class StopAllocTracking(timer: FakeTimer) : CommandHandler(timer) {
+  var stopStatus = Memory.TrackStatus.getDefaultInstance()
+  var lastInfo = Memory.AllocationsInfo.getDefaultInstance()
+  var trackDurationNs: Long = TimeUnit.SECONDS.toNanos(1)
 
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
-    val traceId = timer.currentTimeNs
-    val endTimestamp = traceId + traceDurationNs
-    lastTraceInfo = Cpu.CpuTraceInfo.newBuilder()
-      .setTraceId(traceId)
-      .setFromTimestamp(traceId)
-      .setToTimestamp(endTimestamp)
-      .setConfiguration(command.stopCpuTrace.configuration)
-      .setStopStatus(stopStatus)
+    val infoId = timer.currentTimeNs
+    val endTimestamp = infoId + trackDurationNs
+    lastInfo = Memory.AllocationsInfo.newBuilder()
+      .setStartTime(infoId)
+      .setEndTime(endTimestamp)
+      .setSuccess(true)
       .build()
 
     events.add(Common.Event.newBuilder().apply {
-      groupId = traceId
+      groupId = infoId
       pid = command.pid
-      kind = Common.Event.Kind.CPU_TRACE_STATUS
+      kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS
       timestamp = timer.currentTimeNs
       commandId = command.commandId
-      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().apply {
-        traceStopStatus = stopStatus
+      memoryAllocTrackingStatus = Memory.MemoryAllocTrackingStatusData.newBuilder().apply {
+        status = stopStatus
       }.build()
     }.build())
 
-    // Only inserts a stop event if there is a matching start event with the same trace id
-    events.find { it.groupId == traceId }?.let {
+    // Only inserts a stop event if there is a matching start tracking event.
+    events.find { it.groupId == infoId }?.let {
       events.add(Common.Event.newBuilder().apply {
-        groupId = traceId
+        groupId = infoId
         pid = command.pid
-        kind = Common.Event.Kind.CPU_TRACE
-        timestamp = endTimestamp
+        kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
+        timestamp = timer.currentTimeNs
         isEnded = true
-        cpuTrace = Cpu.CpuTraceData.newBuilder().apply {
-          traceEnded = Cpu.CpuTraceData.TraceEnded.newBuilder().apply {
-            traceInfo = lastTraceInfo
-          }.build()
+        memoryAllocTracking = Memory.MemoryAllocTrackingData.newBuilder().apply {
+          info = lastInfo
         }.build()
       }.build())
     }
