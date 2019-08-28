@@ -16,16 +16,17 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
-
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
  * The data model for all the information in the MotionScene and Layout file
  */
 public class MeModel {
-
+  public final boolean DEBUG = false;
   public final MTag motionScene;
   public final MTag layout;
   public final String layoutFileName;
@@ -33,6 +34,146 @@ public class MeModel {
   MotionEditorSelector.Type mSelectedType;
   public MTag[] mSelected;
   private float mProgress;
+
+  /**
+   * This populates the attributes structure
+   *
+   * @param constraintSet
+   * @return
+   */
+  public HashMap<String, MotionAttributes> populateViewInfo(MTag constraintSet) {
+    if (DEBUG) {
+      Debug.log("configuring Attributes ");
+    }
+    ArrayList<String> ids = new ArrayList<>();
+    HashMap<String, MotionAttributes> viewBundles = new HashMap<>();
+    HashMap<String, MotionAttributes> filledBundles = new HashMap<>();
+    ArrayList<MTag> csetChain = new ArrayList<>();
+    // Build of the chain of dependency of constraints sets
+    for (MTag set = constraintSet; set != null; set = getDerivedFrom(set)) {
+      csetChain.add(set);
+    }
+    // build a table of attribute one for each view in the layout
+    MTag[] view = layout.getChildTags();
+    HashMap<String, MTag> viewMap = new HashMap<>();
+
+    for (int i = 0; i < view.length; i++) {
+      String id = view[i].getAttributeValue("id");
+      if (id == null) {
+        continue;
+      }
+      id = Utils.stripID(id);
+      viewMap.put(id, view[i]);
+      viewBundles.put(id, new MotionAttributes(id));
+    }
+    if (DEBUG) {
+      Debug.log("populates view info " + view.length);
+    }
+    // for each constraint set in the chain
+    for (MTag cset : csetChain) {
+      String constraintSetId = Utils.stripID(cset.getAttributeValue("id")); // get the id of the ConstraintSet
+
+      // for each view in the ConstraintSet
+      MTag[] constraint = cset.getChildTags();
+      for (int i = 0; i < constraint.length; i++) {
+        String id = constraint[i].getAttributeValue("id");
+        if (id == null) {
+          continue;
+        }
+        id = Utils.stripID(id);
+        MotionAttributes bundle = viewBundles.get(id);
+        if (bundle == null) { // we don't need to look at this id
+          continue;
+        }
+        MTag[] subTags = constraint[i].getChildTags();
+        HashMap<String, MTag.Attribute> attr = constraint[i].getAttrList();
+        boolean allCustom = true;
+        for (int j = 0; j < subTags.length; j++) {
+          if (!(subTags[j].getTagName().equals("CustomAttribute"))) {
+            allCustom = false;
+            break;
+          }
+        }
+        if ((subTags.length == 0 || allCustom) && attr.size() > 1) {
+          bundle.loadAttrs(MotionAttributes.Section.ALL, constraintSetId, attr);
+          bundle.consume(true, true, true, true);
+          for (int j = 0; j < subTags.length; j++) {
+            MTag subTag = subTags[j];
+            bundle.addCustomAttrs(constraintSetId, subTag);
+          }
+          viewBundles.remove(bundle);
+          filledBundles.put(id, bundle);
+        }
+
+        for (int j = 0; j < subTags.length; j++) {
+          String tagType = subTags[j].getTagName();
+          switch (tagType) {
+            case MotionSceneAttrs.Tags.MOTION:
+              bundle.loadAttrs(MotionAttributes.Section.MOTION, constraintSetId, subTags[j].getAttrList());
+              break;
+            case MotionSceneAttrs.Tags.TRANSFORM:
+              bundle.loadAttrs(MotionAttributes.Section.TRANSFORM, constraintSetId, subTags[j].getAttrList());
+              break;
+            case MotionSceneAttrs.Tags.PROPERTY_SET:
+              bundle.loadAttrs(MotionAttributes.Section.PROPERTY_SET, constraintSetId, subTags[j].getAttrList());
+              break;
+            case MotionSceneAttrs.Tags.LAYOUT:
+              bundle.loadAttrs(MotionAttributes.Section.LAYOUT, constraintSetId, subTags[j].getAttrList());
+              break;
+            case MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE:
+              bundle.addCustomAttrs(constraintSetId, subTags[j]);
+              break;
+            default:
+              Debug.log("Unknown TAG! " + tagType);
+          }
+        }
+        if (bundle.allFilled()) {
+          viewBundles.remove(bundle);
+          filledBundles.put(id, bundle);
+        }
+      }
+      // anything left must be
+    }
+    // for each view left in the view bundle (which would mean it is not "complete yet"
+
+
+    for (String id : viewBundles.keySet()) {
+      MotionAttributes bundle = viewBundles.get(id);
+      MTag viewTag = viewMap.get(id);
+      bundle.loadViewAttrs(viewTag);
+      viewBundles.remove(bundle);
+      filledBundles.put(id, bundle);
+    }
+
+    return filledBundles;
+  }
+
+  MTag getConstraint(MTag constraintSet, String stripedId) {
+    MTag[] constraint = constraintSet.getChildTags("Constraint");
+    for (int i = 0; i < constraint.length; i++) {
+      String str = Utils.stripID(constraint[i].getAttributeValue("id"));
+      if (stripedId.equals(str)) {
+        return constraint[i];
+      }
+    }
+    return null;
+  }
+
+  MTag getDerivedFrom(MTag cset) {
+    String s = cset.getAttributeValue("deriveConstraintsFrom");
+    if (s == null) {
+      return null;
+    }
+    s = Utils.stripID(s);
+    MTag[] constraintSets = motionScene.getChildTags("ConstraintSet");
+    for (int i = 0; i < constraintSets.length; i++) {
+      String str = Utils.stripID(constraintSets[i].getAttributeValue("id"));
+      if (s.equals(str)) {
+        return constraintSets[i];
+      }
+    }
+    return null;
+  }
 
   public MeModel(MTag motionScene, MTag layout, String layoutFileName, String motionSceneFileName) {
     this.layout = layout;
@@ -50,6 +191,18 @@ public class MeModel {
   }
 
   public void setSelected(MotionEditorSelector.Type type, MTag[] tags) {
+    if (type == MotionEditorSelector.Type.CONSTRAINT_SET) {
+      HashMap<String, MotionAttributes> motionAttributeSet = populateViewInfo(tags[0]);
+      MTag[] views = layout.getChildTags();
+      for (MTag view : views) {
+        String id = view.getAttributeValue("id");
+        if (id == null) {
+          continue;
+        }
+        id = Utils.stripID(id);
+        view.setClientData(motionAttributeSet.get(id));
+      }
+    }
     mSelectedType = type;
     mSelected = tags;
   }
@@ -215,7 +368,7 @@ public class MeModel {
         for (int i = 0; i < layoutView.length; i++) {
           MTag mTag = layoutView[i];
           String viewId = Utils.stripID(mTag.getAttributeValue("id"));
-          if (viewId!=null &&  id.equals(viewId)) {
+          if (viewId != null && id.equals(viewId)) {
             return mTag;
           }
         }

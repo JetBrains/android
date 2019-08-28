@@ -214,6 +214,16 @@ public class MotionSceneTag implements MTag {
   }
 
   @Override
+  public void setClientData(Object motionAttributes) {
+
+  }
+
+  @Override
+  public Object getClientData() {
+    return null;
+  }
+
+  @Override
   public TagWriter getChildTagWriter(String name) {
     return new MotionSceneTagWriter(this, name);
   }

@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
+
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/**
- * The interface to a simplified XML tag structure.
- * This allows support for implementation and code that can work with any implementation.
- */
 public interface MTag {
 
   @Override
@@ -30,9 +28,10 @@ public interface MTag {
 
   public String getTagName();
 
-  MTag getParent();
-
   void deleteTag();
+
+  void setClientData(Object motionAttributes);
+  public Object getClientData();
 
   public static class Attribute {
     public String mNamespace;
@@ -40,13 +39,13 @@ public interface MTag {
     public String mValue;
   }
 
-  ArrayList<MTag> children = new ArrayList<>();
-
   public ArrayList<MTag> getChildren();
 
   public HashMap<String, Attribute> getAttrList();
 
   public MTag[] getChildTags();
+
+  public MTag getParent();
 
   public MTag[] getChildTags(String type);
 
@@ -59,7 +58,6 @@ public interface MTag {
    * Get children who attribute == value
    */
   public MTag[] getChildTags(String type, String attribute, String value);
-
 
   public String getAttributeValue(String attribute);
 
@@ -81,6 +79,7 @@ public interface MTag {
 
   interface TagWriter extends MTag {
     void setAttribute(String type, String attribute, String value);
+
     MTag commit();
   }
 }
