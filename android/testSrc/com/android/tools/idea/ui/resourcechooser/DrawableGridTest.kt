@@ -26,12 +26,11 @@ import com.google.common.truth.Truth
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
 import org.junit.BeforeClass
@@ -160,8 +159,6 @@ class StubRenderer : DesignAssetRenderer {
   fun hasRendered() = latch.count == 0L
 
   fun registerAsExtension(disposable: Disposable) {
-    PlatformTestUtil.registerExtension(ExtensionPointName.create<DesignAssetRenderer>("com.android.resourceViewer"),
-                                       this,
-                                       disposable)
+    ApplicationManager.getApplication().extensionArea.getExtensionPoint<DesignAssetRenderer>("com.android.resourceViewer").registerExtension(this, disposable)
   }
 }

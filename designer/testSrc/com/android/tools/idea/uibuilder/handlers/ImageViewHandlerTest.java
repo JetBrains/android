@@ -25,7 +25,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,8 +43,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myTestProjectSystem = new TestProjectSystem(getProject(), Collections.emptyList());
-    PlatformTestUtil.registerExtension(getProject().getExtensionArea(), ProjectSystemUtil.getEP_NAME(),
-                                       myTestProjectSystem, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(getProject(), ProjectSystemUtil.getEP_NAME(), myTestProjectSystem, getTestRootDisposable());
 
     myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
     myModel = createModel();

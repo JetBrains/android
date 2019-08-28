@@ -23,11 +23,10 @@ import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
 import com.intellij.codeInsight.NullableNotNullManager
-import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.registerExtension
 import org.jetbrains.android.AndroidTestCase
 
 class AndroidInferNullityActionTest : AndroidTestCase() {
-
   private lateinit var myProjectSystem: TestProjectSystem
   private lateinit var myNullityManager: NullableNotNullManager
 
@@ -35,7 +34,7 @@ class AndroidInferNullityActionTest : AndroidTestCase() {
   public override fun setUp() {
     super.setUp()
     myProjectSystem = TestProjectSystem(project, PLATFORM_SUPPORT_LIBS)
-    PlatformTestUtil.registerExtension(project.extensionArea, EP_NAME, myProjectSystem, testRootDisposable)
+    project.registerExtension(EP_NAME, myProjectSystem, testRootDisposable)
     myFixture.addClass(
       """
 import android.graphics.Color;

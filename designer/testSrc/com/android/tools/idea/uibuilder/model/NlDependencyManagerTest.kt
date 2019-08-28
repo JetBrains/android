@@ -21,11 +21,10 @@ import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.registerExtension
 import junit.framework.TestCase
 
 open class NlDependencyManagerTest : LayoutTestCase() {
-
   private lateinit var projectSystem: TestProjectSystem
   private lateinit var model: NlModel
   private lateinit var nlDependencyManager: NlDependencyManager
@@ -33,8 +32,7 @@ open class NlDependencyManagerTest : LayoutTestCase() {
   override fun setUp() {
     super.setUp()
     projectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
-    PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(project.extensionArea, EP_NAME,
-                                                                     projectSystem, testRootDisposable)
+    project.registerExtension<AndroidProjectSystemProvider>(EP_NAME, projectSystem, testRootDisposable)
     nlDependencyManager = NlDependencyManager()
     model = model("model.xml",
                   component(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
