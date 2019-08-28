@@ -18,48 +18,16 @@ package com.android.tools.idea.databinding
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.google.common.collect.Maps
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.ModificationTracker
-import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiPackage
-import com.intellij.psi.impl.file.PsiPackageImpl
-import com.intellij.psi.util.CachedValue
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
-import org.jetbrains.android.facet.AndroidFacet
-import java.util.ArrayList
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Data binding utilities the apply across a whole project
  */
-class DataBindingProjectComponent(val project: Project) : ModificationTracker {
-  private val dataBindingEnabledModules: CachedValue<Array<AndroidFacet>>
-  private val modificationCount = AtomicLong(0)
-  private val dataBindingPsiPackages = Maps.newConcurrentMap<String, PsiPackage>()
-  private val dataBindingTracker = DataBindingTracker.getInstance(project)
-
+class DataBindingProjectComponent(val project: Project) {
   init {
-    dataBindingEnabledModules = CachedValuesManager.getManager(project).createCachedValue({
-      val modules = ModuleManager.getInstance(project).modules
-      val facets = ArrayList<AndroidFacet>()
-      for (module in modules) {
-        val facet = AndroidFacet.getInstance(module) ?: continue
-        if (DataBindingUtil.isDataBindingEnabled(facet)) {
-          facets.add(facet)
-        }
-      }
+      val dataBindingTracker = DataBindingTracker.getInstance(project)
 
-      modificationCount.incrementAndGet()
-      CachedValueProvider.Result.create(
-        facets.toTypedArray(),
-        DataBindingUtil.getDataBindingEnabledTracker(),
-        ModuleManager.getInstance(project))
-    }, false)
-
-    GradleSyncState.subscribe(project, object : GradleSyncListener {
+      GradleSyncState.subscribe(project, object : GradleSyncListener {
       override fun syncSucceeded(project: Project) {
         dataBindingTracker.trackPolledMetaData()
       }
@@ -68,28 +36,5 @@ class DataBindingProjectComponent(val project: Project) : ModificationTracker {
         dataBindingTracker.trackPolledMetaData()
       }
     })
-  }
-
-  fun hasAnyDataBindingEnabledFacet(): Boolean = getDataBindingEnabledFacets().isNotEmpty()
-
-  fun getDataBindingEnabledFacets(): Array<AndroidFacet> = dataBindingEnabledModules.value
-
-  override fun getModificationCount(): Long = modificationCount.toLong()
-
-  /**
-   * Returns a [PsiPackage] instance for the given package name.
-   *
-   * If it does not exist in the cache, a new one is created.
-   *
-   * @param packageName The qualified package name
-   * @return A [PsiPackage] that represents the given qualified name
-   */
-  @Synchronized
-  fun getOrCreateDataBindingPsiPackage(packageName: String): PsiPackage {
-    return dataBindingPsiPackages.computeIfAbsent(packageName) {
-      object : PsiPackageImpl(PsiManager.getInstance(project), packageName) {
-        override fun isValid(): Boolean = true
-      }
-    }
   }
 }
