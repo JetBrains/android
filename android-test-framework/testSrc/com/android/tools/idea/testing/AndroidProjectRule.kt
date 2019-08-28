@@ -24,6 +24,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.*
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
+import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
@@ -36,7 +37,7 @@ import org.junit.runner.Description
  *
  * The defaults settings are using a [LightTempDirTestFixtureImpl] which means
  * that it does not create any file on disk,
- * but instead relly on  a [com.intellij.openapi.vfs.ex.temp.TempFileSystem]].
+ * but instead rely on  a [com.intellij.openapi.vfs.ex.temp.TempFileSystem]].
  *
  * For tests that rely on file on disk, use the [AndroidProjectRule.Factory.onDisk()]
  * factory method to use a full on disk fixture with a single module, otherwise use
@@ -74,7 +75,6 @@ class AndroidProjectRule private constructor(
 
   val project: Project get() = fixture.project
 
-  private lateinit var mocks: IdeComponents
   private val facets = ArrayList<Facet<*>>()
 
   /**
@@ -83,7 +83,7 @@ class AndroidProjectRule private constructor(
   companion object {
     /**
      * Returns an [AndroidProjectRule] that uses a fixture which create the
-     * project in an in memeroy TempFileSystem
+     * project in an in memory TempFileSystem
      *
      * @see IdeaTestFixtureFactory.createLightFixtureBuilder()
      */
@@ -114,15 +114,17 @@ class AndroidProjectRule private constructor(
     return this
   }
 
-  fun <T> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) =
-      mocks.replaceProjectService(serviceType, newServiceInstance)
+  fun <T : Any> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) {
+    fixture.project.replaceService(serviceType, newServiceInstance, fixture.projectDisposable)
+  }
 
-  fun <T> replaceService(serviceType: Class<T>, newServiceInstance: T) =
-      mocks.replaceApplicationService(serviceType, newServiceInstance)
+  fun <T : Any> replaceService(serviceType: Class<T>, newServiceInstance: T) {
+    ApplicationManager.getApplication().replaceService(serviceType, newServiceInstance, fixture.projectDisposable)
+  }
 
-  fun <T> mockService(serviceType: Class<T>): T = mocks.mockApplicationService(serviceType)
-
-  fun <T> mockProjectService(serviceType: Class<T>): T = mocks.mockProjectService(serviceType)
+  fun <T> mockProjectService(serviceType: Class<T>): T {
+    return IdeComponents(fixture).mockProjectService(serviceType, fixture.projectDisposable)
+  }
 
   override fun before(description: Description) {
     fixture = if (lightFixture) {
@@ -137,7 +139,6 @@ class AndroidProjectRule private constructor(
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
-    mocks = IdeComponents(fixture)
   }
 
   private fun createLightFixture(): CodeInsightTestFixture {

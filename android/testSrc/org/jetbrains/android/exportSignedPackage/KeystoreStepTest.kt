@@ -15,16 +15,16 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
-import com.android.tools.idea.testing.IdeComponents
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.Credentials
 import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.LightIdeaTestCase
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.replaceService
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.concurrency.Promise
@@ -37,11 +37,10 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class KeystoreStepTest : LightIdeaTestCase() {
-  private lateinit var ideComponents: IdeComponents
   private lateinit var facets: MutableList<AndroidFacet>
+
   override fun setUp() {
     super.setUp()
-    ideComponents = IdeComponents(getProject(), testRootDisposable)
     facets = ArrayList()
   }
 
@@ -73,7 +72,7 @@ class KeystoreStepTest : LightIdeaTestCase() {
 
     val settings = GenerateSignedApkSettings.getInstance(wizard.project)
     settings.EXPORT_PRIVATE_KEY = false
-    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
+    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
@@ -127,10 +126,10 @@ class KeystoreStepTest : LightIdeaTestCase() {
     settings.KEY_ALIAS = testKeyAlias
     settings.REMEMBER_PASSWORDS = true
 
-    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
+    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
 
     val passwordSafe = PasswordSafeMock()
-    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
+    ApplicationManager.getApplication().replaceService(PasswordSafe::class.java, passwordSafe, testRootDisposable)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(getProject())
@@ -150,12 +149,12 @@ class KeystoreStepTest : LightIdeaTestCase() {
     settings.KEY_ALIAS = testKeyAlias
     settings.REMEMBER_PASSWORDS = true
 
-    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
+    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
 
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
     val passwordSafe = BasePasswordSafe(passwordSafeSettings)
-    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
+    ApplicationManager.getApplication().replaceService(PasswordSafe::class.java, passwordSafe, testRootDisposable)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(getProject())
@@ -197,14 +196,14 @@ class KeystoreStepTest : LightIdeaTestCase() {
     settings.KEY_ALIAS = testKeyAlias
     settings.REMEMBER_PASSWORDS = true
 
-    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
+    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
 
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
     val passwordSafe = BasePasswordSafe(passwordSafeSettings)
     val keyPasswordKey = KeystoreStep.makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS)
     passwordSafe.setPassword(CredentialAttributes(legacyRequestor, keyPasswordKey), testLegacyKeyPassword)
-    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
+    ApplicationManager.getApplication().replaceService(PasswordSafe::class.java, passwordSafe, testRootDisposable)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(getProject())

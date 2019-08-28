@@ -39,7 +39,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
 
   override fun setUp() {
     super.setUp()
-    messageStub = GradleSyncMessagesStub.replaceSyncMessagesService(project)
+    messageStub = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
     messageStub.clearReportedMessages()
     reporter = DeprecatedConfigurationReporter()
     reporter = DeprecatedConfigurationReporter()

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
@@ -26,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -48,7 +48,6 @@ public class SyncErrorHandlerManagerTest extends JavaProjectTestCase {
   @Mock private GradleSyncMessages mySyncMessages;
 
   private SyncErrorHandlerManager myErrorHandlerManager;
-  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
@@ -58,7 +57,6 @@ public class SyncErrorHandlerManagerTest extends JavaProjectTestCase {
     Project project = getProject();
     myErrorHandlerManager = new SyncErrorHandlerManager(project, mySyncMessages, myCauseAndLocationFactory, myErrorHandler1,
                                                         myErrorHandler2);
-    myIdeComponents = new IdeComponents(project);
   }
 
   public void testHandleError() {
@@ -92,7 +90,7 @@ public class SyncErrorHandlerManagerTest extends JavaProjectTestCase {
         // Do nothing here to make sure that runWhenProjectIsInitialized() is the only path the handlers are invoked.
       }
     };
-    myIdeComponents.replaceProjectService(StartupManager.class, startupManager);
+    ServiceContainerUtil.replaceService(getProject(), StartupManager.class, startupManager, getTestRootDisposable());
 
     Throwable error = new Throwable("Test");
     myErrorHandlerManager.handleError(error);

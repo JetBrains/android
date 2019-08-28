@@ -23,18 +23,18 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.JavaProjectTestCase;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class GradleProjectSystemTest extends JavaProjectTestCase {
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     IdeComponents ideComponents = new IdeComponents(myProject);
-    ideComponents.mockProjectService(GradleDependencyManager.class);
-    ideComponents.mockProjectService(GradleProjectBuilder.class);
+    ideComponents.mockProjectService(GradleDependencyManager.class, getTestRootDisposable());
+    ideComponents.mockProjectService(GradleProjectBuilder.class, getTestRootDisposable());
 
-    GradleProjectInfo gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class);
+    GradleProjectInfo gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class, getTestRootDisposable());
     when(gradleProjectInfo.isBuildWithGradle()).thenReturn(true);
   }
 

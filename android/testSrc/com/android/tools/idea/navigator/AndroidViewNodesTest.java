@@ -17,12 +17,12 @@ package com.android.tools.idea.navigator;
 
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestFileNode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,13 +75,13 @@ public class AndroidViewNodesTest extends AndroidGradleTestCase {
     Disposer.register(project, projectViewPane);
 
     ProjectView projectView = mock(ProjectView.class);
-    new IdeComponents(project).replaceProjectService(ProjectView.class, projectView);
+    ServiceContainerUtil.replaceService(project, ProjectView.class, projectView, getTestRootDisposable());
     when(projectView.getProjectViewPaneById(AndroidProjectViewPane.ID)).thenReturn(projectViewPane);
 
     return projectViewPane;
   }
 
-  private static class MyToolWindow extends ToolWindowHeadlessManagerImpl.MockToolWindow {
+  private static final class MyToolWindow extends ToolWindowHeadlessManagerImpl.MockToolWindow {
     MyToolWindow(@NotNull Project project) {
       super(project);
     }

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.tools.idea.gradle.project.sync.hyperlink.ToggleOfflineModeHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.ToggleOfflineModeHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -38,7 +38,7 @@ public class InternetConnectionErrorHandlerTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myOriginalOfflineSetting = GradleSettings.getInstance(getProject()).isOfflineWork();
   }
 

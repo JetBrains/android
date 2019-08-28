@@ -53,7 +53,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
     myIdeComponents = new IdeComponents(getProject());
   }
 

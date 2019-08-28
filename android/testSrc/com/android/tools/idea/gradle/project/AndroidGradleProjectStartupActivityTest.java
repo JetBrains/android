@@ -36,9 +36,8 @@ public class AndroidGradleProjectStartupActivityTest extends JavaProjectTestCase
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    mySyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker.class);
-    myGradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class);
+    mySyncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
+    myGradleProjectInfo = new IdeComponents(myProject).mockProjectService(GradleProjectInfo.class, getTestRootDisposable());
     myStartupActivity = new AndroidGradleProjectStartupActivity();
   }
 

@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.project.sync.idea;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ServiceContainerUtil;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -32,7 +32,8 @@ public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
     // Simulate a sync is already running
     Project project = getProject();
     GradleSyncState mockSyncState = mock(GradleSyncState.class);
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mockSyncState);
+    ServiceContainerUtil
+      .replaceService(project, GradleSyncState.class, mockSyncState, getTestRootDisposable());
 
     ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, new PostSyncProjectSetup.Request(), null, true);
     setUpTask.onFailure(ExternalSystemBundle.message("error.resolve.already.running", project.getProjectFilePath()), null);

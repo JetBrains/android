@@ -18,13 +18,13 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -40,6 +40,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
@@ -48,9 +49,7 @@ import org.mockito.stubbing.Answer;
 import java.io.File;
 import java.util.Collections;
 
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddNdkFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.android.tools.idea.testing.Facets.*;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.*;
@@ -103,7 +102,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
     when(myAndroidProject.getDynamicFeatures()).thenReturn(Collections.emptyList());
     when(myIdeDependencies.getModuleDependencies()).thenReturn(Collections.emptyList());
 
-    new IdeComponents(project).replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
+    ServiceContainerUtil.replaceService(project, PostSyncProjectSetup.class, myPostSyncProjectSetup, getTestRootDisposable());
 
     myVariantUpdater = new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory,
                                                new AndroidVariantChangeModuleSetup(mySetupStepToInvoke, mySetupStepToIgnore),
@@ -187,7 +186,8 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
   public void testUpdateSelectedVariantWithChangedBuildFiles() {
     // Simulate build files have changed since last sync.
     GradleSyncState syncState = mock(GradleSyncState.class);
-    new IdeComponents(myProject).replaceProjectService(GradleSyncState.class, syncState);
+    ServiceContainerUtil
+      .replaceService(myProject, GradleSyncState.class, syncState, getTestRootDisposable());
     when(syncState.isSyncNeeded()).thenReturn(YES);
     IdeComponents ideComponents = new IdeComponents(myProject);
     GradleSyncInvoker syncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker.class);

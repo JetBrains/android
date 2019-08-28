@@ -42,7 +42,7 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myAndroidSdks = new IdeComponents(getProject()).mockApplicationService(AndroidSdks.class);
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   @Override

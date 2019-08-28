@@ -342,7 +342,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   public void testWithAndroidProjectWithoutVariants() throws Exception {
     Project project = getProject();
 
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     loadSimpleApplication();
     File appBuildFile = getBuildFilePath("app");
@@ -448,7 +448,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   // See b/64213214.
   public void testSyncIssueWithNonMatchingVariantAttributes() throws Exception {
     Project project = getProject();
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
     loadProject(DEPENDENT_MODULES);
@@ -530,7 +530,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     loadSimpleApplication();
 
     Project project = getProject();
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
     SyncMessage oldSyncMessage = new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR,
                                                  "A quick blown fix bumps over the lazy bug");
     syncMessages.report(oldSyncMessage);

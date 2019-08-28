@@ -20,12 +20,12 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
-
-import java.util.List;
 import org.junit.Ignore;
 
-import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
+import java.util.List;
+
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -39,7 +39,7 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
 

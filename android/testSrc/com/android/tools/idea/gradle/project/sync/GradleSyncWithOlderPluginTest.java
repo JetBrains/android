@@ -17,13 +17,13 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.intellij.idea.ExcludeFromTestDiscovery;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.idea.ExcludeFromTestDiscovery;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -65,7 +65,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     Project project = getProject();
 
     // We don't want the IDE to offer a plugin version upgrade.
-    new IdeComponents(project).replaceProjectService(PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class));
+    ServiceContainerUtil.replaceService(project, PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class), getTestRootDisposable());
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);

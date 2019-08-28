@@ -114,7 +114,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     boolean versionChanged = false;
 
     Project project = getProject();
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
     GradleBuildModel buildModel = GradleBuildModel.parseBuildFile(buildFile, project);
 
     for (ArtifactDependencyModel artifact : buildModel.dependencies().artifacts()) {

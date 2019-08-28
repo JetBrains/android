@@ -64,9 +64,8 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
     myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
     myModules = new Module[]{getModule()};
 
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    myTaskFinder = ideComponents.mockApplicationService(GradleTaskFinder.class);
-    myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
+    myTaskFinder = IdeComponents.mockApplicationService(GradleTaskFinder.class, getTestRootDisposable());
+    myBuildSettings = new IdeComponents(myProject).mockProjectService(BuildSettings.class, getTestRootDisposable());
 
     myBuildInvoker = new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
   }
@@ -75,6 +74,9 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
   protected void tearDown() throws Exception {
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
@@ -131,7 +133,7 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
 
     Messages.setTestDialog(new TestDialog() {
       @Override
-      public int show(String message) {
+      public int show(@NotNull String message) {
         return Messages.CANCEL;
       }
     });

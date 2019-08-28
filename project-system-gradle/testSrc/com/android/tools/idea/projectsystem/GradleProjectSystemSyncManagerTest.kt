@@ -31,11 +31,11 @@ import com.intellij.ide.startup.impl.StartupManagerImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.testFramework.JavaProjectTestCase
+import com.intellij.testFramework.replaceService
 import com.intellij.util.messages.MessageBusConnection
 import org.mockito.Mockito.*
 
 class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
-  private lateinit var ideComponents: IdeComponents
   private lateinit var gradleProjectInfo: GradleProjectInfo
   private lateinit var syncManager: ProjectSystemSyncManager
   private lateinit var gradleBuildState: GradleBuildState
@@ -47,13 +47,13 @@ class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
 
   override fun setUp() {
     super.setUp()
-    ideComponents = IdeComponents(myProject)
 
-    syncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
+    syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker::class.java, testRootDisposable)
 
-    ideComponents.mockProjectService(GradleDependencyManager::class.java)
-    ideComponents.mockProjectService(GradleProjectBuilder::class.java)
-    gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo::class.java)
+    val ideComponents = IdeComponents(project)
+    ideComponents.mockProjectService(GradleDependencyManager::class.java, testRootDisposable)
+    ideComponents.mockProjectService(GradleProjectBuilder::class.java, testRootDisposable)
+    gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo::class.java, testRootDisposable)
     `when`<Boolean>(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
 
     syncManager = GradleProjectSystemSyncManager(myProject)
@@ -68,7 +68,7 @@ class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
   private fun emulateSync(requireSourceGeneration: Boolean, syncSuccessful: Boolean):
       ListenableFuture<SyncResult> {
 
-    doAnswer({ invocation ->
+    doAnswer { invocation ->
       val request = invocation.getArgument<GradleSyncInvoker.Request>(1)
 
       ApplicationManager.getApplication().invokeAndWait {
@@ -81,7 +81,7 @@ class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
           gradleSyncState.syncFailed("")
         }
       }
-    }).`when`(syncInvoker).requestProjectSync(any(), any())
+    }.`when`(syncInvoker).requestProjectSync(any(), any())
 
     return syncManager.syncProject(SyncReason.PROJECT_MODIFIED, requireSourceGeneration)
   }
@@ -102,7 +102,8 @@ class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
         action.run()
       }
     }
-    ideComponents.replaceProjectService(StartupManager::class.java, startupManager)
+
+    project.replaceService(StartupManager::class.java, startupManager, testRootDisposable)
     // http://b/62543184
     `when`(gradleProjectInfo.isImportedProject).thenReturn(true)
 

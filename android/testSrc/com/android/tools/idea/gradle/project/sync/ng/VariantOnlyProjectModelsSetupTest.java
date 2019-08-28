@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProj
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,6 +40,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
@@ -74,7 +74,8 @@ public class VariantOnlyProjectModelsSetupTest extends JavaProjectTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
+    ServiceContainerUtil
+      .replaceService(myProject, ProjectStructure.class, myProjectStructure, getTestRootDisposable());
 
     myVariantOnlyModelsSetup =
       new VariantOnlyProjectModelsSetup(getProject(), myModelsProvider, myContextFactory, myDependenciesFactory, myCacheLoader,

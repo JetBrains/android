@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask.OpenFolderNotificationListener;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.gradle.tooling.BuildCancelledException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +56,8 @@ public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
     Map<Module, File> modulesToPaths = Collections.singletonMap(getModule(), myBundleFilePath);
 
     myTask = new GoToBundleLocationTask(getProject(), NOTIFICATION_TITLE, null, modulesToPaths, null);
-    new IdeComponents(myProject).replaceProjectService(AndroidNotification.class, myMockNotification);
+    ServiceContainerUtil
+      .replaceService(myProject, AndroidNotification.class, myMockNotification, getTestRootDisposable());
   }
 
   public void testExecuteWithCancelledBuild() {

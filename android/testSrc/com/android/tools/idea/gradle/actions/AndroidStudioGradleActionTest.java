@@ -17,11 +17,12 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
@@ -48,8 +49,8 @@ public class AndroidStudioGradleActionTest extends JavaProjectTestCase {
     when(myEvent.getPresentation()).thenReturn(myPresentation);
     when(myEvent.getProject()).thenReturn(myProject);
 
-    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
-    new IdeComponents(myProject).replaceApplicationService(IdeInfo.class, myIdeInfo);
+    ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myProjectInfo, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), IdeInfo.class, myIdeInfo, getTestRootDisposable());
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
   }
 

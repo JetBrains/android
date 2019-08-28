@@ -18,12 +18,12 @@ package com.android.tools.idea.gradle.roots;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -46,7 +46,7 @@ public class AndroidGeneratedSourcesFilterTest extends JavaProjectTestCase {
     super.setUp();
     initMocks(this);
 
-    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
+    ServiceContainerUtil.replaceService(getProject(), GradleProjectInfo.class, myProjectInfo, getTestRootDisposable());
     myGeneratedSourcesFilter = new AndroidGeneratedSourcesFilter();
   }
 

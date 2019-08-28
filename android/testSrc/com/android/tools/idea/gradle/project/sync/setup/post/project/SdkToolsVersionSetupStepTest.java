@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
+import com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep.InstallSdkToolsHyperlink;
 import com.android.tools.idea.project.AndroidNotificationStub;
 import com.android.tools.idea.project.AndroidNotificationStub.NotificationMessage;
-import com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep.InstallSdkToolsHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.testFramework.JavaProjectTestCase;
@@ -46,7 +46,7 @@ public class SdkToolsVersionSetupStepTest extends JavaProjectTestCase {
     super.setUp();
     initMocks(this);
 
-    myNotification = AndroidNotificationStub.replaceSyncMessagesService(getProject());
+    myNotification = AndroidNotificationStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     mySetupStep = new SdkToolsVersionSetupStep(myIdeSdks);
   }
 
