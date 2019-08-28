@@ -397,6 +397,14 @@ public final class StudioFlags {
     "Enable Select Device/Snapshot combo box snapshots",
     "So the new Instant Run can use the combo box",
     false);
+
+  public static final Flag<String> DEFAULT_ACTIVITY_LOCATOR_STRATEGY = Flag.create(
+    RUNDEBUG,
+    "default.activity.locator.strategy",
+    "Choose a strategy for selecting the default activity to launch from the merged manifest.",
+    "This can be \"BLOCK\" to unconditionally block on a fresh merged manifest or \"STALE\" to use a potentially stale manifest",
+    "BLOCK"
+  );
   //endregion
 
   //region Gradle Project System
