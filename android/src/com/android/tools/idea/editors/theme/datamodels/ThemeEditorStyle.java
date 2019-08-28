@@ -45,14 +45,6 @@ public class ThemeEditorStyle {
   @NotNull private final ConfigurationManager myManager;
   @NotNull private final ResourceReference myStyleReference;
 
-  /**
-   * @deprecated Use {@link #ThemeEditorStyle(ConfigurationManager, ResourceReference)}.
-   */
-  @Deprecated
-  public ThemeEditorStyle(@NotNull ConfigurationManager manager, @NotNull String qualifiedName) {
-    this(manager, ResolutionUtils.getStyleReference(qualifiedName));
-  }
-
   public ThemeEditorStyle(@NotNull ConfigurationManager manager, @NotNull ResourceReference styleReference) {
     myManager = manager;
     myStyleReference = styleReference;
