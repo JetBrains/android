@@ -80,7 +80,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private NlComponent mySelection;
   private NlComponent myMotionLayout;
   private MotionEditorSelector.Type mLastSelection = MotionEditorSelector.Type.LAYOUT;
-  private SmartPsiElementPointer<XmlTag> myLastSelectedTag;
+  private MotionSceneTag myLastSelectedTag;
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
@@ -219,13 +219,13 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   @Nullable
-  private SmartPsiElementPointer<XmlTag> computeSelectedTagForPropertyPanel(MTag[] tag) {
+  private MotionSceneTag computeSelectedTagForPropertyPanel(MTag[] tag) {
     MTag firstTag = tag != null && tag.length > 0 ? tag[0] : null;
-    XmlTag xmlTag = firstTag instanceof MotionSceneTag ? ((MotionSceneTag)firstTag).myXmlTag : null;
-    if (xmlTag == null || !xmlTag.isValid()) {
+    MotionSceneTag sceneTag = firstTag instanceof MotionSceneTag ? (MotionSceneTag)firstTag : null;
+    if (sceneTag == null || !sceneTag.myXmlTag.isValid()) {
       return null;
     }
-    return SmartPointerManager.getInstance(xmlTag.getProject()).createSmartPsiElementPointer(xmlTag);
+    return sceneTag;
   }
 
   @Nullable

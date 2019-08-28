@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionDesignSurfaceEdits;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
@@ -35,7 +36,6 @@ import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import java.util.Arrays;
@@ -72,20 +72,23 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
       return false;
     }
 
-    @SuppressWarnings("unchecked")
-    SmartPsiElementPointer<XmlTag> tagPointer = (SmartPsiElementPointer<XmlTag>)accessory;
+    MotionSceneTag tag = (MotionSceneTag)accessory;
     Map<String, PropertiesTable<NelePropertyItem>> newProperties =
-      myMotionLayoutPropertyProvider.getAllProperties(this, tagPointer, components);
+      myMotionLayoutPropertyProvider.getAllProperties(this, tag, components);
     setLastUpdateCompleted(false);
 
     UIUtil.invokeLaterIfNeeded(() -> {
-      if (wantUpdate.invoke()) {
-        updateLiveListeners(components);
-        PropertiesTable<NelePropertyItem> first = newProperties.isEmpty() ? PropertiesTable.Companion.emptyTable()
-                                                                          : newProperties.values().iterator().next();
-        myAllProperties = newProperties;
-        setProperties(first);
-        firePropertiesGenerated();
+      try {
+        if (wantUpdate.invoke()) {
+          updateLiveListeners(components);
+          PropertiesTable<NelePropertyItem> first = newProperties.isEmpty() ? PropertiesTable.Companion.emptyTable()
+                                                                            : newProperties.values().iterator().next();
+          myAllProperties = newProperties;
+          setProperties(first);
+          firePropertiesGenerated();
+        }
+      }
+      finally {
         setLastUpdateCompleted(true);
       }
     });
@@ -95,7 +98,11 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   @Override
   @Nullable
   public String getPropertyValue(@NotNull NelePropertyItem property) {
-    XmlTag tag = getTag(property);
+    MotionSceneTag motionTag = getMotionTag(property);
+    if (motionTag == null) {
+      return null;
+    }
+    XmlTag tag = motionTag.getXmlTag();
     if (tag == null) {
       return null;
     }
@@ -160,24 +167,28 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     MotionSceneModel.saveAndNotify(tag.getContainingFile(), property.getComponents().get(0).getModel());
   }
 
-  public void createCustomXmlTag(@NotNull XmlTag keyFrameOrConstraint,
+  public void createCustomXmlTag(@NotNull MotionSceneTag keyFrameOrConstraint,
                                  @NotNull String attrName,
                                  @NotNull String value,
                                  @NotNull MotionSceneModel.CustomAttributes.Type type,
-                                 @NotNull Consumer<XmlTag> operation) {
-    List<XmlTag> oldTags = Arrays.stream(keyFrameOrConstraint.findSubTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE))
+                                 @NotNull Consumer<MotionSceneTag> operation) {
+    XmlTag parentTag = keyFrameOrConstraint.getXmlTag();
+    if (parentTag == null) {
+      return;
+    }
+    List<XmlTag> oldTags = Arrays.stream(parentTag.findSubTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE))
       .filter(tag -> attrName.equals(tag.getAttribute(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, SdkConstants.AUTO_URI)))
       .collect(Collectors.toList());
 
     Runnable transaction = () -> {
       oldTags.forEach(tag -> tag.delete());
 
-      XmlTag createdTag = keyFrameOrConstraint.createChildTag(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, null, null, false);
-      createdTag = keyFrameOrConstraint.addSubTag(createdTag, false);
+      XmlTag createdTag = parentTag.createChildTag(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, null, null, false);
+      createdTag = parentTag.addSubTag(createdTag, false);
       createdTag.setAttribute(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, SdkConstants.AUTO_URI, attrName);
       createdTag.setAttribute(type.getTagName(), SdkConstants.AUTO_URI, StringUtil.isNotEmpty(value) ? value : type.getDefaultValue());
-
-      operation.accept(createdTag);
+      MotionSceneTag createdMotionTag = new MotionSceneTag(createdTag, keyFrameOrConstraint);
+      operation.accept(createdMotionTag);
     };
 
     ApplicationManager.getApplication().assertIsDispatchThread();
@@ -187,7 +198,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
         "Set $componentName.$name to $newValue",
         null,
         transaction,
-        keyFrameOrConstraint.getContainingFile()));
+        parentTag.getContainingFile()));
   }
 
   public void deleteTag(@NotNull XmlTag tag, @NotNull Runnable operation) {
@@ -220,13 +231,17 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   }
 
   @Nullable
+  public static MotionSceneTag getMotionTag(@NotNull NelePropertyItem property) {
+    return (MotionSceneTag)property.getOptionalValue1();
+  }
+
+  @Nullable
   public static XmlTag getTag(@NotNull NelePropertyItem property) {
-    @SuppressWarnings("unchecked")
-    SmartPsiElementPointer<XmlTag> tagPointer = (SmartPsiElementPointer<XmlTag>)property.getOptionalValue1();
-    if (tagPointer == null) {
+    MotionSceneTag motionTag = (MotionSceneTag)property.getOptionalValue1();
+    if (motionTag == null) {
       return null;
     }
-    return tagPointer.getElement();
+    return motionTag.getXmlTag();
   }
 
   @Nullable
