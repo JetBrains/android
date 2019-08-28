@@ -15,30 +15,35 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_TOOLTIP;
+import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL;
 import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.generateChooseValidJdkDirectoryError;
 import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.getLocationFromComboBoxWithBrowseButton;
-import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.setUpJdkWarningLabelAndLink;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
-import static com.android.tools.idea.sdk.IdeSdks.isSameAsJavaHomeJdk;
-import static com.android.tools.idea.welcome.wizard.JdkSetupStepKt.createSingleFolderDescriptor;
 import static com.android.tools.idea.wizard.WizardConstants.KEY_JDK_LOCATION;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ComboboxWithBrowseButton;
-import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.ContextHelpLabel;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.Function;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,16 +52,16 @@ import org.jetbrains.annotations.Nullable;
  * @deprecated use {@link com.android.tools.idea.welcome.wizard.JdkSetupStep}
  */
 public class JdkSetupStep extends FirstRunWizardStep {
-  @SuppressWarnings("unused") private JPanel myRootPanel;
   @SuppressWarnings("unused") private ComboboxWithBrowseButton myJdkLocationComboBox;
-  @SuppressWarnings("unused") private HyperlinkLabel myJdkWarningLink;
-  @SuppressWarnings("unused") private JLabel myJdkWarningLabel;
+  private JBLabel myJdkLocationHelp;
+  private JBScrollPane myContents;
+  private boolean myIsJavaHomeValid;
 
   public JdkSetupStep() {
     super("Select default JDK Location");
     setUpJdkLocationComboBox();
-    setUpJdkWarningLabelAndLink(myJdkWarningLabel, myJdkWarningLink);
-    setComponent(myRootPanel);
+    setComponent(myContents);
+    createUIComponents();
   }
 
   private void setUpJdkLocationComboBox() {
@@ -82,7 +87,8 @@ public class JdkSetupStep extends FirstRunWizardStep {
     String javaHomePath = getJdkFromJavaHome();
     if (javaHomePath != null) {
       File validatedPath = validateJdkPath(new File(javaHomePath));
-      if (validatedPath != null) {
+      myIsJavaHomeValid = validatedPath != null;
+      if (myIsJavaHomeValid) {
         comboBox.addItem(new IdeSdksConfigurable.LabelAndFileForLocation("JAVA_HOME", validatedPath));
       }
     }
@@ -108,14 +114,30 @@ public class JdkSetupStep extends FirstRunWizardStep {
     else {
       myJdkLocationComboBox.getComboBox().setSelectedItem(toSystemDependentName(path.getPath()));
     }
-    setJdkWarningVisibility();
     updateIsValidPath();
   }
 
-  private void setJdkWarningVisibility() {
-    boolean visible = !isSameAsJavaHomeJdk(getJdkLocation());
-    myJdkWarningLink.setVisible(visible);
-    myJdkWarningLabel.setVisible(visible);
+  private void createUIComponents() {
+    myJdkLocationHelp = ContextHelpLabel.createWithLink(null, JDK_LOCATION_TOOLTIP, "Learn more",
+                                                        () -> BrowserUtil.browse(JDK_LOCATION_WARNING_URL));
+  }
+
+  @NotNull
+  private static FileChooserDescriptor createSingleFolderDescriptor(@NotNull Function<? super File, Void> validation) {
+    FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false) {
+      @Override
+      public void validateSelectedFiles(VirtualFile[] files) {
+        for (VirtualFile virtualFile : files) {
+          File file = virtualToIoFile(virtualFile);
+          validation.fun(file);
+        }
+      }
+    };
+    if (SystemInfo.isMac) {
+      descriptor.withShowHiddenFiles(true);
+    }
+    descriptor.setTitle("Choose JDK Location");
+    return descriptor;
   }
 
   private void updateIsValidPath() {
@@ -148,7 +170,7 @@ public class JdkSetupStep extends FirstRunWizardStep {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myRootPanel;
+    return myJdkLocationComboBox;
   }
 
   @Override

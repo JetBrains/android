@@ -99,8 +99,6 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
       }
     }
     setJdkLocationComboBox(embeddedPath)
-
-    IdeSdksConfigurable.setUpJdkWarningLabelAndLink(jdkWarningLabel, jdkWarningLink)
   }
 
   override fun onEntering() {
