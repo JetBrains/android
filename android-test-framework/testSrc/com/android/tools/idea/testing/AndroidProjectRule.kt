@@ -174,7 +174,7 @@ class AndroidProjectRule private constructor(
 
   fun <T> mockProjectService(serviceType: Class<T>): T = mocks.mockProjectService(serviceType)
 
-  fun <T> registerExtension(epName: ExtensionPointName<T>, extension: T) =
+  fun <T : Any> registerExtension(epName: ExtensionPointName<T>, extension: T) =
     project.registerExtension(epName, extension, fixture.projectDisposable)
 
   fun <T: CodeInsightTestFixture> getFixture(type: Class<T>): T? {
