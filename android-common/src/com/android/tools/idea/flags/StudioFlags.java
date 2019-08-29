@@ -346,11 +346,6 @@ public final class StudioFlags {
     NELE, "design.surface.zoom", "Zoom panel in Design Surface",
     "Enable zoom controls in the design surface, substitutes any zoom controls on the top toolbar of the editor.",
     true);
-
-  public static final Flag<Boolean> NELE_VISUALIZATION = Flag.create(
-    NELE, "visualisation", "Layout Visualisation Tool",
-    "Enable Visualisation Tool to preview layout in multiple devices at the same time",
-    true);
   //endregion
 
   //region Navigation Editor
