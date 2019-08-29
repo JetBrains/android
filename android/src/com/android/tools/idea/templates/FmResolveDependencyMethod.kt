@@ -51,7 +51,7 @@ fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: St
   val minCoordinate = if (minRev == null) coordinate else GradleCoordinate(coordinate.groupId, coordinate.artifactId, minRev)
 
   // If we cannot resolve the dependency on the repo, return the at least the min requested
-  val resolved = repo.resolveDynamicCoordinate(coordinate, null) ?: return minCoordinate.toString()
+  val resolved = repo.resolveDynamicCoordinate(coordinate, null, null) ?: return minCoordinate.toString()
 
   return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER).toString()
 }

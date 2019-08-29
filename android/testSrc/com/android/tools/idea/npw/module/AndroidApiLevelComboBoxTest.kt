@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.module
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.module.AndroidApiLevelComboBox.getPropertiesComponentMinSdkKey
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.google.common.collect.Lists

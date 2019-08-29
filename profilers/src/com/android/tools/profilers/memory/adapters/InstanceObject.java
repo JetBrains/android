@@ -41,9 +41,6 @@ public interface InstanceObject extends ValueObject {
   @NotNull
   ClassDb.ClassEntry getClassEntry();
 
-  @Nullable
-  InstanceObject getClassObject();
-
   default int getFieldCount() {
     return 0;
   }

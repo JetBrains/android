@@ -16,6 +16,7 @@ package com.android.tools.idea.compose.preview
  * limitations under the License.
  */
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -33,19 +34,19 @@ import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.getContainingUMethod
 import org.jetbrains.uast.visitor.UastVisitor
 
-private fun UAnnotation.findAttributeIntValue(name: String, defaultValue: Int) =
-  findAttributeValue(name)?.evaluate() as? Int ?: defaultValue
+private fun UAnnotation.findAttributeIntValue(name: String) =
+  findAttributeValue(name)?.evaluate() as? Int
 
 /**
  * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
  */
 private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
-  val apiLevel = node.findAttributeIntValue("apiLevel", UNDEFINED_API_LEVEL)
+  val apiLevel = node.findAttributeIntValue("apiLevel")
   val theme = node.findAttributeValue("theme")?.evaluateString()?.nullize()
-  val width = node.findAttributeIntValue("width", UNDEFINED_DIMENSION)
-  val height = node.findAttributeIntValue("height", UNDEFINED_DIMENSION)
+  val width = node.findAttributeIntValue("width")
+  val height = node.findAttributeIntValue("height")
 
-  return PreviewConfiguration(apiLevel, theme, width, height)
+  return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height)
 }
 
 /**
@@ -79,7 +80,8 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
         // copy & paste and both the compiler and Studio will flag it as an error.
         if (previewMethodsFqName.add(composableMethod)) {
           previewElements.add(PreviewElement(previewName, composableMethod,
-                                             annotatedMethod.bodyTextRange(),
+                                             previewAnnotation.toSmartPsiPointer(),
+                                             annotatedMethod.uastBody.toSmartPsiPointer(),
                                              attributesToConfiguration(previewAnnotation)))
         }
       }
@@ -89,7 +91,8 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
           val uMethod = node.getContainingUMethod()
           uMethod?.let {
             if (!it.parameterList.isEmpty) {
-              error("Preview methods must not have any parameters")
+              // We do not fail here. The ComposeViewAdapter will throw an exception that will be surfaced to the user
+              Logger.getInstance(AnnotationPreviewElementFinder::class.java).debug("Preview methods must not have any parameters")
             }
 
             // The method must also be annotated with @Composable

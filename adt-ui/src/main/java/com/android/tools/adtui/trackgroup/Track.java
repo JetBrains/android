@@ -17,6 +17,8 @@ package com.android.tools.adtui.trackgroup;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
+import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -29,8 +31,13 @@ public class Track {
   private final JPanel myComponent;
 
   private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackComponent) {
+    JLabel titleLabel = new JLabel(trackModel.getTitle());
+    titleLabel.setBorder(new JBEmptyBorder(4, 36, 4, 0));
+
+    trackComponent.setBorder(new JBEmptyBorder(4, 0, 4, 0));
+
     myComponent = new JPanel(new TabularLayout("150px,*"));
-    myComponent.add(new JLabel(trackModel.getTitle()), new TabularLayout.Constraint(0, 0));
+    myComponent.add(titleLabel, new TabularLayout.Constraint(0, 0));
     myComponent.add(trackComponent, new TabularLayout.Constraint(0, 1));
   }
 

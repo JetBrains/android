@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.ChooseClassDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class RelativeLayoutTest {
@@ -69,11 +71,10 @@ public class RelativeLayoutTest {
     layout.waitForRenderToFinish();
     layout.dragComponentToSurface("Widgets", "ImageView");
 
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myGuiTest.robot());
-    assertThat(dialog.getTitle()).isEqualTo("Resources");
-    dialog.expandList("Project (1)").getList("Project (1)").selectItem("ic_launcher");
-
-    dialog.clickOK();
+    ResourceExplorerDialogFixture dialog = ResourceExplorerDialogFixture.find(myGuiTest.robot());
+    assertThat(dialog.getTitle()).isEqualTo("Pick a Resource");
+    dialog.getResourceExplorer().selectResource("ic_launcher");
+    dialog.clickOk();
 
     editor.switchToTab("Text");
 

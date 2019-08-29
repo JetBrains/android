@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.resourcemanager
 
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbar
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerToolbarViewModel
@@ -37,17 +36,13 @@ import java.awt.BorderLayout
 import javax.swing.JPanel
 import kotlin.properties.Delegates
 
-internal val MANAGER_SUPPORTED_RESOURCES get() =
-  if (StudioFlags.RESOURCE_EXPLORER_PICKER.get()) {
-    arrayOf(ResourceType.DRAWABLE,     ResourceType.COLOR,      ResourceType.LAYOUT,  ResourceType.MIPMAP,
-            ResourceType.STRING,       ResourceType.NAVIGATION, ResourceType.ANIM,    ResourceType.ANIMATOR,
-            ResourceType.INTERPOLATOR, ResourceType.TRANSITION, ResourceType.FONT,    ResourceType.MENU,
-            ResourceType.STYLE,        ResourceType.ARRAY,      ResourceType.BOOL,    ResourceType.DIMEN,
-            ResourceType.FRACTION,     ResourceType.INTEGER,    ResourceType.PLURALS, ResourceType.XML)
-  } else {
-    arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR,
-            ResourceType.LAYOUT,   ResourceType.MIPMAP)
-  }
+internal val MANAGER_SUPPORTED_RESOURCES
+  get() =
+    arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.LAYOUT, ResourceType.MIPMAP,
+            ResourceType.STRING, ResourceType.NAVIGATION, ResourceType.ANIM, ResourceType.ANIMATOR,
+            ResourceType.INTERPOLATOR, ResourceType.TRANSITION, ResourceType.FONT, ResourceType.MENU,
+            ResourceType.STYLE, ResourceType.ARRAY, ResourceType.BOOL, ResourceType.DIMEN,
+            ResourceType.FRACTION, ResourceType.INTEGER, ResourceType.PLURALS, ResourceType.XML)
 
 internal val RESOURCE_DEBUG = System.getProperty("res.manag.debug", "false")?.toBoolean() ?: false
 

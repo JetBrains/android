@@ -42,7 +42,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private ViewEditor myCustomViewEditor;
 
   public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
-    super(model, model.getSurface(), RenderSettings.getProjectSettings(model.getProject()), EdtExecutorService.getInstance());
+    super(model, model.getSurface(), () -> RenderSettings.getProjectSettings(model.getProject()), EdtExecutorService.getInstance());
     myDefaultProperties = new HashMap<>();
   }
 

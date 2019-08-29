@@ -39,7 +39,7 @@ class CpuCaptureStageTest {
 
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
-  private val profilerClient = ProfilerClient(grpcChannel.getName())
+  private val profilerClient = ProfilerClient(grpcChannel.name)
 
   private lateinit var profilers: StudioProfilers
 
@@ -100,12 +100,45 @@ class CpuCaptureStageTest {
   fun trackGroupModelsAreSet() {
     val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("basic.trace"))
     profilers.stage = stage
-    assertThat(stage.trackGroupListModel.size).isEqualTo(1)
+
+    assertThat(stage.trackGroupListModel.size).isEqualTo(2)
+
     val interactionTrackGroup = stage.trackGroupListModel[0]
     assertThat(interactionTrackGroup.title).isEqualTo("Interaction")
     assertThat(interactionTrackGroup.size).isEqualTo(2)
     assertThat(interactionTrackGroup[0].title).isEqualTo("User")
     assertThat(interactionTrackGroup[1].title).isEqualTo("Lifecycle")
+
+    val threadsTrackGroup = stage.trackGroupListModel[1]
+    assertThat(threadsTrackGroup.title).isEqualTo("Threads (1)")
+    assertThat(threadsTrackGroup.size).isEqualTo(1)
+  }
+
+  @Test
+  fun trackGroupModelsAreSetForAtrace() {
+    services.enableAtrace(true)
+    val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"))
+    profilers.stage = stage
+
+    assertThat(stage.trackGroupListModel.size).isEqualTo(3)
+
+    val interactionTrackGroup = stage.trackGroupListModel[0]
+    assertThat(interactionTrackGroup.title).isEqualTo("Interaction")
+    assertThat(interactionTrackGroup.size).isEqualTo(2)
+    assertThat(interactionTrackGroup[0].title).isEqualTo("User")
+    assertThat(interactionTrackGroup[1].title).isEqualTo("Lifecycle")
+
+    val displayTrackGroup = stage.trackGroupListModel[1]
+    assertThat(displayTrackGroup.title).isEqualTo("Display")
+    assertThat(displayTrackGroup.size).isEqualTo(3)
+    assertThat(displayTrackGroup[0].title).isEqualTo("Frames")
+    assertThat(displayTrackGroup[1].title).isEqualTo("Surfaceflinger")
+    assertThat(displayTrackGroup[2].title).isEqualTo("Vsync")
+
+    val threadsTrackGroup = stage.trackGroupListModel[2]
+    assertThat(threadsTrackGroup.title).isEqualTo("Threads (1)")
+    assertThat(threadsTrackGroup.size).isEqualTo(1)
+    assertThat(threadsTrackGroup[0].title).isEqualTo("atrace")
   }
 
   @Test
@@ -159,7 +192,7 @@ class CpuCaptureStageTest {
     services.enableAtrace(true)
     services.enablePerfetto(true)
     val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), "surfaceflinger")
-    profilers.stage = stage!!
+    profilers.stage = stage
     assertThat(stage.capture).isNotNull()
     val mainThread = stage.capture.threads.find { it.isMainThread }
     assertThat(mainThread!!.name).isEqualTo("surfaceflinger")
@@ -171,7 +204,7 @@ class CpuCaptureStageTest {
     services.enableAtrace(true)
     services.enablePerfetto(true)
     val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), null)
-    profilers.stage = stage!!
+    profilers.stage = stage
     assertThat(stage.capture).isNotNull()
     val mainThread = stage.capture.threads.find { it.isMainThread }
     assertThat(mainThread!!.name).isEqualTo("android.traceur")

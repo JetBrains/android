@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider
+import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupportProvider
@@ -117,7 +118,7 @@ class FavoritesInspectorBuilder(
   }
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
-    if (!InspectorSection.FAVORITES.visible) {
+    if (properties.isEmpty || !InspectorSection.FAVORITES.visible) {
       return
     }
     val favorites = loadFavoritePropertiesIfNeeded()
@@ -128,6 +129,7 @@ class FavoritesInspectorBuilder(
     val deleteRowAction = DeleteRowAction(favoritesTableModel)
     val titleModel = inspector.addExpandableTitle(InspectorSection.FAVORITES.title, false, addNewRow, deleteRowAction)
     val tableLineModel = inspector.addTable(favoritesTableModel, false, tableUIProvider, titleModel)
+    inspector.addComponent(EmptyTablePanel(addNewRow, tableLineModel), titleModel)
     addNewRow.titleModel = titleModel
     addNewRow.lineModel = tableLineModel
     deleteRowAction.titleModel = titleModel

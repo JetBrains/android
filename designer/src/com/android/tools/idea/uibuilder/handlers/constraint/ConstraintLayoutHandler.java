@@ -77,8 +77,10 @@ import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
+import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
@@ -126,6 +128,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.JBUI;
@@ -1175,33 +1178,41 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         }
 
         Set<ResourceType> types = EnumSet.of(ResourceType.DIMEN);
-        ChooseResourceDialog dialog = ChooseResourceDialog.builder()
-          .setModule(myComponent.getModel().getModule())
-          .setTypes(types)
-          .setCurrentValue(String.valueOf(Scout.getMargin()))
-          .setTag(myComponent.getBackend().getTag())
-          .setDefaultType(ResourceType.DIMEN)
-          .build();
-        dialog.setTitle(PICK_A_DIMENSION);
+        XmlTag tag = myComponent.getBackend().getTag();
+        ResourcePickerDialog dialog = ResourceChooserHelperKt.createResourcePickerDialog(
+          PICK_A_DIMENSION,
+          String.valueOf(Scout.getMargin()),
+          myComponent.getModel().getFacet(),
+          types,
+          ResourceType.DIMEN,
+          true,
+          false,
+          tag != null ? tag.getContainingFile().getVirtualFile() : null,
+          null,
+          tag
+        );
 
         if (myMarginPopup != null) {
           myMarginPopup.cancel();
         }
         if (dialog.showAndGet()) {
-          resolveResValue(dialog);
+          resolveResValue(dialog.getResourceName());
         }
       }
 
-      private void resolveResValue(ChooseResourceDialog dialog) {
-        ResourceResolver resolver = dialog.getResourceResolver();
+      private void resolveResValue(String resourceRef) {
+        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myComponent.getModel().getFacet());
+        XmlTag tag = myComponent.getBackend().getTag();
+        assert tag != null;
+        ResourceResolver resolver = configurationManager.getConfiguration(tag.getContainingFile().getVirtualFile()).getResourceResolver();
         ResourceValue unresolved = new AttrResourceValueImpl(ResourceNamespace.RES_AUTO, "dimens", null);
-        unresolved.setValue(dialog.getResourceName());
-        ResourceValue value = resolver.resolveResValue(unresolved);
-        String marginDp = getMarginInDp(value);
+        unresolved.setValue(resourceRef);
+        ResourceValue resolvedValue = resolver.resolveResValue(unresolved);
+        String marginDp = getMarginInDp(resolvedValue);
 
         if (marginDp == null) {
           Messages.showWarningDialog(
-            "\"" + dialog.getResourceName() + "\' cannot be used for default margin. Please choose a resource with \"dp\" type instead.",
+            "\"" + resourceRef + "\' cannot be used for default margin. Please choose a resource with \"dp\" type instead.",
             "Warning");
           setMargin(null, Scout.DEFAULT_MARGIN);
           return;
@@ -1209,10 +1220,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
         try {
           int marginInInt = Integer.parseInt(marginDp);
-          setMargin(dialog.getResourceName(), marginInInt);
+          setMargin(resourceRef, marginInInt);
         } catch (NumberFormatException nfe) {
           Messages.showWarningDialog(
-            "\"" + dialog.getResourceName() + "\' is not a valid dimension. Please choose a resource with correct dimension value instead.",
+            "\"" + resourceRef + "\' is not a valid dimension. Please choose a resource with correct dimension value instead.",
             "Warning");
           setMargin(null, Scout.DEFAULT_MARGIN);
           Logger.getInstance(MarginPopup.class).warn("Was unable to resolve the resValue from ResourceDialog.");

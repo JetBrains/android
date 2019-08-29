@@ -74,7 +74,7 @@ public class NewActivityTest {
   }
 
   @Test
-  public void createLauncherActivity() throws IOException {
+  public void createLauncherActivity() {
     myConfigActivity.selectLauncherActivity();
     myDialog.clickFinish();
 
@@ -99,7 +99,7 @@ public class NewActivityTest {
   }
 
   @Test
-  public void createActivityWithNonDefaultPackage() throws IOException {
+  public void createActivityWithNonDefaultPackage() {
     myConfigActivity.enterTextFieldValue(ActivityTextField.PACKAGE_NAME, "google.test2");
     myDialog.clickFinish();
 
@@ -108,7 +108,7 @@ public class NewActivityTest {
   }
 
   @Test
-  public void createActivityWithKotlin() throws IOException {
+  public void createActivityWithKotlin() {
     myConfigActivity.setSourceLanguage("Kotlin");
     assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.KOTLIN);
     assertThat(getSavedKotlinSupport()).isFalse(); // Changing the Render source language should not affect the project default

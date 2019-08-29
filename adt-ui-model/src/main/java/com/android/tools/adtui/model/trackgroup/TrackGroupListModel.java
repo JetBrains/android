@@ -29,9 +29,14 @@ public class TrackGroupListModel extends DragAndDropListModel<TrackGroupModel> {
 
   /**
    * Add a {@link TrackGroupModel} to list model.
+   *
+   * @param builder for building the model
+   * @return the model instantiated from the provided builder
    */
-  public void addTrackGroupModel(TrackGroupModel trackGroupModel) {
+  public TrackGroupModel addTrackGroupModel(TrackGroupModel.Builder builder) {
     // add() is disabled in DragAndDropListModel to support dynamically reordering elements. Use insertOrderedElement() instead.
-    insertOrderedElement(trackGroupModel.setId(TRACK_GROUP_ID_GENERATOR.getAndIncrement()));
+    TrackGroupModel model = builder.setId(TRACK_GROUP_ID_GENERATOR.getAndIncrement()).build();
+    insertOrderedElement(model);
+    return model;
   }
 }

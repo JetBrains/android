@@ -16,15 +16,27 @@
 package com.android.tools.idea.compose.preview
 
 import com.intellij.openapi.util.TextRange
-import com.intellij.testFramework.UsefulTestCase
-import com.intellij.testFramework.UsefulTestCase.assertEmpty
+import com.intellij.psi.impl.source.tree.injected.changesHandler.range
 import org.intellij.lang.annotations.Language
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.AbstractUastVisitor
-import org.junit.Assert.assertNotEquals
+import org.junit.Assert
+
+/**
+ * Asserts that the given [methodName] body has the actual given [actualBodyRange]
+ */
+private fun assertMethodTextRange(file: UFile, methodName: String, actualBodyRange: TextRange) {
+  val range = file
+    .method(methodName)
+    ?.uastBody
+    ?.sourcePsi
+    ?.textRange!!
+  Assert.assertNotEquals(range, TextRange.EMPTY_RANGE)
+  Assert.assertEquals(range, actualBodyRange)
+}
 
 class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() {
   fun testFindPreviewAnnotations() {
@@ -48,6 +60,12 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
       fun Preview3() {
       }
 
+      // This preview element will be found but the ComposeViewAdapter won't be able to render it
+      @Composable
+      @Preview(name = "Preview with parameters")
+      fun PreviewWithParametrs(i: Int) {
+      }
+
       @Composable
       fun NoPreviewComposable() {
 
@@ -61,32 +79,39 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
     """.trimIndent()).toUElement() as UFile
 
     val elements = AnnotationPreviewElementFinder.findPreviewMethods(composeTest)
-    assertEquals(3, elements.size)
+    assertEquals(4, elements.size)
     elements[1].let {
-      assertEquals("preview2", it.name)
+      assertEquals("preview2", it.displayName)
       assertEquals(12, it.configuration.apiLevel)
       assertNull(it.configuration.theme)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
-      assertMethodTextRange(composeTest, "Preview2", it.textRange)
+      assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
+      assertEquals("@Preview(name = \"preview2\", apiLevel = 12)", it.previewElementDefinitionPsi?.element?.text)
     }
 
     elements[2].let {
-      assertEquals("preview3", it.name)
+      assertEquals("preview3", it.displayName)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
 
-      assertMethodTextRange(composeTest, "Preview3", it.textRange)
+      assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
+      assertEquals("@Preview(name = \"preview3\", width = 1, height = 2)", it.previewElementDefinitionPsi?.element?.text)
     }
 
     elements[0].let {
-      assertEquals("", it.name)
+      assertEquals("", it.displayName)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
-      assertMethodTextRange(composeTest, "Preview1", it.textRange)
+      assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+      assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
+    }
+
+    elements[3].let {
+      assertEquals("Preview with parameters", it.displayName)
     }
   }
 
@@ -110,7 +135,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
     val elements = AnnotationPreviewElementFinder.findPreviewMethods(composeTest)
     assertEquals(1, elements.size)
     // Check that we keep the first element
-    assertEmpty(elements[0].name)
+    assertEmpty(elements[0].displayName)
   }
 
   fun testElementBelongsToPreviewElement() {

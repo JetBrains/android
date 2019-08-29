@@ -18,15 +18,14 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
-import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.ConstraintSetConstraint;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.MotionSceneConstraintSet;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
@@ -51,10 +50,14 @@ import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
 import java.awt.EventQueue;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.attrs.StyleableDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
@@ -88,15 +91,17 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
   public PropertiesTable<NelePropertyItem> getProperties(@NotNull NelePropertiesModel model,
                                                          @Nullable Object optionalValue,
                                                          @NotNull List<? extends NlComponent> components) {
+    return PropertiesTable.Companion.emptyTable();
+  }
+
+  @NotNull
+  public Map<String, PropertiesTable<NelePropertyItem>> getAllProperties(@NotNull NelePropertiesModel model,
+                                                                         @NotNull SmartPsiElementPointer<XmlTag> tagPointer,
+                                                                         @NotNull List<? extends NlComponent> components) {
     assert (!EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode());
 
-    @SuppressWarnings("unchecked")
-    SmartPsiElementPointer<XmlTag> tagPointer = (SmartPsiElementPointer<XmlTag>)optionalValue;
-    if (tagPointer == null) {
-      return PropertiesTable.Companion.emptyTable();
-    }
     return DumbService.getInstance(myProject).runReadActionInSmartMode(
-      () -> PropertiesTable.Companion.create(getPropertiesImpl(model, tagPointer, components)));
+      () -> getPropertiesImpl(model, tagPointer, components));
   }
 
   @NotNull
@@ -105,23 +110,15 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     return PropertiesTable.Companion.create(HashBasedTable.create(EXPECTED_ROWS, EXPECTED_CELLS_PER_ROW));
   }
 
-  private Table<String, String, NelePropertyItem> getPropertiesImpl(@NotNull NelePropertiesModel model,
-                                                                    @Nullable SmartPsiElementPointer<XmlTag> tagPointer,
-                                                                    @NotNull List<? extends NlComponent> components) {
-    if (tagPointer == null || components.isEmpty()) {
-      return myEmptyTable;
+  private Map<String, PropertiesTable<NelePropertyItem>> getPropertiesImpl(@NotNull NelePropertiesModel model,
+                                                                           @NotNull SmartPsiElementPointer<XmlTag> tagPointer,
+                                                                           @NotNull List<? extends NlComponent> components) {
+    if (components.isEmpty()) {
+      return Collections.emptyMap();
     }
     XmlTag tag = tagPointer.getElement();
     if (tag == null) {
-      return myEmptyTable;
-    }
-    if (tag.getLocalName().equals(MotionSceneConstraintSet)) {
-      // Hack for ConstraintSets. Get the attributes for the Constraint of the current component instead:
-      tag = findConstraint(tag, components.get(0));
-      if (tag == null) {
-        return myEmptyTable;
-      }
-      tagPointer = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(tag);
+      return Collections.emptyMap();
     }
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(myFacet);
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
@@ -129,15 +126,18 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     if (frameworkResourceManager == null) {
       Logger.getInstance(MotionLayoutPropertyProvider.class).error(
         "No system resource manager for module: " + myFacet.getModule().getName());
-      return myEmptyTable;
+      return Collections.emptyMap();
     }
 
     AttributeDefinitions localAttrDefs = localResourceManager.getAttributeDefinitions();
     AttributeDefinitions systemAttrDefs = frameworkResourceManager.getAttributeDefinitions();
+    if (localAttrDefs == null) {
+      return Collections.emptyMap();
+    }
 
     XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(tag);
     if (elementDescriptor == null) {
-      return myEmptyTable;
+      return Collections.emptyMap();
     }
     XmlAttributeDescriptor[] descriptors = elementDescriptor.getAttributesDescriptors(tag);
     Table<String, String, NelePropertyItem> properties = HashBasedTable.create(3, descriptors.length);
@@ -148,9 +148,10 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
       ResourceNamespace namespace = ResourceNamespace.fromNamespaceUri(namespaceUri);
       AttributeDefinition attrDef = (namespace != null && attrDefs != null)
                                     ? attrDefs.getAttrDefinition(ResourceReference.attr(namespace, name)) : null;
-      NelePropertyItem property = createProperty(namespaceUri, name, attrDef, model, tagPointer, components);
+      NelePropertyItem property = createProperty(namespaceUri, name, attrDef, model, components, tagPointer, null);
       properties.put(namespaceUri, name, property);
     }
+    // TODO: Make sure these custom attributes still work:
     for (XmlTag custom : tag.findSubTags(MotionSceneString.KeyAttributes_customAttribute)) {
       String name = custom.getAttributeValue(MotionSceneString.CustomAttributes_attributeName, AUTO_URI);
       if (name == null) {
@@ -164,6 +165,39 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
         }
       }
     }
+    Map<String, PropertiesTable<NelePropertyItem>> allProperties = new LinkedHashMap<>();
+    allProperties.put(tag.getLocalName(), PropertiesTable.Companion.create(properties));
+
+    if (tag.getLocalName().equals(MotionSceneAttrs.Tags.CONSTRAINT)) {
+      XmlElementDescriptor[] subTagDescriptors = elementDescriptor.getElementsDescriptors(tag);
+      for (XmlElementDescriptor descriptor : subTagDescriptors) {
+        String subTagName = descriptor.getName();
+        if (!subTagName.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
+          Table<String, String, NelePropertyItem> subTagProperties =
+            loadFromStyleableName(descriptor.getName(), localAttrDefs, model, tagPointer, components);
+          allProperties.put(descriptor.getName(), PropertiesTable.Companion.create(subTagProperties));
+        }
+      }
+    }
+    return allProperties;
+  }
+
+  private Table<String, String, NelePropertyItem> loadFromStyleableName(@NotNull String styleableName,
+                                                                        @NotNull AttributeDefinitions attrDefs,
+                                                                        @NotNull NelePropertiesModel model,
+                                                                        @NotNull SmartPsiElementPointer<XmlTag> tagPointer,
+                                                                        @NotNull List<? extends NlComponent> components) {
+    ResourceReference reference = new ResourceReference(ResourceNamespace.TODO(), ResourceType.STYLEABLE, styleableName);
+    StyleableDefinition styleable = attrDefs.getStyleableDefinition(reference);
+    if (styleable == null) {
+      return myEmptyTable;
+    }
+    Table<String, String, NelePropertyItem> properties = HashBasedTable.create(3, styleable.getAttributes().size());
+    styleable.getAttributes().forEach((AttributeDefinition attr) -> {
+      NelePropertyItem property = createProperty(attr.getResourceReference().getNamespace().getXmlNamespaceUri(),
+                                                 attr.getName(), attr, model, components, tagPointer, styleableName);
+      properties.put(property.getNamespace(), property.getName(), property);
+    });
     return properties;
   }
 
@@ -182,32 +216,18 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
                                                  @NotNull String name,
                                                  @Nullable AttributeDefinition attr,
                                                  @NotNull NelePropertiesModel model,
+                                                 @NotNull List<? extends NlComponent> components,
                                                  @NotNull SmartPsiElementPointer<XmlTag> tagPointer,
-                                                 @NotNull List<? extends NlComponent> components) {
+                                                 @Nullable String subTag) {
     NelePropertyType type = TypeResolver.INSTANCE.resolveType(name, attr);
     String libraryName = StringUtil.notNullize(attr != null ? attr.getLibraryName() : null);
     if (namespace == ANDROID_URI && name == ATTR_ID) {
-      return new NeleIdPropertyItem(model, attr, "", components, tagPointer, null);
+      return new NeleIdPropertyItem(model, attr, "", components, tagPointer, subTag);
     }
     if (attr != null && attr.getFormats().contains(AttributeFormat.FLAGS) && attr.getValues().length == 0) {
-      return new NeleFlagsPropertyItem(namespace, name, type, attr, "", libraryName, model, components, tagPointer, null);
+      return new NeleFlagsPropertyItem(namespace, name, type, attr, "", libraryName, model, components, tagPointer, subTag);
     }
-    return new NelePropertyItem(namespace, name, type, attr, "", libraryName, model, components, tagPointer, null);
-  }
-
-  @Nullable
-  private static XmlTag findConstraint(@NotNull XmlTag constraintSet, @NotNull NlComponent component) {
-    String id = component.getId();
-    if (id == null) {
-      return null;
-    }
-    for (XmlTag constraint : constraintSet.findSubTags(ConstraintSetConstraint)) {
-      String idValue = constraint.getAttributeValue(ATTR_ID, ANDROID_URI);
-      if (idValue != null && id.equals(stripPrefixFromId(idValue))) {
-        return constraint;
-      }
-    }
-    return null;
+    return new NelePropertyItem(namespace, name, type, attr, "", libraryName, model, components, tagPointer, subTag);
   }
 
   @NotNull

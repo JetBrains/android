@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.databinding.finders
 
-import com.android.tools.idea.databinding.DataBindingProjectComponent
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.LayoutBindingProjectComponent
 import com.android.tools.idea.databinding.ModuleDataBinding
-import com.android.tools.idea.databinding.isViewBindingEnabled
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.ModuleManager
@@ -38,7 +36,7 @@ import org.jetbrains.android.facet.AndroidFacet
  *
  * See [LightBindingClass]
  */
-class BindingClassFinder(project: Project) : PsiElementFinder() {
+class BindingClassFinder(private val project: Project) : PsiElementFinder() {
   companion object {
     fun findAllBindingClasses(project: Project): List<LightBindingClass> {
       return ModuleManager.getInstance(project).modules
@@ -47,7 +45,8 @@ class BindingClassFinder(project: Project) : PsiElementFinder() {
     }
 
     fun findAllBindingClasses(facet: AndroidFacet): List<LightBindingClass> {
-      if (!facet.isViewBindingEnabled() && !DataBindingUtil.isDataBindingEnabled(facet)) return emptyList()
+      val bindingComponent = facet.module.project.getComponent(LayoutBindingProjectComponent::class.java)
+      if (bindingComponent.getAllBindingEnabledFacets().isEmpty()) return emptyList()
 
       val moduleDataBinding = ModuleDataBinding.getInstance(facet)
       val groups = moduleDataBinding.bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return emptyList()
@@ -55,9 +54,8 @@ class BindingClassFinder(project: Project) : PsiElementFinder() {
     }
   }
 
-  private val dataBindingComponent = project.getComponent(DataBindingProjectComponent::class.java)
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
-    return findAllBindingClasses(dataBindingComponent.project)
+    return findAllBindingClasses(project)
       .firstOrNull {
         bindingClass -> qualifiedName == bindingClass.qualifiedName && PsiSearchScopeUtil.isInScope(scope, bindingClass) }
   }

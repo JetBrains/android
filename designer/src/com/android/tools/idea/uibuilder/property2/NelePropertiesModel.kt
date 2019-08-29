@@ -112,7 +112,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
 
   @VisibleForTesting
   var lastUpdateCompleted: Boolean = true
-    private set
+    protected set
 
   init {
     @Suppress("LeakingThis")
@@ -279,7 +279,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     // can take close to a second, so we do it on a separate thread..
     val application = ApplicationManager.getApplication()
     val wantUpdate = { wantComponentSelectionUpdate(surface, activeSurface, activePanel) }
-    val future = application.executeOnPooledThread<Boolean> { handleUpdate(null, components, wantUpdate) }
+    val future = application.executeOnPooledThread<Boolean> { loadProperties(null, components, wantUpdate) }
 
     // Enable our testing code to wait for the above pooled thread execution.
     if (application.isUnitTestMode) {
@@ -287,7 +287,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     }
   }
 
-  private fun updateLiveListeners(components: List<NlComponent>) {
+  protected fun updateLiveListeners(components: List<NlComponent>) {
     liveComponents.forEach { it.removeLiveChangeListener(liveChangeListener) }
     liveComponents.clear()
     liveComponents.addAll(components)
@@ -303,7 +303,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     // can take close to a second, so we do it on a separate thread..
     val application = ApplicationManager.getApplication()
     val wantUpdate = { wantPanelSelectionUpdate(panel, activePanel) }
-    val future = application.executeOnPooledThread<Boolean> { handleUpdate(panel.selectedAccessory, components, wantUpdate) }
+    val future = application.executeOnPooledThread<Boolean> { loadProperties(panel.selectedAccessory, components, wantUpdate) }
 
     // Enable our testing code to wait for the above pooled thread execution.
     if (application.isUnitTestMode) {
@@ -311,7 +311,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     }
   }
 
-  private fun handleUpdate(accessory: Any?, components: List<NlComponent>, wantUpdate: () -> Boolean): Boolean {
+  protected open fun loadProperties(accessory: Any?, components: List<NlComponent>, wantUpdate: () -> Boolean): Boolean {
     if (!wantUpdate()) {
       return false
     }

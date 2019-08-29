@@ -382,14 +382,19 @@ public final class AndroidSdkUtils {
   }
 
   /**
-   * Finds and returns the adb executable
-   * @param project the project from which SDK path will be determined
+   * Finds and returns the adb executable.
+   * <p>
+   *   ADB executable can come from 2 places: The project's Android SDK or from {@link #ADB_PATH_PROPERTY},
+   *   with the latter having higher priority.
+   * </p>
+   * @param project the project from which SDK path will be determined, if the SDK is required to find ADB.
    * @return ADB file in SDK path specified by ADB_PATH_PROPERTY or the project, or default SDK if project is null
    */
   @Nullable
   public static File getAdb(@Nullable Project project) {
     String path = System.getProperty(ADB_PATH_PROPERTY);
     if (path != null) {
+      LOG.info("Using adb specified by " + ADB_PATH_PROPERTY +" instead of project SDK. Path to adb: " + path);
       File adb = new File(path);
       if (adb.exists()) {
         return adb;
@@ -489,7 +494,6 @@ public final class AndroidSdkUtils {
     }
     if (data == null) {
       LOG.warn("Fail to find project SDK data.");
-      return null;
     }
 
     AndroidDebugBridge bridge = null;
@@ -497,7 +501,7 @@ public final class AndroidSdkUtils {
     do {
       File adb = getAdb(project);
       if (adb == null) {
-        LOG.error("Unable to locate adb within SDK");
+        LOG.error("Unable to locate adb.");
         return null;
       }
 

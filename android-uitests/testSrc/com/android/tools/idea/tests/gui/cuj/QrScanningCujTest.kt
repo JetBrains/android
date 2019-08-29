@@ -21,22 +21,20 @@ import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest
 import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MoveFilesOrDirectoriesDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixture
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton
-import org.fest.swing.timing.Pause.pause
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.awt.event.KeyEvent
 import java.io.IOException
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
@@ -89,7 +87,7 @@ class QrScanningCujTest {
       projectView
         .selectAndroidPane()
         .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-        .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
+        .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout Resource File"))
         .setFilename("activity_main_qr_scan")
         .setRootElement("android.support.constraint.ConstraintLayout")
         .clickOk()
@@ -132,10 +130,10 @@ class QrScanningCujTest {
     ide.editor
       .getLayoutEditor(false).run {
         dragComponentToSurface("Common", "ImageView")
-        ChooseResourceDialogFixture.find(robot()).run {
-          searchField.setText("ic_qr")
-            .pressAndReleaseKeys(KeyEvent.VK_DOWN)
-          clickOK()
+        ResourceExplorerDialogFixture.find(robot()).run {
+          resourceExplorer.searchField.setText("ic_qr")
+          resourceExplorer.selectResource("ic_qr_code")
+          clickOk()
         }
         waitForRenderToFinish()
         findView("ImageView", 0)
@@ -200,10 +198,10 @@ class QrScanningCujTest {
     ide.editor
       .getLayoutEditor(false).run {
         dragComponentToSurface("Common", "ImageView")
-        ChooseResourceDialogFixture.find(robot()).run {
-          searchField.setText("ic_flash_on_white")
-            .pressAndReleaseKeys(KeyEvent.VK_DOWN)
-          clickOK()
+        ResourceExplorerDialogFixture.find(robot()).run {
+          resourceExplorer.searchField.setText("ic_flash_on_white")
+          resourceExplorer.selectResource("ic_flash_on_white_24dp")
+          clickOk()
         }
       }
 
@@ -221,7 +219,7 @@ class QrScanningCujTest {
     ide.projectView
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-      .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
+      .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout Resource File"))
       .setFilename("barcode_capture")
       .setRootElement("FrameLayout")
       .clickOk()

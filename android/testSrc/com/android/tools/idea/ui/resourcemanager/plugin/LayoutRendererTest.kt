@@ -57,7 +57,7 @@ class LayoutRendererTest {
   fun renderLayout() {
     val psiFile = createLayoutFile()
     val facet = rule.module.androidFacet!!
-    val layoutRenderer = LayoutRenderer(facet, ::createRenderTaskForTest)
+    val layoutRenderer = LayoutRenderer(facet, ::createRenderTaskForTest, ImageFuturesManager())
     val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(psiFile.virtualFile)
     val layoutRender = layoutRenderer.getLayoutRender(psiFile, configuration)
     val image = layoutRender.get(5, TimeUnit.SECONDS)!!
@@ -76,7 +76,7 @@ class LayoutRendererTest {
   fun integrationWithProjectResourcesBrowserViewModel() {
     val latch = CountDownLatch(1)
     val androidFacet = rule.module.androidFacet!!
-    val layoutRenderer = LayoutRenderer(androidFacet, ::createRenderTaskForTest)
+    val layoutRenderer = LayoutRenderer(androidFacet, ::createRenderTaskForTest, ImageFuturesManager())
     LayoutRenderer.setInstance(androidFacet, layoutRenderer)
     val designAsset = DesignAsset(createLayoutFile().virtualFile, emptyList(), ResourceType.LAYOUT)
     lateinit var resourceExplorerViewModel: ResourceExplorerViewModel

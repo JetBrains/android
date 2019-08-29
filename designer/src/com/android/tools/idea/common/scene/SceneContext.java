@@ -23,34 +23,30 @@ import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
-import com.intellij.reference.SoftReference;
 import java.awt.Rectangle;
-import java.util.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
- * This represents the Transform between dp to screen space.
- * There are two ways to create it get() or get(ScreenView)
+ * This provides the information for painting the related {@link SceneView} such like transform from dp to screen space.
  */
-public class SceneContext {
-  ColorSet myColorSet;
+public abstract class SceneContext {
   // Picker is used to record all graphics drawn to support selection
-  final ScenePicker myGraphicsPicker = new ScenePicker();
-  Object myFoundObject;
-  Long myTime;
+  private final ScenePicker myGraphicsPicker = new ScenePicker();
+  private Object myFoundObject;
+  private Long myTime;
   @SwingCoordinate private int myMouseX = -1;
   @SwingCoordinate private int myMouseY = -1;
   private boolean myShowOnlySelection = false;
+
   @NotNull
   @SwingCoordinate
-  private Rectangle myRenderableBounds = new Rectangle();
+  protected final Rectangle myRenderableBounds = new Rectangle();
 
-  private SceneContext() {
+  public SceneContext() {
     myTime = System.currentTimeMillis();
-    myGraphicsPicker.setSelectListener((over, dist)->{
-      myFoundObject = over;
-    });
+    myGraphicsPicker.setSelectListener((over, dist) -> myFoundObject = over);
   }
 
   public void setShowOnlySelection(boolean value) {
@@ -94,7 +90,6 @@ public class SceneContext {
    * Used to request Repaint
    */
   public void repaint() {
-
   }
 
   @SwingCoordinate
@@ -127,22 +122,23 @@ public class SceneContext {
     return dim;
   }
 
-  public ColorSet getColorSet() {
-    return myColorSet;
-  }
+  @NotNull
+  public abstract ColorSet getColorSet();
 
+  @NotNull
   public ScenePicker getScenePicker() {
     return myGraphicsPicker;
   }
 
   /**
-   * Find objects drawn on the scene.
-   * Objects drawn with this sceneContext can record there shapes
+   * Find objects drawn on the {@link Scene}.
+   * Objects drawn with this {@link SceneContext} can record there shapes
    * and this find can be used to detect them.
    * @param x
    * @param y
-   * @return
+   * @return The clicked objects if exist, or null otherwise.
    */
+  @Nullable
   public Object findClickedGraphics(@SwingCoordinate int x, @SwingCoordinate int y) {
     myFoundObject = null;
     myGraphicsPicker.find(x, y);
@@ -151,13 +147,13 @@ public class SceneContext {
 
   public double getScale() { return 1; }
 
-  public void setRenderableBounds(@NotNull @SwingCoordinate Rectangle bounds) {
+  public final void setRenderableBounds(@NotNull @SwingCoordinate Rectangle bounds) {
     myRenderableBounds.setBounds(bounds);
   }
 
   @NotNull
   @SwingCoordinate
-  public Rectangle getRenderableBounds() {
+  public final Rectangle getRenderableBounds() {
     return myRenderableBounds;
   }
 
@@ -165,47 +161,34 @@ public class SceneContext {
 
   /**
    * Provide an Identity transform used in testing
-   *
-   * @return
    */
+  @TestOnly
+  @NotNull
   public static SceneContext get() {
     if (lazySingleton == null) {
-      lazySingleton = new SceneContext();
-      lazySingleton.myColorSet = new BlueprintColorSet();
+      lazySingleton = new IdentitySceneContext();
     }
     return lazySingleton;
   }
 
   /**
-   * Get a SceneContext for a SceneView. They are cached and reused using a weakhashmap.
+   * Get a {@link SceneContext} for the given {@link SceneView}.
    *
-   * @param sceneView
-   * @return
+   * @deprecated Use {@link SceneView#getContext()} instead.
    */
-  public static SceneContext get(SceneView sceneView) {
-    if (cache.containsKey(sceneView)) {
-      SoftReference<SceneViewTransform> viewTransformRef =  cache.get(sceneView);
-      SceneViewTransform viewTransform = viewTransformRef != null ? viewTransformRef.get() : null;
-
-      if (viewTransform != null) {
-        return viewTransform;
-      }
-    }
-    SceneViewTransform sceneViewTransform = new SceneViewTransform(sceneView);
-    sceneViewTransform.myColorSet = sceneView.getColorSet();
-
-    cache.put(sceneView, new SoftReference<>(sceneViewTransform));
-    return sceneViewTransform;
+  @Deprecated
+  @NotNull
+  public static SceneContext get(@NotNull SceneView sceneView) {
+    return sceneView.getContext();
   }
-
-  private static WeakHashMap<SceneView, SoftReference<SceneViewTransform>> cache = new WeakHashMap<>();
 
   @Nullable
   public DesignSurface getSurface() {
     return null;
   }
 
-  public float pxToDp(int px) {
+  @AndroidDpCoordinate
+  public float pxToDp(@AndroidCoordinate int px) {
     return px * Coordinates.DEFAULT_DENSITY;
   }
 
@@ -214,69 +197,17 @@ public class SceneContext {
   }
 
   /**
-   * The  SceneContext based on a ScreenView
+   * A {@link SceneContext} for testing purpose, which treat all coordinates system as the same one.
    */
-  private static class SceneViewTransform extends SceneContext {
-    SceneView mySceneView;
+  @TestOnly
+  private static class IdentitySceneContext extends SceneContext {
 
-    public SceneViewTransform(SceneView sceneView) {
-      mySceneView = sceneView;
-    }
+    private ColorSet myColorSet = new BlueprintColorSet();
 
+    @Override
     @NotNull
-    @Override
-    public DesignSurface getSurface() {
-      return mySceneView.getSurface();
-    }
-
-    @Override
-    public double getScale() { return mySceneView.getScale(); }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingXDip(@AndroidDpCoordinate float x) {
-      return Coordinates.getSwingX(mySceneView, Coordinates.dpToPx(mySceneView, x));
-    }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingYDip(@AndroidDpCoordinate float y) {
-      return Coordinates.getSwingY(mySceneView, Coordinates.dpToPx(mySceneView, y));
-    }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingX(@AndroidCoordinate int x) {
-      return Coordinates.getSwingX(mySceneView, x);
-    }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingY(@AndroidCoordinate int y) {
-      return Coordinates.getSwingY(mySceneView, y);
-    }
-
-    @Override
-    @AndroidDpCoordinate
-    public float pxToDp(@AndroidCoordinate int px) {
-      return Coordinates.pxToDp(mySceneView, px);
-    }
-
-    @Override
-    public void repaint() {
-      mySceneView.getSurface().needsRepaint();
-    }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingDimensionDip(@AndroidDpCoordinate float dim) {
-      return Coordinates.getSwingDimension(mySceneView, Coordinates.dpToPx(mySceneView, dim));
-    }
-
-    @Override
-    @SwingCoordinate
-    public int getSwingDimension(@AndroidCoordinate int dim) {
-      return Coordinates.getSwingDimension(mySceneView, dim);
+    public ColorSet getColorSet() {
+      return myColorSet;
     }
   }
 }

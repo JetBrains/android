@@ -24,8 +24,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.TransitionConstraintSetStart
-import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttCommands
-import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListener
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionDesignSurfaceEdits
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilEventsProcessed
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
@@ -35,10 +34,10 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import java.awt.event.ActionEvent
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyZeroInteractions
 import javax.swing.JPanel
 
 class MotionLayoutAttributesModelTest: LayoutTestCase() {
@@ -49,22 +48,22 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     val xmlFile = AndroidPsiUtils.getPsiFileSafely(project, file) as XmlFile
 
     @Suppress("UNCHECKED_CAST")
-    val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
     val nlModel = createNlModel()
-    val timeline = retrieveTimeline(nlModel)
+    val motionPanel = retrieveMotionAccessoryPanel(nlModel)
     model.addListener(listener)
 
     // test
     model.surface = nlModel.surface
-    assertThat(timeline.listenerCount).isEqualTo(1)
-    Mockito.verifyZeroInteractions(listener)
+    assertThat(motionPanel.listenerCount).isEqualTo(1)
+    verifyZeroInteractions(listener)
 
     val textView = nlModel.components[0].getChild(0)
     val scene = MotionSceneModel.parse(textView, project, file, xmlFile)
-    timeline.select(scene.getTransitionTag(0).tag, textView)
+    motionPanel.select(scene.getTransitionTag(0).tag, textView)
     waitUntilEventsProcessed(model)
-    Mockito.verify(listener).propertiesGenerated(model)
+    verify(listener).propertiesGenerated(model)
   }
 
   fun testPropertiesGeneratedEventWhenSwitchingDesignSurface() {
@@ -74,13 +73,13 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     val xmlFile = AndroidPsiUtils.getPsiFileSafely(project, file) as XmlFile
 
     @Suppress("UNCHECKED_CAST")
-    val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
     model.addListener(listener)
     val nlModelA = createNlModel()
     val nlModelB = createNlModel()
-    val timelineA = retrieveTimeline(nlModelA)
-    val timelineB = retrieveTimeline(nlModelB)
+    val motionPanelA = retrieveMotionAccessoryPanel(nlModelA)
+    val motionPanelB = retrieveMotionAccessoryPanel(nlModelB)
     val textViewA = nlModelA.find("widget")!!
     val textViewB = nlModelB.find("widget")!!
     val scene = MotionSceneModel.parse(textViewB, project, file, xmlFile)
@@ -89,14 +88,14 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     model.surface = nlModelA.surface
     model.surface = nlModelB.surface
     nlModelA.surface.selectionModel.setSelection(listOf(textViewA))
-    timelineA.select(scene.getTransitionTag(0).tag, textViewA)
+    motionPanelA.select(scene.getTransitionTag(0).tag, textViewA)
     waitUntilEventsProcessed(model)
-    Mockito.verifyZeroInteractions(listener)
+    verifyZeroInteractions(listener)
 
     nlModelB.surface.selectionModel.setSelection(listOf(textViewB))
-    timelineB.select(scene.getTransitionTag(0).tag, textViewB)
+    motionPanelB.select(scene.getTransitionTag(0).tag, textViewB)
     waitUntilEventsProcessed(model)
-    Mockito.verify(listener).propertiesGenerated(model)
+    verify(listener).propertiesGenerated(model)
     assertThat(model.properties[SdkConstants.AUTO_URI, TransitionConstraintSetStart].components[0].model).isEqualTo(nlModelB)
   }
 
@@ -107,20 +106,20 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     val xmlFile = AndroidPsiUtils.getPsiFileSafely(project, file) as XmlFile
 
     @Suppress("UNCHECKED_CAST")
-    val listener = Mockito.mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
     val nlModel = createNlModel()
     val textView = nlModel.components[0].getChild(0)
-    val timeline = retrieveTimeline(nlModel)
+    val timeline = retrieveMotionAccessoryPanel(nlModel)
     model.addListener(listener)
     val scene = MotionSceneModel.parse(textView, project, file, xmlFile)
     model.surface = nlModel.surface
     nlModel.surface.selectionModel.setSelection(nlModel.components)
 
     // test
-    timeline.select(scene.startConstraintSet.tag, textView)
+    timeline.select(scene.startConstraintSet.getConstraintView("widget")!!.tag, textView)
     waitUntilEventsProcessed(model)
-    Mockito.verify(listener).propertiesGenerated(model)
+    verify(listener).propertiesGenerated(model)
     assertThat(model.properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value).isEqualTo("64dp")
   }
 
@@ -143,19 +142,19 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     )
     val model = builder.build()
     val panel = mock(AccessoryPanel::class.java)
-    val timeline = Timeline()
+    val timeline = MotionAccessoryPanel()
     val surface = model.surface as NlDesignSurface
     `when`(surface.accessoryPanel).thenReturn(panel)
     `when`(panel.currentPanel).thenReturn(timeline)
     return model
   }
 
-  private fun retrieveTimeline(model: SyncNlModel): Timeline {
+  private fun retrieveMotionAccessoryPanel(model: SyncNlModel): MotionAccessoryPanel {
     val surface = model.surface as NlDesignSurface
-    return surface.accessoryPanel.currentPanel as Timeline
+    return surface.accessoryPanel.currentPanel as MotionAccessoryPanel
   }
 
-  private class Timeline: AccessoryPanelInterface, GanttEventListener {
+  private class MotionAccessoryPanel: AccessoryPanelInterface, MotionDesignSurfaceEdits {
     val listeners = mutableListOf<AccessorySelectionListener>()
     var tag: SmartPsiElementPointer<XmlTag>? = null
 
@@ -179,27 +178,31 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
       throw Error("should not be called")
     }
 
-    override fun setProgress(percent: Float) {
+    override fun handlesWriteForComponent(id: String?): Boolean {
       throw Error("should not be called")
     }
 
-    override fun buttonPressed(e: ActionEvent?, action: GanttEventListener.Actions?) {
+    override fun getSelectedConstraint(): SmartPsiElementPointer<XmlTag> {
       throw Error("should not be called")
     }
 
-    override fun selectionEvent() {
+    override fun getSelectedConstraintSet(): String {
       throw Error("should not be called")
     }
 
-    override fun transitionDuration(duration: Int) {
+    override fun getTransitionFile(component: NlComponent?): XmlFile {
       throw Error("should not be called")
     }
 
-    override fun motionLayoutAccess(cmd: Int, type: String?, `in`: FloatArray?, inLength: Int, out: FloatArray?, outLength: Int) {
+    override fun getConstraintSet(file: XmlFile?, s: String?): XmlTag {
       throw Error("should not be called")
     }
 
-    override fun onInit(commands: GanttCommands?) {
+    override fun getConstrainView(set: XmlTag?, id: String?): XmlTag {
+      throw Error("should not be called")
+    }
+
+    override fun getKeyframes(file: XmlFile?, id: String?): MutableList<XmlTag> {
       throw Error("should not be called")
     }
 

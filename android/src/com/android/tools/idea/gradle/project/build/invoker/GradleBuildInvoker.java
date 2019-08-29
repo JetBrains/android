@@ -110,6 +110,7 @@ import java.util.stream.Stream;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.execution.build.output.GradleBuildScriptErrorParser;
 
 
 /**
@@ -420,7 +421,8 @@ public class GradleBuildInvoker {
                 new AndroidGradlePluginOutputParser(),
                 new DataBindingOutputParser(),
                 new JavacOutputParser(),
-                new KotlincOutputParser()).map(BuildOutputParserWrapper::new).collect(Collectors.toList());
+                new KotlincOutputParser(),
+                new GradleBuildScriptErrorParser()).map(BuildOutputParserWrapper::new).collect(Collectors.toList());
 
 
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.

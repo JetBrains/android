@@ -95,7 +95,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
 
       // Get from the library coordinate only the group and artifactId to check if we have already added it
       if (!existingDependencies.contains(coordinate.getId())) {
-        GradleCoordinate resolvedCoordinate = repositoryUrlManager.resolveDynamicCoordinate(coordinate, buildModel.getProject());
+        GradleCoordinate resolvedCoordinate = repositoryUrlManager.resolveDynamicCoordinate(coordinate, buildModel.getProject(), null);
         if (resolvedCoordinate != null) {
           dependenciesBuilder.add(resolvedCoordinate.toString());
         }

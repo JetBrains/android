@@ -116,12 +116,12 @@ internal fun createNewProjectState(createWithProject: Boolean,
                                    moduleTemplate: Template): TestNewProjectWizardState {
   val projectState = TestNewProjectWizardState(moduleTemplate)
   val moduleState = projectState.moduleTemplateState.apply {
-    Template.convertApisToInt(parameters)
+    Template.convertApisToInt(templateValues)
     put(ATTR_CREATE_ACTIVITY, createWithProject)
     put(ATTR_MODULE_NAME, "TestModule")
     put(ATTR_PACKAGE_NAME, "test.pkg")
   }
-  TemplateValueInjector(moduleState.parameters).addGradleVersions(null)
+  TemplateValueInjector(moduleState.templateValues).addGradleVersions(null)
   val buildTool = sdkData.getLatestBuildTool(false)
   if (buildTool != null) {
     moduleState.put(ATTR_BUILD_TOOLS_VERSION, buildTool.revision.toString())
@@ -264,12 +264,12 @@ internal fun setUpFixtureForProject(projectName: String): JavaCodeInsightTestFix
 
 @UiThread
 internal fun addIconsIfNecessary(activityState: TestTemplateWizardState) {
-  if (activityState.templateMetadata == null || activityState.templateMetadata!!.iconName == null) {
+  if (activityState.template.metadata == null || activityState.template.metadata!!.iconName == null) {
     return
   }
   val drawableFolder = File(FileUtil.join(activityState.getString(TemplateMetadata.ATTR_RES_OUT)), FileUtil.join("drawable"))
   drawableFolder.mkdirs()
-  val fileName = StringEvaluator().evaluate(activityState.templateMetadata!!.iconName!!, activityState.parameters)
+  val fileName = StringEvaluator().evaluate(activityState.template.metadata!!.iconName!!, activityState.templateValues)
   val sourceFile = File(AndroidTestBase.getTestDataPath(), FileUtil.join("drawables", "progress_horizontal.xml"))
   val iconFile = File(drawableFolder, fileName + SdkConstants.DOT_XML)
   FileUtil.copy(sourceFile, iconFile)

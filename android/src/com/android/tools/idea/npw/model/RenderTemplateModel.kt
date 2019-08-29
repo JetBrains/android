@@ -21,7 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.project.AndroidPackageUtils
+import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.ObjectProperty
@@ -121,9 +121,9 @@ class RenderTemplateModel private constructor(
       templateInjector.setLanguage(language.get()) // Note: For new projects/modules we have a different UI.
 
       // Register application-wide settings
-      val applicationPackage = AndroidPackageUtils.getPackageForApplication(androidFacet)
+      val applicationPackage = androidFacet.getPackageForApplication()
       if (packageName.get() != applicationPackage) {
-        templateValues[ATTR_APPLICATION_PACKAGE] = AndroidPackageUtils.getPackageForApplication(androidFacet)
+        templateValues[ATTR_APPLICATION_PACKAGE] = androidFacet.getPackageForApplication()
       }
     }
 
