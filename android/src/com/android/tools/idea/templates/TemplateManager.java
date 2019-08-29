@@ -21,6 +21,8 @@ import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_TEMPLATES;
 import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.tools.idea.npw.project.AndroidPackageUtils.getModuleTemplates;
+import static com.android.tools.idea.npw.project.AndroidPackageUtils.getPackageForPath;
 import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static java.util.stream.Collectors.toMap;
@@ -581,10 +583,10 @@ public class TemplateManager {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null && facet.getConfiguration().getModel() != null;
 
-    List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
+    List<NamedModuleTemplate> moduleTemplates = getModuleTemplates(facet, targetDirectory);
     assert (!moduleTemplates.isEmpty());
 
-    String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
+    String initialPackageSuggestion = getPackageForPath(facet, moduleTemplates, targetDirectory);
     Project project = facet.getModule().getProject();
 
     RenderTemplateModel renderModel = RenderTemplateModel.fromFacet(

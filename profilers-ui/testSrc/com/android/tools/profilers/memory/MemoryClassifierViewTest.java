@@ -91,7 +91,9 @@ public class MemoryClassifierViewTest {
     loader.setReturnImmediateFuture(true);
     myFakeIdeProfilerServices = new FakeIdeProfilerServices();
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myFakeIdeProfilerServices, new FakeTimer()), loader);
+    myStage =
+      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myFakeIdeProfilerServices, new FakeTimer()),
+                              loader);
     myClassifierView = new MemoryClassifierView(myStage, myFakeIdeProfilerComponents);
   }
 
@@ -107,29 +109,29 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instanceFoo0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo0").setDepth(1).setShallowSize(2).setRetainedSize(3)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(3).build();
     InstanceObject instanceFoo1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo1").setDepth(2).setShallowSize(2).setRetainedSize(3)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo1").setDepth(2).setShallowSize(2)
+        .setRetainedSize(3).build();
     InstanceObject instanceFoo2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo2").setDepth(3).setShallowSize(2).setRetainedSize(3)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo2").setDepth(3).setShallowSize(2)
+        .setRetainedSize(3).build();
     InstanceObject instanceBar0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("instanceBar0").setDepth(1).setShallowSize(2).setRetainedSize(4)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(4).build();
     InstanceObject instanceBaz0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz0").setDepth(1).setShallowSize(2).setRetainedSize(5)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5).build();
     InstanceObject instanceBaz1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz1").setDepth(1).setShallowSize(2).setRetainedSize(5)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz1").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5).build();
     InstanceObject instanceBaz2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz2").setDepth(1).setShallowSize(2).setRetainedSize(5)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz2").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5).build();
     InstanceObject instanceBaz3 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz3").setDepth(1).setShallowSize(2).setRetainedSize(5)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz3").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5).build();
     Set<InstanceObject> instanceObjects = new HashSet<>(
       Arrays.asList(instanceFoo0, instanceFoo1, instanceFoo2, instanceBar0, instanceBaz0, instanceBaz1, instanceBaz2, instanceBaz3));
     captureObject.addInstanceObjects(instanceObjects);
@@ -137,9 +139,9 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_0)).isTrue();
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_1)).isTrue();
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_2)).isTrue();
+    assertThat(captureObject.containsClass(0)).isTrue();
+    assertThat(captureObject.containsClass(1)).isTrue();
+    assertThat(captureObject.containsClass(2)).isTrue();
 
     HeapSet heapSet = captureObject.getHeapSet(instanceFoo0.getHeapId());
     assertThat(heapSet).isNotNull();
@@ -248,28 +250,36 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instanceFoo0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo0").setDepth(1).setShallowSize(2).setRetainedSize(3)
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(3)
         .build();
     InstanceObject instanceFoo1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo1").setDepth(2).setShallowSize(2).setRetainedSize(3)
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo1").setDepth(2).setShallowSize(2)
+        .setRetainedSize(3)
         .build();
     InstanceObject instanceFoo2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo2").setDepth(3).setShallowSize(2).setRetainedSize(3)
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo2").setDepth(3).setShallowSize(2)
+        .setRetainedSize(3)
         .build();
     InstanceObject instanceBar0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("instanceBar0").setDepth(1).setShallowSize(2).setRetainedSize(4)
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(4)
         .build();
     InstanceObject instanceBaz0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz0").setDepth(1).setShallowSize(2).setRetainedSize(5)
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
         .build();
     InstanceObject instanceBaz1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz1").setDepth(1).setShallowSize(2).setRetainedSize(5)
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz1").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
         .build();
     InstanceObject instanceBaz2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz2").setDepth(1).setShallowSize(2).setRetainedSize(5)
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz2").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
         .build();
     InstanceObject instanceBaz3 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz3").setDepth(1).setShallowSize(2).setRetainedSize(5)
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz3").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
         .build();
     Set<InstanceObject> instanceObjects = new HashSet<>(
       Arrays.asList(instanceFoo0, instanceFoo1, instanceFoo2, instanceBar0, instanceBaz0, instanceBaz1, instanceBaz2, instanceBaz3));
@@ -278,9 +288,9 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_0)).isTrue();
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_1)).isTrue();
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_2)).isTrue();
+    assertThat(captureObject.containsClass(0)).isTrue();
+    assertThat(captureObject.containsClass(1)).isTrue();
+    assertThat(captureObject.containsClass(2)).isTrue();
 
     HeapSet heapSet = captureObject.getHeapSet(instanceFoo0.getHeapId());
     assertThat(heapSet).isNotNull();
@@ -394,29 +404,29 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instance1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo1").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo1").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo2").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(24).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo2").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(24).build();
     InstanceObject instance3 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo3").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo3").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance4 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo4").setAllocationStack(callstack2).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo4").setAllocationStack(callstack2)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance5 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo5").setAllocationStack(callstack2).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo5").setAllocationStack(callstack2)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance6 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo6").setAllocationStack(callstack3).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo6").setAllocationStack(callstack3)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance7 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("instanceBar7").setAllocationStack(callstack3).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar7").setAllocationStack(callstack3)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance8 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBar8").setDepth(0).setShallowSize(2).setRetainedSize(8)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBar8").setDepth(0).setShallowSize(2)
+        .setRetainedSize(8).build();
     Set<InstanceObject> instanceObjects =
       new HashSet<>(Arrays.asList(instance1, instance2, instance3, instance4, instance5, instance6, instance7, instance8));
     captureObject.addInstanceObjects(instanceObjects);
@@ -534,32 +544,32 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instance1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo1").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo1").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo2").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(24).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo2").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(24).build();
     InstanceObject instance3 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo3").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo3").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance4 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo4").setAllocationStack(callstack2).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo4").setAllocationStack(callstack2)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance5 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo5").setAllocationStack(callstack2).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo5").setAllocationStack(callstack2)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance6 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo6").setAllocationStack(callstack3).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo6").setAllocationStack(callstack3)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance7 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("instanceBar7").setAllocationStack(callstack3).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar7").setAllocationStack(callstack3)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance8 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBar8").setDepth(0).setShallowSize(2).setRetainedSize(8)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBar8").setDepth(0).setShallowSize(2)
+        .setRetainedSize(8).build();
     InstanceObject instance9 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("instanceBar9").setAllocationStack(callstack4).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar9").setAllocationStack(callstack4)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     Set<InstanceObject> instanceObjects =
       new HashSet<>(Arrays.asList(instance1, instance2, instance3, instance4, instance5, instance6, instance7, instance8, instance9));
     captureObject.addInstanceObjects(instanceObjects);
@@ -656,7 +666,7 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instance1 =
-      new FakeInstanceObject.Builder(captureObject, TEST_CLASS_NAME).setName("instanceFoo1").setDepth(0)
+      new FakeInstanceObject.Builder(captureObject, 1, TEST_CLASS_NAME).setName("instanceFoo1").setDepth(0)
         .setShallowSize(0).setRetainedSize(0).build();
     Set<InstanceObject> instanceObjects = new HashSet<>(Collections.singleton(instance1));
     captureObject.addInstanceObjects(instanceObjects);
@@ -706,11 +716,14 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instance1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("def").setDepth(7).setShallowSize(8).setRetainedSize(9).build();
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_0).setName("def").setDepth(7).setShallowSize(8).setRetainedSize(9)
+        .build();
     InstanceObject instance2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("abc").setDepth(4).setShallowSize(5).setRetainedSize(7).build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_1).setName("abc").setDepth(4).setShallowSize(5).setRetainedSize(7)
+        .build();
     InstanceObject instance3 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("ghi").setDepth(1).setShallowSize(2).setRetainedSize(3).build();
+      new FakeInstanceObject.Builder(captureObject, 3, CLASS_NAME_2).setName("ghi").setDepth(1).setShallowSize(2).setRetainedSize(3)
+        .build();
     captureObject.addInstanceObjects(new HashSet<>(Arrays.asList(instance1, instance2, instance3)));
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),

@@ -22,6 +22,7 @@ import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * No-op tracker used when stats tracking is disabled. It keeps track of the last logged event type.
@@ -48,5 +49,10 @@ public class CommonNopTracker implements CommonUsageTracker {
 
   public LayoutEditorEvent.LayoutEditorEventType getLastTrackedEvent() {
     return myLastTrackedEvent;
+  }
+
+  @TestOnly
+  public void resetLastTrackedEvent() {
+    myLastTrackedEvent = null;
   }
 }

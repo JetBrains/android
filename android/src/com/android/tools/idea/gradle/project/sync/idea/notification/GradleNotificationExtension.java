@@ -73,6 +73,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   private void handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
     for (SyncErrorHandler errorHandler : myErrorHandlers) {
       if (errorHandler.handleError(error, notification, project)) {
+        GradleSyncMessages.getInstance(project).report(notification);
         return;
       }
     }

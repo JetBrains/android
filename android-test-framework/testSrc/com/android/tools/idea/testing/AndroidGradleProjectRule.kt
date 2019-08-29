@@ -22,7 +22,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.refactoring.toVirtualFile
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import org.junit.Ignore
 import org.junit.runner.Description
 

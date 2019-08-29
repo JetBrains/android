@@ -69,14 +69,7 @@ public interface LaunchTask {
   default LaunchResult run(@NotNull Executor executor, @NotNull IDevice device,
                            @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     boolean success = perform(device, launchStatus, printer);
-    LaunchResult result = new LaunchResult();
-    result.setSuccess(success);
-    if (!success) {
-      result.setError("Error " + getDescription());
-      result.setErrorId("");
-      result.setConsoleError("Error while " + getDescription());
-    }
-    return result;
+    return success ? LaunchResult.success() : LaunchResult.error("", getDescription());
   }
 
   /**

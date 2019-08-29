@@ -89,7 +89,7 @@ public class CreateDefaultActivityTest {
    */
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
-  public void createDefaultActivity() throws IOException {
+  public void createDefaultActivity() {
     myDialog.clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();

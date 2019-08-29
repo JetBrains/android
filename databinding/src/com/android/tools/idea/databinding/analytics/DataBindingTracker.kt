@@ -18,8 +18,8 @@ package com.android.tools.idea.databinding.analytics
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
+import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingXmlIndex.Companion.NAME
-import com.android.tools.idea.res.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.androidFacet
 import com.google.common.annotations.VisibleForTesting
@@ -50,8 +50,6 @@ open class DataBindingTracker constructor(private val project: Project) : DataBi
     }
   }
 
-  // TODO(b/123721754): Track whether data binding is enabled on a per module basis.
-  // Currently, one module is data binding enabled = entire project is data binding enabled.
   private fun isDataBindingEnabled() = ModuleManager.getInstance(project).modules
     .mapNotNull { it.androidFacet }
     .any { DataBindingUtil.isDataBindingEnabled(it) }

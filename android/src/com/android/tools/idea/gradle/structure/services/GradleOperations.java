@@ -165,6 +165,6 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
   @Nullable
   public String getHighestVersion(@NotNull String groupId, @NotNull String artifactId) {
     GradleCoordinate gradleCoordinate = new GradleCoordinate(groupId, artifactId, GradleCoordinate.PLUS_REV);
-    return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gradleCoordinate, null);
+    return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gradleCoordinate, null, null);
   }
 }

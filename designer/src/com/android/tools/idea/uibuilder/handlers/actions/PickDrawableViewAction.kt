@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
+import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
@@ -39,16 +39,20 @@ class PickDrawableViewAction(private val namespace: String?, private val attribu
                        selectedChildren: MutableList<NlComponent>,
                        modifiers: Int) {
     val tag = component.tag ?: return
-    val types = EnumSet.of(ResourceType.DRAWABLE)
+    val types = EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP)
 
-    val dialog = ChooseResourceDialog.builder()
-      .setModule(component.model.module)
-      .setTypes(types)
-      .setTag(tag)
-      .setDefaultType(ResourceType.DRAWABLE)
-      .build()
+    val dialog = createResourcePickerDialog(
+      dialogTitle = "Choose an Image",
+      currentValue = null,
+      facet = component.model.facet,
+      resourceTypes = types,
+      defaultResourceType = null,
+      showColorStateLists = true,
+      showSampleData = false,
+      file = tag.containingFile.virtualFile,
+      xmlFile = null,
+      tag = tag)
 
-    dialog.title = "Choose an Image"
     if (dialog.showAndGet()) {
       if (dialog.resourceName != null) {
         val attr = component.startAttributeTransaction()

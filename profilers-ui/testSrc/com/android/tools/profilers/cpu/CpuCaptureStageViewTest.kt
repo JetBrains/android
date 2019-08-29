@@ -72,12 +72,16 @@ class CpuCaptureStageViewTest {
   fun trackGroupListIsInitializedAfterParsing() {
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
-    assertThat(stageView.trackGroupList.model.size).isEqualTo(1)
+    assertThat(stageView.trackGroupList.model.size).isEqualTo(2)
     val interactionTrackGroup = stageView.trackGroupList.model.getElementAt(0)
     assertThat(interactionTrackGroup.title).isEqualTo("Interaction")
     assertThat(interactionTrackGroup.size).isEqualTo(2)
     assertThat(interactionTrackGroup.get(0).title).isEqualTo("User")
     assertThat(interactionTrackGroup.get(1).title).isEqualTo("Lifecycle")
+
+    val threadsTrackGroup = stageView.trackGroupList.model.getElementAt(1)
+    assertThat(threadsTrackGroup.title).isEqualTo("Threads (3)")
+    assertThat(threadsTrackGroup.size).isEqualTo(3)
   }
 
   @Test

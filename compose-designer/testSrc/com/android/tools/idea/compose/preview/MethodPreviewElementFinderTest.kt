@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.intellij.openapi.util.TextRange
 import org.intellij.lang.annotations.Language
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UFile
@@ -24,10 +23,16 @@ import org.jetbrains.uast.ULocalVariable
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.AbstractUastVisitor
-import org.junit.Assert.assertNotEquals
+
+/**
+ * Method that returns the text representation of the preview body for the given [PreviewElement]
+ * and removes new lines and duplicate spaces.
+ */
+private fun PreviewElement.previewBodyAsCompactText(): String? =
+  this.previewBodyPsi?.element?.text?.replace("\\s+".toRegex(), " ")
 
 class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() {
-  fun testFindPreviewAnnotations() {
+  fun testFindPreviewMethods() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
       import com.android.tools.preview.Preview
@@ -37,18 +42,33 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
       @Composable
       fun Preview1() {
         Preview() {
+          Button("preview1") {
+          }
         }
       }
 
       @Composable
       fun Preview2() {
         Preview(name = "preview2", configuration = Configuration(apiLevel = 12)) {
+          Button("preview2") {
+          }
         }
       }
 
       @Composable
       fun Preview3() {
         Preview(name = "preview3", configuration = Configuration(width = 1, height = 2)) {
+          Button("preview3") {
+          }
+        }
+      }
+
+      // This preview element will be found but the ComposeViewAdapter won't be able to render it
+      @Composable
+      fun PreviewWithParametrs(i: Int) {
+        Preview(name = "Preview with parameters") {
+          Button("preview3") {
+          }
         }
       }
 
@@ -66,23 +86,23 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
     """.trimIndent()).toUElement() as UFile
 
     val elements = MethodPreviewElementFinder.findPreviewMethods(composeTest)
-    assertEquals(3, elements.size)
+    assertEquals(4, elements.size)
     elements[1].let {
-      assertEquals("preview2", it.name)
+      assertEquals("preview2", it.displayName)
       assertEquals(12, it.configuration.apiLevel)
       assertNull(it.configuration.theme)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
-      assertMethodTextRange(composeTest, "Preview2", it.textRange)
+      assertEquals("{ Button(\"preview2\") { } }", it.previewBodyAsCompactText())
     }
 
     elements[2].let {
-      assertEquals("preview3", it.name)
+      assertEquals("preview3", it.displayName)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
 
-      assertMethodTextRange(composeTest, "Preview3", it.textRange)
+      assertEquals("{ Button(\"preview3\") { } }", it.previewBodyAsCompactText())
     }
 
     elements[0].let {
@@ -90,7 +110,11 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
-      assertMethodTextRange(composeTest, "Preview1", it.textRange)
+      assertEquals("{ Button(\"preview1\") { } }", it.previewBodyAsCompactText())
+    }
+
+    elements[3].let {
+      assertEquals("Preview with parameters", it.displayName)
     }
   }
 
@@ -117,7 +141,7 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
     val elements = MethodPreviewElementFinder.findPreviewMethods(composeTest)
     assertEquals(1, elements.size)
     // Check that we keep the first element
-    assertEmpty(elements[0].name)
+    assertEmpty(elements[0].displayName)
   }
 
   fun testElementBelongsToPreviewElement() {

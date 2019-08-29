@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.room.migrations.update;
 
+import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.*;
+
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
-import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
+import com.android.tools.idea.room.migrations.json.FtsEntityBundle;
 import com.android.tools.idea.room.migrations.json.IndexBundle;
-import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Holds the differences between two version of Room database Entity.
+ * Describes the differences between two version of Room database Entity and contains all information needed in order to perform the update.
  */
 public class EntityUpdate {
-  private String tableName;
+  private EntityBundle oldState;
+  private EntityBundle newState;
 
   private List<FieldBundle> allFields;
   private Map<String, FieldBundle> unmodifiedFields;
@@ -47,13 +47,10 @@ public class EntityUpdate {
   private boolean containsUninitializedNotNullFields;
   private boolean containsRenamedAndModifiedFields;
 
-
   private List<IndexBundle> unmodifiedIndices;
   private List<IndexBundle> deletedIndices;
   private List<IndexBundle> newOrModifiedIndices;
 
-  private PrimaryKeyBundle primaryKey;
-  private List<ForeignKeyBundle> foreignKeys;
   private boolean primaryKeyUpdate;
   private boolean foreignKeysUpdate;
 
@@ -65,7 +62,8 @@ public class EntityUpdate {
     checkEntity(oldEntity);
     checkEntity(newEntity);
 
-    tableName = oldEntity.getTableName();
+    oldState = oldEntity;
+    newState = newEntity;
 
     allFields = new ArrayList<>(newEntity.getFields());
     unmodifiedFields = new HashMap<>();
@@ -126,26 +124,57 @@ public class EntityUpdate {
       deletedIndices.addAll(oldIndices.values());
     }
 
-    primaryKey = newEntity.getPrimaryKey();
-    foreignKeys = newEntity.getForeignKeys();
     primaryKeyUpdate = !oldEntity.getPrimaryKey().isSchemaEqual(newEntity.getPrimaryKey());
-    foreignKeysUpdate = false;
-
-    if (oldEntity.getForeignKeys() != null && newEntity.getForeignKeys() != null) {
-      if (oldEntity.getForeignKeys().size() != newEntity.getForeignKeys().size()) {
-        foreignKeysUpdate = true;
-      } else {
-        for (int i = 0; i < oldEntity.getForeignKeys().size(); i++) {
-          if (!oldEntity.getForeignKeys().get(i).isSchemaEqual(newEntity.getForeignKeys().get(i))) {
-            foreignKeysUpdate = true;
-          }
-        }
-      }
-    } else if (oldEntity.getForeignKeys() == null && newEntity.getForeignKeys() != null) {
-      foreignKeysUpdate = true;
-    }
+    foreignKeysUpdate = !tablesHaveSameForeignKeyConstraints(oldEntity, newEntity);
 
     containsRenamedAndModifiedFields = false;
+  }
+
+
+  /**
+   * Provides the EntityBundle which describes the state the table had before the update.
+   */
+  @NotNull
+  public EntityBundle getOldState() {
+    return oldState;
+  }
+
+  /**
+   * Provides the EntityBundle which describes the final state of the table to be updated.
+   */
+  @NotNull
+  public EntityBundle getNewState() {
+    return newState;
+  }
+
+  /**
+   * Provides the old name of the table (i.e. the name the table had before the update).
+   */
+  @NotNull
+  public String getOldTableName() {
+    return oldState.getTableName();
+  }
+
+  /**
+   * Provides the name the table should have after the update.
+   */
+  @NotNull
+  public String getNewTableName() {
+    return newState.getTableName();
+  }
+
+  /**
+   * Specifies whether this update produces an FTS entity.
+   */
+  public boolean shouldCreateAnFtsEntity() {
+    return newState instanceof FtsEntityBundle;
+  }
+
+  /**
+   * Specifies whether this update should rename the table.
+   */
+  public boolean shouldRenameTable() {
+    return !newState.getTableName().equals(oldState.getTableName());
   }
 
   @NotNull
@@ -189,21 +218,6 @@ public class EntityUpdate {
     return newOrModifiedIndices;
   }
 
-  @NotNull
-  public PrimaryKeyBundle getPrimaryKey() {
-    return primaryKey;
-  }
-
-  @Nullable
-  public List<ForeignKeyBundle> getForeignKeys() {
-    return foreignKeys;
-  }
-
-  @NotNull
-  public String getTableName() {
-    return tableName;
-  }
-
   /**
    * Takes a mapping between names of new columns and user specified default values for them.
    * This mapping is used in other to populate the pre-existent rows in a table with new NOT NULL columns without default values
@@ -238,6 +252,9 @@ public class EntityUpdate {
     }
   }
 
+  /**
+   * Returns a mapping between the FieldBundle which describes a column that has been renamed and its old name.
+   */
   @NotNull
   public Map<FieldBundle, String> getRenamedFields() {
     return renamedFields;
@@ -268,16 +285,8 @@ public class EntityUpdate {
            !modifiedFields.isEmpty() ||
            keysWereUpdated() ||
            containsUninitializedNotNullFields ||
-           containsRenamedAndModifiedFields;
-  }
-
-  /**
-   * Compares whether two fields have the same attributes (i.e. affinity, not null property, default value).
-   */
-  private static boolean isFieldStructureTheSame(@NotNull FieldBundle oldField, @NotNull FieldBundle newField) {
-    return oldField.isNonNull() == newField.isNonNull() &&
-           Objects.equals(oldField.getAffinity(), newField.getAffinity()) &&
-           Objects.equals(oldField.getDefaultValue(), newField.getDefaultValue());
+           containsRenamedAndModifiedFields ||
+           shouldCreateAnFtsEntity();
   }
 
   private void checkEntity(@NotNull EntityBundle entityBundle) {

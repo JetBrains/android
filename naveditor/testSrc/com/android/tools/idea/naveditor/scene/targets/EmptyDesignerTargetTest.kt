@@ -52,14 +52,14 @@ class EmptyDesignerTargetTest : NavTestCase() {
     val scene = surface.scene!!
     val root = scene.getSceneComponent("root")!!
 
-    scene.layout(0, SceneContext.get(model.surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
 
     val drawRect = root.fillDrawRect(0, null)
     val x = drawRect.x + drawRect.width / 2
     val y = drawRect.y + drawRect.height / 2
 
-    scene.mouseDown(SceneContext.get(model.surface.focusedSceneView), x, y, 0)
-    scene.mouseRelease(SceneContext.get(model.surface.focusedSceneView), x, y, 0)
+    scene.mouseDown(scene.sceneManager.sceneView.context, x, y, 0)
+    scene.mouseRelease(scene.sceneManager.sceneView.context, x, y, 0)
 
     verify(menu).show()
   }

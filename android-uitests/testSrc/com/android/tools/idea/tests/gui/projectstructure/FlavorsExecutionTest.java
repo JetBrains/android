@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProcessRunningDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -159,6 +160,7 @@ public class FlavorsExecutionTest {
 
     ExecutionToolWindowFixture.ContentFixture flavor2WindowContent = ideFrameFixture.getRunToolWindow().findContent("app");
     String flavor2LaunchPattern = ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", SECOND_ACTIVITY_NAME);
+    ProcessRunningDialogFixture.find(ideFrameFixture).clickTerminate();
     flavor2WindowContent.waitForOutput(new PatternTextMatcher(Pattern.compile(flavor2LaunchPattern, Pattern.DOTALL)), 120);
 
     ideFrameFixture

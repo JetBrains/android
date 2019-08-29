@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.index
 
-import com.android.tools.idea.res.BindingLayoutType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
@@ -101,6 +100,30 @@ class BindingXmlIndexTest {
     val data = map.values.first()
     assertThat(data.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
     assertThat(data.customBindingName).isNull()
+    assertThat(data.viewBindingIgnore).isFalse()
+    assertThat(data.imports).isEmpty()
+    assertThat(data.variables).isEmpty()
+    assertThat(data.viewIds).containsExactly(ViewIdData("testId2", "TextView", null))
+
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
+  }
+
+  @Test
+  fun indexViewBindingIgnoreLayout() {
+    val file = fixture.configureByText("layout.xml", """
+      <constraint_layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:viewBindingIgnore="true">
+        <TextView android:id="@+id/testId2"/>
+      </constraint_layout>
+    """.trimIndent()).virtualFile
+    val bindingXmlIndex = BindingXmlIndex()
+    val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+
+    val data = map.values.first()
+    assertThat(data.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
+    assertThat(data.customBindingName).isNull()
+    assertThat(data.viewBindingIgnore).isTrue()
     assertThat(data.imports).isEmpty()
     assertThat(data.variables).isEmpty()
     assertThat(data.viewIds).containsExactly(ViewIdData("testId2", "TextView", null))

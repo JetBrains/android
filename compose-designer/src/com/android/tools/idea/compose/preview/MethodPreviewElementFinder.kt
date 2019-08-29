@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -30,6 +29,7 @@ import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
+import org.jetbrains.uast.ULambdaExpression
 import org.jetbrains.uast.ULiteralExpression
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.getContainingUFile
@@ -128,14 +128,17 @@ object MethodPreviewElementFinder : PreviewElementFinder {
        */
       private fun visitPreviewMethodCall(composableMethodName: String,
                                          previewName: String,
-                                         textRange: TextRange?,
+                                         previewMethodCall: UCallExpression,
+                                         composableMethodBody: ULambdaExpression?,
                                          configuration: Map<String, Any>) =
         previewElements.add(PreviewElement(previewName, composableMethodName,
-                                           textRange ?: TextRange.EMPTY_RANGE,
-                                           PreviewConfiguration(apiLevel = (configuration["apiLevel"] as? Int) ?: UNDEFINED_API_LEVEL,
-                                                                theme = (configuration["theme"] as? String),
-                                                                width = configuration["width"] as? Int ?: UNDEFINED_DIMENSION,
-                                                                height = configuration["height"] as? Int ?: UNDEFINED_DIMENSION)))
+                                           previewMethodCall.toSmartPsiPointer(),
+                                           composableMethodBody.toSmartPsiPointer(),
+                                           PreviewConfiguration.cleanAndGet(
+                                             apiLevel = configuration["apiLevel"] as? Int,
+                                             theme = configuration["theme"] as? String,
+                                             width = configuration["width"] as? Int,
+                                             height = configuration["height"] as? Int)))
 
       override fun visitCallExpression(node: UCallExpression): Boolean {
         val previewUMethod = getPreviewMethodCall(node) ?: return false
@@ -152,7 +155,8 @@ object MethodPreviewElementFinder : PreviewElementFinder {
             val parameters = callExpressionToDataMap(node, previewUMethod)
             visitPreviewMethodCall(composableMethodName,
                                    parameters["name"] as? String ?: "",
-                                   composableMethod.bodyTextRange(),
+                                   node,
+                                   node.valueArguments.filterIsInstance<ULambdaExpression>().singleOrNull(),
                                    parameters["configuration"] as? Map<String, Any> ?: emptyMap())
           }
         }

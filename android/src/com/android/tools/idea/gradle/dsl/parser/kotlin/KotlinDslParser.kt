@@ -162,13 +162,19 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   override fun convertToExcludesBlock(excludes: List<ArtifactDependencySpec>): PsiElement? {
     val factory = KtPsiFactory(dslFile.project)
     val block = factory.createBlock("")
+    // Currently, createBlock returns a block with two empty lines, we should keep only one new line.
+    val firstStatementOrEmpty = block.firstChild.nextSibling
+    if (firstStatementOrEmpty.text == "\n\n") {
+      firstStatementOrEmpty.delete()
+      block.addAfter(factory.createNewLine(), block.firstChild)
+    }
     excludes.forEach {
-      val group = if (FakeArtifactElement.shouldInterpolate(it.group)) iStr(it.group ?: "''") else "'$it.group'"
-      val name = if (FakeArtifactElement.shouldInterpolate(it.name)) iStr(it.name) else "'$it.name'"
-      val text = "exclude(group = $group, module = $name)"
+      val group = if (FakeArtifactElement.shouldInterpolate(it.group)) iStr(it.group ?: "\"\"") else "\"${it.group}\""
+      val name = if (FakeArtifactElement.shouldInterpolate(it.name)) iStr(it.name) else "\"${it.name}\""
+      val text = "exclude(mapOf(\"group\" to $group, \"module\" to $name))"
       val expression = factory.createExpressionIfPossible(text)
       if (expression != null) {
-        block.addAfter(expression, block.lastChild)
+        block.addBefore(expression, block.lastChild)
         block.addBefore(factory.createNewLine(), block.lastChild)
       }
     }
@@ -199,7 +205,6 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
   // Check if this is a block with a methodCall as name, and get the block in such case. Ex: getByName("release") -> the release block.
   private fun methodCallBlock(expression: KtCallExpression, parent: GradlePropertiesDslElement): GradlePropertiesDslElement? {
-    // TODO(xof): should we check the name of the method call against a whitelist? (create, getByName, ...)
     val arguments = expression.valueArgumentList?.arguments ?: return null
     if (arguments.size != 1) return null
     // TODO(xof): we should handle injections / resolving here:
@@ -245,7 +250,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       blockElements.add(blockElement)
       blockElements.forEach { block ->
         // Visit the children of this element, with the current block set as parent.
-        expression.lambdaArguments[0]!!.getLambdaExpression()?.bodyExpression?.statements?.requireNoNulls()?.forEach {
+        expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression?.statements?.requireNoNulls()?.forEach {
           it.accept(this, block)
         }
       }
@@ -254,7 +259,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // Get args and block.
       val argumentsList = expression.valueArgumentList
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
-      val name = GradleNameElement.from(expression.referenceExpression()!!)
+      val referenceExpression = expression.referenceExpression()
+      val name =
+        if (referenceExpression != null) GradleNameElement.from(referenceExpression) else GradleNameElement.create(referenceName)
       if (argumentsList != null) {
         val callExpression =
           getCallExpression(parent, expression, name, argumentsList, referenceName, true) ?: return
@@ -368,6 +375,8 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       val ext = getBlockElement(listOf("ext"), parent, null) ?: return
       val name = GradleNameElement.from(identifier) // TODO(xof): error checking: empty/qualified/etc
       val propertyElement = createExpressionElement(ext, expression, name, initializer) ?: return
+      // This Property is assigning a value to a property, so we need to set the UseAssignment to true.
+      propertyElement.setUseAssignment(true)
       propertyElement.elementType = REGULAR
       ext.setParsedElement(propertyElement)
     }
@@ -407,7 +416,6 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       }
       // If the method has two arguments then it should automatically resolve to a dependency.
       else if (argumentsList.arguments.size == 2) {
-        // arguments are not null and each argument will have an non null argumentExpression as well, so using !! in this case is safe.
         val moduleName = argumentsList.arguments[0].getArgumentExpression() ?: return null
         val version = argumentsList.arguments[1].getArgumentExpression() ?: return null
         val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(moduleName.text)}:${unquoteString(version.text)}"
@@ -425,14 +433,16 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     else {
       val argumentExpression = arguments[0].getArgumentExpression()
       if (argumentExpression is KtCallExpression) {
-        val argumentsName = (arguments[0].getArgumentExpression() as KtCallExpression).name()!!
+        val argumentsName = (arguments[0].getArgumentExpression() as KtCallExpression).name() ?: return null
         if (isFirstCall) {
-          return getCallExpression(
-            parentElement, argumentExpression, name, argumentExpression.valueArgumentList!!, argumentsName, false)
+          val argumentsList = argumentExpression.valueArgumentList
+          return if (argumentsList != null) getCallExpression(
+            parentElement, argumentExpression, name, argumentsList, argumentsName, false) else null
         }
         return getMethodCall(
           parentElement,
           psiElement,
+          // isNamed() checks if getArgumentName() is not null, so using !! here is safe (unless the implementation changes).
           if (arguments[0].isNamed()) GradleNameElement.create(arguments[0].getArgumentName()!!.text) else name,
           methodName)
       }
@@ -453,7 +463,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
                             methodName: String) : GradleDslMethodCall {
 
     val methodCall = GradleDslMethodCall(parent, psiElement, name, methodName, false)
-    val arguments = (psiElement as KtCallExpression).valueArgumentList!!
+    val arguments = (psiElement as KtCallExpression).valueArgumentList ?: return methodCall
     val argumentList = getExpressionList(methodCall, arguments, name, arguments.arguments, false)
     methodCall.setParsedArgumentList(argumentList)
     return methodCall
@@ -467,6 +477,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     arguments.map {
       arg -> (arg as KtValueArgument).getArgumentExpression()
     }.filter {
+      // Filter map elements that either have a left or right element null. This filter makes using !! safe in the next mapNotNull fun.
       expression -> expression is KtBinaryExpression && expression.operationReference.getReferencedName() == "to" &&
                     expression.left != null && expression.right != null
     }.mapNotNull {
@@ -491,7 +502,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       argumentExpression -> createExpressionElement(
       expressionList,
       argumentExpression,
-      if (argumentExpression.isNamed()) GradleNameElement.create(argumentExpression.getArgumentName()!!.text) else GradleNameElement.empty(),
+      // isNamed() checks if getArgumentName() is not null, so using !! here is safe (unless the implementation changes).
+      if (argumentExpression.isNamed())
+        GradleNameElement.create(argumentExpression.getArgumentName()!!.text) else GradleNameElement.empty(),
       argumentExpression.getArgumentExpression() as KtExpression)
     }.forEach {
       if (it is GradleDslClosure) {
@@ -513,7 +526,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       is KtValueArgumentList -> return getExpressionList(parent, expression, name, expression.arguments, true)
       is KtCallExpression -> {
         // Ex: implementation(kotlin("stdlib-jdk7")).
-        val expressionName = expression.name()!!
+        val expressionName = expression.name() ?: return null
         val arguments = expression.valueArgumentList ?: return null
         return getCallExpression(parent, expression, name, arguments, expressionName, false)
       }

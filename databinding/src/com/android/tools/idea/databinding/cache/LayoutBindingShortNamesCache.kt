@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.cache
 
-import com.android.tools.idea.databinding.DataBindingProjectComponent
+import com.android.tools.idea.databinding.LayoutBindingProjectComponent
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.intellij.openapi.project.Project
@@ -39,7 +39,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * See also: [LightBindingClass]
  */
 class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
-  private val component = project.getComponent(DataBindingProjectComponent::class.java)
+  private val component = project.getComponent(LayoutBindingProjectComponent::class.java)
   private val lightBindingCache: CachedValue<Map<String, List<LightBindingClass>>>
   private val methodsByNameCache: CachedValue<Map<String, List<PsiMethod>>>
   private val fieldsByNameCache: CachedValue<Map<String, List<PsiField>>>
@@ -156,7 +156,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     set.addAll(allFieldNames)
   }
 
-  private class LightBindingCacheProvider(component: DataBindingProjectComponent)
+  private class LightBindingCacheProvider(component: LayoutBindingProjectComponent)
     : ProjectResourceCachedValueProvider.MergedMapValueProvider<String, LightBindingClass>(component) {
 
     override fun createCacheProvider(facet: AndroidFacet): ResourceCacheValueProvider<Map<String, List<LightBindingClass>>> {

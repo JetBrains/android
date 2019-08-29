@@ -35,7 +35,10 @@ public class MakeGradleProjectAction extends AndroidStudioGradleAction {
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
-    e.getPresentation().setEnabled(!CompilerManager.getInstance(project).isCompilationActive());
+    boolean isCompilationActive = CompilerManager.getInstance(project).isCompilationActive();
+    // We don't want to display the icon if we do not have a module to build as we won't know which tasks to run
+    boolean haveModulesToBuild = !ProjectStructure.getInstance(project).getLeafModules().isEmpty();
+    e.getPresentation().setEnabled(!isCompilationActive && haveModulesToBuild);
   }
 
   @Override

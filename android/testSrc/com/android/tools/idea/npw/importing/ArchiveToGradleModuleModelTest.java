@@ -210,7 +210,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertAbout(file()).that(buildGradle).isFile();
     VirtualFile vFile = findFileByIoFile(buildGradle, true);
     assertNotNull(vFile);
-    assertEquals(loadText(vFile), CreateModuleFromArchiveAction.getBuildGradleText(archiveToImport));
+    assertEquals(loadText(vFile), CreateModuleFromArchiveActionKt.getBuildGradleText(archiveToImport));
 
     GradleSettingsModel settingsModel = GradleSettingsModel.get(project);
     assertNotNull(settingsModel);

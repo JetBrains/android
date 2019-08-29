@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.project.messages;
 
+import static com.intellij.openapi.externalSystem.model.ProjectSystemId.IDE;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
-
-import static com.intellij.openapi.externalSystem.model.ProjectSystemId.IDE;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AbstractSyncMessages}.
@@ -39,7 +37,6 @@ public class AbstractSyncMessagesTest extends PlatformTestCase {
     initMocks(this);
 
     mySyncMessages = new SyncMessages(myProject);
-    ExternalSystemTaskId taskId = ExternalSystemTaskId.create(mySyncMessages.getProjectSystemId(), EXECUTE_TASK, myProject);
   }
 
   public void testGetErrorCount() {
@@ -64,6 +61,27 @@ public class AbstractSyncMessagesTest extends PlatformTestCase {
   public void testIsEmptyWithMessages() {
     generateMessages(1, MessageType.ERROR);
     assertFalse(mySyncMessages.isEmpty());
+  }
+
+  public void testGetErrorDescription() {
+    // Verify error description is empty.
+    assertEmpty(mySyncMessages.getErrorDescription());
+
+    // Verify error description contains single error.
+    mySyncMessages.report(new SyncMessage("Error1", MessageType.ERROR, "Error1 text"));
+    assertEquals("Error1", mySyncMessages.getErrorDescription());
+
+    // Verify error description contains multiple errors.
+    mySyncMessages.report(new SyncMessage("Error2", MessageType.ERROR, "Error2 text"));
+    assertEquals("Error1, Error2", mySyncMessages.getErrorDescription());
+
+    // Verify error description doesn't contain duplicated error group.
+    mySyncMessages.report(new SyncMessage("Error2", MessageType.ERROR, "Another Error2 text"));
+    assertEquals("Error1, Error2", mySyncMessages.getErrorDescription());
+
+    // Verify error description doesn't contain warnings.
+    mySyncMessages.report(new SyncMessage("Warning", MessageType.WARNING, "Warning text"));
+    assertEquals("Error1, Error2", mySyncMessages.getErrorDescription());
   }
 
   public void testIsEmptyWithoutMessages() {

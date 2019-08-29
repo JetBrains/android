@@ -19,7 +19,7 @@ package com.android.tools.idea.npw.template
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
-import com.android.tools.idea.npw.project.AndroidPackageUtils
+import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.TemplateManager
 import com.google.common.annotations.VisibleForTesting
@@ -39,7 +39,7 @@ class ChooseActivityTypeStep(
   emptyItemLabel = "Empty Activity"
 ) {
   constructor(moduleModel: NewModuleModel, renderModel: RenderTemplateModel, formFactor: FormFactor, targetDirectory: VirtualFile)
-    : this(moduleModel, renderModel, formFactor, AndroidPackageUtils.getModuleTemplates(renderModel.androidFacet!!, targetDirectory))
+    : this(moduleModel, renderModel, formFactor, renderModel.androidFacet!!.getModuleTemplates(targetDirectory))
 
   override val templateRenders = (if (isNewModule) listOf(TemplateRenderer(null)) else listOf()) +
                                  TemplateManager.getInstance().getTemplateList(formFactor).map(::TemplateRenderer)

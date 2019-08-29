@@ -138,7 +138,7 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testCanBuildDefaultNewInstantAppProjects() throws IOException {
+  public void testCanBuildDefaultNewInstantAppProjects() {
     createAndOpenDefaultAIAProject("BuildApp", null);
 
     assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/layout/activity_main.xml")).isFile();
@@ -150,7 +150,7 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls() throws IOException {
+  public void testCanBuildNewInstantAppProjectsWithEmptyActivityWithoutUrls() {
     createAndOpenDefaultAIAProject("BuildApp", null);
 
     assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/layout/activity_main.xml")).isFile();
@@ -163,7 +163,7 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testCanBuildNewInstantAppProjectsWithLoginActivity() throws IOException {
+  public void testCanBuildNewInstantAppProjectsWithLoginActivity() {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
@@ -212,7 +212,7 @@ public class NewInstantAppTest {
 
   // b/68478730
   @Test
-  public void addMasterDetailActivityToExistingIappModule() throws IOException {
+  public void addMasterDetailActivityToExistingIappModule() {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
@@ -226,7 +226,7 @@ public class NewInstantAppTest {
 
   // b/68684401
   @Test
-  public void addFullscreenActivityToExistingIappModule() throws IOException {
+  public void addFullscreenActivityToExistingIappModule() {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")

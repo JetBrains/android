@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
+import static com.android.tools.idea.npw.project.AndroidPackageUtils.getModuleTemplates;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
@@ -329,7 +330,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   @Override
   @NotNull
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidPackageUtils.getModuleTemplates(myFacet, null)));
+    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), getModuleTemplates(myFacet, null)));
   }
 
   @Override

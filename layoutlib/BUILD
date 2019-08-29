@@ -9,6 +9,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
-        "//prebuilts/studio/layoutlib:data/layoutlib",
+        "//prebuilts/studio/layoutlib/data:layoutlib",
     ],
 )
