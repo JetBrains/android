@@ -24,6 +24,7 @@ import com.android.ide.common.gradle.model.IdeAndroidProjectImpl
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
 import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactStub
+import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub
 import com.android.ide.common.gradle.model.stubs.AndroidProjectStub
 import com.android.ide.common.gradle.model.stubs.ApiVersionStub
 import com.android.ide.common.gradle.model.stubs.BuildTypeContainerStub
@@ -241,7 +242,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub() = AndroidProjectStub(
   1,
   true,
   2,
-  true
+  true,
+  AndroidGradlePluginProjectFlagsStub()
   )
 
 
