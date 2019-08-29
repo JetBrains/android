@@ -19,11 +19,17 @@ package com.android.tools.idea.testing
 
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
+import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.ResolveScopeEnlarger
+import com.intellij.testFramework.EditorTestUtil
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.junit.Assert.assertTrue
 
 /**
@@ -70,4 +76,43 @@ fun CodeInsightTestFixture.loadNewFile(path: String, contents: String): PsiFile 
   val virtualFile = VfsTestUtil.createFile(project.guessProjectDir()!!, path, contents)
   configureFromExistingVirtualFile(virtualFile)
   return file
+}
+
+/**
+ * Marker used for caret position by [com.intellij.testFramework.EditorTestUtil.extractCaretAndSelectionMarkers]. This top-level value is
+ * meant to be used in a Kotlin string template to stand out from the surrounding XML.
+ */
+const val caret = EditorTestUtil.CARET_TAG
+
+/**
+ * Helper function for constructing strings understood by [com.intellij.testFramework.ExpectedHighlightingData].
+ *
+ * Meant to be used in a Kotlin string template to stand out from the surrounding XML.
+ */
+infix fun String.highlightedAs(level: HighlightSeverity): String {
+  // See com.intellij.testFramework.ExpectedHighlightingData
+  val marker = when (level) {
+    HighlightSeverity.ERROR -> "error"
+    HighlightSeverity.WARNING -> "warning"
+    else -> error("Don't know how to handle $this.")
+  }
+
+  return "<$marker>$this</$marker>"
+}
+
+fun CodeInsightTestFixture.goToElementAtCaret() {
+  performEditorAction(IdeActions.ACTION_GOTO_DECLARATION)
+}
+
+/**
+ * Finds class with the given name in the [PsiElement.getResolveScope] of the context element.
+ *
+ * This means using the same scope as the real code editor will use and also makes this method work with light classes, since
+ * [PsiElement.getResolveScope] is subject to [ResolveScopeEnlarger]s.
+ *
+ * @see JavaCodeInsightTestFixture.findClass
+ * @see PsiElement.getResolveScope
+ */
+fun JavaCodeInsightTestFixture.findClass(name: String, context: PsiElement): PsiClass? {
+  return javaFacade.findClass(name, context.resolveScope)
 }
