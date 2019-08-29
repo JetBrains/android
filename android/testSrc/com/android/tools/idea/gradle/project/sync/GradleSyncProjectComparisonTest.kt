@@ -36,7 +36,6 @@ import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
 import com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
-import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.android.tools.idea.testing.TestProjectPaths.VARIANT_SPECIFIC_DEPENDENCIES
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
