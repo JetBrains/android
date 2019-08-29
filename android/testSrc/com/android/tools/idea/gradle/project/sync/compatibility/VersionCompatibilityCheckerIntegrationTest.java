@@ -50,7 +50,7 @@ public class VersionCompatibilityCheckerIntegrationTest extends AndroidGradleTes
 
     Project project = getProject();
     AndroidPluginVersionUpdater.UpdateResult updateResult =
-      AndroidPluginVersionUpdater.getInstance(project).updatePluginVersion(GradleVersion.parse("2.1.2"), null);
+      AndroidPluginVersionUpdater.getInstance(project).updatePluginVersion(GradleVersion.parse("2.1.2"), null, null);
 
     assertTrue(updateResult.isPluginVersionUpdated());
     assertTrue(updateResult.versionUpdateSuccess());

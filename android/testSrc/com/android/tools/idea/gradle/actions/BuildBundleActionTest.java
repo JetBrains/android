@@ -130,7 +130,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
     assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
     // flush event queue to ensure the update call is processed.
     IdeEventQueue.getInstance().flushQueue();
-    verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any());
+    verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any(), any());
   }
 
   public void testUpdateGradlePluginCanceledNotification() throws InterruptedException {
@@ -153,7 +153,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
     myAction.actionPerformed(event);
 
     assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
-    verify(myAndroidPluginVersionUpdater, never()).updatePluginVersion(any(), any());
+    verify(myAndroidPluginVersionUpdater, never()).updatePluginVersion(any(), any(), any());
   }
 
   private static String getHtmlUpdateMessage() {
