@@ -22,6 +22,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.ui.TextFieldWithColorPickerKt;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -33,16 +34,27 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import javax.swing.BoxLayout;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import java.util.*;
-import java.util.function.Function;
 
 /**
  * Embeddable UI for selecting how to create a new resource value (which XML file and directories to place it).
@@ -53,7 +65,12 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   private JTextField myNameField;
   private ModulesComboBox myModuleCombo;
   private JBLabel myModuleLabel;
-  private JTextField myValueField;
+
+  /**
+   * The panel for the 'value' TextField Component. This container is abstracted since we may wrap {@link #myValueField} in a custom
+   * Component for some resource values. E.g: We use a TextField with a ColorPicker Icon when creating a {@link ResourceType#COLOR} value.
+   */
+  private JPanel myValueFieldContainer;
   private JBLabel myValueLabel;
   private JBLabel myNameLabel;
   private JComboBox myFileNameCombo;
@@ -67,6 +84,9 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
 
   private JPanel myDirectoriesPanel;
   private JBLabel myDirectoriesLabel;
+
+  private JTextField myValueField;
+
   private CreateXmlResourceSubdirPanel mySubdirPanel;
 
   private IdeResourceNameValidator myResourceNameValidator;
@@ -94,6 +114,13 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
       myNameField.setText(resourceName);
     }
 
+    if (resourceType == ResourceType.COLOR) {
+      // For Color values, we want a TextField with a ColorPicker so we wrap the TextField with a custom component.
+      Color defaultColor = ResourceHelper.parseColor(resourceValue);
+      myValueFieldContainer.removeAll();
+      myValueFieldContainer.add(TextFieldWithColorPickerKt.wrapWithColorPickerIcon(myValueField, defaultColor));
+    }
+
     if (chooseValue) {
       myValueField.getDocument().addDocumentListener(new DocumentAdapter() {
         @Override
@@ -106,7 +133,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
       if (!StringUtil.isEmpty(resourceValue)) {
         // Need to escape the string to properly represent it in the JTextField.
         // E.g: If the string is "foo \n bar" we need to pass "foo \\n bar" to properly see it in the JTextField.
-        String value = (resourceType == ResourceType.STRING)? ValueXmlHelper.escapeResourceString(resourceValue, false): resourceValue;
+        String value = (resourceType == ResourceType.STRING) ? ValueXmlHelper.escapeResourceString(resourceValue, false) : resourceValue;
         myValueField.setText(value);
       }
     }
@@ -156,6 +183,17 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (defaultFile != null) {
       resetFromFile(defaultFile, module.getProject());
     }
+  }
+
+  private void createUIComponents() {
+    myValueField = new JTextField();
+    // this panel just holds the value field component within the swing form, so we strip any UI from it and use a very simple LayoutManager
+    myValueFieldContainer = new JPanel();
+    myValueFieldContainer.setLayout(new BoxLayout(myValueFieldContainer, BoxLayout.Y_AXIS));
+    myValueFieldContainer.setUI(null);
+    myValueFieldContainer.setBorder(JBUI.Borders.empty());
+    myValueFieldContainer.setOpaque(false);
+    myValueFieldContainer.add(myValueField);
   }
 
   @Override
@@ -276,12 +314,12 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (name.isEmpty() ||
         // If the value is already populated, the user probably don't want to change it
         // (e.g extracting a string resources), so we focus the name field
-        myValueField.isVisible() && !myValueField.getText().isEmpty()
+        myValueFieldContainer.isVisible() && !myValueField.getText().isEmpty()
         || name.equals(ResourceHelper.prependResourcePrefix(myModule, null, myFolderType))) {
       return myNameField;
     }
-    else if (myValueField.isVisible()) {
-      return myValueField;
+    else if (myValueFieldContainer.isVisible()) {
+      return myValueFieldContainer;
     }
     else if (myModuleCombo.isVisible()) {
       return myModuleCombo;
@@ -321,7 +359,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     String value = myValueField.getText();
     // When we need to get the desired value for a string resource, the text has to be unescaped.
     // E.g: If the user types "foo \n bar" JTextField.getText will return "foo \\n bar" so it has to be unescaped.
-    return (myResourceType == ResourceType.STRING)? ValueXmlHelper.unescapeResourceString(value, false, false) : value;
+    return (myResourceType == ResourceType.STRING) ? ValueXmlHelper.unescapeResourceString(value, false, false) : value;
   }
 
   @Nullable
@@ -357,7 +395,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   }
 
   private void setChangeValueVisible(boolean isVisible) {
-    myValueField.setVisible(isVisible);
+    myValueFieldContainer.setVisible(isVisible);
     myValueLabel.setVisible(isVisible);
   }
 

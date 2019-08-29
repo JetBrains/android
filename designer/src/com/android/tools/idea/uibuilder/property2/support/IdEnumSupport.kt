@@ -20,8 +20,13 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope.NONE.name
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.lint.detector.api.stripIdPrefix
+import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.xml.XmlTag
 import com.intellij.util.containers.notNullize
+import com.intellij.util.text.nullize
 
 private const val UNEXPECTED_ATTR = "Unexpected attribute"
 
@@ -68,6 +73,10 @@ class IdEnumSupport(val property: NelePropertyItem) : EnumSupport {
 
         ATTR_LABEL_FOR -> findSiblingIds()
 
+        ATTR_CONSTRAINT_SET_START,
+        ATTR_CONSTRAINT_SET_END,
+        ATTR_DERIVE_CONSTRAINTS_FROM -> findConstraintSetIds()
+
         else -> error("$UNEXPECTED_ATTR: $name")
       }
 
@@ -101,4 +110,13 @@ class IdEnumSupport(val property: NelePropertyItem) : EnumSupport {
     return values
   }
 
+  private fun findConstraintSetIds(): List<EnumValue> {
+    @Suppress("UNCHECKED_CAST")
+    val tagPointer = property.optionalValue1 as? SmartPsiElementPointer<XmlTag>
+    val tag = tagPointer?.element
+    return tag?.parentTag?.subTags
+             ?.filter { it.localName == MotionSceneAttrs.Tags.CONSTRAINTSET && it != tag }
+             ?.mapNotNull { stripIdPrefix(it.getAttributeValue(ATTR_ID, ANDROID_URI)).nullize() }
+             ?.map { EnumValue.item(ID_PREFIX + it) } ?: emptyList()
+  }
 }

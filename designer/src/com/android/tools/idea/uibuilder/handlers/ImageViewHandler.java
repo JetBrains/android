@@ -119,7 +119,7 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   private boolean showImageChooser(@NotNull ViewEditor editor, @NotNull NlComponent component) {
-    String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), true);
+    String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP), true);
     if (src != null) {
       // If the selected item was a sample data item, set in the tools attributes src and not in the regular attribute
       if (src.startsWith(SAMPLE_PREFIX) || src.startsWith(TOOLS_SAMPLE_PREFIX )) {

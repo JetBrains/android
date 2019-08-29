@@ -230,7 +230,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_MOTION_HORIZONTAL = Flag.create(
     NELE, "animated.motion.horizontal", "Display motion editor horizontally",
     "Controls the placement of the motion editor (horizontal versus vertical).",
-    true);
+    false);
   public static final Flag<Boolean> NELE_MOCKUP_EDITOR = Flag.create(
     NELE, "mockup.editor", "Enable the Mockup Editor",
     "Enable the Mockup Editor to ease the creation of Layouts from a design file.",
@@ -282,20 +282,10 @@ public final class StudioFlags {
     "If enabled, user can access the Connection Assistant under \"Tools\" and \"Deploy Target Dialog\"",
     true);
 
-  public static final Flag<Boolean> WHATS_NEW_ASSISTANT_ENABLED = Flag.create(
-    ASSISTANT, "whats.new.enabled", "Enable the \"What's New\" assistant",
-    "If enabled, user can access the \"What's New\" assistant under \"Help\" and \"What's New in Android Studio\"",
-    true);
-
-  public static final Flag<Boolean> WHATS_NEW_ASSISTANT_AUTO_SHOW = Flag.create(
-    ASSISTANT, "whats.new.auto.show", "Displays the \"What's New\" assistant on first start",
-    "If enabled, the \"What's New\" assistant will be displayed the first time user opens a new version of Android Studio.",
-    true);
-
-  public static final Flag<Boolean> WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT = Flag.create(
-    ASSISTANT, "whats.new.download", "Downloads \"What's New\" assistant content from web",
-    "If enabled, the \"What's New\" assistant will update its contents from the web whenever it is opened.",
-    true);
+  public static final Flag<Boolean> NELE_LAYOUT_EDITOR_ASSISTANT_ENABLED = Flag.create(
+    ASSISTANT, "layout.editor.help", "Display Help for Design Editor",
+    "If enabled, the assistant panel will display helpful guide on using the Design Editor.",
+    false);
 
   public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL = Flag.create(
     NELE, "new.property", "Enable the new Property Panel",
@@ -355,7 +345,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_DESIGN_SURFACE_ZOOM = Flag.create(
     NELE, "design.surface.zoom", "Zoom panel in Design Surface",
     "Enable zoom controls in the design surface, substitutes any zoom controls on the top toolbar of the editor.",
-    false);
+    true);
   //endregion
 
   //region Navigation Editor
@@ -392,6 +382,14 @@ public final class StudioFlags {
     "Enable Select Device/Snapshot combo box snapshots",
     "So the new Instant Run can use the combo box",
     false);
+
+  public static final Flag<String> DEFAULT_ACTIVITY_LOCATOR_STRATEGY = Flag.create(
+    RUNDEBUG,
+    "default.activity.locator.strategy",
+    "Choose a strategy for selecting the default activity to launch from the merged manifest.",
+    "This can be \"BLOCK\" to unconditionally block on a fresh merged manifest or \"STALE\" to use a potentially stale manifest",
+    "BLOCK"
+  );
   //endregion
 
   //region Gradle Project System
@@ -419,6 +417,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> BUILD_ATTRIBUTION_ENABLED = Flag.create(
     GRADLE_IDE, "build.attribution", "Enable build attribution",
     "Enable build attribution.", false);
+  public static final Flag<Boolean> KOTLIN_DSL_PARSING = Flag.create(
+    GRADLE_IDE, "kotlin.dsl", "Enable parsing for Kotlin build files",
+    "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", false);
 
   // REMOVE or change default to true after http://b/80245603 is fixed.
   public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(
@@ -443,7 +444,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> RESOURCE_EXPLORER_PICKER = Flag.create(
     RESOURCES_MANAGEMENT, "picker", "Enable the resource explorer as picker",
     "If enabled, the new resource management tools are used for the resource picker in the property panel.",
-    false);
+    true);
   //endregion
 
   //region Layout Inspector

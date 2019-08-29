@@ -18,6 +18,10 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.trackgroup.DefaultTrackRenderer;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.trackgroup.TrackRendererFactory;
+import com.android.tools.profilers.cpu.CpuThreadTrackRenderer;
+import com.android.tools.profilers.cpu.FramesTrackRenderer;
+import com.android.tools.profilers.cpu.SurfaceflingerTrackRenderer;
+import com.android.tools.profilers.cpu.VsyncTrackRenderer;
 import com.android.tools.profilers.event.LifecycleTrackRenderer;
 import com.android.tools.profilers.event.UserEventTrackRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +38,14 @@ public class ProfilerTrackRendererFactory implements TrackRendererFactory<Profil
         return new LifecycleTrackRenderer();
       case USER_INTERACTION:
         return new UserEventTrackRenderer();
+      case FRAMES:
+        return new FramesTrackRenderer();
+      case SURFACEFLINGER:
+        return new SurfaceflingerTrackRenderer();
+      case VSYNC:
+        return new VsyncTrackRenderer();
+      case CPU_THREAD:
+        return new CpuThreadTrackRenderer();
       default:
         return new DefaultTrackRenderer<>();
     }

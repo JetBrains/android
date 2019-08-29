@@ -59,10 +59,10 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
       // For now we hard code the main thread, and the render thread frame information.
       addElement(new FrameState("Main", new AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS,
                                                                     capture.getMainThreadId(),
-                                                                    SLOW_FRAME_RATE_US), atraceCapture));
+                                                                    SLOW_FRAME_RATE_US), atraceCapture, myRange));
       addElement(new FrameState("Render", new AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_RENDER_THREAD_FRAME_ID_MPLUS,
                                                                       atraceCapture.getRenderThreadId(),
-                                                                      SLOW_FRAME_RATE_US), atraceCapture));
+                                                                      SLOW_FRAME_RATE_US), atraceCapture, myRange));
     }
     contentsChanged();
   }
@@ -71,7 +71,7 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
     fireContentsChanged(this, 0, getSize());
   }
 
-  public class FrameState {
+  public static class FrameState {
     @NotNull
     private final AtraceDataSeries<AtraceFrame> myAtraceCpuStateDataSeries;
     @NotNull
@@ -79,13 +79,16 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
     private final String myThreadName;
     private final int myThreadId;
 
-    public FrameState(String threadName, @NotNull AtraceFrameFilterConfig filter, @NotNull AtraceCpuCapture atraceCapture) {
+    public FrameState(String threadName,
+                      @NotNull AtraceFrameFilterConfig filter,
+                      @NotNull AtraceCpuCapture atraceCapture,
+                      @NotNull Range range) {
       myModel = new StateChartModel<>();
       myThreadName = threadName;
       myThreadId = filter.getThreadId();
       myAtraceCpuStateDataSeries = new AtraceDataSeries<>(atraceCapture, capture -> capture.getFrames(filter));
       // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
-      myModel.addSeries(new RangedSeries<>(myRange, myAtraceCpuStateDataSeries));
+      myModel.addSeries(new RangedSeries<>(range, myAtraceCpuStateDataSeries));
     }
 
     public String getThreadName() {

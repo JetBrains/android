@@ -68,6 +68,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class MemoryClassSetViewTest {
+  private static final long MOCK_CLASS_ID = 1;
   private static final String MOCK_CLASS_NAME = "MockClass";
 
   private final FakeTimer myTimer = new FakeTimer();
@@ -101,11 +102,11 @@ public class MemoryClassSetViewTest {
 
     myCaptureObject = new FakeCaptureObject.Builder().build();
     myInstanceObjects = Arrays.asList(
-      new Builder(myCaptureObject, MOCK_CLASS_NAME).setName("MockInstance1").createFakeFields(0).setDepth(2).setShallowSize(3)
-        .setRetainedSize(4).build(),
-      new Builder(myCaptureObject, MOCK_CLASS_NAME).setName("MockInstance2").createFakeFields(1).setDepth(5).setShallowSize(6)
-        .setRetainedSize(7).build(),
-      new Builder(myCaptureObject, MOCK_CLASS_NAME).setName("MockInstance3").createFakeFields(5).setDepth(Integer.MAX_VALUE)
+      new Builder(myCaptureObject, MOCK_CLASS_ID, MOCK_CLASS_NAME).setName("MockInstance1").createFakeFields(0).setDepth(2)
+        .setShallowSize(3).setRetainedSize(4).build(),
+      new Builder(myCaptureObject, MOCK_CLASS_ID, MOCK_CLASS_NAME).setName("MockInstance2").createFakeFields(1).setDepth(5)
+        .setShallowSize(6).setRetainedSize(7).build(),
+      new Builder(myCaptureObject, MOCK_CLASS_ID, MOCK_CLASS_NAME).setName("MockInstance3").createFakeFields(5).setDepth(Integer.MAX_VALUE)
         .setShallowSize(9).setRetainedSize(10).build());
     myCaptureObject.addInstanceObjects(new HashSet<>(myInstanceObjects));
 
@@ -199,6 +200,7 @@ public class MemoryClassSetViewTest {
 
   @Test
   public void fieldSelectionAndNavigationTest() {
+    final long TEST_CLASS_ID = 1, TEST_FIELD_ID = 2;
     final String TEST_CLASS_NAME = "com.Foo";
     final String TEST_FIELD_NAME = "com.Field";
 
@@ -230,18 +232,18 @@ public class MemoryClassSetViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     FakeInstanceObject instanceFooField =
-      new FakeInstanceObject.Builder(captureObject, TEST_FIELD_NAME).setName("instanceFooField").build();
+      new FakeInstanceObject.Builder(captureObject, TEST_FIELD_ID, TEST_FIELD_NAME).setName("instanceFooField").build();
     FakeInstanceObject instanceBarField =
-      new FakeInstanceObject.Builder(captureObject, TEST_FIELD_NAME).setName("instanceBarField").build();
+      new FakeInstanceObject.Builder(captureObject, TEST_FIELD_ID, TEST_FIELD_NAME).setName("instanceBarField").build();
     FakeFieldObject fieldFoo = new FakeFieldObject("fieldFoo", OBJECT, instanceFooField);
     FakeFieldObject fieldBar = new FakeFieldObject("fieldBar", OBJECT, instanceBarField);
 
     FakeInstanceObject instanceFoo =
-      new FakeInstanceObject.Builder(captureObject, TEST_CLASS_NAME).setName("instanceFoo").setAllocationStack(callstackFoo)
+      new FakeInstanceObject.Builder(captureObject, TEST_CLASS_ID, TEST_CLASS_NAME).setName("instanceFoo").setAllocationStack(callstackFoo)
         .setFields(Collections.singletonList(fieldFoo.getFieldName())).build();
     instanceFoo.setFieldValue(fieldFoo.getFieldName(), fieldFoo.getValueType(), instanceFooField);
     FakeInstanceObject instanceBar =
-      new FakeInstanceObject.Builder(captureObject, TEST_CLASS_NAME).setName("instanceBar").setAllocationStack(callstackBar)
+      new FakeInstanceObject.Builder(captureObject, TEST_CLASS_ID, TEST_CLASS_NAME).setName("instanceBar").setAllocationStack(callstackBar)
         .setFields(Collections.singletonList(fieldBar.getFieldName())).build();
     instanceBar.setFieldValue(fieldBar.getFieldName(), fieldBar.getValueType(), instanceBarField);
 
@@ -320,8 +322,8 @@ public class MemoryClassSetViewTest {
     for (int i = 0; i < 209; i++) {
       String name = Integer.toString(i);
       fakeInstances.add(
-        new FakeInstanceObject.Builder(myCaptureObject, MOCK_CLASS_NAME).setName(name).setShallowSize(i).setDepth(i).setRetainedSize(i)
-          .build());
+        new FakeInstanceObject.Builder(myCaptureObject, MOCK_CLASS_ID, MOCK_CLASS_NAME).setName(name).setShallowSize(i).setDepth(i)
+          .setRetainedSize(i).build());
     }
     myCaptureObject.addInstanceObjects(new HashSet<>(fakeInstances));
     myStage.selectCaptureDuration(

@@ -48,10 +48,10 @@ import com.android.resources.ResourceType;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -87,11 +87,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -209,19 +207,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       ResourceValue actualValue = actualItem.getResourceValue();
       assertThat(actualValue).isEquivalentTo(expectedValue);
     }
-
-    // Verify that we generated expected data binding resources by comparing the path to all
-    // XML files we plan to generate layout bindings for.
-    Set<String> actualNames = actual.getResources(RES_AUTO, ResourceType.LAYOUT).values().stream()
-      .flatMap(resource -> actual.getBindingLayoutData(resource.getName()).stream())
-      .map(data -> DataBindingUtil.getQualifiedBindingName(facet, data))
-      .collect(Collectors.toSet());
-    Set<String> expectedNames = expected.getResources(RES_AUTO, ResourceType.LAYOUT).values().stream()
-      .flatMap(resource -> actual.getBindingLayoutData(resource.getName()).stream())
-      .map(data -> DataBindingUtil.getQualifiedBindingName(facet, data))
-      .collect(Collectors.toSet());
-
-    assertThat(actualNames).isEqualTo(expectedNames);
   }
 
   public void testComputeResourceStrings() {
@@ -3795,15 +3780,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository(true);
     assertNotNull(resources);
     assertFalse(resources.hasFreshFileCache());
-    // We count only XML files. The layout_with_data_binding.xml is parsed as PSI due to presense of data binding information.
-    assertEquals(6, resources.getNumXmlFilesLoadedInitially());
+    assertEquals(7, resources.getNumXmlFilesLoadedInitially());
     assertEquals(resources.getNumXmlFilesLoadedInitially(), resources.getNumXmlFilesLoadedInitiallyFromSources());
 
     ResourceFolderRepository fromCacheFile = createRepository(true);
     assertNotNull(fromCacheFile);
     // Check that fromCacheFile really avoided reparsing some XML files, before checking equivalence of items.
     assertTrue(fromCacheFile.hasFreshFileCache());
-    assertEquals(6, fromCacheFile.getNumXmlFilesLoadedInitially());
+    assertEquals(7, fromCacheFile.getNumXmlFilesLoadedInitially());
     assertEquals(0, fromCacheFile.getNumXmlFilesLoadedInitiallyFromSources());
 
     assertNotSame(resources, fromCacheFile);
@@ -4253,6 +4237,164 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue("Unsaved changes in Document", fileDocumentManager.isFileModified(stringsXml));
   }
 
+  public void testIdDeclarationInNonIdAttribute() throws Exception {
+    PsiFile layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=XML
+      "<LinearLayout\n" +
+      "     xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+      "     xmlns:app='http://schemas.android.com/apk/res-auto'>\n" +
+      "  <TextView android:id='@id/a' />\n" +
+      "  <TextView app:layout_constraintTop_toTopOf='@+id/a' />\n" +
+      "</LinearLayout>\n");
+    myFixture.openFileInEditor(layout.getVirtualFile());
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a");
+
+    repository.scheduleScan(layout, ResourceFolderType.LAYOUT);
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a");
+
+    type("@+id/a|", "a");
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("aa");
+  }
+
+  /**
+   * Regression test for b/138007389.
+   */
+  public void testDuplicateAndroidIdLine() throws Exception {
+    ResourceFolderRepository repository = createRegisteredRepository();
+
+    PsiFile layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=XML
+      "<LinearLayout xmlns:android='http://schemas.android.com/apk/res/android'>\n" +
+      "  <TextView \n" +
+      "     android:id='@+id/a'\n" +
+      "     android:text='Hello' />\n" +
+      "  <TextView android:id='@+id/b' />\n" +
+      "</LinearLayout>\n");
+    myFixture.openFileInEditor(layout.getVirtualFile());
+    runListeners();
+
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+    // Make sure we've switched to PSI.
+    assertThat(Iterables.getOnlyElement(repository.getResources(RES_AUTO, ResourceType.ID, "a")))
+      .isInstanceOf(PsiResourceItem.class);
+
+    moveCaret(myFixture, "@+id|/a");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DUPLICATE);
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+
+    myFixture.type('x');
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+
+    myFixture.getEditor().getCaretModel().moveToOffset(myFixture.getCaretOffset() - 8);
+    myFixture.type('x');
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    // Check the edit above is what we wanted.
+    assertThat(myFixture.getFile().findElementAt(myFixture.getCaretOffset()).getText()).isEqualTo("android:ixd");
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+  }
+
+  public void testDuplicatePlusIdLine() throws Exception {
+    ResourceFolderRepository repository = createRegisteredRepository();
+
+    PsiFile layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=XML
+      "<LinearLayout\n" +
+      "     xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+      "     xmlns:app='http://schemas.android.com/apk/res-auto'>\n" +
+      "  <TextView\n" +
+      "     app:layout_constraintTop_toTopOf='@+id/a'\n" +
+      "     android:text='Hello' />\n" +
+      "  <TextView android:id='@+id/b' />\n" +
+      "</LinearLayout>\n");
+    myFixture.openFileInEditor(layout.getVirtualFile());
+    runListeners();
+
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+    // Make sure we've switched to PSI.
+    assertThat(Iterables.getOnlyElement(repository.getResources(RES_AUTO, ResourceType.ID, "a")))
+      .isInstanceOf(PsiResourceItem.class);
+
+    moveCaret(myFixture, "@+id|/a");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DUPLICATE);
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+
+    myFixture.type('x');
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+
+    myFixture.getEditor().getCaretModel().moveToOffset(myFixture.getCaretOffset() - 8);
+    myFixture.type('x');
+    assertFalse(repository.isScanPending(layout));
+    runListeners();
+    // Check the edit above is what we wanted.
+    assertThat(myFixture.getFile().findElementAt(myFixture.getCaretOffset()).getText())
+      .isEqualTo("app:layout_constraintTop_toTopOxf");
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+  }
+
+  public void testDuplicatePlusIdLineNotConverted() throws Exception {
+    PsiFile layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=XML
+      "<LinearLayout\n" +
+      "     xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+      "     xmlns:app='http://schemas.android.com/apk/res-auto'>\n" +
+      "  <TextView\n" +
+      "     app:layout_constraintTop_toTopOf='@+id/a'\n" +
+      "     android:text='Hello' />\n" +
+      "  <TextView android:id='@+id/b' />\n" +
+      "</LinearLayout>\n");
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+    assertThat(Iterables.getOnlyElement(repository.getResources(RES_AUTO, ResourceType.ID, "a")))
+      .isNotInstanceOf(PsiResourceItem.class);
+
+    myFixture.openFileInEditor(layout.getVirtualFile());
+    moveCaret(myFixture, "@+id|/a");
+    myFixture.performEditorAction(IdeActions.ACTION_EDITOR_DUPLICATE);
+    PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
+    assertTrue(repository.isScanPending(layout));
+    runListeners();
+    assertThat(repository.getResources(RES_AUTO, ResourceType.ID).keySet()).containsExactly("a", "b");
+    assertThat(Iterables.getOnlyElement(repository.getResources(RES_AUTO, ResourceType.ID, "b")))
+      .isInstanceOf(PsiResourceItem.class);
+  }
+
+  public void testAddUnrelatedAttribute() throws Exception {
+    PsiFile layout = myFixture.addFileToProject(
+      "res/layout/my_layout.xml",
+      // language=XML
+      "<LinearLayout\n" +
+      "     xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+      "     xmlns:app='http://schemas.android.com/apk/res-auto'>\n" +
+      "  <TextView\n" +
+      "     app:layout_constraintTop_toTopOf='@+id/a'\n" +
+      "     android:text='Hello' />\n" +
+      "  <TextView android:id='@+id/b' />\n" +
+      "</LinearLayout>\n");
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    myFixture.openFileInEditor(layout.getVirtualFile());
+    type("@+id/b' |/>", "foo='bar'");
+    assertFalse(repository.isScanPending(layout));
+  }
+
   @Nullable
   private static XmlTag findTagById(@NotNull PsiFile file, @NotNull String id) {
     assertFalse(id.startsWith(PREFIX_RESOURCE_REF)); // Just the id.
@@ -4309,7 +4451,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   private void runListeners() {
-    PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
-    UIUtil.dispatchAllInvocationEvents();
+    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+    try {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    }
+    catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

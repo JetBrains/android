@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
@@ -86,7 +87,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
       myGradleDslWriter = new GroovyDslWriter();
       setPsiElement(groovyPsiFile);
     }
-    else if (psiFile instanceof KtFile) {
+    else if (psiFile instanceof KtFile && StudioFlags.KOTLIN_DSL_PARSING.get()) {
       KtFile ktFile = (KtFile)psiFile;
       myGradleDslParser = new KotlinDslParser(ktFile, this);
       myGradleDslWriter = new KotlinDslWriter();

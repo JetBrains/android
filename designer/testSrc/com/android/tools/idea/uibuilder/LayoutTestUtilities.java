@@ -20,6 +20,7 @@ import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.analytics.*;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.KeyEventBuilder;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
@@ -43,6 +44,8 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -210,6 +213,16 @@ public class LayoutTestUtilities {
 
     verify(dropEvent, times(1)).acceptDrop(anyInt());
     verify(dropEvent, times(1)).dropComplete(true);
+  }
+
+  public static void releaseKey(@NotNull InteractionManager manager, int keyCode) {
+    Object listener = manager.getListener();
+    assertTrue(listener instanceof KeyListener);
+    KeyListener keyListener = (KeyListener)listener;
+    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    keyListener.keyReleased(new KeyEventBuilder(keyCode, KeyEvent.CHAR_UNDEFINED)
+                              .withSource(layeredPane)
+                              .build());
   }
 
   public static ScreenView createScreen(SyncNlModel model) {

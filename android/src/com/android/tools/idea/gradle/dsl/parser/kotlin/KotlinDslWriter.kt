@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.android.tools.idea.gradle.dsl.parser.needToCreateParent
 import com.intellij.psi.PsiElement
@@ -36,6 +37,7 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -90,6 +92,7 @@ class KotlinDslWriter : GradleDslWriter {
     val psiElement = element.psiElement
     if (psiElement != null) return psiElement
     var isRealList = false // This is to keep track if we're creating a real list (listOf()).
+    var isVarOrProperty = false
 
     if (element.isNewEmptyBlockElement) return null  // Avoid creation of an empty block.
 
@@ -109,9 +112,19 @@ class KotlinDslWriter : GradleDslWriter {
     }
     else if (element.shouldUseAssignment()) {
       if (element.elementType == PropertyType.REGULAR) {
-        statementText += " = \"abc\""
+        if (element.parent is ExtDslElement) {
+          // This is about a regular extra property and should have a dedicated syntax.
+          statementText = "val ${statementText} by extra(\"abc\")"
+          isVarOrProperty = true
+        }
+        else {
+          statementText += " = \"abc\""
+        }
       }
-      // TODO: add support for variables when available.
+      else if (element.elementType == PropertyType.VARIABLE) {
+        statementText = "val ${statementText} = \"abc\""
+        isVarOrProperty = true
+      }
     }
     else if (element is GradleDslExpressionList) {
       val parentDsl = element.parent
@@ -136,7 +149,7 @@ class KotlinDslWriter : GradleDslWriter {
       statementText += "()"
     }
 
-    val statement = psiFactory.createExpression(statementText) // Doesn't work for variables (see createExpression implementation in factory.
+    val statement = if (isVarOrProperty) psiFactory.createProperty(statementText) else psiFactory.createExpression(statementText)
     when (statement) {
       is KtBinaryExpression -> {
         statement.right?.delete()
@@ -147,7 +160,17 @@ class KotlinDslWriter : GradleDslWriter {
           statement.addAfter(psiFactory.createNewLine(), statement.lastChild)
         }
       }
-      // TODO add support for variables when available.
+      is KtProperty -> {
+        // If we created a local variable, we need to delete the right value to allow adding the right one.
+        if (element.elementType == PropertyType.VARIABLE) {
+          statement.initializer?.delete()
+        }
+        else {
+          // This is the case os an extra property, and we will need to delete the value from the extra() callExpression.
+          val delegateExpression = requireNotNull(statement.delegateExpression as KtCallExpression)
+          requireNotNull(delegateExpression.valueArgumentList).removeArgument(0)
+        }
+      }
     }
 
     val lineTerminator = psiFactory.createNewLine()
@@ -216,6 +239,9 @@ class KotlinDslWriter : GradleDslWriter {
     else if (addedElement is KtValueArgument) {
       element.psiElement = addedElement.getArgumentExpression()
     }
+    else if (addedElement is KtProperty) {
+      element.psiElement = addedElement
+    }
 
     return element.psiElement
   }
@@ -254,10 +280,21 @@ class KotlinDslWriter : GradleDslWriter {
         valueArgumentList?.addArgumentAfter(valueArgument, valueArgumentList?.arguments?.lastOrNull())?.getArgumentExpression() ?: return
       literal.setExpression(added)
     }
+    else if (psiElement is KtProperty && psiElement.hasDelegate()) {
+      // This is an extra property that has just been created.
+      val delegateExpression = requireNotNull(psiElement.delegateExpression as KtCallExpression)
+      val valueArgument = KtPsiFactory(newLiteral.project).createArgument(newLiteral as? KtExpression)
+      val added = delegateExpression.valueArgumentList?.addArgument(valueArgument)?.getArgumentExpression() ?: return
+      literal.setExpression(added)
+    }
     else {
-      // This element has just been created and will be "propertyName = ".
+      // This element has just been created and will be like "propertyName = " or "val propertyName = ".
       val added = psiElement.addAfter(newLiteral, psiElement.lastChild)
       literal.setExpression(added)
+    }
+
+    if (literal.unsavedConfigBlock != null) {
+      addConfigBlock(literal)
     }
 
     literal.reset()
@@ -400,9 +437,17 @@ class KotlinDslWriter : GradleDslWriter {
     if (expressionMap.psiElement != null) return expressionMap.psiElement
 
     val psiElement = createDslElement(expressionMap) ?: return null
-    if (psiElement is KtBinaryExpression) {
-      val emptyMapExpression = KtPsiFactory(psiElement.project).createExpression("mapOf()")
+    val psiFactory = KtPsiFactory(psiElement.project)
+    if (psiElement is KtBinaryExpression || (psiElement is KtProperty && !psiElement.hasDelegate())) {
+      val emptyMapExpression = psiFactory.createExpression("mapOf()")
       val mapElement = psiElement.addAfter(emptyMapExpression, psiElement.lastChild)
+      expressionMap.psiElement = mapElement
+    }
+    else if (psiElement is KtProperty && psiElement.hasDelegate()) {
+      // This is the case of an extra property, and the map is used as the property delegate expression.
+      val delegateExpressionArgs = (psiElement.delegateExpression as? KtCallExpression)?.valueArgumentList ?: return null
+      val valueArgument = psiFactory.createArgument("mapOf()")
+      val mapElement = delegateExpressionArgs.addArgument(valueArgument).getArgumentExpression() ?: return null
       expressionMap.psiElement = mapElement
     }
     return expressionMap.psiElement

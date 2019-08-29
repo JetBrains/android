@@ -16,11 +16,14 @@
 package com.android.tools.idea.templates
 
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import java.security.InvalidParameterException
+import kotlin.reflect.KClass
 import kotlin.test.assertFailsWith
 
 class FmResolveDependencyMethodTest {
@@ -50,9 +53,17 @@ class FmResolveDependencyMethodTest {
     doTest("com.android:lib:1.0.2", "1.0.0", "notfound", "com.android:lib:1.0.0") // Not found, return default
   }
 
+  // From mockito-kotlin
+  inline fun <reified T : Any> createInstance(): T = createInstance(T::class)
+  fun <T : Any> createInstance(kClass: KClass<T>): T = castNull()
+  @Suppress("UNCHECKED_CAST")
+  private fun <T> castNull(): T = null as T
+  private inline fun <reified T : Any> anyOrNull(): T = Mockito.any<T>() ?: createInstance()
+
   private fun doTest(dependency: String, minRevision: String?, resolved: String, expectResult: String) {
     val mockRepo = Mockito.mock(RepositoryUrlManager::class.java)
-    `when`(mockRepo.resolveDynamicCoordinate(Mockito.any(), Mockito.any())).thenReturn(GradleCoordinate.parseCoordinateString(resolved))
+    `when`(mockRepo.resolveDynamicCoordinate(anyOrNull(), anyOrNull(), anyOrNull()))
+      .thenReturn(GradleCoordinate.parseCoordinateString(resolved))
 
     assertThat(resolveDependency(mockRepo, dependency, minRevision)).isEqualTo(expectResult)
   }

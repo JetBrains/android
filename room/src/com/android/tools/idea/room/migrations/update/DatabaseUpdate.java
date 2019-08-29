@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.room.migrations.update;
 
+import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.*;
+
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
 import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
+import com.android.tools.idea.room.migrations.json.FtsEntityBundle;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +36,8 @@ public class DatabaseUpdate {
   private Map<String, EntityBundle> newEntities;
   private Map<String, EntityBundle> deletedEntities;
   private Map<String, EntityUpdate> modifiedEntities;
+
+  private Map<String, String> renamedEntities;
 
   private List<DatabaseViewBundle> deletedViews;
   private List<DatabaseViewBundle> newOrModifiedViews;
@@ -50,19 +55,27 @@ public class DatabaseUpdate {
 
     previousVersion = oldDatabase.getVersion();
     currentVersion = newDatabase.getVersion();
+
     deletedEntities = new HashMap<>(oldDatabase.getEntitiesByTableName());
     newEntities = new HashMap<>();
     modifiedEntities = new HashMap<>();
+    renamedEntities = new HashMap<>();
 
     for (EntityBundle newEntity : newDatabase.getEntities()) {
-      if (deletedEntities.containsKey(newEntity.getTableName())) {
-        EntityBundle oldEntity = deletedEntities.remove(newEntity.getTableName());
-        if (!oldEntity.isSchemaEqual(newEntity)) {
-          modifiedEntities.put(oldEntity.getTableName(),  new EntityUpdate(oldEntity, newEntity));
+      EntityBundle oldEntity = deletedEntities.remove(newEntity.getTableName());
+        if (oldEntity != null) {
+          if (!isTableTypeTheSame(oldEntity, newEntity)) {
+            deletedEntities.put(oldEntity.getTableName(), oldEntity);
+            newEntities.put(newEntity.getTableName(), newEntity);
+          } else {
+            if (!oldEntity.isSchemaEqual(newEntity)) {
+              modifiedEntities.put(newEntity.getTableName(), new EntityUpdate(oldEntity, newEntity));
+            }
+          }
         }
-      } else {
-        newEntities.put(newEntity.getTableName(), newEntity);
-      }
+        else {
+          newEntities.put(newEntity.getTableName(), newEntity);
+        }
     }
 
     deletedViews = new ArrayList<>();
@@ -93,6 +106,10 @@ public class DatabaseUpdate {
     }
   }
 
+  /**
+   * Returns a mapping between the name of a modified table and the EntityUpdate object which describes the changes which were
+   * performed on that table. If the update renames the table, the new name is used as key.
+   */
   @NotNull
   public Map<String, EntityUpdate> getModifiedEntities() {
     return modifiedEntities;
@@ -106,6 +123,16 @@ public class DatabaseUpdate {
   @NotNull
   public Map<String, EntityBundle> getDeletedEntities() {
     return deletedEntities;
+  }
+
+  /**
+   * Returns a mapping form the old name of the table to the new one.
+   *
+   * <p>It only provides information regarding the tables which only need to be renamed and feature no other changes.</p>
+   */
+  @NotNull
+  public Map<String, String> getRenamedEntities() {
+    return renamedEntities;
   }
 
   @NotNull
@@ -126,7 +153,31 @@ public class DatabaseUpdate {
     return previousVersion;
   }
 
-  private void checkDatabase(@NotNull DatabaseBundle databaseBundle) {
+  /**
+   * Separates the renamed tables from the deleted/newly added tables based on user input.
+   * @param oldToNewNameMapping mapping from the old name of a entity to the actual name
+   */
+  public void applyRenameMapping(@NotNull Map<String, String> oldToNewNameMapping) {
+    for (Map.Entry<String, String> tableNames : oldToNewNameMapping.entrySet()) {
+      EntityBundle oldEntity = deletedEntities.remove(tableNames.getKey());
+      EntityBundle newEntity = newEntities.remove(tableNames.getValue());
+
+      if (oldEntity == null || newEntity == null) {
+        throw  new IllegalArgumentException("Invalid old table name to new table name mapping");
+      }
+
+      // If the table structure remains the same after the update and the resulting new table is not an fts table which
+      // requires external content, we can simply rename it without needing to recreate it.
+      if (isTableStructureTheSame(oldEntity, newEntity) &&
+          !(newEntity instanceof FtsEntityBundle && ftsTableNeedsExternalContentSource((FtsEntityBundle)newEntity))) {
+        renamedEntities.put(tableNames.getKey(), tableNames.getValue());
+      } else {
+        modifiedEntities.put(newEntity.getTableName(), new EntityUpdate(oldEntity, newEntity));
+      }
+    }
+  }
+
+  private static void checkDatabase(@NotNull DatabaseBundle databaseBundle) {
     Preconditions.checkArgument(databaseBundle.getEntities() != null,
                                 "Invalid DatabaseBundle object: the list of entities is null.");
     Preconditions.checkArgument(databaseBundle.getViews() != null,

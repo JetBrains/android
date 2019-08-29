@@ -242,10 +242,12 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void defaultHeapSetTest() {
+    String fakeClassName1 = "DUMMY_CLASS1", fakeClassName2 = "DUMMY_CLASS2";
+
     myMockLoader.setReturnImmediateFuture(true);
 
     FakeCaptureObject capture0 = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(capture0, "DUMMY_CLASS1").setHeapId(0).build();
+    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(capture0, 1, fakeClassName1).setHeapId(0).build();
     capture0.addInstanceObjects(ImmutableSet.of(instanceObject));
 
     myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture0)),
@@ -255,7 +257,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getSelectedHeapSet().getName()).isEqualTo("default");
 
     FakeCaptureObject capture1 = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-    instanceObject = new FakeInstanceObject.Builder(capture1, "DUMMY_CLASS1").setHeapId(1).build();
+    instanceObject = new FakeInstanceObject.Builder(capture1, 1, fakeClassName1).setHeapId(1).build();
     capture1.addInstanceObjects(ImmutableSet.of(instanceObject));
 
     myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture1)),
@@ -265,8 +267,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getSelectedHeapSet().getName()).isEqualTo("app");
 
     FakeCaptureObject capture2 = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-    instanceObject = new FakeInstanceObject.Builder(capture2, "DUMMY_CLASS1").setHeapId(0).build();
-    FakeInstanceObject otherInstanceObject = new FakeInstanceObject.Builder(capture2, "DUMMY_CLASS2").setHeapId(1).build();
+    instanceObject = new FakeInstanceObject.Builder(capture2, 1, fakeClassName1).setHeapId(0).build();
+    FakeInstanceObject otherInstanceObject = new FakeInstanceObject.Builder(capture2, 2, fakeClassName2).setHeapId(1).build();
     capture2.addInstanceObjects(ImmutableSet.of(instanceObject, otherInstanceObject));
 
     myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture2)),
@@ -298,7 +300,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     final String dummyClassName = "DUMMY_CLASS1";
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().setStartTime(5).setEndTime(10).build();
     InstanceObject mockInstance =
-      new FakeInstanceObject.Builder(captureObject, dummyClassName).setName("DUMMY_INSTANCE")
+      new FakeInstanceObject.Builder(captureObject, 1, dummyClassName).setName("DUMMY_INSTANCE")
         .setDepth(1).setShallowSize(2).setRetainedSize(3).build();
     captureObject.addInstanceObjects(Collections.singleton(mockInstance));
 

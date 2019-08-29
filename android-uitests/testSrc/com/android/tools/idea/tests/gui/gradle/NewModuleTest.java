@@ -40,7 +40,7 @@ public class NewModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  public void createNewModuleFromJar() throws Exception {
+  public void createNewModuleFromJar() throws IOException {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
 
     guiTest.importSimpleApplication()
@@ -68,7 +68,7 @@ public class NewModuleTest {
   }
 
   @Test
-  public void createNewJavaLibraryWithDefaults() throws Exception {
+  public void createNewJavaLibraryWithDefaults() throws IOException {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToJavaLibrary()
@@ -79,10 +79,11 @@ public class NewModuleTest {
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyClass.java")).isFile();
+    assertAbout(file()).that(guiTest.getProjectPath("mylib/.gitignore")).isFile();
   }
 
   @Test
-  public void createNewKotlinLibraryWithDefaults() throws Exception {
+  public void createNewKotlinLibraryWithDefaults() throws IOException {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToJavaLibrary()
@@ -96,7 +97,7 @@ public class NewModuleTest {
   }
 
   @Test
-  public void createNewAndroidLibraryWithDefaults() throws Exception {
+  public void createNewAndroidLibraryWithDefaults() throws IOException {
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToAndroidLibrary()
@@ -111,7 +112,7 @@ public class NewModuleTest {
   }
 
   @Test
-  public void addNewModuleToAndroidxProject() throws IOException {
+  public void addNewModuleToAndroidxProject() {
     WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
     guiTest.ideFrame()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
@@ -134,7 +135,7 @@ public class NewModuleTest {
   }
 
   @Test
-  public void addNewBasicActivityModuleToNewProject() throws IOException {
+  public void addNewBasicActivityModuleToNewProject() {
     WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
     guiTest.ideFrame()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")

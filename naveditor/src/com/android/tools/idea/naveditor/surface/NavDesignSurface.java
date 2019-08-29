@@ -24,11 +24,6 @@ import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEven
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.OPEN_FILE;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.model.DnDTransferComponent;
-import com.android.tools.idea.common.model.DnDTransferItem;
-import com.android.tools.idea.common.model.ItemTransferable;
-import com.android.utils.ImmutableCollectors;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
@@ -37,6 +32,9 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -68,6 +66,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.utils.ImmutableCollectors;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.FutureCallback;
@@ -176,6 +176,8 @@ public class NavDesignSurface extends DesignSurface {
         requestRender();
       }
     });
+
+    getSelectionModel().addListener((unused, selection) -> updateCurrentNavigation(selection));
   }
 
   @Override
@@ -452,7 +454,6 @@ public class NavDesignSurface extends DesignSurface {
     myCurrentNavigation = currentNavigation;
     //noinspection ConstantConditions  If the model is not null (which it must be if we're here), the sceneManager will also not be null.
     getSceneManager().update();
-    getSelectionModel().clear();
     getSceneManager().layout(false);
     zoomToFit();
     currentNavigation.getModel().notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
@@ -756,8 +757,6 @@ public class NavDesignSurface extends DesignSurface {
       myCurrentNavigation = match;
       getSelectionModel().setSelection((ImmutableList.of(myCurrentNavigation)));
     }
-
-    zoomToFit();
   }
 
   @NotNull
@@ -816,5 +815,33 @@ public class NavDesignSurface extends DesignSurface {
                                      (component.getParent() != null && component.getParent().getParent() == root) ||
                                      NavComponentHelperKt.getActionType(component, root) == ActionType.EXIT_DESTINATION))
     ).collect(Collectors.toList());
+  }
+
+
+  /*
+   * If the newly selected item is not visible, update the current navigation so that it is visible
+   */
+  private void updateCurrentNavigation(@NotNull List<NlComponent> selection) {
+    if (selection.size() != 1) {
+      return;
+    }
+
+    NlComponent selected = selection.get(0);
+    if (getSelectableComponents().contains(selected)) {
+      return;
+    }
+
+    NlComponent next = selected.getParent();
+    if (next == null) {
+      next = selected;
+    }
+
+    while (next != null && !NavComponentHelperKt.isNavigation(next)) {
+      next = next.getParent();
+    }
+
+    if (next != null) {
+      setCurrentNavigation(next);
+    }
   }
 }

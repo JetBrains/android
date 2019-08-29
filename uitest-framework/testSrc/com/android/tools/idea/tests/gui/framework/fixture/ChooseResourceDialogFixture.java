@@ -15,35 +15,29 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.fixture.theme.EditReferenceFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.StateListPickerFixture;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
-import com.android.tools.idea.ui.resourcechooser.ColorPicker;
-import com.android.tools.idea.ui.resourcechooser.StateListPicker;
 import com.google.common.collect.Iterables;
-import com.intellij.icons.AllIcons;
 import com.intellij.ui.SearchTextField;
-import com.intellij.util.ui.JBUI;
+import java.awt.Component;
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.TypeMatcher;
-import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.fixture.*;
+import org.fest.swing.fixture.JLabelFixture;
+import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.text.JTextComponent;
-import java.awt.*;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
 public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourceDialog> {
   @NotNull
@@ -60,23 +54,9 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
     super(robot, dialogAndWrapper);
   }
 
-  @NotNull
-  public JTextComponentFixture getNameTextField() {
-    return new JTextComponentFixture(robot(), (JTextComponent)robot().finder().findByLabel(target(), "Name"));
-  }
-
   public JTextComponentFixture getSearchField() {
     Component component = robot().finder().find(target(), new TypeMatcher(SearchTextField.class));
     return new JTextComponentFixture(robot(), ((SearchTextField)component).getTextEditor());
-  }
-
-  public JTabbedPaneFixture getTabs() {
-    return new JTabbedPaneFixture(robot(), (JTabbedPane)robot().finder().findByName(this.target(), "ResourceTypeTabs"));
-  }
-
-  public ChooseResourceDialogFixture clickOnTab(@NotNull String name) {
-    getTabs().selectTab(name);
-    return this;
   }
 
   @NotNull
@@ -92,25 +72,6 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
           return ("com.intellij.openapi.ui.DialogWrapper$ErrorText").equals(component.getClass().getName());
         }
       });
-  }
-
-  public void requireNoError() {
-    waitUntilGone(robot(), target(), Matchers.byIcon(JLabel.class, AllIcons.General.Error).andIsShowing());
-  }
-
-  @NotNull
-  public ColorPickerFixture getColorPicker() {
-    return new ColorPickerFixture(robot(), waitUntilFound(robot(), target(), Matchers.byType(ColorPicker.class)));
-  }
-
-  @NotNull
-  public StateListPickerFixture getStateListPicker() {
-    return new StateListPickerFixture(robot(), waitUntilFound(robot(), target(), Matchers.byType(StateListPicker.class)));
-  }
-
-  @NotNull
-  public EditReferenceFixture getEditReferencePanel() {
-    return new EditReferenceFixture(robot(), waitUntilFound(robot(), target(), Matchers.byName(Box.class, "ReferenceEditor")));
   }
 
   @NotNull
@@ -134,15 +95,6 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
     return new JListFixture(robot(), waitUntilFound(robot(), target(), Matchers.byName(JList.class, appNamespaceLabel)));
   }
 
-  public List<String> getAllListsInSelectedTab() {
-    return robot()
-      .finder()
-      .findAll((JComponent)getTabs().target().getSelectedComponent(), Matchers.byType(JList.class))
-      .stream()
-      .map(list -> list.getName())
-      .collect(Collectors.toList());
-  }
-
   @NotNull
   public ChooseResourceDialogFixture expandList(@NotNull String appNamespaceLabel) {
     new JLabelFixture(robot(), waitUntilShowing(robot(), target(), Matchers.byText(JLabel.class, appNamespaceLabel))).click();
@@ -151,66 +103,5 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   public void clickOK() {
     findAndClickOkButton(this);
-  }
-
-  @NotNull
-  public JPopupMenuFixture clickNewResource() {
-    new JLabelFixture(robot(), waitUntilShowing(robot(), target(), JLabelMatcher.withText("Add new resource"))).click();
-    return new JPopupMenuFixture(robot(), robot().findActivePopupMenu());
-  }
-
-  public JTableFixture getResourceNameTable() {
-    return new JTableFixture(robot(), waitUntilFound(robot(), Matchers.byName(JTable.class, "nameTable")));
-  }
-
-  public JTableFixture getResourceValueTable() {
-    return new JTableFixture(robot(), waitUntilFound(robot(), Matchers.byName(JTable.class, "valueTable")));
-  }
-
-  public JLabelFixture getDrawablePreviewName() {
-    return new JLabelFixture(robot(), waitUntilFound(robot(), Matchers.byName(JLabel.class, "drawablePreviewName")));
-  }
-
-  public JLabelFixture getDrawablePreviewLabel() {
-    return new JLabelFixture(robot(), waitUntilFound(robot(), Matchers.byName(JLabel.class, "drawablePreviewLabel")));
-  }
-
-  public JLabelFixture getDrawablePreviewType() {
-    return new JLabelFixture(robot(), waitUntilFound(robot(), Matchers.byName(JLabel.class, "drawablePreviewType")));
-  }
-
-  public JPanelFixture getDrawablePreviewResolutionPanel() {
-    return new JPanelFixture(robot(), waitUntilFound(robot(), Matchers.byName(JPanel.class, "resolutionChain")));
-  }
-
-  public String getDrawableResolutionChain() {
-    JPanelFixture panelFixture = getDrawablePreviewResolutionPanel();
-    JPanel panel = panelFixture.target();
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0, n = panel.getComponentCount(); i < n; i++) {
-      Component component = panel.getComponent(i);
-      if (component instanceof JLabel) {
-        JLabel label = (JLabel)component;
-        Border border = label.getBorder();
-        if (border instanceof EmptyBorder) {
-          EmptyBorder emptyBorder = (EmptyBorder)border;
-          Insets insets = emptyBorder.getBorderInsets();
-          if (insets != null) {
-            for (int x = 0; x < insets.left; x += JBUI.scale(12)) {
-              sb.append(' ');
-            }
-          }
-        }
-        sb.append(label.getText());
-        sb.append('\n');
-      }
-    }
-
-    return sb.toString();
-  }
-
-  public String getSelectedTabTitle() {
-    JTabbedPane type = robot().finder().findByType(JTabbedPane.class);
-    return type.getTitleAt(type.getSelectedIndex());
   }
 }

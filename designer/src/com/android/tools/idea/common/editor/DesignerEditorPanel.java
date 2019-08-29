@@ -23,6 +23,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.util.SyncUtil;
@@ -43,6 +44,7 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -52,8 +54,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /**
- * Assembles a designer editor from various components. Subclasses should implement the {@link #getToolWindowDefinitions(AndroidFacet)}
- * method to specify which {@link ToolWindowDefinition}s should be added to the {@link WorkBench}.
+ * Assembles a designer editor from various components.
  */
 public class DesignerEditorPanel extends JPanel implements Disposable {
 
@@ -67,6 +68,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final WorkBench<DesignSurface> myWorkBench;
   private JBSplitter mySplitter;
   @Nullable private final JPanel myAccessoryPanel;
+  @Nullable private JComponent myBottomComponent;
   /**
    * Whether we listened to a gradle sync that happened after model creation. {@link #initNeleModel} calls {@link #initNeleModelWhenSmart}
    * when a Gradle Sync has happened in the project. In some situations, we want to make sure to listen to the gradle sync that happens only
@@ -79,9 +81,23 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
    */
   @NotNull private final Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> myToolWindowDefinitions;
 
+  /**
+   * Creates a new {@link DesignerEditorPanel}.
+   *
+   * @param editor the editor containing this panel.
+   * @param project the project associated with the file being open by the editor.
+   * @param file the file being open by the editor.
+   * @param workBench workbench containing a design surface and a number of tool window definitions (also passed in the constructor).
+   * @param surface a function that produces a design surface given a design editor panel. Ideally, this panel is passed to the function.
+   * @param toolWindowDefinitions list of tool windows to be added to the workbench.
+   * @param bottomModelComponent function that receives a {@link DesignSurface} and an {@link NlModel}, and returns a {@link JComponent} to
+   *                             be added on the bottom of this panel. The component might be associated with the model, so we need to
+   *                             listen to modelChanged events and update it as needed.
+   */
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
                              @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
-                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions) {
+                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
+                             @Nullable BiFunction<? super DesignSurface, ? super NlModel, JComponent> bottomModelComponent) {
     super(new BorderLayout());
     myEditor = editor;
     myProject = project;
@@ -103,6 +119,27 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
     myToolWindowDefinitions = toolWindowDefinitions;
     ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
+
+    if (bottomModelComponent != null) {
+      mySurface.addListener(new DesignSurfaceListener() {
+        @Override
+        public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+          if (myBottomComponent != null) {
+            myContentPanel.remove(myBottomComponent);
+          }
+          myBottomComponent = bottomModelComponent.apply(surface, model);
+          if (myBottomComponent != null) {
+            myContentPanel.add(myBottomComponent, BorderLayout.SOUTH);
+          }
+        }
+      });
+    }
+  }
+
+  public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
+                             @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
+                             @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions) {
+    this(editor, project, file, workBench, surface, toolWindowDefinitions, null);
   }
 
   @NotNull

@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.removePsiIfInvalid
@@ -47,6 +48,8 @@ import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtScript
 import org.jetbrains.kotlin.psi.KtScriptInitializer
@@ -62,9 +65,12 @@ internal val ESCAPE_CHILD = Regex("[\\t ]+")
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
 internal fun KtCallExpression.isBlockElement() : Boolean {
-  return lambdaArguments.size == 1 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2)
+  return lambdaArguments.size == 1 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2 &&
+                                      isValidBlockName(this.name()))
 }
 
+internal fun isValidBlockName(blockName : String?) =
+  blockName != null && blockName in listOf("configure", "create", "maybeCreate", "register", "getByName")
 /**
  * Check if the caller psiElement is one of the parents for the given psiElement.
  */
@@ -80,7 +86,11 @@ internal fun KtCallExpression.name() : String? {
   return getCallNameExpression()?.getReferencedName()
 }
 
-internal fun getParentPsi(dslElement : GradleDslElement) = dslElement.parent?.create()
+internal fun getParentPsi(dslElement : GradleDslElement) : PsiElement? {
+  // For extra block, we don't have a psiElement for the dslElement because in Kotlin we don't use the extra block, so we need to add
+  // elements straight to the ExtDslElement' parent.
+  return if (dslElement.parent is ExtDslElement) dslElement.parent?.parent?.create() else dslElement.parent?.create()
+}
 
 internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslElement?) : PsiElement? {
   var anchorAfter = if (dslAnchor == null) null else findLastPsiElementIn(dslAnchor)
@@ -322,12 +332,6 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
           psiElement.delete()
         }
       }
-      is KtValueArgumentList -> {
-        val arguments = psiElement.arguments
-        if (arguments.isEmpty()) {
-          psiElement.delete()
-        }
-      }
       is KtValueArgument -> {
         if (psiElement.getArgumentExpression() == null) {
           (psiParent as KtValueArgumentList).removeArgument(psiElement)
@@ -337,12 +341,23 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
           }
         }
       }
-      // TODO: add support for variables when available on Parser.
+      is KtPropertyDelegate -> {
+        if (psiElement.expression == null) psiElement.delete()
+      }
+      is KtProperty -> {
+        // This applies for variables and properties.
+        if (psiElement.delegate == null && psiElement.initializer == null) {
+          psiElement.delete()
+        }
+      }
     }
   }
 
   // If psiParent is a child of the parentDsl psiElement, then we should check if psiParent is empty and should be deleted.
-  if (!psiElement.isValid && dslParent != null && (dslParent.isInsignificantIfEmpty || dslParent.psiElement.isParentOf(psiParent))) {
+  // For KtValueArgumentList : we can't delete them without deleting the callExpression, because otherwise, if maybeDeleteIfEmpty() called
+  // for the psiParent (i.e. callExpression) returns that the callExpression cannot be deleted, we will end up having just the
+  // callExpression' reference name, which is invalid. This apply for example to maps that we might not want to delete.
+  if ((psiElement is KtValueArgumentList || !psiElement.isValid) && dslParent != null && (dslParent.isInsignificantIfEmpty || dslParent.psiElement.isParentOf(psiParent))) {
     // If we are deleting the dslElement parent itself ((psiElement == dslParent.psiElement)), move to dslParent as it's the new element
     // to be deleted.
     maybeDeleteIfEmpty(psiParent, if (psiElement == dslParent.psiElement) dslParent else containingDslElement)
@@ -450,15 +465,47 @@ internal fun maybeUpdateName(element : GradleDslElement) {
     newElement = oldName
   }
   else {
-    val psiElement = KtPsiFactory(element.psiElement?.project)?.createExpression(newName)
-    newElement = oldName.replace(psiElement)
+    val psiElement : PsiElement = if (oldName.node.elementType == IDENTIFIER) {
+      KtPsiFactory(element.psiElement?.project).createNameIdentifier(newName)
+    } else {
+      KtPsiFactory(element.psiElement?.project).createExpression(newName)
+    }
+
+    // For Kotlin, committing changes is a bit different, and if the psiElement is invalid, it throws an exception (unlike Groovy), so we
+    // need to check if the oldName is still valid, otherwise, we use the psiElement created to update the name.
+    if (!oldName.isValid) {
+      element.nameElement.commitNameChange(psiElement)
+      return
+    }
+    else {
+      newElement = oldName.replace(psiElement)
+    }
   }
 
   element.nameElement.commitNameChange(newElement)
 }
 
 internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDslElement) {
-  // TODO(karimai) : implement getting dsl closure block for methodCall.
+  val psiElement = element.psiElement ?: return
+
+  val psiFactory = KtPsiFactory(psiElement.project)
+  psiElement.addAfter(psiFactory.createWhiteSpace(), psiElement.lastChild)
+  val block = psiFactory.createLambdaExpression("", " ")
+  val addedBlock = psiElement.addAfter(block, psiElement.lastChild) ?: return
+  closure.psiElement = addedBlock
+  closure.applyChanges()
+  element.setParsedClosureElement(closure)
+  element.setNewClosureElement(null)
+}
+
+internal fun addConfigBlock(expression : GradleDslSettableExpression) {
+  val unsavedBlock = expression.unsavedConfigBlock ?: return
+  val psiElement = expression.psiElement ?: return
+  val psiFactory = KtPsiFactory(psiElement.project)
+
+  psiElement.addAfter(psiFactory.createWhiteSpace(), psiElement.lastChild)
+  psiElement.addAfter(unsavedBlock, psiElement.lastChild)
+  expression.unsavedConfigBlock = null
 }
 
 /**

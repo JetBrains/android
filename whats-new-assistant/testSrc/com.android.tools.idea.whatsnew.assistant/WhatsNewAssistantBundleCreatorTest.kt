@@ -18,7 +18,6 @@ package com.android.tools.idea.whatsnew.assistant
 import com.android.repository.Revision
 import com.android.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistantBundleCreator
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.android.AndroidTestCase
@@ -41,8 +40,6 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.override(true)
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(true)
 
     // Mock url provider to simulate webserver and also class resource file
     mockUrlProvider = mock(WhatsNewAssistantURLProvider::class.java)
@@ -59,19 +56,6 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
     localPath = tmpDir.toPath().resolve("local-3.3.0.xml")
     `when`(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath)
-  }
-
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.clearOverride()
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.clearOverride()
-  }
-
-  @Test
-  fun testDisabled() {
-    StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.override(false)
-
-    assertFalse(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes())
   }
 
   @Test
@@ -151,10 +135,8 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
    */
   @Test
   fun testDownloadFlagDisabled() {
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false)
-
     // Expected bundle file is defaultresource-3.3.0.xml
-    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision)
+    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision, WhatsNewAssistantConnectionOpener(), false)
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
     assertNotNull(bundle)
     if (bundle != null) {
@@ -169,7 +151,7 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     `when`(mockConnectionOpener.openConnection(ArgumentMatchers.isNotNull<URL>(), ArgumentMatchers.anyInt())).thenThrow(TimeoutException())
 
     // Expected bundle file is defaultresource-3.3.0.xml
-    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision, mockConnectionOpener)
+    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision, mockConnectionOpener, true)
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
     assertNotNull(bundle)
     if (bundle != null) {
@@ -183,11 +165,11 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
    */
   @Test
   fun testParseBundleRetry() {
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false)
     // Trying to read empty xml will cause parser to throw exception...
     val emptyFile = File(myFixture.testDataPath).resolve("whatsnewassistant/empty.xml")
     FileUtil.copy(emptyFile, localPath.toFile())
-    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision)
+    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision,
+                                                       WhatsNewAssistantConnectionOpener(), false)
 
     // So parseBundle should delete the empty file and retry, resulting in defaultresource-3.3.0.xml
     val bundle = bundleCreator.getBundle(ProjectManager.getInstance().defaultProject)
@@ -204,30 +186,27 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
    */
   @Test
   fun testNewConfigVersion() {
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false)
-
     // Since download is disabled, the current file will be defaultresource-3.3.0.xml, version "3.3.0"
-    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision)
+    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision, WhatsNewAssistantConnectionOpener(), false)
 
     // Disabled download means last seen version is from default resource, so "3.3.0" = "3.3.0"
     assertFalse(bundleCreator.isNewConfigVersion)
 
     // After enabling download, the new file will be server-3.3.0.xml, version "3.3.10"
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(true)
+    bundleCreator.setAllowDownload(true)
     assertTrue(bundleCreator.isNewConfigVersion)
 
     // And running once again should be false because last seen is now "3.3.10"
     assertFalse(bundleCreator.isNewConfigVersion)
 
     // Disabling download again should use local-3.3.0.xml, cached from the download, version "3.3.10"
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false)
+    bundleCreator.setAllowDownload(false)
     assertFalse(bundleCreator.isNewConfigVersion)
   }
 
   @Test
   fun testHasResourceConfig() {
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false)
-    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision)
+    val bundleCreator = WhatsNewAssistantBundleCreator(mockUrlProvider, studioRevision, WhatsNewAssistantConnectionOpener(), false)
 
     // Both the resource file and the Studio version are 3.3.0
     assertTrue(bundleCreator.hasResourceConfig())

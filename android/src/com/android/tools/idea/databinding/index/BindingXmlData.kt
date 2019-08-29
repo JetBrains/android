@@ -15,7 +15,21 @@
  */
 package com.android.tools.idea.databinding.index
 
-import com.android.tools.idea.res.BindingLayoutType
+/**
+ * Which sort of binding logic should apply to some target layout XML.
+ *
+ * Note: This enum is serialized and de-serialized. Please only append.
+ */
+enum class BindingLayoutType {
+  /**
+   * The layout XML doesn't contain any data binding information, but view binding option is enabled.
+   */
+  VIEW_BINDING_LAYOUT,
+  /**
+   * The layout XML starts with `<layout>` tag, and possibly contains a `<data>` tag.
+   */
+  DATA_BINDING_LAYOUT
+}
 
 /**
  * Data class for storing information related to <variable> tags.
@@ -39,9 +53,9 @@ data class ImportData(val type: String, val alias: String?) {
 /**
  * Data class for storing information related to views with IDs.
  *
- * @param id Id of the view.
- * @param viewName Name of the view. Typically the tag name: `<TextView>`.
- * @param layoutName Optional layout attribute. Only applicable to `<Merge>` or `<Include>` tags.
+ * @param id id of the view.
+ * @param viewName name of the view, typically the tag name: `<TextView>`.
+ * @param layoutName optional layout attribute, only applicable to `<Merge>` or `<Include>` tags.
  */
 data class ViewIdData(val id: String, val viewName: String, val layoutName: String?)
 
@@ -51,14 +65,17 @@ data class ViewIdData(val id: String, val viewName: String, val layoutName: Stri
  *
  * For view binding data, many of these fields will be left empty.
  *
- * @param layoutType The type of binding for the target layout.
- * @param customBindingName Value used to override the class path and/or name of the generated
- *     binding, if present.
- * @param imports Data binding imports.
- * @param variables Data binding variables.
- * @param viewIds Ids of views defined in this layout.
+ * @param layoutType the type of binding for the target layout.
+ * @param viewBindingIgnore set to True if binding should not be generated for this layout.
+ *     currently only used for view binding layouts.
+ * @param customBindingName optional value used to override the qualified class name of the
+ *     generated binding.
+ * @param imports data binding imports.
+ * @param variables data binding variables.
+ * @param viewIds ids of views defined in this layout.
  */
 data class BindingXmlData(val layoutType: BindingLayoutType,
+                          val viewBindingIgnore: Boolean,
                           val customBindingName: String?,
                           val imports: Collection<ImportData>,
                           val variables: Collection<VariableData>,
@@ -80,4 +97,9 @@ data class BindingXmlData(val layoutType: BindingLayoutType,
    * possible.
    */
   fun findVariable(name: String) = variablesMap[name]
+
+  /**
+   * Resolves an import's short name to its fully qualified class name, if found.
+   */
+  fun resolveImport(shortName: String): String? = findImport(shortName)?.type
 }

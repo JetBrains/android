@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.project.AndroidGradleModuleUtils
+import com.android.tools.idea.npw.project.getSourceProvider
 import com.android.tools.idea.npw.template.components.CheckboxProvider
 import com.android.tools.idea.npw.template.components.ComponentProvider
 import com.android.tools.idea.npw.template.components.EnumComboProvider
@@ -30,7 +30,6 @@ import com.android.tools.idea.npw.template.components.LabelWithEditButtonProvide
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider
 import com.android.tools.idea.npw.template.components.PackageComboProvider
-import com.android.tools.idea.npw.template.components.ParameterComponentProvider
 import com.android.tools.idea.npw.template.components.SeparatorProvider
 import com.android.tools.idea.npw.template.components.TextFieldProvider
 import com.android.tools.idea.observable.AbstractProperty
@@ -51,7 +50,6 @@ import com.android.tools.idea.templates.Parameter
 import com.android.tools.idea.templates.ParameterValueResolver
 import com.android.tools.idea.templates.StringEvaluator
 import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_CLASS_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
@@ -132,19 +130,16 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
   private val rootPanel = JPanel(GridLayoutManager(4, 3)).apply {
     val anySize = Dimension(-1, -1)
-    add(templateDescriptionLabel, GridConstraints(0, 1, 1, 1, ANCHOR_WEST, FILL_BOTH, 3, 0, anySize, anySize, anySize, 0, false))
-    add(templateThumbLabel, GridConstraints(1, 0, 1, 1, ANCHOR_NORTHWEST, FILL_NONE, 0, 0, anySize, anySize, anySize, 0, false))
-    add(parametersPanel, GridConstraints(1, 1, 1, 2, ANCHOR_CENTER, FILL_BOTH, 3, 7, anySize, anySize, anySize, 0, false))
-    add(footerSeparator, GridConstraints(2, 1, 1, 1, ANCHOR_CENTER, FILL_HORIZONTAL, 3, 0, anySize, anySize, anySize, 0, false))
-    add(parameterDescriptionLabel, GridConstraints(3, 1, 1, 1, ANCHOR_WEST, FILL_NONE, 1, 2, anySize, anySize, anySize, 0, false))
+    add(templateDescriptionLabel, GridConstraints(0, 1, 1, 1, ANCHOR_WEST, FILL_BOTH, 3, 0, anySize, anySize, anySize))
+    add(templateThumbLabel, GridConstraints(1, 0, 1, 1, ANCHOR_NORTHWEST, FILL_NONE, 0, 0, anySize, anySize, anySize))
+    add(parametersPanel, GridConstraints(1, 1, 1, 2, ANCHOR_CENTER, FILL_BOTH, 3, 7, anySize, anySize, anySize))
+    add(footerSeparator, GridConstraints(2, 1, 1, 1, ANCHOR_CENTER, FILL_HORIZONTAL, 3, 0, anySize, anySize, anySize))
+    add(parameterDescriptionLabel, GridConstraints(3, 1, 1, 1, ANCHOR_WEST, FILL_NONE, 1, 2, anySize, anySize, anySize))
   }
 
   private val validatorPanel: ValidatorPanel = ValidatorPanel(this, wrappedWithVScroll(rootPanel))
 
   private var evaluationState = EvaluationState.NOT_EVALUATING
-
-  private val isNewModule: Boolean
-    get() = model.module == null
 
   /**
    * Get the default thumbnail path, which is useful at initialization time before we have all parameters set up.
@@ -189,6 +184,67 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     val templateHandle = model.templateHandle
     val templateMetadata = templateHandle!!.metadata
 
+    fun initializeThumb() {
+      val thumb = IconProperty(templateThumbLabel)
+      val thumbVisibility = VisibleProperty(templateThumbLabel)
+      bindings.bind(thumb, object : Expression<Optional<Icon>>(thumbPath) {
+        override fun get(): Optional<Icon> = thumbnailsCache.getUnchecked(File(templateHandle.rootPath, thumbPath.get()))
+      })
+      bindings.bind(thumbVisibility, object : Expression<Boolean>(thumb) {
+        override fun get(): Boolean = thumb.get().isPresent
+      })
+      thumbPath.set(defaultThumbnailPath)
+    }
+
+    fun addTemplateParameters() {
+      for (parameter in templateMetadata.parameters) {
+        val row = createRowForParameter(model.module, parameter)
+        val property = row.property
+        property?.addListener {
+          // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
+          if (evaluationState != EvaluationState.EVALUATING && rootPanel.isShowing) {
+            userValues[parameter] = property.get()
+            // Evaluate later to prevent modifying Swing values that are locked during read
+            enqueueEvaluateParameters()
+          }
+        }
+        parameterRows[parameter] = row
+        row.addToPanel(parametersPanel)
+      }
+    }
+
+    // Note: For new projects and new module we have a different UI.
+    fun displayLanguageChoiceIfNeeded() {
+      model.androidFacet ?: return
+
+      // For Templates with an Android FormFactor or that have a class/package name, we allow the user to select the programming language
+      if (!templateMetadata.run {
+          formFactor != null || getParameter(ATTR_CLASS_NAME) != null || getParameter(ATTR_PACKAGE_NAME) != null
+        }) {
+        return
+      }
+
+      val row = RowEntry("Source Language", LanguageComboProvider())
+      row.addToPanel(parametersPanel)
+      val language = (row.property as SelectedItemProperty<Language>)
+      // LanguageComboProvider always sets this
+      bindings.bindTwoWay(ObjectProperty.wrap(language), model.language)
+    }
+
+    fun displaySourceSetChoiceIfNeeded() {
+      if (myTemplates.size <= 1) {
+        return
+      }
+      val row = RowEntry("Target Source Set", ModuleTemplateComboProvider(myTemplates))
+      row.setEnabled(myTemplates.size > 1)
+      row.addToPanel(parametersPanel)
+
+      val template = (row.property as SelectedItemProperty<NamedModuleTemplate>)
+      // ModuleTemplateComboProvider always sets this
+      bindings.bind(model.template, ObjectProperty.wrap(template))
+      template.addListener { enqueueEvaluateParameters() }
+    }
+
     ApplicationManager.getApplication().invokeLater(
       {
         // We want to set the label's text AFTER the wizard has been packed. Otherwise, its
@@ -201,65 +257,19 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       icon = FormFactor[it].icon
     }
 
-    val thumb = IconProperty(templateThumbLabel)
-    val thumbVisibility = VisibleProperty(templateThumbLabel)
-    bindings.bind(thumb, object : Expression<Optional<Icon>>(thumbPath) {
-      override fun get(): Optional<Icon> = thumbnailsCache.getUnchecked(File(templateHandle.rootPath, thumbPath.get()))
-    })
-    bindings.bind(thumbVisibility, object : Expression<Boolean>(thumb) {
-      override fun get(): Boolean = thumb.get().isPresent
-    })
-    thumbPath.set(defaultThumbnailPath)
-
-    val parameterDescription = TextProperty(parameterDescriptionLabel)
-    bindings.bind(VisibleProperty(footerSeparator), object : Expression<Boolean>(parameterDescription) {
-      override fun get(): Boolean = parameterDescription.get().isNotEmpty()
-    })
-
-    for (parameter in templateMetadata.parameters) {
-      val row = createRowForParameter(model.module, parameter)
-      val property = row.property
-      property?.addListener {
-        // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
-        if (evaluationState != EvaluationState.EVALUATING && rootPanel.isShowing) {
-          userValues[parameter] = property.get()
-          // Evaluate later to prevent modifying Swing values that are locked during read
-          enqueueEvaluateParameters()
-        }
-      }
-      parameterRows[parameter] = row
-      row.addToPanel(parametersPanel)
+    TextProperty(parameterDescriptionLabel).let {
+      bindings.bind(VisibleProperty(footerSeparator), object : Expression<Boolean>(it) {
+        override fun get(): Boolean = it.get().isNotEmpty()
+      })
     }
 
-    if (displayLanguageChoice(templateMetadata)) {
-      val row = RowEntry("Source Language", LanguageComboProvider())
-      row.addToPanel(parametersPanel)
-      val language = (row.property as SelectedItemProperty<Language>)
-      // LanguageComboProvider always sets this
-      bindings.bindTwoWay(ObjectProperty.wrap(language), model.language)
-    }
-
-    if (myTemplates.size > 1) {
-      val row = RowEntry("Target Source Set", ModuleTemplateComboProvider(myTemplates))
-      row.setEnabled(myTemplates.size > 1)
-      row.addToPanel(parametersPanel)
-
-      val template = (row.property as SelectedItemProperty<NamedModuleTemplate>)
-      // ModuleTemplateComboProvider always sets this
-      bindings.bind(model.template, ObjectProperty.wrap(template))
-      template.addListener { enqueueEvaluateParameters() }
-    }
-
+    initializeThumb()
+    addTemplateParameters()
+    displayLanguageChoiceIfNeeded()
+    displaySourceSetChoiceIfNeeded()
     validatorPanel.registerMessageSource(invalidParameterMessage)
-
     evaluateParameters()
   }
-
-  // Note: For new projects and new module we have a different UI.
-  private fun displayLanguageChoice(templateMetadata: TemplateMetadata) =
-    if (model.androidFacet == null) false
-    // For Templates with an Android FormFactor or that have a class/package name, we allow the user to select the programming language
-    else templateMetadata.run { formFactor != null || getParameter(ATTR_CLASS_NAME) != null || getParameter(ATTR_PACKAGE_NAME) != null }
 
   /**
    * Every template parameter, based on its type, can generate a row of* components. For example, a text parameter becomes a
@@ -311,7 +321,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
   /** If we are creating a new module, there are some fields that we need to hide. */
   private fun isParameterVisible(parameter: Parameter): Boolean =
-    !isNewModule || ATTR_PACKAGE_NAME != parameter.id && ATTR_IS_LAUNCHER != parameter.id
+    model.module != null || ATTR_PACKAGE_NAME != parameter.id && ATTR_IS_LAUNCHER != parameter.id
 
   /**
    * Run through all parameters for our current template and update their values,
@@ -383,7 +393,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   private fun validateAllParametersExcept(excludedParameters: Set<String>): String? {
     val parameters = model.templateHandle!!.metadata.parameters
     val project = model.project.valueOrNull
-    val sourceProvider = AndroidGradleModuleUtils.getSourceProvider(model.template.get())
+    val sourceProvider = model.template.get().getSourceProvider()
 
     return parameters.mapNotNull { parameter ->
       val property = parameterRows[parameter]?.property
@@ -541,7 +551,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       var suffix = 2
       val project = model.project.valueOrNull
       val relatedValues = getRelatedValues(parameter)
-      val sourceProvider = AndroidGradleModuleUtils.getSourceProvider(model.template.get())
+      val sourceProvider = model.template.get().getSourceProvider()
       while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {
         suggested = filenameJoiner.join(namePart + suffix, Strings.emptyToNull(extPart))
         suffix++

@@ -310,7 +310,6 @@ abstract class BasePerspectiveConfigurable protected constructor(
                 override fun syncProject(project: Project) { synced = true } })
           context.applyRunAndReparse {
             StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
-                .setUxStyle(StudioWizardDialogBuilder.UxStyle.INSTANT_APP)
                 .build()
                 .show()
             synced  // Tells whether the context needs to reparse the config.

@@ -79,7 +79,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * This class configures the Dynamic Feature Module specific data such as the "Base Application Module", "Module Name", "Package Name" and
- * "Minimum API Level"
+ * "Minimum SDK".
  */
 public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatureModel> {
   private final ValidatorPanel myValidatorPanel;

@@ -18,6 +18,7 @@ package com.android.tools.idea.room.generators;
 import static com.android.tools.idea.room.generators.TestUtils.createDatabaseBundle;
 import static com.android.tools.idea.room.generators.TestUtils.createEntityBundle;
 import static com.android.tools.idea.room.generators.TestUtils.createFieldBundle;
+import static com.android.tools.idea.room.generators.TestUtils.createFtsEntityBundle;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
@@ -26,6 +27,7 @@ import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
 import com.android.tools.idea.room.migrations.generators.SqlStatementsGenerator;
 import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
+import com.android.tools.idea.room.migrations.json.FtsEntityBundle;
 import com.android.tools.idea.room.migrations.json.IndexBundle;
 import com.android.tools.idea.room.migrations.json.PrimaryKeyBundle;
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
@@ -34,21 +36,29 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 public class SqlStatementsGeneratorTest {
 
-  private static void testMigrationStatements(DatabaseBundle oldDatabase, DatabaseBundle newDatabase, String... statements) {
+  private static void testMigrationStatements(@NotNull DatabaseBundle oldDatabase,
+                                              @NotNull DatabaseBundle newDatabase,
+                                              String... statements) {
     assertThat(SqlStatementsGenerator.getMigrationStatements(new DatabaseUpdate(oldDatabase, newDatabase)))
       .containsExactly((Object[])statements).inOrder();
   }
 
-  private static void testMigrationStatements(EntityBundle oldEntity, EntityBundle newEntity, String... statements) {
+  private static void testMigrationStatements(@NotNull DatabaseUpdate databaseUpdate, String... statements) {
+    assertThat(SqlStatementsGenerator.getMigrationStatements(databaseUpdate))
+      .containsExactly((Object[])statements).inOrder();
+  }
+
+  private static void testMigrationStatements(@NotNull EntityBundle oldEntity, @NotNull EntityBundle newEntity, String... statements) {
     assertThat(SqlStatementsGenerator.getMigrationStatements(new EntityUpdate(oldEntity, newEntity)))
       .containsExactly((Object[])statements).inOrder();
   }
 
-  private static void testMigrationStatements(EntityUpdate entityUpdate, String... statements) {
+  private static void testMigrationStatements(@NotNull EntityUpdate entityUpdate, String... statements) {
     assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate))
       .containsExactly((Object[])statements).inOrder();
   }
@@ -490,7 +500,8 @@ public class SqlStatementsGeneratorTest {
                                                            new PrimaryKeyBundle(false, Collections.singletonList(field1.getColumnName())),
                                                            Collections.singletonList(indexRenamedIndex), Collections.emptyList());
 
-    testMigrationStatements(entity, entityWithRenamedIndex, "DROP INDEX index_table_column1;", "CREATE INDEX index_column1 ON `table` (column1);");
+    testMigrationStatements(entity, entityWithRenamedIndex, "DROP INDEX index_table_column1;",
+                            "CREATE INDEX index_column1 ON `table` (column1);");
   }
 
   @Test
@@ -524,7 +535,7 @@ public class SqlStatementsGeneratorTest {
   }
 
   @Test
-  public void dropView() {
+  public void testDropView() {
     DatabaseViewBundle view = new DatabaseViewBundle(
       "viewName",
       "CREATE VIEW ${VIEW_NAME} as\n" +
@@ -537,7 +548,7 @@ public class SqlStatementsGeneratorTest {
   }
 
   @Test
-  public void addView() {
+  public void testAddView() {
     DatabaseViewBundle view = new DatabaseViewBundle(
       "viewName",
       "CREATE VIEW ${VIEW_NAME} as\n" +
@@ -552,7 +563,7 @@ public class SqlStatementsGeneratorTest {
   }
 
   @Test
-  public void modifyView() {
+  public void testModifyView() {
     DatabaseViewBundle view1 = new DatabaseViewBundle(
       "viewName",
       "CREATE VIEW ${VIEW_NAME} as\n" +
@@ -570,5 +581,185 @@ public class SqlStatementsGeneratorTest {
                             "CREATE VIEW viewName as\n" +
                             "SELECT column1, column2\n" +
                             "FROM myTable;");
+  }
+
+  @Test
+  public void testAddFtsTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    EntityBundle entity = createEntityBundle("table", field1, field2);
+    FtsEntityBundle ftsEntity = createFtsEntityBundle("ftsTable",
+                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                      field1, field2);
+
+    testMigrationStatements(createDatabaseBundle(1, entity),
+                            createDatabaseBundle(2, entity, ftsEntity),
+                            "CREATE VIRTUAL TABLE ftsTable USING fts4(column1, column2);");
+  }
+
+  @Test
+  public void testDropFtsTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    EntityBundle entity = createEntityBundle("table", field1, field2);
+    FtsEntityBundle ftsEntity = createFtsEntityBundle("ftsTable",
+                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                      field1, field2);
+
+    testMigrationStatements(createDatabaseBundle(2, entity, ftsEntity),
+                            createDatabaseBundle(1, entity),
+                            "DROP TABLE ftsTable;");
+  }
+
+  @Test
+  public void testModifyFtsTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    FtsEntityBundle ftsEntity = createFtsEntityBundle("ftsTable",
+                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1)",
+                                                      field1);
+    FtsEntityBundle modifiedFtsEntity = createFtsEntityBundle("ftsTable",
+                                                              "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                              field1, field2);
+
+    testMigrationStatements(createDatabaseBundle(1, ftsEntity),
+                            createDatabaseBundle(2, modifiedFtsEntity),
+                            "CREATE VIRTUAL TABLE ftsTable_data$android_studio_tmp USING fts4(column1, column2);",
+                            "INSERT INTO ftsTable_data$android_studio_tmp (column1)\n" +
+                            "\tSELECT column1\n" +
+                            "\tFROM ftsTable;",
+                            "DROP TABLE ftsTable;",
+                            "ALTER TABLE ftsTable_data$android_studio_tmp RENAME TO ftsTable;");
+  }
+
+  @Test
+  public void testUpdateFtsTableWithContentTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    EntityBundle entity = createEntityBundle("table", field1, field2);
+    FtsEntityBundle ftsEntity = createFtsEntityBundle("ftsTable",
+                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                      field1, field2);
+    FtsEntityBundle ftsEntityWithContentTable = createFtsEntityBundle("ftsTable",
+                                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                                      "table", field1, field2);
+
+    testMigrationStatements(createDatabaseBundle(1, entity, ftsEntity),
+                            createDatabaseBundle(2, entity, ftsEntityWithContentTable),
+                            "DROP TABLE ftsTable;",
+                            "CREATE VIRTUAL TABLE ftsTable USING fts4(column1, column2);",
+                            "INSERT INTO ftsTable (column1, column2)\n" +
+                            "\tSELECT column1, column2\n" +
+                            "\tFROM `table`;");
+  }
+
+  @Test
+  public void testRenameTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    EntityBundle entity = createEntityBundle("table", field1, field2);
+    EntityBundle renamedEntity = createEntityBundle("renamedTable", field1, field2);
+
+    DatabaseUpdate databaseUpdate = new DatabaseUpdate(createDatabaseBundle(1, entity),
+                                                       createDatabaseBundle(2, renamedEntity));
+    databaseUpdate.applyRenameMapping(ImmutableMap.of("table", "renamedTable"));
+
+    testMigrationStatements(databaseUpdate, "ALTER TABLE `table` RENAME TO renamedTable;");
+  }
+
+  @Test
+  public void testRenameTableAndAddColumn() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    EntityBundle entity = createEntityBundle("table", field1);
+    EntityBundle renamedEntity = createEntityBundle("renamedTable", field1, field2);
+
+    DatabaseUpdate databaseUpdate = new DatabaseUpdate(createDatabaseBundle(1, entity),
+                                                       createDatabaseBundle(2, renamedEntity));
+    databaseUpdate.applyRenameMapping(ImmutableMap.of("table", "renamedTable"));
+
+    testMigrationStatements(databaseUpdate,
+                            "ALTER TABLE `table` RENAME TO renamedTable;",
+                            "ALTER TABLE renamedTable ADD COLUMN column2 TEXT;");
+  }
+
+  @Test
+  public void testRenameAndModifyTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    EntityBundle entity = createEntityBundle("table", field1, field2);
+    EntityBundle renamedEntity = createEntityBundle("renamedTable", field1);
+
+    DatabaseUpdate databaseUpdate = new DatabaseUpdate(createDatabaseBundle(1, entity),
+                                                       createDatabaseBundle(2, renamedEntity));
+    databaseUpdate.applyRenameMapping(ImmutableMap.of("table", "renamedTable"));
+
+    testMigrationStatements(databaseUpdate,
+                            "CREATE TABLE renamedTable\n" +
+                            "(\n" +
+                            "\tcolumn1 TEXT,\n" +
+                            "\tPRIMARY KEY (column1)\n" +
+                            ");",
+                            "INSERT INTO renamedTable (column1)\n" +
+                            "\tSELECT column1\n" +
+                            "\tFROM `table`;",
+                            "DROP TABLE `table`;");
+  }
+
+  @Test
+  public void testRenameFtsTableWithContentTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    EntityBundle entity = createEntityBundle("table", field1, field2);
+    FtsEntityBundle ftsEntity = createFtsEntityBundle("ftsTable",
+                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                      "table", field1, field2);
+    FtsEntityBundle renamedFtsEntity = createFtsEntityBundle("renamedFtsTable",
+                                                             "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                             "table", field1, field2);
+
+    DatabaseUpdate databaseUpdate = new DatabaseUpdate(createDatabaseBundle(1, entity, ftsEntity),
+                                                       createDatabaseBundle(2, entity, renamedFtsEntity));
+    databaseUpdate.applyRenameMapping(ImmutableMap.of("ftsTable", "renamedFtsTable"));
+
+    testMigrationStatements(databaseUpdate,
+                            "DROP TABLE ftsTable;",
+                            "CREATE VIRTUAL TABLE renamedFtsTable USING fts4(column1, column2);",
+                            "INSERT INTO renamedFtsTable (column1, column2)\n" +
+                            "\tSELECT column1, column2\n" +
+                            "\tFROM `table`;");
+  }
+
+  @Test
+  public void testRenameAndModifyFtsTableWithContentTable() {
+    FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
+    FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
+
+    EntityBundle entity = createEntityBundle("table", field1, field2);
+    FtsEntityBundle ftsEntity = createFtsEntityBundle("ftsTable",
+                                                      "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1, column2)",
+                                                      "table", field1, field2);
+    FtsEntityBundle renamedAndModifiedFtsEntity = createFtsEntityBundle("renamedFtsTable",
+                                                                        "CREATE VIRTUAL TABLE ${TABLE_NAME} USING fts4(column1)",
+                                                                        "table", field1);
+
+    DatabaseUpdate databaseUpdate = new DatabaseUpdate(createDatabaseBundle(1, entity, ftsEntity),
+                                                       createDatabaseBundle(2, entity, renamedAndModifiedFtsEntity));
+    databaseUpdate.applyRenameMapping(ImmutableMap.of("ftsTable", "renamedFtsTable"));
+
+    testMigrationStatements(databaseUpdate,
+                            "DROP TABLE ftsTable;",
+                            "CREATE VIRTUAL TABLE renamedFtsTable USING fts4(column1);",
+                            "INSERT INTO renamedFtsTable (column1)\n" +
+                            "\tSELECT column1\n" +
+                            "\tFROM `table`;");
   }
 }

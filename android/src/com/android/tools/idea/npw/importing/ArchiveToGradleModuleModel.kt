@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.importing
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getContainingModule
+import com.android.tools.idea.npw.project.getContainingModule
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.StringProperty
@@ -47,12 +47,12 @@ class ArchiveToGradleModuleModel(val project: Project, private val projectSyncIn
   }
 
   public override fun handleFinished() {
-    CreateModuleFromArchiveAction(
+    createModuleFromArchive(
       project,
       GRADLE_PATH_SEPARATOR + gradlePath.get().removePrefix(GRADLE_PATH_SEPARATOR),
-      archive.get(),
+      File(archive.get()),
       moveArchive.get(),
-      getContainingModule(File(archive.get()), project)).execute()
+      getContainingModule(File(archive.get()), project))
 
     if (!ApplicationManager.getApplication().isUnitTestMode) {
       assert(ApplicationManager.getApplication().isDispatchThread)

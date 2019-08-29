@@ -34,14 +34,15 @@ import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.configurations.OrientationMenuAction;
 import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RefreshRenderAction;
+import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantActionKt;
 import com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import icons.StudioIcons;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -52,7 +53,17 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   public DefaultNlToolbarActionGroups(@NotNull NlDesignSurface surface) {
     super(surface);
+  }
 
+  @NotNull
+  @Override
+  protected ActionGroup getEastGroup() {
+    if (StudioFlags.NELE_LAYOUT_EDITOR_ASSISTANT_ENABLED.get()) {
+      DefaultActionGroup group = new DefaultActionGroup();
+      group.add(ActionManager.getInstance().getAction(LayoutEditorHelpAssistantActionKt.getBUNDLE_ID()));
+      return group;
+    }
+    return ActionGroup.EMPTY_GROUP;
   }
 
   @NotNull

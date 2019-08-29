@@ -183,9 +183,16 @@ public class PostProjectBuildTasksExecutor {
   }
 
   private boolean isSyncNeeded(@Nullable BuildMode buildMode, int errorCount) {
-    // The project build is doing a MAKE, has zero errors and the previous Gradle sync failed. It is likely that if the
+    // Never sync if the build had errors, this will pull the focus of the Build tool window from build and make it much
+    // harder to see what went wrong, especially if the resulting sync succeeds.
+    if (errorCount != 0) {
+      return false;
+    }
+
+
+    // The project build is doing a MAKE and the previous Gradle sync failed. It is likely that if the
     // project build is successful, Gradle sync will be successful too.
-    if (DEFAULT_BUILD_MODE.equals(buildMode) && GradleSyncState.getInstance(myProject).lastSyncFailed() && errorCount == 0) {
+    if (DEFAULT_BUILD_MODE.equals(buildMode) && GradleSyncState.getInstance(myProject).lastSyncFailed()) {
       return true;
     }
 

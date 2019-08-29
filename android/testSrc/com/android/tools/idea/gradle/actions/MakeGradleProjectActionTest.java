@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
+import com.intellij.execution.testframework.sm.runner.ui.TestsPresentationUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
@@ -76,5 +77,14 @@ public class MakeGradleProjectActionTest extends PlatformTestCase {
     myAction.doPerform(new TestActionEvent(), getProject());
 
     verify(myBuildInvoker).assemble(eq(Module.EMPTY_ARRAY), eq(TestCompileType.ALL));
+  }
+
+  public void testActionNotEnabledOnFailedSync() {
+    when(myProjectStructure.getLeafModules()).thenReturn(ImmutableList.of());
+
+    TestActionEvent testAction = new TestActionEvent();
+    myAction.doUpdate(testAction, getProject());
+
+    assertFalse(testAction.getPresentation().isEnabled());
   }
 }

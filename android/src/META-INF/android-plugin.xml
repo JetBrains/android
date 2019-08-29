@@ -90,6 +90,10 @@
       <loadForDefaultProject/>
     </component>
     <component>
+      <implementation-class>com.android.tools.idea.databinding.LayoutBindingProjectComponent</implementation-class>
+      <loadForDefaultProject/>
+    </component>
+    <component>
       <implementation-class>com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener</implementation-class>
     </component>
   </project-components>
@@ -204,6 +208,7 @@
       <action internal="true" id="Android.TransportDemo" class="com.android.tools.idea.transport.demo.TransportPipelineAction"/>
       <action internal="true" id="Android.DumpProject" class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectAction"/>
       <action internal="true" id="Android.DumpProjectData" class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectDataAction"/>
+      <action internal="true" id="Android.ShowFileResources" class="com.android.tools.idea.res.ShowFileResourcesAction"/>
       <add-to-group group-id="Internal"/>
     </group>
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
@@ -827,8 +832,6 @@
     <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
                     interface="org.jetbrains.android.uipreview.ViewLoaderExtension"
                     area="IDEA_PROJECT"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.npw.template.convertJavaToKotlinProvider"
-                    interface="com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
     <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"

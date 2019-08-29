@@ -28,6 +28,8 @@ import java.lang.reflect.Method;
 public class MotionLayoutComponentHelper {
 
   private Method myCallSetTransitionPosition;
+  private Method myCallSetState;
+  private Method myCallSetTransition;
   private Method myGetMaxTimeMethod;
   private Method mySetKeyframePositionMethod;
   private Method motionLayoutAccess;
@@ -324,12 +326,87 @@ public class MotionLayoutComponentHelper {
     if (myDesignTool == null) {
       return false;
     }
+    NlModel model = myMotionLayoutComponent.getModel();
+    //model.notifyModified(NlModel.ChangeType.EDIT);
     if (!setTransitionPosition(value)) {
       return false;
     }
-    NlModel model = myMotionLayoutComponent.getModel();
     model.notifyLiveUpdate(false);
     return true;
+  }
+
+  public void setTransition(String start, String end) {
+    if (myDesignTool == null) {
+      return;
+    }
+    if (myCallSetTransition == null) {
+      try {
+        myCallSetTransition = myDesignTool.getClass().getMethod("setTransition", String.class, String.class);
+      }
+      catch (NoSuchMethodException e) {
+        e.printStackTrace();
+        myCallSetTransition = null;
+        return;
+      }
+    }
+    if (myCallSetTransition != null) {
+      try {
+        RenderService.runRenderAction(() -> {
+          try {
+            myCallSetTransition.invoke(myDesignTool, start, end);
+          }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallSetTransition = null;
+            e.printStackTrace();
+          }
+        });
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    if (myCallSetTransition == null) {
+      return;
+    }
+    NlModel model = myMotionLayoutComponent.getModel();
+    model.notifyLiveUpdate(false);
+  }
+
+  public void setState(String state) {
+    if (myDesignTool == null) {
+      return;
+    }
+    if (myCallSetState == null) {
+      try {
+        myCallSetState = myDesignTool.getClass().getMethod("setState", String.class);
+      }
+      catch (NoSuchMethodException e) {
+        e.printStackTrace();
+        myCallSetState = null;
+        return;
+      }
+    }
+    if (myCallSetState != null) {
+      try {
+        RenderService.runRenderAction(() -> {
+          try {
+            myCallSetState.invoke(myDesignTool, state);
+          }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallSetState = null;
+            e.printStackTrace();
+          }
+        });
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    if (myCallSetState == null) {
+      return;
+    }
+    NlModel model = myMotionLayoutComponent.getModel();
+    model.notifyLiveUpdate(false);
   }
 
   public long getMaxTimeMs() {

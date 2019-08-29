@@ -22,9 +22,11 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
+import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.FlagsPropertyItem
+import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.impl.model.BooleanPropertyEditorModel
@@ -33,6 +35,7 @@ import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.property.panel.impl.model.FlagPropertyEditorModel
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.model.ThreeStateBooleanPropertyEditorModel
+import com.android.tools.property.panel.impl.model.util.FakeComponentLineModel
 import com.android.tools.property.panel.impl.model.util.FakeInspectorLineModel
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.android.tools.property.panel.impl.model.util.FakeLineType
@@ -107,6 +110,14 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
     Truth.assertThat(line).isLessThan(inspector.lines.size)
     Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TABLE)
     return inspector.lines[line] as FakeTableLineModel
+  }
+
+  fun checkEmptyTableIndicator(line: Int): InspectorLineModel {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.PANEL)
+    val lineModel = inspector.lines[line] as FakeComponentLineModel
+    Truth.assertThat(lineModel.component).isInstanceOf(EmptyTablePanel::class.java)
+    return lineModel
   }
 
   fun performAction(line: Int, action: Int, icon: Icon) {

@@ -32,6 +32,7 @@ import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createTransfe
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.dragDrop;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.dragMouse;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.pressMouse;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.releaseKey;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.releaseMouse;
 import static org.mockito.Mockito.when;
 
@@ -403,7 +404,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     Mockito.verify(surface).setCursor(AdtUiCursors.GRAB);
   }
 
-  public void testCursorChangeOnModifiedKeyPressed() {
+  public void testInterceptPanOnModifiedKeyPressed() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     Point moved = new Point(0, 0);
@@ -411,6 +412,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     int modifierKeyMask = InputEvent.BUTTON2_DOWN_MASK;
 
     assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_PRESSED, modifierKeyMask)));
+    Mockito.verify(surface).setCursor(AdtUiCursors.GRABBING);
   }
 
   public void testInterceptPanModifiedKeyReleased() {
@@ -419,7 +421,34 @@ public class InteractionManagerTest extends LayoutTestCase {
     when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
 
     assertFalse(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0)));
-    Mockito.verify(surface, Mockito.never()).setCursor(AdtUiCursors.GRABBING);
+    Mockito.verify(surface, Mockito.never()).setCursor(AdtUiCursors.GRAB);
+  }
+
+  public void testIsPanningAfterMouseReleased() {
+    InteractionManager manager = setupConstraintLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
+
+    manager.setPanning(true);
+    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0)));
+
+    // Panning will only end on mouse release when releasing the middle/wheel mouse button (BUTTON2).
+    releaseMouse(manager, MouseEvent.BUTTON1, 0, 0, 0);
+    assertTrue(manager.isPanning());
+    releaseMouse(manager, MouseEvent.BUTTON2, 0, 0, 0);
+    assertFalse(manager.isPanning());
+  }
+
+  public void testIsPanningAfterKeyReleased() {
+    InteractionManager manager = setupConstraintLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
+
+    manager.setPanning(true);
+    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0)));
+
+    releaseKey(manager, DesignSurfaceShortcut.PAN.getKeyCode());
+    assertFalse(manager.isPanning());
   }
 
   public void testReusingNlComponentWhenDraggingFromComponentTree() {

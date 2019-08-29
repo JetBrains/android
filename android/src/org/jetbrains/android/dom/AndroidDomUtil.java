@@ -20,6 +20,9 @@ import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_AFTER;
 import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE;
 import static com.android.SdkConstants.ATTR_CHECKED_BUTTON;
 import static com.android.SdkConstants.ATTR_CHECKED_CHIP;
+import static com.android.SdkConstants.ATTR_CONSTRAINT_SET_END;
+import static com.android.SdkConstants.ATTR_CONSTRAINT_SET_START;
+import static com.android.SdkConstants.ATTR_DERIVE_CONSTRAINTS_FROM;
 import static com.android.SdkConstants.ATTR_FONT_FAMILY;
 import static com.android.SdkConstants.ATTR_HIDE_MOTION_SPEC;
 import static com.android.SdkConstants.ATTR_ICON;
@@ -209,7 +212,7 @@ public class AndroidDomUtil {
                            ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
                            ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
                            ATTR_LAYOUT_START_TO_END_OF, ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_END_TO_START_OF,
-                           ATTR_LAYOUT_END_TO_END_OF);
+                           ATTR_LAYOUT_END_TO_END_OF, ATTR_CONSTRAINT_SET_START, ATTR_CONSTRAINT_SET_END, ATTR_DERIVE_CONSTRAINTS_FROM);
     addSpecialResourceType(ResourceType.LAYOUT, ATTR_LISTITEM, ATTR_LAYOUT);
     addSpecialResourceType(ResourceType.FONT, ATTR_FONT_FAMILY);
     addSpecialResourceType(ResourceType.MENU, ATTR_MENU);
