@@ -51,6 +51,15 @@ public class ActivityFragmentLeakInstanceFilter implements CaptureObjectInstance
     return "Potential Activity/Fragment Leaks";
   }
 
+  @NotNull
+  @Override
+  public String getDescription() {
+    return "Activity and Fragment instances that might be causing memory leaks.\n" +
+           "For Activities, these are instances that have been destroyed but are still being referenced.\n" +
+           "For Fragments, these are instances that do not have a valid FragmentManager but are still being referenced.\n" +
+           "Note, these instance might include Fragments that were created but are not yet being utilized.";
+  }
+
   @Override
   public Set<InstanceObject> filter(@NotNull Set<InstanceObject> instances, @NotNull ClassDb classDatabase) {
     Set<ClassDb.ClassEntry> allActivitySubclasses = classDatabase.getEntriesByName(ACTIVTY_CLASS_NAME).stream()
