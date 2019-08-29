@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
+import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderService
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerViewModel
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModelImpl
+import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFileSystem
@@ -37,6 +40,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import java.awt.Image
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -79,10 +83,16 @@ class LayoutRendererTest {
     val layoutRenderer = LayoutRenderer(androidFacet, ::createRenderTaskForTest, ImageFuturesManager())
     LayoutRenderer.setInstance(androidFacet, layoutRenderer)
     val designAsset = DesignAsset(createLayoutFile().virtualFile, emptyList(), ResourceType.LAYOUT)
-    lateinit var resourceExplorerViewModel: ResourceExplorerViewModel
+    lateinit var resourceExplorerListViewModel: ResourceExplorerListViewModel
     try {
-      resourceExplorerViewModel = ResourceExplorerViewModel.createResManagerViewModel(androidFacet)
-      val previewProvider = resourceExplorerViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
+      resourceExplorerListViewModel = ResourceExplorerListViewModelImpl(
+        androidFacet,
+        null,
+        Mockito.mock(ResourceResolver::class.java),
+        FilterOptions.createDefault(),
+        ResourceType.DRAWABLE
+      )
+      val previewProvider = resourceExplorerListViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
       val width = 150
       val height = 200
       previewProvider.getIcon(designAsset, width, height, { latch.countDown() })
@@ -103,8 +113,8 @@ class LayoutRendererTest {
       assertThat(image.height).isEqualTo(height)
     }
     finally {
-      assert(resourceExplorerViewModel is Disposable)
-      Disposer.dispose(resourceExplorerViewModel as Disposable)
+      assert(resourceExplorerListViewModel is Disposable)
+      Disposer.dispose(resourceExplorerListViewModel as Disposable)
     }
   }
 
