@@ -20,8 +20,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.databinding.utils.JavaCodeInsightTestFixtureUtils;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
 import com.intellij.psi.PsiClass;
@@ -129,7 +129,7 @@ public class AndroidDataBindingTest {
     copyClass(DUMMY_CLASS_QNAME);
 
     PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
-    PsiClass aClass = JavaCodeInsightTestFixtureUtils.findClass(getFixture(), "p1.p2.databinding.BasicBindingBinding", context);
+    PsiClass aClass = AndroidTestUtils.findClass(getFixture(), "p1.p2.databinding.BasicBindingBinding", context);
     assertNotNull(aClass);
 
     assertNotNull(aClass.findFieldByName("view1", false));
@@ -162,7 +162,7 @@ public class AndroidDataBindingTest {
     copyClass(DUMMY_CLASS_QNAME);
 
     PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
-    PsiClass aClass = JavaCodeInsightTestFixtureUtils.findClass(getFixture(), "p1.p2.databinding.ImportVariableBinding", context);
+    PsiClass aClass = AndroidTestUtils.findClass(getFixture(), "p1.p2.databinding.ImportVariableBinding", context);
     assertNotNull(aClass);
 
     assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
@@ -188,7 +188,7 @@ public class AndroidDataBindingTest {
     copyClass(DUMMY_CLASS_QNAME);
 
     PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
-    PsiClass aClass = JavaCodeInsightTestFixtureUtils.findClass(getFixture(), "p1.p2.databinding.ImportViaAliasBinding", context);
+    PsiClass aClass = AndroidTestUtils.findClass(getFixture(), "p1.p2.databinding.ImportViaAliasBinding", context);
     assertNotNull(aClass);
 
     assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
@@ -218,7 +218,7 @@ public class AndroidDataBindingTest {
     PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
 
     String dataBindingPrefix = (myDataBindingMode == DataBindingMode.SUPPORT) ? "android.databinding." : "androidx.databinding.";
-    PsiClass foundClass = JavaCodeInsightTestFixtureUtils.findClass(getFixture(), dataBindingPrefix + "DataBindingComponent", context);
+    PsiClass foundClass = AndroidTestUtils.findClass(getFixture(), dataBindingPrefix + "DataBindingComponent", context);
     assertNotNull(foundClass);
     assertNotNull(foundClass.getContainingFile());
   }
