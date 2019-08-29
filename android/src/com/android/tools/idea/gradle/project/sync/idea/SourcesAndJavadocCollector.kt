@@ -50,7 +50,7 @@ fun getSourcesAndJavadocArtifacts(
                            SourcesAndJavadocParameter::class.java) { parameter ->
         parameter.artifactIdentifiers = identifiers
       }?.also {
-        consumer.consume(module.ideaModule, it, SourcesAndJavadocArtifacts::class.java)
+        consumer.consumeProjectModel(module.gradleProject, it, SourcesAndJavadocArtifacts::class.java)
       }
     }
   }
