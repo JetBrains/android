@@ -45,7 +45,7 @@ public final class ComponentStack {
   public <T> void registerComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
     Object old = myComponentManager.getComponent(key);
     myComponents.push(new ComponentItem(key, old));
-    ServiceContainerUtil.registerComponentInstance(myComponentManager, key, instance);
+    ServiceContainerUtil.registerComponentInstance(myComponentManager, key, instance, myComponentManager);
   }
 
   public void restoreComponents() {
@@ -53,7 +53,7 @@ public final class ComponentStack {
       ComponentItem component = myComponents.pop();
       if (component.key instanceof Class) {
         //noinspection unchecked
-        ServiceContainerUtil.registerComponentInstance(myComponentManager, (Class)component.key, component.instance);
+        ServiceContainerUtil.registerComponentInstance(myComponentManager, (Class)component.key, component.instance, myComponentManager);
       }
       else {
         myContainer.unregisterComponent(component.key.toString());
