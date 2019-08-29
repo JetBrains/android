@@ -23,6 +23,7 @@ import com.android.builder.model.AppBundleVariantBuildOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -67,7 +68,9 @@ import org.jetbrains.annotations.Nullable;
  * of dynamic apps.
  */
 public class DynamicAppUtils {
-  /** Index for user clicking on the confirm button of the dialog. **/
+  /**
+   * Index for user clicking on the confirm button of the dialog.
+   **/
   private static final int UPDATE_BUTTON_INDEX = 1;
 
   /**
@@ -100,6 +103,7 @@ public class DynamicAppUtils {
       .findFirst()
       .orElse(null);
   }
+
   /**
    * Returns the list of dynamic feature {@link Module modules} that depend on this base module.
    */
@@ -160,6 +164,7 @@ public class DynamicAppUtils {
 
   /**
    * Displays a message prompting user to update their project's gradle in order to use Android App Bundles.
+   *
    * @return {@code true} if user agrees to update, {@code false} if user declines.
    */
   public static boolean promptUserForGradleUpdate(@NotNull Project project) {
@@ -190,7 +195,18 @@ public class DynamicAppUtils {
         GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
         GradleVersion pluginVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
         AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
-        updater.updatePluginVersion(pluginVersion, gradleVersion);
+
+        Runnable updatePluginVersion = () -> {
+          AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(project);
+          updater.updatePluginVersion(pluginVersion, gradleVersion, pluginInfo == null ? null : pluginInfo.getPluginVersion());
+        };
+
+        // Prevent race condition in tests.
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+          updatePluginVersion.run();
+        } else {
+          ApplicationManager.getApplication().executeOnPooledThread(updatePluginVersion);
+        }
       });
     }
     return result == UPDATE_BUTTON_INDEX;
@@ -318,10 +334,10 @@ public class DynamicAppUtils {
   public static List<Module> getDependentInstantFeatureModules(@NotNull Project project, @NotNull IdeAndroidProject androidProject) {
     Map<String, Module> featureMap = getDynamicFeaturesMap(project);
     return androidProject.getDynamicFeatures().stream()
-                         .map(featurePath -> featureMap.get(featurePath))
-                         .filter(Objects::nonNull)
-                         .filter(f -> AndroidModuleModel.get(f).getSelectedVariant().isInstantAppCompatible())
-                         .collect(Collectors.toList());
+      .map(featurePath -> featureMap.get(featurePath))
+      .filter(Objects::nonNull)
+      .filter(f -> AndroidModuleModel.get(f).getSelectedVariant().isInstantAppCompatible())
+      .collect(Collectors.toList());
   }
 
   public static boolean isFeatureEnabled(@NotNull List<String> myDisabledFeatures, @NotNull ApkFileUnit apkFileUnit) {
@@ -356,6 +372,7 @@ public class DynamicAppUtils {
 
   /**
    * Find the gradle path of the module
+   *
    * @return The path of the specified module, or null if it can't retrieve it.
    */
   @Nullable
