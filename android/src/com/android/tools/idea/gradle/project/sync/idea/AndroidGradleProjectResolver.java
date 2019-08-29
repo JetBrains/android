@@ -567,7 +567,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull
   @Override
-  public ProjectImportModelProvider getExtraModelProvider() {
+  public ProjectImportModelProvider getModelProvider() {
     return configureAndGetExtraModelProvider();
   }
 

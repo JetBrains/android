@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.IdeComponents
@@ -41,7 +41,6 @@ class AndroidLintCustomCheckTest {
   @Before
   fun setUp() {
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(true)
-    StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(true)
 
     ApplicationManager.getApplication().invokeAndWait {
 
@@ -70,13 +69,13 @@ class AndroidLintCustomCheckTest {
 
       val request = GradleSyncInvoker.Request.testRequest()
       myProjectRule.requestSyncAndWait(request)
+      GradleBuildInvoker.getInstance(myProjectRule.project).generateSources()
     }
   }
 
   @After
   fun tearDown() {
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
-    StudioFlags.BUILD_AFTER_SYNC_ENABLED.clearOverride()
   }
 
   private fun doTest(filePath: String, expectedWarning: String) {
