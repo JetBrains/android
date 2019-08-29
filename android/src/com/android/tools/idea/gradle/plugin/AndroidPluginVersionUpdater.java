@@ -102,7 +102,15 @@ public class AndroidPluginVersionUpdater {
   }
 
   public UpdateResult updatePluginVersionAndSync(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
-    UpdateResult result = updatePluginVersion(pluginVersion, gradleVersion);
+    return updatePluginVersionAndSync(pluginVersion, gradleVersion, null);
+  }
+
+  public UpdateResult updatePluginVersionAndSync(
+    @NotNull GradleVersion pluginVersion,
+    @Nullable GradleVersion gradleVersion,
+    @Nullable GradleVersion oldPluginVersion
+  ) {
+    UpdateResult result = updatePluginVersion(pluginVersion, gradleVersion, oldPluginVersion);
 
     Throwable pluginVersionUpdateError = result.getPluginVersionUpdateError();
     Throwable gradleVersionUpdateError = result.getGradleVersionUpdateError();
@@ -159,19 +167,25 @@ public class AndroidPluginVersionUpdater {
   /**
    * Updates the plugin version and, optionally, the Gradle version used by the project.
    *
-   * @param pluginVersion the plugin version to update to.
-   * @param gradleVersion the version of Gradle to update to (optional.)
+   * @param pluginVersion    the plugin version to update to.
+   * @param gradleVersion    the version of Gradle to update to (optional.)
+   * @param oldPluginVersion the version of plugin from which we update. Used because of b/130738995.
    * @return the result of the update operation.
    */
   @NotNull
-  public UpdateResult updatePluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
+  public UpdateResult updatePluginVersion(
+    @NotNull GradleVersion pluginVersion,
+    @Nullable GradleVersion gradleVersion,
+    @Nullable GradleVersion oldPluginVersion) {
     UpdateResult result = new UpdateResult();
-    runWriteCommandAction(myProject, () -> updateAndroidPluginVersion(pluginVersion, gradleVersion, result));
+    runWriteCommandAction(myProject, "Update plugin version", null,
+                          () -> updateAndroidPluginVersion(pluginVersion, gradleVersion, oldPluginVersion, result));
 
     // Update Gradle version only if plugin is successful updated, to avoid leaving the project
     // in a inconsistent state.
     if (result.isPluginVersionUpdated() && gradleVersion != null) {
-      runWriteCommandAction(myProject, () -> updateGradleWrapperVersion(gradleVersion, result));
+      runWriteCommandAction(myProject, "Update Gradle wrapper version", null,
+                            () -> updateGradleWrapperVersion(gradleVersion, result));
     }
     return result;
   }
@@ -180,7 +194,7 @@ public class AndroidPluginVersionUpdater {
   private static ThreeState isUpdatablePluginVersion(@NotNull GradleVersion pluginVersion, @NotNull ArtifactDependencyModel model) {
     String artifactId = model.name().forceString();
     String groupId = model.group().toString();
-    if  (!AndroidPluginInfo.isAndroidPlugin(artifactId, groupId)) {
+    if (!AndroidPluginInfo.isAndroidPlugin(artifactId, groupId)) {
       return UNSURE;
     }
 
@@ -191,11 +205,16 @@ public class AndroidPluginVersionUpdater {
   /**
    * Updates android plugin version.
    *
-   * @param pluginVersion the plugin version to update to.
-   * @param gradleVersion the Gradle version that the project will use (or null if it will not change)
-   * @param result        result of the update operation.
+   * @param pluginVersion    the plugin version to update to.
+   * @param gradleVersion    the Gradle version that the project will use (or null if it will not change)
+   * @param oldPluginVersion the version of plugin from which we update. Used because of b/130738995.
+   * @param result           result of the update operation.
    */
-  private void updateAndroidPluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion, @NotNull UpdateResult result) {
+  private void updateAndroidPluginVersion(
+    @NotNull GradleVersion pluginVersion,
+    @Nullable GradleVersion gradleVersion,
+    @Nullable GradleVersion oldPluginVersion,
+    @NotNull UpdateResult result) {
     List<GradleBuildModel> modelsToUpdate = new ArrayList<>();
 
     BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
@@ -205,12 +224,14 @@ public class AndroidPluginVersionUpdater {
         if (shouldUpdate == YES) {
           dependency.version().getResultModel().setValue(pluginVersion.toString());
           // Add Google Maven repository to buildscript (b/69977310)
-          if (gradleVersion != null) {
-            buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion);
-          }
-          else {
-            // Gradle version will *not* change, use project version
-            buildModel.buildscript().repositories().addGoogleMavenRepository(myProject);
+          if (oldPluginVersion == null || !oldPluginVersion.isAtLeast(3, 0, 0)) {
+            if (gradleVersion != null) {
+              buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion);
+            }
+            else {
+              // Gradle version will *not* change, use project version
+              buildModel.buildscript().repositories().addGoogleMavenRepository(myProject);
+            }
           }
           modelsToUpdate.add(buildModel);
         }
