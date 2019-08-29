@@ -220,7 +220,8 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
     val hostRoomAnnotation = findHostRoomAnnotation()
     if (hostRoomAnnotation != null) {
       // We are inside a Room annotation, let's use the Room schema.
-      val module = ModuleUtil.findModuleForPsiElement(query) ?: return true
+      // If we are inside Editing Fragment query does not belong to module. We need to use original file.
+      val module = ModuleUtil.findModuleForPsiElement(query.originalFile) ?: return true
       return ContainerUtil.process(
         RoomSchemaManager.getInstance(module).getSchema(query)?.tables ?: emptySet<AndroidSqlTable>(),
         amendProcessor(hostRoomAnnotation, processor)
