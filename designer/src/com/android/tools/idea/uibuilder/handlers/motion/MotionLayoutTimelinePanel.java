@@ -237,7 +237,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       loadMotionScene();
     }
     updateState();
-    addDelegate();
 
 //    if (getSelectedAccessory() == null) {
       fireSelectionChanged(selection);
@@ -252,16 +251,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       if (root != null) {
         root.updateTargets();
       }
-    }
-  }
-
-  private void addDelegate() {
-    if (myMotionLayout == null) {
-      return;
-    }
-    myMotionLayout.setDelegate(myNlComponentDelegate);
-    for (NlComponent child : myMotionLayout.getChildren()) {
-      child.setDelegate(myNlComponentDelegate);
     }
   }
 

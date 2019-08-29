@@ -344,19 +344,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       myMotionLayout = component;
     }
 
-    addDelegate();
-
     fireSelectionChanged(selection);
-  }
-
-  private void addDelegate() {
-    if (myMotionLayout == null) {
-      return;
-    }
-    myMotionLayout.setDelegate(myNlComponentDelegate);
-    for (NlComponent child : myMotionLayout.getChildren()) {
-      child.setDelegate(myNlComponentDelegate);
-    }
   }
 
   @Override
