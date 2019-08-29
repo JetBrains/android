@@ -33,7 +33,7 @@ import com.google.common.collect.HashBasedTable
  * Currently this is only done for a few view classes example: TextView,
  * but this map could be more extensive in the future.
  */
-class NeleDefaultPropertyProvider(private val sceneManager: SceneManager) {
+class NeleDefaultPropertyValueProvider(private val sceneManager: SceneManager): DefaultPropertyValueProvider {
   // Store the default values requested so far. Use this to detect default value changes.
   @GuardedBy("lookupPerformed")
   private val lookupPerformed = HashBasedTable.create<NlComponent, ResourceReference, ResourceValue>()
@@ -42,12 +42,17 @@ class NeleDefaultPropertyProvider(private val sceneManager: SceneManager) {
   @GuardedBy("styleLookupPerformed")
   private val styleLookupPerformed = mutableMapOf<NlComponent, String>()
 
+  override fun provideDefaultValue(property: NelePropertyItem): String? {
+    val defValue = provideDefaultValueAsResourceValue(property) ?: return null
+    return property.resolveDefaultValue(defValue)
+  }
+
   /**
    * Given a [property] return the default value found by layoutlib.
    *
    * Or `null` if such a default value hasn't been reported.
    */
-  fun provideDefaultValue(property: NelePropertyItem): ResourceValue? {
+  private fun provideDefaultValueAsResourceValue(property: NelePropertyItem): ResourceValue? {
     if (property.namespace.isEmpty() && property.name == ATTR_STYLE) {
       return provideDefaultStyleValue(property)
     }
@@ -64,7 +69,7 @@ class NeleDefaultPropertyProvider(private val sceneManager: SceneManager) {
    *
    * Use this after layoutlib has finished rendering.
    */
-  fun hasDefaultValuesChanged(): Boolean {
+  override fun hasDefaultValuesChanged(): Boolean {
     // This method is normally called from the Layoutlib Render thread which is the reason
     // we use synchronized blocks around every use of lookupPerformed and styleLookupPerformed.
     return hasDefaultPropertyValuesChanged() || hasDefaultStyleValuesChanged()
@@ -73,7 +78,7 @@ class NeleDefaultPropertyProvider(private val sceneManager: SceneManager) {
   /**
    * Clear the lookup tables used to detect default value changes.
    */
-  fun clearLookups() {
+  override fun clearCache() {
     synchronized(lookupPerformed) {
       lookupPerformed.clear()
     }
