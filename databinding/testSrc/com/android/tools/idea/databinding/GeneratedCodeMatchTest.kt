@@ -20,11 +20,11 @@ import com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT
 import com.android.ide.common.blame.Message
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
-import com.android.tools.idea.databinding.utils.findClass
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.findClass
 import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
