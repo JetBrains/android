@@ -15,8 +15,17 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import java.awt.Color;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
+
+import java.awt.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @SuppressWarnings("InspectionUsingGrayColors")
 public class ColorUtilsTest extends AndroidTestCase {
@@ -31,6 +40,63 @@ public class ColorUtilsTest extends AndroidTestCase {
     assertEquals(5.25, ColorUtils.calculateContrastRatio(Color.BLACK, Color.RED), 0.01);
     assertEquals(ColorUtils.calculateContrastRatio(Color.BLACK, Color.RED), ColorUtils.calculateContrastRatio(Color.BLACK, Color.RED));
     assertEquals(9.10, ColorUtils.calculateContrastRatio(Color.decode("#2E054A"), Color.decode("#80CBC4")), 0.01);
+  }
+
+  public void testContrastWarning() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_low_contrast.xml", "res/values/styles.xml");
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
+    ThemeEditorContext context = new ThemeEditorContext(configuration);
+    context.setCurrentTheme(context.getThemeResolver().getTheme("MyTheme"));
+
+    ImmutableMap<String, Color> textColorContrastColors = ColorUtils.getContrastColorsWithDescription(context, "textColor");
+    ImmutableMap<String, Color> colorPrimaryContrastColors = ColorUtils.getContrastColorsWithDescription(context, "colorPrimary");
+
+    assertEquals("<html>Not enough contrast with <b>android:colorPrimary</b>", ColorUtils.getContrastWarningMessage(textColorContrastColors, Color.WHITE, ColorUtils.isBackgroundAttribute("textColor")));
+    assertEquals("<html>Not enough contrast with <b>colorBackground</b>",
+                 ColorUtils.getContrastWarningMessage(textColorContrastColors, Color.BLACK, ColorUtils.isBackgroundAttribute("textColor")));
+    assertEquals("<html>Not enough contrast with <b>android:textColor</b> and <b>android:textColorPrimary</b>",
+                 ColorUtils.getContrastWarningMessage(colorPrimaryContrastColors, Color.WHITE, ColorUtils.isBackgroundAttribute("colorPrimary")));
+    assertEquals("", ColorUtils.getContrastWarningMessage(colorPrimaryContrastColors, Color.BLACK, ColorUtils.isBackgroundAttribute("colorPrimary")));
+
+    // Test non existing attribute names
+    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithDescription(context, ""), Color.WHITE, false));
+    assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithDescription(context, "invented"), Color.WHITE, true));
+
+    // Test transparent colors
+    assertEquals("<html>Not enough contrast with <b>colorBackground</b>", ColorUtils
+      .getContrastWarningMessage(textColorContrastColors, new Color(0, 0, 0, 50), ColorUtils.isBackgroundAttribute("textColor")));
+    assertEquals("<html>Not enough contrast with <b>colorBackground</b>", ColorUtils
+      .getContrastWarningMessage(textColorContrastColors, new Color(0, 0, 0, 250), ColorUtils.isBackgroundAttribute("textColor")));
+
+    LinkedHashMap<String, Color> colorsWithDescription = new LinkedHashMap<>();
+    colorsWithDescription.put("color very transparent", new Color(0, 0, 0, 50));
+    colorsWithDescription.put("color a little transparent", new Color(0, 0, 0, 200));
+    assertEquals("<html>Not enough contrast with color very transparent",
+                 ColorUtils.getContrastWarningMessage(colorsWithDescription, new Color(255, 255, 255, 200), false));
+    assertEquals("<html>Not enough contrast with color very transparent and color a little transparent",
+                 ColorUtils.getContrastWarningMessage(colorsWithDescription, new Color(255, 0, 0, 200), false));
+    assertEquals("<html>Not enough contrast with color very transparent",
+                 ColorUtils.getContrastWarningMessage(colorsWithDescription, new Color(255, 0, 0), false));
+    assertEquals("<html>Not enough contrast with color very transparent",
+                 ColorUtils.getContrastWarningMessage(colorsWithDescription, new Color(0, 255, 0, 200), false));
+  }
+
+  public void testContrastColors() {
+    VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_low_contrast.xml", "res/values/styles.xml");
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
+    ThemeEditorContext context = new ThemeEditorContext(configuration);
+    context.setCurrentTheme(context.getThemeResolver().getTheme("MyTheme"));
+
+    Collection<Color>
+      color = ColorUtils.getContrastColorsWithDescription(context, "colorPrimary").values();
+    assertThat(color).containsExactly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
+    color = ColorUtils.getContrastColorsWithDescription(context, "colorPrimary").values();
+    assertThat(color).containsExactly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
+
+    color = ColorUtils.getContrastColorsWithDescription(context, "").values();
+    assertThat(color).isEmpty();
+    color = ColorUtils.getContrastColorsWithDescription(context, "notExistent").values();
+    assertThat(color).isEmpty();
   }
 
   public void testWorstContrastColor() {

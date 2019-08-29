@@ -135,13 +135,53 @@ public class ResolutionUtils {
     return attr != null ? attr.getRelativeResourceUrl(ResourceNamespace.TODO()).getQualifiedName() : item.getAttrName();
   }
 
+  /**
+   * Returns item value, maybe with "android:" qualifier,
+   * If item is inside of the framework style, "android:" qualifier will be added
+   * For example: For a value "@color/black" which is inside the "Theme.Holo.Light.DarkActionBar" style,
+   * will be returned as "@android:color/black"
+   */
+  @NotNull
+  public static String getQualifiedValue(@NotNull StyleItemResourceValue item) {
+    ResourceUrl url = ResourceUrl.parse(item.getRawXmlValue(), item.isFramework());
+    return url == null ? item.getRawXmlValue() : url.toString();
+  }
+
   @Nullable
   public static ConfiguredThemeEditorStyle getThemeEditorStyle(@NotNull Configuration configuration,
-                                                               @NotNull ResourceReference styleReference) {
+                                                               @NotNull ResourceReference styleReference,
+                                                               @Nullable Module module) {
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
     StyleResourceValue style = resolver.getStyle(styleReference);
-    return style == null ? null : new ConfiguredThemeEditorStyle(configuration, style);
+    return style == null ? null : new ConfiguredThemeEditorStyle(configuration, style, module);
+  }
+
+  /**
+   * @deprecated Use {@link #getThemeEditorStyle(Configuration, ResourceReference, Module)}.
+   */
+  @Deprecated
+  @Nullable
+  public static ConfiguredThemeEditorStyle getThemeEditorStyle(@NotNull Configuration configuration, @NotNull String qualifiedStyleName,
+                                                               @Nullable Module module) {
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assert resolver != null;
+    assert !qualifiedStyleName.startsWith(ANDROID_STYLE_RESOURCE_PREFIX);
+    assert !qualifiedStyleName.startsWith(STYLE_RESOURCE_PREFIX);
+
+    String styleName;
+    boolean isFrameworkStyle;
+
+    if (qualifiedStyleName.startsWith(PREFIX_ANDROID)) {
+      styleName = qualifiedStyleName.substring(PREFIX_ANDROID.length());
+      isFrameworkStyle = true;
+    } else {
+      styleName = qualifiedStyleName;
+      isFrameworkStyle = false;
+    }
+
+    StyleResourceValue style = configuration.getResourceResolver().getStyle(styleName, isFrameworkStyle);
+    return style == null ? null : new ConfiguredThemeEditorStyle(configuration, style, module);
   }
 
   @Nullable
