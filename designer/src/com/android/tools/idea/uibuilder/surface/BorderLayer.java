@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-public class BorderLayer extends Layer {
+class BorderLayer extends Layer {
 
   private final ScreenViewBase myScreenView;
 
