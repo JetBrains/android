@@ -21,9 +21,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
+import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
@@ -71,10 +71,11 @@ public final class ComponentTreeTest {
     // TODO This step takes around 10 s when this UI test does it (not when I do it manually). Make it faster.
     layoutEditor.getComponentTree().drop("android.support.constraint.ConstraintLayout");
 
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myGuiTest.robot());
+    ResourceExplorerDialogFixture dialog = ResourceExplorerDialogFixture.find(myGuiTest.robot());
     // TODO Same here
-    dialog.expandList("Project (4)").getList("Project (4)").selectItem("ic_launcher");
-    dialog.clickOK();
+    dialog.getResourceExplorer().selectTab("Mip Map");
+    dialog.getResourceExplorer().selectResource("ic_launcher");
+    dialog.clickOk();
 
     editor.open(activityMainXmlRelativePath, Tab.EDITOR);
 

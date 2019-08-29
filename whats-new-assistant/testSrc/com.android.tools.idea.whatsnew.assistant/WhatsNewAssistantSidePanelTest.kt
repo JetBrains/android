@@ -22,7 +22,6 @@ import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.assistant.AssistantGetBundleTask
 import com.android.tools.idea.assistant.DefaultTutorialBundle
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.FutureUtils
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
@@ -48,8 +47,6 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.override(true)
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(true)
 
     // Mock url provider to simulate webserver and also class resource file
     mockUrlProvider = mock(WhatsNewAssistantURLProvider::class.java)
@@ -68,12 +65,6 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
     Mockito.`when`(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath)
   }
 
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.clearOverride()
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.clearOverride()
-  }
-
   /**
    * Test that the additional title for Assistant panel displays the same as bundle name
    */
@@ -83,6 +74,7 @@ class WhatsNewAssistantSidePanelTest : AndroidTestCase() {
       .findExtension(WhatsNewAssistantBundleCreator::class.java)
     bundleCreator!!.setURLProvider(mockUrlProvider)
     bundleCreator.setStudioRevision(studioRevision)
+    bundleCreator.setAllowDownload(true)
 
     val completeFuture = SettableFuture.create<String>()
     val callback = object: FutureCallback<String> {

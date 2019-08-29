@@ -10,7 +10,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
-        "//prebuilts/studio/layoutlib:data/layoutlib_native",
+        "//prebuilts/studio/layoutlib/data:layoutlib_native",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/idea/platform/bootstrap:intellij.platform.bootstrap[module]",
         "//tools/idea/platform/core-impl:intellij.platform.core.impl[module]",

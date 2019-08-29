@@ -25,7 +25,6 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class CreateGradleWrapperTest extends AndroidGradleTestCase {
   public void testCreateGradleWrapper() throws Exception {

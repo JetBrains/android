@@ -219,20 +219,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @Override
   @NotNull
-  public Collection<BindingLayoutData> getBindingLayoutData(@NotNull String layoutName) {
-    synchronized (ITEM_MAP_LOCK) {
-      for (LocalResourceRepository child : myLocalResources) {
-        Collection<BindingLayoutData> layoutData = child.getBindingLayoutData(layoutName);
-        if (!layoutData.isEmpty()) {
-          return layoutData;
-        }
-      }
-      return ImmutableList.of();
-    }
-  }
-
-  @Override
-  @NotNull
   public Set<ResourceNamespace> getNamespaces() {
     synchronized (ITEM_MAP_LOCK) {
       return ImmutableSet.copyOf(myRepositoriesByNamespace.keySet());

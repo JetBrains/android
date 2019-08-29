@@ -35,7 +35,7 @@ public class AddCustomFieldAction extends AnAction {
   private final MotionLayoutAttributesModel myModel;
 
   public AddCustomFieldAction(@NotNull FilteredPTableModel<NelePropertyItem> tableModel, @NotNull NelePropertyItem property) {
-    super(null, "Add Custom Property", AllIcons.General.Add);
+    super(null, "Add Custom Attribute", AllIcons.General.Add);
     myTableModel = tableModel;
     myProperty = property;
     myModel = (MotionLayoutAttributesModel)myProperty.getModel();

@@ -15,28 +15,21 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
-import com.android.tools.idea.rendering.imagepool.ImagePool
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetScopedService
 import org.jetbrains.ide.PooledThreadExecutor
-import java.awt.Dimension
 import java.awt.image.BufferedImage
-import java.util.HashMap
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 import java.util.function.Function
-import javax.annotation.concurrent.GuardedBy
-
-private val KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.name)
 
 @VisibleForTesting
 const val MAX_RENDER_WIDTH = 768
@@ -47,6 +40,7 @@ const val MAX_RENDER_HEIGHT = 1024
 @VisibleForTesting
 const val DOWNSCALE_FACTOR = 0.25f
 
+private val LAYOUT_KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.name)
 
 typealias RenderTaskProvider = (AndroidFacet, XmlFile, Configuration) -> CompletableFuture<RenderTask?>
 
@@ -71,59 +65,22 @@ class LayoutRenderer
 @VisibleForTesting
 constructor(
   facet: AndroidFacet,
-  private val renderTaskProvider: RenderTaskProvider = ::createRenderTask
+  private val renderTaskProvider: RenderTaskProvider,
+  private val futuresManager: ImageFuturesManager<VirtualFile>
 ) : AndroidFacetScopedService(facet) {
 
-  // TODO make this class implement DesignAssetRenderer and register it as an extension
-  @GuardedBy("disposalLock")
-  private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<BufferedImage?>>()
-
-  @GuardedBy("disposalLock")
-  private var myDisposed: Boolean = false
-
-  private val disposalLock = Any()
-
-  override fun onDispose() {
-    lateinit var futures: Array<CompletableFuture<BufferedImage?>>
-    synchronized(disposalLock) {
-      myDisposed = true
-      futures = myPendingFutures.values.toTypedArray()
-      myPendingFutures.clear()
-    }
-    try {
-      CompletableFuture.allOf(*futures).get(5, TimeUnit.SECONDS)
-    }
-    catch (e: Exception) {
-      // We do not care about these exceptions since we are disposing anyway
-    }
-
-    super.onDispose()
+  init {
+    Disposer.register(this, futuresManager)
   }
+
+  override fun onServiceDisposal(facet: AndroidFacet) {}
 
   fun getLayoutRender(xmlFile: XmlFile, configuration: Configuration): CompletableFuture<BufferedImage?> {
-    val file = xmlFile.virtualFile
-    val fullImageFuture = getFullImage(configuration, xmlFile)
-
-    synchronized(disposalLock) {
-      if (myDisposed) {
-        return CompletableFuture.completedFuture(null)
-      }
-      val inProgress = myPendingFutures[file]
-      if (inProgress != null) {
-        return inProgress
-      }
-      myPendingFutures.put(file, fullImageFuture)
-    }
-
-    fullImageFuture.whenComplete { _, _ ->
-      synchronized(disposalLock) {
-        myPendingFutures.remove(file)
-      }
-    }
-    return fullImageFuture
+    val imageRenderCallback: () -> CompletableFuture<BufferedImage?> = { getImage(xmlFile, configuration) }
+    return futuresManager.registerAndGet(xmlFile.virtualFile, imageRenderCallback)
   }
 
-  private fun getFullImage(configuration: Configuration, xmlFile: XmlFile): CompletableFuture<BufferedImage?> {
+  private fun getImage(xmlFile: XmlFile, configuration: Configuration): CompletableFuture<BufferedImage?> {
     return renderTaskProvider(facet, xmlFile, configuration)
       .thenCompose { it?.render() }
       .thenApplyAsync(Function {
@@ -138,14 +95,16 @@ constructor(
       }, PooledThreadExecutor.INSTANCE)
   }
 
-  override fun onServiceDisposal(facet: AndroidFacet) {}
-
   companion object {
     @JvmStatic
     fun getInstance(facet: AndroidFacet): LayoutRenderer {
-      var manager = facet.getUserData(KEY)
+      var manager = facet.getUserData(LAYOUT_KEY)
       if (manager == null) {
-        manager = LayoutRenderer(facet)
+        manager = LayoutRenderer(
+          facet,
+          ::createRenderTask,
+          ImageFuturesManager<VirtualFile>()
+        )
         setInstance(facet, manager)
       }
       return manager
@@ -154,7 +113,8 @@ constructor(
     @VisibleForTesting
     @JvmStatic
     fun setInstance(facet: AndroidFacet, layoutRenderer: LayoutRenderer?) {
-      facet.putUserData(KEY, layoutRenderer)
+      // TODO: Move method to test Module and use AndroidFacet.putUserData directly, make the Key @VisibleForTesting instead
+      facet.putUserData(LAYOUT_KEY, layoutRenderer)
     }
   }
 }

@@ -145,7 +145,7 @@ interface ResourceExplorerViewModel {
       = ResourceExplorerViewModelImpl(facet,
                                       currentFile,
                                       FilterOptionsParams(moduleDependenciesInitialValue = true,
-                                                          librariesInitialValue = false,
+                                                          librariesInitialValue = true,
                                                           showSampleData = showSampleData,
                                                           androidResourcesInitialValue = true,
                                                           themeAttributesInitialValue = true),

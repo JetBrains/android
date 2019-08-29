@@ -621,6 +621,44 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
   }
 
+  fun testSelection() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+        navigation("nested1") {
+          fragment("fragment2")
+          navigation("nested2") {
+            fragment("fragment3")
+          }
+        }
+      }
+    }
+
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
+
+    val root = model.find("root")!!
+    val fragment1 = model.find("fragment1")!!
+    val nested1 = model.find("nested1")!!
+    val fragment2 = model.find("fragment2")!!
+    val nested2 = model.find("nested2")!!
+    val fragment3 = model.find("fragment3")!!
+
+    testCurrentNavigation(surface, root, root)
+    testCurrentNavigation(surface, fragment1, root)
+    testCurrentNavigation(surface, nested1, root)
+    testCurrentNavigation(surface, fragment2, nested1)
+    testCurrentNavigation(surface, nested1, nested1)
+    testCurrentNavigation(surface, nested2, nested1)
+    testCurrentNavigation(surface, fragment3, nested2)
+    testCurrentNavigation(surface, root, root)
+  }
+
+  private fun testCurrentNavigation(surface: NavDesignSurface, select: NlComponent, expected: NlComponent) {
+    surface.selectionModel.setSelection(listOf(select))
+    assertEquals(expected.id, surface.currentNavigation.id)
+  }
+
   private fun dragSelect(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
     @SwingCoordinate val x1 = Coordinates.getSwingX(sceneView, rect.x)
     @SwingCoordinate val y1 = Coordinates.getSwingY(sceneView, rect.y)

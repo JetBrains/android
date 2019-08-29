@@ -27,7 +27,7 @@ import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset
 import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.project.AndroidGradleModuleUtils
+import com.android.tools.idea.npw.project.setGradleWrapperExecutable
 import com.android.tools.idea.templates.Template.titleToTemplateRenderer
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
@@ -85,7 +85,7 @@ data class ProjectChecker(
           put(ATTR_SOURCE_PROVIDER_NAME, "main")
           populateDirectoryParameters()
         }
-        val context = createRenderingContext(template, project, moduleRoot, moduleRoot, activityState.parameters)
+        val context = createRenderingContext(template, project, moduleRoot, moduleRoot, activityState.templateValues)
         ApplicationManager.getApplication().runWriteAction {
           template.render(context, false)
           addIconsIfNecessary(activityState)
@@ -123,7 +123,7 @@ data class ProjectChecker(
     }
 
     // Update to latest plugin / gradle and sync model
-    val projectRoot = File(moduleState.getString(ATTR_TOP_OUT)!!)
+    val projectRoot = File(moduleState.getString(ATTR_TOP_OUT))
     assertEquals(projectRoot, virtualToIoFile(fixture.project.guessProjectDir()!!))
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION)
     val gradleFile = File(projectRoot, SdkConstants.FN_BUILD_GRADLE)
@@ -145,8 +145,8 @@ data class ProjectChecker(
     val moduleState = projectState.moduleTemplateState.also {
       it.populateDirectoryParameters()
     }
-    val moduleName = moduleState.getString(ATTR_MODULE_NAME)!!
-    val projectPath = moduleState.getString(ATTR_TOP_OUT)!!
+    val moduleName = moduleState.getString(ATTR_MODULE_NAME)
+    val projectPath = moduleState.getString(ATTR_TOP_OUT)
     val projectRoot = File(projectPath)
     val paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, moduleName).paths
 
@@ -162,13 +162,13 @@ data class ProjectChecker(
     val moduleRoot = paths.moduleRoot!!
     // If this is a new project, instantiate the project-level files
     val projectTemplate = projectState.projectTemplate
-    val projectContext = createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, moduleState.parameters)
+    val projectContext = createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, moduleState.templateValues)
     projectTemplate.render(projectContext, false)
 
     // check usage tracker after project render
     verifyLastLoggedUsage(usageTracker, titleToTemplateRenderer(projectTemplate.metadata!!.title), projectContext.paramMap)
-    AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot)
-    val moduleContext = createRenderingContext(moduleState.template, project, projectRoot, moduleRoot, moduleState.parameters)
+    setGradleWrapperExecutable(projectRoot)
+    val moduleContext = createRenderingContext(moduleState.template, project, projectRoot, moduleRoot, moduleState.templateValues)
     val moduleTemplate = moduleState.template
     moduleTemplate.render(moduleContext, false)
 
@@ -177,7 +177,7 @@ data class ProjectChecker(
     if (moduleState.getBoolean(ATTR_CREATE_ACTIVITY)) {
       val activityTemplateState = projectState.activityTemplateState
       val activityTemplate = activityTemplateState.template
-      val activityContext = createRenderingContext(activityTemplate, project, moduleRoot, moduleRoot, activityTemplateState.parameters)
+      val activityContext = createRenderingContext(activityTemplate, project, moduleRoot, moduleRoot, activityTemplateState.templateValues)
       activityTemplate.render(activityContext, false)
 
       // check usage tracker after activity render

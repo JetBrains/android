@@ -118,20 +118,20 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     FakeCaptureObject fakeCapture1 =
       new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
     InstanceObject fakeInstance1 =
-      new FakeInstanceObject.Builder(fakeCapture1, dummyClassName1).setName("DUMMY_INSTANCE1").setHeapId(0).setDepth(4).setShallowSize(5)
-        .setRetainedSize(6).build();
+      new FakeInstanceObject.Builder(fakeCapture1, 1, dummyClassName1).setName("DUMMY_INSTANCE1").setHeapId(0).setDepth(4)
+        .setShallowSize(5).setRetainedSize(6).build();
     InstanceObject fakeInstance2 =
-      new FakeInstanceObject.Builder(fakeCapture1, dummyClassName2).setName("DUMMY_INSTANCE2").setDepth(1).setShallowSize(2)
+      new FakeInstanceObject.Builder(fakeCapture1, 2, dummyClassName2).setName("DUMMY_INSTANCE2").setDepth(1).setShallowSize(2)
         .setRetainedSize(3).build();
     fakeCapture1.addInstanceObjects(ImmutableSet.of(fakeInstance1, fakeInstance2));
 
     FakeCaptureObject fakeCapture2 =
       new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
     InstanceObject fakeInstance3 =
-      new FakeInstanceObject.Builder(fakeCapture2, dummyClassName1).setName("DUMMY_INSTANCE1").setHeapId(0).setDepth(4).setShallowSize(5)
-        .setRetainedSize(6).build();
+      new FakeInstanceObject.Builder(fakeCapture2, 1, dummyClassName1).setName("DUMMY_INSTANCE1").setHeapId(0).setDepth(4)
+        .setShallowSize(5).setRetainedSize(6).build();
     InstanceObject fakeInstance4 =
-      new FakeInstanceObject.Builder(fakeCapture2, dummyClassName2).setName("DUMMY_INSTANCE2").setDepth(1).setShallowSize(2)
+      new FakeInstanceObject.Builder(fakeCapture2, 2, dummyClassName2).setName("DUMMY_INSTANCE2").setDepth(1).setShallowSize(2)
         .setRetainedSize(3).build();
     fakeCapture2.addInstanceObjects(ImmutableSet.of(fakeInstance3, fakeInstance4));
 
@@ -170,7 +170,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertView(fakeCapture2, selectedHeap, null, null, false);
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 0, 0, 0);
 
-    stageView.getHeapView().getComponent().setSelectedItem(fakeCapture2.getHeapSet(0));
+    stageView.getHeapView().getHeapComboBox().setSelectedItem(fakeCapture2.getHeapSet(0));
     assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), null, null);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
@@ -257,7 +257,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(10).setEndTime(15)
         .build();
     InstanceObject fakeInstance1 =
-      new FakeInstanceObject.Builder(fakeCapture2, "DUMMY_CLASS").setName("DUMMY_INSTANCE1").setDepth(4).setShallowSize(5)
+      new FakeInstanceObject.Builder(fakeCapture2, 1, "DUMMY_CLASS").setName("DUMMY_INSTANCE1").setDepth(4).setShallowSize(5)
         .setRetainedSize(6).build();
     fakeCapture2.addInstanceObjects(ImmutableSet.of(fakeInstance1));
 
@@ -337,7 +337,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     // Because isDoneLoading() returns true by default in the FakeCaptureObject, captureObjectChanged() will call captureObjectFinishedLoading()
     // which would execute the logic that had a null pointer exception as reported by b/117796712.
     FakeCaptureObject captureObj = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(captureObj, "DUMMY_CLASS1").setHeapId(0).build();
+    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(captureObj, 1, "DUMMY_CLASS1").setHeapId(0).build();
     captureObj.addInstanceObjects(ImmutableSet.of(instanceObject));
     stage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObj)),
                                 null);
@@ -610,7 +610,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
                           boolean isCaptureLoading) {
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
 
-    ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getComponent().getModel();
+    ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getHeapComboBox().getModel();
 
     if (expectedCaptureObject == null) {
       assertThat(stageView.getChartCaptureSplitter().getSecondComponent()).isNull();

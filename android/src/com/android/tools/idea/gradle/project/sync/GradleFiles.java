@@ -36,6 +36,8 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
@@ -54,6 +56,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiTreeChangeAdapter;
 import com.intellij.psi.PsiTreeChangeEvent;
+import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.ui.EditorNotifications;
 import java.io.File;
@@ -110,21 +113,7 @@ public class GradleFiles {
     myFileEditorListener = new FileEditorManagerListener() {
       @Override
       public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-        if (event.getNewFile() == null || !event.getNewFile().isValid()) {
-          return;
-        }
-
-        PsiFile psiFile = PsiManager.getInstance(myProject).findFile(event.getNewFile());
-        if (psiFile == null) {
-          return;
-        }
-
-        if (isGradleFile(psiFile) || isExternalBuildFile(psiFile)) {
-          PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener);
-        }
-        else {
-          PsiManager.getInstance(myProject).removePsiTreeChangeListener(fileChangeListener);
-        }
+        maybeAddOrRemovePsiTreeListener(event.getNewFile(), fileChangeListener);
       }
     };
 
@@ -135,12 +124,45 @@ public class GradleFiles {
 
 
     GradleSyncState.subscribe(myProject, mySyncListener);
+
     // Populate build file hashes on creation.
     if (myProject.isInitialized()) {
       scheduleUpdateFileHashes();
+      checkAndAddInitialFileChangeListener(fileChangeListener);
     }
     else {
       StartupManager.getInstance(myProject).registerPostStartupActivity(this::scheduleUpdateFileHashes);
+      StartupManager.getInstance(myProject).registerPostStartupActivity(() -> checkAndAddInitialFileChangeListener(fileChangeListener));
+    }
+  }
+
+  // Make sure if we already have a file open when this object is constructed we also attach the listener.
+  private void checkAndAddInitialFileChangeListener(@NotNull PsiTreeChangeListener fileChangeListener) {
+    ApplicationManager.getApplication().runReadAction(() -> {
+      FileEditor editor = FileEditorManager.getInstance(myProject).getSelectedEditor();
+      VirtualFile openFile = null;
+      if (editor != null) {
+        openFile = editor.getFile();
+      }
+      maybeAddOrRemovePsiTreeListener(openFile, fileChangeListener);
+    });
+  }
+
+  private void maybeAddOrRemovePsiTreeListener(@Nullable VirtualFile file, @NotNull PsiTreeChangeListener fileChangeListener) {
+    if (file == null || !file.isValid()) {
+      return;
+    }
+
+    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+    if (psiFile == null) {
+      return;
+    }
+
+    // Always remove first before possibly adding to prevent the case that the listener could be added twice.
+    PsiManager.getInstance(myProject).removePsiTreeChangeListener(fileChangeListener);
+
+    if (isGradleFile(psiFile) || isExternalBuildFile(psiFile)) {
+      PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener);
     }
   }
 

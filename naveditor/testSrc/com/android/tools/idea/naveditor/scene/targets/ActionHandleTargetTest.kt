@@ -39,7 +39,7 @@ class ActionHandleTargetTest : NavTestCase() {
     }
     val surface = model.surface
     val scene = surface.scene!!
-    scene.layout(0, SceneContext.get(surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
 
     val fragment2x = scene.getSceneComponent("fragment2")!!.drawX
     val fragment2y = scene.getSceneComponent("fragment2")!!.drawY
@@ -75,7 +75,7 @@ class ActionHandleTargetTest : NavTestCase() {
     }
     val surface = model.surface
     val scene = surface.scene!!
-    scene.layout(0, SceneContext.get(surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
 
     val fragment2x = scene.getSceneComponent("nav")!!.drawX
     val fragment2y = scene.getSceneComponent("nav")!!.drawY
@@ -110,7 +110,7 @@ class ActionHandleTargetTest : NavTestCase() {
     }
     val surface = model.surface
     val scene = surface.scene!!
-    scene.layout(0, SceneContext.get(surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
 
     val sceneComponent = scene.getSceneComponent("fragment1")!!
     val fragment1x = sceneComponent.drawX
@@ -148,7 +148,7 @@ class ActionHandleTargetTest : NavTestCase() {
     }
     val surface = model.surface
     val scene = surface.scene!!
-    scene.layout(0, SceneContext.get(surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
 
     val sceneComponent = scene.getSceneComponent("fragment1")!!
     val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()
@@ -173,7 +173,7 @@ class ActionHandleTargetTest : NavTestCase() {
 
     val surface = model.surface
     val scene = surface.scene!!
-    scene.layout(0, SceneContext.get(surface.focusedSceneView))
+    scene.layout(0, scene.sceneManager.sceneView.context)
 
     val sceneComponent = scene.getSceneComponent("fragment1")!!
     val actionHandleTarget = sceneComponent.targets.firstIsInstance<ActionHandleTarget>()

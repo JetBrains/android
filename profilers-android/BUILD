@@ -76,5 +76,6 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:transport-proto",
+        "//tools/idea/java/java-indexing-api:intellij.java.indexing[module]",
     ],
 )

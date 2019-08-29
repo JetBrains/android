@@ -18,12 +18,10 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import javax.swing.JTextField;
-import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.android.actions.CreateResourceFileDialogBase;
 import org.jetbrains.annotations.NotNull;
