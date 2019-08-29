@@ -84,7 +84,7 @@ public class ThemeResolver {
 
     ImmutableList.Builder<ConfiguredThemeEditorStyle> localThemes = ImmutableList.builder();
     for (Pair<StyleResourceValue, Module> pair : resolveLocallyDefinedModuleThemes()) {
-      ConfiguredThemeEditorStyle theme = constructThemeFromResourceValue(pair.getFirst());
+      ConfiguredThemeEditorStyle theme = constructThemeFromResourceValue(pair.getFirst(), pair.getSecond());
       if (theme != null) {
         localThemes.add(theme);
       }
@@ -103,14 +103,14 @@ public class ThemeResolver {
    * @returns The style, or null if theme with this name was already added or resolution has failed
    */
   @Nullable
-  private ConfiguredThemeEditorStyle constructThemeFromResourceValue(@NotNull StyleResourceValue value) {
+  private ConfiguredThemeEditorStyle constructThemeFromResourceValue(@NotNull StyleResourceValue value, @Nullable Module sourceModule) {
     ResourceReference styleReference = value.asReference();
 
     if (myThemesByStyle.containsKey(styleReference)) {
       return null;
     }
 
-    ConfiguredThemeEditorStyle theme = ResolutionUtils.getThemeEditorStyle(myConfiguration, styleReference);
+    ConfiguredThemeEditorStyle theme = ResolutionUtils.getThemeEditorStyle(myConfiguration, styleReference, sourceModule);
     if (theme != null) {
       myThemesByStyle.put(styleReference, theme);
     }
@@ -122,7 +122,7 @@ public class ThemeResolver {
     ImmutableList.Builder<ConfiguredThemeEditorStyle> builder = ImmutableList.builder();
 
     for (StyleResourceValue value : source) {
-      ConfiguredThemeEditorStyle theme = constructThemeFromResourceValue(value);
+      ConfiguredThemeEditorStyle theme = constructThemeFromResourceValue(value, null);
       if (theme != null) {
         builder.add(theme);
       }
