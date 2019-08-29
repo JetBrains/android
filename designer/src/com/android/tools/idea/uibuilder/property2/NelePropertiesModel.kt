@@ -21,7 +21,6 @@ import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.rendering.api.ResourceValue
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.ModelListener
@@ -83,7 +82,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private var activeSurface: DesignSurface? = null
   private var activeSceneView: SceneView? = null
   private var activePanel: AccessoryPanelInterface? = null
-  private var defaultValueProvider: NeleDefaultPropertyProvider? = null
+  private var defaultValueProvider: DefaultPropertyValueProvider? = null
   private val liveComponents = mutableListOf<NlComponent>()
   private val liveChangeListener: ChangeListener = ChangeListener { firePropertyValueChangeIfNeeded() }
 
@@ -148,7 +147,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     NlUsageTracker.getInstance(activeSurface).logPropertyChange(property, -1)
   }
 
-  fun provideDefaultValue(property: NelePropertyItem): ResourceValue? {
+  fun provideDefaultValue(property: NelePropertyItem): String? {
     return defaultValueProvider?.provideDefaultValue(property)
   }
 
@@ -317,7 +316,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     }
     val newProperties = provider.getProperties(this, accessory, components)
     lastUpdateCompleted = false
-    defaultValueProvider?.clearLookups()
+    defaultValueProvider?.clearCache()
 
     UIUtil.invokeLaterIfNeeded {
       try {
@@ -356,9 +355,9 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     listeners.toTypedArray().forEach { it.propertyValuesChanged(this) }
   }
 
-  private fun createNeleDefaultPropertyProvider(): NeleDefaultPropertyProvider? {
+  private fun createNeleDefaultPropertyProvider(): DefaultPropertyValueProvider? {
     val view = activeSceneView ?: return null
-    return NeleDefaultPropertyProvider(view.sceneManager)
+    return NeleDefaultPropertyValueProvider(view.sceneManager)
   }
 
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
