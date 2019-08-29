@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -125,7 +126,8 @@ public class DeploymentTest {
     myProject = null;
 
     if (myAdbServer != null) {
-      myAdbServer.stop().get();
+      boolean status =  myAdbServer.awaitServerTermination(WAIT_TIME, TimeUnit.SECONDS);
+      assertThat(status).isTrue();
     }
 
     AdbService.getInstance().dispose();

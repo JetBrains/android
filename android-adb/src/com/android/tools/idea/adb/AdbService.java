@@ -31,6 +31,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.util.messages.MessageBusConnection;
 import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -54,7 +58,6 @@ import org.jetbrains.annotations.Nullable;
 public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener {
   private static final Logger LOG = Logger.getInstance(AdbService.class);
   public static final int TIMEOUT = 3000000;
-
   @GuardedBy("this")
   @Nullable private ListenableFuture<AndroidDebugBridge> myFuture;
 
@@ -83,6 +86,18 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
 
     AdbOptionsService.getInstance().addListener(this);
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+      @Override
+      public void projectClosed(@NotNull Project project) {
+        // Ideally, android projects counts should be used here.
+        // However, such logic would introduce circular dependency(relying AndroidFacet.ID in intellij.android.core).
+        // So, we only check if all projects are closed. If yes, terminate adb.
+        if (ProjectManager.getInstance().getOpenProjects().length == 0) {
+          LOG.info("Ddmlib can be terminated as no projects");
+          terminateDdmlib();
+        }
+      }
+    });
   }
 
   @Override
