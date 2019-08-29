@@ -238,26 +238,26 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture selectDevice(@NotNull String device) {
-    new DeviceSelectorFixture(robot(), getProject()).selectDevice(device);
+    new DeviceSelectorFixture(robot()).selectItem(device);
     return this;
   }
 
   public void troubleshootDeviceConnections(@NotNull String appName) {
-    new DeviceSelectorFixture(robot(), getProject()).troubleshootDeviceConnections(this, appName);
+    new DeviceSelectorFixture(robot()).troubleshootDeviceConnections(this, appName);
   }
 
   @NotNull
   public IdeFrameFixture recordEspressoTest(@NotNull String device) {
-    new DeviceSelectorFixture(robot(), getProject()).recordEspressoTest(this, device);
+    new DeviceSelectorFixture(robot()).recordEspressoTest(this, device);
     return this;
   }
 
   public void debugApp(@NotNull String appName, @NotNull String deviceName) {
-    new DeviceSelectorFixture(robot(), getProject()).debugApp(this, appName, deviceName);
+    new DeviceSelectorFixture(robot()).debugApp(this, appName, deviceName);
   }
 
   public void runApp(@NotNull String appName, @NotNull String deviceName) {
-    new DeviceSelectorFixture(robot(), getProject()).runApp(this, appName, deviceName);
+    new DeviceSelectorFixture(robot()).runApp(this, appName, deviceName);
   }
 
   @NotNull
