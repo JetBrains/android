@@ -19,13 +19,15 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.xml.AndroidManifest.NODE_INTENT;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.Slow;
+import com.android.annotations.concurrency.WorkerThread;
+import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -66,6 +68,8 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   @NotNull
   @Override
+  @Slow
+  @WorkerThread
   public String getQualifiedActivityName(@NotNull IDevice device) throws ActivityLocatorException {
     String defaultActivity = computeDefaultActivity(myFacet, device, getActivitiesFromMergedManifest(myFacet));
     if (defaultActivity == null) {
@@ -138,9 +142,15 @@ public class DefaultActivityLocator extends ActivityLocator {
     UsageTracker.log(proto);
   }
 
-  /** Note: this requires indices to be ready, and may take a while to return if indexing is in progress. */
+  /**
+   * Note: this requires indices to be ready, and may take a while to return if indexing is in progress.
+   * If "device" is not null this method may hang waiting for the device to respond.
+   * see {@link #computeDefaultActivity(AndroidFacet, IDevice)} for details.
+   */
   @Nullable
+  @Slow
   @VisibleForTesting
+  @WorkerThread
   static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device,
                                        @NotNull List<ActivityWrapper> activities) {
     assert !facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
@@ -168,8 +178,15 @@ public class DefaultActivityLocator extends ActivityLocator {
     return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliases()), null);
   }
 
+  /**
+   * Returns the fqcn (fully qualified class name) of the default activity given a list of candidate activities,
+   * or <@code null> if none can be found. The optional {@see @IDevice device} parameter can be used in case there
+   * is ambiguity, as some device types (e.g. Android TV) have specific requirements for the default activity.
+   */
   @Nullable
-  private static String computeDefaultActivity(@NotNull List<ActivityWrapper> activities, @Nullable IDevice device) {
+  @Slow
+  @WorkerThread
+  public static String computeDefaultActivity(@NotNull List<ActivityWrapper> activities, @Nullable IDevice device) {
     List<ActivityWrapper> launchableActivities = getLaunchableActivities(activities);
     if (launchableActivities.isEmpty()) {
       return null;
@@ -195,11 +212,13 @@ public class DefaultActivityLocator extends ActivityLocator {
     }
 
     // Just return the first one we find
-    return launchableActivities.isEmpty() ? null : launchableActivities.get(0).getQualifiedName();
+    return launchableActivities.get(0).getQualifiedName();
   }
 
   /** Returns a launchable activity specific to the given device. */
   @Nullable
+  @Slow
+  @WorkerThread
   private static ActivityWrapper findLauncherActivityForDevice(@NotNull List<ActivityWrapper> launchableActivities,
                                                                @NotNull IDevice device) {
     // Currently, this just checks if the device is a TV, and if so, looks for the leanback launcher
