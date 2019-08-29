@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
+
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
@@ -34,12 +38,32 @@ import java.util.List;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility class for static methods which are used in different classes of theme editor
  */
 public class ThemeEditorUtils {
   private ThemeEditorUtils() {
+  }
+
+  /**
+   * Finds an StyleItemResourceValue for a given name in a theme inheritance tree
+   */
+  @Nullable/*if there is not an item with that name*/
+  public static StyleItemResourceValue resolveItemFromParents(@NotNull ConfiguredThemeEditorStyle theme,
+                                                              @NotNull String name,
+                                                              boolean isFrameworkAttr) {
+    ConfiguredThemeEditorStyle currentTheme = theme;
+
+    for (int i = 0; (i < MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
+      StyleItemResourceValue item = currentTheme.getItem(name, isFrameworkAttr);
+      if (item != null) {
+        return item;
+      }
+      currentTheme = currentTheme.getParent();
+    }
+    return null;
   }
 
   static int getMinApiLevel(@NotNull Module module) {
