@@ -22,7 +22,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.messages.MessageBus;
 import java.util.Map;
 import org.jetbrains.annotations.NonNls;
@@ -97,16 +96,6 @@ final class ProjectStub extends UserDataHolderBase implements Project {
     return null;
   }
 
-  @Override
-  public boolean hasComponent(@NotNull Class interfaceClass) {
-    return false;
-  }
-
-  @Override
-  @NotNull
-  public <T> T[] getComponents(@NotNull Class<T> baseClass) {
-    return (T[])ArrayUtil.EMPTY_OBJECT_ARRAY;
-  }
 
   @Override
   @NotNull
