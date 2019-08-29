@@ -64,8 +64,11 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
     ImmutableMap.Builder<Integer, ClassRedefiner> debugRedefiners = ImmutableMap.builder();
     for (Client client : device.getClients()) {
       if (client.isDebuggerAttached()) {
-        ClassRedefiner debugRedefiner = new DebuggerRedefiner(project, client.getDebuggerListenPort());
-        debugRedefiners.put(client.getClientData().getPid(), debugRedefiner);
+        int port = client.getDebuggerListenPort();
+        if (DebuggerRedefiner.getDebuggerSession(project, port) != null) {
+          ClassRedefiner debugRedefiner = new DebuggerRedefiner(project, port);
+          debugRedefiners.put(client.getClientData().getPid(), debugRedefiner);
+        }
       }
     }
 
