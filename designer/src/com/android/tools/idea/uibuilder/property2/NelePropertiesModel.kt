@@ -82,7 +82,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private var activeSurface: DesignSurface? = null
   private var activeSceneView: SceneView? = null
   private var activePanel: AccessoryPanelInterface? = null
-  private var defaultValueProvider: DefaultPropertyValueProvider? = null
+  protected var defaultValueProvider: DefaultPropertyValueProvider? = null
   private val liveComponents = mutableListOf<NlComponent>()
   private val liveChangeListener: ChangeListener = ChangeListener { firePropertyValueChangeIfNeeded() }
 
@@ -323,7 +323,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
         if (wantUpdate()) {
           updateLiveListeners(components)
           properties = newProperties
-          defaultValueProvider = createNeleDefaultPropertyProvider()
+          defaultValueProvider = createDefaultPropertyValueProvider()
           firePropertiesGenerated()
         }
       }
@@ -355,7 +355,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     listeners.toTypedArray().forEach { it.propertyValuesChanged(this) }
   }
 
-  private fun createNeleDefaultPropertyProvider(): DefaultPropertyValueProvider? {
+  private fun createDefaultPropertyValueProvider(): DefaultPropertyValueProvider? {
     val view = activeSceneView ?: return null
     return NeleDefaultPropertyValueProvider(view.sceneManager)
   }

@@ -174,8 +174,8 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
         String subTagName = descriptor.getName();
         if (!subTagName.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
           Table<String, String, NelePropertyItem> subTagProperties =
-            loadFromStyleableName(descriptor.getName(), localAttrDefs, model, motionTag, components);
-          allProperties.put(descriptor.getName(), PropertiesTable.Companion.create(subTagProperties));
+            loadFromStyleableName(subTagName, localAttrDefs, model, motionTag, components);
+          allProperties.put(subTagName, PropertiesTable.Companion.create(subTagProperties));
         }
       }
     }

@@ -58,6 +58,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   public MotionLayoutAttributesModel(@NotNull Disposable parentDisposable, @NotNull AndroidFacet facet) {
     super(parentDisposable, new MotionLayoutPropertyProvider(facet), facet, false);
     myMotionLayoutPropertyProvider = (MotionLayoutPropertyProvider)getProvider();
+    setDefaultValueProvider(new MotionDefaultPropertyValueProvider());
   }
 
   public Map<String, PropertiesTable<NelePropertyItem>> getAllProperties() {
