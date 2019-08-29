@@ -31,6 +31,9 @@ public interface CaptureObjectInstanceFilter {
   @NotNull
   String getDisplayName();
 
+  @NotNull
+  String getDescription();
+
   /**
    * @param instances       The set of instances to filter
    * @param classDatabase   The class database containing all the classes that the input set of instances belong to

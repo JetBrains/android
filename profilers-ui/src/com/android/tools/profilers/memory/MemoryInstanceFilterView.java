@@ -55,6 +55,7 @@ public class MemoryInstanceFilterView extends AspectObserver {
     for (CaptureObjectInstanceFilter supportedFilter : captureObject.getSupportedInstanceFilters()) {
       JBCheckBox filterCheckBox = new JBCheckBox(supportedFilter.getDisplayName());
       filterCheckBox.setBorder(new JBEmptyBorder(0, 2, 0, 2));
+      filterCheckBox.setToolTipText(supportedFilter.getDescription());
       filterCheckBox.addActionListener(l -> {
         if (filterCheckBox.isSelected()) {
           captureObject.addInstanceFilter(supportedFilter, SwingUtilities::invokeLater);

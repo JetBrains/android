@@ -39,6 +39,12 @@ public class ProjectClassesInstanceFilter implements CaptureObjectInstanceFilter
     return "Project Classes Only";
   }
 
+  @NotNull
+  @Override
+  public String getDescription() {
+    return "Show instances of classes from only the current project.";
+  }
+
   @Override
   public Set<InstanceObject> filter(@NotNull Set<InstanceObject> instances, @NotNull ClassDb classDatabase) {
     Set<String> projectClasses = myIdeProfilerServices.getAllProjectClasses();
