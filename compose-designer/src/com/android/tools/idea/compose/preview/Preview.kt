@@ -229,8 +229,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
     }
 
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
-    previewElements = filePreviewElements
-    val newModels = previewElements
+    val newModels = filePreviewElements
       .onEach {
         if (LOG.isDebugEnabled) {
           LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
@@ -300,6 +299,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
           workbench.loadingStopped("Some classes could not be found")
         }
         else {
+          previewElements = filePreviewElements
           LOG.debug("hideLoading")
           workbench.hideLoading()
         }
