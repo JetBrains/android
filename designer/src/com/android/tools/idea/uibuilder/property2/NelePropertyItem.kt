@@ -120,10 +120,11 @@ open class NelePropertyItem(
     }
 
   override val defaultValue: String?
-    get() {
-      val defValue = model.provideDefaultValue(this) ?: return null
-      return resolveValue(asResourceValue(defValue.reference) ?: defValue)
-    }
+    get() = model.provideDefaultValue(this)
+
+  fun resolveDefaultValue(defValue: ResourceValue?): String? {
+    return resolveValue(asResourceValue(defValue?.reference) ?: defValue)
+  }
 
   override val namespaceIcon: Icon?
     get() = when (namespace) {
