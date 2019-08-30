@@ -589,6 +589,15 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> TRANSITIVE_R_CLASSES = Flag.create(
+    EDITOR, "transitive.r.classes",
+    "Transitive R classes",
+    "If enabled, R classes for local modules contain resources from all dependencies (this has historically been the case). " +
+    "Otherwise they only contain fields for resources defined in the module itself. R classes for AARs are built based on R.txt and are " +
+    "not affected. This flag only affects non resource-namespace aware modules.",
+    true
+  );
+
   //endregion
 
   //region Analyzer
