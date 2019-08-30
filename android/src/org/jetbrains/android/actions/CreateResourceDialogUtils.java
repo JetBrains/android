@@ -34,6 +34,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
+import java.util.Collection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -112,7 +113,7 @@ public class CreateResourceDialogUtils {
     // we're in here, so we default to always including the source set combo (if it's a Gradle project that is.)
     // TODO: Give an option for each 'res' directory within each source set. Eg: main/res1, main/res2.
     if (facet != null && facet.requiresAndroidModel() && facet.getConfiguration().getModel() != null) {
-      List<SourceProvider> providers = IdeaSourceProvider.getAllSourceProviders(facet);
+      Collection<SourceProvider> providers = IdeaSourceProvider.getAllSourceProviders(facet);
       DefaultComboBoxModel model = new DefaultComboBoxModel();
       for (SourceProvider sourceProvider : providers) {
         //noinspection unchecked
