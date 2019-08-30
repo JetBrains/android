@@ -64,7 +64,7 @@ class ProguardR8CompletionContributorTest : JavaCodeInsightFixtureTestCase() {
     assertThat(keys).isEmpty()
   }
 
-  fun testClassTypeAutoCompletion() {
+  fun testClassTypeCompletion() {
     myFixture.configureByText(ProguardR8FileType.INSTANCE, """
         -koop $caret
     """.trimIndent())
@@ -97,7 +97,7 @@ class ProguardR8CompletionContributorTest : JavaCodeInsightFixtureTestCase() {
   }
 
 
-  fun testFieldMethodWildcardsAutoCompletion() {
+  fun testFieldMethodWildcardsCompletion() {
     myFixture.configureByText(ProguardR8FileType.INSTANCE, """
         <$caret
     """.trimIndent())
@@ -121,7 +121,7 @@ class ProguardR8CompletionContributorTest : JavaCodeInsightFixtureTestCase() {
   }
 
 
-  fun testFieldMethodModifiersAutoCompletion() {
+  fun testFieldMethodModifiersCompletion() {
     myFixture.configureByText(ProguardR8FileType.INSTANCE, """
         pu$caret
     """.trimIndent())

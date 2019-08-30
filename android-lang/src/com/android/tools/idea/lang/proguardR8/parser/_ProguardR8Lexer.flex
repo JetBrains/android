@@ -32,8 +32,8 @@ FILE_NAME_DOUBLE_QUOTED=\"([\w\-./<>*?\s()])*\"
 UNTERMINATED_FILE_NAME_SINGLE_QUOTED='([\w\-./<>*?\s()])*
 UNTERMINATED_FILE_NAME_DOUBLE_QUOTED=\"([\w\-./<>*?\s()])*
 LINE_CMT=#[^\n\r]*
-JAVA_IDENTIFIER=[a-zA-Z_$][a-zA-Z\d_$]*
-JAVA_IDENTIFIER_WITH_WILDCARDS=(((\?|\*{1,2})?[a-zA-Z\d_$]+)+(\?|\*{1,2})?)|(\?|\*{1,2})  // Like JAVA_IDENTIFIER but can contain "?"
+JAVA_IDENTIFIER=[a-zA-Z_][a-zA-Z\d_]*
+JAVA_IDENTIFIER_WITH_WILDCARDS=(((\?|\*{1,2})?[a-zA-Z\d_]+)+(\?|\*{1,2})?)|(\?|\*{1,2})  // Like JAVA_IDENTIFIER but can contain "?"
 // symbol (no more than one in row) and "*" (no more than two in row).
 
 %state STATE_JAVA_SECTION_HEADER
@@ -48,6 +48,7 @@ JAVA_IDENTIFIER_WITH_WILDCARDS=(((\?|\*{1,2})?[a-zA-Z\d_$]+)+(\?|\*{1,2})?)|(\?|
   "}"                                    { return CLOSE_BRACE; }
   "("                                    { return LPAREN; }
   ")"                                    { return RPAREN; }
+  "$"                                    { return DOLLAR; }
   ";"                                    { return SEMICOLON; }
   ":"                                    { return COLON; }
   ","                                    { return COMMA; }
@@ -83,6 +84,7 @@ JAVA_IDENTIFIER_WITH_WILDCARDS=(((\?|\*{1,2})?[a-zA-Z\d_$]+)+(\?|\*{1,2})?)|(\?|
   "}"                                    { yybegin(YYINITIAL); return CLOSE_BRACE; }
   "("                                    { return LPAREN; }
   ")"                                    { return RPAREN; }
+  "$"                                    { return DOLLAR; }
   ";"                                    { return SEMICOLON; }
   ","                                    { return COMMA; }
   "."                                    { return DOT; }
@@ -113,6 +115,7 @@ JAVA_IDENTIFIER_WITH_WILDCARDS=(((\?|\*{1,2})?[a-zA-Z\d_$]+)+(\?|\*{1,2})?)|(\?|
   "}"                                    { yybegin(YYINITIAL); return CLOSE_BRACE; }
   "("                                    { return LPAREN; }
   ")"                                    { return RPAREN; }
+  "$"                                    { return DOLLAR; }
   ";"                                    { return SEMICOLON; }
   ","                                    { return COMMA; }
   "."                                    { return DOT; }

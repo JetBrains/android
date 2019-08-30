@@ -18,8 +18,37 @@
 
 package com.android.tools.idea.lang.proguardR8.psi
 
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReferenceProvider
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReferenceSet
+import com.intellij.psi.search.GlobalSearchScope
 
-fun getReference(className: ProguardR8ClassName): PsiReference? {
-  return null
+
+private class ProguardR8JavaClassReferenceProvider(val scope: GlobalSearchScope) : JavaClassReferenceProvider() {
+
+  override fun getScope(project: Project): GlobalSearchScope = scope
+
+  override fun getReferencesByString(str: String, position: PsiElement, offsetInPosition: Int): Array<PsiReference> {
+    return if (StringUtil.isEmpty(str)) {
+      PsiReference.EMPTY_ARRAY
+    }
+    else {
+      object : JavaClassReferenceSet(str, position, offsetInPosition, true, this) {
+        // Allows inner classes be separated by a dollar sign "$", e.g.java.lang.Thread$State
+        // We can't just use ALLOW_DOLLAR_NAMES flag because to make JavaClassReferenceSet work in the way we want;
+        // language of PsiElement that we parse should be instanceof XMLLanguage.
+        override fun isAllowDollarInNames() = true
+
+      }.allReferences as Array<PsiReference>
+    }
+  }
+}
+
+fun getReferences(className: ProguardR8QualifiedName): Array<PsiReference> {
+  val provider = ProguardR8JavaClassReferenceProvider(className.resolveScope)
+
+  return provider.getReferencesByElement(className)
 }
