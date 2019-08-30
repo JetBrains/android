@@ -74,6 +74,7 @@ class ConstraintSetPanel extends JPanel {
   private MeModel mMeModel;
   private final JLabel mTitle;
   JButton mModifyMenu;
+  boolean mBuildingTable;
 
   AbstractAction createConstraint = new AbstractAction("Create Constraint") {
     @Override
@@ -147,6 +148,9 @@ class ConstraintSetPanel extends JPanel {
 
     mConstraintSetTable.getSelectionModel().addListSelectionListener(
       e -> {
+        if (mBuildingTable) {
+          return;
+        }
         int index = mConstraintSetTable.getSelectedRow();
         int[] allSelect = mConstraintSetTable.getSelectedRows();
 
@@ -234,59 +238,65 @@ class ConstraintSetPanel extends JPanel {
   }
 
   public void buildTable() {
-    HashSet<String> found = new HashSet<>();
-    mConstraintSetModel.setNumRows(0);
-    mDisplayedRows.clear();
-    if (mConstraintSet == null) {
-      return;
-    }
-    else {
-      MTag[] sets = mConstraintSet.getChildTags("Constraint");
-      String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
-
-      for (int i = 0; i < sets.length; i++) {
-        MTag constraint = sets[i];
-        Object[] row = new Object[4];
-        String id = Utils.stripID(constraint.getAttributeValue("id"));
-        found.add(id);
-        row[1] = id;
-        ArrayList<MTag> children = constraint.getChildren();
-        HashMap<String, Attribute> attrs = constraint.getAttrList();
-        // row[2] = getMask(children, attrs, id);
-        row[2] = (derived == null) ? "layout" : findFirstDefOfView(id, mConstraintSet);
-        row[0] = MEIcons.LIST_STATE;
-
-        mDisplayedRows.add(constraint);
-        mConstraintSetModel.addRow(row);
+    mBuildingTable = true;
+    try {
+      HashSet<String> found = new HashSet<>();
+      mConstraintSetModel.setNumRows(0);
+      mDisplayedRows.clear();
+      if (mConstraintSet == null) {
+        return;
       }
+      else {
+        MTag[] sets = mConstraintSet.getChildTags("Constraint");
+        String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
 
-      if (showAll && mMeModel.layout != null) {
-        MTag[] allViews = mMeModel.layout.getChildTags();
-        for (int j = 0; j < allViews.length; j++) {
+        for (int i = 0; i < sets.length; i++) {
+          MTag constraint = sets[i];
           Object[] row = new Object[4];
-          MTag view = allViews[j];
-          String layoutId = view.getAttributeValue("id");
+          String id = Utils.stripID(constraint.getAttributeValue("id"));
+          found.add(id);
+          row[1] = id;
+          ArrayList<MTag> children = constraint.getChildren();
+          HashMap<String, Attribute> attrs = constraint.getAttrList();
+          // row[2] = getMask(children, attrs, id);
+          row[2] = (derived == null) ? "layout" : findFirstDefOfView(id, mConstraintSet);
+          row[0] = MEIcons.LIST_STATE;
 
-          if (layoutId == null) {
-            row[0] = view.getTagName().substring(1 + view.getTagName().lastIndexOf("/"));
-            continue;
-          }
-
-          layoutId = Utils.stripID(layoutId);
-          if (found.contains(layoutId)) {
-            continue;
-          }
-
-          row[1] = layoutId;
-          //row[2] = "";
-          row[2] = row[3] = (derived == null) ? "layout" : findFirstDefOfView(layoutId, mConstraintSet);
-          row[0] = ("layout".equals(row[3])) ? null : MEIcons.LIST_GRAY_STATE;
-          mDisplayedRows.add(view);
+          mDisplayedRows.add(constraint);
           mConstraintSetModel.addRow(row);
         }
+
+        if (showAll && mMeModel.layout != null) {
+          MTag[] allViews = mMeModel.layout.getChildTags();
+          for (int j = 0; j < allViews.length; j++) {
+            Object[] row = new Object[4];
+            MTag view = allViews[j];
+            String layoutId = view.getAttributeValue("id");
+
+            if (layoutId == null) {
+              row[0] = view.getTagName().substring(1 + view.getTagName().lastIndexOf("/"));
+              continue;
+            }
+
+            layoutId = Utils.stripID(layoutId);
+            if (found.contains(layoutId)) {
+              continue;
+            }
+
+            row[1] = layoutId;
+            //row[2] = "";
+            row[2] = row[3] = (derived == null) ? "layout" : findFirstDefOfView(layoutId, mConstraintSet);
+            row[0] = ("layout".equals(row[3])) ? null : MEIcons.LIST_GRAY_STATE;
+            mDisplayedRows.add(view);
+            mConstraintSetModel.addRow(row);
+          }
+        }
       }
+      mConstraintSetModel.fireTableDataChanged();
     }
-    mConstraintSetModel.fireTableDataChanged();
+    finally {
+      mBuildingTable = false;
+    }
   }
 
   private String findFirstDefOfView(String viewId, MTag constraintSet) {
@@ -327,7 +337,7 @@ class ConstraintSetPanel extends JPanel {
     }
   }
 
-  public void setMTag(@Nullable MTag constraintSet,  @NotNull MeModel meModel) {
+  public void setMTag(@Nullable MTag constraintSet, @NotNull MeModel meModel) {
     if (DEBUG) {
       Debug.log("ConstraintSetPanel.setMTag constraintSet = " + constraintSet);
       Debug.log("ConstraintSetPanel.setMTag motionScene = " + meModel.motionScene);
@@ -353,9 +363,6 @@ class ConstraintSetPanel extends JPanel {
         mParent = getDerived(constraintSets, mDerived);
       }
       mTitle.setText(Utils.stripID(mConstraintSet.getAttributeValue("id")));
-    }
-    if (constraintSet != null) {
-      mTitle.setText(Utils.stripID(constraintSet.getAttributeValue("id")));
     }
     buildTable();
 
