@@ -68,7 +68,7 @@ class SqliteViewImpl(
   private val listeners = mutableListOf<SqliteViewListener>()
 
   private val rootPanel = JPanel()
-  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
+  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null)
   private var sqliteEditorPanel = SqliteEditorPanel()
   private val defaultUiPanel = DefaultUiPanel()
   private val tabs = JBEditorTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
@@ -78,6 +78,8 @@ class SqliteViewImpl(
   private val openTabs = mutableMapOf<TabId, TabInfo>()
 
   init {
+    Disposer.register(parentDisposable, workBench)
+
     val definitions = mutableListOf<ToolWindowDefinition<SqliteViewContext>>()
     definitions.add(createToolWindowDefinition())
     workBench.init(sqliteEditorPanel.mainPanel, viewContext, definitions)
