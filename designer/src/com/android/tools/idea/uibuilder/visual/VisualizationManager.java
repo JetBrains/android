@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.editor;
+package com.android.tools.idea.uibuilder.visual;
 
-import com.android.tools.idea.common.editor.SplitEditor;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.res.ResourceNotificationManager;
+import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.visual.VisualizationActionManager;
-import com.android.tools.idea.uibuilder.visual.VisualizationManager;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
@@ -46,7 +40,6 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
@@ -63,39 +56,38 @@ import java.awt.event.HierarchyListener;
 import java.util.Arrays;
 import javax.swing.JComponent;
 import javax.swing.LayoutFocusTraversalPolicy;
-import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Manages a shared UI Preview window on the right side of the source editor which shows a preview
- * of the corresponding Android resource content on the left.
+ * Manages a shared visualization window on the right side of the source editor which shows a preview
+ * of the focused Android layout file. When user is not interacting with Android layout file then
+ * the window is gone.
  * <p>
- * Based on the earlier {@link AndroidLayoutPreviewToolWindowManager} but updated to use
- * (a) the {@link ResourceNotificationManager} for update tracking, and (b) the
- * {@link NlDesignSurface} for layout rendering and direct manipulation editing.
+ * The visualization tool use {@link NlDesignSurface} for rendering previews.
+ * <p>
+ * This class is inspired by {@link NlPreviewManager}.<br>
+ * Most of the codes are copied from {@link NlPreviewManager} instead of sharing, because {@link NlPreviewManager} is being
+ * removed after we enable split editor.
  */
-public class NlPreviewManager implements ProjectComponent {
+public class VisualizationManager implements ProjectComponent {
   private final MergingUpdateQueue myToolWindowUpdateQueue;
 
   private final Project myProject;
   private final FileEditorManager myFileEditorManager;
 
-  private NlPreviewForm myToolWindowForm;
+  private VisualizationForm myToolWindowForm;
   private ToolWindow myToolWindow;
   private boolean myToolWindowReady = false;
   private boolean myToolWindowDisposed = false;
 
-  @VisibleForTesting
-  private int myUpdateCount;
-
-  public NlPreviewManager(final Project project, final FileEditorManager fileEditorManager) {
+  public VisualizationManager(final Project project, final FileEditorManager fileEditorManager) {
     myProject = project;
     myFileEditorManager = fileEditorManager;
 
-    myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 100, true, null, project);
+    myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.visual", 100, true, null, project);
 
     final MessageBusConnection connection = project.getMessageBus().connect(project);
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
@@ -105,7 +97,7 @@ public class NlPreviewManager implements ProjectComponent {
   public void projectOpened() {
     StartupManager.getInstance(myProject).registerPostStartupActivity(() -> {
       myToolWindowReady = true;
-      processFileEditorChange(getActiveLayoutXmlEditor(null));
+      processFileEditorChange(myFileEditorManager.getSelectedEditor());
     });
   }
 
@@ -113,17 +105,13 @@ public class NlPreviewManager implements ProjectComponent {
     return myToolWindow != null && myToolWindow.isVisible();
   }
 
-  protected boolean isUseInteractiveSelector() {
-    return true;
-  }
-
   protected String getToolWindowId() {
-    return AndroidBundle.message("android.layout.preview.tool.window.title");
+    return AndroidBundle.message("android.layout.visual.tool.window.title");
   }
 
   @NotNull
-  protected NlPreviewForm createPreviewForm() {
-    return new NlPreviewForm(this);
+  protected VisualizationForm createPreviewForm() {
+    return new VisualizationForm(this);
   }
 
   protected void initToolWindow() {
@@ -131,7 +119,7 @@ public class NlPreviewManager implements ProjectComponent {
     final String toolWindowId = getToolWindowId();
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
-    myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PREVIEW);
+    myToolWindow.setIcon(StudioIcons.Avd.DEVICE_MOBILE);
 
     // Do not give focus to the preview when first opened:
     myToolWindow.getComponent().setFocusTraversalPolicy(new NoDefaultFocusTraversalPolicy());
@@ -146,7 +134,7 @@ public class NlPreviewManager implements ProjectComponent {
         final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(toolWindowId);
         if (window != null && window.isAvailable()) {
           final boolean visible = window.isVisible();
-          AndroidEditorSettings.getInstance().getGlobalState().setVisible(visible);
+          VisualizationToolSettings.getInstance().getGlobalState().setVisible(visible);
 
           if (myToolWindowForm != null) {
             if (visible) {
@@ -164,9 +152,9 @@ public class NlPreviewManager implements ProjectComponent {
     final ContentManager contentManager = myToolWindow.getContentManager();
     contentManager.addDataProvider(dataId -> {
       if (LangDataKeys.MODULE.is(dataId) || LangDataKeys.IDE_VIEW.is(dataId) || CommonDataKeys.VIRTUAL_FILE.is(dataId)) {
-        TextEditor textEditor = myToolWindowForm.getEditor();
-        if (textEditor != null) {
-          JComponent component = textEditor.getEditor().getContentComponent();
+        FileEditor fileEditor = myToolWindowForm.getEditor();
+        if (fileEditor != null) {
+          JComponent component = fileEditor.getComponent();
           DataContext context = DataManager.getInstance().getDataContext(component);
           return context.getData(dataId);
         }
@@ -174,13 +162,12 @@ public class NlPreviewManager implements ProjectComponent {
       return null;
     });
 
-    @SuppressWarnings("ConstantConditions") final Content content = contentManager.getFactory().createContent(contentPanel, null, false);
+    final Content content = contentManager.getFactory().createContent(contentPanel, null, false);
     content.setDisposer(myToolWindowForm);
     content.setCloseable(false);
     content.setPreferredFocusableComponent(contentPanel);
     contentManager.addContent(content);
     contentManager.setSelectedContent(content, true);
-    myToolWindowForm.setUseInteractiveSelector(isUseInteractiveSelector());
     if (isWindowVisible()) {
       myToolWindowForm.activate();
     }
@@ -200,17 +187,7 @@ public class NlPreviewManager implements ProjectComponent {
   @NotNull
   @NonNls
   public String getComponentName() {
-    return "NlPreviewManager";
-  }
-
-  @VisibleForTesting
-  public int getUpdateCount() {
-    return myUpdateCount;
-  }
-
-  @VisibleForTesting
-  public boolean isPreviewVisible() {
-    return myToolWindow != null && myToolWindow.isVisible();
+    return "VisualizationManager";
   }
 
   /**
@@ -228,9 +205,7 @@ public class NlPreviewManager implements ProjectComponent {
    */
   private HierarchyListener myHierarchyListener;
 
-  private boolean myRenderImmediately;
-
-  private void processFileEditorChange(@Nullable final TextEditor newEditor) {
+  private void processFileEditorChange(@Nullable final FileEditor newEditor) {
     if (myPendingShowComponent != null) {
       myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
       myPendingShowComponent = null;
@@ -240,19 +215,14 @@ public class NlPreviewManager implements ProjectComponent {
     myToolWindowUpdateQueue.queue(new Update("update") {
       @Override
       public void run() {
-        myUpdateCount++;
         if (!myToolWindowReady || myToolWindowDisposed) {
           return;
         }
-        myRenderImmediately = false;
-
-        final Editor activeEditor = newEditor != null ? newEditor.getEditor() : null;
-
         if (myToolWindow == null) {
-          if (activeEditor == null) {
+          if (newEditor == null) {
             return;
           }
-          else if (!activeEditor.getComponent().isShowing()) {
+          else if (!newEditor.getComponent().isShowing()) {
             // When the IDE starts, it opens all the previously open editors, one
             // after the other. This means that this method gets called, and for
             // each layout editor that is on top, it opens up the preview window
@@ -275,7 +245,7 @@ public class NlPreviewManager implements ProjectComponent {
             // at startup (recorded by the mySeenEditor field; this is startup
             // per project frame.)
             if (!mySeenEditor) {
-              myPendingShowComponent = activeEditor.getComponent();
+              myPendingShowComponent = newEditor.getComponent();
               if (myHierarchyListener == null) {
                 myHierarchyListener = hierarchyEvent -> {
                   if ((hierarchyEvent.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
@@ -283,7 +253,7 @@ public class NlPreviewManager implements ProjectComponent {
                       myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
                       mySeenEditor = true;
                       myPendingShowComponent = null;
-                      processFileEditorChange(getActiveLayoutXmlEditor(null));
+                      processFileEditorChange(getFirstActiveLayoutEditor());
                     }
                   }
                 };
@@ -297,23 +267,20 @@ public class NlPreviewManager implements ProjectComponent {
           initToolWindow();
         }
 
-        final AndroidEditorSettings settings = AndroidEditorSettings.getInstance();
-        final boolean hideForNonLayoutFiles = settings.getGlobalState().isHideForNonLayoutFiles();
-
-        if (activeEditor == null) {
-          myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
+        if (newEditor == null) {
+          myToolWindow.setAvailable(false, null);
           return;
         }
 
         if (!myToolWindowForm.setNextEditor(newEditor)) {
-          myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
+          myToolWindow.setAvailable(false, null);
           return;
         }
 
         myToolWindow.setAvailable(true, null);
-        // If user is using Visualization Tool, don't force switch to Preview.
-        final boolean visible = AndroidEditorSettings.getInstance().getGlobalState().isVisible()
-                                && !VisualizationManager.getInstance(myProject).isWindowVisible();
+        // If user is using Preview Form, don't force switch to Visualization Tool.
+        final boolean visible = VisualizationToolSettings.getInstance().getGlobalState().isVisible()
+                                && !NlPreviewManager.getInstance(myProject).isWindowVisible();
         if (visible && !myToolWindow.isVisible()) {
           Runnable restoreFocus = null;
           if (myToolWindow.getType() == ToolWindowType.WINDOWED) {
@@ -334,45 +301,45 @@ public class NlPreviewManager implements ProjectComponent {
     });
   }
 
-  private static void restoreFocusToEditor(@NotNull TextEditor newEditor) {
-    ApplicationManager.getApplication().invokeLater(() -> newEditor.getEditor().getContentComponent().requestFocus());
+  private static void restoreFocusToEditor(@NotNull FileEditor newEditor) {
+    ApplicationManager.getApplication().invokeLater(() -> newEditor.getComponent().requestFocus());
   }
 
   /**
    * Find an active editor for the specified file, or just the first active editor if file is null.
    */
   @Nullable
-  private TextEditor getActiveLayoutXmlEditor(@Nullable PsiFile file) {
+  private FileEditor getActiveLayoutEditor(@Nullable PsiFile file) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction((Computable<TextEditor>)() -> getActiveLayoutXmlEditor(file));
+      return ApplicationManager.getApplication().runReadAction((Computable<FileEditor>)() -> getActiveLayoutEditor(file));
     }
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    return (TextEditor)Arrays.stream(myFileEditorManager.getSelectedEditors())
-      .filter(editor -> editor instanceof TextEditor && isApplicableEditor((TextEditor)editor, file))
+    return Arrays.stream(myFileEditorManager.getSelectedEditors())
+      .filter(editor -> {
+        VirtualFile editorFile = editor.getFile();
+        return editorFile != null && editorFile.equals(file);
+      })
       .findFirst()
       .orElse(null);
   }
 
-  @SuppressWarnings("WeakerAccess") // This method needs to be public as it's used by the Anko DSL preview
-  public boolean isApplicableEditor(@NotNull TextEditor textEditor, @Nullable PsiFile file) {
-    if (textEditor instanceof SplitEditor) {
-      // Split-editor is not applicable for the preview panel.
-      return false;
+  /**
+   * Find an active editor for the specified file, or just the first active editor if file is null.
+   */
+  @Nullable
+  private FileEditor getFirstActiveLayoutEditor() {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return ApplicationManager.getApplication().runReadAction((Computable<FileEditor>)() -> getFirstActiveLayoutEditor());
     }
-
-    final Document document = textEditor.getEditor().getDocument();
-    final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
-
-    if (file != null && !file.equals(psiFile)) {
-      return false;
-    }
-
-    // In theory, we should just check
-    //   LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile);
-    // here, but there are problems where files don't show up with layout preview
-    // at startup, presumably because the resource directories haven't been properly
-    // initialized yet.
-    return isInResourceFolder(psiFile);
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    return Arrays.stream(myFileEditorManager.getSelectedEditors())
+      .filter(editor -> {
+        VirtualFile editorFile = editor.getFile();
+        ResourceFolderType type = ResourceHelper.getFolderType(editorFile);
+        return type == ResourceFolderType.LAYOUT;
+      })
+      .findFirst()
+      .orElse(null);
   }
 
   @Nullable
@@ -385,43 +352,8 @@ public class NlPreviewManager implements ProjectComponent {
     return myToolWindow;
   }
 
-  @NotNull
-  public NlPreviewForm getPreviewForm() {
-    if (myToolWindow == null) {
-      initToolWindow();
-    }
-    return myToolWindowForm;
-  }
-
-  private static boolean isInResourceFolder(@Nullable PsiFile psiFile) {
-    if (psiFile instanceof XmlFile) {
-      return RenderService.canRender(psiFile);
-    }
-    return false;
-  }
-
-  public static NlPreviewManager getInstance(Project project) {
-    return project.getComponent(NlPreviewManager.class);
-  }
-
-  /**
-   * Manually notify the manager that an editor is about to be shown; typically done right after
-   * switching to a file to show an update as soon as possible. This is used when we know
-   * the editor is about to be shown (because we've requested it). We don't have a way to
-   * add a listener which is called after the requested file has been opened, so instead we
-   * simply anticipate the change by calling this method first; the subsequent file open will
-   * then become a no-op since the file doesn't change.
-   */
-  public void notifyFileShown(@NotNull TextEditor editor, boolean renderImmediately) {
-    // Don't delete: should be invoked from ConfigurationAction#pickedBetterMatch when we can access designer code from there
-    // (or when ConfigurationAction moves here)
-    if (renderImmediately) {
-      myRenderImmediately = true;
-    }
-    processFileEditorChange(editor);
-    if (renderImmediately) {
-      myToolWindowUpdateQueue.sendFlush();
-    }
+  public static VisualizationManager getInstance(Project project) {
+    return project.getComponent(VisualizationManager.class);
   }
 
   @NotNull
@@ -437,7 +369,10 @@ public class NlPreviewManager implements ProjectComponent {
       }
 
       PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
-      processFileEditorChange(getActiveLayoutXmlEditor(psiFile));
+      FileEditor fileEditor = getActiveLayoutEditor(psiFile);
+      if (fileEditor != null) {
+        processFileEditorChange(fileEditor);
+      }
     }
 
     @Override
@@ -458,15 +393,19 @@ public class NlPreviewManager implements ProjectComponent {
 
     @Override
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-      final FileEditor newEditor = event.getNewEditor();
-      TextEditor layoutXmlEditor = null;
-      if (newEditor instanceof TextEditor) {
-        TextEditor textEditor = (TextEditor)newEditor;
-        if (isApplicableEditor(textEditor, null)) {
-          layoutXmlEditor = textEditor;
-        }
+      if (NlPreviewManager.getInstance(myProject).isWindowVisible()) {
+        // User is using preview, don't switch to VisualizationWindow.
+        return;
       }
-      processFileEditorChange(layoutXmlEditor);
+      VirtualFile newVirtualFile = null;
+      FileEditor editor = event.getNewEditor();
+      if (editor != null) {
+        newVirtualFile = editor.getFile();
+      }
+      if (newVirtualFile != null) {
+        PsiFile psiFile = PsiManager.getInstance(myProject).findFile(newVirtualFile);
+        processFileEditorChange(ResourceHelper.getFolderType(psiFile) == ResourceFolderType.LAYOUT ? editor : null);
+      }
     }
   }
 
