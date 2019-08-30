@@ -222,7 +222,7 @@ public class CreateKeyCycle extends BaseCreateKey {
     }
     keyPosition.setAttribute(optionsNameSpace[attribute.getSelectedIndex()], (String) attribute.getSelectedItem(), "0");
 
-    MTag ret = toCommit.commit();
+    MTag ret = toCommit.commit("Create KeyCycle");
     mMotionEditor.dataChanged();
     super.create();
     return ret;

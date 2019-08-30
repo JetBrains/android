@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.motion.adapters;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.util.Arrays;
 import java.util.Comparator;
 import org.xml.sax.Attributes;
@@ -387,7 +387,7 @@ public class MTagImp implements MTag {
     }
 
     @Override
-    public MTag commit() {
+    public MTag commit(@Nullable String commandName) {
       printFormal(" > ", System.out);
       MTagImp.RootTag rootTag = null;
       for (MTag tag = parent; tag != null; tag = ((MTagImp) tag).parent) {
@@ -402,7 +402,7 @@ public class MTagImp implements MTag {
       ret.mAttrList = mAttrList;
       TagWriter[] childArray = (TagWriter[])mChildren.toArray(new TagWriter[0]);
       for (MTag child : childArray) {
-        ret.mChildren.add( ((TagWriter) child).commit());
+        ret.mChildren.add( ((TagWriter) child).commit(commandName));
       }
       parent.mChildren.add(ret);
       return ret;
