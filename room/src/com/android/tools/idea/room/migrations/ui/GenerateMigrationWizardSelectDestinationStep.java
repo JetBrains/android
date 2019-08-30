@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.room.migrations;
+package com.android.tools.idea.room.migrations.ui;
 
+import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiPackage;
@@ -31,33 +32,33 @@ import com.intellij.ui.ReferenceEditorComboWithBrowseButton;
 import com.intellij.ui.components.JBLabel;
 import java.awt.BorderLayout;
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class GenerateMigrationDialog extends DialogWrapper {
-  private static final String DIALOG_TITLE = "Generate a Room Migration";
+public class GenerateMigrationWizardSelectDestinationStep implements Step {
   private static final String TARGET_PACKAGE_LABEL = "Choose target package package";
   private static final String MIGRATION_CLASS_COMBO_BOX_LABEL = "Choose destination directory for the migration class";
   private static final String MIGRATION_TEST_COMBO_BOX_LABEL = "Choose destination directory for the migration test";
+
+  private GenerateMigrationWizardData wizardData;
   private Project project;
   private PsiPackage targetPackage;
   private PsiDirectory migrationClassDirectory;
   private PsiDirectory migrationTestDirectory;
+
   private DestinationFolderComboBox migrationClassDirectoryComboBox;
   private DestinationFolderComboBox migrationTestDirectoryComboBox;
   private ReferenceEditorComboWithBrowseButton targetPackageComboBox;
+  private JPanel centerPanel;
 
-  public GenerateMigrationDialog(@NotNull Project project,
-                                 @NotNull PsiPackage targetPackage,
-                                 @NotNull PsiDirectory migrationClassDirectory,
-                                 @NotNull PsiDirectory migrationTestDirectory) {
-    super(project, false);
-    this.project = project;
-    this.targetPackage = targetPackage;
-    this.migrationClassDirectory = migrationClassDirectory;
-    this.migrationTestDirectory = migrationTestDirectory;
+  public GenerateMigrationWizardSelectDestinationStep(@NotNull GenerateMigrationWizardData wizardData) {
+    this.wizardData = wizardData;
+    this.project = wizardData.getProject();
+    this.targetPackage = wizardData.getTargetPackage();
+    this.migrationClassDirectory = wizardData.getMigrationClassDirectory();
+    this.migrationTestDirectory = wizardData.getMigrationTestDirectory();
 
     targetPackageComboBox = new PackageNameReferenceEditorCombo(targetPackage.getQualifiedName(), project, "", TARGET_PACKAGE_LABEL);
 
@@ -66,44 +67,49 @@ public class GenerateMigrationDialog extends DialogWrapper {
 
     migrationTestDirectoryComboBox = createDestinationFolderComboBox();
     migrationTestDirectoryComboBox.setData(project, migrationTestDirectory, targetPackageComboBox.getChildComponent());
-
-    setTitle(DIALOG_TITLE);
-    init();
   }
 
   @Override
-  protected void doOKAction() {
+  public void _init() {
+    if (centerPanel == null) {
+      createCenterPanel();
+    }
+  }
+
+  @Override
+  public void _commit(boolean finishChosen) throws CommitStepException {
     final MoveDestination classMoveDestination =
       migrationClassDirectoryComboBox.selectDirectory(PackageWrapper.create(targetPackage), false);
     if (classMoveDestination != null) {
-      migrationClassDirectory = migrationClassDirectory != null
-                                ? WriteAction.compute(() -> classMoveDestination.getTargetDirectory(migrationClassDirectory))
-                                : null;
+      assert migrationClassDirectory != null;
+      migrationClassDirectory = WriteAction.compute(() -> classMoveDestination.getTargetDirectory(migrationClassDirectory));
     }
 
     final MoveDestination testMoveDestination =
       migrationTestDirectoryComboBox.selectDirectory(PackageWrapper.create(targetPackage), false);
     if (testMoveDestination != null) {
-      migrationTestDirectory = migrationTestDirectory != null
-                               ? WriteAction.compute(() -> testMoveDestination.getTargetDirectory(migrationTestDirectory))
-                               : null;
+      assert migrationTestDirectory != null;
+      migrationTestDirectory = WriteAction.compute(() -> testMoveDestination.getTargetDirectory(migrationTestDirectory));
     }
-    super.doOKAction();
+
+    wizardData.updateTargetPackage(targetPackage);
+    wizardData.updateMigrationClassDirectory(migrationClassDirectory);
+    wizardData.updateMigrationTestDirectory(migrationTestDirectory);
   }
 
-  @Nullable
   @Override
-  protected JComponent createCenterPanel() {
-    JPanel centerPanel = new JPanel(new BorderLayout());
-    centerPanel.add(createTargetPackagePanel(), BorderLayout.NORTH);
+  public Icon getIcon() {
+    return null;
+  }
 
-    JPanel directoriesPanel = new JPanel((new BorderLayout()));
-    directoriesPanel.add(createTargetDirectoryPanel(migrationClassDirectoryComboBox, MIGRATION_CLASS_COMBO_BOX_LABEL), BorderLayout.NORTH);
-    directoriesPanel.add(createTargetDirectoryPanel(migrationTestDirectoryComboBox, MIGRATION_TEST_COMBO_BOX_LABEL), BorderLayout.SOUTH);
-
-    centerPanel.add(directoriesPanel, BorderLayout.SOUTH);
-
+  @Override
+  public JComponent getComponent() {
     return centerPanel;
+  }
+
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return targetPackageComboBox;
   }
 
   private DestinationFolderComboBox createDestinationFolderComboBox() {
@@ -116,6 +122,24 @@ public class GenerateMigrationDialog extends DialogWrapper {
         return targetPackage.getQualifiedName();
       }
     };
+  }
+
+  private boolean packageWasChanged() {
+    return !targetPackage.getQualifiedName().equals(targetPackageComboBox.getText().trim());
+  }
+
+  private void onPackageChange() {
+    PsiPackage newPackage = JavaPsiFacade.getInstance(project).findPackage(targetPackageComboBox.getText().trim());
+    if (newPackage == null) {
+      return;
+    }
+
+    PsiDirectory[] newDirectories = newPackage.getDirectories(GlobalSearchScope.projectScope(project));
+    if (newDirectories.length > 0) {
+      targetPackage = newPackage;
+      migrationClassDirectory = newDirectories[0];
+      migrationClassDirectoryComboBox.setData(project, migrationClassDirectory, targetPackageComboBox.getChildComponent());
+    }
   }
 
   private JPanel createTargetDirectoryPanel(@NotNull DestinationFolderComboBox comboBox,
@@ -141,36 +165,14 @@ public class GenerateMigrationDialog extends DialogWrapper {
     return targetPackagePanel;
   }
 
-  private boolean packageWasChanged() {
-    return !targetPackage.getQualifiedName().equals(targetPackageComboBox.getText().trim());
-  }
+  protected void createCenterPanel() {
+    centerPanel = new JPanel(new BorderLayout());
+    centerPanel.add(createTargetPackagePanel(), BorderLayout.NORTH);
 
-  private void onPackageChange() {
-    PsiPackage newPackage = JavaPsiFacade.getInstance(project).findPackage(targetPackageComboBox.getText().trim());
-    if (newPackage == null) {
-      return;
-    }
+    JPanel directoriesPanel = new JPanel((new BorderLayout()));
+    directoriesPanel.add(createTargetDirectoryPanel(migrationClassDirectoryComboBox, MIGRATION_CLASS_COMBO_BOX_LABEL), BorderLayout.NORTH);
+    directoriesPanel.add(createTargetDirectoryPanel(migrationTestDirectoryComboBox, MIGRATION_TEST_COMBO_BOX_LABEL), BorderLayout.SOUTH);
 
-    PsiDirectory[] newDirectories = newPackage.getDirectories(GlobalSearchScope.projectScope(project));
-    if (newDirectories.length > 0) {
-      targetPackage = newPackage;
-      migrationClassDirectory = newDirectories[0];
-      migrationClassDirectoryComboBox.setData(project, migrationClassDirectory, targetPackageComboBox.getChildComponent());
-    }
-  }
-
-  @NotNull
-  public PsiDirectory getMigrationClassDirectory() {
-    return migrationClassDirectory;
-  }
-
-  @NotNull
-  public PsiDirectory getMigrationTestDirectory() {
-    return migrationTestDirectory;
-  }
-
-  @NotNull
-  public PsiPackage getTargetPackage() {
-    return targetPackage;
+    centerPanel.add(directoriesPanel, BorderLayout.SOUTH);
   }
 }
