@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_ANDROID_ID;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -156,7 +158,9 @@ public class MotionSceneTag implements MTag {
         return getAttributeValue(ATTR_ANDROID_ID);
       case Tags.TRANSITION:
         return String.format("%1$s|%2$s|%3$s",
-                             getAttributeValue(ATTR_ANDROID_ID), getAttributeValue(ATTR_ANDROID_ID), getAttributeValue(ATTR_ANDROID_ID));
+                             getAttributeValue(ATTR_ANDROID_ID),
+                             getAttributeValue(ATTR_CONSTRAINTSET_START),
+                             getAttributeValue(ATTR_CONSTRAINTSET_END));
       default:
         return null;
     }

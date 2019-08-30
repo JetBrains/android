@@ -35,7 +35,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -80,6 +79,7 @@ public class MotionEditor extends JPanel {
   CreateOnSwipe mCreateOnSwipe = new CreateOnSwipe();
   CreateTransition mCreateTransition = new CreateTransition();
   JSplitPane mTopPanel;
+  boolean mUpdatingModel;
 
   public void setSelection(MotionEditorSelector.Type type, MTag[] tag) {
     mSelectedTag = tag[0];
@@ -203,7 +203,9 @@ public class MotionEditor extends JPanel {
 
   public void selectTag(MTag tag) {
     mSelectedTag = tag;
-    mCombinedListPanel.selectTag(tag);
+    if (tag != null) {
+      mCombinedListPanel.selectTag(tag);
+    }
   }
 
   public void setMTag(@NotNull MTag motionScene, @NotNull MTag layout, @Nullable String layoutFileName,
@@ -211,112 +213,43 @@ public class MotionEditor extends JPanel {
     setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
   }
 
-  public MTag[]  findTagInNew(MeModel newModel, MeModel oldModel, MTag[] oldSelection, MotionEditorSelector.Type oldSelectedType ){
-    if (oldSelection.length == 0) {
+  @Nullable
+  private MTag findSelectedTagInNewModel(MeModel newModel) {
+    if (mSelectedTag == null) {
       return null;
     }
-    String[] ids = new String[oldSelection.length];
-    ArrayList<MTag> newSelection = new ArrayList<>();
-      for (int i = 0; i < oldSelection.length; i++) {
-      ids[i] = oldSelection[i].getTreeId();
-    }
-
-    switch (oldSelectedType) {
-      case TRANSITION:
-        for (int i = 0; i < ids.length; i++) {
-          newSelection.add(mMeModel.motionScene.getChildTagWithTreeId(Tags.TRANSITION, ids[i]));
-        }
-        return newSelection.toArray(new MTag[0]);
-      case CONSTRAINT_SET:
-        for (int i = 0; i < ids.length; i++) {
-          newSelection.add(mMeModel.motionScene.getChildTagWithTreeId(Tags.CONSTRAINTSET, ids[i]));
-        }
-        return newSelection.toArray(new MTag[0]);
-      case CONSTRAINT:
-        String cSetId = oldSelection[0].getParent().getTreeId();
-         MTag newCSet = mMeModel.motionScene.getChildTagWithTreeId(Tags.CONSTRAINTSET, cSetId);
-         if (newCSet == null) {
-           return null;
-         }
-        for (int i = 0; i < ids.length; i++) {
-          newSelection.add(newCSet.getChildTagWithTreeId(Tags.CONSTRAINT, ids[i]));
-        }
-        return newSelection.toArray(new MTag[0]);
-      case LAYOUT:
-        return new MTag[]{mMeModel.layout};
-      case LAYOUT_VIEW:
-        for (int i = 0; i < ids.length; i++) {
-          newSelection.add(mMeModel.layout.getChildTagWithTreeId(null, ids[i]));
-        }
-        return newSelection.toArray(new MTag[0]);
-      case KEY_FRAME:
-      case KEY_FRAME_GROUP:
-        String transitionId = oldSelection[0].getParent().getTreeId();
-        MTag transition = mMeModel.motionScene.getChildTagWithTreeId(Tags.CONSTRAINTSET, transitionId);
-        return new MTag[]{transition};
-     }
-    return null;
-  }
-
-  public void setMTag(MeModel model) {
-    MotionEditorSelector.Type oldSelectedType = mMeModel != null ? mMeModel.getSelectedType() : null;
-    MTag newSelection = null;
-    if (oldSelectedType != null) {
-      MTag[]sel  =  findTagInNew(model,mMeModel,mMeModel.mSelected, oldSelectedType);
-      if (sel != null && sel.length > 0) {
-        newSelection = sel[0];
-      }
-    }
-    if (DEBUG) {
-      Debug.log("setMTag: old selected type = "+oldSelectedType);
-    }
-    MTag[] oldSelection = mMeModel != null ? mMeModel.getSelected() : null;
-    String oldSelectionId = toTreeId(oldSelectedType, oldSelection);
-    mMeModel = model;
-    mMotionSceneTabb.setMTag(mMeModel.motionScene);
-    mCombinedListPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
-    mOverviewPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
-    if (oldSelectedType != null) {
-      switch (oldSelectedType) {
-        case CONSTRAINT_SET:
-          mConstraintSetPanel.setMTag(newSelection, mMeModel);
-          mTransitionPanel.setMTag(null, mMeModel);
-          break;
-        case CONSTRAINT:
-          mConstraintSetPanel.setMTag(newSelection, mMeModel);
-          mTransitionPanel.setMTag(null, mMeModel);
-          break;
-        case TRANSITION:
-        case KEY_FRAME:
-        case KEY_FRAME_GROUP:
-          mConstraintSetPanel.setMTag(null, mMeModel);
-          mTransitionPanel.setMTag(newSelection, mMeModel);
-          break;
-        default:
-          mConstraintSetPanel.setMTag(null, mMeModel);
-          mTransitionPanel.setMTag(null, mMeModel);
-          break;
-      }
-    }
+    return newModel.motionScene.getChildTagWithTreeId(mSelectedTag.getTagName(), mSelectedTag.getTreeId());
   }
 
   @Nullable
-  private static String toTreeId(@Nullable MotionEditorSelector.Type type, @Nullable MTag[] selection) {
-    if (type == null || selection == null || selection.length == 0) {
-      return null;
+  private static MTag asConstraintSet(@Nullable MTag selection) {
+    return selection != null && selection.getTagName().equals(Tags.CONSTRAINTSET) ? selection : null;
+  }
+
+  @Nullable
+  private static MTag asTransition(@Nullable MTag selection) {
+    return selection != null && selection.getTagName().equals(Tags.TRANSITION) ? selection : null;
+  }
+
+  public void setMTag(MeModel model) {
+    mUpdatingModel = true;
+    try {
+      MTag newSelection = findSelectedTagInNewModel(model);
+      selectTag(newSelection);
+      mMeModel = model;
+      mMotionSceneTabb.setMTag(mMeModel.motionScene);
+      mCombinedListPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
+      mOverviewPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
+      mConstraintSetPanel.setMTag(asConstraintSet(newSelection), mMeModel);
+      mTransitionPanel.setMTag(asTransition(newSelection), mMeModel);
     }
-    switch (type) {
-      case CONSTRAINT_SET:
-      case TRANSITION:
-        return selection[0].getTreeId();
-      case CONSTRAINT:
-        return selection[0].getParent().getTreeId();
-      case KEY_FRAME:
-      case KEY_FRAME_GROUP:
-        return selection[0].getParent().getParent().getTreeId();
-      default:
-        return null;
+    finally {
+      mUpdatingModel = false;
     }
+  }
+
+  public boolean isUpdatingModel() {
+    return mUpdatingModel;
   }
 
   private void layoutTop() {
@@ -384,10 +317,10 @@ public class MotionEditor extends JPanel {
       if (0 < index) {
         mCardLayout.show(mCenterPanel, CONSTRAINTSET_PANEL);
         MTag selectedConstraintSet = c_sets[index - 1];
-        mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
         notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET,
           new MTag[]{selectedConstraintSet});
         mSelectedTag = selectedConstraintSet;
+        mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
       } else {
         mCardLayout.show(mCenterPanel, LAYOUT_PANEL);
         mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
