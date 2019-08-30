@@ -110,6 +110,7 @@ public class Scene implements SelectionListener, Disposable {
   private SceneComponent myCurrentComponent;
   NlComponent myLastHoverConstraintComponent = null;
 
+  @MagicConstant(intValues = {NO_LAYOUT, IMMEDIATE_LAYOUT, ANIMATED_LAYOUT})
   private int mNeedsLayout = NO_LAYOUT;
 
   @AndroidDpCoordinate protected int myPressedMouseX;
@@ -897,7 +898,7 @@ public class Scene implements SelectionListener, Disposable {
       myHitListener.setTargetFilter(null);
     }
     mouseHover(transform, x, y, modifiersEx);
-    checkRequestLayoutStatus();
+    requestLayoutIfNeeded();
   }
 
   private static boolean isWithinThreshold(@AndroidDpCoordinate int pos1, @AndroidDpCoordinate int pos2, SceneContext transform) {
@@ -906,7 +907,24 @@ public class Scene implements SelectionListener, Disposable {
     return Math.abs(pos3 - pos4) < DRAG_THRESHOLD;
   }
 
-  public void checkRequestLayoutStatus() {
+  /**
+   * Trigger layout if this {@link Scene} is marked to re-layout.
+   * If there was no layout request, this function does nothing.
+   * <p>
+   * To mark re-layout, use {@link #markNeedsLayout(int)} with {@link #IMMEDIATE_LAYOUT} and
+   * {@link #ANIMATED_LAYOUT}.
+   * <p>
+   * Note that this function doesn't reset the mark. To clear the mark, use {@link #markNeedsLayout(int)}
+   * with {@link #NO_LAYOUT} flag.
+   * <p>
+   * If it needs to layout and live-rendering is enabled, re-render happens as well.
+   *
+   * @see #markNeedsLayout(int)
+   * @see #NO_LAYOUT
+   * @see #IMMEDIATE_LAYOUT
+   * @see #ANIMATED_LAYOUT
+   */
+  public void requestLayoutIfNeeded() {
     if (mNeedsLayout != NO_LAYOUT) {
       SceneManager manager = myDesignSurface.getSceneManager();
       if (manager == null) {
@@ -979,7 +997,7 @@ public class Scene implements SelectionListener, Disposable {
       findSelectionOfCurve(secondarySelector);
     }
     myHitTarget = null;
-    checkRequestLayoutStatus();
+    requestLayoutIfNeeded();
   }
 
   public void mouseCancel() {
@@ -994,7 +1012,7 @@ public class Scene implements SelectionListener, Disposable {
     myFilterType = FilterType.NONE;
     myNewSelectedComponentsOnRelease.clear();
     myHitTarget = null;
-    checkRequestLayoutStatus();
+    requestLayoutIfNeeded();
   }
 
   private boolean inCurrentSelection(@NotNull SceneComponent component) {
@@ -1025,11 +1043,12 @@ public class Scene implements SelectionListener, Disposable {
   }
 
   /**
-   * Set a flag to notify that the Scene needs to recompute the layout on the next rendering cycle.
+   * Set a flag to identify that the {@link Scene} needs to recompute the layout when {@link #requestLayoutIfNeeded()}
+   * is called.
    *
    * @param type Type of layout to recompute: {@link #NO_LAYOUT}, {@link #IMMEDIATE_LAYOUT}, {@link #ANIMATED_LAYOUT}
    */
-  public void needsLayout(@MagicConstant(intValues = {NO_LAYOUT, IMMEDIATE_LAYOUT, ANIMATED_LAYOUT}) int type) {
+  public void markNeedsLayout(@MagicConstant(intValues = {NO_LAYOUT, IMMEDIATE_LAYOUT, ANIMATED_LAYOUT}) int type) {
     mNeedsLayout = type;
   }
 

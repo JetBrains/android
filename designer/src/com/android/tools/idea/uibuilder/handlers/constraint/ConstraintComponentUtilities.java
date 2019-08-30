@@ -733,7 +733,7 @@ public final class ConstraintComponentUtilities {
         clearAnchor(type, modification, component.useRtlAttributes(), scene.isInRTL());
         cleanup(modification, nlComponent);
         modification.commit();
-        scene.needsLayout(Scene.ANIMATED_LAYOUT);
+        scene.markNeedsLayout(Scene.ANIMATED_LAYOUT);
         selectionModel.clearSecondary();
         return true;
       }

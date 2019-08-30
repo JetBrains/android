@@ -83,7 +83,7 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
     }
 
     layout.scene.removeComponent(sceneComponent)
-    layout.scene.checkRequestLayoutStatus()
+    layout.scene.requestLayoutIfNeeded()
   }
 
   private fun dragWidgetFromPalette(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int) {
