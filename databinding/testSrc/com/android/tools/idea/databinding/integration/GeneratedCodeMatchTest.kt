@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding
+package com.android.tools.idea.databinding.integration
 
 import com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT
 import com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT
 import com.android.ide.common.blame.Message
+import com.android.tools.idea.databinding.DataBindingMode
+import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
