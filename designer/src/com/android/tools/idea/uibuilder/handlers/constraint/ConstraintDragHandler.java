@@ -102,7 +102,7 @@ public class ConstraintDragHandler extends DragHandler {
         break;
       }
     }
-    scene.checkRequestLayoutStatus();
+    scene.requestLayoutIfNeeded();
     return result;
   }
 
@@ -140,6 +140,6 @@ public class ConstraintDragHandler extends DragHandler {
     }
     editor.insertChildren(layout.getNlComponent(), components, -1, insertType);
     scene.removeComponent(myComponent);
-    scene.checkRequestLayoutStatus();
+    scene.requestLayoutIfNeeded();
   }
 }
