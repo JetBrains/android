@@ -101,6 +101,21 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   val allMethods: List<PsiModelMethod>
     get() {
       var psiClass = (type as? PsiClassType)?.resolve()
+
+      // Usually, we do not need to take care of methods declared in interfaces because we only return their implementations.
+      // However, when [psiClass] itself is an interface, we need to include all of them.
+      // Example:
+      // Interface A has method a().
+      // Interface B has method b() and extends Interface A.
+      // Abstract Class C implements interface B with method a(), b() and abstract method c().
+      // Class D extends class C and overrides method c().
+      // To get all methods from Class D, we need to go up to its super class and remove duplication (method c() from Class C).
+      // Fortunately, there is no need to consider methods from Interface A and B because they are already implemented in Class C and D.
+      // On the other hand, to get all methods from Interface B, we need to add methods from Interface A while removing duplication
+      // is not needed.
+      if (psiClass?.isInterface == true) {
+        return psiClass.allMethods.map { PsiModelMethod(this, it) }
+      }
       val methods = ArrayList<PsiModelMethod>()
       while (psiClass != null) {
         val newMethods = psiClass.methods.filter {
