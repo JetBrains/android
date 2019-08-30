@@ -16,15 +16,14 @@
 
 package com.android.tools.adtui.chart.hchart;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -42,7 +41,6 @@ import java.util.List;
 import java.util.Queue;
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -160,6 +158,8 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   private void changed() {
     myDataUpdated = true;
     myCachedMaxHeight = calculateMaximumHeight();
+    // Update preferred size using calculated height to make sure containers of this chart account for the height change during layout.
+    setPreferredSize(new Dimension(getPreferredSize().width, myCachedMaxHeight));
     opaqueRepaint();
   }
 
