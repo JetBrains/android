@@ -208,16 +208,23 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
                 SdkConstants.ATTR_TYPE -> currTag.variableType = value
               }
 
-            else ->
+            else -> {
+              // If here, we are a View tag, e.g. <Button>, <EditText>, <include>, <merge>, etc.
+
               if (nsURI == SdkConstants.ANDROID_URI) {
                 when (key) {
                   // Used to determine view type of <View>.
                   SdkConstants.ATTR_CLASS -> currTag.viewClass = value
-                  // Used to determine view type of <Merge> and <Include>.
-                  SdkConstants.ATTR_LAYOUT -> currTag.viewLayout = value
                   SdkConstants.ATTR_ID -> currTag.viewId = stripPrefixFromId(value)
                 }
               }
+              if (currTag.name == SdkConstants.VIEW_INCLUDE || currTag.name == SdkConstants.VIEW_MERGE) {
+                when (key) {
+                  // Used to determine view type of <Merge> and <Include>.
+                  SdkConstants.ATTR_LAYOUT -> currTag.viewLayout = value
+                }
+              }
+            }
           }
           if (isRootElement) {
             if (nsURI == SdkConstants.TOOLS_URI && key == SdkConstants.ATTR_VIEW_BINDING_IGNORE) {
@@ -278,7 +285,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
     }
   }
 
-  override fun getVersion() = 4
+  override fun getVersion() = 5
 }
 
 /**
