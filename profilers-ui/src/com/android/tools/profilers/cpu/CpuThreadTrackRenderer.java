@@ -15,14 +15,19 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.common.EnumColors;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
-import java.awt.BorderLayout;
+import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
+import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import java.awt.Color;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -35,13 +40,33 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
   @NotNull
   @Override
   public JComponent render(@NotNull TrackModel<CpuThreadTrackModel, ProfilerTrackRendererType> trackModel) {
-    StateChart<CpuProfilerStage.ThreadState> stateChart =
-      new StateChart<>(trackModel.getDataModel().getThreadStateChartModel(), new CpuThreadColorProvider());
-    stateChart.setHeightGap(0.0f);
+    StateChart<CpuProfilerStage.ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
+    HTreeChart<CaptureNode> traceEventChart = createHChart(trackModel.getDataModel().getCallChartModel(),
+                                                           trackModel.getDataModel().getCaptureRange());
 
-    JPanel panel = new JPanel(new BorderLayout());
-    panel.add(stateChart, BorderLayout.CENTER);
+    JPanel panel = new JPanel(new TabularLayout("*", "8px,*"));
+    panel.add(threadStateChart, new TabularLayout.Constraint(0, 0));
+    panel.add(traceEventChart, new TabularLayout.Constraint(1, 0));
     return panel;
+  }
+
+  private static StateChart<CpuProfilerStage.ThreadState> createStateChart(@NotNull StateChartModel<CpuProfilerStage.ThreadState> model) {
+    StateChart<CpuProfilerStage.ThreadState> threadStateChart = new StateChart<>(model, new CpuThreadColorProvider());
+    threadStateChart.setHeightGap(0.0f);
+    return threadStateChart;
+  }
+
+  private static HTreeChart<CaptureNode> createHChart(@NotNull CaptureDetails.CallChart callChartModel,
+                                                      @NotNull Range captureRange) {
+    CaptureNode node = callChartModel.getNode();
+    Range selectionRange = callChartModel.getRange();
+
+    HTreeChart<CaptureNode> chart = new HTreeChart.Builder<>(node, selectionRange, new CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART))
+      .setGlobalXRange(captureRange)
+      .setOrientation(HTreeChart.Orientation.TOP_DOWN)
+      .setRootVisible(false)
+      .build();
+    return chart;
   }
 
   private static class CpuThreadColorProvider extends StateChartColorProvider<CpuProfilerStage.ThreadState> {
