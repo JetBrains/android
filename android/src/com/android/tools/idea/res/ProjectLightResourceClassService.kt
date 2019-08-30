@@ -152,11 +152,23 @@ class ProjectLightResourceClassService(
       result.add(getAarRClasses(aarLibrary))
     }
 
-    return result.flatMap { (namespaced, nonNamespaced, testNonNamespaced) ->
+    return result.flatMap { resourceClasses ->
       when (namespacing) {
-        AaptOptions.Namespacing.REQUIRED -> listOf(namespaced)
+        AaptOptions.Namespacing.REQUIRED -> {
+          if (includeTestClasses) {
+            listOf(resourceClasses.namespaced, resourceClasses.testNamespaced)
+          }
+          else {
+            listOf(resourceClasses.namespaced)
+          }
+        }
         AaptOptions.Namespacing.DISABLED -> {
-          if (includeTestClasses) listOf(nonNamespaced, testNonNamespaced) else listOf(nonNamespaced)
+          if (includeTestClasses) {
+            listOf(resourceClasses.nonNamespaced, resourceClasses.testNonNamespaced)
+          }
+          else {
+            listOf(resourceClasses.nonNamespaced)
+          }
         }
       }
     }.filterNotNull()
