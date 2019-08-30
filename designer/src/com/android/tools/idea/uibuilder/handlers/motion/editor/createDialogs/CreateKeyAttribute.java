@@ -156,7 +156,7 @@ public class CreateKeyAttribute extends BaseCreateKey {
     }
     keyPosition.setAttribute(optionsNameSpace[comboBox.getSelectedIndex()], (String) comboBox.getSelectedItem(), "0");
 
-    MTag ret = toCommit.commit();
+    MTag ret = toCommit.commit("Create KeyAttribute");
     mMotionEditor.dataChanged();
     super.create();
     return ret;

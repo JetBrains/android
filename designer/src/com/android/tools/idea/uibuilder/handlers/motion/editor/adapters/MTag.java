@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
-import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -80,6 +80,6 @@ public interface MTag {
   interface TagWriter extends MTag {
     void setAttribute(String type, String attribute, String value);
 
-    MTag commit();
+    MTag commit(@Nullable String commandName);
   }
 }

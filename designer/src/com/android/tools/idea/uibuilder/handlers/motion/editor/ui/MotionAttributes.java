@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
@@ -52,9 +53,35 @@ public class MotionAttributes {
        return ret;
     }
 
+    @NotNull
+    public String getName() {
+      return name;
+    }
+
     @Nullable
     public String getValue() {
       return value;
+    }
+
+    @NotNull
+    public String getNamespace() {
+      return nameSpace;
+    }
+
+    public boolean isLayoutAttribute() {
+      return MotionSceneAttrs.layout_tags.contains(name);
+    }
+
+    public boolean isPropertySetAttribute() {
+      return MotionSceneAttrs.ourPropertySet_tags.contains(name);
+    }
+
+    public boolean isTransformAttribute() {
+      return MotionSceneAttrs.ourTransform_tags.contains(name);
+    }
+
+    public boolean isMotionAttribute() {
+      return MotionSceneAttrs.ourMotion_tags.contains(name);
     }
   }
 

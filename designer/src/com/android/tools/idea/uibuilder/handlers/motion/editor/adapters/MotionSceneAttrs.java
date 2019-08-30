@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.AUTO_URI;
-
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -174,7 +170,7 @@ public class MotionSceneAttrs {
 
   public static String lookupName(MTag.Attribute attr) {
     if (androidNameSpace.contains(attr.mAttribute)) {
-      return ANDROID_URI;
+      return SdkConstants.ANDROID_URI;
     }
     return SdkConstants.AUTO_URI;
   }
@@ -328,7 +324,7 @@ public class MotionSceneAttrs {
 
   }
 
-  private static HashSet<String> layout_tags = new HashSet<>(Arrays.asList(
+  public static final HashSet<String> layout_tags = new HashSet<>(Arrays.asList(
     ATTR_ANDROID_LAYOUT_WIDTH,
     ATTR_ANDROID_LAYOUT_HEIGHT,
     ATTR_ANDROID_LAYOUT_MARGIN_LEFT,
@@ -398,13 +394,13 @@ public class MotionSceneAttrs {
 
   final static String LAYOUT_CONSTRAINT_TAG = "layout_constraintTag";
 
-  private static HashSet<String> ourPropertySet_tags = new HashSet<>(Arrays.asList(
+  public static final HashSet<String> ourPropertySet_tags = new HashSet<>(Arrays.asList(
     ATTR_ANDROID_ALPHA,
     ATTR_ANDROID_VISIBILITY,
     LAYOUT_CONSTRAINT_TAG
   ));
 
-  private static HashSet<String> ourTransform_tags = new HashSet<>(Arrays.asList(
+  public static final HashSet<String> ourTransform_tags = new HashSet<>(Arrays.asList(
     ATTR_ANDROID_ELEVATION,
     ATTR_ANDROID_ROTATION,
     ATTR_ANDROID_ROTATIONX,
@@ -416,7 +412,7 @@ public class MotionSceneAttrs {
     ATTR_ANDROID_TRANSLATIONZ
   ));
 
-  private static HashSet<String> ourMotion_tags = new HashSet<>(Arrays.asList(
+  public static final HashSet<String> ourMotion_tags = new HashSet<>(Arrays.asList(
     MOTION_ANIMATE_RELATIVE_TO,
     MOTION_TRANSITION_EASING,
     MOTION_DRAW_PATH,
@@ -436,9 +432,11 @@ public class MotionSceneAttrs {
     "customPixelDimension",
     "customBoolean"
   };
+
   public static boolean copyToConstraint(MTag.Attribute attr) {
     return layout_tags.contains(attr.mAttribute) || MotionLayout.LAYOUT_ATTRS.contains(attr.mAttribute);
   }
+
   public static boolean isLayoutAttribute(MTag.Attribute attr) {
     return layout_tags.contains(attr.mAttribute);
   }
@@ -446,9 +444,8 @@ public class MotionSceneAttrs {
   public static boolean isPropertySetAttribute(MTag.Attribute attr) {
     return ourPropertySet_tags.contains(attr.mAttribute);
   }
+
   public static boolean isTransformAttribute(MTag.Attribute attr) {
     return ourTransform_tags.contains(attr.mAttribute);
   }
-
-
 }

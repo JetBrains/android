@@ -54,7 +54,7 @@ public class ConstraintSetPanelCommands {
       }
     }
     // TODO support rich parameter .visibility etc.
-    return new_constraint.commit();
+    return new_constraint.commit("Create Constraint");
   }
 
   public static void createSectionedConstraint(MTag[] selected, MTag constraintSet) {
@@ -99,7 +99,7 @@ public class ConstraintSetPanelCommands {
         transform.setAttribute(MotionSceneAttrs.lookupName(attr), attr.mAttribute, attr.mValue);
       }
     }
-    return new_constraint.commit();
+    return new_constraint.commit("Create Constraint");
   }
 
   /**
@@ -139,7 +139,6 @@ public class ConstraintSetPanelCommands {
       }
       mTag.deleteTag();
     }
-    writer.commit();
+    writer.commit("Convert Constraint");
   }
-
 }

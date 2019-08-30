@@ -43,8 +43,26 @@ public class MotionDefaultPropertyValueProvider implements DefaultPropertyValueP
   @Nullable
   @Override
   public String provideDefaultValue(@NotNull NelePropertyItem property) {
-    MotionSceneTag motionTag = (MotionSceneTag)property.getOptionalValue1();
-    if (motionTag == null || !motionTag.getTagName().equals(MotionSceneAttrs.Tags.CONSTRAINT)) {
+    MotionAttributes attrs = getMotionAttributesForTag(property);
+    if (attrs == null) {
+      return null;
+    }
+    HashMap<String, MotionAttributes.DefinedAttribute> map = attrs.getAttrMap();
+    MotionAttributes.DefinedAttribute attr = map.get(property.getName());
+    if (attr == null) {
+      return null;
+    }
+    return attr.getValue();
+  }
+
+  @Nullable
+  public static MotionAttributes getMotionAttributesForTag(@NotNull NelePropertyItem property) {
+    Object optional1 = property.getOptionalValue1();
+    if (!(optional1 instanceof MotionSceneTag)) {
+      return null;
+    }
+    MotionSceneTag motionTag = (MotionSceneTag)optional1;
+    if (!motionTag.getTagName().equals(MotionSceneAttrs.Tags.CONSTRAINT)) {
       return null;
     }
     XmlTag tag = motionTag.getXmlTag();
@@ -64,16 +82,7 @@ public class MotionDefaultPropertyValueProvider implements DefaultPropertyValueP
     if (component == null) {
       return null;
     }
-    MotionAttributes attrs = (MotionAttributes)component.getClientProperty(NlComponentTag.MOTION_LAYOUT_PROPERTIES);
-    if (attrs == null) {
-      return null;
-    }
-    HashMap<String, MotionAttributes.DefinedAttribute> map = attrs.getAttrMap();
-    MotionAttributes.DefinedAttribute attr = map.get(property.getName());
-    if (attr == null) {
-      return null;
-    }
-    return attr.getValue();
+    return (MotionAttributes)component.getClientProperty(NlComponentTag.MOTION_LAYOUT_PROPERTIES);
   }
 
   @Override
