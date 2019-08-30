@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.tools.analytics.AnalyticsSettings;
@@ -11,18 +11,15 @@ import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.startup.Actions.moveAction;
 
-public class AndroidPlugin implements BaseComponent {
+public final class AndroidPlugin {
   private static final String GROUP_ANDROID_TOOLS = "AndroidToolsGroup";
-  private static final String GROUP_TOOLS = "ToolsMenu";
 
-  @Override
-  public void initComponent() {
+  public AndroidPlugin() {
     VirtualFileSystemOpener.INSTANCE.mount();
     if (!IdeInfo.getInstance().isAndroidStudio()) {
       initializeForNonStudio();
