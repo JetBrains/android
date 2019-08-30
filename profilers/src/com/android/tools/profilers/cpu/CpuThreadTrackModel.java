@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
 public class CpuThreadTrackModel {
   private final DataSeries<CpuProfilerStage.ThreadState> myThreadStateDataSeries;
   private final StateChartModel<CpuProfilerStage.ThreadState> myThreadStateChartModel;
+  private final CaptureDetails.CallChart myCallChartModel;
+  private final Range myCaptureRange;
 
   public CpuThreadTrackModel(@NotNull StudioProfilers profilers, @NotNull Range range, @NotNull CpuCapture capture, int threadId) {
     myThreadStateDataSeries = new CpuThreadStateDataSeries(profilers.getClient().getTransportClient(),
@@ -37,6 +40,9 @@ public class CpuThreadTrackModel {
                                                            capture);
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateChartModel.addSeries(new RangedSeries<>(range, myThreadStateDataSeries));
+
+    myCallChartModel = new CaptureDetails.CallChart(range, capture.getCaptureNode(threadId), capture);
+    myCaptureRange = capture.getRange();
   }
 
   @NotNull
@@ -47,5 +53,15 @@ public class CpuThreadTrackModel {
   @NotNull
   public StateChartModel<CpuProfilerStage.ThreadState> getThreadStateChartModel() {
     return myThreadStateChartModel;
+  }
+
+  @NotNull
+  public CaptureDetails.CallChart getCallChartModel() {
+    return myCallChartModel;
+  }
+
+  @NotNull
+  public Range getCaptureRange() {
+    return myCaptureRange;
   }
 }
