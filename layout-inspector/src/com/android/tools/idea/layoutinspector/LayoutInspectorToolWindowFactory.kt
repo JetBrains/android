@@ -41,7 +41,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val contentManager = toolWindow.contentManager
-    val panel = InspectorPanel(project, TOOL_WINDOW_ID, project)
+    val panel = InspectorPanel(project, TOOL_WINDOW_ID)
     val content = contentManager.factory.createContent(panel, "", true)
     content.putUserData(INSPECTOR_PANEL, panel)
     contentManager.addContent(content)
