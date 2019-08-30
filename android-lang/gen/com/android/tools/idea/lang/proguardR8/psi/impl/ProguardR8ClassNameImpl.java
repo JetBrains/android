@@ -44,9 +44,9 @@ public class ProguardR8ClassNameImpl extends ASTWrapperPsiElement implements Pro
   }
 
   @Override
-  @Nullable
+  @NotNull
   public ProguardR8QualifiedName getQualifiedName() {
-    return findChildByClass(ProguardR8QualifiedName.class);
+    return findNotNullChildByClass(ProguardR8QualifiedName.class);
   }
 
 }

@@ -24,7 +24,7 @@ import com.intellij.psi.PsiElement;
 
 public interface ProguardR8ClassName extends PsiElement {
 
-  @Nullable
+  @NotNull
   ProguardR8QualifiedName getQualifiedName();
 
 }

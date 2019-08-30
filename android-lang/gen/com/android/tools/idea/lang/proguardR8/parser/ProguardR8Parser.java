@@ -23,7 +23,6 @@ import com.intellij.lang.PsiBuilder.Marker;
 import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.IFileElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
@@ -41,17 +40,23 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     boolean result;
     builder = adapt_builder_(type, builder, this, null);
     Marker marker = enter_section_(builder, 0, _COLLAPSE_, null);
-    if (type instanceof IFileElementType) {
-      result = parse_root_(type, builder, 0);
-    }
-    else {
-      result = false;
-    }
+    result = parse_root_(type, builder);
     exit_section_(builder, 0, marker, type, result, true, TRUE_CONDITION);
   }
 
-  protected boolean parse_root_(IElementType type, PsiBuilder builder, int level) {
-    return root(builder, level + 1);
+  protected boolean parse_root_(IElementType type, PsiBuilder builder) {
+    return parse_root_(type, builder, 0);
+  }
+
+  static boolean parse_root_(IElementType type, PsiBuilder builder, int level) {
+    boolean result;
+    if (type == QUALIFIED_NAME) {
+      result = qualifiedName(builder, level + 1);
+    }
+    else {
+      result = root(builder, level + 1);
+    }
+    return result;
   }
 
   /* ********************************************************** */
@@ -121,13 +126,12 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // qualifiedName|ASTERISK
+  // qualifiedName
   public static boolean class_name(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_name")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, CLASS_NAME, "<class name>");
     result = qualifiedName(builder, level + 1);
-    if (!result) result = consumeToken(builder, ASTERISK);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
@@ -246,13 +250,12 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // java_identifier_|ASTERISK
+  // java_identifier_
   public static boolean field_name(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "field_name")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, FIELD_NAME, "<field name>");
     result = java_identifier_(builder, level + 1);
-    if (!result) result = consumeToken(builder, ASTERISK);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
@@ -534,13 +537,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS
+  // JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK
   static boolean java_identifier_(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "java_identifier_")) return false;
-    if (!nextTokenIs(builder, "", JAVA_IDENTIFIER, JAVA_IDENTIFIER_WITH_WILDCARDS)) return false;
     boolean result;
     result = consumeToken(builder, JAVA_IDENTIFIER);
     if (!result) result = consumeToken(builder, JAVA_IDENTIFIER_WITH_WILDCARDS);
+    if (!result) result = consumeToken(builder, ASTERISK);
     return result;
   }
 
@@ -689,13 +692,12 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // java_identifier_|ASTERISK
+  // java_identifier_
   public static boolean method_name(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "method_name")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, METHOD_NAME, "<method name>");
     result = java_identifier_(builder, level + 1);
-    if (!result) result = consumeToken(builder, ASTERISK);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
@@ -808,14 +810,14 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // java_identifier_ ("." java_identifier_)*
+  // java_identifier_ ("." java_identifier_)* ("$" java_identifier_)?
   public static boolean qualifiedName(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "qualifiedName")) return false;
-    if (!nextTokenIs(builder, "<qualified name>", JAVA_IDENTIFIER, JAVA_IDENTIFIER_WITH_WILDCARDS)) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, QUALIFIED_NAME, "<qualified name>");
     result = java_identifier_(builder, level + 1);
     result = result && qualifiedName_1(builder, level + 1);
+    result = result && qualifiedName_2(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
@@ -837,6 +839,24 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     boolean result;
     Marker marker = enter_section_(builder);
     result = consumeToken(builder, DOT);
+    result = result && java_identifier_(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // ("$" java_identifier_)?
+  private static boolean qualifiedName_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "qualifiedName_2")) return false;
+    qualifiedName_2_0(builder, level + 1);
+    return true;
+  }
+
+  // "$" java_identifier_
+  private static boolean qualifiedName_2_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "qualifiedName_2_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, DOLLAR);
     result = result && java_identifier_(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
