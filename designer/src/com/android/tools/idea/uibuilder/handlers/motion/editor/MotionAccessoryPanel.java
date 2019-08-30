@@ -33,7 +33,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentDel
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -52,8 +51,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.List;
+import java.util.Set;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -89,7 +88,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
-      Project project = myMotionLayoutNlComponent.getModel().getProject();
       if (apply) {
         String applyMotionSceneValue = myMotionLayoutNlComponent.getAttribute(SdkConstants.TOOLS_URI, "applyMotionScene");
         if (applyMotionSceneValue != null && applyMotionSceneValue.equals("false")) {
@@ -107,10 +105,10 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
   }
 
-
   public MotionAccessoryPanel(@NotNull DesignSurface surface,
                               @NotNull NlComponent parent,
-                              @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {    if (DEBUG) {
+                              @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
+    if (DEBUG) {
       Debug.log("MotionAccessoryPanel created ");
     }
     myDesignSurface = surface;
@@ -181,7 +179,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             // The NelePropertiesModel should be handling the properties in these cases...
             break;
         }
-        fireSelectionChanged(Collections.singletonList(mySelection));
+        if (!mMotionEditor.isUpdatingModel()) {
+          fireSelectionChanged(Collections.singletonList(mySelection));
+        }
       }
     });
     mMotionEditor.addTimeLineListener(new MotionEditorSelector.TimeLineListener() {
@@ -308,7 +308,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
 
     // let's open the file
-    Project project = motionLayout.getModel().getProject();
     AndroidFacet facet = motionLayout.getModel().getFacet();
 
     List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
@@ -491,7 +490,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (fileName == null || fileName.isEmpty()) {
       return null;
     }
-    Project project = component.getModel().getProject();
     AndroidFacet facet = component.getModel().getFacet();
     List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
       .getModuleResources(facet).getResourceDirs());
