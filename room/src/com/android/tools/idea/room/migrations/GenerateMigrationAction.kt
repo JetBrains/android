@@ -19,6 +19,7 @@ import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.room.migrations.generators.JavaMigrationClassGenerator
 import com.android.tools.idea.room.migrations.generators.JavaMigrationTestGenerator
 import com.android.tools.idea.room.migrations.json.SchemaBundle
+import com.android.tools.idea.room.migrations.ui.GenerateMigrationWizard
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -51,11 +52,11 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
       val targetPackage = getDefaultTargetPackage(databaseClassQualifiedName, project) ?: return
       val migrationClassDirectory = getMigrationDefaultTargetDirectory(project, module) ?: return
       val migrationTestDirectory = getTestDefaultTargetDirectory(project, module) ?: return
-      val migrationDialog = GenerateMigrationDialog(project, targetPackage, migrationClassDirectory, migrationTestDirectory)
+      val migrationWizard = GenerateMigrationWizard(project, targetPackage, migrationClassDirectory, migrationTestDirectory)
+
 
       if (!ApplicationManager.getApplication().isUnitTestMode) {
-        migrationDialog.show()
-        if (!migrationDialog.isOK) {
+        if (!migrationWizard.showAndGet()) {
           return
         }
       }
@@ -66,11 +67,11 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
         try {
           val javaMigrationClassGenerator = JavaMigrationClassGenerator(project)
           val databaseUpdate = DatabaseUpdate(oldSchema.database, newSchema.database)
-          val migrationClass = javaMigrationClassGenerator.createMigrationClass(migrationDialog.migrationClassDirectory,
+          val migrationClass = javaMigrationClassGenerator.createMigrationClass(migrationWizard.migrationClassDirectory,
                                                                                 databaseUpdate)
           if (!migrationClass.qualifiedName.isNullOrEmpty()) {
             val javaMigrationTestGenerator = JavaMigrationTestGenerator(project)
-            javaMigrationTestGenerator.createMigrationTest(migrationDialog.migrationTestDirectory,
+            javaMigrationTestGenerator.createMigrationTest(migrationWizard.migrationTestDirectory,
                                                            databaseClassQualifiedName,
                                                            migrationClass.qualifiedName!!,
                                                            databaseUpdate.previousVersion,
