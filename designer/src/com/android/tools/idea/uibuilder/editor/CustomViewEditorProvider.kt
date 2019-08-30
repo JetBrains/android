@@ -303,7 +303,7 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  override val workbench = WorkBench<DesignSurface>(project, "Main Preview", this, this).apply {
+  override val workbench = WorkBench<DesignSurface>(project, "Main Preview", this).apply {
     isOpaque = true
     init(editorPanel, surface, listOf())
     showLoading("Waiting for build to finish...")
