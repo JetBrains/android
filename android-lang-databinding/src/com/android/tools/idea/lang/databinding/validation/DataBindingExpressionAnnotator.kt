@@ -26,7 +26,6 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterL
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbVisitor
-import com.android.tools.idea.lang.databinding.reference.PsiClassReference
 import com.android.tools.idea.lang.databinding.reference.PsiMethodReference
 import com.android.tools.idea.lang.databinding.reference.PsiParameterReference
 import com.intellij.lang.annotation.AnnotationHolder
@@ -274,10 +273,13 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       return
     }
 
-    val lambdaExpression = parameters.parent.parent ?: return
-    // The lambdaExpression should reference a functional class from [LambdaExpressionReferenceProvider]
-    val functionalClass = lambdaExpression.references.filterIsInstance<PsiClassReference>().firstOrNull()?.resolve() as? PsiClass ?: return
-    val listenerMethod = LambdaUtil.getFunctionalInterfaceMethod(functionalClass) ?: return
+    val lambdaParameters = parameters.parent ?: return
+    // The lambdaParameters should reference a functional class from [LambdaParametersReferenceProvider]
+    val listenerMethod = lambdaParameters.references
+                           .filterIsInstance<PsiMethodReference>()
+                           .firstOrNull()
+                           ?.resolve() as? PsiMethod
+                         ?: return
     val expected = listenerMethod.parameterList.parameters.size
     if (found != expected) {
       annotateError(parameters, ARGUMENT_COUNT_MISMATCH, expected, found)
