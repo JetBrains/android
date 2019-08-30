@@ -179,7 +179,7 @@ public class CreateOnSwipe extends BaseCreatePanel {
     }
 
     writer.printFormal(" ", System.out);
-    MTag ret = writer.commit();
+    MTag ret = writer.commit("Create OnSwipe");
     mMotionEditor.setMTag(model);
     super.create();
     return ret;

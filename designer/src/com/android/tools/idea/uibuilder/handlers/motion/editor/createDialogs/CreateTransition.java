@@ -200,7 +200,7 @@ public class CreateTransition extends BaseCreatePanel {
     if (index > 0) {
       writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Transition.ATTR_AUTO_TRANSITION, ourValues[index]);
     }
-    MTag ret = writer.commit();
+    MTag ret = writer.commit("Create Transition");
     mMotionEditor.setMTag(model);
     super.create();
     return ret;
