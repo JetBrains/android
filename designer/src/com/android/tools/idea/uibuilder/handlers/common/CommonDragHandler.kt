@@ -81,7 +81,7 @@ internal class CommonDragHandler(editor: ViewEditor,
     }
     val result = super.update(x, y, modifiers)
     dragTarget.mouseDrag(x, y, emptyList())
-    dragTarget.component.scene.checkRequestLayoutStatus()
+    dragTarget.component.scene.requestLayoutIfNeeded()
     return result
   }
 
@@ -102,7 +102,7 @@ internal class CommonDragHandler(editor: ViewEditor,
       layout.scene.removeComponent(component)
     }
     component.drawState = SceneComponent.DrawState.NORMAL
-    layout.scene.checkRequestLayoutStatus()
+    layout.scene.requestLayoutIfNeeded()
   }
 
   override fun cancel() {

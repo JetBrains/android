@@ -112,7 +112,7 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
       NlWriteCommandActionUtil.run(component, "drag", attributes::commit);
     }
     if (myChangedComponent) {
-      myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+      myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     }
   }
 

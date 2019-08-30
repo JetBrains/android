@@ -374,7 +374,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       }
     }
     modification.apply();
-    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.ANIMATED_LAYOUT);
   }
 
   /**
@@ -447,7 +447,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     }
     ConstraintComponentUtilities.cleanup(modification, myComponent.getNlComponent());
     modification.apply();
-    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.ANIMATED_LAYOUT);
     myRenderingTemporaryConnection = true;
     return modification;
   }
@@ -559,7 +559,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     clearMe(modification);
     ConstraintComponentUtilities.cleanup(modification, myComponent.getNlComponent());
     modification.commit();
-    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.ANIMATED_LAYOUT);
   }
 
   //endregion
@@ -753,7 +753,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
             NlComponent targetComponent = closestTarget.myComponent.getAuthoritativeNlComponent();
             ComponentModification modification = connectMe(component, attribute, targetComponent);
             modification.commit();
-            myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+            myComponent.getScene().markNeedsLayout(Scene.ANIMATED_LAYOUT);
           }
         }
       }
