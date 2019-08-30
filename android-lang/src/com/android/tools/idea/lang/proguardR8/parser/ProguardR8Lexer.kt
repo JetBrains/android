@@ -17,4 +17,19 @@ package com.android.tools.idea.lang.proguardR8.parser
 
 import com.intellij.lexer.FlexAdapter
 
-class ProguardR8Lexer : FlexAdapter(_ProguardR8Lexer())
+/**
+ * Implements parser for ProguardR8
+ *
+ * acceptJavaIdentifiers flag switch lexer to the state in which it can to accept java identifiers,
+ * @see _ProguardR8Lexer.flex
+ */
+class ProguardR8Lexer(private val acceptJavaIdentifiers: Boolean = false) : FlexAdapter(_ProguardR8Lexer()) {
+
+  override fun getFlex(): _ProguardR8Lexer {
+    return super.getFlex() as _ProguardR8Lexer
+  }
+
+  override fun start(buffer: CharSequence, startOffset: Int, endOffset: Int, initialState: Int) {
+    super.start(buffer, startOffset, endOffset, if (acceptJavaIdentifiers) _ProguardR8Lexer.STATE_JAVA_SECTION_HEADER else initialState)
+  }
+}

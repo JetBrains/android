@@ -27,38 +27,39 @@
 
   classHeader='generatedFilesHeader.txt'
 
-   tokens=[
-      WS='regexp:\s+'  // White spaces for live preview
+  // Use only for life preview. Actual lexer contains more than one state and can't be generated from bnf file.
+  tokens=[
+    WS='regexp:\s+'  // White spaces for live preview
+    EM = "!" // exclamation mark
+    OPEN_BRACE = "{"
+    CLOSE_BRACE = "}"
+    LPAREN='('
+    RPAREN=')'
+    SEMICOLON=';'
+    COLON = ':'
+    COMMA=','
+    DOT='.'
+    ASTERISK='*'
+    AT='@'
+    ANY_TYPE='***'
+    ANY_TYPE_AND_NUM_OF_ARGS='...'
+    ANY_PRIMITIVE_TYPE='%'
+    ARRAY = '[]'
+    DOLLAR = '$'
 
-      EM = "!" // exclamation mark
-      OPEN_BRACE = "{"
-      CLOSE_BRACE = "}"
-      LPAREN='('
-      RPAREN=')'
-      SEMICOLON=';'
-      COLON = ':'
-      COMMA=','
-      DOT='.'
-      ASTERISK='*'
-      AT='@'
-      ANY_TYPE='***'
-      ANY_TYPE_AND_NUM_OF_ARGS='...'
-      ANY_PRIMITIVE_TYPE='%'
-      ARRAY = '[]'
+    FLAG = 'regexp:-[a-z]+' // Anything that starts with @ or -
+    FILE_NAME = 'regexp:[\w\-./<>*?]+'
+    FILE_NAME_SINGLE_QUOTED = "regexp:'([\w\-./<>*?\s()])*'"
+    FILE_NAME_DOUBLE_QUOTED = 'regexp:"([\w\-./<>*?\s()])*"'
+    UNTERMINATED_FILE_NAME_SINGLE_QUOTED = "regexp:'([\w\-./<>*?\s()])*"
+    UNTERMINATED_FILE_NAME_DOUBLE_QUOTED = 'regexp:"([\w\-./<>*?\s()])*'
+    LINE_CMT = 'regexp:#[^\n\r]*'     // Line comment, anything that starts with "#".
+    JAVA_IDENTIFIER = 'regexp:[a-zA-Z_][a-zA-Z\d_]*'
+    JAVA_IDENTIFIER_WITH_WILDCARDS = 'regexp:(((\?|\*{1,2})?\w+)+(\?|\*{1,2})?)|(\?|\*{1,2})' // Any string from letters and digits
+                                              // that can contain "?" symbol (no more than one in row) and "*" (no more than two in row).
+  ]
 
-      FLAG = 'regexp:-[a-z]+' // Anything that starts with @ or -
-      FILE_NAME = 'regexp:[\w\-./<>*?]+'
-      FILE_NAME_SINGLE_QUOTED = "regexp:'([\w\-./<>*?\s()])*'"
-      FILE_NAME_DOUBLE_QUOTED = 'regexp:"([\w\-./<>*?\s()])*"'
-      UNTERMINATED_FILE_NAME_SINGLE_QUOTED = "regexp:'([\w\-./<>*?\s()])*"
-      UNTERMINATED_FILE_NAME_DOUBLE_QUOTED = 'regexp:"([\w\-./<>*?\s()])*'
-      LINE_CMT = 'regexp:#[^\n\r]*'     // Line comment, anything that starts with "#".
-      JAVA_IDENTIFIER = 'regexp:[a-zA-Z_$][a-zA-Z\d_$]*'
-      JAVA_IDENTIFIER_WITH_WILDCARDS = 'regexp:(((\?|\*{1,2})?\w+)+(\?|\*{1,2})?)|(\?|\*{1,2})' // Any string from letters and digits
-                                                 // that can contain "?" symbol (no more than one in row) and "*" (no more than two in row).
-   ]
-
-   generate=[names='long' java='8']
+  generate=[names='long' java='8']
 }
 
 root ::= (rule_with_class_specification | rule )*
@@ -73,14 +74,17 @@ flag_argument ::= file_list ('(' file_filter ')')?
 
 keep_option_modifier ::= includedescriptorclasses|includecode|allowshrinking|allowoptimization|allowobfuscation
 
-private java_identifier_ ::= JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS
+private java_identifier_ ::= JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK
 
-qualifiedName ::= java_identifier_ ("." java_identifier_)*
+qualifiedName ::= java_identifier_ ("." java_identifier_)* ("$" java_identifier_)? {
+  methods=[getReferences]
+  extraRoot=true
+}
 
 annotation_name ::= AT qualifiedName
-class_name ::= qualifiedName|ASTERISK
-field_name ::= java_identifier_|ASTERISK
-method_name ::= java_identifier_|ASTERISK
+class_name ::= qualifiedName
+field_name ::= java_identifier_
+method_name ::= java_identifier_
 java_primitive ::= boolean|byte|char|short|int|long|float|double|void
 type ::= ANY_TYPE|ANY_PRIMITIVE_TYPE|((qualifiedName|java_primitive) "[]"?)
 type_list ::= type ("," type)* {pin=1 recoverWhile=not_right_paren}
