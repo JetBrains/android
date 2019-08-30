@@ -394,7 +394,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     myLastX = -1;
     myLastY = -1;
     myComponent.getScene().needsRebuildList();
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     myIsDragging = false;
   }
 

@@ -220,7 +220,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
     AttributesTransaction attributes = component.startAttributeTransaction();
     updateAttributes(attributes, x, y);
     attributes.apply();
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   @Override
@@ -229,7 +229,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
     ComponentModification modification = new ComponentModification(component, "Resize " + StringUtil.getShortName(component.getTagName()));
     updateAttributes(modification, x, y);
     modification.commit();
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   /**
@@ -246,7 +246,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
     component.fireLiveChangeEvent();
 
     myComponent.setDragging(false);
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   @Override
