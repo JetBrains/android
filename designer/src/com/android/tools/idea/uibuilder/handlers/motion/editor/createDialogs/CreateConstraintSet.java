@@ -115,7 +115,7 @@ public class CreateConstraintSet extends BaseCreatePanel {
       writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.ConstraintSet.DERIVE_CONSTRAINTS_FROM, derivesFrom);
     }
 
-    MTag ret = writer.commit();
+    MTag ret = writer.commit("Create ConstraintSet");
     mMotionEditor.setMTag(model);
     super.create();
     return ret;
