@@ -113,11 +113,6 @@ final class ProjectStub extends UserDataHolderBase implements Project {
   }
 
   @Override
-  public <T> T getComponent(@NotNull Class<T> interfaceClass, T defaultImplementation) {
-    return null;
-  }
-
-  @Override
   public boolean isDisposed() {
     return false;
   }
