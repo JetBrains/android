@@ -90,7 +90,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("LauncherAlias", computeDefaultActivity(myFacet, null));
+    assertEquals("com.example.unittest.LauncherAlias", computeDefaultActivity(myFacet, null));
   }
 
   // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
@@ -126,11 +126,11 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ENABLED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("LaunchActivity", computeDefaultActivity(myFacet, null));
+    assertEquals("com.example.unittest.LaunchActivity", computeDefaultActivity(myFacet, null));
 
     // make sure that the dom based approach to getting values works as well
     final Manifest manifest = Manifest.getMainManifest(myFacet);
-    assertEquals("LaunchActivity", DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest));
+    assertEquals("com.example.unittest.LaunchActivity", DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest));
   }
 
   public void testLauncherActivityIntent() throws Exception {

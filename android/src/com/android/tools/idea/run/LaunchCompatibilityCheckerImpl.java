@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -119,9 +120,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   public static LaunchCompatibilityChecker create(@NotNull AndroidFacet facet,
                                                   @Nullable ExecutionEnvironment env,
                                                   @Nullable AndroidRunConfigurationBase androidRunConfigurationBase) {
-    ListenableFuture<AndroidVersion> minSdkVersionFuture = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
-    AndroidVersion minSdkVersion = minSdkVersionFuture.isDone() ? Futures.getUnchecked(minSdkVersionFuture) : AndroidVersion.DEFAULT;
-
+    AndroidVersion minSdkVersion = getMinSdkVersion(facet);
     AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
     if (platform == null) {
       throw new IllegalStateException("Android platform not set for module: " + facet.getModule().getName());
@@ -131,5 +130,19 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
                                   .getAbiFilters() :
                                 null;
     return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), facet, env, androidRunConfigurationBase, supportedAbis);
+  }
+
+  private static AndroidVersion getMinSdkVersion(@NotNull AndroidFacet facet) {
+    ListenableFuture<AndroidVersion> minSdkVersionFuture = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
+    if (minSdkVersionFuture.isDone()) {
+      try {
+        return minSdkVersionFuture.get();
+      }
+      catch (ExecutionException|InterruptedException ignored) {
+        // It'd be nice to log something here, but we're constantly validating
+        // launch compatibility so that would result in a lot of spam.
+      }
+    }
+    return AndroidVersion.DEFAULT;
   }
 }

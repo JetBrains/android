@@ -98,7 +98,8 @@ public class MergedManifestSnapshot {
                          @NotNull ImmutableList<Element> activityAliases,
                          @NotNull ImmutableList<Element> services,
                          @Nullable Actions actions,
-                         @NotNull ImmutableList<MergingReport.Record> loggingRecords) {
+                         @NotNull ImmutableList<MergingReport.Record> loggingRecords,
+                         boolean isValid) {
     myModule = module;
     myPackageName = packageName;
     myApplicationId = applicationId;
@@ -121,7 +122,7 @@ public class MergedManifestSnapshot {
     myServices = services;
     myLoggingRecords = loggingRecords;
     myActions = actions;
-    myIsValid = loggingRecords.stream().anyMatch(record -> record.getSeverity() == MergingReport.Record.Severity.ERROR);
+    myIsValid = isValid;
 
     if (actions != null) {
       ImmutableMap.Builder<String, XmlNode.NodeKey> nodeKeysBuilder = ImmutableMap.builder();
@@ -137,7 +138,7 @@ public class MergedManifestSnapshot {
   }
 
   /**
-   * Returns true if the manifest merger encountered any errors when computing this snapshot,
+   * Returns false if the manifest merger encountered any errors when computing this snapshot,
    * indicating that this snapshot contains dummy values that may not represent the merged
    * manifest accurately.
    */

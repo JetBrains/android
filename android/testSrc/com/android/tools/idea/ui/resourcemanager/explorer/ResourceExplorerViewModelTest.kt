@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -49,6 +50,7 @@ class ResourceExplorerViewModelTest {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = getTestDataDirectory()
+    projectRule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML, FN_ANDROID_MANIFEST_XML)
   }
 
   @After
@@ -76,7 +78,7 @@ class ResourceExplorerViewModelTest {
   @Test
   fun testChangeFacet() {
     runInEdtAndWait {
-      addAndroidModule("app2", projectRule.project, {})
+      addAndroidModule("app2", projectRule.project, "com.example.app2") {}
     }
 
     val modules = ModuleManager.getInstance(projectRule.project).modules

@@ -134,7 +134,7 @@ class ResourceExplorerListViewModelImplTest {
     val module2Name = "app2"
 
     runInEdtAndWait {
-      addAndroidModule(module2Name, projectRule.project) { resourceDir ->
+      addAndroidModule(module2Name, projectRule.project, "com.example.app2") { resourceDir ->
         FileUtil.copy(File(getTestDataDirectory() + "/res/values/colors.xml"),
                       resourceDir.resolve("values/colors.xml"))
       }
