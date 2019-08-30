@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.builder.model.AndroidProject
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
@@ -474,6 +475,95 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     }
   }
 
+  class AppAndLibModules : LightClassesTestBase() {
+    override fun configureAdditionalModules(
+      projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+      modules: MutableList<MyAdditionalModuleData>
+    ) {
+      addModuleWithAndroidFacet(
+        projectBuilder,
+        modules,
+        "mylib",
+        AndroidProject.PROJECT_TYPE_LIBRARY,
+        true
+      )
+    }
+
+    override fun setUp() {
+      super.setUp()
+
+      myFixture.addFileToProject(
+        "/res/values/values.xml",
+        // language=xml
+        """
+        <resources>
+          <string name="appString">Hello from app</string>
+          <string name="anotherAppString">Hello from app</string>
+        </resources>
+        """.trimIndent()
+      )
+
+      val libModule = getAdditionalModuleByName("mylib")!!
+
+      runWriteCommandAction(project) {
+        libModule
+          .let(AndroidFacet::getInstance)!!
+          .manifest!!
+          .`package`!!
+          .value = "com.example.mylib"
+      }
+
+      myFixture.addFileToProject(
+        "${getAdditionalModulePath("mylib")}/res/values/values.xml",
+        // language=xml
+        """
+        <resources>
+          <string name="libString">Hello from app</string>
+          <string name="anotherLibString">Hello from app</string>
+        </resources>
+        """.trimIndent()
+      )
+    }
+
+    fun testNonTransitive() {
+      StudioFlags.TRANSITIVE_R_CLASSES.override(false)
+      try {
+        val activity = myFixture.addFileToProject(
+          "/src/p1/p2/MainActivity.java",
+          // language=java
+          """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(R.string.${"libString" highlightedAs ERROR});
+                getResources().getString(com.example.mylib.R.string.libString);
+            }
+        }
+        """.trimIndent()
+        )
+
+        myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+        myFixture.checkHighlighting()
+
+        myFixture.moveCaret("(R.string.|libString")
+        myFixture.completeBasic()
+        assertThat(myFixture.lookupElementStrings).containsExactly("appString", "anotherAppString", "class")
+
+        myFixture.moveCaret("mylib.R.string.|libString")
+        myFixture.completeBasic()
+        assertThat(myFixture.lookupElementStrings).containsExactly("libString", "anotherLibString", "class")
+      } finally {
+        StudioFlags.TRANSITIVE_R_CLASSES.clearOverride()
+      }
+    }
+  }
+
   /**
    * Tests with a module that should not see R class from another module.
    */
@@ -483,7 +573,13 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
       modules: MutableList<MyAdditionalModuleData>
     ) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "unrelatedLib", AndroidProject.PROJECT_TYPE_LIBRARY, false)
+      addModuleWithAndroidFacet(
+        projectBuilder,
+        modules,
+        "unrelatedLib",
+        AndroidProject.PROJECT_TYPE_LIBRARY,
+        false
+      )
     }
 
     override fun setUp() {
@@ -496,7 +592,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
           .let(AndroidFacet::getInstance)!!
           .manifest!!
           .`package`!!
-          // TODO(b/109739056): Once we correctly create subpackages, we no longer need to use a common prefix.
           .value = "p1.p2.unrelatedLib"
       }
 
