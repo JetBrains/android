@@ -66,6 +66,7 @@ public interface ProguardR8PsiTypes {
   IElementType CLOSE_BRACE = new ProguardR8TokenType("}");
   IElementType COLON = new ProguardR8TokenType(":");
   IElementType COMMA = new ProguardR8TokenType(",");
+  IElementType DOLLAR = new ProguardR8TokenType("$");
   IElementType DOT = new ProguardR8TokenType(".");
   IElementType DOUBLE = new ProguardR8TokenType("double");
   IElementType EM = new ProguardR8TokenType("!");
