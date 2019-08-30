@@ -26,9 +26,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
-import com.android.tools.idea.gradle.dsl.parser.needToCreateParent
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.lexer.KtTokens.*
+import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -88,6 +89,8 @@ class KotlinDslWriter : GradleDslWriter {
   }
 
   override fun createDslElement(element: GradleDslElement): PsiElement? {
+    // If we are trying to create an extra block, we should skip this step as we don't use proper blocks for extra properties in KTS.
+    if (element is ExtDslElement) return getParentPsi(element)
     var anchorAfter = element.anchor
     val psiElement = element.psiElement
     if (psiElement != null) return psiElement
@@ -100,7 +103,7 @@ class KotlinDslWriter : GradleDslWriter {
       anchorAfter = null
     }
 
-    val parentPsiElement = getParentPsi(element) ?: return null
+    var parentPsiElement = getParentPsi(element) ?: return null
 
     val project = parentPsiElement.project
     val psiFactory = KtPsiFactory(project)
@@ -124,6 +127,10 @@ class KotlinDslWriter : GradleDslWriter {
       else if (element.elementType == PropertyType.VARIABLE) {
         statementText = "val ${statementText} = \"abc\""
         isVarOrProperty = true
+      }
+      else if (element.elementType == PropertyType.DERIVED && element is GradleDslExpressionMap) {
+        // This is the case of derived Maps.
+        statementText = "\"${StringUtil.unquoteString(element.name)}\" to \"abc\""
       }
     }
     else if (element is GradleDslExpressionList) {
@@ -167,38 +174,41 @@ class KotlinDslWriter : GradleDslWriter {
         }
         else {
           // This is the case os an extra property, and we will need to delete the value from the extra() callExpression.
-          val delegateExpression = requireNotNull(statement.delegateExpression as KtCallExpression)
-          requireNotNull(delegateExpression.valueArgumentList).removeArgument(0)
+          val delegateExpression = statement.delegateExpression as? KtCallExpression ?: return null
+          delegateExpression.valueArgumentList?.removeArgument(0)
         }
       }
     }
 
     val lineTerminator = psiFactory.createNewLine()
     val addedElement : PsiElement
-    val anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
+    var anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
 
     when (parentPsiElement) {
       is KtFile -> {
         // If the anchor is null, we would add the new element to the beginning of the file which is correct, unless the file starts
         // with a comment : in such case we need to add the element right after the comment and not before.
         val fileBlock = parentPsiElement.script?.blockExpression
+        if (fileBlock != null) {
+          parentPsiElement = fileBlock
+          anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
+        }
+
         val firstRealChild = fileBlock?.firstChild
         if (fileBlock != null && anchor == null && firstRealChild?.node?.elementType == BLOCK_COMMENT) {
           addedElement = fileBlock.addAfter(statement, firstRealChild)
-          // If we're adding a {} block element,  we need to add an empty line before it.
-          if (element.isBlockElement && !isWhiteSpaceOrNls(addedElement.prevSibling)) {
-            fileBlock.addBefore(lineTerminator, addedElement)
-          }
-          fileBlock.addBefore(lineTerminator, addedElement)
         }
         else {
           addedElement = parentPsiElement.addAfter(statement, anchor)
-          if (element.isBlockElement && !isWhiteSpaceOrNls(addedElement.prevSibling)) {
-            parentPsiElement.addBefore(lineTerminator, addedElement)
+          if (element.parent is ExtDslElement && !isWhiteSpaceOrNls(addedElement.nextSibling)) {
+            parentPsiElement.addAfter(lineTerminator, addedElement)
           }
-          parentPsiElement.addBefore(lineTerminator, addedElement)
-
         }
+
+        if (element.isBlockElement && !isWhiteSpaceOrNls(addedElement.prevSibling)) {
+          parentPsiElement.addBefore(lineTerminator, addedElement)
+        }
+        parentPsiElement.addBefore(lineTerminator, addedElement)
       }
       is KtBlockExpression -> {
         addedElement = parentPsiElement.addAfter(statement, anchor)
@@ -213,6 +223,11 @@ class KotlinDslWriter : GradleDslWriter {
         val argumentValue = psiFactory.createArgument(statement)
         addedElement = parentPsiElement.addArgumentAfter(argumentValue, anchor as? KtValueArgument)
       }
+      is KtCallExpression -> {
+        val argumentList = parentPsiElement.valueArgumentList ?: return null
+        val argumentValue = psiFactory.createArgument(statement)
+        addedElement = argumentList.addArgumentAfter(argumentValue, anchor as? KtValueArgument)?.getArgumentExpression() ?: return null
+      }
       else -> {
         addedElement = parentPsiElement.addAfter(statement, anchor)
         parentPsiElement.addBefore(lineTerminator, addedElement)
@@ -226,6 +241,7 @@ class KotlinDslWriter : GradleDslWriter {
       }
     }
     else if (addedElement is KtBinaryExpression) {
+      addedElement.addAfter(psiFactory.createWhiteSpace(), addedElement.lastChild)
       element.psiElement = addedElement
     }
     else if (addedElement is KtCallExpression) {
@@ -267,9 +283,10 @@ class KotlinDslWriter : GradleDslWriter {
     if (psiExpression != null) {
       val replace = psiExpression.replace(newLiteral)
       // Make sure we replaced with the right psi element for the GradleDslLiteral.
-      if (replace is KtStringTemplateExpression || replace is KtConstantExpression
-          || replace is KtNameReferenceExpression || replace is KtDotQualifiedExpression) {
-        literal.setExpression(replace)
+      when (replace) {
+        is KtStringTemplateExpression, is KtConstantExpression, is KtNameReferenceExpression, is KtDotQualifiedExpression,
+        is KtArrayAccessExpression -> literal.setExpression(replace)
+        else -> Unit
       }
     }
     else if (psiElement is KtCallExpression) {
@@ -424,8 +441,25 @@ class KotlinDslWriter : GradleDslWriter {
       }
       return psiElement
     }
+    else if (psiElement is KtProperty) {
+      if (psiElement.hasDelegate()) {
+        // This is the case of a property with a delegate (ex: extra property).
+        val delegateExpressionArgs = (psiElement.delegateExpression as? KtCallExpression)?.valueArgumentList ?: return null
+        val valueArgument = KtPsiFactory(psiElement.project).createArgument("listOf()")
+        val listElement = delegateExpressionArgs.addArgument(valueArgument).getArgumentExpression() ?: return null
+        expressionList.psiElement = listElement
+        return expressionList.psiElement
+      }
+      else {
+        // This should be the case of a property with an initializer (ex: val prop = listOf()).
+        val emptyList = KtPsiFactory(psiElement.project).createExpression("listOf()")
+        val added = psiElement.addAfter(emptyList, psiElement.lastChild)
+        expressionList.psiElement = added
+        return expressionList.psiElement
+      }
 
-    // TODO : add support for variables when available.
+    }
+
     return null
   }
 
