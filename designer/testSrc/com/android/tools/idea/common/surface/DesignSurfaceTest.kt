@@ -138,7 +138,8 @@ private class TestActionManager(surface: DesignSurface) : ActionManager<DesignSu
   override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>) = DefaultActionGroup()
 }
 
-private class TestDesignSurface(project: Project, disposible: Disposable) : DesignSurface(project, SelectionModel(), disposible, java.util.function.Function { TestActionManager(it) }) {
+private class TestDesignSurface(project: Project, disposible: Disposable) :
+  DesignSurface(project, disposible, java.util.function.Function { TestActionManager(it) }, true) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
