@@ -92,7 +92,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   static Collection<AbstractTreeNode> getChildren(@NotNull AndroidFacet facet,
                                                   @NotNull ViewSettings settings,
                                                   @NotNull AndroidProjectViewPane projectViewPane,
-                                                  @NotNull List<IdeaSourceProvider> providers) {
+                                                  @NotNull Iterable<IdeaSourceProvider> providers) {
     Project project = facet.getModule().getProject();
     List<AbstractTreeNode> result = new ArrayList<>();
 
@@ -142,7 +142,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  private static HashMultimap<AndroidSourceType, VirtualFile> getSourcesBySourceType(@NotNull List<IdeaSourceProvider> providers,
+  private static HashMultimap<AndroidSourceType, VirtualFile> getSourcesBySourceType(@NotNull Iterable<IdeaSourceProvider> providers,
                                                                                      @Nullable AndroidModuleModel androidModel) {
     HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = HashMultimap.create();
 
