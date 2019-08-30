@@ -58,6 +58,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -475,7 +476,7 @@ final class MergedManifestInfo {
             continue;
           }
 
-          List<VirtualFile> manifestFiles = IdeaSourceProvider.getManifestFiles(androidFacet);
+          Collection<VirtualFile> manifestFiles = IdeaSourceProvider.getManifestFiles(androidFacet);
           for (VirtualFile manifestFile : manifestFiles) {
             if (vFile.equals(manifestFile)) {
               return m;
