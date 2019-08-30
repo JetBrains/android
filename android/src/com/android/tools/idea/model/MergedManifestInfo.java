@@ -197,17 +197,6 @@ final class MergedManifestInfo {
       actions = result.actions;
     }
 
-    // If the merge failed, try parsing just the primary manifest. This won't be totally correct, but it's better than nothing.
-    // Even if parsing the primary manifest fails, we return a ManifestFile with a null document instead of just returning null
-    // to expose the logged errors and so that callers can use isUpToDate() to see if there's been any changes that might make
-    // the merge succeed if we try again.
-    if (document == null && contributors.primaryManifest != null) {
-      PsiFile psiFile = PsiManager.getInstance(project).findFile(contributors.primaryManifest);
-      if (psiFile != null) {
-        document = XmlUtils.parseDocumentSilently(psiFile.getText(), true);
-      }
-    }
-
     return new MergedManifestInfo(facet, document, modificationStamps, syncTimestamp, loggingRecords, actions);
   }
 
@@ -236,18 +225,12 @@ final class MergedManifestInfo {
         return new ParsedMergeResult(null, mergingReport.getLoggingRecords(), mergingReport.getActions());
       }
     }
-    catch (ManifestMerger2.MergeFailureException ex) {
-      // action cancelled
-      if (ex.getCause() instanceof ProcessCanceledException) {
-        return null;
+    catch (ManifestMerger2.MergeFailureException e) {
+      if (e.getCause() instanceof ProcessCanceledException) {
+        throw (ProcessCanceledException) e.getCause();
       }
-      // user is in the middle of editing the file
-      if (ex.getCause() instanceof SAXParseException) {
-        return null;
-      }
-      LOG.warn("getMergedManifestSupplier exception", ex);
+      throw new MergedManifestException.MergingError(facet.getModule(), e);
     }
-    return null;
   }
 
   /**
@@ -273,6 +256,11 @@ final class MergedManifestInfo {
     return myModificationStamps.equals(ModificationStamps.forFiles(myFacet.getModule().getProject(), manifests.allFiles));
   }
 
+  public boolean hasSevereError() {
+    return myLoggingRecords != null
+           && myLoggingRecords.stream().anyMatch(record -> record.getSeverity() == MergingReport.Record.Severity.ERROR);
+  }
+
   /**
    * Returns the merged manifest as a Java DOM document if available, the primary manifest if the merge was unsuccessful,
    * or null if the merge failed and we were also unable to parse the primary manifest.
@@ -282,7 +270,12 @@ final class MergedManifestInfo {
     return myDomDocument;
   }
 
-  @Nullable
+  @NotNull
+  public AndroidFacet getFacet() {
+    return myFacet;
+  }
+
+  @NotNull
   public ImmutableList<VirtualFile> getFiles() {
     return myModificationStamps.getFiles();
   }

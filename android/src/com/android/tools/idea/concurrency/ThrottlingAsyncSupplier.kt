@@ -16,7 +16,6 @@
 package com.android.tools.idea.concurrency
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.tools.idea.concurrent.transform
 import com.android.utils.concurrency.AsyncSupplier
 import com.android.utils.concurrency.CachedAsyncSupplier
 import com.google.common.util.concurrent.Futures
@@ -51,7 +50,19 @@ class ThrottlingAsyncSupplier<V : Any>(
 
   private val alarm = AlarmFactory.getInstance().create(POOLED_THREAD, this)
   private val scheduledComputation = AtomicReference<Computation<V>?>(null)
-  private val lastComputation = AtomicReference<Computation<V>?>(null)
+  /**
+   * The completed [Computation] representing the last successful invocation of [compute].
+   * Our implementation of [now] simply returns the result of this [Computation].
+   */
+  private val lastSuccessfulComputation = AtomicReference<Computation<V>?>(null)
+  /**
+   * The completed [Computation] representing the last invocation of [compute] that
+   * encountered an exception during execution.
+   * We use the timestamp of this [Computation] later in [determineDelay] to avoid
+   * waiting longer than we need to for guaranteeing the [mergingPeriod]
+   * between invocations.
+   */
+  private val lastFailedComputation = AtomicReference<Computation<V>?>(null)
 
   private var updateCallback: Runnable? = null
 
@@ -64,13 +75,24 @@ class ThrottlingAsyncSupplier<V : Any>(
     updateCallback = null
   }
 
-  override fun getModificationCount() = lastComputation.get()?.let { it.modificationCountWhenScheduled + 1 } ?: -1L
+  /**
+   * Returns a modification count corresponding to changes in the value of [now].
+   *
+   * The count is updated for each successful invocation of [compute] triggered by this supplier,
+   * and invocations that throw an exception are ignored.
+   */
+  override fun getModificationCount() = lastSuccessfulComputation.get()?.let { it.modificationCountWhenScheduled + 1 } ?: -1L
 
+  /**
+   * Returns the result of the last successful invocation of [compute] triggered by this supplier
+   * (invocations that throw an exception are ignored).
+   * @see AsyncSupplier.now
+   */
   override val now: V?
-    get() = lastComputation.get()?.getResultNow()
+    get() = lastSuccessfulComputation.get()?.getResultNow()
 
   override fun get(): ListenableFuture<V> {
-    val cachedComputation = lastComputation.get()
+    val cachedComputation = lastSuccessfulComputation.get()
     val cachedValue = cachedComputation?.getResultNow()
     if (cachedValue != null && isUpToDate(cachedValue)) {
       return Futures.immediateFuture(cachedValue)
@@ -79,7 +101,7 @@ class ThrottlingAsyncSupplier<V : Any>(
     val scheduled = scheduledComputation.updateAndGet { it ?: computation }
     if (scheduled === computation) {
       // Our thread won and our computation is considered scheduled. Let's schedule it:
-      alarm.addRequest(this::runScheduledComputation, determineDelay(cachedComputation))
+      alarm.addRequest(this::runScheduledComputation, determineDelay(cachedComputation, lastFailedComputation.get()))
     }
     return scheduled!!.getResult()
   }
@@ -93,7 +115,7 @@ class ThrottlingAsyncSupplier<V : Any>(
     // It's possible that this computation was scheduled while we were in the middle of
     // another computation. In that case, we haven't yet checked the freshness of the result
     // of the first computation, so we should see if it's still valid before recomputing.
-    val cachedComputation = lastComputation.get()
+    val cachedComputation = lastSuccessfulComputation.get()
     if (cachedComputation != null
         && cachedComputation.modificationCountWhenScheduled == computation.modificationCountWhenScheduled
         && isUpToDate(cachedComputation.getResultNow())) {
@@ -103,43 +125,76 @@ class ThrottlingAsyncSupplier<V : Any>(
     }
     // Set lastComputation before broadcasting the result since we don't know how long
     // that will take and we want to offer getNow() callers as fresh a value as possible.
-    computation.complete(compute())
-    lastComputation.set(computation)
+    val result: V
+    try {
+      result = compute()
+    }
+    catch (t: Throwable) {
+      computation.completeExceptionally(t)
+      lastFailedComputation.set(computation)
+      computation.broadcastResult()
+      return
+    }
+    computation.complete(result)
+    lastSuccessfulComputation.set(computation)
     computation.broadcastResult()
     updateCallback?.run()
   }
 
-  private fun determineDelay(lastComputation: Computation<V>?): Long {
-    lastComputation ?: return mergingPeriod.toMillis()
-    val timeSinceLastComputation = System.currentTimeMillis() - lastComputation.getCompletionTimestamp()
+  private fun determineDelay(lastSuccessfulComputation: Computation<V>?, lastFailedComputation: Computation<V>?): Long {
+    val lastComputationTime = maxOf(
+      lastSuccessfulComputation?.getCompletionTimestamp() ?: -1L,
+      lastFailedComputation?.getCompletionTimestamp() ?: -1L
+    )
+    if (lastComputationTime < 0) {
+      return mergingPeriod.toMillis()
+    }
+    val timeSinceLastComputation = System.currentTimeMillis() - lastComputationTime
     return (mergingPeriod.toMillis() - timeSinceLastComputation).coerceAtLeast(0L)
   }
 }
 
-private data class ValueWithTimestamp<V>(val value: V, val timestampMs: Long)
+private sealed class ComputationResult<V> {
+  val timestampMs = System.currentTimeMillis()
+  data class Value<V>(val value: V) : ComputationResult<V>()
+  data class Error<V>(val error: Throwable) : ComputationResult<V>()
+}
 
 private class Computation<V>(val modificationCountWhenScheduled: Long) {
-  private val result = AtomicReference<ValueWithTimestamp<V>>(null)
-  private val future = SettableFuture.create<ValueWithTimestamp<V>>()!!
+  private val result = AtomicReference<ComputationResult<V>>(null)
+  private val future = SettableFuture.create<V>()!!
 
-  private fun getResultAndCheckComplete(): ValueWithTimestamp<V> {
+  private fun getResultAndCheckComplete(): ComputationResult<V> {
     return result.get() ?: throw IllegalStateException("This Computation hasn't been executed yet.")
   }
 
-  fun complete(result: V) {
-    val resultWithTimestamp = ValueWithTimestamp(result, System.currentTimeMillis())
-    if (!this.result.compareAndSet(null, resultWithTimestamp)) {
-      throw IllegalStateException("This Computation has already been executed.")
+  private fun complete(result: ComputationResult<V>) {
+    check(this.result.compareAndSet(null, result)) { "This Computation has already been executed." }
+  }
+
+  fun complete(result: V) = complete(ComputationResult.Value(result))
+
+  fun completeExceptionally(error: Throwable) = complete(ComputationResult.Error(error))
+
+  fun broadcastResult() {
+    val result = getResultAndCheckComplete()
+    if (result is ComputationResult.Value) {
+      future.set(result.value)
+    }
+    else {
+      future.setException((result as ComputationResult.Error).error)
     }
   }
 
-  fun broadcastResult() {
-    future.set(getResultAndCheckComplete())
+  fun getResult() = Futures.nonCancellationPropagating(future)!!
+
+  fun getResultNow(): V {
+    val result = getResultAndCheckComplete()
+    if (result is ComputationResult.Value) {
+      return result.value
+    }
+    throw IllegalStateException("This Computation completed exceptionally.", (result as ComputationResult.Error).error)
   }
-
-  fun getResult() = Futures.nonCancellationPropagating(future.transform { it.value })!!
-
-  fun getResultNow() = getResultAndCheckComplete().value
 
   fun getCompletionTimestamp() = getResultAndCheckComplete().timestampMs
 }
