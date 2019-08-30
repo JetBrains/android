@@ -30,6 +30,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_S
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES;
 import static com.google.common.truth.Truth.assertThat;
+import static org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT;
 import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.ML_COMMENT;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -41,6 +42,7 @@ import com.intellij.psi.PsiElement;
 import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.psi.KtFile;
 import org.junit.Test;
 
 /**
@@ -470,8 +472,12 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
 
     PsiElement psiFile = ((GradleBuildModelImpl)buildModel).getDslFile().getPsiElement();
-    assertTrue(psiFile.getFirstChild().getNode().getElementType() == ML_COMMENT);
-
+    if (myLanguageName.equals("Groovy")) {
+      assertTrue(psiFile.getFirstChild().getNode().getElementType() == ML_COMMENT);
+    }
+    else if(myLanguageName.equals("Kotlin")){
+      assertTrue(((KtFile)psiFile).getScript().getBlockExpression().getFirstChild().getNode().getElementType() == BLOCK_COMMENT);
+    }
   }
 
   private static void assertMatches(@NotNull ExpectedModuleDependency expected, @NotNull ModuleDependencyModel actual) {
