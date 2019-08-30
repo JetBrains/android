@@ -36,9 +36,12 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.VisualizationFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
+import com.android.tools.idea.uibuilder.visual.VisualizationForm;
+import com.android.tools.idea.uibuilder.visual.VisualizationManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.icons.AllIcons;
@@ -818,6 +821,39 @@ public class EditorFixture {
   public int getPreviewUpdateCount() {
     return GuiQuery.getNonNull(
       () -> NlPreviewManager.getInstance(myFrame.getProject()).getUpdateCount());
+  }
+
+  /**
+   * Returns a fixture around the visualization tool window, <b>if</b> the currently edited file
+   * is a layout file. If visualization tool is not available to current layout, Timeout exception
+   * is thrown.
+   *
+   * @return a visualization tool fixture.
+   */
+  @NotNull
+  public VisualizationFixture getVisualizationTool() {
+    if (!isVisualizationToolShowing()) {
+      myFrame.invokeMenuPath("View", "Tool Windows", "Visualization");
+    }
+
+    Wait.seconds(20).expecting("Visualization window to be visible")
+      .until(() -> VisualizationManager.getInstance(myFrame.getProject()).getVisualizationForm().getSurface().isShowing());
+
+    return new VisualizationFixture(myFrame.getProject(), myFrame.robot());
+  }
+
+  public boolean isVisualizationToolShowing() {
+    return GuiQuery.getNonNull(
+      () -> VisualizationManager.getInstance(myFrame.getProject()).getVisualizationForm().getSurface().isShowing());
+  }
+
+  public boolean isVisualizationToolVisible() {
+    return VisualizationManager.getInstance(myFrame.getProject()).isWindowVisible();
+  }
+
+  public int getVisualizationToolUpdateCount() {
+    return GuiQuery.getNonNull(
+      () -> VisualizationManager.getInstance(myFrame.getProject()).getUpdateCount());
   }
 
   /**

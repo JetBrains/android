@@ -60,6 +60,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Manages a shared visualization window on the right side of the source editor which shows a preview
@@ -82,6 +83,9 @@ public class VisualizationManager implements ProjectComponent {
   private ToolWindow myToolWindow;
   private boolean myToolWindowReady = false;
   private boolean myToolWindowDisposed = false;
+
+  @TestOnly
+  private int myUpdateCount;
 
   public VisualizationManager(final Project project, final FileEditorManager fileEditorManager) {
     myProject = project;
@@ -106,7 +110,7 @@ public class VisualizationManager implements ProjectComponent {
   }
 
   protected String getToolWindowId() {
-    return AndroidBundle.message("android.layout.visual.tool.window.title");
+      return AndroidBundle.message("android.layout.visual.tool.window.title");
   }
 
   @NotNull
@@ -190,6 +194,11 @@ public class VisualizationManager implements ProjectComponent {
     return "VisualizationManager";
   }
 
+  @TestOnly
+  public int getUpdateCount() {
+    return myUpdateCount;
+  }
+
   /**
    * Whether we've seen an open file editor yet
    */
@@ -215,6 +224,7 @@ public class VisualizationManager implements ProjectComponent {
     myToolWindowUpdateQueue.queue(new Update("update") {
       @Override
       public void run() {
+        myUpdateCount++;
         if (!myToolWindowReady || myToolWindowDisposed) {
           return;
         }
@@ -350,6 +360,15 @@ public class VisualizationManager implements ProjectComponent {
   @Nullable
   protected ToolWindow getToolWindow() {
     return myToolWindow;
+  }
+
+  @TestOnly
+  @NotNull
+  public VisualizationForm getVisualizationForm() {
+    if (myToolWindow == null) {
+      initToolWindow();
+    }
+    return myToolWindowForm;
   }
 
   public static VisualizationManager getInstance(Project project) {
