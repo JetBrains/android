@@ -20,18 +20,16 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.annotations.NotNull;
 
-public class AndroidPlugin implements BaseComponent {
+public final class AndroidPlugin {
   private static final String GROUP_ANDROID_TOOLS = "AndroidToolsGroup";
 
-  @Override
-  public void initComponent() {
+  public AndroidPlugin() {
     VirtualFileSystemOpener.INSTANCE.mount();
     registerWebpSupport();
     if (!IdeInfo.getInstance().isAndroidStudio()) {
