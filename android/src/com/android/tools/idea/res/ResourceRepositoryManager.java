@@ -79,7 +79,7 @@ public final class ResourceRepositoryManager implements Disposable {
   private static final Object APP_RESOURCES_LOCK = new Object();
   private static final Object PROJECT_RESOURCES_LOCK = new Object();
   private static final Object MODULE_RESOURCES_LOCK = new Object();
-  private static final Object TEST_APP_RESOURCES_LOCK = new Object();
+  private static final Object TEST_RESOURCES_LOCK = new Object();
 
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final AaptOptions.Namespacing myNamespacing;
@@ -87,7 +87,8 @@ public final class ResourceRepositoryManager implements Disposable {
   /**
    * If the module is namespaced, this is the shared {@link ResourceNamespace} instance corresponding to the package name from the manifest.
    */
-  @Nullable private ResourceNamespace myCachedNamespace;
+  @Nullable private ResourceNamespace mySharedNamespaceInstance;
+  @Nullable private ResourceNamespace mySharedTestNamespaceInstance;
 
   @GuardedBy("APP_RESOURCES_LOCK")
   private AppResourceRepository myAppResources;
@@ -98,8 +99,11 @@ public final class ResourceRepositoryManager implements Disposable {
   @GuardedBy("MODULE_RESOURCES_LOCK")
   private LocalResourceRepository myModuleResources;
 
-  @GuardedBy("TEST_APP_RESOURCES_LOCK")
+  @GuardedBy("TEST_RESOURCES_LOCK")
   private LocalResourceRepository myTestAppResources;
+
+  @GuardedBy("TEST_RESOURCES_LOCK")
+  private LocalResourceRepository myTestModuleResources;
 
   @GuardedBy("PROJECT_RESOURCES_LOCK")
   private CachedValue<LocalesAndLanguages> myLocalesAndLanguages;
@@ -454,7 +458,7 @@ public final class ResourceRepositoryManager implements Disposable {
   @NotNull
   public LocalResourceRepository getTestAppResources() {
     return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
-      synchronized (TEST_APP_RESOURCES_LOCK) {
+      synchronized (TEST_RESOURCES_LOCK) {
         if (myTestAppResources == null) {
           if (myFacet.isDisposed()) {
             return new EmptyRepository(getTestNamespace());
@@ -467,26 +471,38 @@ public final class ResourceRepositoryManager implements Disposable {
     });
   }
 
+  /**
+   * Returns the resource repository with test resources defined in the given module.
+   */
+  @NotNull
+  public LocalResourceRepository getTestModuleResources() {
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
+      synchronized (TEST_RESOURCES_LOCK) {
+        if (myTestModuleResources == null) {
+          if (myFacet.isDisposed()) {
+            return new EmptyRepository(getTestNamespace());
+          }
+          myTestModuleResources = ModuleResourceRepository.forTestResources(myFacet, getTestNamespace());
+          registerIfDisposable(this, myTestModuleResources);
+        }
+        return myTestModuleResources;
+      }
+    });
+  }
+
   @NotNull
   private LocalResourceRepository computeTestAppResources() {
     // For disposal, the newly created test module repository ends up owned by the repository manager if returned from this method or the
     // TestAppResourceRepository if passed to it. This is slightly different to the main module repository, which is always owned by the
     // manager and stored in myModuleResources.
-    LocalResourceRepository moduleTestResources = ModuleResourceRepository.forTestResources(myFacet, getTestNamespace());
-
-    if (myNamespacing == AaptOptions.Namespacing.REQUIRED) {
-      // TODO(namespaces): Confirm that's how test resources will work.
-      return moduleTestResources;
-    }
+    LocalResourceRepository moduleTestResources = getTestModuleResources();
 
     AndroidModuleModel model = AndroidModuleModel.get(myFacet);
     if (model == null) {
       return moduleTestResources;
     }
 
-    TestAppResourceRepository testAppRepo = TestAppResourceRepository.create(myFacet, moduleTestResources, model);
-    registerIfDisposable(testAppRepo, moduleTestResources);
-    return testAppRepo;
+    return TestAppResourceRepository.create(myFacet, moduleTestResources, model);
   }
 
   /**
@@ -561,10 +577,14 @@ public final class ResourceRepositoryManager implements Disposable {
       }
     }
 
-    synchronized (TEST_APP_RESOURCES_LOCK) {
+    synchronized (TEST_RESOURCES_LOCK) {
       if (myTestAppResources != null) {
         disposeIfDisposable(myTestAppResources);
         myTestAppResources = null;
+      }
+      if (myTestModuleResources != null) {
+        disposeIfDisposable(myTestModuleResources);
+        myTestModuleResources = null;
       }
     }
   }
@@ -660,19 +680,34 @@ public final class ResourceRepositoryManager implements Disposable {
       return ResourceNamespace.RES_AUTO;
     }
 
-    if (myCachedNamespace == null || !packageName.equals(myCachedNamespace.getPackageName())) {
-      myCachedNamespace = ResourceNamespace.fromPackageName(packageName);
+    if (mySharedNamespaceInstance == null || !packageName.equals(mySharedNamespaceInstance.getPackageName())) {
+      mySharedNamespaceInstance = ResourceNamespace.fromPackageName(packageName);
     }
 
-    return myCachedNamespace;
+    return mySharedNamespaceInstance;
   }
 
   /**
    * Returns the {@link ResourceNamespace} used by test resources of the current module.
+   *
+   * TODO(namespaces): figure out semantics of test resources with namespaces.
    */
   @NotNull
   public ResourceNamespace getTestNamespace() {
-    return ResourceNamespace.TODO(); // TODO(namespaces): figure out semantics of test resources with namespaces.
+    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+      return ResourceNamespace.RES_AUTO;
+    }
+
+    String testPackageName = AndroidManifestUtils.getTestPackageName(myFacet);
+    if (testPackageName == null) {
+      return ResourceNamespace.RES_AUTO;
+    }
+
+    if (mySharedTestNamespaceInstance == null || !testPackageName.equals(mySharedTestNamespaceInstance.getPackageName())) {
+      mySharedTestNamespaceInstance = ResourceNamespace.fromPackageName(testPackageName);
+    }
+
+    return mySharedTestNamespaceInstance;
   }
 
   @Nullable

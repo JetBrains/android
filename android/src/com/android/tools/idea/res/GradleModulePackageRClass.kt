@@ -75,7 +75,7 @@ class ModuleRClass(
         }
         TEST -> when (transitivity) {
           TRANSITIVE -> repoManager.testAppResources
-          NON_TRANSITIVE -> repoManager.testAppResources // TODO: figure out non-transitive test R classes
+          NON_TRANSITIVE -> repoManager.testModuleResources
         }
       }
     }

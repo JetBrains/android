@@ -46,6 +46,16 @@ import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
+private fun withNonTransitiveClasses(code: () -> Unit) {
+  StudioFlags.TRANSITIVE_R_CLASSES.override(false)
+  try {
+    code()
+  }
+  finally {
+    StudioFlags.TRANSITIVE_R_CLASSES.clearOverride()
+  }
+}
+
 /**
  * Tests for the whole setup of light, in-memory R classes.
  *
@@ -525,42 +535,37 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       )
     }
 
-    fun testNonTransitive() {
-      StudioFlags.TRANSITIVE_R_CLASSES.override(false)
-      try {
-        val activity = myFixture.addFileToProject(
-          "/src/p1/p2/MainActivity.java",
-          // language=java
-          """
-        package p1.p2;
+    fun testNonTransitive() = withNonTransitiveClasses {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+      package p1.p2;
 
-        import android.app.Activity;
-        import android.os.Bundle;
+      import android.app.Activity;
+      import android.os.Bundle;
 
-        public class MainActivity extends Activity {
-            @Override
-            protected void onCreate(Bundle savedInstanceState) {
-                super.onCreate(savedInstanceState);
-                getResources().getString(R.string.${"libString" highlightedAs ERROR});
-                getResources().getString(com.example.mylib.R.string.libString);
-            }
-        }
-        """.trimIndent()
-        )
-
-        myFixture.configureFromExistingVirtualFile(activity.virtualFile)
-        myFixture.checkHighlighting()
-
-        myFixture.moveCaret("(R.string.|libString")
-        myFixture.completeBasic()
-        assertThat(myFixture.lookupElementStrings).containsExactly("appString", "anotherAppString", "class")
-
-        myFixture.moveCaret("mylib.R.string.|libString")
-        myFixture.completeBasic()
-        assertThat(myFixture.lookupElementStrings).containsExactly("libString", "anotherLibString", "class")
-      } finally {
-        StudioFlags.TRANSITIVE_R_CLASSES.clearOverride()
+      public class MainActivity extends Activity {
+          @Override
+          protected void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              getResources().getString(R.string.${"libString" highlightedAs ERROR});
+              getResources().getString(com.example.mylib.R.string.libString);
+          }
       }
+      """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
+
+      myFixture.moveCaret("(R.string.|libString")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsExactly("appString", "anotherAppString", "class")
+
+      myFixture.moveCaret("mylib.R.string.|libString")
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsExactly("libString", "anotherLibString", "class")
     }
   }
 
@@ -1093,6 +1098,8 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
 /**
  * Legacy projects (without the model) have no concept of test resources, so for now this needs to be tested using Gradle.
+ *
+ * We use the [TestProjectPaths.PROJECT_WITH_APPAND_LIB] project and make `app` have an `androidTestImplementation` dependency on `lib`.
  */
 class TestRClassesTest : AndroidGradleTestCase() {
   override fun setUp() {
@@ -1123,6 +1130,7 @@ class TestRClassesTest : AndroidGradleTestCase() {
         <resources>
           <string name='appTestResource'>app test resource</string>
           <string name='anotherAppTestResource'>another app test resource</string>
+          <color name='appTestColor'>#000000</color>
         </resources>
       """.trimIndent()
     )
@@ -1135,6 +1143,7 @@ class TestRClassesTest : AndroidGradleTestCase() {
         <resources>
           <string name='libTestResource'>lib test resource</string>
           <string name='anotherLibTestResource'>another lib test resource</string>
+          <color name='libTestColor'>#000000</color>
         </resources>
       """.trimIndent()
     )
@@ -1151,7 +1160,7 @@ class TestRClassesTest : AndroidGradleTestCase() {
     )
   }
 
-  fun testAppResources() {
+  fun testAppTestResources() {
     val androidTest = createFile(
       project.guessProjectDir()!!,
       "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
@@ -1193,7 +1202,45 @@ class TestRClassesTest : AndroidGradleTestCase() {
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
   }
 
-  fun testLibResources() {
+  fun testAppTestResources_nonTransitive() = withNonTransitiveClasses {
+
+    val androidTest = createFile(
+      project.guessProjectDir()!!,
+      "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.app;
+
+      public class RClassAndroidTest {
+          void useResources() {
+             int[] id = new int[] {
+              com.example.projectwithappandlib.app.test.R.string.${caret}appTestResource,
+
+              // Resources from test deps are not in the non-transitive test R class:
+              com.example.projectwithappandlib.app.test.R.string.${"libResource" highlightedAs ERROR},
+              com.example.projectwithappandlib.app.test.R.color.${"primary_material_dark" highlightedAs ERROR},
+
+              // Main resources are not in the test R class:
+              com.example.projectwithappandlib.app.test.R.string.${"app_name" highlightedAs ERROR},
+
+              // Main resources from dependencies are not in R class:
+              com.example.projectwithappandlib.app.test.R.string.${"libTestResource" highlightedAs ERROR},
+
+              R.string.app_name // Main R class is still accessible.
+             };
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+    myFixture.checkHighlighting()
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsExactly("appTestResource", "anotherAppTestResource", "class")
+  }
+
+  fun testLibTestResources() {
     val androidTest = createFile(
       project.guessProjectDir()!!,
       "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
@@ -1229,6 +1276,39 @@ class TestRClassesTest : AndroidGradleTestCase() {
 
     // Private resources are filtered out.
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+  }
+
+  fun testLibTestResources_nonTransitive() = withNonTransitiveClasses {
+    val androidTest = createFile(
+      project.guessProjectDir()!!,
+      "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.lib;
+
+      public class RClassAndroidTest {
+          void useResources() {
+             int[] id = new int[] {
+              com.example.projectwithappandlib.lib.test.R.string.${caret}libTestResource,
+
+              // Resources from test deps are not in the non-transitive test R class:
+              com.example.projectwithappandlib.lib.test.R.color.${"primary_material_dark" highlightedAs ERROR},
+
+              // Main resources are not in the test R class:
+              com.example.projectwithappandlib.lib.test.R.string.${"libResource" highlightedAs ERROR},
+
+              R.string.libResource // Main R class is still accessible.
+             };
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+    myFixture.checkHighlighting()
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
   }
 
   fun testScoping() {
