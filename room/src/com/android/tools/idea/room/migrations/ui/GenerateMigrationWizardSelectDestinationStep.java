@@ -37,6 +37,9 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Step of the {@link GenerateMigrationWizard} for selecting the destination folders for the new Migration class and test
+ */
 public class GenerateMigrationWizardSelectDestinationStep implements Step {
   private static final String TARGET_PACKAGE_LABEL = "Choose target package package";
   private static final String MIGRATION_CLASS_COMBO_BOX_LABEL = "Choose destination directory for the migration class";
