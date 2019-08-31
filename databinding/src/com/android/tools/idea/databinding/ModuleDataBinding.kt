@@ -23,7 +23,6 @@ import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.facet.Facet
@@ -87,10 +86,9 @@ class ModuleDataBinding private constructor(private val module: Module) {
    * Generates all [BindingLayoutGroup]s for the current module.
    */
   private fun generateGroups(facet: AndroidFacet, moduleResources: LocalResourceRepository): Collection<BindingLayoutGroup> {
-    val modulePackage = MergedManifestManager.getSnapshot(facet).getPackage() ?: return emptySet()
     val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
     return layoutResources.values()
-      .map { resource -> BindingLayout(facet, modulePackage, resource) }
+      .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
       .filter { bindingLayout -> !bindingLayout.data.viewBindingIgnore }
       .groupBy { info -> info.file.name }
       .map { entry -> BindingLayoutGroup(entry.value) }
