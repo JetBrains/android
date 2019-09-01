@@ -41,10 +41,10 @@ import java.awt.event.MouseEvent
  * [cellRenderer]: the cell renderer to be used for the list items
  */
 abstract class ComponentListInspectorBuilder(val tagName: String,
-                                             val title: String,
                                              private val cellRenderer: ColoredListCellRenderer<NlComponent>,
                                              private val comparator: Comparator<NlComponent> = compareBy { it.id })
   : InspectorBuilder<NelePropertyItem> {
+  abstract fun title(component: NlComponent): String
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     val component = properties.first?.components?.singleOrNull() ?: return
     if (!isApplicable(component)) {
@@ -60,7 +60,7 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
     val addAction = AddAction(this, component, model)
     val deleteAction = DeleteAction(this, component, model, list)
 
-    val titleModel = inspector.addExpandableTitle(title, model.size > 0, addAction, deleteAction)
+    val titleModel = inspector.addExpandableTitle(title(component), model.size > 0, addAction, deleteAction)
     addAction.model = titleModel
     deleteAction.model = titleModel
 
@@ -99,6 +99,7 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
       builder.onAdd(component)
       builder.refresh(component, listModel)
       model?.refresh()
+      model?.expanded = listModel.size > 0
     }
   }
 
@@ -112,6 +113,7 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
       component.model.delete(list.selectedValuesList)
       builder.refresh(component, listModel)
       model?.refresh()
+      model?.expanded = listModel.size > 0
     }
   }
 }

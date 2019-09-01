@@ -43,6 +43,12 @@ class ComponentList(model: SortedListModel<NlComponent>, cellRenderer: ColoredLi
     list.cellRenderer = cellRenderer
 
     list.addFocusListener(object : FocusAdapter() {
+      override fun focusGained(event: FocusEvent?) {
+        if(list.model.size > 0 && list.selectedIndex < 0) {
+          list.selectedIndex = 0
+        }
+      }
+
       override fun focusLost(event: FocusEvent?) {
         list.clearSelection()
       }
