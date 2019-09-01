@@ -29,7 +29,8 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.E
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 
 class ArgumentInspectorBuilder
-  : ComponentListInspectorBuilder(TAG_ARGUMENT, "Arguments", ArgumentCellRenderer(), compareBy { it.argumentName }) {
+  : ComponentListInspectorBuilder(TAG_ARGUMENT, ArgumentCellRenderer(), compareBy { it.argumentName }) {
+  override fun title(component: NlComponent): String = "Arguments"
   override fun onAdd(parent: NlComponent) {
     invokeDialog(null, parent)
   }
