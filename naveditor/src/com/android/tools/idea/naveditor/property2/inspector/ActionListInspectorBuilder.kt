@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.property2.inspector
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.property.inspector.AddActionDialog
 import com.android.tools.idea.naveditor.property.inspector.showAndUpdateFromDialog
@@ -27,8 +27,15 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ui.components.JBList
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 
-class ActionListInspectorBuilder(private val model: NelePropertiesModel) : ComponentListInspectorBuilder(TAG_ACTION, "Actions",
-                                                                                                     ActionCellRenderer()) {
+class ActionListInspectorBuilder(private val model: NelePropertiesModel) : ComponentListInspectorBuilder(TAG_ACTION, ActionCellRenderer()) {
+  override fun title(component: NlComponent) =
+    if (component.isNavigation) {
+      "Global Actions"
+    }
+    else {
+      "Actions"
+    }
+
   override fun onAdd(parent: NlComponent) {
     invokeDialog(null, parent)
   }
