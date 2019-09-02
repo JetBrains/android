@@ -56,6 +56,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 
 import javax.swing.*;
@@ -462,9 +463,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   @Nullable
   private String toRelativePath(String absPath) {
     absPath = FileUtil.toSystemIndependentName(absPath);
-    String moduleDirPath = AndroidRootUtil.getModuleDirPath(myContext.getModule());
+    @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(myContext.getModule());
     if (moduleDirPath != null) {
-      moduleDirPath = FileUtil.toSystemIndependentName(moduleDirPath);
       return FileUtil.getRelativePath(moduleDirPath, absPath, '/');
     }
     return null;
@@ -726,7 +726,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (genRelativePath.isEmpty()) {
       return "";
     }
-    String moduleDirPath = AndroidRootUtil.getModuleDirPath(myContext.getModule());
+    @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(myContext.getModule());
     if (moduleDirPath == null) return null;
     final String path = PathUtil.getCanonicalPath(new File(moduleDirPath, genRelativePath).getPath());
     return path != null ? PathUtil.getLocalPath(path) : null;
@@ -776,7 +776,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         else {
           initialFile = module.getModuleFile();
           if (initialFile == null) {
-            String p = AndroidRootUtil.getModuleDirPath(myContext.getModule());
+            @SystemIndependent String p = AndroidRootUtil.getModuleDirPath(myContext.getModule());
             if (p != null) {
               initialFile = LocalFileSystem.getInstance().findFileByPath(p);
             }
@@ -835,7 +835,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       initialFile = myContext.getModule().getModuleFile();
     }
     if (initialFile == null) {
-      String p = AndroidRootUtil.getModuleDirPath(myContext.getModule());
+      @SystemIndependent String p = AndroidRootUtil.getModuleDirPath(myContext.getModule());
       if (p != null) {
         initialFile = LocalFileSystem.getInstance().findFileByPath(p);
       }
