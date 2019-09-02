@@ -66,6 +66,8 @@ internal class FindReferencesRecipeExecutor(private val myContext: RenderingCont
     myContext.dependencies.put(configuration, mavenUrl)
   }
 
+  override fun addModuleDependency(configuration: String, moduleName: String, toModule: String) {}
+
   override fun updateAndSync() {}
 
   override fun pushFolder(folder: String) {}

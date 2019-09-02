@@ -219,6 +219,21 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     dependencyList.put(configuration, mavenUrl)
   }
 
+  override fun addModuleDependency(configuration: String, moduleName: String, toModule: String) {
+    require(moduleName.isNotEmpty() && moduleName.first() != ':') {
+      "incorrect module name (it should not be empty or include first ':')"
+    }
+    // Translate from "configuration" to "implementation" based on the parameter map context
+    val configuration = FmGetConfigurationNameMethod.convertConfiguration(paramMap, configuration)
+
+    val buildFile = getGradleBuildFilePath(File(toModule))
+
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    buildModel.dependencies().addModule(configuration, ":$moduleName")
+    io.applyChanges(buildModel)
+  }
+
   override fun addFilesToOpen(file: File) {
     referencesExecutor.addFilesToOpen(file)
   }

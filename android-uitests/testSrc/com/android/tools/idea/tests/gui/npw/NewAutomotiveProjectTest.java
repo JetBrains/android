@@ -40,7 +40,7 @@ public class NewAutomotiveProjectTest {
     guiTest.ideFrame().getEditor()
       .open("mobile/build.gradle") // Did we create a mobile "companion" module?
       .open("automotive/build.gradle") // Check "automotive" module was created and its dependencies
-      .moveBetween("implementation project(':shared')", "")
+      .moveBetween("implementation project(path: ':shared')", "")
       .open("shared/build.gradle") // Check "shared" module was created and its dependencies
       .moveBetween("androidx.media:media:", "")
       .open("shared/src/main/res/xml/automotive_app_desc.xml")
