@@ -121,6 +121,19 @@ class PsAndroidModule(
   private fun flavorNamesByDimension(dimension: String) =
     productFlavors.filter { it.effectiveDimension == dimension }.map { it.name }
 
+  private fun flavorNamesCartesianProduct(newFlavorName: String? = null, dimensionName: String? = null): List<String> =
+    flavorDimensions
+      .map { it.name to flavorNamesByDimension(it.name) }
+      .fold(listOf(listOf<String>())) { acc, flavorNames ->
+        when (flavorNames.first) {
+          dimensionName -> acc.map { it + newFlavorName!! }
+          else -> acc.flatMap { a -> flavorNames.second.map { a + it } }
+        }
+      }
+      .map { it.combineAsCamelCase() }
+
+  // TODO(xof): in the light of b/137551452, remaining uses of this function (checking for collisions when adding new build types
+  //  or product flavors) should be converted to flavorNamesCartesianProduct.  (Using this makes the check slightly too stringent.)
   private fun buildFlavorCombinations(newFlavorName: String? = null, dimensionName: String? = null) = when {
     flavorDimensions.size > 1 -> flavorDimensions
       .fold(listOf(listOf(""))) { acc, dimension ->
@@ -138,20 +151,13 @@ class PsAndroidModule(
 
     fun applicableArtifacts() = listOf("", "test", "androidTest")
 
-    fun applicableProductFlavors() =
-      listOf("") +
-      (if (onlyImportantFor == null || onlyImportantFor == ImportantFor.LIBRARY) productFlavors.map { it.name } else listOf()) +
-      (if (onlyImportantFor == null) buildFlavorCombinations() else listOf())
-
     fun applicableBuildTypes(artifact: String) =
-      // TODO(solodkyy): Include product flavor combinations
       when (artifact) {
         "androidTest" -> listOf("")  // androidTest is built only for the configured buildType.
         else -> listOf("") +
                 (if (onlyImportantFor == null || onlyImportantFor == ImportantFor.LIBRARY) buildTypes.map { it.name } else listOf())
       }
 
-    // TODO(solodkyy): When explicitly requested return other advanced scopes (compileOnly, api).
     fun applicableScopes() = listOfNotNull(
       "implementation",
       "api".takeIf { onlyImportantFor == null || onlyImportantFor == ImportantFor.MODULE },
@@ -160,10 +166,21 @@ class PsAndroidModule(
 
     val result = mutableListOf<String>()
     applicableArtifacts().forEach { artifact ->
-      applicableProductFlavors().forEach { productFlavor ->
+      applicableScopes().forEach { scope ->
         applicableBuildTypes(artifact).forEach { buildType ->
-          applicableScopes().forEach { scope ->
-            result.add(listOf(artifact, productFlavor, buildType, scope).filter { it != "" }.combineAsCamelCase())
+          // configurations that are simple buildType names
+          result.add(listOf(artifact, "", buildType, scope).filter { it != "" }.combineAsCamelCase())
+          flavorNamesCartesianProduct().forEach { productFlavor ->
+            // configurations that are complete product flavors and an optional build type
+            if (onlyImportantFor == null) {
+              result.add(listOf(artifact, productFlavor, buildType, scope).filter { it != "" }.combineAsCamelCase())
+            }
+          }
+        }
+        if (onlyImportantFor == null || onlyImportantFor == ImportantFor.LIBRARY) {
+          productFlavors.map { it.name }.forEach { productFlavor ->
+            // configurations that are simple single-dimension productFlavor names (with no build type)
+            result.add(listOf(artifact, productFlavor, "", scope).filter { it != "" }.combineAsCamelCase())
           }
         }
       }
