@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
+import com.android.ddmlib.Log
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
@@ -45,6 +46,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.text.StringUtil.unquoteString
 import com.intellij.psi.PsiElement
 import com.intellij.util.IncorrectOperationException
+import com.intellij.util.text.LiteralFormatUtil
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
@@ -73,6 +75,8 @@ import org.jetbrains.kotlin.psi.KtVisitor
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 import org.jetbrains.kotlin.resolve.constants.evaluate.parseBoolean
 import org.jetbrains.kotlin.resolve.constants.evaluate.parseNumericLiteral
+import java.math.BigDecimal
+import java.util.Locale
 
 /**
  * Parser for .gradle.kt files. This method produces a [GradleDslElement] tree.
@@ -148,13 +152,17 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           KtNodeTypes.INTEGER_CONSTANT-> {
             val numericalValue = parseNumericLiteral(literal.text, literal.node.elementType)
             if (numericalValue is Long && (numericalValue > Integer.MAX_VALUE || numericalValue < Integer.MIN_VALUE)) return numericalValue
-            // TODO: Add support to byte and short if needed.
             return (numericalValue as Number).toInt()
           }
           KtNodeTypes.FLOAT_CONSTANT -> {
-            val parsedNumber = parseNumericLiteral(literal.text, literal.node.elementType)
-            if (parsedNumber is Float) return parsedNumber.toBigDecimal()
-            return (parsedNumber as Double).toBigDecimal()
+            // FLOAT_CONSTANT applies for float, double, and bigDecimal values and we use bigDecimal to ensure the best precision.
+            // For values with "f" suffix, it's safe to remove the suffix here as we can get it from the psi element text value for the writer.
+            try {
+              return BigDecimal(LiteralFormatUtil.removeUnderscores(literal.text).trimEnd('f', 'F'))
+            } catch (e: NumberFormatException) {
+              Log.e("KotlinDslParser", e)
+              return null
+            }
           }
           KtNodeTypes.BOOLEAN_CONSTANT -> parseBoolean(literal.text)
           else -> unquoteString(literal.text)
@@ -322,7 +330,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       parentBlock = nestedElement
     }
 
-    val propertyElement = createExpressionElement(parentBlock, expression, name, right) ?: return
+    val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
     propertyElement.setUseAssignment(true)
     propertyElement.setElementType(REGULAR)
 
@@ -339,7 +347,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // if we've got this far, we have a variable declaration/initialization of the form "val foo = bar"
 
       val name = GradleNameElement.from(identifier)
-      val propertyElement = createExpressionElement(parent, expression, name, initializer) ?: return
+      val propertyElement = createExpressionElement(parent, expression, name, initializer, true) ?: return
       propertyElement.elementType = VARIABLE
       parent.setParsedElement(propertyElement)
     }
@@ -361,7 +369,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
       val ext = getBlockElement(listOf("ext"), parent, null) ?: return
       val name = GradleNameElement.from(identifier) // TODO(xof): error checking: empty/qualified/etc
-      val propertyElement = createExpressionElement(ext, expression, name, initializer) ?: return
+      val propertyElement = createExpressionElement(ext, expression, name, initializer, true) ?: return
       // This Property is assigning a value to a property, so we need to set the UseAssignment to true.
       propertyElement.setUseAssignment(true)
       propertyElement.elementType = REGULAR
@@ -375,13 +383,14 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     name : GradleNameElement,
     argumentsList : KtValueArgumentList,
     methodName : String,
-    isFirstCall : Boolean
+    isFirstCall : Boolean,
+    isLiteral : Boolean = false
   ) : GradleDslExpression? {
     if (methodName == "mapOf") {
       return getExpressionMap(parentElement, psiElement, name, argumentsList.arguments)
     }
     else if (methodName == "listOf") {
-      return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, false)
+      return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral)
     }
     else if (methodName == "kotlin") {
       // If the method has one argument, we should check if it's declared under a dependency block in order to resolve it to a dependency,
@@ -480,7 +489,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
                                 propertyName : GradleNameElement,
                                 valueArguments : List<KtElement>,
                                 isLiteral : Boolean) : GradleDslExpressionList {
-    val expressionList = GradleDslExpressionList(parentElement, listPsiElement, propertyName, isLiteral)
+    val expressionList = GradleDslExpressionList(parentElement, listPsiElement, isLiteral, propertyName)
     valueArguments.map {
       expression -> expression as KtValueArgument
     }.filter {
@@ -492,7 +501,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // isNamed() checks if getArgumentName() is not null, so using !! here is safe (unless the implementation changes).
       if (argumentExpression.isNamed())
         GradleNameElement.create(argumentExpression.getArgumentName()!!.text) else GradleNameElement.empty(),
-      argumentExpression.getArgumentExpression() as KtExpression)
+      argumentExpression.getArgumentExpression() as KtExpression, isLiteral)
     }.forEach {
       if (it is GradleDslClosure) {
         parentElement.setParsedClosureElement(it)
@@ -507,15 +516,16 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   private fun createExpressionElement(parent : GradleDslElement,
                                       psiElement : PsiElement,
                                       name: GradleNameElement,
-                                      expression : KtExpression) : GradleDslExpression? {
+                                      expression : KtExpression,
+                                      isLiteral : Boolean = false) : GradleDslExpression? {
     // Parse all the ValueArgument types.
     when (expression) {
-      is KtValueArgumentList -> return getExpressionList(parent, expression, name, expression.arguments, true)
+      is KtValueArgumentList -> return getExpressionList(parent, expression, name, expression.arguments, isLiteral)
       is KtCallExpression -> {
         // Ex: implementation(kotlin("stdlib-jdk7")).
         val expressionName = expression.name() ?: return null
         val arguments = expression.valueArgumentList ?: return null
-        return getCallExpression(parent, expression, name, arguments, expressionName, false)
+        return getCallExpression(parent, expression, name, arguments, expressionName, false, isLiteral)
       }
       is KtParenthesizedExpression -> return createExpressionElement(parent, psiElement, name, expression.expression ?: expression)
       else -> return getExpressionElement(parent, psiElement, name, expression)
