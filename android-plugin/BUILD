@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.plugin",
     srcs = ["src"],
     iml_files = ["intellij.android.plugin.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
