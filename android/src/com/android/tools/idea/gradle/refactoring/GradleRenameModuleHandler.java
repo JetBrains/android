@@ -57,6 +57,7 @@ import com.intellij.refactoring.rename.RenameHandler;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,8 +78,9 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
   @Nullable
   private static VirtualFile getModuleRootDir(@NotNull Module module) {
-    File moduleFilePath = new File(module.getModuleFilePath());
-    return findFileByIoFile(moduleFilePath.getParentFile(), true);
+    File moduleRootDir = AndroidRootUtil.findModuleRootFolderPath(module);
+    if (moduleRootDir == null) return null;
+    return findFileByIoFile(moduleRootDir, true);
   }
 
   @Override

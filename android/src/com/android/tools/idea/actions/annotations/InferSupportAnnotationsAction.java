@@ -95,6 +95,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.JComponent;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -256,7 +257,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       GradleBuildModel buildModel = GradleBuildModel.get(module);
       if (buildModel == null) {
         Logger.getInstance(InferSupportAnnotationsAction.class)
-          .warn("Unable to find Gradle build model for module " + module.getModuleFilePath());
+          .warn("Unable to find Gradle build model for module " + AndroidRootUtil.getModuleDirPath(module));
         continue;
       }
       boolean dependencyFound = false;

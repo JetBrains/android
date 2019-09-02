@@ -40,6 +40,7 @@ import java.util.*
 
 import com.android.tools.idea.templates.Template.*
 import com.google.common.annotations.VisibleForTesting
+import org.jetbrains.annotations.SystemIndependent
 
 /**
  * Parameter represents an external input to a template. It consists of an ID used to refer to it within the template, human-readable
@@ -272,7 +273,7 @@ class Parameter(
         Constraint.SOURCE_SET_FOLDER -> {
           module ?: return false
           val facet = AndroidFacet.getInstance(module) ?: return false
-          val modulePath = AndroidRootUtil.getModuleDirPath(module) ?: return false
+          val modulePath: @SystemIndependent String  = AndroidRootUtil.getModuleDirPath(module) ?: return false
           val file = File(FileUtil.toSystemDependentName(modulePath), value)
           val vFile = VfsUtil.findFileByIoFile(file, true)
           IdeaSourceProvider.getSourceProvidersForFile(facet, vFile, null).isNotEmpty()
