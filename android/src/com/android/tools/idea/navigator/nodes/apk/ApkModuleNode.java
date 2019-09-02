@@ -32,6 +32,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +41,6 @@ import java.util.*;
 
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.FN_APK_CLASSES_DEX;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.navigator.nodes.apk.SourceFolders.isInSourceFolder;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -80,9 +80,9 @@ public class ApkModuleNode extends ProjectViewModuleNode {
 
   @Nullable
   private VirtualFile findModuleRootFolder() {
-    File moduleFilePath = toSystemDependentPath(getModule().getModuleFilePath());
-    File modulePath = moduleFilePath.getParentFile();
-    return findFileByIoFile(modulePath, false /* do not refresh file system */);
+    File moduleRootFolderPath = AndroidRootUtil.findModuleRootFolderPath(getModule());
+    if (moduleRootFolderPath == null) return null;
+    return findFileByIoFile(moduleRootFolderPath, false /* do not refresh file system */);
   }
 
   @Nullable
