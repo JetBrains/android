@@ -61,6 +61,7 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
@@ -346,11 +347,7 @@ public class LintIdeProject extends Project {
       }
       dir = VfsUtilCore.virtualToIoFile(mainContentRoot);
     } else {
-      String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
-      if (moduleDirPath == null) {
-        return null;
-      }
-      dir = new File(FileUtil.toSystemDependentName(moduleDirPath));
+      dir = AndroidRootUtil.findModuleRootFolderPath(module);
     }
     return dir;
   }

@@ -28,6 +28,7 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenResource;
 import org.jetbrains.idea.maven.project.MavenProject;
@@ -47,7 +48,7 @@ import java.util.regex.Pattern;
 public class AndroidMavenProviderImpl implements AndroidMavenProvider {
 
   public static void setPathsToDefault(MavenProject mavenProject, Module module, AndroidFacetConfiguration configuration) {
-    String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
+    @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
     String genSources = FileUtil.toSystemIndependentName(mavenProject.getGeneratedSourcesDirectory(false));
 
     if (moduleDirPath != null) {

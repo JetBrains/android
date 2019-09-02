@@ -116,7 +116,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -127,6 +126,7 @@ import java.util.stream.Collectors;
 import javax.swing.Icon;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -363,8 +363,7 @@ public final class GradleUtil {
     }
 
     // At the time we're called, module.getModuleFile() may be null, but getModuleFilePath returns the path where it will be created.
-    File moduleFilePath = new File(module.getModuleFilePath());
-    File parentFile = moduleFilePath.getParentFile();
+    File parentFile = AndroidRootUtil.findModuleRootFolderPath(module);
     return parentFile != null ? getGradleBuildFile(parentFile) : null;
   }
 
