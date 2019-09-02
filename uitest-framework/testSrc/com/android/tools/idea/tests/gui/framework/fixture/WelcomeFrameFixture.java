@@ -102,7 +102,6 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
     return new JListFixture(robot(), waitForPopup(robot()));
   }
 
-  @NotNull
   public void openSdkManager(@NotNull JListFixture listFixture) {
     listFixture.clickItem("SDK Manager");
   }

@@ -75,6 +75,14 @@ interface RecipeExecutor {
   fun addDependency(configuration: String, mavenUrl: String)
 
   /**
+   * Record a module dependency.
+   *
+   * @param moduleName name of a module on which something depends. Should not start with ':'.
+   * @param toModule name of a module *directory* which depends on [moduleName].
+   */
+  fun addModuleDependency(configuration: String, moduleName: String, toModule: String)
+
+  /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.
    */
