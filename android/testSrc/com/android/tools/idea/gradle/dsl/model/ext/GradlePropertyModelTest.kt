@@ -2717,7 +2717,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       assertEquals(MAP, propertyModel.valueType)
       val map = propertyModel.getValue(MAP_TYPE)!!
       verifyPropertyModel(map["key1"], STRING_TYPE, "value", STRING, DERIVED, 0)
-      verifyPropertyModel(map["key2"], STRING_TYPE, "val", REFERENCE, DERIVED, 1)
+      verifyPropertyModel(map["key2"], STRING_TYPE, "val1", REFERENCE, DERIVED, 1)
       verifyPropertyModel(map["key3"], INTEGER_TYPE, 23, INTEGER, DERIVED, 0)
       verifyPropertyModel(map["key4"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
 
