@@ -33,7 +33,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.wm.impl.ProjectFrame;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
 import org.fest.swing.core.Robot;
@@ -204,7 +204,7 @@ public class GuiTestRule implements TestRule {
   }
 
   protected void tearDownProject() {
-    if (!robot().finder().findAll(Matchers.byType(ProjectFrame.class).andIsShowing()).isEmpty()) {
+    if (!robot().finder().findAll(Matchers.byType(IdeFrameImpl.class).andIsShowing()).isEmpty()) {
       ideFrame().closeProject();
     }
     myIdeFrameFixture = null;

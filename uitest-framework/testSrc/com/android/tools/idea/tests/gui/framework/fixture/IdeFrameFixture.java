@@ -53,7 +53,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeRootPane;
-import com.intellij.openapi.wm.impl.ProjectFrame;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.StripeButton;
 import com.intellij.util.ThreeState;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -93,7 +93,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, ProjectFrame> {
+public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
   @NotNull private final Modules myModules;
 
@@ -103,10 +103,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, ProjectFr
 
   @NotNull
   public static IdeFrameFixture find(@NotNull final Robot robot) {
-    return new IdeFrameFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(ProjectFrame.class)));
+    return new IdeFrameFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(IdeFrameImpl.class)));
   }
 
-  private IdeFrameFixture(@NotNull Robot robot, @NotNull ProjectFrame target) {
+  private IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target) {
     super(IdeFrameFixture.class, robot, target);
     Project project = getProject();
     myModules = new Modules(project);
