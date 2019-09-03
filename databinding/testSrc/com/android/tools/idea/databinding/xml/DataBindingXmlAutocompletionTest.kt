@@ -33,7 +33,7 @@ import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
 class DataBindingXmlAutocompletionTest(private val dataBindingMode: DataBindingMode) {
-  private val myProjectRule = AndroidProjectRule.inMemory().initAndroid(true)
+  private val myProjectRule = AndroidProjectRule.inMemory()
   private val myDomRule = AndroidDomRule("res/layout") { myProjectRule.fixture }
 
 

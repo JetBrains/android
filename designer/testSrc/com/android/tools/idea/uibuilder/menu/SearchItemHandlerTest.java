@@ -15,26 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.AUTO_URI;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentBackend;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.common.model.NlComponent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.AUTO_URI;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public final class SearchItemHandlerTest {
   private NlModel myModel;
@@ -45,7 +43,7 @@ public final class SearchItemHandlerTest {
   private ViewHandler myHandler;
 
   @Rule
-  public AndroidProjectRule rule = AndroidProjectRule.Companion.inMemory().initAndroid(false);
+  public AndroidProjectRule rule = AndroidProjectRule.inMemory();
 
   @Before
   public void setUp() {
