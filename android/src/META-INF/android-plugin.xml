@@ -446,10 +446,19 @@
     <defaultLiveTemplatesProvider implementation="com.android.tools.idea.templates.live.AndroidLiveTemplatesProvider"/>
     <liveTemplateContext implementation="com.android.tools.idea.templates.live.XmlAttributeContextType"/>
 
-    <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaCompletionContributor" order="first"/>
-    <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"
-                            id="resourceTypeCompletion" order="after javaBasic2ClassName"/>
-    <completion.contributor language="TEXT" implementationClass="com.android.tools.idea.run.AndroidActivityAliasCompletionContributor" order="first"/>
+    <completion.contributor language="JAVA"
+                            implementationClass="org.jetbrains.android.AndroidJavaCompletionContributor"
+                            order="first"/>
+    <completion.contributor language="JAVA"
+                            implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"
+                            id="resourceTypeCompletion"
+                            order="after javaBasic2ClassName"/>
+    <completion.contributor language="TEXT"
+                            implementationClass="com.android.tools.idea.run.AndroidActivityAliasCompletionContributor"
+                            order="first"/>
+    <completion.contributor language="kotlin"
+                            implementationClass="org.jetbrains.android.AndroidComposeCompletionContributor"
+                            order="first, before KotlinCompletionContributor"/>
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>

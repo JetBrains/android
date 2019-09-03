@@ -589,6 +589,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_COMPLETION_ICONS = Flag.create(
+    EDITOR, "compose.completion.icons",
+    "Custom icons in completion for Compose",
+    "If enabled, code completion for composable functions uses different icons.",
+    false
+  );
+
   public static final Flag<Boolean> TRANSITIVE_R_CLASSES = Flag.create(
     EDITOR, "transitive.r.classes",
     "Transitive R classes",
