@@ -189,6 +189,8 @@ public class ScreenViewLayer extends Layer {
       if (screenShape != null) {
         g.clip(screenShape);
       }
+      // b/140428773 : Graphics.drawImage returns even it is not completed. Fill the default color here to avoid un-painted image.
+      g.fillRect(myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, myScreenViewVisibleSize.width, myScreenViewVisibleSize.height);
       UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, null);
     }
     g.dispose();
