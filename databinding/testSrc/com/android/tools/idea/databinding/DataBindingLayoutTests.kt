@@ -184,4 +184,44 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
     val cache = PsiShortNamesCache.getInstance(projectRule.project) // Powered behind the scenes by DataBindingShortNamesCache
     assertThat(cache.allClassNames.asIterable()).containsAllIn(listOf("CustomBinding"))
   }
+
+  @Test
+  fun nestedFieldsForIncludedLayoutsAreGenerated() {
+    fixture.addFileToProject("res/layout/included_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent">
+          <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/innerTextView" />
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+
+    fixture.addFileToProject("res/layout/main_layout.xml", """
+        <?xml version="1.0" encoding="utf-8"?>
+        <layout xmlns:android="http://schemas.android.com/apk/res/android">
+          <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+            <include layout="@layout/included_layout" android:id="@+id/includedLayout"/>
+          </FrameLayout>
+        </layout>
+    """.trimIndent())
+
+    // This has to be called to explicitly initialize the resource repository as a side-effect.
+    ResourceRepositoryManager.getInstance(androidFacet).appResources
+
+    val modelFile = fixture.addFileToProject("src/java/test/db/Model.java", """
+      package test.db;
+
+      import test.db.databinding.MainLayoutBinding;
+
+      class Model {
+        public static void doSomething(MainLayoutBinding binding) {
+          binding.includedLayout.<caret>
+        }
+      }
+    """.trimIndent())
+
+    fixture.configureFromExistingVirtualFile(modelFile.virtualFile)
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings!!).containsExactly("innerTextView")
+  }
 }
