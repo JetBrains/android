@@ -22,7 +22,6 @@ import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.model.ExtIdeaContentRoot;
 import org.junit.Test;
 import org.mockito.internal.util.collections.Sets;
 
@@ -92,7 +91,7 @@ public class JavaModuleContentRootTest {
 
   @Test
   public void testCopyWithIdeaContentRoot() {
-    ExtIdeaContentRoot originalContentRoot = createMock(ExtIdeaContentRoot.class);
+    IdeaContentRoot originalContentRoot = createMock(IdeaContentRoot.class);
 
     File rootDirPath = new File("root");
     expect(originalContentRoot.getRootDirectory()).andStubReturn(rootDirPath);
