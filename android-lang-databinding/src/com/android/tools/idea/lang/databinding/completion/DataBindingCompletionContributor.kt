@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.lang.databinding.completion
 
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.lang.databinding.config.DbFile
 import com.android.tools.idea.lang.databinding.getBindingIndexEntry
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
-import com.android.tools.idea.databinding.findImportTag
-import com.android.tools.idea.databinding.findVariableTag
+import com.android.tools.idea.databinding.util.findImportTag
+import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_LAMBDA
 import com.google.wireless.android.sdk.stats.DataBindingEvent.DataBindingContext.DATA_BINDING_CONTEXT_METHOD_REFERENCE

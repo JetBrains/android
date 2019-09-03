@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module

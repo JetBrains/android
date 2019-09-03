@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
+import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidGradleProjectRule

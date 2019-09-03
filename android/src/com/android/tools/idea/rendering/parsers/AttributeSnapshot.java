@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
-import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.google.common.collect.Lists;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;

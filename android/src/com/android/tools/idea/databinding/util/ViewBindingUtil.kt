@@ -15,7 +15,7 @@
  */
 @file:JvmName("ViewBindingUtil")
 
-package com.android.tools.idea.databinding
+package com.android.tools.idea.databinding.util
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel

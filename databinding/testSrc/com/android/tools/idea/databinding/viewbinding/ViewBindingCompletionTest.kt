@@ -17,17 +17,14 @@ package com.android.tools.idea.databinding.viewbinding
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
-import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger
 import com.android.tools.idea.databinding.finders.BindingScopeEnlarger
-import com.android.tools.idea.databinding.isViewBindingEnabled
+import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture

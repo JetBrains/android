@@ -16,7 +16,7 @@
 @file:JvmName("DataBindingLangUtil")
 package com.android.tools.idea.lang.databinding
 
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.ModuleUtilCore
