@@ -29,6 +29,8 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
 import icons.StudioIcons
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 
@@ -76,6 +78,19 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
     list.addListSelectionListener {
       onSelectionChanged(list)
     }
+
+    list.addKeyListener(object : KeyAdapter() {
+      override fun keyTyped(e: KeyEvent?) {
+        if (e?.keyChar != '\n' && e?.keyCode != KeyEvent.VK_ENTER) {
+          return
+        }
+
+        if (list.selectedValuesList.size == 1) {
+          onEdit(list.selectedValue)
+          titleModel.refresh()
+        }
+      }
+    })
 
     inspector.addComponent(componentList, titleModel)
   }
