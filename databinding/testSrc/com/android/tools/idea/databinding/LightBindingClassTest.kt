@@ -16,9 +16,9 @@
 package com.android.tools.idea.databinding
 
 import com.android.ide.common.resources.stripPrefixFromId
-import com.android.tools.idea.databinding.util.DataBindingUtil.parsePsiType
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
@@ -290,7 +290,7 @@ class LightBindingClassTest {
     val tags = findChild(file, XmlTag::class.java) { it.localName == "view" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
-    assertThat(fields[0].type).isEqualTo(parsePsiType("com.example.Test", facet, null))
+    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("com.example.Test", facet))
   }
 
   @Test
@@ -319,7 +319,7 @@ class LightBindingClassTest {
     val tags = findChild(file, XmlTag::class.java) { it.localName == "merge" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
-    assertThat(fields[0].type).isEqualTo(parsePsiType("test.db.databinding.OtherActivityBinding", facet, null))
+    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("test.db.databinding.OtherActivityBinding", facet))
   }
 
   @Test
@@ -348,6 +348,6 @@ class LightBindingClassTest {
     val tags = findChild(file, XmlTag::class.java) { it.localName == "include" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
-    assertThat(fields[0].type).isEqualTo(parsePsiType("test.db.databinding.OtherActivityBinding", facet, null))
+    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("test.db.databinding.OtherActivityBinding", facet))
   }
 }
