@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.bazel.fixture
 
-import com.android.tools.idea.tests.gui.framework.GuiTests.*
+import com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton
+import com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.google.common.base.Verify
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.impl.EditorComponentImpl
 import com.intellij.openapi.options.ConfigurationException
-import com.intellij.openapi.wm.impl.IdeFrameImpl
+import com.intellij.openapi.wm.impl.ProjectFrame
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.exception.WaitTimedOutError
@@ -33,8 +34,8 @@ import org.fest.swing.fixture.JRadioButtonFixture
 import org.fest.swing.timing.Wait
 import org.junit.Assert.fail
 import java.io.File
-import javax.swing.text.JTextComponent
 import javax.swing.*
+import javax.swing.text.JTextComponent
 
 class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
     AbstractWizardFixture<ImportBazelProjectWizardFixture>(ImportBazelProjectWizardFixture::class.java, robot, target) {
@@ -146,7 +147,7 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
       }
 
       // Otherwise, keep waiting until the IDE frame is available.
-      robot().finder().findAll(Matchers.byType(IdeFrameImpl::class.java).andIsShowing()).isNotEmpty()
+      robot().finder().findAll(Matchers.byType(ProjectFrame::class.java).andIsShowing()).isNotEmpty()
     }
     return this
   }
