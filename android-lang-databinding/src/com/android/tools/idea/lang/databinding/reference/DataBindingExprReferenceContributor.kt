@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.databinding.findIdAttribute
-import com.android.tools.idea.databinding.findImportTag
-import com.android.tools.idea.databinding.findVariableTag
+import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.findIdAttribute
+import com.android.tools.idea.databinding.util.findImportTag
+import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType

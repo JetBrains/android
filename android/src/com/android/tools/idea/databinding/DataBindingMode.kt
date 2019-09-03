@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding
 
 import com.android.SdkConstants
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
 

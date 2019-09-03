@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.android.tools.idea.databinding.DataBindingUtil.stripPrefixFromMethod
+import com.android.tools.idea.databinding.util.DataBindingUtil.stripPrefixFromMethod
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
