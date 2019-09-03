@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding.viewbinding
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
-import com.android.tools.idea.databinding.isViewBindingEnabled
+import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule

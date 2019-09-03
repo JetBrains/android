@@ -16,8 +16,9 @@
 package com.android.tools.idea.databinding
 
 import com.android.ide.common.resources.stripPrefixFromId
-import com.android.tools.idea.databinding.DataBindingUtil.parsePsiType
+import com.android.tools.idea.databinding.util.DataBindingUtil.parsePsiType
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass

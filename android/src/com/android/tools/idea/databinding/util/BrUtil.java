@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding;
+package com.android.tools.idea.databinding.util;
 
-import static com.android.tools.idea.databinding.DataBindingUtil.isBooleanGetter;
-import static com.android.tools.idea.databinding.DataBindingUtil.isGetter;
-import static com.android.tools.idea.databinding.DataBindingUtil.isSetter;
-import static com.android.tools.idea.databinding.DataBindingUtil.stripPrefixFromField;
+import static com.android.tools.idea.databinding.util.DataBindingUtil.isBooleanGetter;
+import static com.android.tools.idea.databinding.util.DataBindingUtil.isGetter;
+import static com.android.tools.idea.databinding.util.DataBindingUtil.isSetter;
+import static com.android.tools.idea.databinding.util.DataBindingUtil.stripPrefixFromField;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiField;
