@@ -45,7 +45,7 @@ import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
-import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
+import static com.intellij.openapi.wm.impl.ProjectFrameHelper.SHOULD_OPEN_IN_FULL_SCREEN;
 import static java.lang.Boolean.TRUE;
 
 /**
