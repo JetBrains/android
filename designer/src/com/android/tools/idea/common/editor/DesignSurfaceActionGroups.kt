@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.common.editor
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
 /** Action groups for the DesignSurface. */
-interface DesignSurfaceActionGroups {
+interface DesignSurfaceActionGroups: Disposable {
 
   val zoomControlsGroup: ActionGroup
 
   val zoomLabelGroup: ActionGroup
 
   val panControlsGroup: ActionGroup
+
+  override fun dispose() {
+    // Do nothing
+  }
 }
 
 /** The default implementation for [DesignSurfaceActionGroups], only returns [DefaultActionGroup.EMPTY_GROUP]. */
