@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
+import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.databinding.util.findIdAttribute
 import com.android.tools.idea.databinding.util.findImportTag
 import com.android.tools.idea.databinding.util.findVariableTag
-import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
 import com.android.tools.idea.lang.databinding.model.PsiCallable
@@ -318,7 +319,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         DbTokenTypes.TRUE, DbTokenTypes.FALSE -> PsiType.BOOLEAN
         DbTokenTypes.NULL -> PsiType.NULL
         DbTokenTypes.CHARACTER_LITERAL -> PsiType.CHAR
-        DbTokenTypes.STRING_LITERAL -> DataBindingUtil.parsePsiType("java.lang.String", element.project, null) ?: return arrayOf()
+        DbTokenTypes.STRING_LITERAL -> LayoutBindingTypeUtil.parsePsiType("java.lang.String", element.project) ?: return arrayOf()
         else -> return arrayOf()
       }
       return arrayOf(PsiLiteralReference(element, psiType))

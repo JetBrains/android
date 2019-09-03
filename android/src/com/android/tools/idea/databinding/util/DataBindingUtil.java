@@ -16,21 +16,14 @@
 package com.android.tools.idea.databinding.util;
 
 import com.android.SdkConstants;
-import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.DataBindingSupport;
 import com.android.tools.idea.databinding.index.BindingXmlData;
 import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.tools.idea.databinding.index.ImportData;
-import com.android.tools.idea.databinding.index.ViewIdData;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
 import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
@@ -40,7 +33,6 @@ import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiJavaParserFacade;
@@ -66,8 +58,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class DataBindingUtil {
   public static final String BR = "BR";
-  private static List<String> VIEW_PACKAGE_ELEMENTS = ImmutableList.of(SdkConstants.VIEW, SdkConstants.VIEW_GROUP,
-                                                                       SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW);
 
   /**
    * Returns the first implementation for this data binding extension point, but will be null if the
@@ -103,107 +93,6 @@ public final class DataBindingUtil {
   static public ModificationTracker getDataBindingEnabledTracker() {
     DataBindingSupport support = getDataBindingSupport();
     return support == null ? (() -> 0) : support.getDataBindingEnabledTracker();
-  }
-
-  /**
-   * Helper method that convert a type from a String value to a {@link PsiType}, returning
-   * {@code null} instead of throwing an exception if the result is a reference to an invalid type.
-   */
-  @Nullable
-  public static PsiType parsePsiType(@NotNull String typeStr, @NotNull AndroidFacet facet, @Nullable PsiElement context) {
-    return parsePsiType(typeStr, facet.getModule().getProject(), context);
-  }
-
-  /**
-   * Helper method that convert a type from a String value to a {@link PsiType}, returning
-   * {@code null} instead of throwing an exception if the result is a reference to an invalid type.
-   */
-  @Nullable
-  public static PsiType parsePsiType(@NotNull String typeStr, @NotNull Project project, @Nullable PsiElement context) {
-    PsiElementFactory instance = PsiElementFactory.getInstance(project);
-    try {
-      PsiType type = instance.createTypeFromText(typeStr, context);
-      if ((type instanceof PsiClassReferenceType) && ((PsiClassReferenceType)type).getClassName() == null) {
-        // Ensure that if the type is a reference, it's a reference to a valid type.
-        return null;
-      }
-      return type;
-    }
-    catch (IncorrectOperationException e) {
-      // Class named "text" not found.
-      return null;
-    }
-  }
-
-  /**
-   * Convert a view tag (e.g. &lt;TextView... /&gt;) to its PSI type, if possible, or return {@code null}
-   * otherwise.
-   */
-  @Nullable
-  public static PsiType resolveViewPsiType(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
-    String viewClassName = getViewClassName(viewIdData, facet);
-    if (StringUtil.isNotEmpty(viewClassName)) {
-      return parsePsiType(viewClassName, facet, null);
-    }
-    return null;
-  }
-
-  /**
-   * Receives a {@link ViewIdData} and returns the name of the View class that is implied by it.
-   * May return null if it cannot find anything reasonable (e.g. it is a merge but does not have data binding)
-   */
-  @Nullable
-  private static String getViewClassName(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
-    String viewName = viewIdData.getViewName();
-    if (viewName.indexOf('.') == -1) {
-      if (VIEW_PACKAGE_ELEMENTS.contains(viewName)) {
-        return SdkConstants.VIEW_PKG_PREFIX + viewName;
-      } else if (SdkConstants.WEB_VIEW.equals(viewName)) {
-        return SdkConstants.ANDROID_WEBKIT_PKG + viewName;
-      } else if (SdkConstants.VIEW_MERGE.equals(viewName)) {
-        return getViewClassNameFromMergeTag(viewIdData, facet);
-      } else if (SdkConstants.VIEW_INCLUDE.equals(viewName)) {
-        return getViewClassNameFromIncludeTag(viewIdData, facet);
-      } else if (SdkConstants.VIEW_STUB.equals(viewName)) {
-        DataBindingMode mode = getDataBindingMode(facet);
-        return mode.viewStubProxy;
-      }
-      return SdkConstants.WIDGET_PKG_PREFIX + viewName;
-    } else {
-      return viewName;
-    }
-  }
-
-  @NotNull
-  private static String getViewClassNameFromIncludeTag(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
-    String reference = getViewClassNameFromLayoutAttribute(viewIdData.getLayoutName(), facet);
-    return reference == null ? SdkConstants.CLASS_VIEW : reference;
-  }
-
-  @Nullable
-  private static String getViewClassNameFromMergeTag(@NotNull ViewIdData viewIdData, @NotNull AndroidFacet facet) {
-    return getViewClassNameFromLayoutAttribute(viewIdData.getLayoutName(), facet);
-  }
-
-  @Nullable
-  private static String getViewClassNameFromLayoutAttribute(@Nullable String layout, @NotNull AndroidFacet facet) {
-    if (layout == null) {
-      return null;
-    }
-    LocalResourceRepository moduleResources = ResourceRepositoryManager.getInstance(facet).getExistingAppResources();
-    if (moduleResources == null) {
-      return null;
-    }
-    ResourceUrl resourceUrl = ResourceUrl.parse(layout);
-    if (resourceUrl == null || resourceUrl.type != ResourceType.LAYOUT) {
-      return null;
-    }
-    BindingXmlIndex.Entry indexEntry =
-      Iterables.getFirst(BindingXmlIndex.getEntriesForLayout(facet.getModule().getProject(), resourceUrl.name), null);
-    if (indexEntry == null) {
-      return null;
-    }
-    return getQualifiedBindingName(facet, indexEntry);
   }
 
   /**
