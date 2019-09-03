@@ -349,6 +349,7 @@ filegroup(
     srcs = select({
         "//tools/base/bazel:windows": [
             "//tools/base/deploy/installer:android-installer",
+            "//tools/base/deploy/installer/tests:fake_device_proto",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [
