@@ -21,12 +21,14 @@ import com.android.tools.idea.gradle.model.java.IdeaJarLibraryDependencyFactory;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.util.Pair;
 import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
-import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
+import org.jetbrains.plugins.gradle.model.ExternalProject;
+import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.tooling.internal.IdeaCompilerOutputImpl;
 
 import java.io.File;
@@ -34,11 +36,11 @@ import java.util.*;
 
 import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
 import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
+import static org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension.getGradleOutputDir;
 
 /**
- * Factory class to create JavaModuleModel instance from IdeaModule and ModuleExtendedModel.
+ * Factory class to create JavaModuleModel instance from IdeaModule.
  */
-@SuppressWarnings("deprecation")
 public class IdeaJavaModuleModelFactory {
   @NotNull private final IdeaJarLibraryDependencyFactory myIdeaJarLibraryDependencyFactory;
 
@@ -53,40 +55,35 @@ public class IdeaJavaModuleModelFactory {
 
   @NotNull
   public JavaModuleModel create(@NotNull IdeaModule ideaModule,
-                                @Nullable ModuleExtendedModel javaModel,
+                                @Nullable ExternalProject externalProject,
                                 @NotNull Collection<SyncIssue> syncIssues,
                                 boolean androidModuleWithoutVariants) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
-    return new JavaModuleModel(ideaModule.getName(), getContentRoots(ideaModule, javaModel), dependencies.first, dependencies.second,
-                               syncIssues, getArtifactsByConfiguration(javaModel), getCompilerOutput(javaModel),
-                               ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(javaModel),
+    return new JavaModuleModel(ideaModule.getName(), getContentRoots(ideaModule), dependencies.first, dependencies.second,
+                               syncIssues, getArtifactsByConfiguration(externalProject), getCompilerOutput(externalProject),
+                               ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(externalProject),
                                !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()), androidModuleWithoutVariants);
   }
 
   @NotNull
-  private static ExtIdeaCompilerOutput getCompilerOutputCopy(@NotNull ExtIdeaCompilerOutput compilerOutput) {
+  private static ExtIdeaCompilerOutput getCompilerOutputCopy(@NotNull ExternalProject externalProject) {
     IdeaCompilerOutputImpl clone = new IdeaCompilerOutputImpl();
-    clone.setMainClassesDir(compilerOutput.getMainClassesDir());
-    clone.setMainResourcesDir(compilerOutput.getMainResourcesDir());
-    clone.setTestClassesDir(compilerOutput.getTestClassesDir());
-    clone.setTestResourcesDir(compilerOutput.getTestResourcesDir());
+    clone.setMainClassesDir(getGradleOutputDir(externalProject, "main", ExternalSystemSourceType.SOURCE));
+    clone.setMainResourcesDir(getGradleOutputDir(externalProject, "main", ExternalSystemSourceType.RESOURCE));
+    clone.setTestClassesDir(getGradleOutputDir(externalProject, "test", ExternalSystemSourceType.TEST));
+    clone.setTestResourcesDir(getGradleOutputDir(externalProject, "test", ExternalSystemSourceType.TEST_RESOURCE));
     return clone;
   }
 
   @Nullable
-  private static ExtIdeaCompilerOutput getCompilerOutput(@Nullable ModuleExtendedModel javaModel) {
-    return javaModel != null ? getCompilerOutputCopy(javaModel.getCompilerOutput()) : null;
+  private static ExtIdeaCompilerOutput getCompilerOutput(@Nullable ExternalProject externalProject) {
+    return externalProject != null ? getCompilerOutputCopy(externalProject) : null;
   }
 
   @NotNull
-  private static Collection<JavaModuleContentRoot> getContentRoots(@NotNull IdeaModule ideaModule,
-                                                                   @Nullable ModuleExtendedModel javaModel) {
-    Collection<? extends IdeaContentRoot> contentRoots = javaModel != null ? javaModel.getContentRoots() : null;
-    if (contentRoots == null) {
-      contentRoots = ideaModule.getContentRoots();
-    }
+  private static Collection<JavaModuleContentRoot> getContentRoots(@NotNull IdeaModule ideaModule) {
+    Collection<? extends IdeaContentRoot> contentRoots = ideaModule.getContentRoots();
     Collection<JavaModuleContentRoot> javaModuleContentRoots = new ArrayList<>();
-
     if (contentRoots != null) {
       for (IdeaContentRoot contentRoot : contentRoots) {
         if (contentRoot != null) {
@@ -98,12 +95,12 @@ public class IdeaJavaModuleModelFactory {
   }
 
   @NotNull
-  private static Map<String, Set<File>> getArtifactsByConfiguration(@Nullable ModuleExtendedModel javaModel) {
+  private static Map<String, Set<File>> getArtifactsByConfiguration(@Nullable ExternalProject externalProject) {
     Map<String, Set<File>> artifactsByConfiguration = Collections.emptyMap();
-    if (javaModel != null) {
-      artifactsByConfiguration = javaModel.getArtifactsByConfiguration();
+    if (externalProject != null) {
+      artifactsByConfiguration = externalProject.getArtifactsByConfiguration();
     }
-    return artifactsByConfiguration != null ? artifactsByConfiguration : Collections.emptyMap();
+    return artifactsByConfiguration;
   }
 
   @NotNull
@@ -142,7 +139,11 @@ public class IdeaJavaModuleModelFactory {
   }
 
   @Nullable
-  private static String getLanguageLevel(@Nullable ModuleExtendedModel javaModel) {
-    return javaModel != null ? javaModel.getJavaSourceCompatibility() : null;
+  private static String getLanguageLevel(@Nullable ExternalProject externalProject) {
+    if (externalProject == null) {
+      return null;
+    }
+    ExternalSourceSet mainSourceSet = externalProject.getSourceSets().get("main");
+    return mainSourceSet == null ? null : mainSourceSet.getSourceCompatibility();
   }
 }
