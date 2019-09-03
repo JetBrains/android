@@ -18,8 +18,8 @@ package com.android.tools.idea.databinding.psiclass
 import com.android.tools.idea.databinding.BindingLayout
 import com.android.tools.idea.databinding.BindingLayoutGroup
 import com.android.tools.idea.databinding.ModuleDataBinding
-import com.android.tools.idea.databinding.findVariableTag
-import com.android.tools.idea.databinding.getViewBindingClassName
+import com.android.tools.idea.databinding.util.findVariableTag
+import com.android.tools.idea.databinding.util.getViewBindingClassName
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.VariableData

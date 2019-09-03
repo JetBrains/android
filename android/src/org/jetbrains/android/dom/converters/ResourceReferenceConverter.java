@@ -36,7 +36,7 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;

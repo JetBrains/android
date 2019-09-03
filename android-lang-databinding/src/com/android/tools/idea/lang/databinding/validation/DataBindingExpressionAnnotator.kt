@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.validation
 
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.lang.databinding.config.DbFile
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.model.PsiModelClass

@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.databinding.reference
 
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.index.BindingXmlData
 import com.android.tools.idea.databinding.index.VariableData
 import com.android.tools.idea.lang.databinding.model.PsiModelClass

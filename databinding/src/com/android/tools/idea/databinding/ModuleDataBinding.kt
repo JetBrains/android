@@ -22,6 +22,7 @@ import com.android.tools.idea.databinding.psiclass.BindingImplClassConfig
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
