@@ -32,6 +32,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +46,6 @@ import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
-import static com.intellij.openapi.wm.impl.ProjectFrameHelper.SHOULD_OPEN_IN_FULL_SCREEN;
 import static java.lang.Boolean.TRUE;
 
 /**
@@ -84,7 +84,7 @@ public final class GradleProjects {
       if (lastFocusedFrame instanceof IdeFrameEx) {
         boolean fullScreen = ((IdeFrameEx)lastFocusedFrame).isInFullScreen();
         if (fullScreen) {
-          project.putUserData(SHOULD_OPEN_IN_FULL_SCREEN, TRUE);
+          project.putUserData(IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN, TRUE);
         }
       }
     }
