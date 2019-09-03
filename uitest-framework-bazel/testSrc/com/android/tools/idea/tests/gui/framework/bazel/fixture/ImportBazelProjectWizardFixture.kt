@@ -23,7 +23,7 @@ import com.google.common.base.Verify
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.impl.EditorComponentImpl
 import com.intellij.openapi.options.ConfigurationException
-import com.intellij.openapi.wm.impl.ProjectFrame
+import com.intellij.openapi.wm.impl.IdeFrameImpl
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.exception.WaitTimedOutError
@@ -147,7 +147,7 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
       }
 
       // Otherwise, keep waiting until the IDE frame is available.
-      robot().finder().findAll(Matchers.byType(ProjectFrame::class.java).andIsShowing()).isNotEmpty()
+      robot().finder().findAll(Matchers.byType(IdeFrameImpl::class.java).andIsShowing()).isNotEmpty()
     }
     return this
   }

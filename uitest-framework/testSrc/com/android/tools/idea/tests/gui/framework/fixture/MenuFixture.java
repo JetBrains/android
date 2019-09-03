@@ -20,7 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.wm.impl.ProjectFrame;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.timing.Wait;
@@ -37,9 +37,9 @@ import static com.google.common.truth.Truth.assertWithMessage;
 
 class MenuFixture {
   @NotNull private final Robot myRobot;
-  @NotNull private final ProjectFrame myContainer;
+  @NotNull private final IdeFrameImpl myContainer;
 
-  MenuFixture(@NotNull Robot robot, @NotNull ProjectFrame container) {
+  MenuFixture(@NotNull Robot robot, @NotNull IdeFrameImpl container) {
     myRobot = robot;
     myContainer = container;
   }
