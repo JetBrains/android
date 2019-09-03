@@ -32,12 +32,10 @@ import javax.swing.JComponent
 /**
  * Actions for editable designer editor file types. Includes the [PanSurfaceAction] since it'll only work for that kind of files.
  */
-class EditableDesignSurfaceActionGroups(
-  private val shortcutConsumer: JComponent, private val parentDisposable: Disposable
-) : DesignSurfaceActionGroups {
+class EditableDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) : DesignSurfaceActionGroups {
 
   override val zoomControlsGroup: ActionGroup
-    get() = createZoomControlsGroup(shortcutConsumer, parentDisposable)
+    get() = createZoomControlsGroup(shortcutConsumer, this)
 
   override val zoomLabelGroup: ActionGroup
     get() = createZoomLabelGroup()
@@ -51,12 +49,10 @@ class EditableDesignSurfaceActionGroups(
 /**
  * Populates the most basic/common actions that can be used on the DesignSurface.
  */
-class BasicDesignSurfaceActionGroups(
-  private val shortcutConsumer: JComponent, private val parentDisposable: Disposable
-) : DesignSurfaceActionGroups {
+class BasicDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) : DesignSurfaceActionGroups {
 
   override val zoomControlsGroup: ActionGroup
-    get() = createZoomControlsGroup(shortcutConsumer, parentDisposable)
+    get() = createZoomControlsGroup(shortcutConsumer, this)
 
   override val zoomLabelGroup: ActionGroup
     get() = createZoomLabelGroup()
