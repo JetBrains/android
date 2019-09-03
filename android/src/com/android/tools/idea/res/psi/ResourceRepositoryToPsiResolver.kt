@@ -22,11 +22,15 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.res.resolve
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementResolveResult
 import com.intellij.psi.PsiManager
 import com.intellij.psi.ResolveResult
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.search.SearchScope
 import com.intellij.psi.xml.XmlElement
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
@@ -83,5 +87,26 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
       ?.mapNotNull { resolveToDeclaration(it, context.project) }
       .orEmpty()
       .toTypedArray()
+  }
+
+  /**
+   * Returns the [SearchScope] for a resource based on the context element. This scope contains files that can contain references to the
+   * same resource as the context element. This is necessary for a ReferencesSearch to only find references to resources that are in
+   * modules which are in use scope.
+   *
+   * @param resourceReference [ResourceReference] of a resource.
+   * @param context           [PsiElement] context element from which an action is being performed.
+   * @return [SearchScope] a scope that contains the files of the project which can reference same resource as context element.
+   */
+  @JvmStatic
+  fun getResourceSearchScope(resourceReference: ResourceReference, context: PsiElement): SearchScope {
+    val gotoDeclarationTargets = getGotoDeclarationTargets(resourceReference, context)
+    val allScopes = gotoDeclarationTargets.mapNotNull { ModuleUtilCore.findModuleForPsiElement(it)?.moduleWithDependentsScope }
+    return if (allScopes.isEmpty()) {
+      ProjectScope.getAllScope(context.project)
+    }
+    else {
+      GlobalSearchScope.union(allScopes)
+    }
   }
 }
