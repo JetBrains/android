@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.databinding.model
 
 import android.databinding.tool.util.StringUtils
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
@@ -150,8 +150,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     get() =
       psiClass?.project?.let { project ->
         mode.observableFields.any { className ->
-          val observableFieldClass = PsiModelClass(
-            DataBindingUtil.parsePsiType(className, project, null)!!, mode)
+          val observableFieldClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(className, project)!!, mode)
           observableFieldClass.isAssignableFrom(erasure())
         }
       } ?: false
@@ -161,8 +160,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    */
   private val isLiveData
     get() = psiClass?.project?.let { project ->
-      val liveDataClass = PsiModelClass(
-        DataBindingUtil.parsePsiType(mode.liveData, project, null)!!, mode)
+      val liveDataClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(mode.liveData, project)!!, mode)
       liveDataClass.isAssignableFrom(erasure())
     } ?: false
 
