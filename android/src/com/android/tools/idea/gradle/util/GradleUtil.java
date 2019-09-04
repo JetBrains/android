@@ -37,7 +37,6 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
-import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -355,16 +354,8 @@ public final class GradleUtil {
       return moduleModel.getBuildFile();
     }
 
-    if (isGradleProjectModule(module)) {
-      VirtualFile buildFile = getGradleBuildFileFromProjectModule(module);
-      if (buildFile != null) {
-        return buildFile;
-      }
-    }
-
-    // At the time we're called, module.getModuleFile() may be null, but getModuleFilePath returns the path where it will be created.
-    File parentFile = AndroidRootUtil.findModuleRootFolderPath(module);
-    return parentFile != null ? getGradleBuildFile(parentFile) : null;
+    File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
+    return moduleRoot != null ? getGradleBuildFile(moduleRoot) : null;
   }
 
   @Nullable
@@ -374,15 +365,6 @@ public final class GradleUtil {
       return null;
     }
     return gradleFacet.getGradleModuleModel();
-  }
-
-  @Nullable
-  private static VirtualFile getGradleBuildFileFromProjectModule(@NotNull Module module) {
-    String basePath = module.getProject().getBasePath();
-    if (isEmptyOrSpaces(basePath)) {
-      return null;
-    }
-    return getGradleBuildFile(new File(basePath));
   }
 
   /**
