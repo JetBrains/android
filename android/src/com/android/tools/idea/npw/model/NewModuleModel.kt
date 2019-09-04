@@ -55,6 +55,7 @@ class ExistingNewProjectModelData(project: Project, override val projectSyncInvo
   override val enableCppSupport: BoolValueProperty = BoolValueProperty()
   override val cppFlags: StringValueProperty = StringValueProperty("")
   override val project: OptionalValueProperty<Project> = OptionalValueProperty(project)
+  override val isNewProject = false
   override val projectTemplateValues: MutableMap<String, Any> = mutableMapOf()
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer(project, projectSyncInvoker)
@@ -133,10 +134,10 @@ class NewModuleModel(
 
       val project = project.value
       TemplateValueInjector(moduleTemplateValues).apply {
-        setProjectDefaults(project)
+        setProjectDefaults(project, isNewProject)
         setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
         if (androidSdkInfo.isPresent.get()) {
-          setBuildVersion(androidSdkInfo.value, project)
+          setBuildVersion(androidSdkInfo.value, project, isNewProject)
         }
         if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
           setLanguage(language.value)

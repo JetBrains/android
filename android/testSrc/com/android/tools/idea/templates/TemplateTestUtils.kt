@@ -121,7 +121,7 @@ internal fun createNewProjectState(createWithProject: Boolean,
     put(ATTR_MODULE_NAME, "TestModule")
     put(ATTR_PACKAGE_NAME, "test.pkg")
   }
-  TemplateValueInjector(moduleState.templateValues).addGradleVersions(null)
+  TemplateValueInjector(moduleState.templateValues).addGradleVersions(null, true)
   val buildTool = sdkData.getLatestBuildTool(false)
   if (buildTool != null) {
     moduleState.put(ATTR_BUILD_TOOLS_VERSION, buildTool.revision.toString())
