@@ -482,22 +482,6 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testAgentStatusUpdatesObjectSeries() {
-    // Test that agent status change fires after a process is selected.
-    Common.Device device = Common.Device.newBuilder()
-      .setDeviceId(FAKE_DEVICE_ID)
-      .setSerial("FakeDevice")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    Common.Process process = Common.Process.newBuilder()
-      .setPid(20)
-      .setDeviceId(FAKE_DEVICE_ID)
-      .setState(Common.Process.State.ALIVE)
-      .setName("FakeProcess")
-      .build();
-    myTransportService.addDevice(device);
-    myTransportService.addProcess(device, process);
-    myStage.getStudioProfilers().setPreferredProcess("FakeDevice", "FakeProcess", null);
-
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS)
       .addAllocStatsSamples(
