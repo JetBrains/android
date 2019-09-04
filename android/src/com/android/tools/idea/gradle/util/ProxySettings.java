@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -81,25 +82,25 @@ public class ProxySettings {
     myExceptions = replaceCommasWithPipesAndClean(ideProxySettings.PROXY_EXCEPTIONS);
   }
 
-  @NotNull
+  @Nullable
   public static String replaceCommasWithPipesAndClean(@Nullable String exceptions) {
     return replaceSeparatorAndCleanList(exceptions, ",", "|");
   }
 
-  @NotNull
+  @Nullable
   public static String replacePipesWithCommasAndClean(@Nullable String exceptions) {
     return replaceSeparatorAndCleanList(exceptions, "|", ", ");
   }
 
-  @NotNull
+  @Nullable
   private static String replaceSeparatorAndCleanList(@Nullable String list, @NotNull String separator, @NotNull String replacement) {
     if (isEmpty(list)) {
-      return "";
+      return null;
     }
-    return Arrays.stream(list.replace(separator, replacement).split(Pattern.quote(replacement.trim())))
+    return emptyToNull(Arrays.stream(list.replace(separator, replacement).split(Pattern.quote(replacement.trim())))
       .map(String::trim)
       .filter(StringUtils::isNotEmpty)
-      .collect(Collectors.joining(replacement));
+      .collect(Collectors.joining(replacement)));
   }
 
   public void applyProxySettings(@NotNull Properties properties) {
