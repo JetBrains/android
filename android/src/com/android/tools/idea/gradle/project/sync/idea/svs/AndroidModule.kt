@@ -22,8 +22,7 @@ import com.android.builder.model.Variant
 import com.android.builder.model.level2.DependencyGraphs
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
-import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.idea.IdeaModule
+import org.gradle.tooling.model.gradle.BasicGradleProject
 import java.util.regex.Pattern
 
 /**
@@ -31,7 +30,7 @@ import java.util.regex.Pattern
  */
 @UsedInBuildAction
 class AndroidModule(
-  val ideaModule: IdeaModule,
+  val gradleProject: BasicGradleProject,
   val androidProject: AndroidProject,
   val nativeAndroidProject: NativeAndroidProject?
 ) {
@@ -47,7 +46,6 @@ class AndroidModule(
 
   val variantGroup: VariantGroup = VariantGroup()
   val moduleDependencies: List<ModuleDependency> get() = _moduleDependencies
-  val gradleProject: GradleProject get() = ideaModule.gradleProject
 
   fun containsVariant(variantName: String) = variantsByName.containsKey(variantName)
 
