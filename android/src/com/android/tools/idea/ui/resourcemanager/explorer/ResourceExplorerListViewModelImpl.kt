@@ -233,7 +233,7 @@ class ResourceExplorerListViewModelImpl(
       .flatMap { lib ->
         // Create a section for each library
         lib.namespaces.asSequence()
-          .map { namespace -> lib.getResources(namespace, type).values() }
+          .map { namespace -> lib.getPublicResources(namespace, type) }
           .filter { it.isNotEmpty() }
           .map {
             createResourceSection(
