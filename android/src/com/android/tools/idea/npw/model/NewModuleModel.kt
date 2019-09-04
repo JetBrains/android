@@ -58,7 +58,10 @@ class ExistingNewProjectModelData(project: Project, override val projectSyncInvo
   override val isNewProject = false
   override val projectTemplateValues: MutableMap<String, Any> = mutableMapOf()
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
-  override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer(project, projectSyncInvoker)
+  override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer(
+    renderRunner = { renderer -> renderer(project) },
+    projectSyncInvoker = projectSyncInvoker
+  )
 
   init {
     applicationName.addConstraint(String::trim)

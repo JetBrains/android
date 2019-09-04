@@ -36,7 +36,10 @@ abstract class ModuleModel(
 ) : WizardModel() {
   @JvmField val moduleName = StringValueProperty(moduleName)
   val templateValues = mutableMapOf<String, Any>()
-  private val multiTemplateRenderer = MultiTemplateRenderer(project, this.projectSyncInvoker)
+  private val multiTemplateRenderer = MultiTemplateRenderer(
+    renderRunner = { renderer -> renderer(project) },
+    projectSyncInvoker = this.projectSyncInvoker
+  )
   protected abstract val renderer: MultiTemplateRenderer.TemplateRenderer
 
   public override fun handleFinished() {
