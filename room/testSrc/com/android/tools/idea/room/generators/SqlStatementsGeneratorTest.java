@@ -114,6 +114,21 @@ public class SqlStatementsGeneratorTest {
   }
 
   @Test
+  public void testAllInitialColumnsAreDeleted() {
+    FieldBundle fieldToDelete = createFieldBundle("column1", "TEXT", null);
+    FieldBundle fieldToAdd = createFieldBundle("column2", "TEXT", null);
+
+    testMigrationStatements(createEntityBundle("table", fieldToDelete),
+                            createEntityBundle("table", fieldToAdd),
+                            "DROP TABLE `table`;",
+                            "CREATE TABLE `table`\n" +
+                            "(\n" +
+                            "\tcolumn2 TEXT,\n" +
+                            "\tPRIMARY KEY (column2)\n" +
+                            ");");
+  }
+
+  @Test
   public void testModifyColumn() {
     FieldBundle fieldToModify = createFieldBundle("column1", "TEXT", null);
     FieldBundle modifiedField = createFieldBundle("column1", "CHAR", null);
