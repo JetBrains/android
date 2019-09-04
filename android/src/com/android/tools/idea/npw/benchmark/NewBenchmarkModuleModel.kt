@@ -48,8 +48,8 @@ class NewBenchmarkModuleModel(
       )
 
       TemplateValueInjector(newValues)
-        .setBuildVersion(minSdk.value, project)
-        .setProjectDefaults(project)
+        .setBuildVersion(minSdk.value, project, false)
+        .setProjectDefaults(project, false)
         .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
         .setJavaVersion(project)
         .setLanguage(language.value)
