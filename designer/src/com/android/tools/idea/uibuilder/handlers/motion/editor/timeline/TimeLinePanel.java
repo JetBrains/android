@@ -696,6 +696,9 @@ public class TimeLinePanel extends JPanel {
    * @param e
    */
   private void processMouseDrag(MouseEvent e) {
+    if (mTimelineStructure == null) {
+      return;
+    }
     int timeStart = MEUI.ourLeftColumnWidth + mTimelineStructure.myXTicksPixels[0];
     int timeWidth =
       mTimelineStructure.myXTicksPixels[mTimelineStructure.myXTicksPixels.length - 1]
@@ -723,7 +726,9 @@ public class TimeLinePanel extends JPanel {
           int index = mTimeLine.getSelectedIndex();
 
           TimeLineRow row = mTimeLine.getTimeLineRow(index);
-          row.toggleGraph();
+          if (row != null) { // TODO: Check why this is being hit
+            row.toggleGraph();
+          }
         }
       }
       break;
