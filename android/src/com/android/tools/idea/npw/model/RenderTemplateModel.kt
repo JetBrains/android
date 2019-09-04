@@ -213,7 +213,10 @@ class RenderTemplateModel private constructor(
                           StringValueProperty(facet.module.name),
                           StringValueProperty(initialPackageSuggestion),
                           commandName,
-                          MultiTemplateRenderer(facet.module.project, projectSyncInvoker),
+                          MultiTemplateRenderer(
+                            renderRunner = { renderer -> renderer(facet.module.project) },
+                            projectSyncInvoker = projectSyncInvoker
+                          ),
                           shouldOpenFiles)
 
     @JvmStatic

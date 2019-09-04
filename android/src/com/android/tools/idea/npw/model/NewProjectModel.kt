@@ -92,7 +92,18 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val isNewProject = true
   override val projectTemplateValues = mutableMapOf<String, Any>()
   override val language = OptionalValueProperty<Language>()
-  override val multiTemplateRenderer = MultiTemplateRenderer(null, this.projectSyncInvoker)
+  override val multiTemplateRenderer = MultiTemplateRenderer(
+    renderRunner = { renderer ->
+      run {
+        assert(project.valueOrNull == null)
+        val projectName = applicationName.get()
+        val projectLocation = projectLocation.get()
+        val newProject = ProjectManager.getInstance().createProject(projectName, projectLocation)!!
+        project.value = newProject
+        renderer(newProject)
+      }
+    },
+    projectSyncInvoker = this.projectSyncInvoker)
 
   init {
     packageName.addListener {
@@ -117,7 +128,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
   override fun handleFinished() {
     val projectLocation = projectLocation.get()
-    val projectName = applicationName.get()
 
     val couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction<Boolean>(null) {
       // We generally assume that the path has passed a fair amount of pre-validation checks
@@ -147,8 +157,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       Messages.showErrorDialog(msg, "Error Creating Project")
       return
     }
-    project.value = ProjectManager.getInstance().createProject(projectName, projectLocation)!!
-    multiTemplateRenderer.setProject(project.value)
     multiTemplateRenderer.requestRender(ProjectTemplateRenderer())
   }
 
