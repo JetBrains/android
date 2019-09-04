@@ -37,6 +37,7 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
+import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Commands;
@@ -665,6 +666,24 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         timeline.getViewRange().set(parsedCapture.getRange().getMin() - expandAmountUs,
                                     parsedCapture.getRange().getMax() + expandAmountUs);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
+
+
+        if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+          EventStreamServer streamServer = getStudioProfilers().getSessionsManager().getEventStreamServer(mySession.getStreamId());
+          if (streamServer != null) {
+            // Insert the CPU_Trace event into the database. This is used by the Sessions' panel to display the correct trace type
+            // associated with the imported file.
+            streamServer.getEventDeque().offer(Common.Event.newBuilder()
+                                                 .setGroupId(myImportedTraceInfo.getTraceId())
+                                                 .setTimestamp((long)captureRangeNs.getMax())
+                                                 .setIsEnded(true)
+                                                 .setKind(Common.Event.Kind.CPU_TRACE)
+                                                 .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                                                                .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder()
+                                                                                 .setTraceInfo(myImportedTraceInfo)))
+                                                 .build());
+          }
+        }
 
         // Track import trace success
         getStudioProfilers().getIdeServices().getFeatureTracker().trackImportTrace(parsedCapture.getType(), true);

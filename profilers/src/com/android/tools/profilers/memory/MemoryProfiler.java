@@ -27,8 +27,8 @@ import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
@@ -59,9 +59,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -157,8 +154,15 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   private void importHprof(@NotNull File file) {
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
     long startTimestampEpochMs = System.currentTimeMillis();
-    long sessionStartTimeNs = TimeUnit.MILLISECONDS.toNanos(startTimestampEpochMs);
+    long sessionStartTimeNs = StudioProfilers.getFileCreationTimestampNs(file, startTimestampEpochMs);
+
+    // Select the session if the hprof has already been imported.
+    if (sessionsManager.setSessionById(sessionStartTimeNs)) {
+      return;
+    }
+
     // We don't really care about the session having a duration - arbitrarily create a 1-ns session.
     long sessionEndTimeNs = sessionStartTimeNs + 1;
     byte[] bytes;
@@ -170,7 +174,6 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
     // Bind the imported session with heap dump data through MemoryClient.
     HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
       .setStartTime(sessionStartTimeNs)
@@ -217,7 +220,12 @@ public class MemoryProfiler extends StudioProfiler {
   private void importLegacyAllocations(@NotNull File file) {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
     long startTimestampEpochMs = System.currentTimeMillis();
-    long sessionStartTimeNs = TimeUnit.MILLISECONDS.toNanos(startTimestampEpochMs);
+    long sessionStartTimeNs = StudioProfilers.getFileCreationTimestampNs(file, startTimestampEpochMs);
+    // Select the session if the hprof has already been imported.
+    if (sessionsManager.setSessionById(sessionStartTimeNs)) {
+      return;
+    }
+
     long sessionEndTimeNs = sessionStartTimeNs + 1;
     byte[] bytes;
     try {

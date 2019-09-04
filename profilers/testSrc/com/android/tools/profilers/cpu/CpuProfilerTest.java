@@ -15,27 +15,26 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.stdui.CommonTextFieldModel;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.energy.FakeEnergyService;
+import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
-import com.android.tools.profilers.memory.MemoryProfiler;
+import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.sessions.SessionsManager;
-import com.google.common.truth.Truth;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -72,7 +71,8 @@ public final class CpuProfilerTest {
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuProfilerTest", myTransportService, myProfilerService, new FakeMemoryService(), myCpuService);
+    new FakeGrpcChannel("CpuProfilerTest", myTransportService, myProfilerService, new FakeMemoryService(), myCpuService,
+                        new FakeEventService(), new FakeNetworkService.Builder().build(), new FakeEnergyService());
 
   @Rule public final ExpectedException myExpectedException = ExpectedException.none();
 
@@ -302,5 +302,33 @@ public final class CpuProfilerTest {
     assertThat(infos)
       .containsExactly(info1, info2.toBuilder().setToTimestamp(session.getEndTimestamp())
         .setStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.APP_PROCESS_DIED)).build());
+  }
+
+  @Test
+  public void reimportTraceShouldSelectSameSession() throws IOException {
+    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
+                       myUnifiedPipeline);
+
+    // Enable the import trace flag
+    myIdeServices.enableImportTrace(true);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    long traceCreationTime =
+      Files.readAttributes(Paths.get(trace.getPath()), BasicFileAttributes.class).creationTime().to(TimeUnit.NANOSECONDS);
+
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    // Imported session's start time should be equal to the imported trace file creation time
+    sessionsManager.importSessionFromFile(trace);
+    assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isEqualTo(traceCreationTime);
+
+    // Create and select a different session.
+    sessionsManager.beginSession(FAKE_DEVICE, FAKE_PROCESS);
+    assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isNotEqualTo(traceCreationTime);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Reimport again should select the existing session.
+    sessionsManager.importSessionFromFile(trace);
+    assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isEqualTo(traceCreationTime);
   }
 }
