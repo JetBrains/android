@@ -220,7 +220,7 @@ public class GradleApkProvider implements ApkProvider {
   private List<ApkFileUnit> collectDependentFeaturesApks(@NotNull AndroidModuleModel androidModel,
                                                          @NotNull IDevice device) {
     IdeAndroidProject project = androidModel.getAndroidProject();
-    return DynamicAppUtils.getDependentFeatureModules(myFacet.getModule().getProject(), project)
+    return DynamicAppUtils.getDependentFeatureModulesForBase(myFacet.getModule().getProject(), project)
       .stream()
       .map(module -> {
         // Find the output APK of the module
