@@ -1067,7 +1067,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     // The components may be added by addComponentInWriteCommand after this method returns.
     // Make a copy of the components such that the caller can change the list without causing problems.
     ImmutableList<NlComponent> toAdd = ImmutableList.copyOf(componentToAdd);
-    if (!canAddComponents(toAdd, receiver, before)) {
+
+    // Note: we don't really need to check for dependencies if all we do is moving existing components.
+    if (!canAddComponents(toAdd, receiver, before, insertType == InsertType.MOVE_WITHIN)) {
       return;
     }
 
