@@ -7,7 +7,7 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
+ * Unless required by applicaOble law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
+import com.android.annotations.concurrency.AnyThread;
+import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.npw.assetstudio.TextRenderUtil;
+import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.collect.ImmutableList;
@@ -26,6 +29,7 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,9 +46,20 @@ public final class TextAsset extends BaseAsset {
   private final StringProperty myFontFamily = new StringValueProperty();
   private final List<String> myAllFontFamilies;
 
+  @NotNull private final Object myLock = new Object();
+  @GuardedBy("myLock")
+  @Nullable private ListenableFuture<String> myXmlDrawableFuture;
+
   public TextAsset() {
     myAllFontFamilies = ImmutableList.copyOf(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames());
     selectFontFamily(PREFERRED_FONT);
+    InvalidationListener listener = () -> {
+      synchronized (myLock) {
+        myXmlDrawableFuture = null;
+      }
+    };
+    myText.addListener(listener);
+    myFontFamily.addListener(listener);
   }
 
   private void selectFontFamily(@NotNull String fontFamily) {
@@ -57,7 +72,7 @@ public final class TextAsset extends BaseAsset {
   }
 
   /**
-   * Return all font families available for text rendering.
+   * Returns all font families available for text rendering.
    */
   @NotNull
   public static List<String> getAllFontFamilies() {
@@ -92,8 +107,27 @@ public final class TextAsset extends BaseAsset {
     return myAllFontFamilies.isEmpty() ? "" : myAllFontFamilies.get(0);
   }
 
+  /**
+   * Renders the given text to an XML drawable and returns its string representation as a future.
+   */
+  @AnyThread
+  @NotNull
+  public ListenableFuture<String> getXmlDrawable() {
+    synchronized (myLock) {
+      if (myXmlDrawableFuture == null) {
+        String text = myText.get();
+        String fontFamily = myFontFamily.get();
+        Color color = color().getValueOrNull();
+        int opacityPercent = opacityPercent().get();
+        myXmlDrawableFuture = FutureUtils.executeOnPooledThread(() ->
+            VectorTextRenderer.renderToVectorDrawable(text, fontFamily, FONT_SIZE, color, opacityPercent / 100.));
+      }
+      return myXmlDrawableFuture;
+    }
+  }
+
   @Override
-  @Nullable
+  @NotNull
   public ListenableFuture<BufferedImage> toImage() {
     TextRenderUtil.Options options = new TextRenderUtil.Options();
     options.font = Font.decode(myFontFamily + " " + FONT_SIZE);

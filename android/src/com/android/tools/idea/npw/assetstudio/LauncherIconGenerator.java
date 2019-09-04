@@ -351,7 +351,7 @@ public class LauncherIconGenerator extends IconGenerator {
       iconOptions.density = Density.ANYDPI;
       iconOptions.generatePlayStoreIcon = false;
       iconOptions.iconFolderKind = IconFolderKind.MIPMAP;
-      iconOptions.apiVersion = 26; // Temporary until http://b/62316340 is fixed.
+      iconOptions.apiVersion = 26; // TODO: Remove since http://b/79676805 is fixed.
 
       tasks.add(() -> {
         String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
@@ -361,13 +361,15 @@ public class LauncherIconGenerator extends IconGenerator {
                                         xmlAdaptiveIcon);
       });
 
-      tasks.add(() -> {
-        String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
-        return new GeneratedXmlResource(name + "_round",
-                                        new PathString(getIconPath(iconOptions, name + "_round")),
-                                        IconCategory.XML_RESOURCE,
-                                        xmlAdaptiveIcon);
-      });
+      if (iconOptions.generateRoundIcon) {
+        tasks.add(() -> {
+          String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
+          return new GeneratedXmlResource(name + "_round",
+                                          new PathString(getIconPath(iconOptions, name + "_round")),
+                                          IconCategory.XML_RESOURCE,
+                                          xmlAdaptiveIcon);
+        });
+      }
     }
 
     if (options.foregroundImage != null && options.foregroundImage.isDrawable()) {
