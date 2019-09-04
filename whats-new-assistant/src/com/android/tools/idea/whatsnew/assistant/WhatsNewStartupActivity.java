@@ -15,29 +15,26 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WhatsNewAssistantEvent;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.startup.StartupActivity;
-
-
-import com.android.annotations.VisibleForTesting;
-import com.android.repository.Revision;
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.ui.GuiTestingService;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Show the "What's New" assistant the first time the app starts up with a new major.minor version.
  */
-public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
+public class WhatsNewStartupActivity implements StartupActivity.Backgroundable {
   @Override
   public void runActivity(@NotNull Project project) {
     if (!(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes() && StudioFlags.WHATS_NEW_ASSISTANT_AUTO_SHOW.get())) {
