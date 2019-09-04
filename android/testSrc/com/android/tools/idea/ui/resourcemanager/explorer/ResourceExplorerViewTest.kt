@@ -78,8 +78,10 @@ class ResourceExplorerViewTest {
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
     val viewModel = createViewModel(projectRule.module)
     val view = createResourceExplorerView(viewModel)
-
-    // 'Drawable' tab is selected by default.
+    // 'Drawable' tab should be selected by default.
+    assertThat(viewModel.supportedResourceTypes[viewModel.resourceTypeIndex]).isEqualTo(ResourceType.DRAWABLE)
+    waitAndAssert<AssetListView>(view) { list -> list != null && list.model.size > 0 }
+    // Select a Drawable.
     selectAndAssertAsset(view, "png")
     // Change to COLOR resources.
     runInEdtAndWait { viewModel.resourceTypeIndex = viewModel.supportedResourceTypes.indexOf(ResourceType.COLOR) }
@@ -90,10 +92,12 @@ class ResourceExplorerViewTest {
       }
       return@waitAndAssert false
     }
+    // Select a Color.
     selectAndAssertAsset(view, "colorPrimary")
+    // Call a selection for a resource not listed in Color.
     runInEdtAndWait { view.selectAsset("png", false) }
     val list = UIUtil.findComponentOfType(view, AssetListView::class.java)!!
-    // Selection should not change if we try to select a resource not visible here.
+    // Selection should not change.
     assertThat(list.selectedValue).isNotNull()
     assertThat(list.selectedValue.name).isEqualTo("colorPrimary")
   }
