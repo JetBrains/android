@@ -16,10 +16,10 @@
 package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
-import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +45,7 @@ public interface DeviceExplorerFileManager {
    * download operation.
    */
   @NotNull
-  ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress);
+  ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileManagerDownloadProgress progress);
 
   /**
    * Opens a previously downloaded file and gives focus to the open component.
