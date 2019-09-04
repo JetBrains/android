@@ -117,6 +117,16 @@ public class MotionSceneAttrs {
   public static final String ATTR_LOCKED = "locked";
   public static final String ATTR_CONSTRAINT_LAYOUT_DESCRIPTION = "layoutDescription";
 
+  public static final String ATTR_CUSTOM_ATTRIBUTE_NAME = "attributeName";
+  public static final String ATTR_CUSTOM_COLOR_VALUE = "customColorValue";
+  public static final String ATTR_CUSTOM_COLOR_DRAWABLE_VALUE = "customColorDrawableValue";
+  public static final String ATTR_CUSTOM_INTEGER_VALUE = "customIntegerValue";
+  public static final String ATTR_CUSTOM_FLOAT_VALUE = "customFloatValue";
+  public static final String ATTR_CUSTOM_STRING_VALUE = "customStringValue";
+  public static final String ATTR_CUSTOM_DIMENSION_VALUE = "customDimension";
+  public static final String ATTR_CUSTOM_PIXEL_DIMENSION_VALUE = "customPixelDimension";
+  public static final String ATTR_CUSTOM_BOOLEAN_VALUE = "customBoolean";
+
   public static final String MOTION_ANIMATE_RELATIVE_TO = "animate_relativeTo";
   public static final String MOTION_TRANSITION_EASING = "transitionEasing";
   public static final String MOTION_PATH_MOTION_ARC = "pathMotionArc";
@@ -422,15 +432,15 @@ public class MotionSceneAttrs {
   ));
 
 
-  public static String[] ourCustomAttribute = {
-    "customColorValue",
-    "customColorDrawableValue",
-    "customIntegerValue",
-    "customFloatValue",
-    "customStringValue",
-    "customDimension",
-    "customPixelDimension",
-    "customBoolean"
+  public static final String[] ourCustomAttribute = {
+    ATTR_CUSTOM_COLOR_VALUE,
+    ATTR_CUSTOM_COLOR_DRAWABLE_VALUE,
+    ATTR_CUSTOM_INTEGER_VALUE,
+    ATTR_CUSTOM_FLOAT_VALUE,
+    ATTR_CUSTOM_STRING_VALUE,
+    ATTR_CUSTOM_DIMENSION_VALUE,
+    ATTR_CUSTOM_PIXEL_DIMENSION_VALUE,
+    ATTR_CUSTOM_BOOLEAN_VALUE,
   };
 
   public static boolean copyToConstraint(MTag.Attribute attr) {
