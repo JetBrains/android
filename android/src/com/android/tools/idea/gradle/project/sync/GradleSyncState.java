@@ -39,7 +39,6 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.google.wireless.android.sdk.stats.KotlinSupport;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -425,7 +424,7 @@ public final class GradleSyncState {
    */
   public boolean lastSyncFailed() {
     return !isSyncInProgress() &&
-           GradleProjectInfo.getInstance(myProject).isBuildWithGradle() &&
+           (!myProject.isDefault() && GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) &&
            (AndroidProjectInfo.getInstance(myProject).requiredAndroidModelMissing() || mySummary.hasSyncErrors());
   }
 

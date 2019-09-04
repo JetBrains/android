@@ -78,13 +78,13 @@ public final class TestArtifactSearchScopes implements Disposable {
 
   @Nullable
   public static TestArtifactSearchScopes get(@NotNull VirtualFile file, @NotNull Project project) {
-    if (GradleSyncState.getInstance(project).lastSyncFailed()) {
+    if (project.isDefault() || GradleSyncState.getInstance(project).lastSyncFailed()) {
       return null;
     }
 
-    ProjectFileIndex projectFileIndex = ProjectFileIndex.SERVICE.getInstance(project);
+    ProjectFileIndex projectFileIndex = ProjectFileIndex.getInstance(project);
     Module module = projectFileIndex.getModuleForFile(file);
-    return module != null ? get(module) : null;
+    return module == null ? null : get(module);
   }
 
   @Nullable
