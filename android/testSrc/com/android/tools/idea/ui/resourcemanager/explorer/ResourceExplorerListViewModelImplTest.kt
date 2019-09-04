@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.ide.common.resources.ResourceResolver
+import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -118,9 +119,17 @@ class ResourceExplorerListViewModelImplTest {
   fun getLibrariesResources() {
     val libraryName = "myLibrary"
     addAarDependency(projectRule.module,
-                     libraryName,
-                     "com.resources.test")
-    { file -> FileUtil.copyDir(File(getTestDataDirectory() + "/res"), file) }
+                     libraryName, "com.resources.test") { resDir ->
+      FileUtil.copyDir(File(getTestDataDirectory() + "/res"), resDir)
+      // Have only some of these resources to be public.
+      resDir.parentFile.resolve(SdkConstants.FN_PUBLIC_TXT).writeText(
+        """
+          color colorPrimary
+          color colorPrimaryDark
+          drawable png
+          """.trimIndent()
+      )
+    }
 
     var viewModel = createViewModel(projectRule.module, ResourceType.COLOR)
     Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
@@ -129,7 +138,7 @@ class ResourceExplorerListViewModelImplTest {
     Truth.assertThat(colorSection).hasSize(2)
     Truth.assertThat(colorSection[0].assetSets).isEmpty()
     Truth.assertThat(colorSection[1].assetSets).isNotEmpty()
-    Truth.assertThat(colorSection[1].assetSets).isNotEmpty()
+    Truth.assertThat(colorSection[1].assetSets).hasSize(2)
     Truth.assertThat(colorSection[1].assetSets[0].assets[0].type).isEqualTo(ResourceType.COLOR)
     Truth.assertThat(colorSection[1].libraryName).contains(libraryName)
 
@@ -139,6 +148,7 @@ class ResourceExplorerListViewModelImplTest {
     Truth.assertThat(drawableSection).hasSize(2)
     Truth.assertThat(drawableSection[0].assetSets).isEmpty()
     Truth.assertThat(drawableSection[1].assetSets).isNotEmpty()
+    Truth.assertThat(drawableSection[1].assetSets).hasSize(1)
     Truth.assertThat(drawableSection[1].assetSets[0].assets[0].type).isEqualTo(ResourceType.DRAWABLE)
     Truth.assertThat(drawableSection[1].libraryName).contains(libraryName)
   }
