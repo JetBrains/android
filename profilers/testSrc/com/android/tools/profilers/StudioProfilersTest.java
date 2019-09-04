@@ -441,7 +441,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void shouldSelectAlivePreferredProcessWhenRestarted() {
+  public void testRestartedPreferredProcessNotSelected() {
     StudioProfilers profilers = new StudioProfilers(myProfilerClient, myIdeProfilerServices, myTimer);
     //int nowInSeconds = 42;
     //myTransportService.setTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds));
@@ -476,8 +476,15 @@ public final class StudioProfilersTest {
       .build();
     myTransportService.addProcess(device, process);
 
-    // The profiler should select the alive preferred process.
+
+    // The profiler should not automatically selects the alive, preferred process again.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getProcess().getPid()).isEqualTo(20);
+    assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.DEAD);
+    assertThat(profilers.getAutoProfilingEnabled()).isFalse();
+
+    // Re-enable auto-profiling should pick up the new process.
+    profilers.setAutoProfilingEnabled(true);
     assertThat(profilers.getProcess().getPid()).isEqualTo(21);
     assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
   }

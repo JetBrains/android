@@ -61,6 +61,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A wrapper class for keeping track of the list of sessions that the profilers have seen, along with their associated artifacts (e.g.
@@ -133,6 +134,11 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    */
   @NotNull
   private final List<ArtifactFetcher> myArtifactsFetchers;
+
+  /**
+   * Cache the EventStreamServers that were created for imported streams so events and bytes can be added at a later time if desired.
+   */
+  @NotNull private final Map<Long, EventStreamServer> myStreamIdToStreamServerMap = new HashMap<>();
 
   public SessionsManager(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
@@ -309,6 +315,20 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   /**
+   * Select the session with the matching id if one exists.
+   *
+   * @return true if the session is successfully selected,  false otherwise.
+   */
+  public boolean setSessionById(long sessionId) {
+    if (!mySessionItems.containsKey(sessionId)) {
+      return false;
+    }
+
+    setSession(mySessionItems.get(sessionId).getSession());
+    return true;
+  }
+
+  /**
    * Change the current selected session explicitly, such as when importing an old session or caputre files, or the user manually navigate
    * to a different session via the sessions panel.
    * This has the effect of disabling the auto-process selection logic. Also see {@link StudioProfilers#setAutoProfilingEnabled(boolean)}.
@@ -474,6 +494,14 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   /**
+   * @return the EventStreamServer corresponding to a particular stream id.
+   */
+  @Nullable
+  public EventStreamServer getEventStreamServer(long streamId) {
+    return myStreamIdToStreamServerMap.get(streamId);
+  }
+
+  /**
    * Create and a new session with a specific type. Note that this function will generate the corresponding session begin and end event
    * pair, so the caller does not have to include those into the input events list.
    *
@@ -500,6 +528,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       return;
     }
     Common.Stream stream = TransportService.getInstance().registerStreamServer(Common.Stream.Type.FILE, streamServer);
+    myStreamIdToStreamServerMap.put(stream.getStreamId(), streamServer);
     streamServer.getByteCacheMap().putAll(byteCacheMap);
     BlockingDeque<Event> deque = streamServer.getEventDeque();
     for (int i = 0; i < events.length; i++) {

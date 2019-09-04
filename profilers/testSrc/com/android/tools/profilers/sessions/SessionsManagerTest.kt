@@ -272,6 +272,29 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
   }
 
   @Test
+  fun testSetSessionById() {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+
+    // Create a finished session and a ongoing profiling session.
+    beginSessionHelper(device, process1)
+    endSessionHelper()
+    val session1 = myManager.selectedSession
+    beginSessionHelper(device, process2)
+    val session2 = myManager.selectedSession
+
+    assertThat(myManager.setSessionById(0)).isFalse()
+    assertThat(myManager.selectedSession).isEqualTo(session2)
+
+    assertThat(myManager.setSessionById(session1.sessionId)).isTrue()
+    assertThat(myManager.selectedSession).isEqualTo(session1)
+
+    assertThat(myManager.setSessionById(session2.sessionId)).isTrue()
+    assertThat(myManager.selectedSession).isEqualTo(session2)
+  }
+
+  @Test
   fun testSetSessionStopsAutoProfiling() {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
