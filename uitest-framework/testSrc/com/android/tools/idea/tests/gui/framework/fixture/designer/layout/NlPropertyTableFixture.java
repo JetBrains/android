@@ -36,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.google.common.truth.Truth.assertThat;
@@ -71,18 +70,6 @@ public class NlPropertyTableFixture extends AbstractJPopupMenuInvokerFixture<NlP
   @NotNull
   public NlPropertyTableFixture type(char character) {
     robot().type(character);
-    return this;
-  }
-
-  @NotNull
-  public NlPropertyTableFixture enterText(@NotNull String text) {
-    robot().enterText(text);
-    return this;
-  }
-
-  @NotNull
-  public NlPropertyTableFixture tab() {
-    robot().pressAndReleaseKey(KeyEvent.VK_TAB);
     return this;
   }
 
