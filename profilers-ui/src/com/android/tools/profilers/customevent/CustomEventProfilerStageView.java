@@ -18,17 +18,31 @@ package com.android.tools.profilers.customevent;
 
 import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
+import com.android.tools.adtui.DragAndDropList;
+import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
+import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
+import com.google.common.annotations.VisibleForTesting;
 import java.awt.BorderLayout;
 import javax.swing.JComponent;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This class represents the view of all the custom events that users have chosen to track for Custom Event Visualization.
+ */
 public class CustomEventProfilerStageView extends StageView<CustomEventProfilerStage> {
+
+  @NotNull
+  private final JList<TrackGroupModel> myTrackGroupList;
 
   public CustomEventProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CustomEventProfilerStage stage) {
     super(profilersView, stage);
+
+    //TODO: add the track group list into the view
+    myTrackGroupList = createTrackGroups(stage.getTrackGroupListModel());
   }
 
   @Override
@@ -38,5 +52,19 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(toolBar, BorderLayout.WEST);
     return panel;
+  }
+
+  /**
+   * Creates the JList containing all the track groups in the stage.
+   */
+  private static JList<TrackGroupModel> createTrackGroups(@NotNull TrackGroupListModel trackGroupListModel) {
+    DragAndDropList<TrackGroupModel> trackGroupList = new DragAndDropList<>(trackGroupListModel);
+    return trackGroupList;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  protected final JList<TrackGroupModel> getTrackGroupList() {
+    return myTrackGroupList;
   }
 }
