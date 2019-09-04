@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Show the "What's New" assistant the first time the app starts up with a new major.minor version.
  */
-public class WhatsNewStartupActivity implements StartupActivity.Backgroundable {
+public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
   @Override
   public void runActivity(@NotNull Project project) {
     if (!(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes() && StudioFlags.WHATS_NEW_ASSISTANT_AUTO_SHOW.get())) {

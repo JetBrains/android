@@ -75,7 +75,7 @@ public class GradleFiles {
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
-  public static class UpdateHashesStartupActivity implements StartupActivity {
+  public static class UpdateHashesStartupActivity implements StartupActivity.DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
       // Populate build file hashes on project startup.
