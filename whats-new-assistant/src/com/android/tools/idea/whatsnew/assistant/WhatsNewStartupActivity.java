@@ -29,7 +29,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.util.xmlb.annotations.Tag;
@@ -40,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Show the "What's New" assistant the first time the app starts up with a new major.minor version.
  */
-public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
+public class WhatsNewStartupActivity implements StartupActivity.Backgroundable {
   @Override
   public void runActivity(@NotNull Project project) {
     WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator.class);
