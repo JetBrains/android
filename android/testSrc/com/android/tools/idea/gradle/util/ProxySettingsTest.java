@@ -33,4 +33,16 @@ public class ProxySettingsTest {
     String expected = "*, *.google.com, *, *.google.com, proxy.com, last.com";
     assertThat(ProxySettings.replacePipesWithCommasAndClean(TEST_INPUT)).isEqualTo(expected);
   }
+
+  @Test
+  public void replaceOnlySpaces() {
+    assertThat(ProxySettings.replaceCommasWithPipesAndClean(" ,,  ,")).isNull();
+    assertThat(ProxySettings.replacePipesWithCommasAndClean(" ,,  ,")).isNull();
+  }
+
+  @Test
+  public void replaceNull() {
+    assertThat(ProxySettings.replaceCommasWithPipesAndClean(null)).isNull();
+    assertThat(ProxySettings.replacePipesWithCommasAndClean(null)).isNull();
+  }
 }
