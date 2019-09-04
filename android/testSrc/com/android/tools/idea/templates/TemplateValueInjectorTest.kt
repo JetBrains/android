@@ -81,7 +81,7 @@ class TemplateValueInjectorTest {
 
     val templateValues = HashMap<String, Any>()
     val injector = TemplateValueInjector(templateValues)
-    injector.setBuildVersion(versionItem, null)
+    injector.setBuildVersion(versionItem, null, true)
 
     assertThat(templateValues).isNotEmpty()
     assertThat(templateValues[TemplateMetadata.ATTR_BUILD_API]).isEqualTo(PREVIEW_VERSION)

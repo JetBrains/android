@@ -43,8 +43,9 @@ class TestNewProjectWizardState(moduleTemplate: Template) {
   val projectTemplate: Template = Template.createFromName(CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
   val moduleTemplateState = TestTemplateWizardState().apply {
     template = moduleTemplate
-    TemplateValueInjector(templateValues).setProjectDefaults(null)
-    put(ATTR_LANGUAGE, Language.JAVA.toString())
+    TemplateValueInjector(templateValues)
+      .setProjectDefaults(null, true)
+      .setLanguage(Language.JAVA)
     put(ATTR_APP_TITLE, APPLICATION_NAME)
     put(ATTR_HAS_APPLICATION_THEME, true)
     put(ATTR_IS_LAUNCHER, true)
