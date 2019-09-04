@@ -17,6 +17,7 @@ package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DeviceFileId;
+import com.android.tools.idea.deviceExplorer.FileHandler;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
@@ -34,6 +35,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FileTypeChooser;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtilRt;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -48,8 +50,10 @@ import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 
 /**
@@ -61,19 +65,25 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   @NotNull private final Project myProject;
   @NotNull private final List<VirtualFile> myTemporaryEditorFiles = new ArrayList<>();
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
+  @NotNull private final FutureCallbackExecutor myTaskExecutor;
   @NotNull private Supplier<Path> myDefaultDownloadPath;
 
   private DeviceExplorerFileManagerImpl(@NotNull Project project) {
-    this(project, new FutureCallbackExecutor(EdtExecutorService.getInstance()),
-         () -> Paths.get(DeviceFileExplorerSettings.getInstance().getDownloadLocation()));
+    this(
+      project,
+      new FutureCallbackExecutor(EdtExecutorService.getInstance()),
+      new FutureCallbackExecutor(PooledThreadExecutor.INSTANCE),
+         () -> Paths.get(DeviceFileExplorerSettings.getInstance().getDownloadLocation())
+    );
   }
 
   @VisibleForTesting
-  public DeviceExplorerFileManagerImpl(@NotNull Project project, @NotNull Executor edtExecutor,
+  public DeviceExplorerFileManagerImpl(@NotNull Project project, @NotNull Executor edtExecutor, @NotNull Executor taskExecutor,
                                        @NotNull Supplier<Path> downloadPathSupplier) {
     myProject = project;
     myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerAdapter());
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
+    myTaskExecutor = new FutureCallbackExecutor(taskExecutor);
     myDefaultDownloadPath = downloadPathSupplier;
   }
 
@@ -93,62 +103,212 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
 
   @NotNull
   @Override
-  public ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry,
+                                                  @NotNull Path localPath,
+                                                  @NotNull FileManagerDownloadProgress progress) {
     SettableFuture<Void> futureResult = SettableFuture.create();
 
     FileUtils.mkdirs(localPath.getParent().toFile());
     ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(localPath);
 
-    // Using VFS to delete files has the advantage of throwing VFS events,
-    // so listeners can react to actions on the files - for example by closing a file before it being deleted.
     myEdtExecutor.addCallback(getVirtualFile, new FutureCallback<VirtualFile>() {
       @Override
       public void onSuccess(VirtualFile virtualFile) {
         ApplicationManager.getApplication().runWriteAction(() -> {
           deleteVirtualFile(futureResult, virtualFile);
-          downloadFile(futureResult, entry, localPath, progress);
+          downloadFileAndAdditionalFiles(futureResult, entry, localPath, progress);
         });
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        downloadFile(futureResult, entry, localPath, progress);
+        downloadFileAndAdditionalFiles(futureResult, entry, localPath, progress);
       }
     });
 
     return futureResult;
   }
 
-  private void deleteVirtualFile(SettableFuture<Void> futureResult, VirtualFile virtualFile) {
-    if (virtualFile != null) {
-      try {
-        virtualFile.delete(this);
-      }
-      catch (IOException e) {
-        futureResult.setException(e);
-      }
+  private void deleteVirtualFile(@NotNull SettableFuture<Void> futureResult, @NotNull VirtualFile virtualFile) {
+    // Using VFS to delete files has the advantage of throwing VFS events,
+    // so listeners can react to actions on the files - for example by closing a file before it being deleted.
+    try {
+      virtualFile.delete(this);
+    }
+    catch (IOException e) {
+      futureResult.setException(e);
     }
   }
 
-  private void downloadFile(
-    SettableFuture<Void> futureResult,
+  private void downloadFileAndAdditionalFiles(
+    @NotNull SettableFuture<Void> futureResult,
     @NotNull DeviceFileEntry entry,
     @NotNull Path localPath,
-    @NotNull FileTransferProgress progress
+    @NotNull FileManagerDownloadProgress progress
   ) {
-    ListenableFuture<Void> result = entry.downloadFile(localPath, progress);
-    myEdtExecutor.addCallback(result, new FutureCallback<Void>() {
+    downloadFile(entry, localPath, progress, new FutureCallback<Void>() {
       @Override
-      public void onSuccess(@Nullable Void result) {
-        futureResult.set(null);
+      public void onSuccess(Void result) {
+        ListenableFuture<Void> downloadAdditionalFiles = downloadAdditionalFiles(localPath, entry, progress);
+        myTaskExecutor.addCallback(downloadAdditionalFiles, new FutureCallback<Void>() {
+          @Override
+          public void onSuccess(Void result) {
+            futureResult.set(null);
+          }
+
+          @Override
+          public void onFailure(@NotNull Throwable throwable) {
+            futureResult.setException(throwable);
+          }
+        });
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
         futureResult.setException(t);
-        deleteTemporaryFile(localPath);
       }
     });
+  }
+
+  /**
+   * Downloads the file corresponding to the {@link DeviceFileEntry} passed as argument, to the local path specified.
+   * @param entry The entry corresponding to the file to download.
+   * @param localPath Where to download the file.
+   * @param progress Progress indicator for the download operation.
+   * @param callback An optional callback called once the download is over (success or failure).
+   * @return
+   */
+  @NotNull
+  private ListenableFuture<Void> downloadFile(@NotNull DeviceFileEntry entry,
+                                              @NotNull Path localPath,
+                                              @NotNull FileManagerDownloadProgress progress,
+                                              @Nullable FutureCallback<Void> callback) {
+    FileTransferProgress fileTransferProgress = createFileTransferProgress(entry, progress);
+    progress.onDownloadStarting(entry);
+    ListenableFuture<Void> downloadFileFuture = entry.downloadFile(localPath, fileTransferProgress);
+    myEdtExecutor.addCallback(downloadFileFuture, new FutureCallback<Void>() {
+      @Override
+      public void onSuccess(Void result) {
+        progress.onDownloadCompleted(entry);
+        if (callback != null) callback.onSuccess(result);
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        progress.onDownloadCompleted(entry);
+        deleteTemporaryFile(localPath);
+        if (callback != null) callback.onFailure(t);
+      }
+    });
+
+    return downloadFileFuture;
+  }
+
+  /**
+   * Downloads files in addition to the original file, if required.
+   * <p>Some files require additional files to be downloaded in addition to the one selected by the user.
+   * (eg. a .db file requires other two files to be downloaded with it, .db-shm and .db-wal)
+   *
+   * These files are downloaded in sequence because adb does not support parallel operations.</p>
+   * @param originalLocalPath the local path of the original file.
+   * @param originalEntry the entry corresponding to the original file.
+   * @param progress used to keep track of the download progress.
+   * @return a [Future] that completes when all additional files have been downloaded.
+   */
+  @NotNull
+  private ListenableFuture<Void> downloadAdditionalFiles(@NotNull Path originalLocalPath,
+                                                         @NotNull DeviceFileEntry originalEntry,
+                                                         @NotNull FileManagerDownloadProgress progress) {
+    ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(originalLocalPath);
+    return myTaskExecutor.transformAsync(getVirtualFile, virtualFile -> {
+      assert virtualFile != null;
+      List<String> additionalPaths = getAdditionalDevicePaths(originalEntry, virtualFile);
+
+      ListenableFuture<List<DeviceFileEntry>> additionalEntriesFuture;
+      // if the additional entries all have the same parent it is much faster to get them directly using the parent node.
+      if (haveSameParent(originalEntry, additionalPaths)) {
+        DeviceFileEntry parent = originalEntry.getParent();
+        assert parent != null;
+        additionalEntriesFuture = getEntriesFromCommonParent(parent, additionalPaths);
+      } else {
+        additionalEntriesFuture = mapPathsToEntries(originalEntry.getFileSystem(), additionalPaths);
+      }
+
+      return myTaskExecutor.transformAsync(additionalEntriesFuture, additionalEntries -> {
+        assert additionalEntries != null;
+        return myEdtExecutor.executeFuturesInSequence(
+          additionalEntries.iterator(),
+          additionalEntry -> downloadFile(additionalEntry, getDefaultLocalPathForEntry(additionalEntry), progress, null)
+        );
+      });
+    });
+  }
+
+  /**
+   * Maps all the paths passed as argument to children of the given {@link DeviceFileEntry} node.
+   */
+  @NotNull
+  private ListenableFuture<List<DeviceFileEntry>> getEntriesFromCommonParent(@NotNull DeviceFileEntry parent, @NotNull List<String> paths) {
+    ListenableFuture<List<DeviceFileEntry>> getEntries = parent.getEntries();
+    return myTaskExecutor.transform(getEntries, entries -> {
+      assert entries != null;
+      return paths
+        .stream()
+        .map(path -> {
+          Optional<DeviceFileEntry> additionalEntryOptional = entries.stream().filter(e -> e.getFullPath().equals(path)).findFirst();
+          return additionalEntryOptional.get();
+        })
+        .collect(Collectors.toList());
+    });
+  }
+
+  private boolean haveSameParent(@NotNull DeviceFileEntry originalEntry, @NotNull List<String> additionalPaths) {
+    DeviceFileEntry parent = originalEntry.getParent();
+    String parentPath;
+    if (parent != null)
+      parentPath = parent.getFullPath() +"/";
+    else
+      parentPath = "/";
+
+    for (String currentPath : additionalPaths) {
+      FileUtil.isAncestor(parentPath, currentPath, true);
+    }
+
+    return true;
+  }
+
+  private FileTransferProgress createFileTransferProgress(@NotNull DeviceFileEntry entry, @NotNull FileManagerDownloadProgress progress) {
+    return new FileTransferProgress() {
+      @Override
+      public void progress(long currentBytes, long totalBytes) {
+        progress.onProgress(entry, currentBytes, totalBytes);
+      }
+
+      @Override
+      public boolean isCancelled() {
+        return progress.isCancelled();
+      }
+    };
+  }
+
+  @NotNull
+  private ListenableFuture<List<DeviceFileEntry>> mapPathsToEntries(@NotNull DeviceFileSystem fileSystem, @NotNull List<String> paths) {
+    List<DeviceFileEntry> entries = new ArrayList<>();
+    ListenableFuture<Void> allDone = myTaskExecutor.executeFuturesInSequence(paths.iterator(), path -> {
+      ListenableFuture<DeviceFileEntry> futureEntry = fileSystem.getEntry(path);
+      return myTaskExecutor.transform(futureEntry, entry -> { entries.add(entry); return null; });
+    });
+
+    return myTaskExecutor.transform(allDone, aVoid -> entries);
+  }
+
+  @NotNull
+  private List<String> getAdditionalDevicePaths(@NotNull DeviceFileEntry entry, @NotNull VirtualFile virtualFile) {
+    List<String> additionalPaths = new ArrayList<>();
+    for(FileHandler fileHandler : FileHandler.EP_NAME.getExtensions()) {
+      additionalPaths.addAll(fileHandler.getAdditionalDevicePaths(entry.getFullPath(), virtualFile));
+    }
+    return additionalPaths;
   }
 
   @Override

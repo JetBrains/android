@@ -19,9 +19,7 @@ import static com.android.tools.idea.concurrent.FutureUtils.ignoreResult;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.UiThread;
-import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
-import com.android.tools.idea.deviceExplorer.FileHandler;
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
@@ -31,7 +29,6 @@ import com.android.tools.idea.explorer.fs.DeviceState;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.android.tools.idea.explorer.ui.TreeUtil;
 import com.android.utils.FileUtils;
-import com.android.utils.Pair;
 import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -119,7 +116,6 @@ public class DeviceExplorerController {
   @NotNull private final DeviceExplorerView myView;
   @NotNull private final DeviceFileSystemService myService;
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
-  @NotNull private final FutureCallbackExecutor myTaskExecutor;
   @NotNull private final DeviceExplorerFileManager myFileManager;
   @NotNull private final FileTransferWorkEstimator myWorkEstimator;
   @NotNull private final Set<DeviceFileEntryNode> myTransferringNodes = new HashSet<>();
@@ -141,7 +137,6 @@ public class DeviceExplorerController {
     myView = view;
     myService = service;
     myEdtExecutor = FutureCallbackExecutor.wrap(edtExecutor);
-    myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor);
     myService.addListener(new ServiceListener());
     myView.addListener(new ViewListener());
     myFileManager = fileManager;
@@ -474,47 +469,14 @@ public class DeviceExplorerController {
 
         ListenableFuture<Path> futurePath = downloadFileEntryToDefaultLocation(treeNode);
 
-        // download file selected by the user and get additional paths on the device
-        ListenableFuture<Pair<List<DeviceFileEntryNode>, Path>> getAdditionalPathsFuture = myTaskExecutor.transform(futurePath, path -> {
-          VirtualFile virtualFile = VfsUtil.findFile(path, true);
+        ListenableFuture<Void> done = myEdtExecutor.transform(futurePath, path -> {
+          ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(path);
 
-          if (virtualFile != null) {
-            List<String> additionalPaths = getAdditionalDevicePaths(treeNode, virtualFile);
-
-            List<DeviceFileEntryNode> nodes = additionalPaths.stream()
-              .map(p -> findDeviceFileEntryNodeFromPath((DeviceFileEntryNode)treeNode.getRoot(), p))
-              .filter(node -> node != null)
-              .collect(Collectors.toList());
-
-            return Pair.of(nodes, path);
-          }
-          else {
-            throw new RuntimeException("Failed to load file " + path);
-          }
-        });
-
-        // download additional nodes and open file selected by user in editor
-        ListenableFuture<Void> done = myEdtExecutor.transformAsync(getAdditionalPathsFuture, pair -> {
-          assert pair != null;
-          List<DeviceFileEntryNode> additionalPaths = pair.getFirst();
-          Path downloadedFilePath = pair.getSecond();
-
-          ListenableFuture<Void> allFilesDownloaded;
-          if(additionalPaths.isEmpty()) {
-            allFilesDownloaded = Futures.immediateFuture(null);
-          } else {
-            allFilesDownloaded = myEdtExecutor.executeFuturesInSequence(
-              additionalPaths.iterator(),
-              node -> myTaskExecutor.transform(
-                downloadFileEntryToDefaultLocation(node), path -> { downloadedNodes.put(node, path); return null; }
-                )
-            );
-          }
-
-          return myEdtExecutor.transform(allFilesDownloaded, aVoid -> {
-            openFile(treeNode, downloadedFilePath);
-            return null;
+          myEdtExecutor.transform(getVirtualFile, virtualFile -> {
+            openFile(treeNode, path); return null;
           });
+
+          return null;
         });
 
         // handle exceptions
@@ -523,17 +485,27 @@ public class DeviceExplorerController {
           myView.reportErrorRelatedToNode(treeNode, message, t);
           return null;
         });
-
       });
     }
 
-    @NotNull
-    private List<String> getAdditionalDevicePaths(@NonNull DeviceFileEntryNode treeNode, @NonNull VirtualFile virtualFile) {
-      List<String> additionalPaths = new ArrayList<>();
-      for(FileHandler fileHandler : FileHandler.EP_NAME.getExtensions()) {
-        additionalPaths.addAll(fileHandler.getAdditionalDevicePaths(treeNode.getEntry().getFullPath(), virtualFile));
+    @Nullable
+    private DeviceFileEntryNode getTreeNodeFromEntry(@NonNull DeviceFileEntryNode treeNode, @NonNull DeviceFileEntry entry) {
+      TreeNode treeNodeRoot = getTreeNodeRoot(treeNode);
+
+      if (!(treeNodeRoot instanceof DeviceFileEntryNode)) {
+        return null;
       }
-      return additionalPaths;
+
+      DeviceFileEntryNode treeRoot = (DeviceFileEntryNode)treeNodeRoot;
+      return findDeviceFileEntryNodeFromPath(treeRoot, entry.getFullPath());
+    }
+
+    @NonNull
+    private TreeNode getTreeNodeRoot(@NonNull TreeNode node) {
+      while (node.getParent() != null)
+        node = node.getParent();
+
+      return node;
     }
 
     @Nullable
@@ -1471,35 +1443,48 @@ public class DeviceExplorerController {
         return Futures.immediateCancelledFuture();
       }
       tracker.processFile();
-      tracker.setDownloadFileText(treeNode.getEntry(), 0, 0);
 
-      // Download the entry to the local path
       DeviceFileEntry entry = treeNode.getEntry();
-      startNodeDownload(treeNode);
-      AtomicReference<Long> sizeRef = new AtomicReference<>();
-      ListenableFuture<Void> futureDownload = myFileManager.downloadFileEntry(entry, localPath, new FileTransferProgress() {
+
+      AtomicReference<Long> sizeRef = new AtomicReference<>(0L);
+      ListenableFuture<Void> futureDownload = myFileManager.downloadFileEntry(entry, localPath, new FileManagerDownloadProgress() {
         private long previousBytes;
 
-        @UiThread
         @Override
-        public void progress(long currentBytes, long totalBytes) {
-          // Update progress UI
-          tracker.processFileBytes(currentBytes - previousBytes);
-          previousBytes = currentBytes;
-          tracker.setDownloadFileText(treeNode.getEntry(), currentBytes, totalBytes);
+        public void onDownloadStarting(DeviceFileEntry entry) {
+          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entry);
+          assert currentNode != null;
 
-          // Update Tree UI
-          treeNode.setTransferProgress(currentBytes, totalBytes);
-          sizeRef.set(totalBytes);
+          previousBytes = 0;
+          startNodeDownload(currentNode);
         }
 
-        @WorkerThread
+        @Override
+        public void onProgress(DeviceFileEntry entry, long currentBytes, long totalBytes) {
+          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entry);
+          assert currentNode != null;
+
+          tracker.processFileBytes(currentBytes - previousBytes);
+          previousBytes = currentBytes;
+          tracker.setDownloadFileText(entry, currentBytes, totalBytes);
+          currentNode.setTransferProgress(currentBytes, totalBytes);
+        }
+
+        @Override
+        public void onDownloadCompleted(DeviceFileEntry entry) {
+          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entry);
+          assert currentNode != null;
+
+          sizeRef.set(sizeRef.get()+previousBytes);
+          stopNodeDownload(currentNode);
+        }
+
         @Override
         public boolean isCancelled() {
           return tracker.isCancelled();
         }
       });
-      myEdtExecutor.addListener(futureDownload, () -> stopNodeDownload(treeNode));
+
       logFuture(futureDownload, millis -> String.format(Locale.US, "Downloaded file in %,d msec: %s", millis, entry.getFullPath()));
       return myEdtExecutor.transform(futureDownload, aVoid -> sizeRef.get());
     }

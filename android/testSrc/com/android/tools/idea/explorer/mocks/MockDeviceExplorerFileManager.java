@@ -18,10 +18,10 @@ package com.android.tools.idea.explorer.mocks;
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.DeviceExplorerFileManager;
 import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl;
+import com.android.tools.idea.explorer.FileManagerDownloadProgress;
 import com.android.tools.idea.explorer.FutureValuesTracker;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
-import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -52,15 +52,19 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   @NotNull private final FutureValuesTracker<Path> myOpenFileInEditorTracker = new FutureValuesTracker<>();
   @Nullable private RuntimeException myOpenFileInEditorError;
 
-  public MockDeviceExplorerFileManager(@NotNull Project project, @NotNull Executor edtExecutor, @NotNull Supplier<Path> defaultPath) {
+  public MockDeviceExplorerFileManager(
+    @NotNull Project project,
+    @NotNull Executor edtExecutor,
+    @NotNull Executor taskExecutor,
+    @NotNull Supplier<Path> defaultPath) {
     myProject = project;
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
-    myFileManagerImpl = new DeviceExplorerFileManagerImpl(project, edtExecutor, defaultPath);
+    myFileManagerImpl = new DeviceExplorerFileManagerImpl(project, edtExecutor, taskExecutor, defaultPath);
   }
 
   @NotNull
   @Override
-  public ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileManagerDownloadProgress progress) {
     myDownloadFileEntryTracker.produce(entry);
 
     myDevices.add(entry.getFileSystem());
