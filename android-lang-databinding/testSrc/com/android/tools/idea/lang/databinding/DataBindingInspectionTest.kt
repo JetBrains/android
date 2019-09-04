@@ -880,4 +880,41 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.checkHighlighting()
   }
+
+  @Test
+  fun testDataBindingInspection_multipleSettersWithDifferentParameterType() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${dataBindingMode.bindingAdapter};
+
+      public class Model {
+        @BindingAdapter("android:text")
+        public void bindDummyText(View view, String s) {}
+        public int getNumber() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{model.number}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
 }
