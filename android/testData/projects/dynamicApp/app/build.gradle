@@ -22,9 +22,8 @@ android {
     lintOptions {
         abortOnError false
     }
-    dynamicFeatures = [":feature1"]
 
-
+    dynamicFeatures = [':feature1', ':dependsOnFeature1']
 }
 
 dependencies {

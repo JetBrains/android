@@ -395,6 +395,14 @@ public final class StudioFlags {
     "This can be \"BLOCK\" to unconditionally block on a fresh merged manifest or \"STALE\" to use a potentially stale manifest",
     "BLOCK"
   );
+
+  public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
+    RUNDEBUG,
+    "feature.on.feature",
+    "Enable feature-on-feature dependencies",
+    "Enables Studio to understand feature-on-feature dependencies when launching dynamic apps.",
+    false
+  );
   //endregion
 
   //region Gradle Project System
