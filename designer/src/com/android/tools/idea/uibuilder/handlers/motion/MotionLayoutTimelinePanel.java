@@ -83,7 +83,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   private NlComponent mySelection;
   MotionLayoutAttributePanel myMotionLayoutAttributePanel;
   private boolean myInStateChange;
-  private NlComponentDelegate myNlComponentDelegate = new MotionLayoutComponentDelegate(this);
   private NlModel myModel;
   private MotionSceneModel myMotionSceneModel;
   private Object myLastSelectedAccessory = new Object();
@@ -95,11 +94,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   @Override
   public boolean showPopupMenuActions() {
     return (myCurrentState == State.TL_START || myCurrentState == State.TL_END);
-  }
-
-  @Override
-  public NlComponentDelegate getNlComponentDelegate() {
-    return myNlComponentDelegate;
   }
 
   public void setTimelineProgress(float progress) {
@@ -219,9 +213,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
 
     NlComponent component = selection.get(0);
-    if (component != mySelection) {
-      myNlComponentDelegate.clearCaches();
-    }
 
     mySelection = component;
     if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {

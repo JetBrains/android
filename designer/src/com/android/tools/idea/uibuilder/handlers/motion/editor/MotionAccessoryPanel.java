@@ -435,11 +435,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   ////////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public NlComponentDelegate getNlComponentDelegate() {
-    return myNlComponentDelegate;
-  }
-
-  @Override
   public boolean showPopupMenuActions() {
     return false;
   }
