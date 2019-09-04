@@ -15,77 +15,35 @@
  */
 package com.android.tools.idea.room.migrations.ui;
 
-import static com.android.tools.idea.room.migrations.ui.GenerateMigrationWizardRenameStepElement.*;
-
+import com.android.tools.idea.room.migrations.json.EntityBundle;
+import com.android.tools.idea.room.migrations.update.EntityUpdate;
+import com.android.tools.idea.room.migrations.update.SchemaDiffUtil;
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.ide.wizard.Step;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.JBScrollPane;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
-public class GenerateMigrationWizardRenameTablesStep implements Step {
+/**
+ * Step of the {@link GenerateMigrationWizard} for collecting user input needed in order to decide which tables have been renamed.
+ */
+public class GenerateMigrationWizardRenameTablesStep implements GenerateMigrationWizardStep {
   private static final String RENAME_TABLES_STEP_LABEL =
     "Specify which of the following tables has been renamed and what is the new name for each of them";
-  private static final String HEADER_TABLE_NAME_LABEL = "Table Name";
-  private static final String HEADER_OPERATION_LABEL = "Operation";
-  private static final String HEADER_NEW_NAME_LABEL = "New Name";
 
+  private boolean shouldBeSkipped;
   private GenerateMigrationWizardData wizardData;
-  private List<GenerateMigrationWizardRenameStepElement> renameStepElements;
-  private JBPanel renameTablesStepPanel;
-  private JBScrollPane renameTablesStepScrollPane;
+  private GenerateMigrationWizard.RenamePanel renameTablesStepPanel;
 
   public GenerateMigrationWizardRenameTablesStep(@NotNull GenerateMigrationWizardData wizardData) {
     this.wizardData = wizardData;
-    renameStepElements = new ArrayList<>();
-    renameTablesStepPanel = new JBPanel(new BorderLayout());
-    renameTablesStepScrollPane = new JBScrollPane();
-
-    JBLabel renameTablesStepLabel = new JBLabel(RENAME_TABLES_STEP_LABEL);
-    renameTablesStepPanel.add(renameTablesStepLabel, BorderLayout.NORTH);
-    renameTablesStepLabel.setLabelFor(renameTablesStepPanel);
-
-    JBPanel tablesListPanel = new JBPanel();
-    tablesListPanel.setLayout(new BoxLayout(tablesListPanel, BoxLayout.Y_AXIS));
     List<String> oldTableNames = new ArrayList<>(wizardData.getDatabaseUpdate().getDeletedEntities().keySet());
     List<String> newTableNames = new ArrayList<>(wizardData.getDatabaseUpdate().getNewEntities().keySet());
+    this.renameTablesStepPanel = new GenerateMigrationWizard.RenamePanel(RENAME_TABLES_STEP_LABEL, oldTableNames, newTableNames);
 
-    JBPanel headerPanel = new JBPanel();
-    headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.X_AXIS));
-    headerPanel.setMaximumSize(new Dimension(MAX_PANEL_WIDTH, MAX_PANEL_HEIGHT));
-
-    JBLabel tableNameLabel = new JBLabel(HEADER_TABLE_NAME_LABEL);
-    tableNameLabel.setMaximumSize(new Dimension(MAX_PANEL_COMPONENT_WIDTH, MAX_PANEL_COMPONENT_HEIGHT));
-    JBLabel operationLabel = new JBLabel(HEADER_OPERATION_LABEL);
-    operationLabel.setMaximumSize(new Dimension(MAX_PANEL_COMPONENT_WIDTH, MAX_PANEL_COMPONENT_HEIGHT));
-    JBLabel newNameLabel = new JBLabel(HEADER_NEW_NAME_LABEL);
-    newNameLabel.setMaximumSize(new Dimension(MAX_PANEL_COMPONENT_WIDTH, MAX_PANEL_COMPONENT_HEIGHT));
-
-    headerPanel.add(tableNameLabel);
-    headerPanel.add(operationLabel);
-    headerPanel.add(newNameLabel);
-
-    tablesListPanel.add(headerPanel);
-
-    for (String oldTableName : oldTableNames) {
-      GenerateMigrationWizardRenameStepElement renameStepElement =
-        new GenerateMigrationWizardRenameStepElement(oldTableName, newTableNames);
-      renameStepElements.add(renameStepElement);
-      tablesListPanel.add(renameStepElement.getRenameStepElementPanel());
-    }
-    renameTablesStepScrollPane.getViewport().setView(tablesListPanel);
-
-    renameTablesStepPanel.add(renameTablesStepScrollPane, BorderLayout.CENTER);
+    shouldBeSkipped = oldTableNames.isEmpty();
   }
 
   @Override
@@ -93,14 +51,14 @@ public class GenerateMigrationWizardRenameTablesStep implements Step {
 
   @Override
   public void _commit(boolean finishChosen) throws CommitStepException {
-    Map<String, String> oldToNewTableNamesMapping = new HashMap<>();
-    for (GenerateMigrationWizardRenameStepElement renameStepElement : renameStepElements) {
-      if (renameStepElement.markedAsRenamed()) {
-        oldToNewTableNamesMapping.put(renameStepElement.getInitialName(), renameStepElement.getNewName());
-      }
-    }
+    Map<String, String> oldToNewTableNames = renameTablesStepPanel.getOldToNewNamesMapping();
+    wizardData.updateRenamedTables(oldToNewTableNames);
 
-    wizardData.updateRenamedTables(oldToNewTableNamesMapping);
+    // Tables which were identified by the user to be renamed might contain themselves renamed columns.
+    //
+    if (!oldToNewTableNames.isEmpty()) {
+      updateUserIdentifiedEntityUpdates();
+    }
   }
 
   @Override
@@ -110,11 +68,32 @@ public class GenerateMigrationWizardRenameTablesStep implements Step {
 
   @Override
   public JComponent getComponent() {
-    return renameTablesStepPanel;
+    return renameTablesStepPanel.getRenameStepPanel();
   }
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return renameTablesStepScrollPane;
+    return null;
+  }
+
+  private void updateUserIdentifiedEntityUpdates() {
+    List<EntityUpdate> userIdentifiedEntityUpdates = new ArrayList<>();
+    for (Map.Entry<String, String> tableNames : renameTablesStepPanel.getOldToNewNamesMapping().entrySet()) {
+      EntityBundle oldEntity = wizardData.getDatabaseUpdate().getDeletedEntities().get(tableNames.getKey());
+      EntityBundle newEntity = wizardData.getDatabaseUpdate().getNewEntities().get(tableNames.getValue());
+      assert oldEntity != null && newEntity != null;
+      if (!SchemaDiffUtil.isTableStructureTheSame(oldEntity, newEntity)) {
+        EntityUpdate entityUpdate = new EntityUpdate(oldEntity, newEntity);
+        if (!entityUpdate.getDeletedFields().isEmpty()) {
+          userIdentifiedEntityUpdates.add(entityUpdate);
+        }
+      }
+    }
+    wizardData.updateUserIdentifiedEntityUpdates(userIdentifiedEntityUpdates);
+  }
+
+  @Override
+  public boolean shouldBeSkipped() {
+    return shouldBeSkipped;
   }
 }
