@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
-import com.android.SdkConstants;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider.mapToCustomType;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
@@ -106,6 +108,9 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     if (motionTag == null) {
       return null;
     }
+    if (motionTag.getTagName().equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
+      return motionTag.getAttributeValue(mapToCustomType(property.getType()));
+    }
     if (section == null) {
       return motionTag.getAttributeValue(property.getName());
     }
@@ -123,7 +128,10 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     if (motionTag == null) {
       return;
     }
-    if (section == null) {
+    if (motionTag.getTagName().equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
+      writeCustomTagAttribute(motionTag, property, newValue);
+    }
+    else if (section == null) {
       writeTagAttribute(motionTag, property, newValue);
     }
     else {
@@ -140,6 +148,12 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   private static void writeTagAttribute(@NotNull MotionSceneTag tag, @NotNull NelePropertyItem property, @Nullable String newValue) {
     MotionSceneTagWriter writer = tag.getTagWriter();
     writer.setAttribute(property.getNamespace(), property.getName(), newValue);
+    writer.commit(String.format("Set %1$s.%2$s to %3$s", tag.getTagName(), property.getName(), String.valueOf(newValue)));
+  }
+
+  private static void writeCustomTagAttribute(@NotNull MotionSceneTag tag, @NotNull NelePropertyItem property, @Nullable String newValue) {
+    MotionSceneTagWriter writer = tag.getTagWriter();
+    writer.setAttribute(property.getNamespace(), mapToCustomType(property.getType()), newValue);
     writer.commit(String.format("Set %1$s.%2$s to %3$s", tag.getTagName(), property.getName(), String.valueOf(newValue)));
   }
 
@@ -181,33 +195,31 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
                                  @NotNull String value,
                                  @NotNull MotionSceneModel.CustomAttributes.Type type,
                                  @NotNull Consumer<MotionSceneTag> operation) {
-    XmlTag parentTag = keyFrameOrConstraint.getXmlTag();
-    if (parentTag == null) {
-      return;
-    }
-    List<XmlTag> oldTags = Arrays.stream(parentTag.findSubTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE))
-      .filter(tag -> attrName.equals(tag.getAttribute(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, SdkConstants.AUTO_URI)))
+    List<MTag> oldTags = Arrays.stream(keyFrameOrConstraint.getChildTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE))
+      .filter(tag -> attrName.equals(tag.getAttributeValue(MotionSceneAttrs.ATTR_CUSTOM_ATTRIBUTE_NAME)))
       .collect(Collectors.toList());
 
-    Runnable transaction = () -> {
-      oldTags.forEach(tag -> tag.delete());
+    String newValue = StringUtil.isNotEmpty(value) ? value : type.getDefaultValue();
+    String commandName = String.format("Set %1$s.%2$s to %3$s", MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, attrName, newValue);
 
-      XmlTag createdTag = parentTag.createChildTag(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, null, null, false);
-      createdTag = parentTag.addSubTag(createdTag, false);
-      createdTag.setAttribute(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, SdkConstants.AUTO_URI, attrName);
-      createdTag.setAttribute(type.getTagName(), SdkConstants.AUTO_URI, StringUtil.isNotEmpty(value) ? value : type.getDefaultValue());
-      MotionSceneTag createdMotionTag = new MotionSceneTag(createdTag, keyFrameOrConstraint);
-      operation.accept(createdMotionTag);
+    Runnable transaction = () -> {
+      oldTags.forEach(tag -> ((MotionSceneTag)tag).getXmlTag().delete());
+
+      MTag.TagWriter writer = keyFrameOrConstraint.getChildTagWriter(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
+      writer.setAttribute(AUTO_URI, MotionSceneAttrs.ATTR_CUSTOM_ATTRIBUTE_NAME, attrName);
+      writer.setAttribute(AUTO_URI, type.getTagName(), newValue);
+      MTag createdMotionTag = writer.commit(commandName);
+      operation.accept((MotionSceneTag)createdMotionTag);
     };
 
     ApplicationManager.getApplication().assertIsDispatchThread();
     TransactionGuard.submitTransaction(this, () ->
       WriteCommandAction.runWriteCommandAction(
         getFacet().getModule().getProject(),
-        String.format("Set %1$s.%2$s to %3$s", MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, attrName, value),
+        commandName,
         null,
         transaction,
-        parentTag.getContainingFile()));
+        keyFrameOrConstraint.getXmlTag().getContainingFile()));
   }
 
   public void deleteTag(@NotNull XmlTag tag, @NotNull Runnable operation) {
