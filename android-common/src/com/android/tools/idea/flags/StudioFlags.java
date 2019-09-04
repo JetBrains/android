@@ -89,7 +89,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(
     NPW, "show.fragment.gallery", "Show fragment gallery",
     "Show fragment gallery which contains fragment based templates",
-    true);
+    false);
   //endregion
 
   //region Profiler
