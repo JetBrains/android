@@ -15,11 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.BEGIN;
+import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.END;
+import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.PERCENT;
+
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlAttributesHolder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlDependencyManager;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
@@ -30,19 +42,20 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Direction;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.Float;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.*;
 
 /**
  * Encapsulate basic querys on a ConstraintLayout component
@@ -703,7 +716,7 @@ public final class ConstraintComponentUtilities {
     Object secondarySelection = selectionModel.getSecondarySelection();
     Scene scene = surface.getScene();
     if (secondarySelection instanceof SecondarySelector.Constraint && scene != null) {
-      SecondarySelector.Constraint constraint = (SecondarySelector.Constraint) secondarySelection;
+      SecondarySelector.Constraint constraint = (SecondarySelector.Constraint)secondarySelection;
       AnchorTarget.Type type = null;
       switch (constraint) {
         case LEFT:
@@ -726,7 +739,7 @@ public final class ConstraintComponentUtilities {
       if (component == null) {
         return false;
       }
-      ConstraintAnchorTarget selectedTarget = (ConstraintAnchorTarget) AnchorTarget.findAnchorTarget(component, type);
+      ConstraintAnchorTarget selectedTarget = (ConstraintAnchorTarget)AnchorTarget.findAnchorTarget(component, type);
       if (selectedTarget != null) {
         NlComponent nlComponent = component.getNlComponent();
         ComponentModification modification = new ComponentModification(nlComponent, "Constraint Disconnected");
@@ -1542,11 +1555,96 @@ public final class ConstraintComponentUtilities {
     ATTR_LAYOUT_MARGIN_LEFT,
     ATTR_LAYOUT_MARGIN_RIGHT
   };
+
+
+  public static void clearAttributes(String uri, ArrayList<String> attributes, MTag.TagWriter tagwriter) {
+    int count = attributes.size();
+    for (int i = 0; i < count; i++) {
+      String attribute = attributes.get(i);
+      tagwriter.setAttribute(uri, attribute, null);
+    }
+  }
+
+  /**
+   * Apply scout to constraintSet not NLcomponent
+   * @param source
+   * @param sourceDirection
+   * @param target
+   * @param targetDirection
+   * @param margin
+   */
+  public static void scoutConstraintSetConnect( NlComponent source,
+    Direction sourceDirection,
+    NlComponent target,
+    Direction targetDirection,
+    int margin) {
+    int srcIndex = sourceDirection.ordinal();
+    String attrib = ATTRIB_MATRIX[srcIndex][targetDirection.ordinal()];
+    if (attrib == null) {
+      throw new RuntimeException("cannot connect " + sourceDirection + " to " + targetDirection);
+    }
+    ArrayList<String> list = new ArrayList<>();
+    for (int i = 0; i < ATTRIB_CLEAR[srcIndex].length; i++) {
+      String clr_attr = ATTRIB_CLEAR[srcIndex][i];
+      if (!attrib.equals(clr_attr)) {
+        list.add(clr_attr);
+      }
+    }
+
+    MTag.TagWriter tagwriter = MotionSceneUtils.getTagWriter(source);
+
+    clearAttributes(SHERPA_URI, list, tagwriter);
+    String targetId;
+    if (target == source.getParent()) {
+      targetId = ATTR_PARENT;
+    }
+    else {
+      targetId = NEW_ID_PREFIX + NlComponentHelperKt.ensureLiveId(target);
+    }
+    tagwriter.setAttribute(SHERPA_URI, attrib, targetId);
+    if ((srcIndex <= Direction.BASELINE.ordinal()) && (margin > 0)) {
+      tagwriter.setAttribute(ANDROID_URI, ATTRIB_MARGIN[srcIndex], margin + "dp");
+      if (ATTRIB_MARGIN_LR[srcIndex] != null) { // add the left and right as needed
+        tagwriter.setAttribute(ANDROID_URI, ATTRIB_MARGIN_LR[srcIndex], margin + "dp");
+      }
+    }
+    tagwriter.commit("create connection");
+    String str;
+    switch (sourceDirection) {
+      case BASELINE:
+        str = DecoratorUtilities.BASELINE_CONNECTION;
+        break;
+      case BOTTOM:
+        str = DecoratorUtilities.BOTTOM_CONNECTION;
+        break;
+      case LEFT:
+        str = DecoratorUtilities.LEFT_CONNECTION;
+        break;
+      case RIGHT:
+        str = DecoratorUtilities.RIGHT_CONNECTION;
+        break;
+      case TOP:
+        str = DecoratorUtilities.TOP_CONNECTION;
+        break;
+      default:
+        str = null;
+        break;
+    }
+    // noinspection ConstantConditions
+    if (str != null) {
+      DecoratorUtilities.setTimeChange(source, str, DecoratorUtilities.ViewStates.INFERRED, DecoratorUtilities.ViewStates.SELECTED);
+    }
+  }
+
   public static void scoutConnect(NlComponent source,
                                   Direction sourceDirection,
                                   NlComponent target,
                                   Direction targetDirection,
                                   int margin) {
+    if (MotionSceneUtils.isUnderConstraintSet(source)) {
+      scoutConstraintSetConnect(source, sourceDirection, target, targetDirection, margin);
+      return;
+    }
     int srcIndex = sourceDirection.ordinal();
     String attrib = ATTRIB_MATRIX[srcIndex][targetDirection.ordinal()];
     if (attrib == null) {
@@ -1574,7 +1672,6 @@ public final class ConstraintComponentUtilities {
       if (ATTRIB_MARGIN_LR[srcIndex] != null) { // add the left and right as needed
         transaction.setAttribute(ANDROID_URI, ATTRIB_MARGIN_LR[srcIndex], margin + "dp");
       }
-
     }
     transaction.apply();
     String str;
@@ -1713,6 +1810,7 @@ public final class ConstraintComponentUtilities {
 
   /**
    * Search for any connection of type
+   *
    * @param component
    * @param sisters
    * @param list

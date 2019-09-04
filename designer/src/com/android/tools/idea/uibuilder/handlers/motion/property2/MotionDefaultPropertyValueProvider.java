@@ -20,6 +20,7 @@ import static com.android.SdkConstants.ATTR_ID;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.NlComponentTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
@@ -82,7 +83,8 @@ public class MotionDefaultPropertyValueProvider implements DefaultPropertyValueP
     if (component == null) {
       return null;
     }
-    return (MotionAttributes)component.getClientProperty(NlComponentTag.MOTION_LAYOUT_PROPERTIES);
+    return (MotionAttributes)component.getClientProperty(MotionSceneUtils.MOTION_LAYOUT_PROPERTIES);
+
   }
 
   @Override

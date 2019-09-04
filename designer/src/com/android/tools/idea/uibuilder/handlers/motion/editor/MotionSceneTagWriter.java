@@ -26,6 +26,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -33,7 +34,7 @@ import java.util.HashMap;
  */
 public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWriter {
   String mType;
-
+  ArrayList<CommitListener> myListeners = new ArrayList<>();
   HashMap<String, Attribute> mNewAttrList = new HashMap<>();
 
   public MotionSceneTagWriter(MotionSceneTag parent, String type) {
@@ -93,6 +94,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     if (!(mParent instanceof MotionSceneTagWriter)) {
       mParent.myChildren.add(result);
     }
+    notifyListeners(result);
     return result;
   }
 
@@ -151,6 +153,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     });
 
     saveAndNotify(xmlFile, root.mModel);
+
     return createdTag;
   }
 
@@ -176,6 +179,22 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
   public static void saveAndNotify(PsiFile xmlFile, NlModel nlModel) {
     LayoutPullParsers.saveFileIfNecessary(xmlFile);
     nlModel.notifyModified(NlModel.ChangeType.EDIT);
+  }
+
+  @Override
+  public void addCommitListener(CommitListener listener) {
+    myListeners.add(listener);
+  }
+
+  @Override
+  public void removeCommitListener(CommitListener listener) {
+    myListeners.remove(listener);
+  }
+
+  private void notifyListeners(MotionSceneTag tag) {
+    for (CommitListener listener : myListeners) {
+      listener.commit(tag);
+    }
   }
 
 

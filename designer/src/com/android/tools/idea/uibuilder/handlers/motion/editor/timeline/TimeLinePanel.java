@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSe
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 
+import java.util.Collections;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLayer;
@@ -470,7 +471,7 @@ public class TimeLinePanel extends JPanel {
   public void setMTag(MTag transitionTag, MeModel model) {
     mTransitionTag = transitionTag;
     mMeModel = model;
-    Vector<TimeLineRowData> list = buildTransitionList();
+    Vector<TimeLineRowData> list =  transitionTag != null ? buildTransitionList():new Vector<>();
     mTimeLine.setListData(list, model);
   }
 
@@ -652,7 +653,7 @@ public class TimeLinePanel extends JPanel {
       mTimelineStructure.myXTicksPixels[mTimelineStructure.myXTicksPixels.length - 1]
         - mTimelineStructure.myXTicksPixels[0];
     float progress = (e.getX() - timeStart) / (float) (timeWidth);
-    float error = 2 / timeWidth;
+    float error = (float) (2 / timeWidth);
     boolean inRange = progress > -error && progress < 1 + error;
     switch (e.getID()) {
       case MouseEvent.MOUSE_CLICKED: {
