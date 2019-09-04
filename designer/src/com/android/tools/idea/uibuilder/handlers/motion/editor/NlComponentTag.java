@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils.MOTION_LAYOUT_PROPERTIES;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +33,8 @@ import java.util.List;
 public class NlComponentTag implements MTag {
   NlComponent mComponent;
   NlComponentTag mParent;
-  public final static String MOTION_LAYOUT_PROPERTIES = "motionLayoutProperties";
+  private static final boolean DEBUG = false;
+
   NlComponentTag(NlComponent component, NlComponentTag parent) {
     mComponent = component;
     mParent = parent;
@@ -51,13 +56,16 @@ public class NlComponentTag implements MTag {
   }
 
   @Override
-  public void setClientData(Object motionAttributes) {
-    mComponent.putClientProperty(MOTION_LAYOUT_PROPERTIES, motionAttributes );
+  public void setClientData(String type, Object motionAttributes) {
+    if (DEBUG) {
+      Debug.log("setClientData MOTION_LAYOUT_PROPERTIES setting " + motionAttributes );
+    }
+    mComponent.putClientProperty(type, motionAttributes );
   }
 
   @Override
-  public Object getClientData() {
-    return mComponent.getClientProperty(MOTION_LAYOUT_PROPERTIES);
+  public Object getClientData(String type) {
+    return mComponent.getClientProperty(type);
   }
 
   @Override
@@ -120,6 +128,23 @@ public class NlComponentTag implements MTag {
       }
     }
     return ret.toArray(new MTag[0]);
+  }
+
+  @Override
+  @Nullable
+  public MTag getChildTagWithTreeId(String type, String treeId) {
+    for (MTag child : getChildren()) {
+      if (child.getTreeId().equals(treeId)) {
+        return child;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public String getTreeId() {
+    return mComponent.getId();
   }
 
   @Override
@@ -199,4 +224,5 @@ public class NlComponentTag implements MTag {
   public TagWriter getTagWriter() {
     return null;
   }
+
 }

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnClick;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnSwipe;
@@ -32,6 +35,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -202,26 +206,116 @@ public class MotionEditor extends JPanel {
     mCombinedListPanel.selectTag(tag);
   }
 
-  public void setMTag(MTag motionScene, MTag layout, String layoutFileName,
-                      String motionSceneFileName) {
+  public void setMTag(@NotNull MTag motionScene, @NotNull MTag layout, @Nullable String layoutFileName,
+                      @Nullable String motionSceneFileName) {
     setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
   }
 
+  public MTag[]  findTagInNew(MeModel newModel, MeModel oldModel, MTag[] oldSelection, MotionEditorSelector.Type oldSelectedType ){
+    if (oldSelection.length == 0) {
+      return null;
+    }
+    String[] ids = new String[oldSelection.length];
+    ArrayList<MTag> newSelection = new ArrayList<>();
+      for (int i = 0; i < oldSelection.length; i++) {
+      ids[i] = oldSelection[i].getTreeId();
+    }
+
+    switch (oldSelectedType) {
+      case TRANSITION:
+        for (int i = 0; i < ids.length; i++) {
+          newSelection.add(mMeModel.motionScene.getChildTagWithTreeId(Tags.TRANSITION, ids[i]));
+        }
+        return newSelection.toArray(new MTag[0]);
+      case CONSTRAINT_SET:
+        for (int i = 0; i < ids.length; i++) {
+          newSelection.add(mMeModel.motionScene.getChildTagWithTreeId(Tags.CONSTRAINTSET, ids[i]));
+        }
+        return newSelection.toArray(new MTag[0]);
+      case CONSTRAINT:
+        String cSetId = oldSelection[0].getParent().getTreeId();
+         MTag newCSet = mMeModel.motionScene.getChildTagWithTreeId(Tags.CONSTRAINTSET, cSetId);
+         if (newCSet == null) {
+           return null;
+         }
+        for (int i = 0; i < ids.length; i++) {
+          newSelection.add(newCSet.getChildTagWithTreeId(Tags.CONSTRAINT, ids[i]));
+        }
+        return newSelection.toArray(new MTag[0]);
+      case LAYOUT:
+        return new MTag[]{mMeModel.layout};
+      case LAYOUT_VIEW:
+        for (int i = 0; i < ids.length; i++) {
+          newSelection.add(mMeModel.layout.getChildTagWithTreeId(null, ids[i]));
+        }
+        return newSelection.toArray(new MTag[0]);
+      case KEY_FRAME:
+      case KEY_FRAME_GROUP:
+        String transitionId = oldSelection[0].getParent().getTreeId();
+        MTag transition = mMeModel.motionScene.getChildTagWithTreeId(Tags.CONSTRAINTSET, transitionId);
+        return new MTag[]{transition};
+     }
+    return null;
+  }
+
   public void setMTag(MeModel model) {
+    MotionEditorSelector.Type oldSelectedType = mMeModel != null ? mMeModel.getSelectedType() : null;
+    MTag newSelection = null;
+    if (oldSelectedType != null) {
+      MTag[]sel  =  findTagInNew(model,mMeModel,mMeModel.mSelected, oldSelectedType);
+      if (sel != null && sel.length > 0) {
+        newSelection = sel[0];
+      }
+    }
+    if (DEBUG) {
+      Debug.log("setMTag: old selected type = "+oldSelectedType);
+    }
+    MTag[] oldSelection = mMeModel != null ? mMeModel.getSelected() : null;
+    String oldSelectionId = toTreeId(oldSelectedType, oldSelection);
     mMeModel = model;
     mMotionSceneTabb.setMTag(mMeModel.motionScene);
     mCombinedListPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
     mOverviewPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
-    if (mMeModel.getSelectedType() != null) {
-      switch (mMeModel.getSelectedType()) {
-        case TRANSITION:
-          mTransitionPanel.setMTag(mMeModel.getSelected()[0], mMeModel);
+    if (oldSelectedType != null) {
+      switch (oldSelectedType) {
+        case CONSTRAINT_SET:
+          mConstraintSetPanel.setMTag(newSelection, mMeModel);
+          mTransitionPanel.setMTag(null, mMeModel);
           break;
+        case CONSTRAINT:
+          mConstraintSetPanel.setMTag(newSelection, mMeModel);
+          mTransitionPanel.setMTag(null, mMeModel);
+          break;
+        case TRANSITION:
         case KEY_FRAME:
         case KEY_FRAME_GROUP:
-          mTransitionPanel.setMTag(mMeModel.getSelected()[0].getParent().getParent(), mMeModel);
-
+          mConstraintSetPanel.setMTag(null, mMeModel);
+          mTransitionPanel.setMTag(newSelection, mMeModel);
+          break;
+        default:
+          mConstraintSetPanel.setMTag(null, mMeModel);
+          mTransitionPanel.setMTag(null, mMeModel);
+          break;
       }
+    }
+  }
+
+  @Nullable
+  private static String toTreeId(@Nullable MotionEditorSelector.Type type, @Nullable MTag[] selection) {
+    if (type == null || selection == null || selection.length == 0) {
+      return null;
+    }
+    switch (type) {
+      case CONSTRAINT_SET:
+      case TRANSITION:
+        return selection[0].getTreeId();
+      case CONSTRAINT:
+        return selection[0].getParent().getTreeId();
+      case KEY_FRAME:
+      case KEY_FRAME_GROUP:
+        return selection[0].getParent().getParent().getTreeId();
+      default:
+        return null;
     }
   }
 

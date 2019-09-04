@@ -16,11 +16,13 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
-
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * The main interface to tags
+ */
 public interface MTag {
 
   @Override
@@ -30,8 +32,9 @@ public interface MTag {
 
   void deleteTag();
 
-  void setClientData(Object motionAttributes);
-  public Object getClientData();
+  void setClientData(String type, Object motionAttributes);
+
+  public Object getClientData(String type);
 
   public static class Attribute {
     public String mNamespace;
@@ -61,6 +64,10 @@ public interface MTag {
 
   public String getAttributeValue(String attribute);
 
+  public MTag getChildTagWithTreeId(String type, String treeId);
+
+  public String getTreeId();
+
   public void print(String space);
 
   public String toXmlString();
@@ -69,10 +76,16 @@ public interface MTag {
 
   public void printFormal(String space, PrintStream out);
 
+  /**
+   * Create a tag writer for a child of this tag
+   * @param name
+   * @return
+   */
   public TagWriter getChildTagWriter(String name);
 
   /**
    * Provide the tag write version of this tag
+   *
    * @return
    */
   public TagWriter getTagWriter();
@@ -80,6 +93,21 @@ public interface MTag {
   interface TagWriter extends MTag {
     void setAttribute(String type, String attribute, String value);
 
+    /**
+     * Commit is responsible for saving the tag writer
+     * and returning a tag version of its self.
+     * @param commandName
+     * @return
+     */
     MTag commit(@Nullable String commandName);
+
+    void addCommitListener(CommitListener listener);
+
+    void removeCommitListener(CommitListener listener);
+
+  }
+
+  interface CommitListener {
+    void commit(MTag tag);
   }
 }
