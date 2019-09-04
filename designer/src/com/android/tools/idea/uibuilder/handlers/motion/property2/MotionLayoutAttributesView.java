@@ -26,7 +26,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.AddCustomFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.AddMotionFieldAction;
@@ -206,9 +205,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
                                      @NotNull NelePropertyItem any,
                                      @NotNull MotionLayoutAttributesModel model) {
       SubTagAttributesModel customModel = new SubTagAttributesModel(model, MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
-      Function1<NelePropertyItem, Boolean> filter =
-        (item) -> !item.getNamespace().isEmpty() &&
-                  (item.getRawValue() != null || item.getDefaultValue() != null);
+      Function1<NelePropertyItem, Boolean> filter = (item) -> item.getNamespace().isEmpty() && item.getRawValue() != null;
 
       FilteredPTableModel<NelePropertyItem> tableModel = PTableModelFactory.create(
         customModel, filter, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), false, true);
@@ -248,7 +245,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         return false;
       }
       for (XmlElementDescriptor childDescriptor : elementDescriptor.getElementsDescriptors(tag)) {
-        if (childDescriptor.getDefaultName().equals(MotionSceneString.KeyAttributes_customAttribute)) {
+        if (childDescriptor.getDefaultName().equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
           return true;
         }
       }

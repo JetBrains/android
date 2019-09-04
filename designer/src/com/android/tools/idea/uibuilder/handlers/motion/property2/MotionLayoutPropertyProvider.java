@@ -24,8 +24,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem;
@@ -151,22 +151,10 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
       properties.put(namespaceUri, name, property);
     }
     // TODO: Make sure these custom attributes still work:
-    for (XmlTag custom : tag.findSubTags(MotionSceneString.KeyAttributes_customAttribute)) {
-      String name = custom.getAttributeValue(MotionSceneString.CustomAttributes_attributeName, AUTO_URI);
-      if (name == null) {
-        continue;
-      }
-      for (String customType : MotionSceneString.CustomAttributes_types) {
-        MotionSceneTag customMotionTag = new MotionSceneTag(custom, motionTag);
-        String customValue = custom.getAttributeValue(customType, AUTO_URI);
-        if (customValue != null) {
-          properties.put("", name, createCustomProperty(name, customType, customMotionTag, model, components));
-          break;
-        }
-      }
-    }
     Map<String, PropertiesTable<NelePropertyItem>> allProperties = new LinkedHashMap<>();
     allProperties.put(tag.getLocalName(), PropertiesTable.Companion.create(properties));
+
+    loadCustomAttributes(model, components, allProperties, motionTag);
 
     if (tag.getLocalName().equals(MotionSceneAttrs.Tags.CONSTRAINT)) {
       XmlElementDescriptor[] subTagDescriptors = elementDescriptor.getElementsDescriptors(tag);
@@ -177,9 +165,37 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
             loadFromStyleableName(subTagName, localAttrDefs, model, motionTag, components);
           allProperties.put(subTagName, PropertiesTable.Companion.create(subTagProperties));
         }
+        else {
+          loadCustomAttributes(model, components, allProperties, motionTag);
+        }
       }
     }
     return allProperties;
+  }
+
+  private static void loadCustomAttributes(@NotNull NelePropertiesModel model,
+                                           @NotNull List<? extends NlComponent> components,
+                                           @NotNull Map<String, PropertiesTable<NelePropertyItem>> allProperties,
+                                           @NotNull MotionSceneTag tag) {
+    MTag[] customTags = tag.getChildTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
+    if (customTags.length == 0) {
+      return;
+    }
+    Table<String, String, NelePropertyItem> customProperties = HashBasedTable.create(3, customTags.length);
+    for (MTag custom : customTags) {
+      String name = custom.getAttributeValue(MotionSceneAttrs.ATTR_CUSTOM_ATTRIBUTE_NAME);
+      if (name == null) {
+        continue;
+      }
+      for (String customType : MotionSceneAttrs.ourCustomAttribute) {
+        String customValue = custom.getAttributeValue(customType);
+        if (customValue != null) {
+          customProperties.put(AUTO_URI, name, createCustomProperty(name, customType, (MotionSceneTag)custom, model, components));
+          break;
+        }
+      }
+    }
+    allProperties.put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, PropertiesTable.Companion.create(customProperties));
   }
 
   private Table<String, String, NelePropertyItem> loadFromStyleableName(@NotNull String styleableName,
@@ -240,24 +256,26 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
   @NotNull
   static NelePropertyType mapFromCustomType(@NotNull String customType) {
     switch (customType) {
-      case MotionSceneString.CustomAttributes_customColorValue:
+      case MotionSceneAttrs.ATTR_CUSTOM_COLOR_VALUE:
         return NelePropertyType.COLOR;
 
-      case MotionSceneString.CustomAttributes_customIntegerValue:
+      case MotionSceneAttrs.ATTR_CUSTOM_COLOR_DRAWABLE_VALUE:
+        return NelePropertyType.COLOR_STATE_LIST;
+
+      case MotionSceneAttrs.ATTR_CUSTOM_INTEGER_VALUE:
+      case MotionSceneAttrs.ATTR_CUSTOM_PIXEL_DIMENSION_VALUE:
         return NelePropertyType.INTEGER;
 
-      case MotionSceneString.CustomAttributes_customFloatValue:
+      case MotionSceneAttrs.ATTR_CUSTOM_FLOAT_VALUE:
         return NelePropertyType.FLOAT;
 
-      case MotionSceneString.CustomAttributes_customStringValue:
-        return NelePropertyType.STRING;
-
-      case MotionSceneString.CustomAttributes_customDimensionValue:
+      case MotionSceneAttrs.ATTR_CUSTOM_DIMENSION_VALUE:
         return NelePropertyType.DIMENSION;
 
-      case MotionSceneString.CustomAttributes_customBooleanValue:
+      case MotionSceneAttrs.ATTR_CUSTOM_BOOLEAN_VALUE:
         return NelePropertyType.BOOLEAN;
 
+      case MotionSceneAttrs.ATTR_CUSTOM_STRING_VALUE:
       default:
         return NelePropertyType.STRING;
     }
@@ -267,25 +285,26 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
   static String mapToCustomType(@NotNull NelePropertyType type) {
     switch (type) {
       case COLOR:
-        return MotionSceneString.CustomAttributes_customColorValue;
+        return MotionSceneAttrs.ATTR_CUSTOM_COLOR_VALUE;
+
+      case COLOR_STATE_LIST:
+        return MotionSceneAttrs.ATTR_CUSTOM_COLOR_DRAWABLE_VALUE;
 
       case INTEGER:
-        return MotionSceneString.CustomAttributes_customIntegerValue;
+        return MotionSceneAttrs.ATTR_CUSTOM_INTEGER_VALUE;
 
       case FLOAT:
-        return MotionSceneString.CustomAttributes_customFloatValue;
-
-      case STRING:
-        return MotionSceneString.CustomAttributes_customStringValue;
+        return MotionSceneAttrs.ATTR_CUSTOM_FLOAT_VALUE;
 
       case DIMENSION:
-        return MotionSceneString.CustomAttributes_customDimensionValue;
+        return MotionSceneAttrs.ATTR_CUSTOM_DIMENSION_VALUE;
 
       case BOOLEAN:
-        return MotionSceneString.CustomAttributes_customBooleanValue;
+        return MotionSceneAttrs.ATTR_CUSTOM_BOOLEAN_VALUE;
 
+      case STRING:
       default:
-        return MotionSceneString.CustomAttributes_customStringValue;
+        return MotionSceneAttrs.ATTR_CUSTOM_STRING_VALUE;
     }
   }
 }
