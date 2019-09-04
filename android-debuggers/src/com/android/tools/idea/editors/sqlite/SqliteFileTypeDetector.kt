@@ -42,6 +42,10 @@ class SqliteFileTypeDetector : FileTypeRegistry.FileTypeDetector {
     return SqliteFileType
   }
 
+  override fun getDesiredContentPrefixLength(): Int {
+    return SQLITE3_FORMAT_HEADER.size
+  }
+
   override fun getVersion(): Int = 1
 
   override fun getDetectedFileTypes(): Collection<FileType> {
