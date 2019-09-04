@@ -244,6 +244,35 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
+  fun dbMethodReferencesClassMethodWithVarArgs() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public void doSomething(Object... args) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.do<caret>Something(model, model, model)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val javaDoSomething = fixture.findClass("test.langdb.Model").findMethodsByName("doSomething")[0].sourceElement!!
+    val xmlDoSomething = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlDoSomething.isReferenceTo(javaDoSomething)).isTrue()
+    assertThat(xmlDoSomething.resolve()).isEqualTo(javaDoSomething)
+  }
+
+  @Test
   fun dbPropertyReferencesClassMethod() {
     fixture.addClass("""
       package test.langdb;
