@@ -15,16 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.motion.adapters;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_ANDROID_ID;
+
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
-import java.util.Arrays;
-import java.util.Comparator;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,8 +27,15 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * MTag implementation based on parsing a XML file.
@@ -62,14 +64,15 @@ public class MTagImp implements MTag {
   }
 
   @Override
-  public void setClientData(Object clientData) {
+  public void setClientData(String type, Object clientData) {
     this.clientData = clientData;
   }
 
   @Override
-  public Object getClientData() {
+  public Object getClientData(String type) {
     return this.clientData;
   }
+
   ArrayList<MTag> mChildren = new ArrayList<>();
 
   @Override
@@ -136,6 +139,29 @@ public class MTagImp implements MTag {
   }
 
   @Override
+  @Nullable
+  public MTag getChildTagWithTreeId(String type, String treeId) {
+    for (MTag child : mChildren) {
+      if (treeId.equals(child.getTreeId())) {
+        return child;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public String getTreeId() {
+    if (name.startsWith("Key")) {
+      return getAttributeValue("framePosition") + "|" + name;
+    }
+    if (name.equals("Transition")) {
+      return getAttributeValue("constraintSetStart") + "|" + getAttributeValue("constraintSetEnd");
+    }
+    return getAttributeValue(ATTR_ANDROID_ID);
+  }
+
+  @Override
   public String getAttributeValue(String attribute) {
     for (Attribute value : mAttrList.values()) {
       if (value.mAttribute.equals(attribute)) {
@@ -187,13 +213,13 @@ public class MTagImp implements MTag {
           nameSpace = "android";
         }
       }
-      ret += "\n" + space + "   " + nameSpace+ ":" + value.mAttribute + "=\"" + value.mValue
-        + "\"";
+      ret += "\n" + space + "   " + nameSpace + ":" + value.mAttribute + "=\"" + value.mValue
+             + "\"";
     }
     if (mChildren.size() == 0) {
       ret += (" />\n");
-
-    } else {
+    }
+    else {
       ret += (" >\n");
     }
     for (MTag child : mChildren) {
@@ -215,7 +241,7 @@ public class MTagImp implements MTag {
     for (Attribute value : mAttrList.values()) {
       out.print(
         "\n" + space + "   " + value.mNamespace + ":" + value.mAttribute + "=\"" + value.mValue
-          + "\"");
+        + "\"");
     }
     out.println(" >");
 
@@ -230,7 +256,6 @@ public class MTagImp implements MTag {
     String file = "motion_testscene_08_scene.xml";
     MTagImp mTag = parse(new File(dir + File.separator + file));
     mTag.printFormal(null, System.out);
-
   }
 
   public static MTagImp parse(String str) {
@@ -253,7 +278,8 @@ public class MTagImp implements MTag {
           newTag.name = qName;
           if (currentTag != null) {
             currentTag.mChildren.add(newTag);
-          } else {
+          }
+          else {
             props.add(newTag);
           }
           currentTag = newTag;
@@ -289,8 +315,8 @@ public class MTagImp implements MTag {
           }
         }
       });
-
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       e.printStackTrace();
     }
     return props.iterator().next();
@@ -324,7 +350,8 @@ public class MTagImp implements MTag {
           newTag.name = qName;
           if (currentTag != null) {
             currentTag.mChildren.add(newTag);
-          } else {
+          }
+          else {
             props.add(newTag);
           }
           currentTag = newTag;
@@ -360,8 +387,8 @@ public class MTagImp implements MTag {
           }
         }
       });
-
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       e.printStackTrace();
     }
     return props.iterator().next();
@@ -390,9 +417,9 @@ public class MTagImp implements MTag {
     public MTag commit(@Nullable String commandName) {
       printFormal(" > ", System.out);
       MTagImp.RootTag rootTag = null;
-      for (MTag tag = parent; tag != null; tag = ((MTagImp) tag).parent) {
+      for (MTag tag = parent; tag != null; tag = ((MTagImp)tag).parent) {
         if (tag instanceof MTagImp.RootTag) {
-          rootTag = (MTagImp.RootTag) tag;
+          rootTag = (MTagImp.RootTag)tag;
         }
       }
       parent.mChildren.remove(this);
@@ -402,10 +429,20 @@ public class MTagImp implements MTag {
       ret.mAttrList = mAttrList;
       TagWriter[] childArray = (TagWriter[])mChildren.toArray(new TagWriter[0]);
       for (MTag child : childArray) {
-        ret.mChildren.add( ((TagWriter) child).commit(commandName));
+        ret.mChildren.add(((TagWriter)child).commit(commandName));
       }
       parent.mChildren.add(ret);
       return ret;
+    }
+
+    @Override
+    public void addCommitListener(CommitListener listener) {
+      throw new RuntimeException(" not  implemented ");
+    }
+
+    @Override
+    public void removeCommitListener(CommitListener listener) {
+
     }
   }
 

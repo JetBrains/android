@@ -36,7 +36,6 @@ public class ConstraintSetPanelCommands {
 
   public static MTag createConstraint(MTag selected, MTag constraintSet) {
     String id = selected.getAttributeValue("id");
-    System.out.println(" move " + selected.getTagName() + " " + id + " to " + constraintSet.getAttributeValue("id"));
     MTag.TagWriter new_constraint;
     new_constraint = constraintSet.getChildTagWriter("Constraint");
     new_constraint.setAttribute(MotionSceneAttrs.ANDROID, "id", id);

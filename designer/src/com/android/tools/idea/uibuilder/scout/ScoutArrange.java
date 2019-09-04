@@ -15,14 +15,40 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
+import static com.android.SdkConstants.CLASS_MOTION_LAYOUT;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpBaseline;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpHeight;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpWidth;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpX;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpY;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.isLine;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourBaselineAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourBottomAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourEndAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourLeftAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourRightAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourStartAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourTopAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutClearAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutConnect;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutAbsoluteDpHeight;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutAbsoluteDpWidth;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutAbsoluteDpX;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutAbsoluteDpY;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutHorizontalBiasPercent;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutVerticalBiasPercent;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import java.awt.Rectangle;
-import java.util.*;
-
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This implements the standard arrange functions
@@ -49,6 +75,16 @@ public class ScoutArrange {
     if (widgetList.get(0).getParent() == null) {
       return;
     }
+    NlComponent layout = widgetList.get(0).getParent();
+    boolean useConstraintSet = false;
+    if (NlComponentHelperKt.isOrHasSuperclass(layout, CLASS_MOTION_LAYOUT)) {
+      System.out.println("align MotionLayout");
+      if (MotionSceneUtils.isUnderConstraintSet(widgetList.get(0))) {
+        useConstraintSet = true;
+      }
+
+    }
+
     ScoutWidget parentScoutWidget = new ScoutWidget(widgetList.get(0).getParent(), null);
     ScoutWidget[] scoutWidgets = ScoutWidget.create(widgetList, parentScoutWidget);
 

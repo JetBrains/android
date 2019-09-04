@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
@@ -60,6 +62,7 @@ class ConstraintSetPanel extends JPanel {
   DefaultTableModel mConstraintSetModel = new DefaultTableModel(
     new String[]{"Included", "ID", "Defined In"}, 0) {
 
+    @Override
     public Class getColumnClass(int column) {
       return (column == 0) ? Icon.class : String.class;
     }
@@ -69,7 +72,7 @@ class ConstraintSetPanel extends JPanel {
   private String mDerived;
   boolean showAll = true;
   private MeModel mMeModel;
-  private JLabel mTitle;
+  private final JLabel mTitle;
   JButton mModifyMenu;
 
   AbstractAction createConstraint = new AbstractAction("Create Constraint") {
@@ -152,8 +155,10 @@ class ConstraintSetPanel extends JPanel {
 
         if (index == -1) {
           mSelectedTag = null;
-          mListeners
-            .notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{mConstraintSet});
+          if (mConstraintSet != null) {
+            mListeners
+              .notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{mConstraintSet});
+          }
           return;
         }
         mMultiSelectedTag = new MTag[allSelect.length];
@@ -161,8 +166,7 @@ class ConstraintSetPanel extends JPanel {
           int k = allSelect[i];
           mMultiSelectedTag[i] = mDisplayedRows.get(k);
         }
-        MTag[] tag =
-          (mDisplayedRows.size() == 0) ? new MTag[0] : new MTag[]{mSelectedTag = mDisplayedRows.get(index)};
+        MTag[] tag = mDisplayedRows.isEmpty() ? new MTag[0] : new MTag[]{mSelectedTag = mDisplayedRows.get(index)};
         mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT, tag);
         enableMenuItems(tag);
       }
@@ -323,34 +327,44 @@ class ConstraintSetPanel extends JPanel {
     }
   }
 
-  public void setMTag(MTag constraintSet, MeModel meModel) {
+  public void setMTag(@Nullable MTag constraintSet,  @NotNull MeModel meModel) {
     if (DEBUG) {
-      Debug.log("constraintSet = " + constraintSet);
-      Debug.log("motionScene = " + meModel.motionScene);
-      Debug.log("layout = " + meModel.layout);
+      Debug.log("ConstraintSetPanel.setMTag constraintSet = " + constraintSet);
+      Debug.log("ConstraintSetPanel.setMTag motionScene = " + meModel.motionScene);
+      Debug.log("ConstraintSetPanel.setMTag layout = " + meModel.layout);
     }
     int[] row = mConstraintSetTable.getSelectedRows();
     String[] selected = new String[row.length];
     for (int i = 0; i < row.length; i++) {
       selected[i] = (String)mConstraintSetModel.getValueAt(row[i], 1);
+      if (DEBUG) {
+        Debug.log("ConstraintSetPanel.setMTag  selected "+ selected[i]);
+      }
     }
     mMeModel = meModel;
     mConstraintSet = constraintSet;
     mDerived = null;
     if (mConstraintSet != null) {
+      mMeModel.setSelected(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{constraintSet});
       String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
       if (derived != null) {
         mDerived = Utils.stripID(derived);
         MTag[] constraintSets = meModel.motionScene.getChildTags("ConstraintSet");
         mParent = getDerived(constraintSets, mDerived);
       }
+      mTitle.setText(Utils.stripID(mConstraintSet.getAttributeValue("id")));
     }
-    mTitle.setText(Utils.stripID(constraintSet.getAttributeValue("id")));
+    if (constraintSet != null) {
+      mTitle.setText(Utils.stripID(constraintSet.getAttributeValue("id")));
+    }
     buildTable();
 
     HashSet<String> selectedSet = new HashSet<>(Arrays.asList(selected));
     for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
       String id = (String)mConstraintSetModel.getValueAt(i, 1);
+      if (DEBUG) {
+        Debug.log("ConstraintSetPanel.setMTag id "+ id );
+      }
       if (selectedSet.contains(id)) {
         mConstraintSetTable.addRowSelectionInterval(i, i);
       }
@@ -389,19 +403,21 @@ class ConstraintSetPanel extends JPanel {
           return;
         }
         in = true;
-        HashSet<String> selectedSet = new HashSet<>();
+        if (selection == MotionEditorSelector.Type.CONSTRAINT) {
+          HashSet<String> selectedSet = new HashSet<>();
 
-        for (int i = 0; i < tag.length; i++) {
-          MTag mTag = tag[i];
-          String id = Utils.stripID(mTag.getAttributeValue("id"));
+          for (int i = 0; i < tag.length; i++) {
+            MTag mTag = tag[i];
+            String id = Utils.stripID(mTag.getAttributeValue("id"));
 
-          selectedSet.add(id);
-        }
-        mConstraintSetTable.clearSelection();
-        for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
-          String id = (String)mConstraintSetModel.getValueAt(i, 1);
-          if (selectedSet.contains(id)) {
-            mConstraintSetTable.addRowSelectionInterval(i, i);
+            selectedSet.add(id);
+          }
+          mConstraintSetTable.clearSelection();
+          for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
+            String id = (String)mConstraintSetModel.getValueAt(i, 1);
+            if (selectedSet.contains(id)) {
+              mConstraintSetTable.addRowSelectionInterval(i, i);
+            }
           }
         }
         in = false;

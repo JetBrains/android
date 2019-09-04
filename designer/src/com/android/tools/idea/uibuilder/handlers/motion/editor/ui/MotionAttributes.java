@@ -26,6 +26,7 @@ import java.util.HashMap;
  * Provides a view within MotionLayout with all the basic information under the ConstraintSet.
  */
 public class MotionAttributes {
+  private final MTag mConstraintSet;
   private boolean mDefinedLayout = false;
   private boolean mDefinedPropertySet = false;
   private boolean mDefinedTransform = false;
@@ -85,11 +86,22 @@ public class MotionAttributes {
     }
   }
 
+  public MTag getConstraintSet() {
+    return mConstraintSet;
+  }
+
+  public void fillTagWriter(MTag.TagWriter writer) {
+    for (MotionAttributes.DefinedAttribute value : getAttrMap().values()) {
+      writer.setAttribute(value.nameSpace, value.name, value.value);
+    }
+  }
+
   /**
    * Returns a map if id to DefinedAttributes
+   *
    * @return
    */
-  public HashMap<String , DefinedAttribute> getAttrMap(){
+  public HashMap<String, DefinedAttribute> getAttrMap() {
     return definedAttributes;
   }
 
@@ -136,8 +148,9 @@ public class MotionAttributes {
     ALL
   }
 
-  public MotionAttributes(String id) {
+  public MotionAttributes(String id,MTag constraintSet) {
     this.mId = id;
+    mConstraintSet = constraintSet;
   }
 
   public void dumpList() {
