@@ -21,38 +21,24 @@ import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.ProjectSyncIssues
 import com.android.builder.model.level2.GlobalLibraryMap
 import com.android.ide.gradle.model.GradlePluginModel
-import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
+import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.idea.getSourcesAndJavadocArtifacts
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
-import org.gradle.tooling.model.BuildModel
-import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Model
-import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.GradleVersion
+import org.gradle.tooling.model.gradle.BasicGradleProject
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
 class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions) : ProjectImportModelProvider {
-  override fun <T> populateBuildModels(controller: BuildController,
-                                       buildModel: T,
-                                       consumer: ProjectImportModelProvider.BuildModelConsumer) where T : Model, T : BuildModel {
-    // This is the second request for this model, but we don't have access to the one that is requested in GradleProjectResolver.
-    // Note: The request in the resolver requests different models depending on if this is a preview version. Since we do not have this
-    // information here we can't do the same thing, AFAIK we don't ever use preview mode in Studio anyway.
-    // Also note: compound sync is only enabled for Gradle version 3.1 or greater, in older version make sure to use the API without a
-    // model as the new one throws. Since we don't have the version information here we need to attempt to use the API that works for
-    // compound sync, if that fails with an IllegalArgumentException because Gradle can't build the model for that build, we revert to
-    // the other API where no target is given.
-    val ideaProject = try {
-      controller.getModel(buildModel, IdeaProject::class.java)
-    } catch (e : IllegalArgumentException) {
-      controller.getModel(IdeaProject::class.java)
-    }
-    populateAndroidModels(controller, ideaProject, consumer)
+  override fun populateBuildModels(controller: BuildController,
+                                   buildModel: GradleBuild,
+                                   consumer: ProjectImportModelProvider.BuildModelConsumer) {
+    populateAndroidModels(controller, buildModel, consumer)
     // Requesting ProjectSyncIssues must be performed last since all other model requests may produces addition issues.
-    populateProjectSyncIssues(controller, ideaProject, consumer)
+    populateProjectSyncIssues(controller, buildModel, consumer)
   }
 
   override fun populateProjectModels(controller: BuildController,
@@ -64,7 +50,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
   }
 
   /**
-   * Requests Android project models for the given [project] and registers them with the [consumer]
+   * Requests Android project models for the given [buildModel] and registers them with the [consumer]
    *
    * We do this by going through each module and query Gradle for the following models:
    *   1. Query for the AndroidProject for the module
@@ -80,19 +66,19 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
    */
   private fun populateAndroidModels(
     controller: BuildController,
-    project: IdeaProject,
+    buildModel: GradleBuild,
     consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
     val androidModules: MutableList<AndroidModule> = mutableListOf()
-    project.modules.forEach { module ->
-      findParameterizedAndroidModel(controller, module.gradleProject, AndroidProject::class.java)?.also { androidProject ->
-        consumer.consumeProjectModel(module, androidProject, AndroidProject::class.java)
+    buildModel.projects.forEach { gradleProject ->
+      findParameterizedAndroidModel(controller, gradleProject, AndroidProject::class.java)?.also { androidProject ->
+        consumer.consumeProjectModel(gradleProject, androidProject, AndroidProject::class.java)
 
-        val nativeAndroidProject = findParameterizedAndroidModel(controller, module.gradleProject, NativeAndroidProject::class.java)?.also {
-          consumer.consumeProjectModel(module, it, NativeAndroidProject::class.java)
+        val nativeAndroidProject = findParameterizedAndroidModel(controller, gradleProject, NativeAndroidProject::class.java)?.also {
+          consumer.consumeProjectModel(gradleProject, it, NativeAndroidProject::class.java)
         }
 
-        androidModules.add(AndroidModule(module, androidProject, nativeAndroidProject))
+        androidModules.add(AndroidModule(gradleProject, androidProject, nativeAndroidProject))
       }
     }
 
@@ -104,16 +90,16 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       androidModules.forEach { module ->
         // Variants can be empty if single-variant sync is enabled but not supported for current module.
         if (module.variantGroup.variants.isNotEmpty()) {
-          consumer.consumeProjectModel(module.ideaModule, module.variantGroup, VariantGroup::class.java)
+          consumer.consumeProjectModel(module.gradleProject, module.variantGroup, VariantGroup::class.java)
         }
       }
     }
 
     // GlobalLibraryMap must be requested after Variant models since it is built during dependency resolution.
     if (androidModules.isNotEmpty()) {
-      val module = androidModules[0].ideaModule
-      controller.findModel(module.gradleProject, GlobalLibraryMap::class.java)?.also { globalLibraryMap ->
-        consumer.consumeProjectModel(module, globalLibraryMap, GlobalLibraryMap::class.java)
+      val project = androidModules[0].gradleProject
+      controller.findModel(project, GlobalLibraryMap::class.java)?.also { globalLibraryMap ->
+        consumer.consumeProjectModel(project, globalLibraryMap, GlobalLibraryMap::class.java)
       }
     }
 
@@ -123,21 +109,21 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
 
   private fun populateProjectSyncIssues(
     controller: BuildController,
-    project: IdeaProject,
+    buildModel: GradleBuild,
     consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
-    project.modules.forEach { module ->
-      controller.findModel(module.gradleProject, ProjectSyncIssues::class.java)?.also { projectSyncIssues ->
-        consumer.consumeProjectModel(module, projectSyncIssues, ProjectSyncIssues::class.java)
+    buildModel.projects.forEach { gradleProject ->
+      controller.findModel(gradleProject, ProjectSyncIssues::class.java)?.also { projectSyncIssues ->
+        consumer.consumeProjectModel(gradleProject, projectSyncIssues, ProjectSyncIssues::class.java)
       }
     }
   }
 
   /**
-   * Gets the [AndroidProject] or [NativeAndroidProject] (based on [modelType]) for the given [GradleProject].
+   * Gets the [AndroidProject] or [NativeAndroidProject] (based on [modelType]) for the given [BasicGradleProject].
    */
   private fun <T> findParameterizedAndroidModel(controller: BuildController,
-                                                project: GradleProject,
+                                                project: BasicGradleProject,
                                                 modelType: Class<T>): T? {
     if (syncActionOptions.isSingleVariantSyncEnabled) {
       try {

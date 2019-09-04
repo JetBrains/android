@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import org.gradle.tooling.model.GradleProject;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
+import org.gradle.tooling.model.gradle.BasicGradleProject;
+import org.jetbrains.annotations.NotNull;
 
 public final class Modules {
   private Modules() {
   }
 
   @NotNull
-  public static String createUniqueModuleId(@NotNull GradleProject gradleProject) {
+  public static String createUniqueModuleId(@NotNull BasicGradleProject gradleProject) {
     File rootProjectFolderPath = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir();
     return createUniqueModuleId(rootProjectFolderPath.getPath(), gradleProject.getPath());
   }
