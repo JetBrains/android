@@ -44,10 +44,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -117,7 +113,13 @@ public class CpuProfiler extends StudioProfiler {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
     sessionsManager.registerImportHandler("trace", file -> {
       long startTimestampEpochMs = System.currentTimeMillis();
-      long startTimestampNs = getImportedSessionStartTimestampNs(file, startTimestampEpochMs);
+      long startTimestampNs = StudioProfilers.getFileCreationTimestampNs(file, startTimestampEpochMs);
+
+      // Select the session if it is already imported. Do not re-import.
+      if (sessionsManager.setSessionById(startTimestampNs)) {
+        return;
+      }
+
       // The end timestamp is going to be updated once the capture is parsed. When starting the session (before parsing a trace), set it to
       // be one minute from the begin time, as it is a reasonable length for a "default" timeline that can be displayed if parsing fails
       // and before the parsing happens.
@@ -151,24 +153,6 @@ public class CpuProfiler extends StudioProfiler {
       myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
                                                                           SessionsManager.SessionCreationSource.MANUAL);
     });
-  }
-
-  /**
-   * Returns the start timestamp, in nanoseconds, of the imported trace session. First, we try to get the trace file creation time.
-   * If there is an error to obtain it, we fallback to the session start time.
-   */
-  private static long getImportedSessionStartTimestampNs(File trace, long sessionStartTimestampEpochMs) {
-    Path tracePath = Paths.get(trace.getPath());
-    try {
-      BasicFileAttributes attributes = Files.readAttributes(tracePath, BasicFileAttributes.class);
-      return attributes.creationTime().to(TimeUnit.NANOSECONDS);
-    }
-    catch (IOException e) {
-      getLogger().warn("Trace file creation time could not be read. Falling back to session start time.");
-    }
-
-    // If the file creation time can not be obtained, use the session epoch start time as a fallback
-    return TimeUnit.MICROSECONDS.toNanos(sessionStartTimestampEpochMs);
   }
 
   @Nullable
