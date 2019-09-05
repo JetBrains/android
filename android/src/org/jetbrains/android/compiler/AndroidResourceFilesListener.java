@@ -19,7 +19,7 @@ import static org.jetbrains.android.util.AndroidUtils.findSourceRoot;
 
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
-import com.android.tools.idea.res.PsiProjectListener;
+import com.android.tools.idea.res.AndroidFileChangeListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -76,7 +76,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
     for (VFileEvent event : events) {
       VirtualFile file = event.getFile();
 
-      if (file != null && PsiProjectListener.isRelevantFile(file)) {
+      if (file != null && AndroidFileChangeListener.isRelevantFile(file)) {
         result.add(file);
       }
     }

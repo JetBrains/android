@@ -27,7 +27,7 @@ import static com.android.resources.ResourceFolderType.COLOR;
 import static com.android.resources.ResourceFolderType.DRAWABLE;
 import static com.android.resources.ResourceFolderType.FONT;
 import static com.android.resources.ResourceFolderType.VALUES;
-import static com.android.tools.idea.res.PsiProjectListener.isRelevantFile;
+import static com.android.tools.idea.res.AndroidFileChangeListener.isRelevantFile;
 import static com.android.tools.idea.resources.base.RepositoryLoader.portableFileName;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.createPersistentCache;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.writeResourcesToStream;

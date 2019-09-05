@@ -83,7 +83,7 @@ import org.jetbrains.annotations.Nullable;
  * </p>
  * <p>
  * Only the {@linkplain ResourceFolderRepository} needs to listen for user edits and file changes. It
- * uses {@linkplain PsiProjectListener}, a single listener which is shared by all repositories in the
+ * uses {@linkplain AndroidFileChangeListener}, a single listener which is shared by all repositories in the
  * same project, to get notified when something in one of its resource files changes, and it uses the
  * PSI change event to selectively update the repository data structures, if possible.
  * </p>

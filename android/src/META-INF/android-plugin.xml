@@ -61,7 +61,7 @@
       <implementation-class>com.android.tools.idea.gradle.project.AndroidGradleProjectComponent</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.res.PsiProjectListener</implementation-class>
+      <implementation-class>com.android.tools.idea.res.AndroidFileChangeListener</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.res.ResourceNotificationManager</implementation-class>
