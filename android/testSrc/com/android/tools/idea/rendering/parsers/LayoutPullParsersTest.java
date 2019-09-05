@@ -28,18 +28,20 @@ import com.android.tools.idea.util.FileExtensions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.UIUtil;
-import java.io.IOException;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import java.io.File;
+import java.io.IOException;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
@@ -56,7 +58,8 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     super.setUp();
     RenderTestUtil.beforeRenderTestCase();
     myFontCacheServiceMock = mock(DownloadableFontCacheService.class);
-    registerApplicationComponent(DownloadableFontCacheService.class, myFontCacheServiceMock);
+    ServiceContainerUtil
+          .replaceService(ApplicationManager.getApplication(), DownloadableFontCacheService.class, myFontCacheServiceMock, getTestRootDisposable());
   }
 
   @Override
