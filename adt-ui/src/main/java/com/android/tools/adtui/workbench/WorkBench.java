@@ -461,6 +461,21 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myModel.setTools(tools);
   }
 
+  /**
+   * Hide the content of WorkBench so only loading icon and loading message are displayable.
+   */
+  public void hideContent() {
+    myMainPanel.setVisible(false);
+  }
+
+  /**
+   * Show the content in WorkBench. This also hide the loading icon and message if they are showing.
+   */
+  public void showContent() {
+    hideLoading();
+    myMainPanel.setVisible(true);
+  }
+
   public List<AttachedToolWindow<T>> getDetachedToolWindows() {
     return myModel.getDetachedTools();
   }

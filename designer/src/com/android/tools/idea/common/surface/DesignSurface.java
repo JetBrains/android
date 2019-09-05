@@ -391,9 +391,23 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
    *
    * @param model the added {@link NlModel}
+   * @see #addModel(NlModel, boolean)
    */
   @NotNull
   public CompletableFuture<Void> addModel(@NotNull NlModel model) {
+    return addModel(model, true);
+  }
+
+  /**
+   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
+   * the refresh will be triggered.
+   * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
+   *
+   * @param model the added {@link NlModel}
+   * @param zoomToFitAfterAdding indicate if surface should zoom to fit the content after rendering.
+   */
+  @NotNull
+  public CompletableFuture<Void> addModel(@NotNull NlModel model, boolean zoomToFitAfterAdding) {
     SceneManager modelSceneManager = addModelImpl(model);
 
     // We probably do not need to request a render for all models but it is currently the
@@ -401,7 +415,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return modelSceneManager.requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
-        zoomToFit();
+        if (zoomToFitAfterAdding) {
+          zoomToFit();
+        }
 
         for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
           listener.modelChanged(this, model);
