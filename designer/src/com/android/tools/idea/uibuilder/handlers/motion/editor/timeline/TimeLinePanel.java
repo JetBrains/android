@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionLayoutAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TimeLineTopLeft.TimelineCommands;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
@@ -469,11 +471,56 @@ public class TimeLinePanel extends JPanel {
   }
 
   public void setMTag(MTag transitionTag, MeModel model) {
-    // TODO: Need to restore the selected key frames here.
+    MTag newSelection = findSelectedKeyFrameInNewModel(model);
+
     mTransitionTag = transitionTag;
+    mSelectedKeyFrame = null;
     mMeModel = model;
     List<TimeLineRowData> list = transitionTag != null ? buildTransitionList() : Collections.emptyList();
     mTimeLine.setListData(list, model);
+
+    if (newSelection != null) {
+      int index = findKeyFrameInRows(list, newSelection);
+      if (index >= 0) {
+        mTimeLine.setSelectedIndex(index);
+        mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{newSelection});
+        mSelectedKeyFrame = newSelection;
+      }
+    }
+  }
+
+  private MTag findSelectedKeyFrameInNewModel(@NotNull MeModel newModel) {
+    if (mSelectedKeyFrame == null) {
+      return null;
+    }
+    MTag oldKeyFrameSet = mSelectedKeyFrame.getParent();
+    if (oldKeyFrameSet == null) {
+      return null;
+    }
+    MTag oldTransition = oldKeyFrameSet.getParent();
+    if (oldTransition == null) {
+      return null;
+    }
+    MTag transition = newModel.motionScene.getChildTagWithTreeId(MotionSceneAttrs.Tags.TRANSITION, oldTransition.getTreeId());
+    if (transition == null) {
+      return null;
+    }
+    for (MTag kfSet : transition.getChildTags(MotionSceneAttrs.Tags.KEY_FRAME_SET)) {
+      MTag keyFrame = kfSet.getChildTagWithTreeId(mSelectedKeyFrame.getTagName(), mSelectedKeyFrame.getTreeId());
+      if (keyFrame != null) {
+        return keyFrame;
+      }
+    }
+    return null;
+  }
+
+  private int findKeyFrameInRows(@NotNull List<TimeLineRowData> rows, @NotNull MTag keyFrame) {
+    for (int index = 0; index < rows.size(); index++) {
+      if (rows.get(index).mKeyFrames.contains(keyFrame)) {
+        return index;
+      }
+    }
+    return -1;
   }
 
   private List<TimeLineRowData> buildTransitionList() {
