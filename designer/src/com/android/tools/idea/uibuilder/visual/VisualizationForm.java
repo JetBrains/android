@@ -59,6 +59,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -259,15 +260,12 @@ public class VisualizationForm implements Disposable {
   }
 
   private void initNeleModel() {
+    myWorkBench.showLoading("Rendering Previews...");
     DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
   }
 
   @UiThread
   private void initNeleModelWhenSmart() {
-
-    // TODO: performance improvements
-    //  Option A - After change the file, wait for 2 seconds then add NlModels. If the file is changed again then reset the timer.
-    //  Option B - Cancel the rendering request for the removed NlModel.
     setNoActiveModel();
 
     if (myCancelPreviousAddModelsRequestTask != null) {
@@ -291,6 +289,8 @@ public class VisualizationForm implements Disposable {
     // Asynchronously load the model and refresh the preview once it's ready
     CompletableFuture
       .supplyAsync(() -> {
+        // Hide the content while adding the models.
+        myWorkBench.hideContent();
         ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet);
         List<Device> devices = configurationManager.getDevices();
         Configuration defaultConfig = configurationManager.getConfiguration(file.getVirtualFile());
@@ -301,6 +301,7 @@ public class VisualizationForm implements Disposable {
         }
 
         if (deviceList.isEmpty()) {
+          myWorkBench.showLoading("No Device Found");
           return null;
         }
 
@@ -328,21 +329,28 @@ public class VisualizationForm implements Disposable {
           myCancelPreviousAddModelsRequestTask.run();
         }
 
-        List<CompletableFuture<Void>> completableFutureList = new ArrayList<>();
+        AtomicBoolean isAddingModelCanceled = new AtomicBoolean(false);
+        // We want to add model sequentially so we can interrupt them if needed.
+        // When adding a model the render request is triggered. Stop adding remaining models avoids unnecessary render requests.
+        CompletableFuture<Void> addModelFuture = CompletableFuture.completedFuture(null);
         for (NlModel model : models) {
-          // This will trigger a render of the model
-          completableFutureList.add(mySurface.addModel(model));
+          addModelFuture = addModelFuture.thenCompose(it -> {
+            if (isAddingModelCanceled.get()) {
+              return CompletableFuture.completedFuture(null);
+            }
+            else {
+              return mySurface.addModel(model, false);
+            }
+          });
         }
-        CompletableFuture<Void> future = CompletableFuture.allOf(completableFutureList.toArray(new CompletableFuture[0]));
 
-        myCancelPreviousAddModelsRequestTask = () -> {
-          future.cancel(true);
-          removeAndDisposeModels(models);
-        };
+        myCancelPreviousAddModelsRequestTask = () -> isAddingModelCanceled.set(true);
 
-        future.thenRunAsync(() -> {
-          if (!isRequestCancelled.get() && !facet.isDisposed()) {
+        addModelFuture.thenRunAsync(() -> {
+          if (!isRequestCancelled.get() && !facet.isDisposed() && !isAddingModelCanceled.get()) {
             activeModels(models);
+            mySurface.zoomToFit();
+            myWorkBench.showContent();
           }
           else {
             removeAndDisposeModels(models);
