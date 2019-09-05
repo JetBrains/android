@@ -19,6 +19,7 @@ import com.android.repository.Revision
 import com.android.repository.testframework.FakeProgressIndicator
 import com.android.repository.testframework.MockFileOp
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.sdklib.BuildToolInfo
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
 import com.android.sdklib.repository.AndroidSdkHandler
@@ -38,6 +39,7 @@ import java.io.File
 import java.util.HashMap
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.command.impl.DummyProject
 import org.mockito.MockitoAnnotations.initMocks
 
 class TemplateValueInjectorTest {
@@ -87,6 +89,18 @@ class TemplateValueInjectorTest {
     assertThat(templateValues[TemplateMetadata.ATTR_BUILD_API]).isEqualTo(PREVIEW_VERSION)
     assertThat(templateValues[TemplateMetadata.ATTR_BUILD_TOOLS_VERSION]).isEqualTo("26.0.0 rc1")
     assertThat(templateValues[TemplateMetadata.ATTR_KOTLIN_VERSION]).isNotNull()
+  }
+
+  @Test
+  fun checkMaxAppCompatVersion() {
+    val project = DummyProject.getInstance()
+    val versionItemForQ = AndroidVersionsInfo().VersionItem(MockPlatformTarget(VersionCodes.Q, 0))
+    val templateValues = HashMap<String, Any>()
+    val injector = TemplateValueInjector(templateValues)
+
+    injector.setBuildAttributes(versionItemForQ, project, false)
+
+    assertThat(templateValues[TemplateMetadata.ATTR_BUILD_API]).isEqualTo(VersionCodes.P)
   }
 
   companion object {
