@@ -177,7 +177,7 @@ public class PostProjectBuildTasksExecutor {
         setSyncRequestedDuringBuild(myProject, null);
         // Sync was invoked while the project was built. Now that the build is finished, request a full sync after previous events have
         // finished (b/76017112).
-        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_USER_REQUEST_WHILE_BUILDING));
+        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_USER_REQUEST_WHILE_BUILDING));
       }
     }
   }

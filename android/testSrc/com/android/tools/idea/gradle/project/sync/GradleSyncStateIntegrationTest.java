@@ -56,7 +56,7 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
       verify(myGradleSyncListener, times(0)).sourceGenerationFinished(eq(getProject()));
 
       // Sync with source generation
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_TEST_REQUESTED, myGradleSyncListener);
+      GradleSyncInvoker.getInstance().requestProjectSync(getProject(), TRIGGER_TEST_REQUESTED, myGradleSyncListener);
 
       verify(myGradleSyncListener).sourceGenerationFinished(eq(getProject()));
     }

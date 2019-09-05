@@ -82,7 +82,7 @@ public class NdkIntegrationDeprecatedErrorHandler extends BaseSyncErrorHandler {
         return;
       }
 
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_NDK_INTEGRATION_DEPRECATED_SET);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_NDK_INTEGRATION_DEPRECATED_SET);
     }
   }
 }

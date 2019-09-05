@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleProjects;
-import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.ide.util.PropertiesComponent;
@@ -273,7 +272,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
       }
       createActionLabel("Sync Now",
-                        () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_STALE_CHANGES));
+                        () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_STALE_CHANGES));
     }
   }
 
@@ -282,7 +281,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       super(project, type, text);
 
       createActionLabel("Try Again",
-                        () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_TRY_AGAIN));
+                        () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_TRY_AGAIN));
 
       createActionLabel("Open 'Build' View", () -> {
         ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD);

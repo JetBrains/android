@@ -88,7 +88,7 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   }
 
   private static void requestSync(@NotNull Project project) {
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_WRAPPER_GRADLE_VERSION_FIXED);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_WRAPPER_GRADLE_VERSION_FIXED);
   }
 
   @VisibleForTesting
