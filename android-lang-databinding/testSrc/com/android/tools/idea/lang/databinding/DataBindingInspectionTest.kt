@@ -16,8 +16,10 @@
 package com.android.tools.idea.lang.databinding
 
 import com.android.SdkConstants
+import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -43,12 +45,17 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
   @get:Rule
   val projectRule = AndroidProjectRule.withSdk()
 
+  @get:Rule
+  val flagRule = RestoreFlagRule(StudioFlags.DATA_BINDING_INSPECTIONS_ENABLED)
+
   private val fixture: JavaCodeInsightTestFixture by lazy {
     projectRule.fixture as JavaCodeInsightTestFixture
   }
 
   @Before
   fun setUp() {
+    StudioFlags.DATA_BINDING_INSPECTIONS_ENABLED.override(true)
+
     fixture.testDataPath = "${getTestDataPath()}/projects/common"
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
 
