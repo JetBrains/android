@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtLambdaArgument
@@ -52,11 +53,14 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtScript
 import org.jetbrains.kotlin.psi.KtScriptInitializer
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 import java.math.BigDecimal
@@ -198,6 +202,84 @@ internal fun extraPropertyReferenceName(psiElement: PsiElement) : String? {
     }
     else -> return null
   }
+}
+
+// Check if this is a block with a methodCall as name, and get the name... e.g. getByName("release") -> "release"
+// Note: does not check whether this is a valid place for such a thing; this is purely syntax
+internal fun methodCallBlockName(expression: KtCallExpression): String? {
+  // TODO(xof): should we check the name of the method call against a whitelist? (create, getByName, ...)
+  val arguments = expression.valueArgumentList?.arguments ?: return null
+  if (arguments.size != 1) return null
+  // TODO(xof): we should handle injections / resolving here:
+  //  buildTypes.getByName("$foo") { ... }
+  //  buildTypes.getByName(foo) { ... }
+  val argument = arguments[0].getArgumentExpression()
+  when (argument) {
+    is KtStringTemplateExpression -> {
+      if (argument.hasInterpolation()) return null
+      return StringUtil.unquoteString(argument.entries[0].text)
+    }
+    else -> return null
+  }
+}
+
+internal fun gradleNameFor(expression: KtExpression): String? {
+  val sb = StringBuilder()
+  var lastExtra = false
+  var allValid = true
+
+  // the visitor here is responsible for converting Kts DSL syntax, e.g. sourceSets.getByName("arbitrary").extra["foo"], into
+  // something that the DSL (in particular GradleNameElement) is prepared to accept -- in the above example,
+  // sourceSets.arbitrary.ext.foo.  We therefore have to pay attention to method calls and to array dereferences, and rewrite
+  // all method calls that name blocks, and any array dereferences of the extra properties.
+  expression.accept(object: KtTreeVisitorVoid() {
+    override fun visitArrayAccessExpression(expression: KtArrayAccessExpression) {
+      expression.arrayExpression?.accept(this, null)
+      // translating here between Kts extra property lookup (array access, e.g. extra["foo"])
+      // and GradleNameElement's expectation (field dereference, e.g. ext.foo).  Only do this
+      // conversion if `extra' is the last thing we've seen in the arrayExpression.
+      if (lastExtra) {
+        sb.append('.')
+      }
+      else {
+        sb.append("[\"")
+      }
+      val index = expression.indexExpressions[0]
+      sb.append(StringUtil.unquoteString(index.text))
+      if (!lastExtra) {
+        sb.append("\"]")
+      }
+      lastExtra = false
+    }
+
+    override fun visitCallExpression(expression: KtCallExpression) {
+      val name = methodCallBlockName(expression)
+      if (name == null) {
+        allValid = false
+      }
+      else {
+        sb.append(name)
+      }
+    }
+
+    override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
+      expression.receiverExpression.accept(this, null)
+      sb.append('.')
+      expression.selectorExpression?.accept(this, null)
+    }
+
+    override fun visitReferenceExpression(expression: KtReferenceExpression) {
+      when (expression) {
+        is KtSimpleNameExpression -> {
+          lastExtra = (expression.text == "extra")
+          sb.append(if (lastExtra) "ext" else expression.text)
+        }
+        else -> super.visitReferenceExpression(expression)
+      }
+    }
+  }, null)
+
+  return if (allValid) sb.toString() else null
 }
 
 internal fun findInjections(
