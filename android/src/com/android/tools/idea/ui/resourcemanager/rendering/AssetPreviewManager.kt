@@ -16,10 +16,15 @@
 package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.ide.common.resources.ResourceResolver
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
+import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 
 /**
  * An [AssetPreviewManager] is used to manage [AssetIconProvider] and returns the
@@ -43,9 +48,7 @@ interface AssetPreviewManager {
  * Default implementation of [AssetPreviewManager]. The supported [ResourceType] are [ResourceType.DRAWABLE],
  * [ResourceType.LAYOUT], [ResourceType.COLOR] and [ResourceType.MIPMAP]
  */
-class AssetPreviewManagerImpl(
-  private val facet: AndroidFacet, imageCache: ImageCache, private val resourceResolver: ResourceResolver
-) : AssetPreviewManager {
+class AssetPreviewManagerImpl(val facet: AndroidFacet, currentFile: VirtualFile?, imageCache: ImageCache) : AssetPreviewManager {
 
   private val colorPreviewProvider by lazy {
     ColorIconProvider(facet.module.project, resourceResolver)
@@ -67,6 +70,9 @@ class AssetPreviewManagerImpl(
     DefaultAssetDataProvider()
   }
 
+  // TODO: Optionally, receive a resource resolver.
+  private var resourceResolver = createResourceResolver(facet, currentFile = currentFile)
+
   /**
    * Returns an [AssetIconProvider] for [ResourceType.COLOR], [ResourceType.DRAWABLE], [ResourceType.LAYOUT]
    */
@@ -86,7 +92,7 @@ class AssetPreviewManagerImpl(
    * resource to have an Icon preview, those that don't will have their resolved value in the [AssetData].
    */
   override fun getDataProvider(resourceType: ResourceType): AssetDataProvider =
-    when (resourceType) {
+    when(resourceType) {
       ResourceType.COLOR -> colorDataProvider
       ResourceType.ARRAY,
       ResourceType.BOOL,
@@ -97,4 +103,15 @@ class AssetPreviewManagerImpl(
       ResourceType.STRING -> valueDataProvider
       else -> defaultDataProvider
     }
+}
+
+private fun createResourceResolver(androidFacet: AndroidFacet, currentFile: VirtualFile?): ResourceResolver {
+  val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
+  currentFile?.let {
+    return configurationManager.getConfiguration(currentFile).resourceResolver
+  }
+  val manifest = MergedManifestManager.getSnapshot(androidFacet)
+  val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
+  val target = configurationManager.highestApiTarget?.let { StudioEmbeddedRenderTarget.getCompatibilityTarget(it) }
+  return configurationManager.resolverCache.getResourceResolver(target, theme, FolderConfiguration.createDefault())
 }

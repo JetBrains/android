@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
@@ -82,7 +83,7 @@ class ResourceExplorerViewTest {
     // 'Drawable' tab is selected by default.
     selectAndAssertAsset(view, "png")
     // Change to COLOR resources.
-    runInEdtAndWait { viewModel.resourceTypeIndex = viewModel.supportedResourceTypes.indexOf(ResourceType.COLOR) }
+    runInEdtAndWait { viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR) }
     waitAndAssert<AssetListView>(view) { listView ->
       if (listView != null && listView.model.size > 0) {
         // Best is to make sure the resources in the list are now of the desired type.
@@ -151,6 +152,15 @@ class ResourceExplorerViewTest {
     }
   }
 
+  private fun createViewModel(module: Module): ResourceExplorerViewModel {
+    val facet = AndroidFacet.getInstance(module)!!
+    val viewModel = ResourceExplorerViewModel.createResManagerViewModel(facet)
+
+    assert(viewModel is Disposable)
+    Disposer.register(disposable, viewModel as Disposable)
+    return viewModel
+  }
+
   @Test
   fun openOnEnter() {
     // Setup the test with an image for two configuration
@@ -166,17 +176,12 @@ class ResourceExplorerViewTest {
     var openedFile = "" // Variable used to check the opened file name
 
     // Dummy implementation of a ViewModel to record the opened file
-    val viewModel = ResourceExplorerViewModel.createResPickerViewModel(
-      projectRule.module.androidFacet!!,
-      null,
-      arrayOf(ResourceType.DRAWABLE),
-      false,
-      { asset ->
+    val viewModel = object : ResourceExplorerViewModel by createViewModel(projectRule.module) {
+      override val doSelectAssetAction: (asset: Asset) -> Unit =  { asset ->
         assertThat(asset).isInstanceOf(DesignAsset::class.java)
         openedFile = FileUtil.getRelativePath(projectRule.fixture.tempDirPath, (asset as DesignAsset).file.path, '/').orEmpty()
-      },
-      {})
-    Disposer.register(disposable, viewModel)
+      }
+    }
 
     // A parent used to swap the ResourceExplorerView and the DetailView
     val view = createResourceExplorerView(viewModel)
@@ -201,7 +206,8 @@ class ResourceExplorerViewTest {
     val viewModel = createViewModel(projectRule.module)
     val view = createResourceExplorerView(viewModel, withSummaryView = true)
 
-    waitAndAssert<DetailedPreview>(view) { it != null }
+    val summaryView = UIUtil.findComponentOfType(view, DetailedPreview::class.java)
+    assertNotNull(summaryView, "Summary view should be present")
 
     waitAndAssert<AssetListView>(view) { it != null && it.model.size > 0 && it.model.getElementAt(0).name == "png" }
     val list = UIUtil.findComponentOfType(view, AssetListView::class.java)!!
@@ -210,20 +216,9 @@ class ResourceExplorerViewTest {
     // Click a resource.
     simulateMouseClick(list, pointOfFirstResource, clickCount= 1)
 
-    waitAndAssert<DetailedPreview>(view) { summaryView ->
-      if (summaryView == null) return@waitAndAssert false
-      // Wait for and confirm some basic data on the summary panel.
-      if (!summaryView.data.containsKey("Name") || summaryView.data["Name"] != "png") return@waitAndAssert false
-      if (!summaryView.data.containsKey("Reference") || summaryView.data["Reference"] != "@drawable/png") return@waitAndAssert false
-      return@waitAndAssert true
-    }
-  }
-
-  private fun createViewModel(module: Module): ResourceExplorerViewModel {
-    val facet = AndroidFacet.getInstance(module)!!
-    val viewModel = ResourceExplorerViewModel.createResManagerViewModel(facet)
-    Disposer.register(disposable, viewModel)
-    return viewModel
+    // Confirm some basic data on the summary panel.
+    assertThat(summaryView.data).containsEntry("Name", "png")
+    assertThat(summaryView.data).containsEntry("Reference", "@drawable/png")
   }
 
   private fun createResourceExplorerView(viewModel: ResourceExplorerViewModel, withSummaryView: Boolean = false): ResourceExplorerView {
