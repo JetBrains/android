@@ -15,27 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
+import static com.intellij.util.ui.UIUtil.findComponentOfType;
+import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.view.TaskNode;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.tree.TreeUtil;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.List;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.util.List;
-
-import static com.intellij.util.ui.UIUtil.findComponentOfType;
-import static com.intellij.util.ui.tree.TreeUtil.expandAll;
-import static org.fest.reflect.core.Reflection.field;
-import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
-import static org.junit.Assert.assertTrue;
 
 public class GradleToolWindowFixture extends ToolWindowFixture {
   // Name of the content tab that contains TaskTree.
@@ -48,10 +47,10 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
   public void runTask(@NotNull final String taskName) {
     final Tree tasksTree = findComponentOfType(getContent(TASK_TREE_CONTENT_NAME).getComponent(), Tree.class);
 
-    Wait.seconds(1).expecting("tree to be populated").until(() ->
-        GuiQuery.get(() -> !tasksTree.isEmpty() && !field("myBusy").ofType(boolean.class).in(tasksTree).get()));
-
-    GuiTask.execute(() -> expandAll(tasksTree));
+    GuiTask.execute(() -> {
+      TreeUtil.expandAll(tasksTree);
+      PlatformTestUtil.waitWhileBusy(tasksTree);
+    });
 
     Object root = tasksTree.getModel().getRoot();
     final TreePath treePath = findTaskPath((DefaultMutableTreeNode)root, taskName);
