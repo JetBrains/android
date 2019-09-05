@@ -35,9 +35,9 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
   fun testFindPreviewMethods() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
-      import com.android.tools.preview.Preview
-      import com.android.tools.preview.Configuration
       import androidx.compose.Composable
+      import com.android.tools.preview.Configuration
+      import com.android.tools.preview.Preview
 
       @Composable
       fun Preview1() {
@@ -142,77 +142,6 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
     assertEquals(1, elements.size)
     // Check that we keep the first element
     assertEmpty(elements[0].displayName)
-  }
-
-  fun testElementBelongsToPreviewElement() {
-    @Language("kotlin")
-    val composeTest = myFixture.addFileToProject("src/Test.kt", """
-      import com.android.tools.preview.Preview
-      import androidx.compose.Composable
-
-      @Composable
-      fun Row(children: () -> Unit) {
-
-      }
-
-      @Composable
-      fun Button() {
-      }
-
-      // Test comment
-      @Composable
-      fun PreviewMethod() {
-        Preview(name = "preview3", configuration = Configuration(width = 1, height = 2)) {
-          val i = 1
-
-          Row {
-            Button {
-            }
-          }
-        }
-      }
-    """.trimIndent())
-
-    var previewCall: UCallExpression? = null
-    var previewMethod: UMethod? = null
-    var localVariable: ULocalVariable? = null
-    var configurationParameter: ULiteralExpression? = null
-    composeTest.toUElement()?.accept(object: AbstractUastVisitor() {
-      override fun visitMethod(node: UMethod): Boolean {
-        if ("PreviewMethod" == node.name) {
-          previewMethod = node
-        }
-        return super.visitMethod(node)
-      }
-
-      override fun visitLiteralExpression(node: ULiteralExpression): Boolean {
-        val intValue = node.evaluate() as? Int
-        if (intValue == 2) {
-          configurationParameter = node
-        }
-
-        return super.visitLiteralExpression(node)
-      }
-
-      override fun visitCallExpression(node: UCallExpression): Boolean {
-        if ("Preview" == node.methodName) {
-          previewCall = node
-        }
-
-        return super.visitCallExpression(node)
-      }
-
-      override fun visitLocalVariable(node: ULocalVariable): Boolean {
-        localVariable = node
-
-        return super.visitLocalVariable(node)
-      }
-    })
-
-    assertTrue(MethodPreviewElementFinder.elementBelongsToPreviewElement(previewCall!!.valueArguments[0].sourcePsi!!))
-    assertTrue(MethodPreviewElementFinder.elementBelongsToPreviewElement(configurationParameter?.sourcePsi!!))
-    assertFalse(MethodPreviewElementFinder.elementBelongsToPreviewElement(previewMethod?.sourcePsi!!))
-    assertFalse(MethodPreviewElementFinder.elementBelongsToPreviewElement(localVariable?.sourcePsi!!))
   }
 
   fun testFindPreviewPackage() {

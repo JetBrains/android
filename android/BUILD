@@ -27,6 +27,7 @@ iml_module(
     iml_files = ["intellij.android.core.iml"],
     javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
     lint_baseline = "lint_baseline.xml",
+    lint_timeout = "long",
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
@@ -168,7 +169,6 @@ iml_module(
     name = "intellij.android.core.tests",
     iml_files = ["intellij.android.core.tests.iml"],
     javacopts = ["-XepAllErrorsAsWarnings"],
-    lint_timeout = "eternal",
     test_class = "com.android.tools.idea.IdeaTestSuite",
     test_coverage = True,
     # keep sorted
@@ -177,11 +177,9 @@ iml_module(
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
-        "//prebuilts/studio/layoutlib/data/linux",
-        "//prebuilts/studio/layoutlib/data/mac",
-        "//prebuilts/studio/layoutlib/data/win",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:docs",

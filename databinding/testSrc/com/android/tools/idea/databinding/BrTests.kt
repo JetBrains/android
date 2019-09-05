@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat

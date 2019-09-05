@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.util.oneOf
 import com.android.tools.idea.util.plus
 import com.android.tools.idea.util.repeated
@@ -107,6 +108,43 @@ class GenericFileFilterTest {
       "/path/to/file",
       "/another/path/to/file"
     )
+
+  @Test
+  fun `recognize path with line number and column in parenthesis`() = getFilterResultAndCheckHighlightPositions("""
+    | /path/to/file.kt: (3, 7): No value passed for parameter 'silent'
+      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  """.trimIndent())
+    .checkFileLinks("/path/to/file.kt")
+
+  @Test
+  fun `recognize path with space`() {
+    `when`(localFileSystem.findFileByPathIfCached(eq("/path/to/file/with"))).thenReturn(null)
+    getFilterResultAndCheckHighlightPositions("""
+    | blah blah /path/to/file/with space blah blah
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+    """.trimIndent())
+      .checkFileLinks("/path/to/file/with space")
+  }
+
+  @Test
+  fun `recognize path with space and numbers`() {
+    `when`(localFileSystem.findFileByPathIfCached(eq("/path/to/file/with"))).thenReturn(null)
+    getFilterResultAndCheckHighlightPositions("""
+    | blah blah /path/to/file/with space:3:7 blah blah
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    """.trimIndent())
+      .checkFileLinks("/path/to/file/with space")
+  }
+
+  @Test
+  fun `recognize path with space and numbers parenthesis Windows`() {
+    `when`(localFileSystem.findFileByPathIfCached(eq("""C:\path\to\file\with"""))).thenReturn(null)
+    getFilterResultAndCheckHighlightPositions("""
+    | blah blah C:\path\to\file\with space.kt: (3, 7): blah blah
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    """.trimIndent())
+      .checkFileLinks("""C:\path\to\file\with space.kt""")
+  }
 
   @Test
   fun `multiple lines and multiple links`() = getFilterResultAndCheckHighlightPositions("""
@@ -236,9 +274,9 @@ class GenericFileFilterTest {
         }
         val indicatorLine = line.removePrefix("  ")
         val expectedHighlighted = previousInputLine
-          .mapIndexed { i, c -> if (indicatorLine.getOrNull(i) == '^') c else ' ' }
+          .mapIndexed { i, c -> if (indicatorLine.getOrNull(i) == '^') c else '%' }
           .joinToString("")
-          .split(Regex(" +"))
+          .split(Regex("%+"))
           .filter { it.isNotEmpty() }
         Truth.assertThat(actualHighlighted).isEqualTo(expectedHighlighted)
       }

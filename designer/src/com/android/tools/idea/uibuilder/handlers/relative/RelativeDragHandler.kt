@@ -96,7 +96,7 @@ internal class RelativeDragHandler(editor: ViewEditor,
 
     // Remove Temporary SceneComponent
     layout.scene.removeComponent(component)
-    layout.scene.checkRequestLayoutStatus()
+    layout.scene.requestLayoutIfNeeded()
   }
 
   override fun cancel() {

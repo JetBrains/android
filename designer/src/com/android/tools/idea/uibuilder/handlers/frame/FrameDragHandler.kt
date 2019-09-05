@@ -76,7 +76,7 @@ class FrameDragHandler(editor: ViewEditor,
       dragTarget.mouseCancel()
       layout.scene.removeComponent(component)
       editor.insertChildren(layout.nlComponent, components, -1, insertType)
-      layout.scene.checkRequestLayoutStatus()
+      layout.scene.requestLayoutIfNeeded()
     }
   }
 

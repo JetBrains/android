@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.tools.idea.templates.GradleFileMergers.CONFIGURATION_ORDERING;
+import static com.android.tools.idea.templates.GradleFileMergers.updateExistingDependencies;
+
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
@@ -25,17 +28,26 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
@@ -44,21 +56,18 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCall;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrCallExpression;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.tools.idea.templates.GradleFileMergers.CONFIGURATION_ORDERING;
-import static com.android.tools.idea.templates.GradleFileMergers.updateExistingDependencies;
 
 /**
  * Utility class to help with merging Gradle files into one another
  */
 public class GradleFilePsiMerger {
-
   /**
    * Merges the given source build.gradle content into the given destination build.gradle content,
    * and resolves and dynamic Gradle dependencies into specific versions. If a support library
@@ -66,8 +75,9 @@ public class GradleFilePsiMerger {
    * typically set to the compileSdkVersion, such that you don't end up mixing and matching
    * compileSdkVersions and support libraries from different versions, which is not supported.
    */
-  public static String mergeGradleFiles(@NotNull String source, @NotNull String dest, @Nullable Project project,
-                                        @Nullable final String supportLibVersionFilter) {
+  public static String mergeGradleFiles(
+    @NotNull String source, @NotNull String dest, @Nullable Project project, @Nullable final String supportLibVersionFilter
+  ) {
     source = source.replace("\r", "");
     dest = dest.replace("\r", "");
     final Project project2;
@@ -85,24 +95,19 @@ public class GradleFilePsiMerger {
     source = source.trim();
     dest = dest.trim();
 
-    final GroovyFile templateBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(SdkConstants.FN_BUILD_GRADLE,
-                                                                                                             GroovyFileType.GROOVY_FILE_TYPE,
-                                                                                                             source);
-    final GroovyFile existingBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(SdkConstants.FN_BUILD_GRADLE,
-                                                                                                             GroovyFileType.GROOVY_FILE_TYPE,
-                                                                                                             dest);
-    String result = (new WriteCommandAction<String>(project2, "Merge Gradle Files", existingBuildFile) {
-      @Override
-      protected void run(@NotNull Result<String> result) throws Throwable {
-        // Make sure that the file we are merging in to has a trailing new line. This ensures that
-        // any added elements appear at the buttom of the file, it also keeps consistency with
-        // how projects created with the Wizards look.
-        addTrailingNewLine(existingBuildFile);
-        mergePsi(templateBuildFile, existingBuildFile, project2, supportLibVersionFilter);
-        PsiElement formatted = CodeStyleManager.getInstance(project2).reformat(existingBuildFile);
-        result.setResult(formatted.getText());
-      }
-    }).execute().getResultObject();
+    final GroovyFile templateBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(
+      SdkConstants.FN_BUILD_GRADLE, GroovyFileType.GROOVY_FILE_TYPE, source);
+    final GroovyFile existingBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(
+      SdkConstants.FN_BUILD_GRADLE, GroovyFileType.GROOVY_FILE_TYPE, dest);
+
+    String result = WriteCommandAction.writeCommandAction(project2, existingBuildFile).withName("Merged Gradle Files").compute(() -> {
+      // Make sure that the file we are merging in to has a trailing new line. This ensures that any added elements
+      // appear at the bottom of the file, it also keeps consistency with how projects created with the Wizards look.
+      addTrailingNewLine(existingBuildFile);
+      mergePsi(templateBuildFile, existingBuildFile, project2, supportLibVersionFilter);
+      PsiElement formatted = CodeStyleManager.getInstance(project2).reformat(existingBuildFile);
+      return formatted.getText();
+    });
 
     if (projectNeedsCleanup) {
       ApplicationManager.getApplication().runWriteAction(() -> Disposer.dispose(project2));
@@ -114,8 +119,7 @@ public class GradleFilePsiMerger {
                                @NotNull PsiElement toRoot,
                                @NotNull Project project,
                                @Nullable String supportLibVersionFilter) {
-    Set<PsiElement> destinationChildren = new HashSet<>();
-    destinationChildren.addAll(Arrays.asList(toRoot.getChildren()));
+    Set<PsiElement> destinationChildren = new HashSet<>(Arrays.asList(toRoot.getChildren()));
 
     // First try and do a string literal replacement.
     // If both toRoot and fromRoot are call expressions
@@ -199,23 +203,21 @@ public class GradleFilePsiMerger {
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
 
     dependencies.forEach((configurationName, unresolvedDependencies) -> {
-      List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(unresolvedDependencies,
-                                                                                 supportLibVersionFilter,
-                                                                                 FileOpUtils.create());
+      List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(
+        unresolvedDependencies, supportLibVersionFilter, FileOpUtils.create());
       PsiElement nextElement = findInsertionPoint(toRoot, configurationName);
       for (GradleCoordinate dependency : resolved) {
-        PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n",
-                                                                                     configurationName,
-                                                                                     dependency.toString()));
+        PsiElement dependencyElement = factory.createStatementFromText(
+          String.format("%s '%s'\n", configurationName, dependency.toString()));
         PsiElement newElement = toRoot.addBefore(dependencyElement, nextElement);
         toRoot.addAfter(factory.createLineTerminator(1), newElement);
       }
     });
 
     // Unfortunately the "from" and "to" dependencies may not have the same white space formatting
-    Set<String> originalSet = originalUnparsedDependencies.stream().map(CharMatcher.WHITESPACE::removeFrom).collect(Collectors.toSet());
+    Set<String> originalSet = originalUnparsedDependencies.stream().map(CharMatcher.whitespace()::removeFrom).collect(Collectors.toSet());
     for (String dependency : unparsedDependencies) {
-      if (!originalSet.contains(CharMatcher.WHITESPACE.removeFrom(dependency))) {
+      if (!originalSet.contains(CharMatcher.whitespace().removeFrom(dependency))) {
         PsiElement dependencyElement = factory.createStatementFromText(dependency);
         toRoot.addBefore(dependencyElement, toRoot.getLastChild());
       }
@@ -378,7 +380,7 @@ public class GradleFilePsiMerger {
                 }
               }
             }
-            if (!parsed && unparsedDependencies != null) {
+            if (!parsed) {
               unparsedDependencies.add(existingElem.getText());
             }
           }

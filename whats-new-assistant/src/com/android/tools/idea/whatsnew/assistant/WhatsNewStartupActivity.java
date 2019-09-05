@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
   @Override
   public void runActivity(@NotNull Project project) {
-    WhatsNewAssistantBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewAssistantBundleCreator.class);
+    WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator.class);
     if (bundleCreator == null || !bundleCreator.shouldShowWhatsNew()) {
       return;
     }
@@ -72,8 +72,8 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
     else {
       // But also show if the config version is newer than current, even if AS version is not higher
       // This needs to be done asynchronously because the WNABundleCreator needs to download config to check version
-      WhatsNewAssistantCheckVersionTask task =
-        new WhatsNewAssistantCheckVersionTask(project, new VersionCheckCallback(project));
+      WhatsNewCheckVersionTask task =
+        new WhatsNewCheckVersionTask(project, new VersionCheckCallback(project));
       task.queue();
     }
   }
@@ -111,7 +111,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
   }
 
   private static void openWhatsNewAssistant(@NotNull Project project) {
-    ((WhatsNewAssistantSidePanelAction)ActionManager.getInstance().getAction("WhatsNewAction"))
+    ((WhatsNewSidePanelAction)ActionManager.getInstance().getAction("WhatsNewAction"))
       .openWhatsNewSidePanel(project, true);
   }
 
@@ -159,7 +159,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
   }
 
   /**
-   * Callback for when WhatsNewAssistantBundleCreator has determined whether
+   * Callback for when WhatsNewBundleCreator has determined whether
    * there has been an update to the config. If yes, WNA is automatically opened.
    */
   private static class VersionCheckCallback implements FutureCallback<Boolean> {

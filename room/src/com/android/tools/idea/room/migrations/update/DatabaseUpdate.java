@@ -20,12 +20,17 @@ import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.*;
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
 import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
+import com.android.tools.idea.room.migrations.json.ForeignKeyBundle;
 import com.android.tools.idea.room.migrations.json.FtsEntityBundle;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +41,7 @@ public class DatabaseUpdate {
   private Map<String, EntityBundle> newEntities;
   private Map<String, EntityBundle> deletedEntities;
   private Map<String, EntityUpdate> modifiedEntities;
+  private Set<String> tablesToForeignKeyCheck;
 
   private Map<String, String> renamedEntities;
 
@@ -60,22 +66,41 @@ public class DatabaseUpdate {
     newEntities = new HashMap<>();
     modifiedEntities = new HashMap<>();
     renamedEntities = new HashMap<>();
+    tablesToForeignKeyCheck = new HashSet<>();
 
+    Multimap<String, String> tableToReferencedTableMapping = HashMultimap.create();
     for (EntityBundle newEntity : newDatabase.getEntities()) {
       EntityBundle oldEntity = deletedEntities.remove(newEntity.getTableName());
-        if (oldEntity != null) {
-          if (!isTableTypeTheSame(oldEntity, newEntity)) {
-            deletedEntities.put(oldEntity.getTableName(), oldEntity);
-            newEntities.put(newEntity.getTableName(), newEntity);
-          } else {
-            if (!oldEntity.isSchemaEqual(newEntity)) {
-              modifiedEntities.put(newEntity.getTableName(), new EntityUpdate(oldEntity, newEntity));
+      if (oldEntity != null) {
+        if (!isTableTypeTheSame(oldEntity, newEntity)) {
+          deletedEntities.put(oldEntity.getTableName(), oldEntity);
+          newEntities.put(newEntity.getTableName(), newEntity);
+        }
+        else {
+          if (!oldEntity.isSchemaEqual(newEntity)) {
+            EntityUpdate entityUpdate = new EntityUpdate(oldEntity, newEntity);
+            modifiedEntities.put(entityUpdate.getNewTableName(), entityUpdate);
+
+            if (entityUpdate.foreignKeysWereUpdated()) {
+              tablesToForeignKeyCheck.add(entityUpdate.getNewTableName());
             }
           }
         }
-        else {
-          newEntities.put(newEntity.getTableName(), newEntity);
-        }
+      }
+      else {
+        newEntities.put(newEntity.getTableName(), newEntity);
+      }
+
+      for (ForeignKeyBundle foreignKey : newEntity.getForeignKeys()) {
+        tableToReferencedTableMapping.put(newEntity.getTableName(), foreignKey.getTable());
+      }
+    }
+
+    for (Map.Entry<String, String> tableToReferencedTableEntry : tableToReferencedTableMapping.entries()) {
+      String referencedTable = tableToReferencedTableEntry.getValue();
+      if (modifiedEntities.containsKey(referencedTable) || newEntities.containsKey(referencedTable)) {
+        tablesToForeignKeyCheck.add(tableToReferencedTableEntry.getKey());
+      }
     }
 
     deletedViews = new ArrayList<>();
@@ -133,6 +158,10 @@ public class DatabaseUpdate {
   @NotNull
   public Map<String, String> getRenamedEntities() {
     return renamedEntities;
+  }
+
+  public Set<String> getTablesToForeignKeyCheck() {
+    return tablesToForeignKeyCheck;
   }
 
   @NotNull

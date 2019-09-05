@@ -31,6 +31,9 @@ import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectWideFacetAdapter;
 import com.intellij.facet.ProjectWideFacetListenersRegistry;
@@ -68,6 +71,8 @@ import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -159,10 +164,10 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   }
 
   @NotNull
-  public static List<IdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet facet) {
-    List<IdeaSourceProvider> sourceProviders = IdeaSourceProvider.getCurrentSourceProviders(facet);
-    sourceProviders.addAll(IdeaSourceProvider.getCurrentTestSourceProviders(facet));
-    return sourceProviders;
+  public static Iterable<IdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet facet) {
+    return Iterables.concat(
+        IdeaSourceProvider.getCurrentSourceProviders(facet),
+        IdeaSourceProvider.getCurrentTestSourceProviders(facet));
   }
 
   @NotNull

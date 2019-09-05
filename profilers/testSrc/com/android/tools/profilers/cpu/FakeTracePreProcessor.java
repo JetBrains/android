@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.idea.protobuf.ByteString;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class FakeTracePreProcessor implements TracePreProcessor {
@@ -24,11 +25,16 @@ public class FakeTracePreProcessor implements TracePreProcessor {
 
   private boolean myFailedToPreProcess = false;
 
+  private List<String> mySymbolDirs;
+
   @Override
-  public ByteString preProcessTrace(@NotNull ByteString trace) {
+  public ByteString preProcessTrace(@NotNull ByteString trace, @NotNull List<String> symbolDirs) {
     myTracePreProcessed = true;
+    mySymbolDirs = symbolDirs;
     return myFailedToPreProcess ? TracePreProcessor.FAILURE : trace;
   }
+
+  public List<String> getSymbolDirs() { return mySymbolDirs; }
 
   public boolean isTracePreProcessed() {
     return myTracePreProcessed;

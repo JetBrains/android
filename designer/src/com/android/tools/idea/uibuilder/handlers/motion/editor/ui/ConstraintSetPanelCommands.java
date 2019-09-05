@@ -36,7 +36,6 @@ public class ConstraintSetPanelCommands {
 
   public static MTag createConstraint(MTag selected, MTag constraintSet) {
     String id = selected.getAttributeValue("id");
-    System.out.println(" move " + selected.getTagName() + " " + id + " to " + constraintSet.getAttributeValue("id"));
     MTag.TagWriter new_constraint;
     new_constraint = constraintSet.getChildTagWriter("Constraint");
     new_constraint.setAttribute(MotionSceneAttrs.ANDROID, "id", id);
@@ -54,7 +53,7 @@ public class ConstraintSetPanelCommands {
       }
     }
     // TODO support rich parameter .visibility etc.
-    return new_constraint.commit();
+    return new_constraint.commit("Create Constraint");
   }
 
   public static void createSectionedConstraint(MTag[] selected, MTag constraintSet) {
@@ -99,7 +98,7 @@ public class ConstraintSetPanelCommands {
         transform.setAttribute(MotionSceneAttrs.lookupName(attr), attr.mAttribute, attr.mValue);
       }
     }
-    return new_constraint.commit();
+    return new_constraint.commit("Create Constraint");
   }
 
   /**
@@ -123,8 +122,22 @@ public class ConstraintSetPanelCommands {
 
   }
 
-  public static void overrideConstraint(MTag selected, MTag ConstraintSet) {
-
+  /**
+   * Convert from Constraint that is divided into sections into one that overrides all constraints
+   * @param selected
+   * @param ConstraintSet
+   */
+  public static void convertFromSectioned(MTag selected, MTag ConstraintSet) {
+    MTag[] child = selected.getChildTags();
+    MTag.TagWriter writer = selected.getTagWriter();
+    for (int i = 0; i < child.length; i++) {
+      MTag mTag = child[i];
+      HashMap<String, MTag.Attribute> attrs = mTag.getAttrList();
+      for (MTag.Attribute value : attrs.values()) {
+        writer.setAttribute(value.mNamespace,value.mAttribute,value.mValue);
+      }
+      mTag.deleteTag();
+    }
+    writer.commit("Convert Constraint");
   }
-
 }

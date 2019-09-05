@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding
 
 import com.android.SdkConstants
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -54,6 +55,11 @@ enum class DataBindingMode constructor(
   @JvmField
   val bindingAdapter: String,
   /**
+   * The qualified name for the BindingConversion annotation
+   */
+  @JvmField
+  val bindingConversion: String,
+  /**
    * The qualified name for the BindingMethods annotation
    */
   @JvmField
@@ -88,7 +94,7 @@ enum class DataBindingMode constructor(
   /**
    * Project does not use data binding
    */
-  NONE("", "", "", "", "", "", "", "", "", "", "", arrayOf()),
+  NONE("", "", "", "", "", "", "", "", "", "", "", "", arrayOf()),
   /**
    * Project uses data binding in the androidx namespace
    */
@@ -99,6 +105,7 @@ enum class DataBindingMode constructor(
     SdkConstants.CLASS_DATA_BINDING_BINDABLE.newName(),
     SdkConstants.CLASS_DATA_BINDING_BASE_BINDING.newName(),
     SdkConstants.BINDING_ADAPTER_ANNOTATION.newName(),
+    SdkConstants.BINDING_CONVERSION_ANNOTATION.newName(),
     SdkConstants.BINDING_METHODS_ANNOTATION.newName(),
     SdkConstants.INVERSE_BINDING_ADAPTER_ANNOTATION.newName(),
     SdkConstants.INVERSE_BINDING_METHOD_ANNOTATION.newName(),
@@ -124,6 +131,7 @@ enum class DataBindingMode constructor(
     SdkConstants.CLASS_DATA_BINDING_BINDABLE.oldName(),
     SdkConstants.CLASS_DATA_BINDING_BASE_BINDING.oldName(),
     SdkConstants.BINDING_ADAPTER_ANNOTATION.oldName(),
+    SdkConstants.BINDING_CONVERSION_ANNOTATION.oldName(),
     SdkConstants.BINDING_METHODS_ANNOTATION.oldName(),
     SdkConstants.INVERSE_BINDING_ADAPTER_ANNOTATION.oldName(),
     SdkConstants.INVERSE_BINDING_METHOD_ANNOTATION.oldName(),

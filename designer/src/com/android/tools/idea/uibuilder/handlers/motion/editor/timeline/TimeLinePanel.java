@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSe
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 
+import java.util.Collections;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLayer;
@@ -45,8 +46,8 @@ import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
-import java.util.Vector;
 
 /**
  * The panel that displays the timeline
@@ -134,7 +135,7 @@ public class TimeLinePanel extends JPanel {
     }
   }
 
-  class METimeLine extends JPanel {
+  public class METimeLine extends JPanel {
     JPanel pad = new JPanel() {
       @Override
       public void paintComponent(Graphics g) {
@@ -199,7 +200,7 @@ public class TimeLinePanel extends JPanel {
       return null;
     }
 
-    public void setListData(Vector<TimeLineRowData> list, MeModel model) {
+    public void setListData(List<TimeLineRowData> list, MeModel model) {
       Component[] children = getComponents();
       removeAll();
       String lastName = null;
@@ -362,10 +363,7 @@ public class TimeLinePanel extends JPanel {
         groupSelected();
       }
     });
-    myTimer = new Timer(30, e -> {
-      progress();
-    });
-    myTimer.setRepeats(true);
+    createTimer();
   }
 
   public void addTimeLineListener(TimeLineListener timeLineListener) {
@@ -377,7 +375,20 @@ public class TimeLinePanel extends JPanel {
       listener.command(cmd, value);
     }
   }
-
+  private void createTimer() {
+    if (myTimer == null) {
+      myTimer = new Timer(30, e -> {
+        progress();
+      });
+    myTimer.setRepeats(true);
+    }
+  }
+  private void destroyTimer() {
+    if (myTimer != null) {
+      myTimer.stop();
+      myTimer = null;
+    }
+  }
   private void performCommand(TimelineCommands e) {
     switch (e) {
       case PLAY:
@@ -458,14 +469,15 @@ public class TimeLinePanel extends JPanel {
   }
 
   public void setMTag(MTag transitionTag, MeModel model) {
+    // TODO: Need to restore the selected key frames here.
     mTransitionTag = transitionTag;
     mMeModel = model;
-    Vector<TimeLineRowData> list = buildTransitionList();
+    List<TimeLineRowData> list = transitionTag != null ? buildTransitionList() : Collections.emptyList();
     mTimeLine.setListData(list, model);
   }
 
-  private Vector<TimeLineRowData> buildTransitionList() {
-    Vector<TimeLineRowData> views = new Vector<>();
+  private List<TimeLineRowData> buildTransitionList() {
+    List<TimeLineRowData> views = new ArrayList<>();
     TreeMap<String, ArrayList<MTag>> keyMap = new TreeMap<>();
 
     MTag[] keyFrameSets = mTransitionTag.getChildTags("KeyFrameSet");
@@ -559,7 +571,7 @@ public class TimeLinePanel extends JPanel {
   /**
    * Get and create if does not exist.
    */
-  TimeLineRowData addRow(Vector<TimeLineRowData> views, String viewId) {
+  TimeLineRowData addRow(List<TimeLineRowData> views, String viewId) {
     for (TimeLineRowData view : views) {
       if (view.mKey.equals(viewId)) {
         return view;
@@ -571,7 +583,7 @@ public class TimeLinePanel extends JPanel {
     return view;
   }
 
-  TimeLineRowData get(Vector<TimeLineRowData> views, String viewId) {
+  TimeLineRowData get(List<TimeLineRowData> views, String viewId) {
     for (TimeLineRowData view : views) {
       if (view.mKey.equals(viewId)) {
         return view;
@@ -642,7 +654,7 @@ public class TimeLinePanel extends JPanel {
       mTimelineStructure.myXTicksPixels[mTimelineStructure.myXTicksPixels.length - 1]
         - mTimelineStructure.myXTicksPixels[0];
     float progress = (e.getX() - timeStart) / (float) (timeWidth);
-    float error = 2 / timeWidth;
+    float error = (float) (2 / timeWidth);
     boolean inRange = progress > -error && progress < 1 + error;
     switch (e.getID()) {
       case MouseEvent.MOUSE_CLICKED: {

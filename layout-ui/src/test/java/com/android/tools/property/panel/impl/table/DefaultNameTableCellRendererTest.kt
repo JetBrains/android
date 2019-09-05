@@ -29,7 +29,6 @@ import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.IdeTooltipManager
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.SimpleColoredComponent
 import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
@@ -41,6 +40,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JTable
 
 class DefaultNameTableCellRendererTest {
@@ -64,9 +64,11 @@ class DefaultNameTableCellRendererTest {
   @Test
   fun testGetToolTipText() {
     val renderer = DefaultNameTableCellRenderer()
-    val table = createTable()
-    val event = MouseEvent(table, 0, 0L, 0, 10, 10, 1, false)
-    renderer.getToolTipText(event)
+    val table = createTable() as PTable
+    val item = table.item(1)
+    val event = MouseEvent(table.component, 0, 0L, 0, 10, 10, 1, false)
+    val component = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false)
+    component.getToolTipText(event)
 
     val captor = ArgumentCaptor.forClass(PropertyTooltip::class.java)
     verify(manager!!).setCustomTooltip(any(JComponent::class.java), captor.capture())
@@ -80,10 +82,10 @@ class DefaultNameTableCellRendererTest {
     val renderer = DefaultNameTableCellRenderer()
     val table = createTable() as PTable
     val item = table.item(1)
-    val unselected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false) as SimpleColoredComponent
+    val unselected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false) as JLabel
     assertThat(unselected.icon).isSameAs(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE)
 
-    val selected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, true, true) as SimpleColoredComponent
+    val selected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, true, true, false) as JLabel
     assertThat(IconTester.hasOnlyWhiteColors(selected.icon)).isTrue()
   }
 

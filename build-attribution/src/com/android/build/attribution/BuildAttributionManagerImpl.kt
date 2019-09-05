@@ -17,11 +17,13 @@ package com.android.build.attribution
 
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
+import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
+import java.io.File
 import java.time.Duration
 
 class BuildAttributionManagerImpl(
@@ -36,8 +38,8 @@ class BuildAttributionManagerImpl(
     analyzersWrapper.onBuildStart()
   }
 
-  override fun onBuildSuccess() {
-    analyzersWrapper.onBuildSuccess()
+  override fun onBuildSuccess(attributionFilePath: String) {
+    analyzersWrapper.onBuildSuccess(AndroidGradlePluginAttributionData.load(File(attributionFilePath)))
 
     // TODO: add proper UI
     logBuildAttributionResults()

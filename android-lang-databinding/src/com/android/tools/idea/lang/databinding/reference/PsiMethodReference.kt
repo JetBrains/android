@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.android.tools.idea.databinding.DataBindingUtil.stripPrefixFromMethod
+import com.android.tools.idea.databinding.util.DataBindingUtil.stripPrefixFromMethod
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
-import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterList
+import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaParameters
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
@@ -45,6 +45,9 @@ internal class PsiMethodReference(element: PsiElement, method: PsiModelMethod, t
 
   constructor(attr: XmlAttribute, method: PsiModelMethod)
     : this(attr, method, attr.textRange.shiftLeft(attr.textOffset))
+
+  constructor(parameters: PsiDbLambdaParameters, method: PsiModelMethod)
+    : this(parameters, method, parameters.textRange.shiftLeft(parameters.textOffset))
 
   override val resolvedType = method.returnType
 

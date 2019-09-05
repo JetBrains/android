@@ -139,8 +139,8 @@ class BindingXmlIndexTest {
         <TextView android:id="@id/testId3"/>
         <TextView android:id="@+id/testId1"/>
         <view android:id="@+id/testId4" android:class="com.example.class"/>
-        <include android:id="@+id/testId5" android:layout="this_other_layout"/>
-        <merge android:id="@+id/testId6" android:layout="this_other_layout"/>
+        <include android:id="@+id/testId5" layout="this_other_layout"/>
+        <merge android:id="@+id/testId6" layout="this_other_layout"/>
       </layout>
     """.trimIndent()).virtualFile
     val bindingXmlIndex = BindingXmlIndex()

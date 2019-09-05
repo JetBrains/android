@@ -56,8 +56,10 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
     // easier than finding a way to add a real dependency on the data binding library, which
     // usually requires Gradle plugin support.
     val databindingPackage = dataBindingMode.packageName.removeSuffix(".") // Without trailing '.'
+    val databindingSrcPath = "src/${databindingPackage.replace('.', '/')}"
+
     with(fixture.addFileToProject(
-      "src/${databindingPackage.replace('.', '/')}/BindingAdapter.java",
+      "$databindingSrcPath/BindingAdapter.java",
       // language=java
       """
         package $databindingPackage;
@@ -74,8 +76,43 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
 
+    with(fixture.addFileToProject(
+      "$databindingSrcPath/BindingConversion.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        import java.lang.annotation.ElementType;
+        import java.lang.annotation.Target;
+
+        @Target({ElementType.METHOD})
+        public @interface BindingConversion {
+        }
+
+      """.trimIndent())) {
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
     ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = dataBindingMode
+  }
+
+  @Test
+  fun testDataBindingInspection_resolvedToViewId() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <TextView
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{view_id.getText()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
   }
 
   @Test
@@ -798,6 +835,46 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
             android:layout_height="120dp"
             android:gravity="center"
             android:onClick2="@{<error descr="Listener class 'android.view.View.OnClickListener' with method 'onClick' did not match signature of any method 'android:onClick2'">model::testClick</error>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_functionExpressionMatchedWithBindingConversion() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${dataBindingMode.bindingAdapter};
+      import ${dataBindingMode.bindingConversion};
+
+      public class Model {
+        @BindingAdapter("android:onClick2")
+        public void bindDummyValue(View view, View.OnClickListener s) {}
+        @BindingConversion
+        public static View.OnClickListener convertColorToOnClickListener(int num) {}
+        public int getNumber() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{model.number}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)

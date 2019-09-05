@@ -23,11 +23,11 @@ final class WhatsNewScrollHandler implements ScrollHandler {
   @NotNull
   @Override
   public String getId() {
-    return WhatsNewAssistantBundleCreator.BUNDLE_ID;
+    return WhatsNewBundleCreator.BUNDLE_ID;
   }
 
   @Override
   public void scrolledToBottom(@NotNull Project project) {
-    WhatsNewAssistantMetricsTracker.getInstance().scrolledToBottom(project);
+    WhatsNewMetricsTracker.getInstance().scrolledToBottom(project);
   }
 }

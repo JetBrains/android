@@ -156,9 +156,9 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     myTemplateValues[ATTR_MIN_API_LEVEL] = minSdkVersion.featureLevel
 
     val project = module.project
-    addGradleVersions(project)
+    addGradleVersions(project, false)
     addKotlinVersion()
-    addAndroidxSupport(project)
+    addAndroidxSupport(project, false)
 
     val projectType = facet.configuration.projectType
     if (projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
@@ -173,7 +173,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    * @param buildVersion Build version information for the new Module being created.
    * @param project      Used to find the Gradle Dependencies versions. If null, it will use the most recent values known.
    */
-  fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project?): TemplateValueInjector {
+  fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project?, isNewProject: Boolean): TemplateValueInjector {
     addDebugKeyStore(myTemplateValues, null)
 
     myTemplateValues[ATTR_IS_NEW_MODULE] = true // Android Modules are called Gradle Projects
@@ -192,12 +192,12 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     if (target != null) { // this is a preview release
       val info = target.buildToolInfo
       if (info != null) {
-        addBuildToolVersion(project, info.revision)
+        addBuildToolVersion(project, isNewProject, info.revision)
       }
     }
-    addGradleVersions(project)
+    addGradleVersions(project, isNewProject)
     addKotlinVersion()
-    addAndroidxSupport(project)
+    addAndroidxSupport(project, isNewProject)
     return this
   }
 
@@ -270,12 +270,12 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    * [com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION],
    * [com.android.tools.idea.templates.TemplateMetadata.ATTR_GRADLE_VERSION], etc.
    */
-  fun setProjectDefaults(project: Project?): TemplateValueInjector {
+  fun setProjectDefaults(project: Project?, isNewProject: Boolean): TemplateValueInjector {
     // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
     // request for the Gradle build.
     myTemplateValues[ATTR_IS_LOW_MEMORY] = SystemInfo.is32Bit
 
-    addGradleVersions(project)
+    addGradleVersions(project, isNewProject)
     addKotlinVersion()
 
     if (project != null) {
@@ -285,7 +285,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val progress = StudioLoggerProgressIndicator(ConfigureAndroidModuleStep::class.java)
 
-    addBuildToolVersion(project, getRecommendedBuildToolsRevision(sdkHandler, progress))
+    addBuildToolVersion(project, isNewProject, getRecommendedBuildToolsRevision(sdkHandler, progress))
 
     val sdkLocation = sdkHandler.location
     if (sdkLocation != null) {
@@ -322,8 +322,8 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     return this
   }
 
-  fun addGradleVersions(project: Project?): TemplateValueInjector {
-    myTemplateValues[ATTR_GRADLE_PLUGIN_VERSION] = determineGradlePluginVersion(project).toString()
+  fun addGradleVersions(project: Project?, isNewProject: Boolean): TemplateValueInjector {
+    myTemplateValues[ATTR_GRADLE_PLUGIN_VERSION] = determineGradlePluginVersion(project, isNewProject).toString()
     myTemplateValues[ATTR_GRADLE_VERSION] = SdkConstants.GRADLE_LATEST_VERSION
     return this
   }
@@ -342,15 +342,15 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     myTemplateValues[ATTR_KOTLIN_EAP_REPO] = setOf("rc", "eap", "-M").any { it in kotlinVersion }
   }
 
-  private fun addBuildToolVersion(project: Project?, buildToolRevision: Revision) {
-    val gradlePluginVersion = determineGradlePluginVersion(project)
+  private fun addBuildToolVersion(project: Project?, isNewProject: Boolean, buildToolRevision: Revision) {
+    val gradlePluginVersion = determineGradlePluginVersion(project, isNewProject)
     myTemplateValues[ATTR_BUILD_TOOLS_VERSION] = buildToolRevision.toString()
     myTemplateValues[ATTR_EXPLICIT_BUILD_TOOLS_VERSION] = needsExplicitBuildToolsVersion(gradlePluginVersion, buildToolRevision)
   }
 
-  private fun addAndroidxSupport(project: Project?) {
+  private fun addAndroidxSupport(project: Project?, isNewProject: Boolean) {
     // Note: New projects are always created with androidx dependencies
-    myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project == null || !project.isInitialized || project.isAndroidx()
+    myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project == null || isNewProject || project.isAndroidx()
   }
 
   private fun addDebugKeyStore(templateValues: MutableMap<String, Any>, facet: AndroidFacet?) {
@@ -378,9 +378,9 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    *
    * @param project If `null` (ie we are creating a new project) returns the recommended gradle version.
    */
-  private fun determineGradlePluginVersion(project: Project?): GradleVersion {
+  private fun determineGradlePluginVersion(project: Project?, isNewProject: Boolean): GradleVersion {
     val defaultGradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-    if (project == null || !project.isInitialized) {
+    if (project == null || isNewProject) {
       return defaultGradleVersion
     }
 

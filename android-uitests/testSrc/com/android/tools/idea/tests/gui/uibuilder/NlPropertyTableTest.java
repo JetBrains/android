@@ -208,36 +208,6 @@ public class NlPropertyTableTest {
     assertThat(table.target()).isEqualTo(getFocusOwner());
   }
 
-  @Test
-  @Ignore // Need to sort the groups and items before this test can be reliable
-  public void testKeyboardNavigationInSliceEditor() throws Exception {
-    NlEditorFixture layout = myFrame.getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-      .getLayoutEditor(true)
-      .waitForRenderToFinish();
-
-    layout.findView("TextView", 0).click();
-    layout.getPropertiesPanel()
-      .openAsSliceEditor()
-      .waitForMinimumRowCount(5)
-      .focus()
-      .pressAndReleaseKeys(VK_DOWN)
-      .pressAndReleaseKeys(VK_ENTER)
-      .tab()
-      .requireContent("layout_width", "wrap_content")
-      .enterText("@dimen/activity_vertical_margin")
-      .tab()
-      .requireContent("text", "@string/hello_world")
-      .tab()
-      .requireContent("", null)
-      .tab()
-      .requireContent("activity_vertical_margin", "16dp")
-      .tab()
-      .requireContent("hello_world", "Hello world!")
-      .tab()
-      .requireContent("layout_width", "wrap_content");
-  }
-
   @Ignore("b/128642816")
   @Test
   public void testNavigation() {

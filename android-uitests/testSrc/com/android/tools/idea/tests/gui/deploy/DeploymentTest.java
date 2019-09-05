@@ -141,14 +141,13 @@ public class DeploymentTest {
     IdeFrameFixture ideFrameFixture = myGuiTest.ideFrame();
     List<DeviceState> deviceStates = myAdbServer.getDeviceListCopy().get();
     List<DeviceBinder> deviceBinders = new ArrayList<>(deviceStates.size());
-    DeviceSelectorFixture deviceSelector = new DeviceSelectorFixture(myGuiTest.robot(), myProject);
+    DeviceSelectorFixture deviceSelector = new DeviceSelectorFixture(myGuiTest.robot());
     for (DeviceState state : deviceStates) {
       deviceBinders.add(new DeviceBinder(state));
-      deviceSelector.waitForDeviceWithKey(state.getDeviceId());
     }
 
     for (DeviceBinder deviceBinder : deviceBinders) {
-      deviceSelector.selectDeviceWithKey(deviceBinder.getIDevice().getSerialNumber());
+      deviceSelector.selectDevice(deviceBinder.getIDevice());
       IDevice iDevice = deviceBinder.getIDevice();
 
       // Run the app and wait for it to be picked up by the AndroidProcessHandler.

@@ -39,6 +39,7 @@ final class Popup extends ActionGroupPopup {
     JList<ActionItem> list = getList();
 
     list.setCellRenderer(new CellRenderer(this));
+    list.setName("deviceAndSnapshotComboBoxList");
 
     ActionMap map = list.getActionMap();
 

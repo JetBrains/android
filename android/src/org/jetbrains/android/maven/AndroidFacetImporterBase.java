@@ -63,6 +63,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.idea.maven.importing.FacetImporter;
 import org.jetbrains.idea.maven.importing.MavenModuleImporter;
 import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
@@ -591,7 +592,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         targetDirPath = contentRoots[0].getPath();
       }
       else {
-        final String moduleDir = new File(apklibModule.getModuleFilePath()).getParent();
+        @SystemIndependent final String moduleDir = AndroidRootUtil.getModuleDirPath(apklibModule);
         if (moduleDir != null) {
           targetDirPath = moduleDir + '/' + AndroidMavenUtil.getMavenIdStringForFileName(artifactMavenId);
         }
@@ -1123,7 +1124,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
   private void configurePaths(AndroidFacet facet, MavenProject project) {
     Module module = facet.getModule();
-    String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
+    @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
     if (moduleDirPath == null) {
       return;
     }

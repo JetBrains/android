@@ -36,7 +36,6 @@ import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.TracePreProcessor;
-import com.android.tools.profilers.cpu.simpleperf.SimpleperfSampleReporter;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.collect.ImmutableList;
@@ -95,8 +94,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @NotNull private final IntellijProfilerPreferences myPersistentPreferences;
   @NotNull private final TemporaryProfilerPreferences myTemporaryPreferences;
 
-  @NotNull private final SimpleperfSampleReporter mySimpleperfSampleReporter;
-
   public IntellijProfilerServices(@NotNull Project project) {
     myProject = project;
     myFeatureTracker = new StudioFeatureTracker(myProject);
@@ -106,7 +103,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     myCodeNavigator = new IntellijCodeNavigator(project, nativeSymbolizer, myFeatureTracker);
     myPersistentPreferences = new IntellijProfilerPreferences();
     myTemporaryPreferences = new TemporaryProfilerPreferences();
-    mySimpleperfSampleReporter = new SimpleperfSampleReporter(() -> getNativeSymbolsDirectories());
   }
 
   @Override
@@ -394,20 +390,18 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return (T)selectedValue[0];
   }
 
-  @NotNull
-  @Override
-  public TracePreProcessor getSimpleperfTracePreProcessor() {
-    return mySimpleperfSampleReporter;
-  }
-
   /**
-   * Gets a {@link Set} of directories containing the symbol files corresponding to the architecture of the session currently selected.
+   * Gets a {@link List} of directories containing the symbol files corresponding to the architecture of the session currently selected.
    */
   @NotNull
-  private Set<File> getNativeSymbolsDirectories() {
+  @Override
+  public List<String> getNativeSymbolsDirectories() {
     String arch = myCodeNavigator.fetchCpuAbiArch();
     Map<String, Set<File>> archToDirectories = SymbolFilesLocatorKt.getArchToSymDirsMap(myProject);
-    return archToDirectories.containsKey(arch) ? archToDirectories.get(arch) : Collections.emptySet();
+    if (!archToDirectories.containsKey(arch)) {
+      return Collections.emptyList();
+    }
+    return archToDirectories.get(arch).stream().map(file -> file.getAbsolutePath()).collect(Collectors.toList());
   }
 
   @Override

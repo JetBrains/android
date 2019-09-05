@@ -17,6 +17,7 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginData
+import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
@@ -59,7 +60,8 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
     val androidGradlePlugin = pluginsConfigurationData.find { isAndroidGradlePlugin(it.plugin) } ?: return
 
     pluginsConfigurationData.filter {
-      it.configurationDuration > androidGradlePlugin.configurationDuration && warningsFilter.applyPluginFilter(it.plugin.displayName)
+      it.configurationDuration > androidGradlePlugin.configurationDuration &&
+      warningsFilter.applyPluginSlowingConfigurationFilter(it.plugin.displayName)
     }.let {
       if (it.isNotEmpty()) {
         pluginsSlowingConfiguration.add(ProjectConfigurationData(it, project, totalConfigurationTime))
@@ -72,7 +74,7 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
     projectsConfigurationData.clear()
   }
 
-  override fun onBuildSuccess() {
+  override fun onBuildSuccess(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?) {
     // nothing to be done
   }
 

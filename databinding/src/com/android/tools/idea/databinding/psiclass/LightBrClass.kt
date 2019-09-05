@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.android.tools.idea.databinding.BrUtil
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.util.BrUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
 import com.google.common.collect.ImmutableSet

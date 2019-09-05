@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.AUTO_URI;
-
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -121,6 +117,23 @@ public class MotionSceneAttrs {
   public static final String ATTR_LOCKED = "locked";
   public static final String ATTR_CONSTRAINT_LAYOUT_DESCRIPTION = "layoutDescription";
 
+  public static final String ATTR_CUSTOM_ATTRIBUTE_NAME = "attributeName";
+  public static final String ATTR_CUSTOM_COLOR_VALUE = "customColorValue";
+  public static final String ATTR_CUSTOM_COLOR_DRAWABLE_VALUE = "customColorDrawableValue";
+  public static final String ATTR_CUSTOM_INTEGER_VALUE = "customIntegerValue";
+  public static final String ATTR_CUSTOM_FLOAT_VALUE = "customFloatValue";
+  public static final String ATTR_CUSTOM_STRING_VALUE = "customStringValue";
+  public static final String ATTR_CUSTOM_DIMENSION_VALUE = "customDimension";
+  public static final String ATTR_CUSTOM_PIXEL_DIMENSION_VALUE = "customPixelDimension";
+  public static final String ATTR_CUSTOM_BOOLEAN_VALUE = "customBoolean";
+
+  public static final String MOTION_ANIMATE_RELATIVE_TO = "animate_relativeTo";
+  public static final String MOTION_TRANSITION_EASING = "transitionEasing";
+  public static final String MOTION_PATH_MOTION_ARC = "pathMotionArc";
+  public static final String MOTION_MOTION_STAGGER= "motionStagger";
+  public static final String MOTION_MOTION_PATH_ROTATE = "motionPathRotate";
+  public static final String MOTION_DRAW_PATH = "drawPath";
+
   ///////////////////////////////// PLATFORM INDEPENDENT ACCESS ////////////////////////////
   public static class Tags {
     public static final String TRANSITION = "Transition";
@@ -167,7 +180,7 @@ public class MotionSceneAttrs {
 
   public static String lookupName(MTag.Attribute attr) {
     if (androidNameSpace.contains(attr.mAttribute)) {
-      return ANDROID_URI;
+      return SdkConstants.ANDROID_URI;
     }
     return SdkConstants.AUTO_URI;
   }
@@ -321,9 +334,7 @@ public class MotionSceneAttrs {
 
   }
 
-
-
-  private static HashSet<String> layout_tags = new HashSet<>(Arrays.asList(
+  public static final HashSet<String> layout_tags = new HashSet<>(Arrays.asList(
     ATTR_ANDROID_LAYOUT_WIDTH,
     ATTR_ANDROID_LAYOUT_HEIGHT,
     ATTR_ANDROID_LAYOUT_MARGIN_LEFT,
@@ -393,13 +404,13 @@ public class MotionSceneAttrs {
 
   final static String LAYOUT_CONSTRAINT_TAG = "layout_constraintTag";
 
-  private static HashSet<String> ourPropertySet_tags = new HashSet<>(Arrays.asList(
+  public static final HashSet<String> ourPropertySet_tags = new HashSet<>(Arrays.asList(
     ATTR_ANDROID_ALPHA,
     ATTR_ANDROID_VISIBILITY,
     LAYOUT_CONSTRAINT_TAG
   ));
 
-  private static HashSet<String> ourTransform_tags = new HashSet<>(Arrays.asList(
+  public static final HashSet<String> ourTransform_tags = new HashSet<>(Arrays.asList(
     ATTR_ANDROID_ELEVATION,
     ATTR_ANDROID_ROTATION,
     ATTR_ANDROID_ROTATIONX,
@@ -411,10 +422,31 @@ public class MotionSceneAttrs {
     ATTR_ANDROID_TRANSLATIONZ
   ));
 
+  public static final HashSet<String> ourMotion_tags = new HashSet<>(Arrays.asList(
+    MOTION_ANIMATE_RELATIVE_TO,
+    MOTION_TRANSITION_EASING,
+    MOTION_DRAW_PATH,
+    MOTION_MOTION_PATH_ROTATE,
+    MOTION_MOTION_STAGGER,
+    MOTION_PATH_MOTION_ARC
+  ));
+
+
+  public static final String[] ourCustomAttribute = {
+    ATTR_CUSTOM_COLOR_VALUE,
+    ATTR_CUSTOM_COLOR_DRAWABLE_VALUE,
+    ATTR_CUSTOM_INTEGER_VALUE,
+    ATTR_CUSTOM_FLOAT_VALUE,
+    ATTR_CUSTOM_STRING_VALUE,
+    ATTR_CUSTOM_DIMENSION_VALUE,
+    ATTR_CUSTOM_PIXEL_DIMENSION_VALUE,
+    ATTR_CUSTOM_BOOLEAN_VALUE,
+  };
 
   public static boolean copyToConstraint(MTag.Attribute attr) {
     return layout_tags.contains(attr.mAttribute) || MotionLayout.LAYOUT_ATTRS.contains(attr.mAttribute);
   }
+
   public static boolean isLayoutAttribute(MTag.Attribute attr) {
     return layout_tags.contains(attr.mAttribute);
   }
@@ -422,9 +454,8 @@ public class MotionSceneAttrs {
   public static boolean isPropertySetAttribute(MTag.Attribute attr) {
     return ourPropertySet_tags.contains(attr.mAttribute);
   }
+
   public static boolean isTransformAttribute(MTag.Attribute attr) {
     return ourTransform_tags.contains(attr.mAttribute);
   }
-
-
 }

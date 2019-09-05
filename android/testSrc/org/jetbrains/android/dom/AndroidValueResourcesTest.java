@@ -21,6 +21,8 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -38,9 +40,11 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
@@ -705,13 +709,27 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
       assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
 
       myFixture.type('X');
+
+      // b/139262116: manually commit the Document and clear ResolveCache in an attempt to reduce flakiness of this test.
+      PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
+      ResolveCache.getInstance(getProject()).clearCache(myFixture.getFile().isPhysical());
       dispatchEvents();
 
       highlightInfos = myFixture.doHighlighting();
-      assertThat(highlightInfos).hasSize(1);
-      highlightInfo = Iterables.getOnlyElement(highlightInfos);
-      assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightSeverity.ERROR);
-      assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
+
+      if (highlightInfos.size() == 1) {
+        // Expected case.
+        highlightInfo = Iterables.getOnlyElement(highlightInfos);
+        assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightSeverity.ERROR);
+        assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
+      }
+      else {
+        // Log additional details to debug flakiness of the test:
+        fail("Unexpected highlighting, highlightInfos: " +
+             Joiner.on(',').join(highlightInfos) +
+             " current resources: " +
+             Joiner.on(',').join(ResourceRepositoryManager.getInstance(myModule).getAppResources().getAllResources()));
+      }
     });
   }
 
