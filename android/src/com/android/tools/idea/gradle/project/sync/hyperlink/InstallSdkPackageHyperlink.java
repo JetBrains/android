@@ -40,7 +40,7 @@ public class InstallSdkPackageHyperlink extends NotificationHyperlink {
   protected void execute(@NotNull Project project) {
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, myPackageIds, true);
     if (dialog != null && dialog.showAndGet()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_REPOSITORY_INSTALLED);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_REPOSITORY_INSTALLED);
     }
   }
 }

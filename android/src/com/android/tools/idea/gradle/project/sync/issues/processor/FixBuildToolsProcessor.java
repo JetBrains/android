@@ -124,7 +124,7 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
 
     if (myRequestSync) {
       GradleSyncStats.Trigger trigger = myRemoveBuildTools ? TRIGGER_QF_BUILD_TOOLS_VERISON_REMOVED : TRIGGER_QF_BUILD_TOOLS_VERSION_CHANGED;
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, trigger);
+      GradleSyncInvoker.getInstance().requestProjectSync(myProject, trigger);
     }
   }
 
