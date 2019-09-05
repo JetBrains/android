@@ -1,3 +1,3 @@
 android {
-  compileSdkVersion(extra["SDK_VERSION"])
+  compileSdkVersion(rootProject.extra["SDK_VERSION"])
 }
