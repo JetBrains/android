@@ -36,6 +36,8 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -50,7 +52,6 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -204,7 +205,7 @@ public class GradleFiles {
     }
   }
 
-  private void putHashForFile(@NotNull Map<VirtualFile, Integer> map, @NotNull VirtualFile file) {
+  private static void putHashForFile(@NotNull Map<VirtualFile, Integer> map, @NotNull VirtualFile file) {
     Integer hash = computeHash(file);
     if (hash != null) {
       map.put(file, hash);
@@ -254,14 +255,9 @@ public class GradleFiles {
    * and its value should not be used.
    */
   @Nullable
-  private Integer computeHash(@NotNull VirtualFile file) {
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
-
-    if (psiFile != null && psiFile.isValid()) {
-      return psiFile.getText().hashCode();
-    }
-
-    return null;
+  private static Integer computeHash(@NotNull VirtualFile file) {
+    Document document = FileDocumentManager.getInstance().getDocument(file);
+    return document == null ? null : document.getText().hashCode();
   }
 
   private boolean areHashesEqual(@NotNull VirtualFile file) {
@@ -304,13 +300,6 @@ public class GradleFiles {
    */
   private void scheduleUpdateFileHashes() {
     TransactionGuard.getInstance().submitTransactionLater(myProject, () -> {
-      // We need to ensure that all of the pending PSI element actions have been processed before computing and storing
-      // the hashes for the files. Otherwise it is possible to have syncStarted clear the hashes and then a pending PSI
-      // event immediately run the GradleFileChangeListener and be marked as changed again.
-      // Note: This does not completely ensure that the hashes here are exactly the ones used by Gradle, it is still possible
-      //       for the files to be changed after these computations and before Gradle reads them, this just makes that window smaller.
-      PsiDocumentManager.getInstance(myProject).commitAllDocuments();
-
       // Local map to minimize time holding myLock
       Map<VirtualFile, Integer> fileHashes = new HashMap<>();
       GradleWrapper gradleWrapper = GradleWrapper.find(myProject);
