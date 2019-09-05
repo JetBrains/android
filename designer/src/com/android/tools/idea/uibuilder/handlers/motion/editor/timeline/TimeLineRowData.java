@@ -112,22 +112,21 @@ public class TimeLineRowData {
       }
     }
 
-    if (count > 1) { // if there are more than one switch to compact strings
-      count = 0;
-      mKeyProp = "";
-      mKeyPropToolTip = "";
-      for (int i = 0; i < properties.length; i++) {
-        if ((mask & (1 << i)) != 0) {
-          if (count > 0) {
-            mKeyProp += ",";
-            mKeyPropToolTip += ",";
-          }
-          mKeyProp += compact_properties[i];
-          mKeyPropToolTip += properties[i];
-          count++;
+    count = 0;
+    mKeyProp = "";
+    mKeyPropToolTip = "";
+    for (int i = 0; i < properties.length; i++) {
+      if ((mask & (1 << i)) != 0) {
+        if (count > 0) {
+          mKeyProp += ",";
+          mKeyPropToolTip += ",";
         }
+        mKeyProp += compact_properties[i];
+        mKeyPropToolTip += properties[i];
+        count++;
       }
     }
+
     if (mType.equals("Pos")) {
       mKeyProp = keyFrame.getAttributeValue("keyPositionType");
       if (mKeyProp == null) {
