@@ -18,6 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
+import com.android.build.attribution.data.TasksSharingOutputData
 
 /**
  * A way of interaction between the build events analyzers and the build attribution manager.
@@ -29,13 +30,15 @@ class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter, 
   private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer)
   private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(warningsFilter, taskContainer)
   private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter)
+  private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(warningsFilter, taskContainer)
 
   fun getBuildEventsAnalyzers(): List<BuildEventsAnalyzer> = listOf(alwaysRunTasksAnalyzer,
                                                                     annotationProcessorsAnalyzer,
                                                                     criticalPathAnalyzer,
                                                                     projectConfigurationAnalyzer)
 
-  fun getBuildAttributionReportAnalyzers(): List<BuildAttributionReportAnalyzer> = listOf(noncacheableTasksAnalyzer)
+  fun getBuildAttributionReportAnalyzers(): List<BuildAttributionReportAnalyzer> = listOf(noncacheableTasksAnalyzer,
+                                                                                          tasksConfigurationIssuesAnalyzer)
 
   fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getAnnotationProcessorsData()
@@ -75,5 +78,9 @@ class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter, 
 
   fun getNoncacheableTasks(): List<TaskData> {
     return noncacheableTasksAnalyzer.noncacheableTasks
+  }
+
+  fun getTasksSharingOutput(): List<TasksSharingOutputData> {
+    return tasksConfigurationIssuesAnalyzer.tasksSharingOutput
   }
 }
