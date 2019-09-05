@@ -75,6 +75,7 @@ interface ProjectModelData {
   val enableCppSupport: BoolValueProperty
   val cppFlags: StringValueProperty
   val project: OptionalValueProperty<Project>
+  val isNewProject: Boolean
   val projectTemplateValues: MutableMap<String, Any>
   val language: OptionalValueProperty<Language>
   val multiTemplateRenderer: MultiTemplateRenderer
@@ -88,6 +89,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
   override val cppFlags = StringValueProperty()
   override val project = OptionalValueProperty<Project>()
+  override val isNewProject = true
   override val projectTemplateValues = mutableMapOf<String, Any>()
   override val language = OptionalValueProperty<Language>()
   override val multiTemplateRenderer = MultiTemplateRenderer(null, this.projectSyncInvoker)
@@ -163,7 +165,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       projectTemplateValues[ATTR_APP_TITLE] = applicationName.get()
 
       TemplateValueInjector(projectTemplateValues)
-        .setProjectDefaults(project.value)
+        .setProjectDefaults(project.value, isNewProject)
         .setLanguage(language.value)
     }
 

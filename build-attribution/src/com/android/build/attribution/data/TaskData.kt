@@ -31,11 +31,22 @@ data class TaskData(val taskName: String,
     FULL
   }
 
+  var taskType: String = UNKNOWN_TASK_TYPE
+    private set
+
+  fun setTaskType(taskType: String?) {
+    if (taskType != null) {
+      this.taskType = taskType
+    }
+  }
+
   fun getTaskPath(): String {
     return "$projectPath:$taskName"
   }
 
   companion object {
+    const val UNKNOWN_TASK_TYPE = "UNKNOWN"
+
     private fun getTaskExecutionMode(isFromCache: Boolean, isUpToDate: Boolean, isIncremental: Boolean): TaskExecutionMode {
       if (isFromCache) {
         return TaskExecutionMode.FROM_CACHE

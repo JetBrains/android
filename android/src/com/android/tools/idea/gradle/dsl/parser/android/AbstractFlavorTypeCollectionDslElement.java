@@ -26,7 +26,7 @@ public abstract class AbstractFlavorTypeCollectionDslElement extends GradleDslEl
   private static final String[] KNOWN_METHOD_NAMES_ARRAY = {
     "all", "create", "register", "maybeCreate", "configure", "forEach", "stream", "getAt",
     "getByName", "named", "findAll", "matching", "add", "clear", "addAll", "equals", "isEmpty", "size",
-    "remove", "removeAll", "withType", "getAsMap"
+    "remove", "removeAll", "withType", "getAsMap", "each"
   };
 
   @NotNull

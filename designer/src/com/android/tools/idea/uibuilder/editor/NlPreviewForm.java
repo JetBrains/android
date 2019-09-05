@@ -126,11 +126,9 @@ public class NlPreviewForm implements Disposable, CaretListener {
                              this, null, Alarm.ThreadToUse.SWING_THREAD);
     myRenderingQueue.setRestartTimerOnAdd(true);
 
-    myWorkBench = new WorkBench<>(myProject, "Preview", null);
+    myWorkBench = new WorkBench<>(myProject, "Preview", null, this);
     myWorkBench.setLoadingText("Loading...");
     myRoot.add(new IssuePanelSplitter(mySurface, myWorkBench));
-
-    Disposer.register(this, myWorkBench);
   }
 
   private void createContentPanel() {

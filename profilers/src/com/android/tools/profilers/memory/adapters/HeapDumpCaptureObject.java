@@ -20,7 +20,6 @@ import static com.android.tools.profilers.memory.adapters.CaptureObject.Classifi
 import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.NATIVE_SIZE;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.RETAINED_SIZE;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.SHALLOW_SIZE;
-import static com.android.tools.profilers.memory.adapters.ClassDb.INVALID_CLASS_ID;
 import static com.android.tools.profilers.memory.adapters.ClassDb.JAVA_LANG_CLASS;
 
 import com.android.tools.adtui.model.Range;
@@ -39,7 +38,7 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
-import com.android.tools.profilers.memory.adapters.instancefilters.ActivityLeakInstanceFilter;
+import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.ProjectClassesInstanceFilter;
 import com.android.tools.proguard.ProguardMap;
@@ -121,7 +120,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
     myFeatureTracker = featureTracker;
     myStage = stage;
 
-    mySupportedInstanceFilters = ImmutableSet.of(new ActivityLeakInstanceFilter(),
+    mySupportedInstanceFilters = ImmutableSet.of(new ActivityFragmentLeakInstanceFilter(),
                                                  new ProjectClassesInstanceFilter(myStage.getStudioProfilers().getIdeServices()));
   }
 

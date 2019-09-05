@@ -118,7 +118,7 @@ class LinearDragHandler extends DragHandler {
       LinearSeparatorTarget closest = myDragTarget.getClosest();
       int index = closest != null ? closest.getInsertionIndex() : -1;
       editor.insertChildren(layout.getNlComponent(), components, index, insertType);
-      scene.checkRequestLayoutStatus();
+      scene.requestLayoutIfNeeded();
     }
   }
 }

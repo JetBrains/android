@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
@@ -31,6 +32,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentDelegate;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -50,6 +52,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -62,7 +65,8 @@ import org.jetbrains.annotations.Nullable;
 public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayoutInterface, MotionDesignSurfaceEdits {
   private static final boolean DEBUG = false;
   private static final boolean TEMP_HACK_FORCE_APPLY = true;
-  DesignSurface myDesignSurface;
+  private final Project myProject;
+  private final DesignSurface myDesignSurface;
   NlComponentTag myMotionLayoutTag;
   NlComponent myMotionLayoutNlComponent;
   MotionSceneTag myMotionScene;
@@ -80,33 +84,35 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private NlComponent mySelection;
   private NlComponent myMotionLayout;
   private MotionEditorSelector.Type mLastSelection = MotionEditorSelector.Type.LAYOUT;
-  private SmartPsiElementPointer<XmlTag> myLastSelectedTag;
+  private MotionSceneTag myLastSelectedTag;
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
-      Project project = myMotionLayoutNlComponent.getModel().getProject();
       if (apply) {
         String applyMotionSceneValue = myMotionLayoutNlComponent.getAttribute(SdkConstants.TOOLS_URI, "applyMotionScene");
         if (applyMotionSceneValue != null && applyMotionSceneValue.equals("false")) {
-          WriteCommandAction.runWriteCommandAction(project, () -> {
+          WriteCommandAction.runWriteCommandAction(myProject, () -> {
             // let's get rid of it, as it's the default.
             myMotionLayoutTag.mComponent.setAttribute(SdkConstants.TOOLS_URI, "applyMotionScene", null);
           });
         }
       }
       else {
-        WriteCommandAction.runWriteCommandAction(project, () -> {
+        WriteCommandAction.runWriteCommandAction(myProject, () -> {
           myMotionLayoutTag.mComponent.setAttribute(SdkConstants.TOOLS_URI, "applyMotionScene", "false");
         });
       }
     }
   }
 
-  public MotionAccessoryPanel(DesignSurface surface, NlComponent parent, ViewGroupHandler.AccessoryPanelVisibility visibility) {
+  public MotionAccessoryPanel(@NotNull DesignSurface surface,
+                              @NotNull NlComponent parent,
+                              @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     if (DEBUG) {
       Debug.log("MotionAccessoryPanel created ");
     }
     myDesignSurface = surface;
+    myProject = surface.getProject();
     myMotionLayoutNlComponent = parent;
     myMotionLayoutTag = new NlComponentTag(parent, null);
     mVisibility = visibility;
@@ -157,7 +163,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             XmlTag xmlTag = null;
             selectOnDesignSurface(tag);
             if (tag[0] instanceof MotionSceneTag) {
-              xmlTag = ((MotionSceneTag)tag[0]).myXmlTag;
+              xmlTag = ((MotionSceneTag)tag[0]).getXmlTag();
             }
             else if (tag[0] instanceof NlComponentTag) {
               xmlTag = ((NlComponentTag)tag[0]).mComponent.getTag();
@@ -165,7 +171,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             if (xmlTag == null) {
               return;
             }
-            mSelectedConstraintTag = SmartPointerManager.getInstance(xmlTag.getProject()).createSmartPsiElementPointer(xmlTag);
+            mSelectedConstraintTag = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(xmlTag);
           }
           break;
           case LAYOUT_VIEW:
@@ -173,7 +179,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             // The NelePropertiesModel should be handling the properties in these cases...
             break;
         }
-        fireSelectionChanged(Collections.singletonList(mySelection));
+        if (!mMotionEditor.isUpdatingModel()) {
+          fireSelectionChanged(Collections.singletonList(mySelection));
+        }
       }
     });
     mMotionEditor.addTimeLineListener(new MotionEditorSelector.TimeLineListener() {
@@ -192,13 +200,33 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     });
     myMotionScene = getMotionScene(myMotionLayoutNlComponent);
     mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
+    MTag []cSet = myMotionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET);
+    if (DEBUG) {
+      Debug.log(" select constraint set "+cSet[0].getAttributeValue("id"));
+    }
+    if (cSet!= null && cSet.length > 0) {
+      mMotionEditor.selectTag(cSet[0]);
+    }
     parent.putClientProperty(TIMELINE, this);
     if (DEBUG) {
       Debug.log("harness " + parent);
     }
+    AndroidFacet facet = parent.getModel().getFacet();
+    ResourceNotificationManager.getInstance(myProject).addListener(new ResourceNotificationManager.ResourceChangeListener() {
+      @Override
+      public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
+        myMotionScene = getMotionScene(myMotionLayoutNlComponent);
+        mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
+        fireSelectionChanged(Collections.singletonList(mySelection));
+      }
+    }, facet, myMotionScene.getXmlTag().getContainingFile().getVirtualFile(), null);
   }
 
   private void selectOnDesignSurface(MTag[] tag) {
+    if (DEBUG) {
+      Debug.log("Selection changed ");
+    }
+    if (true) return;
     ArrayList<NlComponent> list = new ArrayList<>();
     for (int i = 0; i < tag.length; i++) {
       MTag mTag = tag[i];
@@ -219,13 +247,13 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   @Nullable
-  private SmartPsiElementPointer<XmlTag> computeSelectedTagForPropertyPanel(MTag[] tag) {
+  private MotionSceneTag computeSelectedTagForPropertyPanel(MTag[] tag) {
     MTag firstTag = tag != null && tag.length > 0 ? tag[0] : null;
-    XmlTag xmlTag = firstTag instanceof MotionSceneTag ? ((MotionSceneTag)firstTag).myXmlTag : null;
-    if (xmlTag == null || !xmlTag.isValid()) {
+    MotionSceneTag sceneTag = firstTag instanceof MotionSceneTag ? (MotionSceneTag)firstTag : null;
+    if (sceneTag == null || !sceneTag.getXmlTag().isValid()) {
       return null;
     }
-    return SmartPointerManager.getInstance(xmlTag.getProject()).createSmartPsiElementPointer(xmlTag);
+    return sceneTag;
   }
 
   @Nullable
@@ -280,7 +308,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
 
     // let's open the file
-    Project project = motionLayout.getModel().getProject();
     AndroidFacet facet = motionLayout.getModel().getFacet();
 
     List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
@@ -291,9 +318,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     VirtualFile directory = resourcesXML.get(0);
     VirtualFile virtualFile = directory.findFileByRelativePath(fileName + ".xml");
 
-    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
+    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, virtualFile);
 
-    MotionSceneTag motionSceneModel = MotionSceneTag.parse(motionLayout, project, virtualFile, xmlFile);
+    MotionSceneTag motionSceneModel = MotionSceneTag.parse(motionLayout, myProject, virtualFile, xmlFile);
 
     return motionSceneModel;
   }
@@ -344,19 +371,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       myMotionLayout = component;
     }
 
-    addDelegate();
-
     fireSelectionChanged(selection);
-  }
-
-  private void addDelegate() {
-    if (myMotionLayout == null) {
-      return;
-    }
-    myMotionLayout.setDelegate(myNlComponentDelegate);
-    for (NlComponent child : myMotionLayout.getChildren()) {
-      child.setDelegate(myNlComponentDelegate);
-    }
   }
 
   @Override
@@ -475,7 +490,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (fileName == null || fileName.isEmpty()) {
       return null;
     }
-    Project project = component.getModel().getProject();
     AndroidFacet facet = component.getModel().getFacet();
     List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
       .getModuleResources(facet).getResourceDirs());
@@ -485,7 +499,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     VirtualFile directory = resourcesXML.get(0);
     VirtualFile virtualFile = directory.findFileByRelativePath(fileName + ".xml");
 
-    return (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
+    return (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, virtualFile);
   }
 
   @Override

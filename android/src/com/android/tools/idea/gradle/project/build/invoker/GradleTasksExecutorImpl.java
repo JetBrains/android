@@ -50,9 +50,11 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
+import com.android.utils.FileUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.CompilerManagerImpl;
@@ -235,6 +237,11 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
 
         commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
+        String attributionFilePath = FileUtils.join(project.getBasePath(), GradleUtil.BUILD_DIR_DEFAULT_NAME);
+        if (StudioFlags.BUILD_ATTRIBUTION_ENABLED.get()) {
+          commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
+                                                         attributionFilePath));
+        }
         commandLineArguments.addAll(myRequest.getCommandLineArguments());
 
         // Inject embedded repository if it's enabled by user or if in testing mode.
@@ -318,7 +325,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         buildState.buildFinished(SUCCESS);
         taskListener.onSuccess(id);
         if (buildAttributionManager != null) {
-          buildAttributionManager.onBuildSuccess();
+          buildAttributionManager.onBuildSuccess(attributionFilePath);
         }
       }
       catch (BuildException e) {

@@ -18,6 +18,7 @@ package com.android.tools.idea.databinding
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.databinding.index.BindingXmlData
 import com.android.tools.idea.databinding.index.BindingXmlIndex
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass

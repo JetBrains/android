@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
@@ -45,7 +46,7 @@ class AnnotationProcessorsAnalyzer(override val warningsFilter: BuildAttribution
           updateAnnotationProcessorCompilationTime(it.className, it.duration)
 
           if (it.type == JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.UNKNOWN &&
-              warningsFilter.applyAnnotationProcessorFilter(it.className)) {
+              warningsFilter.applyNonIncrementalAnnotationProcessorFilter(it.className)) {
             nonIncrementalAnnotationProcessorsSet.add(it.className)
           }
         }
@@ -58,7 +59,7 @@ class AnnotationProcessorsAnalyzer(override val warningsFilter: BuildAttribution
     nonIncrementalAnnotationProcessorsSet.clear()
   }
 
-  override fun onBuildSuccess() {
+  override fun onBuildSuccess(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?) {
     // nothing to be done
   }
 

@@ -19,7 +19,6 @@ import com.android.tools.adtui.FocusableIcon
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.TextFieldWithIcon
 import com.android.tools.adtui.canShowBelow
-import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
@@ -50,7 +49,7 @@ private const val ICON_SIZE = 15
  * [JTextField] are not painted.
  */
 fun JTextField.wrapWithColorPickerIcon(defaultColor: Color?): JPanel {
-  val initialColor = defaultColor ?: MaterialColorUtils.suggestPrimaryColors()[0]
+  val initialColor = defaultColor ?: MaterialColors.RED_500
   val colorPickerIcon = FocusableIcon()
   val textFieldWithIcon = TextFieldWithIcon(colorPickerIcon, this)
 

@@ -125,7 +125,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     moveCaretToString("iew -> vo.save")
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
-    val parameterReference = fixture.getReferenceAtCaretPosition()!!
+    val parameterReference = (fixture.getReferenceAtCaretPosition() as PsiMultiReference).references.first { it.resolve() is PsiParameter }
 
     val psiMethod = fixture.findClass("android.view.View.OnClickListener").findMethodsByName("onClick",
                                                                                              false)[0].sourceElement!! as PsiMethod

@@ -16,7 +16,9 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.idea.protobuf.ByteString;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Receives a {@link ByteString} trace, applies some process over it (e.g. executes simpleperf report-sample on native traces), and return
@@ -26,5 +28,6 @@ public interface TracePreProcessor {
 
   ByteString FAILURE = ByteString.copyFromUtf8("Failure");
 
-  ByteString preProcessTrace(@NotNull ByteString trace);
+  @NotNull
+  ByteString preProcessTrace(@NotNull ByteString trace, @NotNull List<String> symbolsDirs);
 }

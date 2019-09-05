@@ -34,6 +34,7 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
     ],
 )
 

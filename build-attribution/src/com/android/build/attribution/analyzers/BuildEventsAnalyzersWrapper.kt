@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import org.gradle.tooling.events.ProgressEvent
 
 class BuildEventsAnalyzersWrapper(val analyzers: List<BuildEventsAnalyzer>) {
@@ -22,8 +23,8 @@ class BuildEventsAnalyzersWrapper(val analyzers: List<BuildEventsAnalyzer>) {
     analyzers.forEach(BuildEventsAnalyzer::onBuildStart)
   }
 
-  fun onBuildSuccess() {
-    analyzers.forEach(BuildEventsAnalyzer::onBuildSuccess)
+  fun onBuildSuccess(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?) {
+    analyzers.forEach { it.onBuildSuccess(androidGradlePluginAttributionData) }
   }
 
   fun onBuildFailure() {

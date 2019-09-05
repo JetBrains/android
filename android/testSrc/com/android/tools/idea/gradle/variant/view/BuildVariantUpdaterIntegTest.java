@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.BuildEnvironment;
 import com.google.common.io.Files;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -265,7 +266,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     File buildFilePath = new File(getProjectFolderPath(), join("app2", FN_BUILD_GRADLE));
     writeToFile(buildFilePath, "apply plugin: 'com.android.application'\n" +
                                "android {\n" +
-                               "    compileSdkVersion 23\n" +
+                               "    compileSdkVersion " + BuildEnvironment.getInstance().getCompileSdkVersion() + "\n" +
                                "}\n" +
                                "dependencies {\n" +
                                "    api project(':library2')\n" +

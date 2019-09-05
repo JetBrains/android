@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.completion;
 
-import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingCompletionSupport;
 import com.android.tools.idea.lang.databinding.config.DbFileType;
 import com.intellij.codeInsight.AutoPopupController;

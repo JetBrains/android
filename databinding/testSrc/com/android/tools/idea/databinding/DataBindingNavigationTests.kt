@@ -16,8 +16,8 @@
 package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.databinding.utils.findClass
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.fileEditor.FileEditorManager

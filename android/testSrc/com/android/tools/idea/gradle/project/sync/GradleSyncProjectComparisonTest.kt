@@ -155,13 +155,11 @@ b/137231583 */
     assertIsEqualToSnapshot(text)
   }
 
-/* b/139780810
   fun testTransitiveDependencies() {
     // TODO(b/124505053): Remove almost identical snapshots when SDK naming is fixed.
     val text = importSyncAndDumpProject(TRANSITIVE_DEPENDENCIES)
     assertIsEqualToSnapshot(text)
   }
-b/139780810 */
 
   fun testSimpleApplication() {
     val text = importSyncAndDumpProject(SIMPLE_APPLICATION)

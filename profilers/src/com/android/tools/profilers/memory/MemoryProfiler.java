@@ -281,12 +281,7 @@ public class MemoryProfiler extends StudioProfiler {
       new AllocationSamplingRateDataSeries(profilers.getClient(),
                                            session,
                                            profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
-
-    Range dataRange = profilers.getTimeline().getDataRange();
-    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMin());
-    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMax());
-    List<SeriesData<AllocationSamplingRateDurationData>> series = samplingSeries.getDataForRange(new Range(rangeMin, rangeMax));
-    return !series.isEmpty();
+    return !samplingSeries.getDataForRange(profilers.getTimeline().getDataRange()).isEmpty();
   }
 
   /**

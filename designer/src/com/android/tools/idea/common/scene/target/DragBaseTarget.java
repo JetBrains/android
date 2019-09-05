@@ -171,7 +171,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
     updateAttributes(modification, snappedX, snappedY);
     modification.apply();
     component.fireLiveChangeEvent();
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     myChangedComponent = true;
   }
 
@@ -203,7 +203,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
       }
     }
     if (myChangedComponent) {
-      myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+      myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     }
   }
   //endregion
@@ -234,7 +234,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
     myComponent.setDragging(false);
     myTargetSnapper.reset();
     myChangedComponent = false;
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   @Override

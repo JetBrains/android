@@ -105,7 +105,7 @@ class NavPropertiesViewTest : NavTestCase() {
     checkEditor(panel, 3, AUTO_URI, ATTR_START_DESTINATION)
     checkTitle(panel, 4, "Argument Default Values")
     checkPanel(panel, 5)
-    checkTitle(panel, 6, "Actions")
+    checkTitle(panel, 6, "Global Actions")
     checkPanel(panel, 7)
     checkTitle(panel, 8, "Deep Links")
     checkPanel(panel, 9)

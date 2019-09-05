@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.google.common.collect.Maps
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project

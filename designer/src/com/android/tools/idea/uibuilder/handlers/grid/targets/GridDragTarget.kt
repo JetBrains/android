@@ -144,7 +144,7 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
 
     myComponent.updateTargets()
 
-    myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+    myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     myComponent.scene.repaint()
   }
 

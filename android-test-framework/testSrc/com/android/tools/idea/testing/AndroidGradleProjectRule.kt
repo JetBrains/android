@@ -17,12 +17,12 @@ package com.android.tools.idea.testing
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import org.junit.Ignore
 import org.junit.runner.Description
 

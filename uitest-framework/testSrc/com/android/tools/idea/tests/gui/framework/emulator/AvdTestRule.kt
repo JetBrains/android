@@ -323,7 +323,9 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
           val device = knownDevices.poll()
           if (device != null && device.isEmulator) {
             val console = EmulatorConsole.getConsole(device)
-            if (avdInfo.name == console?.avdName) {
+            val avdName = console?.avdName
+            console?.close()
+            if (avdInfo.name == avdName) {
               ourAvdDevice = device
             }
           }

@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.eventpreprocessor.EnergyUsagePreprocessor;
+import com.android.tools.idea.profilers.eventpreprocessor.SimpleperfPipelinePreprocessor;
 import com.android.tools.idea.profilers.perfd.ProfilerServiceProxyManager;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
@@ -29,6 +30,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.simpleperf.SimpleperfSampleReporter;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -161,6 +163,9 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
       if (StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get()) {
         proxy.registerEventPreprocessor(new EnergyUsagePreprocessor(TransportService.getInstance().getLogService()));
       }
+      SimpleperfPipelinePreprocessor traceProcessor = new SimpleperfPipelinePreprocessor(new SimpleperfSampleReporter());
+      proxy.registerEventPreprocessor(traceProcessor);
+      proxy.registerDataPreprocessor(traceProcessor);
     }
 
     @Override

@@ -54,6 +54,9 @@ class DesignSurfaceActionsToolbar(
   parentDisposable: Disposable
 ) : DesignSurfaceListener, PanZoomListener, Disposable {
 
+  /** The Disposable of the current action groups. Should be disposed every time the model changes. */
+  private var actionGroupsDisposable: Disposable? = null
+
   val designSurfaceToolbar: JComponent = JPanel(GridBagLayout()).apply { isOpaque = false }
 
   private val zoomToolbars: MutableList<ActionToolbar> = mutableListOf()
@@ -117,7 +120,10 @@ class DesignSurfaceActionsToolbar(
   }
 
   private fun updateToolbar() {
+    actionGroupsDisposable?.let { Disposer.dispose(it) } // Manually dispose of old action group.
     val actionGroups = getActionGroups()
+    actionGroupsDisposable = actionGroups
+    Disposer.register(this, actionGroups)
     val actionManager = ActionManager.getInstance()
     val zoomControlsToolbar = createToolbar(actionManager, actionGroups.zoomControlsGroup, component)
     val zoomLabelToolbar = createToolbar(actionManager, actionGroups.zoomLabelGroup, component).apply {
@@ -179,10 +185,10 @@ class DesignSurfaceActionsToolbar(
     return if (StudioFlags.NELE_DESIGN_SURFACE_ZOOM.get()) {
       if (designSurface.layoutType.isEditable()) {
         // Only editable file types support panning.
-        EditableDesignSurfaceActionGroups(component, parentDisposable = this)
+        EditableDesignSurfaceActionGroups(component)
       }
       else {
-        BasicDesignSurfaceActionGroups(component, parentDisposable = this)
+        BasicDesignSurfaceActionGroups(component)
       }
     }
     else {

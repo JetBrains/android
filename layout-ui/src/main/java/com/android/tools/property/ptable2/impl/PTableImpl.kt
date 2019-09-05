@@ -25,10 +25,14 @@ import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Pair
 import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.SpeedSearchComparator
+import com.intellij.ui.TableCell
+import com.intellij.ui.TableExpandableItemsHandler
 import com.intellij.ui.TableUtil
 import com.intellij.ui.table.JBTable
 import com.intellij.util.IJSwingUtilities
@@ -41,6 +45,7 @@ import java.awt.Dimension
 import java.awt.Font
 import java.awt.Graphics
 import java.awt.KeyboardFocusManager
+import java.awt.Rectangle
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
@@ -65,6 +70,7 @@ import kotlin.properties.Delegates
 
 private const val LEFT_FRACTION = 0.40
 private const val MAX_LABEL_WIDTH = 240
+private const val EXPANSION_RIGHT_PADDING = 4
 private const val NOOP = "noop"
 
 /**
@@ -86,6 +92,7 @@ class PTableImpl(
   private val nameRowFilter = NameRowFilter(model)
   private val tableCellRenderer = PTableCellRendererWrapper()
   private val tableCellEditor = PTableCellEditorWrapper()
+  private val expandableNameHandler = PTableExpandableItemsHandler(this)
   private var initialized = false
   override val backgroundColor: Color
     get() = super.getBackground()
@@ -173,6 +180,14 @@ class PTableImpl(
 
   override fun isExpanded(item: PTableGroupItem): Boolean {
     return model.isExpanded(item)
+  }
+
+  override fun getExpandableItemsHandler(): ExpandableItemsHandler<TableCell> {
+    return expandableNameHandler
+  }
+
+  fun isExpandedItem(row: Int, column: Int): Boolean {
+    return expandableNameHandler.expandedItems.find { it.row == row && it.column == column } != null
   }
 
   // When an editor is present, do not accept focus on the table itself.
@@ -814,5 +829,16 @@ private class TablePosition(var row: Int, var column: Int, val rows: Int, val wi
       row = rows - 1
     }
     return true
+  }
+}
+
+private class PTableExpandableItemsHandler(table: PTableImpl) : TableExpandableItemsHandler(table) {
+  override fun getCellRendererAndBounds(key: TableCell): Pair<Component, Rectangle>? {
+    if (key.column != 0) {
+      return null
+    }
+    val rendererAndBounds = super.getCellRendererAndBounds(key) ?: return null
+    rendererAndBounds.second.width += JBUI.scale(EXPANSION_RIGHT_PADDING)
+    return rendererAndBounds
   }
 }

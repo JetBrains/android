@@ -17,7 +17,8 @@ package com.android.tools.idea.lang.databinding.reference
 
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.utils.usLocaleCapitalize
@@ -90,9 +91,8 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
                           ?.references
                           ?.firstNotNullResult { it.resolve() as? PsiClass }
                         ?: return null
-        val viewType = viewClass.qualifiedName?.let { viewName ->
-          DataBindingUtil.parsePsiType(viewName, facet, null)
-        } ?: return null
+        val viewType = viewClass.qualifiedName
+                         ?.let { viewName -> LayoutBindingTypeUtil.parsePsiType(viewName, facet) } ?: return null
         return AttributeReferenceModel(attribute, facet, facade, mode, viewType)
       }
     }
