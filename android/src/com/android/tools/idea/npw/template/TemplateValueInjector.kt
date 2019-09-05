@@ -179,6 +179,14 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     myTemplateValues[ATTR_IS_NEW_MODULE] = true // Android Modules are called Gradle Projects
     myTemplateValues[ATTR_THEME_EXISTS] = true // New modules always have a theme (unless its a library, but it will have no activity)
 
+    setBuildAttributes(buildVersion, project, isNewProject)
+    addGradleVersions(project, isNewProject)
+    addKotlinVersion()
+    addAndroidxSupport(project, isNewProject)
+    return this
+  }
+
+  private fun setBuildAttributes(buildVersion: AndroidVersionsInfo.VersionItem, project: Project?, isNewProject: Boolean) {
     myTemplateValues[ATTR_MIN_API_LEVEL] = buildVersion.minApiLevel
     myTemplateValues[ATTR_MIN_API] = buildVersion.minApiLevelStr
     myTemplateValues[ATTR_BUILD_API] = buildVersion.buildApiLevel
@@ -195,10 +203,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
         addBuildToolVersion(project, isNewProject, info.revision)
       }
     }
-    addGradleVersions(project, isNewProject)
-    addKotlinVersion()
-    addAndroidxSupport(project, isNewProject)
-    return this
   }
 
   // We can't JUST look at the overall project level language level, since  Gradle sync appears not to sync the overall project level;
