@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
+import com.android.sdklib.AndroidVersion.VersionCodes.P
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
@@ -93,6 +94,7 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_TEST_OUT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
 import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Iterables
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -186,10 +188,18 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     return this
   }
 
-  private fun setBuildAttributes(buildVersion: AndroidVersionsInfo.VersionItem, project: Project?, isNewProject: Boolean) {
+  @VisibleForTesting
+  fun setBuildAttributes(buildVersion: AndroidVersionsInfo.VersionItem, project: Project?, isNewProject: Boolean) {
     myTemplateValues[ATTR_MIN_API_LEVEL] = buildVersion.minApiLevel
     myTemplateValues[ATTR_MIN_API] = buildVersion.minApiLevelStr
-    myTemplateValues[ATTR_BUILD_API] = buildVersion.buildApiLevel
+    if (project.hasAndroidxSupport(isNewProject)) {
+      myTemplateValues[ATTR_BUILD_API] = buildVersion.buildApiLevel
+    }
+    else {
+      // The highest supported/recommended appCompact version is P(28)
+      myTemplateValues[ATTR_BUILD_API] = buildVersion.buildApiLevel.coerceAtMost(P)
+    }
+
     myTemplateValues[ATTR_BUILD_API_STRING] = buildVersion.buildApiLevelStr
     myTemplateValues[ATTR_TARGET_API] = buildVersion.targetApiLevel
     myTemplateValues[ATTR_TARGET_API_STRING] = buildVersion.targetApiLevelStr
@@ -353,9 +363,12 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   private fun addAndroidxSupport(project: Project?, isNewProject: Boolean) {
-    // Note: New projects are always created with androidx dependencies
-    myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project == null || isNewProject || project.isAndroidx()
+    myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project.hasAndroidxSupport(isNewProject)
   }
+
+  // Note: New projects are always created with androidx dependencies
+  private fun Project?.hasAndroidxSupport(isNewProject: Boolean) : Boolean =
+    this == null || isNewProject || this.isAndroidx()
 
   private fun addDebugKeyStore(templateValues: MutableMap<String, Any>, facet: AndroidFacet?) {
     try {
