@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.compatibility.version.BuildFil
 import com.android.tools.idea.gradle.project.sync.errors.NdkIntegrationDeprecatedErrorHandler
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.ConfirmSHA256FromGradleWrapperHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DeleteFileAndSyncHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink
@@ -155,6 +156,7 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is UseEmbeddedJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_EMBEDDED_JDK_HYPERLINK
       is DeleteFileAndSyncHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DELETE_FILE_HYPERLINK
       is RemoveSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.REMOVE_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
+      is ConfirmSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.CONFIRM_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
       else -> null.also { LOG.warn("Unknown quick fix class: ${javaClass.canonicalName}") }
     }
 
