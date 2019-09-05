@@ -158,7 +158,7 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     mySetup.setUpProject(request, myTaskId, null);
 
     verify(mySyncState, times(1)).syncSkipped(lastSyncTimestamp, null);
-    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_CACHED_SETUP_FAILED);
+    verify(mySyncInvoker, times(1)).requestProjectSync(getProject(), TRIGGER_PROJECT_CACHED_SETUP_FAILED);
     verify(myProjectSetup, never()).setUpProject(true);
 
     verify(myGradleProjectInfo, times(1)).setNewProject(false);
@@ -277,7 +277,7 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     assertFalse(buildEventArgumentCaptor.getValue().getMessage().isEmpty());
 
     // Ensure a full sync is scheduled
-    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_CACHED_SETUP_FAILED);
+    verify(mySyncInvoker).requestProjectSync(myProject, TRIGGER_PROJECT_CACHED_SETUP_FAILED);
   }
 
   public void testGetMaxJavaLangLevelWithDifferentLevels() {

@@ -26,5 +26,6 @@
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
     <orderEntry type="module" module-name="intellij.gradle" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
   </component>
 </module>

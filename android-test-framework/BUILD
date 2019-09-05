@@ -54,5 +54,6 @@ iml_module(
         "//tools/idea/plugins/gradle/tooling-extension-impl:intellij.gradle.toolingExtension.impl[module]",
         "//tools/idea/plugins/gradle:intellij.gradle[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
     ],
 )

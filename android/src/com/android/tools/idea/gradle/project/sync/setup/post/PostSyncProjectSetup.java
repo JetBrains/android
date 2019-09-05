@@ -337,7 +337,7 @@ public class PostSyncProjectSetup {
     }
     mySyncState.syncSkipped(syncTimestamp, null);
     // TODO add a new trigger for this?
-    mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_CACHED_SETUP_FAILED);
+    mySyncInvoker.requestProjectSync(myProject, TRIGGER_PROJECT_CACHED_SETUP_FAILED);
   }
 
   private void failTestsIfSyncIssuesPresent() {
