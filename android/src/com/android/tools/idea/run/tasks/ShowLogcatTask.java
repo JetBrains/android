@@ -21,6 +21,7 @@ import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.execution.Executor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -51,10 +52,11 @@ public class ShowLogcatTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+  public LaunchResult run(
+    @NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     Client client = myApplicationId == null ? null : device.getClient(myApplicationId);
     showLogcatConsole(myProject, device, client);
-    return true;
+    return LaunchResult.success();
   }
 
   @NotNull
