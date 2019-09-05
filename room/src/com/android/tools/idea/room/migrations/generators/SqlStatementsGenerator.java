@@ -53,7 +53,6 @@ public class SqlStatementsGenerator {
   @NotNull
   public static List<String> getMigrationStatements(@NotNull DatabaseUpdate databaseUpdate) {
     List<String> updateStatements = new ArrayList<>();
-    boolean needsConstraintsCheck = false;
 
     databaseUpdate.getRenamedEntities().forEach((oldName, newName) -> {updateStatements.add(getRenameTableStatement(oldName, newName));});
 
@@ -63,7 +62,6 @@ public class SqlStatementsGenerator {
 
     for (EntityUpdate entityUpdate : databaseUpdate.getModifiedEntities().values()) {
       updateStatements.addAll(getMigrationStatements(entityUpdate));
-      needsConstraintsCheck |= entityUpdate.foreignKeysWereUpdated();
     }
 
     for (EntityBundle entity : databaseUpdate.getDeletedEntities().values()) {
@@ -78,8 +76,8 @@ public class SqlStatementsGenerator {
       updateStatements.add(getCreateViewStatement(view));
     }
 
-    if (needsConstraintsCheck) {
-      updateStatements.add("PRAGMA foreign_key_check;");
+    for (String tableName : databaseUpdate.getTablesToForeignKeyCheck()) {
+      updateStatements.add(getForeignKeyConstraintCheck(tableName));
     }
 
     return updateStatements;
@@ -374,6 +372,10 @@ public class SqlStatementsGenerator {
       getColumnEnumeration(foreignKey.getReferencedColumns()),
       onUpdate,
       onDelete);
+  }
+
+  private static String getForeignKeyConstraintCheck(@NotNull String tableName) {
+    return String.format("PRAGMA foreign_key_check(%s);", getValidName(tableName));
   }
 
   @NotNull

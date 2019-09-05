@@ -37,6 +37,8 @@ import kotlin.system.measureTimeMillis
 // to memory consumption exponential in the iteration count, for no useful purpose)
 interface DoNotTrace
 
+typealias Node = HeapGraph.Node
+
 /** [HeapGraph] represents a slightly-abstracted snapshot of the Java object reference graph.
  * Each node corresponds to a single object, and edges represent references, either real, or
  * abstracted. [Expander]s are responsible for defining the nature of this abstraction.
@@ -55,6 +57,7 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
   private val nodes: MutableCollection<Node>
     get() = objToNode.values
   val leakRoots: MutableList<Node> = mutableListOf()
+  lateinit var disposerInfo: DisposerInfo
 
   inner class Node(val obj: Any, val isRootNode: Boolean = false): DoNotTrace {
     private val expander = expanderChooser.expanderFor(obj)
@@ -63,6 +66,8 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
     var incomingEdge: Edge? = if (isRootNode) Edge(this, this, expander.RootLoopbackLabel()) else null
     val children: List<Node>
       get() = edges.map { it.end }
+    val childObjects: List<Any>
+      get() = edges.map { it.end.obj }
     val degree: Int
       get() = edges.size
     var mark = 0
@@ -160,10 +165,11 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
 
   fun getOrCreateNode(obj: Any): Node = objToNode[obj] ?: Node(obj)
 
-  fun expandWholeGraph(): HeapGraph {
+  fun expandWholeGraph(initialRun: Boolean = false): HeapGraph {
     withThreadsPaused {
         time("Expanding graph") {
           bfs { expand(); if (isInitiallyGrowing()) markAsGrowing() }
+          if (initialRun) disposerInfo = DisposerInfo.createBaseline()
         }
     }
     println("Graph has ${nodes.size} nodes")
@@ -224,24 +230,27 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
 
   fun propagateGrowing(newGraph: HeapGraph) {
     time("Propagate growing") {
-      newGraph.markAll(0)
-      val q = ArrayDeque<Pair<Node, Node>>()
-      with(q) {
-        addAll(rootNodes.zip(newGraph.rootNodes))
-        newGraph.rootNodes.forEach { it.mark = 1 }
-        while (isNotEmpty()) {
-          val (old, new) = pop()
-          if (old.growing && old.degree < new.degree) {
-            new.markAsGrowing()
-          }
-          for (e in old.edges) {
-            val correspondingNewNode = new[e]
-            if (correspondingNewNode != null && correspondingNewNode.mark == 0) {
-              correspondingNewNode.mark = 1
-              add(e.end to correspondingNewNode)
+      withThreadsPaused {
+        newGraph.markAll(0)
+        val q = ArrayDeque<Pair<Node, Node>>()
+        with(q) {
+          addAll(rootNodes.zip(newGraph.rootNodes))
+          newGraph.rootNodes.forEach { it.mark = 1 }
+          while (isNotEmpty()) {
+            val (old, new) = pop()
+            if (old.growing && old.degree < new.degree) {
+              new.markAsGrowing()
+            }
+            for (e in old.edges) {
+              val correspondingNewNode = new[e]
+              if (correspondingNewNode != null && correspondingNewNode.mark == 0) {
+                correspondingNewNode.mark = 1
+                add(e.end to correspondingNewNode)
+              }
             }
           }
         }
+        newGraph.disposerInfo = DisposerInfo.propagateFrom(this.disposerInfo)
       }
     }
     println("New graph has ${newGraph.leakRoots.size} potential leak roots")
@@ -259,9 +268,18 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
             }
           }
         }
+        newGraph.disposerInfo = DisposerInfo.propagateFrom(this.disposerInfo)
       }
     }
     println("New graph has ${newGraph.leakRoots.size} potential leak roots")
+  }
+
+  fun getLeaks(prevGraph: HeapGraph): List<LeakInfo> {
+    return leakRoots.map { root ->
+      (prevGraph.getNodeForPath(root.getPath()) ?: prevGraph.leakRoots.find { it.obj === root.obj })?.let { prevRoot ->
+        LeakInfo(this, root, prevRoot)
+      }
+    }.filterNotNull()
   }
 
   fun List<Node>.anyReachableFrom(roots: List<Node>): Boolean {

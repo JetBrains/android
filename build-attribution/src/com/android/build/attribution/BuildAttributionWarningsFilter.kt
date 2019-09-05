@@ -15,14 +15,15 @@
  */
 package com.android.build.attribution
 
+import com.android.build.attribution.data.SuppressedWarnings
+import com.android.build.attribution.data.TaskData
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.project.Project
-import com.intellij.util.xmlb.XmlSerializerUtil
 
 @State(name = "BuildAttributionWarningsFilter")
-class BuildAttributionWarningsFilter : PersistentStateComponent<BuildAttributionWarningsFilter.SuppressedWarnings> {
+class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnings> {
   private var suppressedWarnings: SuppressedWarnings = SuppressedWarnings()
 
   companion object {
@@ -32,41 +33,50 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<BuildAttribution
     }
   }
 
-  // TODO(b/138362804): use task class name instead of gradle's task name, to avoid having to suppress tasks per variant
-  fun applyTaskFilter(taskName: String): Boolean {
-    return !suppressedWarnings.tasks.contains(taskName)
+  /**
+   * We identify the task that we suppress warnings for by its task class name, if not available then the task name.
+   */
+  private fun getTaskIdentifier(task: TaskData): String {
+    if (task.taskType == TaskData.UNKNOWN_TASK_TYPE) {
+      return task.taskName
+    }
+    return task.taskType
   }
 
-  fun applyPluginFilter(pluginDisplayName: String): Boolean {
-    return !suppressedWarnings.plugins.contains(pluginDisplayName)
+  fun applyAlwaysRunTaskFilter(task: TaskData): Boolean {
+    return !suppressedWarnings.alwaysRunTasks.contains(Pair(getTaskIdentifier(task), task.originPlugin.displayName))
   }
 
-  fun applyAnnotationProcessorFilter(annotationProcessorClassName: String): Boolean {
-    return !suppressedWarnings.annotationProcessors.contains(annotationProcessorClassName)
+  fun applyPluginSlowingConfigurationFilter(pluginDisplayName: String): Boolean {
+    return !suppressedWarnings.pluginsSlowingConfiguration.contains(pluginDisplayName)
   }
 
-  fun suppressWarningsForTask(taskName: String) {
-    suppressedWarnings.tasks.add(taskName)
+  fun applyNonIncrementalAnnotationProcessorFilter(annotationProcessorClassName: String): Boolean {
+    return !suppressedWarnings.nonIncrementalAnnotationProcessors.contains(annotationProcessorClassName)
   }
 
-  fun suppressWarningsForPlugin(pluginDisplayName: String) {
-    suppressedWarnings.plugins.add(pluginDisplayName)
+  fun suppressAlwaysRunTaskWarning(taskIdentifier: String, pluginDisplayName: String) {
+    suppressedWarnings.alwaysRunTasks.add(Pair(taskIdentifier, pluginDisplayName))
   }
 
-  fun suppressWarningsForAnnotationProcessor(annotationProcessorClassName: String) {
-    suppressedWarnings.annotationProcessors.add(annotationProcessorClassName)
+  fun suppressPluginSlowingConfigurationWarning(pluginDisplayName: String) {
+    suppressedWarnings.pluginsSlowingConfiguration.add(pluginDisplayName)
   }
 
-  fun unsuppressWarningsForTask(taskName: String) {
-    suppressedWarnings.tasks.remove(taskName)
+  fun suppressNonIncrementalAnnotationProcessorWarning(annotationProcessorClassName: String) {
+    suppressedWarnings.nonIncrementalAnnotationProcessors.add(annotationProcessorClassName)
   }
 
-  fun unsuppressWarningsForPlugin(pluginDisplayName: String) {
-    suppressedWarnings.plugins.remove(pluginDisplayName)
+  fun unsuppressAlwaysRunTaskWarning(taskName: String, pluginDisplayName: String) {
+    suppressedWarnings.alwaysRunTasks.remove(Pair(taskName, pluginDisplayName))
   }
 
-  fun unsuppressWarningsForAnnotationProcessor(annotationProcessorClassName: String) {
-    suppressedWarnings.annotationProcessors.remove(annotationProcessorClassName)
+  fun unsuppressPluginSlowingConfigurationWarning(pluginDisplayName: String) {
+    suppressedWarnings.pluginsSlowingConfiguration.remove(pluginDisplayName)
+  }
+
+  fun unsuppressNonIncrementalAnnotationProcessorWarning(annotationProcessorClassName: String) {
+    suppressedWarnings.nonIncrementalAnnotationProcessors.remove(annotationProcessorClassName)
   }
 
   override fun getState(): SuppressedWarnings? {
@@ -76,8 +86,4 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<BuildAttribution
   override fun loadState(state: SuppressedWarnings) {
     suppressedWarnings = state
   }
-
-  data class SuppressedWarnings(val tasks: MutableSet<String> = HashSet(),
-                                val plugins: MutableSet<String> = HashSet(),
-                                val annotationProcessors: MutableSet<String> = HashSet())
 }

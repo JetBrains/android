@@ -142,13 +142,6 @@ public interface IdeProfilerServices {
                                  @NotNull Function<T, String> listBoxPresentationAdapter);
 
   /**
-   * Returns an implementation of a {@link TracePreProcessor}, used by CPU profiler.
-   * TODO (b/118134245): Extract CPU specific models to a separate interface (e.g. CpuProfilerServices).
-   */
-  @NotNull
-  TracePreProcessor getSimpleperfTracePreProcessor();
-
-  /**
    * Returns the profiling configurations saved by the user for a project.
    */
   List<ProfilingConfiguration> getUserCpuProfilerConfigs();
@@ -169,4 +162,10 @@ public interface IdeProfilerServices {
    * which should particularly draw attention to warning and error messages.
    */
   void showNotification(@NotNull Notification notification);
+
+  /**
+   * Returns a list of symbol directories for a specific arch type.
+   */
+  @NotNull
+  List<String> getNativeSymbolsDirectories();
 }

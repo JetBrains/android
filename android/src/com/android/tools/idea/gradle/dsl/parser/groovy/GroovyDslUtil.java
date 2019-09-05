@@ -770,6 +770,11 @@ public final class GroovyDslUtil {
     return element == null ? null : element.getPrevSibling();
   }
 
+  static boolean needToCreateParent(@NotNull GradleDslElement element) {
+    GradleDslElement parent = element.getParent();
+    return parent != null && parent.getPsiElement() == null;
+  }
+
   static boolean hasNewLineBetween(@NotNull PsiElement start, @NotNull PsiElement end) {
     assert start.getParent() == end.getParent() && start.getStartOffsetInParent() <= end.getStartOffsetInParent();
     for (PsiElement element = start; element != end; element = element.getNextSibling()) {

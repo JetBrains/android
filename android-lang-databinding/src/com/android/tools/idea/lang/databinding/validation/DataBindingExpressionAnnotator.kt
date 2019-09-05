@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.validation
 
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.lang.databinding.config.DbFile
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
@@ -25,20 +26,23 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterL
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbVisitor
-import com.android.tools.idea.lang.databinding.reference.PsiClassReference
 import com.android.tools.idea.lang.databinding.reference.PsiMethodReference
 import com.android.tools.idea.lang.databinding.reference.PsiParameterReference
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.LambdaUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiSubstitutor
+import com.intellij.psi.PsiType
+import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.psi.util.MethodSignatureUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 
@@ -46,6 +50,36 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
  * This handles annotation in the data binding expressions (inside `@{}`).
  */
 class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
+
+  /**
+   * Matches attribute types that are assignable from binding expression types and their conversions.
+   */
+  private class AttributeTypeMatcher(dbExprType: PsiType, facet: AndroidFacet) {
+    private val bindingConversionTypes: List<PsiModelClass>
+
+    init {
+      val facade = JavaPsiFacade.getInstance(facet.module.project)
+      val mode = DataBindingUtil.getDataBindingMode(facet)
+      val bindingConversionAnnotation = facade.findClass(
+        mode.bindingConversion,
+        facet.module.getModuleWithDependenciesAndLibrariesScope(false))
+      bindingConversionTypes = mutableListOf(PsiModelClass(dbExprType, mode).unwrapped)
+      if (bindingConversionAnnotation != null) {
+        AnnotatedElementsSearch.searchElements(
+          bindingConversionAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiMethod::class.java)
+          .forEach { annotatedMethod ->
+            val parameters = annotatedMethod.parameterList.parameters
+            val returnType = annotatedMethod.returnType ?: return@forEach
+            if (parameters.size == 1 && parameters[0].type.isAssignableFrom(dbExprType)) {
+              bindingConversionTypes.add(PsiModelClass(returnType, mode).unwrapped)
+            }
+          }
+      }
+    }
+
+    fun matches(attributeType: PsiModelClass) = bindingConversionTypes.any { attributeType.isAssignableFrom(it) }
+  }
+
   private var holder: AnnotationHolder? = null
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
@@ -82,14 +116,10 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     val dbExprType = (rootExpression.reference as? ModelClassResolvable)?.resolvedType ?: return
     val attribute = rootExpression.containingFile.context?.parent as? XmlAttribute ?: return
 
-    val isMatchingCandidate: (PsiModelClass) -> Boolean = { attributeType ->
-      // The candidate type is matched when it is the same or a subclass of the target type
-      // Note: we use erasures so that, say, Action<ArrayList> could match Action<List>
-      attributeType.unwrapped.erasure().isAssignableFrom(dbExprType.unwrapped)
-    }
-
+    val androidFacet = AndroidFacet.getInstance(rootExpression) ?: return
+    val attributeMatcher = AttributeTypeMatcher(dbExprType.type, androidFacet)
     val attributeTypes = attribute.references.filterIsInstance<PsiParameterReference>().map { it.resolvedType }
-    if (attributeTypes.isNotEmpty() && attributeTypes.none { isMatchingCandidate(it) }) {
+    if (attributeTypes.isNotEmpty() && attributeTypes.none { attributeMatcher.matches(it.unwrapped.erasure()) }) {
       val tagName = attribute.parentOfType<XmlTag>()?.references?.firstNotNullResult { it.resolve() as? PsiClass }?.name
                     ?: "View"
       annotateError(rootExpression, SETTER_NOT_FOUND, tagName, attribute.name, dbExprType.type.canonicalText)
@@ -243,10 +273,13 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       return
     }
 
-    val lambdaExpression = parameters.parent.parent ?: return
-    // The lambdaExpression should reference a functional class from [LambdaExpressionReferenceProvider]
-    val functionalClass = lambdaExpression.references.filterIsInstance<PsiClassReference>().firstOrNull()?.resolve() as? PsiClass ?: return
-    val listenerMethod = LambdaUtil.getFunctionalInterfaceMethod(functionalClass) ?: return
+    val lambdaParameters = parameters.parent ?: return
+    // The lambdaParameters should reference a functional class from [LambdaParametersReferenceProvider]
+    val listenerMethod = lambdaParameters.references
+                           .filterIsInstance<PsiMethodReference>()
+                           .firstOrNull()
+                           ?.resolve() as? PsiMethod
+                         ?: return
     val expected = listenerMethod.parameterList.parameters.size
     if (found != expected) {
       annotateError(parameters, ARGUMENT_COUNT_MISMATCH, expected, found)

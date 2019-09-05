@@ -55,7 +55,7 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
           }
         }
         ParsingState.PATH -> {
-          fun addItem(pathEndIndex: Int, lineNumber: Int, columnNumber: Int) {
+          fun addItem(pathEndIndex: Int, lineNumber: Int, columnNumber: Int): Boolean {
             state = ParsingState.NORMAL
             val path = line.substring(pathStartIndex, pathEndIndex)
             val file = localFileSystem.findFileByPathIfCached(path)
@@ -64,20 +64,43 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
                 indexOffset + pathStartIndex,
                 indexOffset + i,
                 OpenFileHyperlinkInfo(project, file, lineNumber, columnNumber))
+              return true
             }
+            return false
           }
           when {
             line[i] == ':' -> {
               val pathEndIndex = i
-              val lineNumber = line.takeWhileFromIndex(i + 1) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
-              val columnNumber =
-                if (line.getOrNull(++i) == ':')
-                  line.takeWhileFromIndex(++i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
-                else
-                  1
+              var lineNumber = 1
+              var columnNumber = 1
+              // Try to parse as "path: (line, column):"
+              if (line.startsWith(" (", i + 1)) {
+                i += 3
+                lineNumber = line.takeWhileFromIndex(i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
+                if (line.startsWith(", ", i)) {
+                  i += 2
+                  columnNumber = line.takeWhileFromIndex(i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
+                  if (line.startsWith("):", i)) {
+                    i += 2
+                  }
+                }
+              }
+              else {
+                // Try to parse as path:line:column:
+                lineNumber = line.takeWhileFromIndex(i + 1) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
+                columnNumber =
+                  if (line.getOrNull(++i) == ':')
+                    line.takeWhileFromIndex(++i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
+                  else
+                    1
+              }
               addItem(pathEndIndex, lineNumber - 1, columnNumber - 1)
             }
-            line[i].isWhitespace() -> addItem(i, 0, 0)
+            // Paths can have withe spaces and links get cut early (https://issuetracker.google.com/issues/136242040)
+            line[i].isWhitespace() -> if (!addItem(i, 0, 0)) {
+              // Do not break path current if it does not belong to a valid file
+              state = ParsingState.PATH
+            }
           }
         }
       }

@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.project.sync.idea.svs
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
-import org.jetbrains.plugins.gradle.model.ProjectImportExtraModelProvider
+import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 /**
  * Container used to group multiple [Variant]s and [NativeVariantAbi]s for one module so they can all be registered with
- * the external system [ProjectImportExtraModelProvider.BuildModelConsumer] in [AndroidExtraModelProvider].
+ * the external system [ProjectImportModelProvider.BuildModelConsumer] in [AndroidExtraModelProvider].
  */
 @UsedInBuildAction
 class VariantGroup(

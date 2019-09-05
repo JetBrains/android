@@ -25,7 +25,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class SelectDeviceAndSnapshotAction extends AnAction {
+public final class SelectDeviceAndSnapshotAction extends AnAction {
   private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
   private final Project myProject;
   private final Device myDevice;
@@ -108,6 +108,12 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
     }
 
     throw new IllegalArgumentException(builder.toString());
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public Device getDevice() {
+    return myDevice;
   }
 
   @Nullable

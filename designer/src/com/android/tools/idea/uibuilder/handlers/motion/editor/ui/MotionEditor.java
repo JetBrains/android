@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnClick;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnSwipe;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateTransition;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
@@ -37,6 +35,24 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 
 /**
  * The main MotionEditor Panel
@@ -63,6 +79,12 @@ public class MotionEditor extends JPanel {
   CreateOnSwipe mCreateOnSwipe = new CreateOnSwipe();
   CreateTransition mCreateTransition = new CreateTransition();
   JSplitPane mTopPanel;
+  boolean mUpdatingModel;
+
+  public void setSelection(MotionEditorSelector.Type type, MTag[] tag) {
+    mSelectedTag = tag[0];
+    notifyListeners(type, tag);
+  }
 
   enum LayoutMode {
     VERTICAL_LAYOUT,
@@ -92,6 +114,7 @@ public class MotionEditor extends JPanel {
       public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
         if (DEBUG) {
           Debug.log(" selectionChanged  " + selection);
+          Debug.logStack(" selectionChanged  " + selection,5);
         }
         mMeModel.setSelected(selection, tag);
       }
@@ -178,32 +201,55 @@ public class MotionEditor extends JPanel {
     return mSelectedTag;
   }
 
-  private void selectTag(MTag tag) {
+  public void selectTag(MTag tag) {
     mSelectedTag = tag;
-    mCombinedListPanel.selectTag(tag);
+    if (tag != null) {
+      mCombinedListPanel.selectTag(tag);
+    }
   }
 
-  public void setMTag(MTag motionScene, MTag layout, String layoutFileName,
-                      String motionSceneFileName) {
+  public void setMTag(@NotNull MTag motionScene, @NotNull MTag layout, @Nullable String layoutFileName,
+                      @Nullable String motionSceneFileName) {
     setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
   }
 
-  public void setMTag(MeModel model) {
-    mMeModel = model;
-    mMotionSceneTabb.setMTag(mMeModel.motionScene);
-    mCombinedListPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
-    mOverviewPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
-    if (mMeModel.getSelectedType() != null) {
-      switch (mMeModel.getSelectedType()) {
-        case TRANSITION:
-          mTransitionPanel.setMTag(mMeModel.getSelected()[0], mMeModel);
-          break;
-        case KEY_FRAME:
-        case KEY_FRAME_GROUP:
-          mTransitionPanel.setMTag(mMeModel.getSelected()[0].getParent().getParent(), mMeModel);
-
-      }
+  @Nullable
+  private MTag findSelectedTagInNewModel(MeModel newModel) {
+    if (mSelectedTag == null) {
+      return null;
     }
+    return newModel.motionScene.getChildTagWithTreeId(mSelectedTag.getTagName(), mSelectedTag.getTreeId());
+  }
+
+  @Nullable
+  private static MTag asConstraintSet(@Nullable MTag selection) {
+    return selection != null && selection.getTagName().equals(Tags.CONSTRAINTSET) ? selection : null;
+  }
+
+  @Nullable
+  private static MTag asTransition(@Nullable MTag selection) {
+    return selection != null && selection.getTagName().equals(Tags.TRANSITION) ? selection : null;
+  }
+
+  public void setMTag(MeModel model) {
+    mUpdatingModel = true;
+    try {
+      MTag newSelection = findSelectedTagInNewModel(model);
+      selectTag(newSelection);
+      mMeModel = model;
+      mMotionSceneTabb.setMTag(mMeModel.motionScene);
+      mCombinedListPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
+      mOverviewPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
+      mConstraintSetPanel.setMTag(asConstraintSet(newSelection), mMeModel);
+      mTransitionPanel.setMTag(asTransition(newSelection), mMeModel);
+    }
+    finally {
+      mUpdatingModel = false;
+    }
+  }
+
+  public boolean isUpdatingModel() {
+    return mUpdatingModel;
   }
 
   private void layoutTop() {
@@ -259,12 +305,6 @@ public class MotionEditor extends JPanel {
     } else {
       transitionSelection();
     }
-
-  }
-
-  public void setSelection(MotionEditorSelector.Type type , MTag[] tag) {
-    mSelectedTag = tag[0];
-    notifyListeners(type,tag);
   }
 
   void constraintSetSelection() {
@@ -277,12 +317,10 @@ public class MotionEditor extends JPanel {
       if (0 < index) {
         mCardLayout.show(mCenterPanel, CONSTRAINTSET_PANEL);
         MTag selectedConstraintSet = c_sets[index - 1];
-        mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
-        notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET,
-          new MTag[]{selectedConstraintSet});
         notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET,
           new MTag[]{selectedConstraintSet});
         mSelectedTag = selectedConstraintSet;
+        mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
       } else {
         mCardLayout.show(mCenterPanel, LAYOUT_PANEL);
         mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);

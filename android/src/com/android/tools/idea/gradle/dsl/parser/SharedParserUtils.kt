@@ -305,11 +305,6 @@ internal fun findLastPsiElementIn(startElement: GradleDslElement): PsiElement? {
   return null
 }
 
-internal fun needToCreateParent(element: GradleDslElement): Boolean {
-  val parent = element.parent
-  return parent != null && parent.psiElement == null
-}
-
 /**
  * Get the name of a dsl element by triming the parent's name parts.
  */

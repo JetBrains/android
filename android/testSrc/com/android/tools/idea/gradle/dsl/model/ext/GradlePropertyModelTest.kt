@@ -2171,7 +2171,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testCreateNewEmptyList() {
-    assumeTrue(isGroovy())
     val text = ""
     writeToBuildFile(text)
 
@@ -2337,12 +2336,12 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyListProperty(firstModel, listOf("5"), REGULAR, 0)
 
       val secondModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(secondModel, STRING_TYPE, "var", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(secondModel, STRING_TYPE, "var1", REFERENCE, REGULAR, 1)
       val varModel = secondModel.dependencies[0]!!
       verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0)
       varModel.convertToEmptyList().addListValue().setValue("goodbye")
-      secondModel.setValue(ReferenceTo("var[0]"))
-      verifyPropertyModel(secondModel, STRING_TYPE, "var[0]", REFERENCE, REGULAR, 1)
+      secondModel.setValue(ReferenceTo("var1[0]"))
+      verifyPropertyModel(secondModel, STRING_TYPE, "var1[0]", REFERENCE, REGULAR, 1)
       val depModel = secondModel.dependencies[0]!!
       verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)
 
@@ -2382,7 +2381,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
       // TODO: Order of statements is wrong so this model does not get correctly parsed.
       /*val secondModel = buildModel.ext().findProperty("prop2")
-verifyPropertyModel(secondModel, STRING_TYPE, "var[0]", REFERENCE, REGULAR, 1)
+verifyPropertyModel(secondModel, STRING_TYPE, "var1[0]", REFERENCE, REGULAR, 1)
 val depModel = secondModel.dependencies[0]!!
 verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
@@ -2487,14 +2486,16 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     val buildModel = gradleBuildModel
 
+    val quoteChar = if(isGroovy) "'" else "\""
+
     run {
       val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
-      verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules2.txt"), DERIVED, 0)
+      verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules2.txt"), DERIVED, 0)
       proguardFiles.addListValueAt(0).setValue("z.txt")
       proguardFiles.addListValueAt(2).setValue("proguard-rules.txt")
       verifyListProperty(
         proguardFiles,
-        listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"),
+        listOf("z.txt", "getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules.txt", "proguard-rules2.txt"),
         DERIVED,
         0
       )
@@ -2506,7 +2507,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
       verifyListProperty(
         proguardFiles,
-        listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"),
+        listOf("z.txt", "getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules.txt", "proguard-rules2.txt"),
         DERIVED,
         0
       )
@@ -2564,7 +2565,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyListProperty(propertyModel, listOf(1, 4), REGULAR, 0)
 
-      propertyModel.addListValueAt(1).setValue(ReferenceTo("var"))
+      propertyModel.addListValueAt(1).setValue(ReferenceTo("var1"))
       propertyModel.addListValueAt(2).setValue(3)
 
       verifyListProperty(propertyModel, listOf(1, "2", 3, 4), REGULAR, 1)
@@ -2588,7 +2589,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyListProperty(propertyModel, listOf(1, 2, "2", 4), REGULAR, 1)
 
-      propertyModel.getValue(LIST_TYPE)!![1].setValue(ReferenceTo("var"))
+      propertyModel.getValue(LIST_TYPE)!![1].setValue(ReferenceTo("var1"))
       propertyModel.getValue(LIST_TYPE)!![2].setValue(3)
 
       verifyListProperty(propertyModel, listOf(1, "2", 3, 4), REGULAR, 1)
@@ -2816,7 +2817,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
   @Test
   fun testInScopeElement() {
     val childProperties = "prop3 = chickadee"
-    val parentProperties = "prop4 = ferret"
+    val parentProperties = "prop4 = ferret\nnested.prop5 = narwhal"
     writeToBuildFile(GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT)
     writeToSubModuleBuildFile(GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT_SUB)
     writeToSettingsFile(subModuleSettingsText)
@@ -2828,7 +2829,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     run {
       val defaultConfig = buildModel.android().defaultConfig()
       val properties = defaultConfig.inScopeProperties
-      assertEquals(5, properties.entries.size)
+      assertEquals(7, properties.entries.size)
 
       // Check all the properties that we expect are present.
       verifyPropertyModel(properties["var3"], STRING_TYPE, "goldeneye", STRING, VARIABLE, 0)
@@ -2836,19 +2837,17 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyPropertyModel(properties["var5"], STRING_TYPE, "curlew", STRING, VARIABLE, 0)
       verifyPropertyModel(properties["prop1"], STRING_TYPE, "baboon", STRING, REGULAR, 0)
       verifyPropertyModel(properties["prop2"], STRING_TYPE, "kite", STRING, REGULAR, 0)
-      // TODO: Uncomment when inScopeProperties from properties files is fixed
-      //verifyPropertyModel(properties["prop3"], STRING_TYPE, "chickadee", STRING, PROPERTIES_FILE, 0)
-      //verifyPropertyModel(properties["prop4"], STRING_TYPE, "ferret", STRING, PROPERTIES_FILE, 0)
+      verifyPropertyModel(properties["prop3"], STRING_TYPE, "chickadee", STRING, PROPERTIES_FILE, 0)
+      verifyPropertyModel(properties["prop4"], STRING_TYPE, "ferret", STRING, PROPERTIES_FILE, 0)
     }
 
     run {
       val properties = buildModel.ext().inScopeProperties
-      assertEquals(4, properties.entries.size)
+      assertEquals(6, properties.entries.size)
       verifyPropertyModel(properties["prop1"], STRING_TYPE, "baboon", STRING, REGULAR, 0)
       verifyPropertyModel(properties["prop2"], STRING_TYPE, "kite", STRING, REGULAR, 0)
-      // TODO: Uncomment when inScopeProperties from properties files is fixed
-      //verifyPropertyModel(properties["prop3"], STRING_TYPE, "chickadee", STRING, PROPERTIES_FILE, 0)
-      //verifyPropertyModel(properties["prop4"], STRING_TYPE, "ferret", STRING, PROPERTIES_FILE, 0)
+      verifyPropertyModel(properties["prop3"], STRING_TYPE, "chickadee", STRING, PROPERTIES_FILE, 0)
+      verifyPropertyModel(properties["prop4"], STRING_TYPE, "ferret", STRING, PROPERTIES_FILE, 0)
       verifyPropertyModel(properties["var6"], STRING_TYPE, "swan", STRING, VARIABLE, 0)
       // TODO: Should not be visible, this needs line number support to correctly hide itself.
       verifyPropertyModel(properties["var3"], STRING_TYPE, "goldeneye", STRING, VARIABLE, 0)

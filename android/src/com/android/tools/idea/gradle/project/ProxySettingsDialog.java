@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
+import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_JOINER;
+import static com.android.tools.idea.util.ParametersListUtil.COMMA_LINE_PARSER;
+import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
+import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
+import static com.android.tools.idea.gradle.util.ProxySettings.replaceCommasWithPipesAndClean;
+import static com.android.tools.idea.gradle.util.ProxySettings.replacePipesWithCommasAndClean;
+
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
@@ -23,15 +31,14 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.PortField;
 import com.intellij.ui.RawCommandLineEditor;
+import java.util.Properties;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Properties;
-
-import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
-import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
-import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
 
 public class ProxySettingsDialog extends DialogWrapper {
   private static final String SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME = "show.do.not.copy.http.proxy.settings.to.gradle";
@@ -83,7 +90,7 @@ public class ProxySettingsDialog extends DialogWrapper {
     myHttpProxyExceptions.setText(httpProxySettings.getExceptions());
 
     if (httpProxySettings.getExceptions() != null) {
-      myHttpProxyExceptions.setText(httpProxySettings.getExceptions());
+      myHttpProxyExceptions.setText(replacePipesWithCommasAndClean(httpProxySettings.getExceptions()));
     }
     if (httpProxySettings.getUser() != null) {
       myHttpProxyLoginTextField.setText(httpProxySettings.getUser());
@@ -96,7 +103,7 @@ public class ProxySettingsDialog extends DialogWrapper {
     myHttpsProxyAuthCheckBox.setSelected(httpProxySettings.getUser() != null);
 
     if (httpProxySettings.getExceptions() != null) {
-      myHttpsProxyExceptions.setText(httpProxySettings.getExceptions());
+      myHttpsProxyExceptions.setText(replacePipesWithCommasAndClean(httpProxySettings.getExceptions()));
     }
     if (httpProxySettings.getUser() != null) {
       myHttpsProxyLoginTextField.setText(httpProxySettings.getUser());
@@ -149,6 +156,11 @@ public class ProxySettingsDialog extends DialogWrapper {
     }
   }
 
+  private void createUIComponents() {
+    myHttpProxyExceptions = new RawCommandLineEditor(COMMA_LINE_PARSER, COMMA_LINE_JOINER);
+    myHttpsProxyExceptions = new RawCommandLineEditor(COMMA_LINE_PARSER, COMMA_LINE_JOINER);
+  }
+
   @NotNull
   private static ProxySettings createProxySettingsFromUI(@NotNull String proxyType,
                                                          @NotNull JTextField proxyHostTextField,
@@ -160,7 +172,7 @@ public class ProxySettingsDialog extends DialogWrapper {
 
     proxySettings.setHost(proxyHostTextField.getText());
     proxySettings.setPort(proxyPortTextField.getNumber());
-    proxySettings.setExceptions(proxyExceptions.getText());
+    proxySettings.setExceptions(replaceCommasWithPipesAndClean(proxyExceptions.getText()));
 
     if (proxyAuthCheckBox.isSelected()) {
       proxySettings.setUser(proxyLoginTextField.getText());

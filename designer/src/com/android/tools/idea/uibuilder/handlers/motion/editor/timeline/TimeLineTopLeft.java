@@ -39,7 +39,7 @@ public class TimeLineTopLeft extends JPanel {
   JButton mLoop = new JButton(MEIcons.LOOP);
   JButton[] buttons = {mLoop, mBackward, mPlay, mForward, mSlow};
 
-  enum TimelineCommands {
+  public enum TimelineCommands {
     LOOP,
     START,
     PLAY,

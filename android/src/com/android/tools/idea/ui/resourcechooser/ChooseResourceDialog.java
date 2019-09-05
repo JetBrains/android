@@ -1058,26 +1058,6 @@ public class ChooseResourceDialog extends ResourcePickerDialog {
     }
   }
 
-  public void generateColorSuggestions(@NotNull Color primaryColor, @NotNull String attributeName) {
-    List<Color> suggestedColors = null;
-    switch (attributeName) {
-      case MaterialColors.PRIMARY_MATERIAL_ATTR:
-        suggestedColors = MaterialColorUtils.suggestPrimaryColors();
-        break;
-      case MaterialColors.PRIMARY_DARK_MATERIAL_ATTR:
-        suggestedColors = MaterialColorUtils.suggestPrimaryDarkColors(primaryColor);
-        break;
-      case MaterialColors.ACCENT_MATERIAL_ATTR:
-        suggestedColors = MaterialColorUtils.suggestAccentColors(primaryColor);
-        break;
-    }
-    if (suggestedColors != null) {
-      ensurePickersInitialized();
-      assert myColorPicker != null;
-      myColorPicker.setRecommendedColors(suggestedColors);
-    }
-  }
-
   private ActionPopupMenu createNewResourcePopupMenu() {
     ActionManager actionManager = ActionManager.getInstance();
     DefaultActionGroup actionGroup = new DefaultActionGroup();

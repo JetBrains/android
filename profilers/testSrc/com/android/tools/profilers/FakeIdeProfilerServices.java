@@ -47,6 +47,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public static final String FAKE_ATRACE_NAME = "Atrace";
 
+  public static final String FAKE_SYMBOL_DIR = "/fake/sym/dir/";
+
   public static final ProfilingConfiguration ART_SAMPLED_CONFIG = new ProfilingConfiguration(FAKE_ART_SAMPLED_NAME,
                                                                                              Cpu.CpuTraceType.ART,
                                                                                              Cpu.CpuTraceMode.SAMPLED);
@@ -399,8 +401,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @NotNull
-  @Override
-  public TracePreProcessor getSimpleperfTracePreProcessor() {
+  public TracePreProcessor getTracePreProcessor() {
     return myFakeTracePreProcessor;
   }
 
@@ -439,6 +440,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public void showNotification(@NotNull Notification notification) {
     myNotification = notification;
+  }
+
+  @NotNull
+  @Override
+  public List<String> getNativeSymbolsDirectories() {
+    return Collections.singletonList(FAKE_SYMBOL_DIR);
   }
 
   @Nullable

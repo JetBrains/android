@@ -4,10 +4,17 @@ import static com.android.SdkConstants.TAG_RESOURCES;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
+import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver;
+import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.util.Key;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -25,12 +32,36 @@ import org.jetbrains.annotations.Nullable;
  * @author Eugene.Kudelevsky
  */
 public class AndroidUsagesTargetProvider implements UsageTargetProvider {
+
+  public static final Key<SearchScope> RESOURCE_CONTEXT_SCOPE = Key.create("RESOURCE_CONTEXT_SCOPE");
+  public static final Key<PsiElement> RESOURCE_CONTEXT_ELEMENT = Key.create("RESOURCE_CONTEXT_ELEMENT");
+
   @Override
   public UsageTarget[] getTargets(@NotNull Editor editor, @NotNull PsiFile file) {
-    final XmlTag tag = findValueResourceTagInContext(editor, file, false);
-    return tag != null
-           ? new UsageTarget[]{new PsiElement2UsageTargetAdapter(tag)}
-           : UsageTarget.EMPTY_ARRAY;
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      PsiElement targetElement = TargetElementUtil.findTargetElement(editor, TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED);
+      if (targetElement == null) {
+        return UsageTarget.EMPTY_ARRAY;
+      }
+      ResourceReferencePsiElement referencePsiElement = ResourceReferencePsiElement.create(targetElement);
+      if (referencePsiElement == null) {
+        return UsageTarget.EMPTY_ARRAY;
+      }
+      PsiReference reference = TargetElementUtil.findReference(editor);
+      if (reference == null) {
+        return UsageTarget.EMPTY_ARRAY;
+      }
+      PsiElement contextElement = reference.getElement();
+      referencePsiElement.putUserData(RESOURCE_CONTEXT_ELEMENT, contextElement);
+      SearchScope scope = ResourceRepositoryToPsiResolver.getResourceSearchScope(referencePsiElement.getResourceReference(), contextElement);
+      referencePsiElement.putUserData(RESOURCE_CONTEXT_SCOPE, scope);
+      return new UsageTarget[]{new PsiElement2UsageTargetAdapter(referencePsiElement)};
+    } else {
+      final XmlTag tag = findValueResourceTagInContext(editor, file, false);
+      return tag != null
+             ? new UsageTarget[]{new PsiElement2UsageTargetAdapter(tag)}
+             : UsageTarget.EMPTY_ARRAY;
+    }
   }
 
   /**

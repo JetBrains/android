@@ -53,7 +53,7 @@ class CriticalPathAnalyzerTest {
 
     // When the build is finished successfully and the analyzer is run
 
-    analyzer.onBuildSuccess()
+    analyzer.onBuildSuccess(null)
 
     // Then the analyzer should find this critical path
     // A(10)             D(20) -> F(10)
@@ -97,7 +97,7 @@ class CriticalPathAnalyzerTest {
 
     // When the build is finished successfully and the analyzer is run
 
-    analyzer.onBuildSuccess()
+    analyzer.onBuildSuccess(null)
 
     // Then the analyzer should find this critical path
     // A(10) -> B(5) -> D(25)

@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,9 @@ import static com.intellij.openapi.util.io.FileUtil.notNullize;
 public class LibraryFilePaths {
   // Key: libraryId, Value: ExtraArtifactsPaths for the library.
   @NotNull private final Map<String, ArtifactPaths> myPathsMap = new HashMap<>();
+
+  // for 2019-05 gradle cache layout
+  private static final Pattern gradleCachePattern = Pattern.compile("^[a-f0-9]{30,48}$");
 
   private static class ArtifactPaths {
     @Nullable final File myJavaDoc;
@@ -135,19 +139,17 @@ public class LibraryFilePaths {
         }
       }
 
-      // Try new .gradle layout.
+      // Try new (around 2019-05) .gradle cache layout.
       // Example: androidx.appcompat/appcompat/1.0.2/2533a36c928bb27a3cc6843a25f83754b3c3ae/appcompat-1.0.2.aar
-      parentPath = parentPath.getParentFile();
-      if (parentPath != null && parentPath.getName().length() == 48) {
+      parentPath = libraryPath.getParentFile();
+      if (parentPath != null && gradleCachePattern.matcher(parentPath.getName()).matches()) {
         parentPath = parentPath.getParentFile();
-        if (parentPath != null && libraryPath.getName().startsWith(parentPath.getName())) {
+        if (parentPath != null && parentPath.getParentFile() != null && libraryPath.getName().startsWith(parentPath.getParentFile().getName())) {
           for (File child : notNullize(parentPath.listFiles())) {
-            if (child.isDirectory() && child.getName().length() == 48) {
-              for (File child2 : notNullize(child.listFiles())) {
-                sourceJar = findChildPath(child2, sourceFileName);
-                if (sourceJar != null) {
-                  return sourceJar;
-                }
+            if (child.isDirectory() && gradleCachePattern.matcher(child.getName()).matches()) {
+              sourceJar = findChildPath(child, sourceFileName);
+              if (sourceJar != null) {
+                return sourceJar;
               }
             }
           }

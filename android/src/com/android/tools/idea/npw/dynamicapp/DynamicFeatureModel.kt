@@ -78,7 +78,8 @@ class DynamicFeatureModel(
 
       TemplateValueInjector(newValues)
         .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
-        .setBuildVersion(androidSdkInfo.value, project).setBaseFeature(baseApplication.value)
+        .setBuildVersion(androidSdkInfo.value, project, false)
+        .setBaseFeature(baseApplication.value)
 
       templateValues.putAll(newValues)
     }

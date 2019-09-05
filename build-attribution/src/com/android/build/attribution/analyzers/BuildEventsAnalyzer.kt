@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import org.gradle.tooling.events.ProgressEvent
 
 interface BuildEventsAnalyzer {
@@ -25,7 +26,7 @@ interface BuildEventsAnalyzer {
 
   fun onBuildStart()
 
-  fun onBuildSuccess()
+  fun onBuildSuccess(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?)
 
   fun onBuildFailure()
 }

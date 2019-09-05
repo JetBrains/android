@@ -19,7 +19,6 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizard.Builder
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.android.tools.idea.wizard.model.ModelWizardDialog.CancellationPolicy
-import com.android.tools.idea.wizard.model.ModelWizardDialog.CustomLayout
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType
@@ -32,23 +31,6 @@ import java.net.URL
  * Convenience class for building a [ModelWizard] styled for Android Studio.
  */
 class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var title: String) {
-  /**
-   * Temporary toggle as we migrate wizards to a new design
-   * TODO: remove this once migration to the new design is complete
-   */
-  enum class UxStyle {
-    /**
-     * Has a title bar with Android Studio icon on the Left, a main text header in large font for the Step title,
-     * and an optional Step Icon on the right.
-     */
-    ORIGINAL,
-    /**
-     * Has a simpler title bar with only the main text header, in large font, for the Step title.
-     */
-    DYNAMIC_APP
-  }
-
-  private var uxStyle = UxStyle.ORIGINAL
   internal var parent: Component? = null
   internal var project: Project? = null
   private var helpUrl: URL? = null
@@ -144,21 +126,8 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
     return this
   }
 
-  /**
-   * Whether or not to use the new Ux design for this wizard
-   *
-   * TODO: remove this once migration to the new design is complete
-   */
-  fun setUxStyle(style: UxStyle): StudioWizardDialogBuilder {
-    uxStyle = style
-    return this
-  }
-
   fun build(): ModelWizardDialog {
-    val customLayout: CustomLayout = when (uxStyle) {
-      UxStyle.ORIGINAL -> StudioWizardLayout()
-      UxStyle.DYNAMIC_APP -> SimpleStudioWizardLayout()
-    }
+    val customLayout = StudioWizardLayout()
     minimumSize = minimumSize ?: customLayout.defaultMinSize
     preferredSize = preferredSize ?: customLayout.defaultPreferredSize
     val dialog: ModelWizardDialog = if (parent != null)

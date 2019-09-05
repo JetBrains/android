@@ -16,6 +16,9 @@
 package com.android.tools.idea.lang.proguard;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.lang.proguardR8.ProguardR8FileType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileNameMatcherEx;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
@@ -26,14 +29,34 @@ public class ProguardFileTypeFactory extends FileTypeFactory {
   @Override
   public void createFileTypes(@NotNull FileTypeConsumer consumer) {
     consumer.consume(ProguardFileType.INSTANCE, new ProguardNameMatcher());
+    if (StudioFlags.R8_SUPPORT_ENABLED.get() || ApplicationManager.getApplication().isUnitTestMode()) {
+      consumer.consume(ProguardR8FileType.INSTANCE, new ProguardR8NameMatcher());
+    }
   }
 
   private static class ProguardNameMatcher extends FileNameMatcherEx {
     @Override
     public boolean acceptsCharSequence(@NotNull CharSequence fileName) {
-      return StringUtil.endsWith(fileName, ProguardFileType.DOT_PRO) ||
+      return !StudioFlags.R8_SUPPORT_ENABLED.get() && (StringUtil.endsWith(fileName, ProguardFileType.DOT_PRO) ||
+                                                       StringUtil.startsWith(fileName, "proguard-") &&
+                                                       StringUtil.endsWith(fileName, SdkConstants.DOT_TXT) ||
+                                                       StringUtil.equals(fileName, SdkConstants.OLD_PROGUARD_FILE))
+        ;
+    }
+
+    @NotNull
+    @Override
+    public String getPresentableString() {
+      return "*.pro or proguard-*.txt or proguard.cfg";
+    }
+  }
+
+  public static class ProguardR8NameMatcher extends FileNameMatcherEx {
+    @Override
+    public boolean acceptsCharSequence(@NotNull CharSequence fileName) {
+      return StudioFlags.R8_SUPPORT_ENABLED.get() && (StringUtil.endsWith(fileName, ProguardR8FileType.DOT_PRO) ||
              StringUtil.startsWith(fileName, "proguard-") && StringUtil.endsWith(fileName, SdkConstants.DOT_TXT) ||
-             StringUtil.equals(fileName, SdkConstants.OLD_PROGUARD_FILE)
+                                                      StringUtil.equals(fileName, SdkConstants.OLD_PROGUARD_FILE))
         ;
     }
 

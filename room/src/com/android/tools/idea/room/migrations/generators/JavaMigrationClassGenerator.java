@@ -24,7 +24,6 @@ import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
-import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiParameter;
@@ -38,6 +37,11 @@ import java.util.List;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Creates a new Migration class in Java, given the description of the database schema changes.
+ *
+ * <p>The class will always be generated in a new file</p>
+ */
 public class JavaMigrationClassGenerator {
   private static final String SUPER_CLASS_NAME = "androidx.room.migration.Migration";
   private static final String MIGRATION_CLASS_NAME_TEMPLATE = "Migration_%d_%d";
@@ -65,15 +69,14 @@ public class JavaMigrationClassGenerator {
    * @param targetDirectory the directory where to generate the class
    * @param databaseUpdate  the DatabaseUpdate object which describes the updates to be performed
    */
-  public void createMigrationClass(@NotNull PsiDirectory targetDirectory,
-                                   @NotNull PsiPackage targetPackage,
-                                   @NotNull DatabaseUpdate databaseUpdate) {
+  @NotNull
+  public PsiClass createMigrationClass(@NotNull PsiDirectory targetDirectory,
+                                    @NotNull DatabaseUpdate databaseUpdate) {
     String migrationClassName = String.format(Locale.US,
                                               MIGRATION_CLASS_NAME_TEMPLATE,
                                               databaseUpdate.getPreviousVersion(),
                                               databaseUpdate.getCurrentVersion());
     PsiClass migrationClass = JavaDirectoryService.getInstance().createClass(targetDirectory, migrationClassName);
-    addPackage(migrationClass, targetPackage);
     addSuperClass(migrationClass);
     addMigrationConstructor(migrationClass, databaseUpdate);
     addMigrationMethod(migrationClass, databaseUpdate);
@@ -81,10 +84,8 @@ public class JavaMigrationClassGenerator {
     CodeStyleManager.getInstance(myProject).reformat(migrationClass);
 
     migrationClass.navigate(true);
-  }
 
-  private void addPackage(@NotNull PsiClass migrationClass, @NotNull PsiPackage targetPackage) {
-    ((PsiJavaFile)migrationClass.getContainingFile()).setPackageName(targetPackage.getQualifiedName());
+    return migrationClass;
   }
 
   private void addSuperClass(@NotNull PsiClass migrationClass) {

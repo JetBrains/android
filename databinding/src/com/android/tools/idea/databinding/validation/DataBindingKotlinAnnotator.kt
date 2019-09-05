@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.validation
 
 import com.android.tools.idea.databinding.DATA_BINDING_ANNOTATIONS
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator

@@ -19,6 +19,7 @@ import com.intellij.util.Producer;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -103,9 +104,10 @@ public final class TooltipComponent extends AnimatedComponent {
 
   private void removeFromParent() {
     setVisible(false);
-    if (getParent() != null) {
-      getParent().removeComponentListener(myParentListener);
-      getParent().remove(this);
+    Container parent = getParent();
+    if (parent != null) {
+      parent.removeComponentListener(myParentListener);
+      parent.remove(this);
     }
   }
 
@@ -199,10 +201,14 @@ public final class TooltipComponent extends AnimatedComponent {
     if (!isVisible()) {
       return; // We shouldn't draw the tooltip if its content is not supposed to be visible
     }
+    Container parent = getParent();
+    if (parent == null) {
+      return; // We are temporarily parentless, so skip drawing
+    }
     assert myLastPoint != null; // If we're visible, myLastPoint is not null
 
     Dimension preferredSize = getPreferredSize();
-    Point paintLocation = getPaintLocation(myLastPoint, preferredSize);
+    Point paintLocation = getPaintLocation(parent.getSize(), myLastPoint, preferredSize);
     myTooltipContent.setLocation(paintLocation.x, paintLocation.y);
 
     g.setColor(Color.WHITE);
@@ -222,9 +228,8 @@ public final class TooltipComponent extends AnimatedComponent {
   }
 
   @NotNull
-  private Point getPaintLocation(@NotNull Point lastPoint, @NotNull Dimension preferredSize) {
+  private Point getPaintLocation(@NotNull Dimension parentSize, @NotNull Point lastPoint, @NotNull Dimension preferredSize) {
     // Translate the bounds to clamp it wholly within the parent's drawable region.
-    Dimension parentSize = getParent().getSize();
     int x = Math.max(Math.min(lastPoint.x + BORDER_SIZE / 2, parentSize.width - preferredSize.width - BORDER_SIZE / 2), BORDER_SIZE);
     int y = Math.max(Math.min(lastPoint.y + BORDER_SIZE / 2, parentSize.height - preferredSize.height - BORDER_SIZE / 2), BORDER_SIZE);
     return new Point(x, y);
@@ -240,8 +245,13 @@ public final class TooltipComponent extends AnimatedComponent {
     if (myLastPoint == null) {
       return;
     }
+    Container parent = getParent();
+    if (parent == null) {
+      return;
+    }
+
     Dimension preferredSize = repaintDimension == null ? getPreferredSize() : repaintDimension;
-    Point paintLocation = getPaintLocation(myLastPoint, preferredSize);
+    Point paintLocation = getPaintLocation(parent.getSize(), myLastPoint, preferredSize);
     opaqueRepaint(paintLocation.x - DROPSHADOW_ALPHAS.length,
                   paintLocation.y - DROPSHADOW_ALPHAS.length,
                   preferredSize.width + 2 * DROPSHADOW_ALPHAS.length + 1,   // We're off by 1 somewhere?

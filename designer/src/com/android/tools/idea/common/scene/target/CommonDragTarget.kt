@@ -326,7 +326,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       if (myComponent.scene.isLiveRenderingEnabled) {
         myComponent.authoritativeNlComponent.fireLiveChangeEvent()
       }
-      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+      myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     }
     else {
       if (currentSnappedPlaceholder?.dominate == true) {
@@ -335,7 +335,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       else {
         draggedComponents.forEachIndexed { index, it -> it.setPosition(mouseX - offsets[index].x, mouseY - offsets[index].y) }
       }
-      myComponent.scene.needsLayout(Scene.NO_LAYOUT)
+      myComponent.scene.markNeedsLayout(Scene.NO_LAYOUT)
     }
     return ph
   }
@@ -393,7 +393,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     }
     model.addComponents(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface) {
       attributesTransactions.forEach { it.commit() }
-      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+      myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     }
   }
 
@@ -422,7 +422,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     }
     newSelectedComponents = draggedComponents
     draggedComponents = emptyList()
-    myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
+    myComponent.scene.markNeedsLayout(Scene.ANIMATED_LAYOUT)
   }
 
   override fun newSelection(): List<SceneComponent> = newSelectedComponents

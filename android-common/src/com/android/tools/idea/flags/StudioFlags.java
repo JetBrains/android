@@ -582,6 +582,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> R8_SUPPORT_ENABLED = Flag.create(
+    EDITOR, "r8.support.enabled",
+    "Enable support for R8 in editor",
+    "If enabled, it offers support (such as code completion) for the R8 format.",
+    false
+  );
+
   //endregion
 
   //region Analyzer

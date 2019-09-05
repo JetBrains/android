@@ -51,29 +51,22 @@ class PsiModelMethod(val containingClass: PsiModelClass, val psiMethod: PsiMetho
    */
   val isVarArgs = psiMethod.isVarArgs
 
-  private fun getParameter(index: Int, parameterTypes: Array<PsiModelClass>): PsiModelClass? {
-    val normalParamCount = if (isVarArgs) parameterTypes.size - 1 else parameterTypes.size
-    return if (index < normalParamCount) {
-      parameterTypes[index]
-    }
-    else {
-      null
-    }
-  }
-
   /**
    * @param args The arguments to the method
    * @return Whether the arguments would be accepted as parameters to this method.
    */
   // b/129771951 revisit the case when unwrapObservableFields is true
   fun acceptsArguments(args: List<PsiModelClass>): Boolean {
-    if (!isVarArgs && args.size != parameterTypes.size || isVarArgs && args.size < parameterTypes.size - 1) {
+    if ((!isVarArgs && args.size != parameterTypes.size) || (isVarArgs && args.size < parameterTypes.size - 1)) {
       return false // The wrong number of parameters
     }
     var parametersMatch = true
     var i = 0
     while (i < args.size && parametersMatch) {
-      var parameterType = getParameter(i, parameterTypes)!!
+      // If we are indexing past the end of the parameter list with a varargs function,
+      // it means we are referencing a parameter that is really a part of the varargs
+      // parameter (which is the last one)
+      var parameterType = parameterTypes[i.coerceAtMost(parameterTypes.lastIndex)]
       val arg = args[i]
       if (parameterType.isIncomplete) {
         parameterType = parameterType.erasure()

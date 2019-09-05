@@ -88,7 +88,7 @@ class ScreenDragTarget(component: SceneComponent) : DragBaseTarget(), MultiCompo
       (myComponent.scene.sceneManager as NavSceneManager).save(listOf(myComponent))
     }
     if (myChangedComponent) {
-      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+      myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     }
   }
 
