@@ -35,7 +35,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import java.util.HashSet;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -87,7 +86,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
   }
 
   private static boolean shouldScheduleUpdate(@NotNull VirtualFile file) {
-    final FileType fileType = file.getFileType();
+    final FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(file.getNameSequence());
 
     if (fileType == AidlFileType.INSTANCE ||
         fileType == AndroidRenderscriptFileType.INSTANCE ||
