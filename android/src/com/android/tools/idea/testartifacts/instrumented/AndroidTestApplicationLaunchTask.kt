@@ -21,6 +21,7 @@ import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRun
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.android.tools.idea.run.util.LaunchStatus
@@ -29,6 +30,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationL
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInPackageTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.classTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.methodTest
+import com.intellij.execution.Executor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 
@@ -125,7 +127,7 @@ class AndroidTestApplicationLaunchTask private constructor(
     }
   }
 
-  override fun perform(device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): Boolean {
+  override fun run(executor: Executor, device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): LaunchResult {
     printer.stdout("Running tests\n")
 
     val runner = createRemoteAndroidTestRunner(device)
@@ -142,7 +144,7 @@ class AndroidTestApplicationLaunchTask private constructor(
       }
     }
 
-    return true
+    return LaunchResult.success()
   }
 
   /**

@@ -19,9 +19,11 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.LaunchOptions
+import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.android.tools.idea.run.util.LaunchStatus
+import com.intellij.execution.Executor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -55,9 +57,9 @@ private class LayoutInspectorLaunchTask(private val module: Module): LaunchTask 
 
   override fun getDuration() = LaunchTaskDurations.ASYNC_TASK
 
-  override fun perform(device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): Boolean {
+  override fun run(executor: Executor, device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): LaunchResult {
     val project = module.project
-    val window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return true
+    val window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return LaunchResult.success()
     val preferredProcess = LayoutInspectorPreferredProcess(device, module)
     if (window.isVisible) {
       lookupDeviceWindow(window)?.layoutInspector?.client?.attach(preferredProcess)
@@ -65,7 +67,7 @@ private class LayoutInspectorLaunchTask(private val module: Module): LaunchTask 
     project.putUserData(PREFERRED_PROCESS, preferredProcess)
 
     // TODO: Register a callback for clearing the preferred process when the process ends.
-    return true
+    return LaunchResult.success()
   }
 
   override fun getId() = TOOL_WINDOW_ID
