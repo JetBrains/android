@@ -196,7 +196,6 @@ public class RenderTestUtil {
     double scale = Math.min(1, Math.min(200 / ((double)image.getWidth()), 200 / ((double)image.getHeight())));
     image = ImageUtils.scale(image, scale, scale);
 
-    image = ShadowPainter.createRectangularDropShadow(image);
     checkRenderedImage(image, thumbnailPath.replace('/', separatorChar));
   }
 
