@@ -273,7 +273,7 @@ public class ResourceNotificationManager {
 
   /**
    * Returns a implementation of {@link PsiTreeChangeListener} that is not registered and is used as a
-   * delegate (e.g in {@link PsiProjectListener}).
+   * delegate (e.g in {@link AndroidFileChangeListener}).
    * <p>
    * If no listener has been added to the {@link ResourceNotificationManager}, this method returns null.
    */

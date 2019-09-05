@@ -17,7 +17,7 @@ import com.android.tools.idea.lint.ProvideLintFeedbackIntentionAction;
 import com.android.tools.idea.lint.ProvideLintFeedbackPanel;
 import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.res.PsiProjectListener;
+import com.android.tools.idea.res.AndroidFileChangeListener;
 import com.android.tools.lint.checks.DeprecationDetector;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.IssueRegistry;
@@ -133,7 +133,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       // Ensure that we're listening to the PSI structure for Gradle file edit notifications
       Project project = file.getProject();
       if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
-        PsiProjectListener.getInstance(project);
+        AndroidFileChangeListener.getInstance(project);
       }
     }
     else if (fileType != StdFileTypes.JAVA

@@ -65,7 +65,7 @@ internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileLi
 
     override fun subscribe() {
       super.subscribe()
-      PsiProjectListener.getInstance(project).setSampleDataListener(listener)
+      AndroidFileChangeListener.getInstance(project).setSampleDataListener(listener)
     }
   }
 
