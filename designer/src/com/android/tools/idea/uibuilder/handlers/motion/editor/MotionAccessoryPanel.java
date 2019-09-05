@@ -215,6 +215,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     ResourceNotificationManager.getInstance(myProject).addListener(new ResourceNotificationManager.ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
+        myLastSelectedTag = null; // this is from the model that will be replaced below
         myMotionScene = getMotionScene(myMotionLayoutNlComponent);
         mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
         fireSelectionChanged(Collections.singletonList(mySelection));
