@@ -35,6 +35,7 @@ import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -51,6 +52,7 @@ import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.process.ProcessAdapter;
@@ -355,7 +357,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     @Override
-    public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    public LaunchResult run(
+      @NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
       // Get the current device time so that the profiler knows to not profile existing processes that were spawned before that time.
       // Otherwise, the profiler can start profiling for a brief moment, then the new process launches and the profiler switches
       // immediately to the new process, leaving a short-lived session behind. We do this only if the user launches explicit with the
@@ -409,7 +412,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
         processHandler.addProcessListener(adapter);
       }
 
-      return true;
+      return LaunchResult.success();
     }
 
     @NotNull

@@ -28,6 +28,7 @@ import com.google.android.instantapps.sdk.api.ProgressIndicator;
 import com.google.android.instantapps.sdk.api.ResultStream;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
+import com.intellij.execution.Executor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
@@ -74,16 +75,17 @@ public class RunInstantAppTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+  public LaunchResult run(
+    @NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     if (launchStatus.isLaunchTerminated()) {
-      return false;
+      return LaunchResult.error("", getDescription());
     }
 
     // We expect exactly one zip file per Instant App that will contain the apk-splits for the
     // Instant App
     if (myPackages.size() != 1) {
       printer.stderr("Package not found or not unique.");
-      return false;
+      return LaunchResult.error("", getDescription());
     }
 
     URL url = null;
@@ -92,7 +94,7 @@ public class RunInstantAppTask implements LaunchTask {
         url = new URL(myDeepLink);
       } catch (MalformedURLException e) {
         printer.stderr("Invalid launch URL: " + myDeepLink);
-        return false;
+        return LaunchResult.error("", getDescription());
       }
     }
 
@@ -146,11 +148,11 @@ public class RunInstantAppTask implements LaunchTask {
           new NullProgressIndicator());
       }
 
-      return status == StatusCode.SUCCESS;
+      return status == StatusCode.SUCCESS ? LaunchResult.success() : LaunchResult.error("", getDescription());
     } catch (Exception e) {
       printer.stderr(e.toString());
       getLogger().error(new RunInstantAppException(e));
-      return false;
+      return LaunchResult.error("", getDescription());
     }
   }
 

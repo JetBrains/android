@@ -22,6 +22,7 @@ import com.android.ddmlib.IotInstallChecker;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.RetryingInstaller;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.execution.Executor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidBundle;
@@ -67,10 +68,11 @@ public class UninstallIotLauncherAppsTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+  public LaunchResult run(
+    @NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     // Ignore the check if not running on an embedded device.
     if (!device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
-      return true;
+      return LaunchResult.success();
     }
 
     // Check for IoT Launcher apps
@@ -99,14 +101,14 @@ public class UninstallIotLauncherAppsTask implements LaunchTask {
           }
           String errorMessage = AndroidBundle.message("deployment.failed.uninstall.prompt.androidthings.errortext", sb.toString());
           myPrompter.showErrorMessage(errorMessage);
-          return false;
+          return LaunchResult.error("", getDescription());
         }
       } else {
         printer.stdout("Installation aborted");
-        return false;
+        return LaunchResult.error("", getDescription());
       }
     }
-    return true;
+    return LaunchResult.success();
   }
 
   @NotNull

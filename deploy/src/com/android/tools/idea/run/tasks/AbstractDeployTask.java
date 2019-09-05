@@ -87,11 +87,6 @@ public abstract class AbstractDeployTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    return false;
-  }
-
-  @Override
   public LaunchResult run(@NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     Stopwatch stopwatch = Stopwatch.createStarted();
     LogWrapper logger = new LogWrapper(LOG);
