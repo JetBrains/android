@@ -133,7 +133,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
           }
         }.execute();
       }
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PSD_DEPENDENCY_REMOVED);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_PSD_DEPENDENCY_REMOVED);
     }
   }
 

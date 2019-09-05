@@ -64,7 +64,7 @@ public class AndroidGradleProjectStartupActivityTest extends PlatformTestCase {
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, times(1)).requestProjectSync(same(project), any());
+    verify(mySyncInvoker, times(1)).requestProjectSync(same(project), any(GradleSyncInvoker.Request.class));
   }
 
   public void testRunActivityWithSkipStartupProject() {
@@ -74,7 +74,7 @@ public class AndroidGradleProjectStartupActivityTest extends PlatformTestCase {
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, never()).requestProjectSync(same(project), any());
+    verify(mySyncInvoker, never()).requestProjectSync(same(project), any(GradleSyncInvoker.Request.class));
   }
 
   public void testRunActivityWithExistingGradleProject() {
@@ -97,6 +97,6 @@ public class AndroidGradleProjectStartupActivityTest extends PlatformTestCase {
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, never()).requestProjectSync(same(project), any());
+    verify(mySyncInvoker, never()).requestProjectSync(same(project), any(GradleSyncInvoker.Request.class));
   }
 }

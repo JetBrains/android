@@ -95,7 +95,7 @@ public class GradleProjectImporterTest extends PlatformTestCase {
 
     // Verify sync.
     GradleSyncListener syncListener = mock(GradleSyncListener.class);
-    mySyncInvoker.requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_NEW, syncListener);
+    mySyncInvoker.requestProjectSync(getProject(), TRIGGER_PROJECT_NEW, syncListener);
     verifyGradleSyncInvocation(syncListener);
   }
 
@@ -117,7 +117,7 @@ public class GradleProjectImporterTest extends PlatformTestCase {
   }
 
   private void verifyGradleSyncInvocation(@Nullable GradleSyncListener syncListener) {
-    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_NEW, syncListener);
+    verify(mySyncInvoker, times(1)).requestProjectSync(getProject(), TRIGGER_PROJECT_NEW, syncListener);
     verifyProjectWasMarkedAsImported();
   }
 

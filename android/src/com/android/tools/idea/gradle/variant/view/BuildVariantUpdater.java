@@ -466,8 +466,8 @@ public class BuildVariantUpdater {
 
   private static void requestFullGradleSync(@NotNull Project project,
                                             @NotNull Runnable variantSelectionChangeListeners) {
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_VARIANT_SELECTION_FULL_SYNC,
-                                                                          getSyncListener(variantSelectionChangeListeners));
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_VARIANT_SELECTION_FULL_SYNC,
+                                                       getSyncListener(variantSelectionChangeListeners));
   }
 
   @NotNull
