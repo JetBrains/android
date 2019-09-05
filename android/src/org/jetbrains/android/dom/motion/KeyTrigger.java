@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,11 @@ package org.jetbrains.android.dom.motion;
 
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.NameStrategy;
-import org.jetbrains.android.dom.Styleable;
-
 import java.util.List;
+import org.jetbrains.android.dom.Styleable;
 
 @DefinesXml
 @NameStrategy(PascalNameStrategy.class)
-@Styleable(value = "KeyFrameSet", packageName = "android.support.constraint")
-public interface KeyFrameSet extends MotionElement {
-  List<KeyAttribute> getKeyAttributes();
-  List<KeyCycle> getKeyCycles();
-  List<KeyPosition> getKeyPositions();
-  List<KeyTimeCycle> getKeyTimeCycles();
-  List<KeyTrigger> getKeyTriggers();
+@Styleable(value = "KeyTrigger", packageName = "android.support.constraint")
+public interface KeyTrigger extends MotionElement {
 }
