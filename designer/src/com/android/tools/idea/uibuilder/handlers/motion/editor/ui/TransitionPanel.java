@@ -89,6 +89,9 @@ class TransitionPanel extends JPanel {
   }
 
   public void setMTag(MTag transitionTag, MeModel model) {
+    if (transitionTag != null) {
+      mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{transitionTag});
+    }
     mTransitionTag = transitionTag;
     mMeModel = model;
     mTimeLinePanel.setMTag(transitionTag, model);

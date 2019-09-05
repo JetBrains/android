@@ -215,7 +215,7 @@ public class TimeLinePanel extends JPanel {
         lastName = data.mName;
         add(child);
       }
-      if (list.size() > n) {
+      if (n >= 0 && list.size() > n) {
         for (int i = n; i < list.size(); i++) {
           TimeLineRow child = new TimeLineRow(mTimelineStructure);
           TimeLineRowData data = list.get(i);
