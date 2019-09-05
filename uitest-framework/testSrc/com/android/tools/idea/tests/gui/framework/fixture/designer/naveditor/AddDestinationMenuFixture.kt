@@ -26,13 +26,9 @@ import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
 import com.intellij.util.ui.AsyncProcessIcon
-import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
-import org.fest.swing.finder.WindowFinder
-import org.fest.swing.fixture.DialogFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
-import javax.swing.JDialog
 import javax.swing.JPanel
 
 class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddDestinationMenu) :
@@ -62,15 +58,8 @@ class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddD
     return menu.destinationsList.itemsCount
   }
 
-  fun clickCreateBlank(): ConfigureTemplateParametersWizardFixture {
-    ActionButtonFixture(robot, menu.blankDestinationButton).click()
-
-    val dialog = findMenuDialog(robot, "New Android Component")
-    return ConfigureTemplateParametersWizardFixture(robot, dialog)
-  }
-
   fun clickCreateNewFragment(): NewFragmentWizardFixture {
-    ActionButtonFixture(robot, menu.blankDestinationButton).click()
+    ActionButtonFixture(robot, menu.createNewDestinationButton).click()
 
     val dialog = findMenuDialog(robot, "New Android Fragment")
     return NewFragmentWizardFixture(robot, dialog)
