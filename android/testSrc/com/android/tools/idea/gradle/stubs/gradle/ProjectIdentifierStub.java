@@ -30,7 +30,7 @@ public class ProjectIdentifierStub implements ProjectIdentifier {
 
   @Override
   public String getProjectPath() {
-    throw new UnsupportedOperationException();
+    return myBuildIdentifier.getRootDir().getPath();
   }
 
   @Override

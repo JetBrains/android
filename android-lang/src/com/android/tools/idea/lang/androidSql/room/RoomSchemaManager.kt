@@ -49,6 +49,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiUtil
+import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.asJava.elements.KtLightField
 import org.jetbrains.kotlin.psi.KtExpression
 
@@ -76,7 +77,11 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
    * @see PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT
    */
   fun getSchema(psiFile: PsiFile): RoomSchema? {
-    val vFile = psiFile.originalFile.virtualFile ?: return null
+    var vFile = psiFile.originalFile.virtualFile ?: return null
+    // When we are inside Editing Fragment vFile does not belong to module. We need to use original one.
+    if (vFile is LightVirtualFile && vFile.originalFile != null) {
+      vFile = vFile.originalFile
+    }
     if (!module.moduleContentScope.contains(vFile)) return null
 
     val scopeType = module.getModuleSystem().getScopeType(vFile, module.project)

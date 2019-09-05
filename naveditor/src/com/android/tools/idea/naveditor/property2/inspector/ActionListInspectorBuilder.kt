@@ -16,20 +16,52 @@
 package com.android.tools.idea.naveditor.property2.inspector
 
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.property.inspector.AddActionDialog
 import com.android.tools.idea.naveditor.property.inspector.showAndUpdateFromDialog
 import com.android.tools.idea.naveditor.property2.ui.ActionCellRenderer
+import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.intellij.ui.components.JBList
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 
-class ActionListInspectorBuilder : ComponentListInspectorBuilder(TAG_ACTION, "Actions", ActionCellRenderer()) {
+class ActionListInspectorBuilder(private val model: NelePropertiesModel) : ComponentListInspectorBuilder(TAG_ACTION, ActionCellRenderer()) {
+  override fun title(component: NlComponent) =
+    if (component.isNavigation) {
+      "Global Actions"
+    }
+    else {
+      "Actions"
+    }
+
   override fun onAdd(parent: NlComponent) {
     invokeDialog(null, parent)
   }
 
   override fun onEdit(component: NlComponent) {
     component.parent?.let { invokeDialog(component, it) }
+  }
+
+  override fun onSelectionChanged(list: JBList<NlComponent>) {
+    var removed = false
+
+    for (i in 0 until list.model.size) {
+      val element = list.model.getElementAt(i)
+      element.removeClientProperty(HIGHLIGHTED_CLIENT_PROPERTY)?.let { removed = true }
+    }
+
+    for (element in list.selectedValuesList) {
+      element.putClientProperty(HIGHLIGHTED_CLIENT_PROPERTY, true)
+    }
+
+    if (removed || list.selectedValuesList.isNotEmpty()) {
+      model.surface?.scene?.let {
+        it.needsRebuildList()
+        it.repaint()
+      }
+    }
   }
 
   override fun isApplicable(component: NlComponent) = component.supportsActions

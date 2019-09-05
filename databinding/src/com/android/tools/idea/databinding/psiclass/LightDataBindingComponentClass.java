@@ -116,7 +116,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
           if (methodCount == 0) {
             return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, myManager.getModificationTracker().getJavaStructureModificationTracker());
           }
-          PsiElementFactory elementFactory = PsiElementFactory.SERVICE.getInstance(project);
+          PsiElementFactory elementFactory = PsiElementFactory.getInstance(project);
           PsiMethod[] result = new PsiMethod[methodCount];
           int methodIndex = 0;
           GlobalSearchScope scope = GlobalSearchScope.allScope(project);

@@ -52,7 +52,7 @@ iml_module(
     name = "whats-new-assistant-test",
     iml_files = ["whats-new-assistant-test.iml"],
     tags = ["no_test_windows"],
-    test_class = "com.android.tools.idea.whatsnew.assistant.WhatsNewAssistantTestSuite",
+    test_class = "com.android.tools.idea.whatsnew.assistant.WhatsNewTestSuite",
     test_coverage = True,
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",

@@ -68,7 +68,6 @@ public class BaselineConstraintHandlingTest {
       .showOnlyDesignView()
       .findView("TextView", 0)
       .rightClick();
-    layoutEditor.invokeContextMenuAction("Show Baseline");
 
     layoutEditor
       .waitForRenderToFinish(Wait.seconds(120))

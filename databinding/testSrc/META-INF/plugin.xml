@@ -29,7 +29,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
-                    testServiceImplementation="com.android.tools.idea.databinding.analytics.TestDataBindingTracker"
+                    testServiceImplementation="com.android.tools.idea.databinding.analytics.TestLayoutBindingTracker"
                     overrides="true"/>
   </extensions>
 

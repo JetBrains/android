@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.lang.androidSql.parser
 
+import com.android.tools.idea.lang.AndroidParsingTestCase
 import com.android.tools.idea.lang.androidSql.ANDROID_SQL_FILE_TYPE
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.lang.androidSql.AndroidSqlPairedBraceMatcher
 import com.intellij.codeInsight.completion.CompletionUtil
 import com.intellij.lang.LanguageBraceMatching
-import com.intellij.psi.PsiErrorElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.testFramework.ParsingTestCase
 
-abstract class AndroidSqlParserTest : ParsingTestCase("no_data_path_needed", ANDROID_SQL_FILE_TYPE.defaultExtension, AndroidSqlParserDefinition()) {
+abstract class AndroidSqlParserTest : AndroidParsingTestCase(ANDROID_SQL_FILE_TYPE.defaultExtension, AndroidSqlParserDefinition()) {
   override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
 
   override fun setUp() {
@@ -56,19 +53,6 @@ abstract class AndroidSqlParserTest : ParsingTestCase("no_data_path_needed", AND
       lexer.advance()
     }
   }
-
-  protected fun toParseTreeText(input: String): String {
-    val psiFile = createPsiFile("in-memory", input)
-    return toParseTreeText(psiFile, true, false).trim()
-  }
-
-  private fun getErrorMessage(input: String): String? {
-    val psiFile = createPsiFile("in-memory", input)
-    return getErrorMessage(psiFile)
-  }
-
-  private fun getErrorMessage(psiFile: PsiFile?) = PsiTreeUtil.findChildOfType(psiFile, PsiErrorElement::class.java)?.errorDescription
-
 }
 
 class MiscParserTest : AndroidSqlParserTest() {

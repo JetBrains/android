@@ -115,7 +115,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
     mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
     add(mySplitter);
-    Disposer.register(editor, myWorkBench);
 
     myToolWindowDefinitions = toolWindowDefinitions;
     ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(this::initNeleModel, this::buildError);

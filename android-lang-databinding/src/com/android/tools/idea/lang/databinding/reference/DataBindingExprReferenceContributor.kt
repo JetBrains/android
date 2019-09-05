@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.databinding.index.BindingXmlIndex
+import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
+import com.android.tools.idea.databinding.util.findIdAttribute
+import com.android.tools.idea.databinding.util.findImportTag
+import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
 import com.android.tools.idea.lang.databinding.model.PsiCallable
@@ -29,20 +33,17 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameter
 import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterList
-import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaExpression
+import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaParameters
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
-import com.android.tools.idea.databinding.findImportTag
-import com.android.tools.idea.databinding.findVariableTag
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.LambdaUtil
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiLambdaExpression
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
@@ -68,7 +69,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbLiteralExpr::class.java), LiteralExprReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbInferredFormalParameter::class.java),
                                         InferredFormalParameterReferenceProvider())
-    registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbLambdaExpression::class.java), LambdaExpressionReferenceProvider())
+    registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbLambdaParameters::class.java), LambdaParametersReferenceProvider())
   }
 
   /**
@@ -252,13 +253,12 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
    */
   private class InferredFormalParameterReferenceProvider : PsiReferenceProvider() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-      val lambdaExpression = element.parent.parent.parent ?: return arrayOf()
-      val functionalClass = lambdaExpression.references
-                              .filterIsInstance<PsiClassReference>()
-                              .firstOrNull()
-                              ?.resolve() as? PsiClass
-                            ?: return arrayOf()
-      val listenerMethod = LambdaUtil.getFunctionalInterfaceMethod(functionalClass) ?: return arrayOf()
+      val lambdaParameters = element.parent.parent ?: return arrayOf()
+      val listenerMethod = lambdaParameters.references
+                             .filterIsInstance<PsiMethodReference>()
+                             .firstOrNull()
+                             ?.resolve() as? PsiMethod
+                           ?: return arrayOf()
       // Associate this expression's parameters with the listener method.
       val parameter = element as PsiDbInferredFormalParameter
       val parameterList = parameter.parent as PsiDbInferredFormalParameterList
@@ -269,20 +269,23 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   }
 
   /**
-   * Provides references for [PsiLambdaExpression]
+   * Provides references for [PsiDbLambdaParameters]
    *
    * From db.bnf:
    *
    * ```
-   * lambdaExpression ::= lambdaParameters '->' expr
+   * lambdaParameters
+   *   ::= '(' inferredFormalParameterList? ')'
+   *        |   inferredFormalSingleParameterList
    * ```
    *
-   * Example: `() -> model.doSomething()`, `view -> model.save(view)`
+   * Example: `()` in  `() -> model.doSomething()`, `view` in `view -> model.save(view)`
    */
-  private inner class LambdaExpressionReferenceProvider : PsiReferenceProvider() {
+  private inner class LambdaParametersReferenceProvider : PsiReferenceProvider() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
       val functionalClass = getFunctionClassFromAssociatedAttribute(element) ?: return arrayOf()
-      return arrayOf(PsiClassReference(element, functionalClass))
+      val listenerMethod = LambdaUtil.getFunctionalInterfaceMethod(functionalClass.psiClass) ?: return arrayOf()
+      return arrayOf(PsiMethodReference(element as PsiDbLambdaParameters, PsiModelMethod(functionalClass, listenerMethod)))
     }
   }
 
@@ -316,7 +319,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         DbTokenTypes.TRUE, DbTokenTypes.FALSE -> PsiType.BOOLEAN
         DbTokenTypes.NULL -> PsiType.NULL
         DbTokenTypes.CHARACTER_LITERAL -> PsiType.CHAR
-        DbTokenTypes.STRING_LITERAL -> DataBindingUtil.parsePsiType("java.lang.String", element.project, null) ?: return arrayOf()
+        DbTokenTypes.STRING_LITERAL -> LayoutBindingTypeUtil.parsePsiType("java.lang.String", element.project) ?: return arrayOf()
         else -> return arrayOf()
       }
       return arrayOf(PsiLiteralReference(element, psiType))
@@ -329,14 +332,13 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
    * e.g. "android:text" is resolved to java.lang.String which is not a functional class.
    *      "android:onClick" is resolved to OnClickListener which is a functional interface(class).
    */
-  private fun getFunctionClassFromAssociatedAttribute(element: PsiElement): PsiClass? {
+  private fun getFunctionClassFromAssociatedAttribute(element: PsiElement): PsiModelClass? {
     val attribute = element.containingFile.context?.parent as? XmlAttribute ?: return null
     return attribute.references
       .filterIsInstance<PsiParameterReference>()
       .firstOrNull()
       ?.resolvedType
-      ?.psiClass
-      ?.takeIf { LambdaUtil.isFunctionalClass(it) }
+      ?.takeIf { LambdaUtil.isFunctionalType(it.type) }
   }
 
   /**
@@ -380,6 +382,12 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       bindingData.findImport(simpleName)?.let { import ->
         xmlFile.findImportTag(simpleName)?.let { importTag ->
           return arrayOf(XmlImportReference(element, importTag, import, module))
+        }
+      }
+
+      bindingData.findViewId(simpleName)?.let { viewId ->
+        xmlFile.findIdAttribute(viewId.id)?.let { attribute ->
+          return arrayOf(XmlAttributeReference(element, attribute))
         }
       }
     }

@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils.MOTION_LAYOUT_PROPERTIES;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +33,7 @@ import java.util.List;
 public class NlComponentTag implements MTag {
   NlComponent mComponent;
   NlComponentTag mParent;
+  private static final boolean DEBUG = false;
 
   NlComponentTag(NlComponent component, NlComponentTag parent) {
     mComponent = component;
@@ -48,6 +53,19 @@ public class NlComponentTag implements MTag {
   @Override
   public void deleteTag() {
     // TODO WE NEED THE ABILITY TO DELETE TAGS
+  }
+
+  @Override
+  public void setClientData(String type, Object motionAttributes) {
+    if (DEBUG) {
+      Debug.log("setClientData MOTION_LAYOUT_PROPERTIES setting " + motionAttributes );
+    }
+    mComponent.putClientProperty(type, motionAttributes );
+  }
+
+  @Override
+  public Object getClientData(String type) {
+    return mComponent.getClientProperty(type);
   }
 
   @Override
@@ -113,6 +131,23 @@ public class NlComponentTag implements MTag {
   }
 
   @Override
+  @Nullable
+  public MTag getChildTagWithTreeId(String type, String treeId) {
+    for (MTag child : getChildren()) {
+      if (child.getTreeId().equals(treeId)) {
+        return child;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public String getTreeId() {
+    return mComponent.getId();
+  }
+
+  @Override
   public String getAttributeValue(String attribute) {
     for (AttributeSnapshot componentAttribute : mComponent.getAttributes()) {
       if (componentAttribute.name.equals(attribute)){
@@ -128,7 +163,7 @@ public class NlComponentTag implements MTag {
     for (AttributeSnapshot value : mComponent.getAttributes()) {
       System.out.println(space + "   " + value.name + "=\"" + value.value + "\"");
     }
-    for (MTag child : children) {
+    for (MTag child : getChildTags()) {
       child.print(space + "   ");
     }
     System.out.println(space + "</" + getTagName() + ">");
@@ -153,7 +188,7 @@ public class NlComponentTag implements MTag {
     }
     ret += (" >\n");
 
-    for (MTag child : children) {
+    for (MTag child : getChildTags()) {
       ret += child.toFormalXmlString(space + "  ");
     }
     ret += space + "</" + getTagName() + ">\n";
@@ -174,7 +209,7 @@ public class NlComponentTag implements MTag {
     }
     out.println(" >");
 
-    for (MTag child : children) {
+    for (MTag child : getChildTags()) {
       child.printFormal(space + "  ", out);
     }
     out.println(space + "</" + getTagName() + ">");
@@ -189,4 +224,5 @@ public class NlComponentTag implements MTag {
   public TagWriter getTagWriter() {
     return null;
   }
+
 }

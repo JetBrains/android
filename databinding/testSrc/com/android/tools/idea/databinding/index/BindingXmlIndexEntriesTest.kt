@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.databinding.index
 
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.TestDataPaths
-import com.android.tools.idea.databinding.findVariableTag
+import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.TextRange

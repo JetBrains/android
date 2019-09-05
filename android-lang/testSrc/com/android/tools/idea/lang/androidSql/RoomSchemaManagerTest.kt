@@ -27,13 +27,17 @@ import com.android.tools.idea.lang.androidSql.room.RoomSchemaManager
 import com.android.tools.idea.lang.androidSql.room.RoomTable
 import com.android.tools.idea.lang.androidSql.room.RoomTable.Type.ENTITY
 import com.android.tools.idea.lang.androidSql.room.RoomTable.Type.VIEW
+import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.intention.impl.QuickEditAction
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.impl.ProjectImpl
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.PsiTestUtil
+import com.intellij.testFramework.fixtures.InjectionTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 
 class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
@@ -586,5 +590,33 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
     val element = myFixture.elementAtCaret
 
     assertThat(getSchema(element).tables.iterator().next().columns.find{it.name =="override_name"}).isNotNull()
+  }
+
+  fun testEditFragmentFindsCorrectSchema() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String", "age" ofType "int")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM U<caret>ser") List<User> getAll();
+        }
+    """.trimIndent())
+
+    val injectionTestFixture = InjectionTestFixture(myFixture)
+
+    val quickEditHandler = QuickEditAction().invokeImpl(project, injectionTestFixture.topLevelEditor, injectionTestFixture.topLevelFile)
+    val fragmentFile = quickEditHandler.newFile
+
+    myFixture.openFileInEditor(fragmentFile.virtualFile)
+    myFixture.moveCaret("U|ser")
+
+    val element = myFixture.elementAtCaret
+
+    assertThat(element).isEqualTo(myFixture.findClass("com.example.User"))
   }
 }

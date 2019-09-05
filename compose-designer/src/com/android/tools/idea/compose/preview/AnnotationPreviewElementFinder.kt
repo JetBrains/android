@@ -15,15 +15,12 @@ package com.android.tools.idea.compose.preview
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.text.nullize
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
@@ -107,10 +104,5 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
     })
 
     return previewElements
-  }
-
-  override fun elementBelongsToPreviewElement(element: PsiElement): Boolean {
-    val annotationEntry: KtAnnotationEntry? = PsiTreeUtil.getParentOfType(element, KtAnnotationEntry::class.java, false)
-    return PREVIEW_ANNOTATION_FQN == annotationEntry?.getQualifiedName()
   }
 }

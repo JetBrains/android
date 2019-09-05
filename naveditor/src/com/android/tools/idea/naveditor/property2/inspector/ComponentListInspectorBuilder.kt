@@ -29,6 +29,8 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
 import icons.StudioIcons
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 
@@ -41,10 +43,10 @@ import java.awt.event.MouseEvent
  * [cellRenderer]: the cell renderer to be used for the list items
  */
 abstract class ComponentListInspectorBuilder(val tagName: String,
-                                             val title: String,
                                              private val cellRenderer: ColoredListCellRenderer<NlComponent>,
                                              private val comparator: Comparator<NlComponent> = compareBy { it.id })
   : InspectorBuilder<NelePropertyItem> {
+  abstract fun title(component: NlComponent): String
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     val component = properties.first?.components?.singleOrNull() ?: return
     if (!isApplicable(component)) {
@@ -60,7 +62,7 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
     val addAction = AddAction(this, component, model)
     val deleteAction = DeleteAction(this, component, model, list)
 
-    val titleModel = inspector.addExpandableTitle(title, model.size > 0, addAction, deleteAction)
+    val titleModel = inspector.addExpandableTitle(title(component), model.size > 0, addAction, deleteAction)
     addAction.model = titleModel
     deleteAction.model = titleModel
 
@@ -73,11 +75,29 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
       }
     })
 
+    list.addListSelectionListener {
+      onSelectionChanged(list)
+    }
+
+    list.addKeyListener(object : KeyAdapter() {
+      override fun keyTyped(e: KeyEvent?) {
+        if (e?.keyChar != '\n' && e?.keyCode != KeyEvent.VK_ENTER) {
+          return
+        }
+
+        if (list.selectedValuesList.size == 1) {
+          onEdit(list.selectedValue)
+          titleModel.refresh()
+        }
+      }
+    })
+
     inspector.addComponent(componentList, titleModel)
   }
 
   protected abstract fun onAdd(parent: NlComponent)
   protected abstract fun onEdit(component: NlComponent)
+  protected open fun onSelectionChanged(list: JBList<NlComponent>) {}
   protected abstract fun isApplicable(component: NlComponent): Boolean
 
   private fun refresh(component: NlComponent, model: SortedListModel<NlComponent>) {
@@ -94,6 +114,7 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
       builder.onAdd(component)
       builder.refresh(component, listModel)
       model?.refresh()
+      model?.expanded = listModel.size > 0
     }
   }
 
@@ -107,6 +128,7 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
       component.model.delete(list.selectedValuesList)
       builder.refresh(component, listModel)
       model?.refresh()
+      model?.expanded = listModel.size > 0
     }
   }
 }

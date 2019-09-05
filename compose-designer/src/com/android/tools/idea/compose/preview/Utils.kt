@@ -129,17 +129,6 @@ interface PreviewElementFinder {
    * This method always runs on smart mode.
    */
   fun findPreviewMethods(uFile: UFile): List<PreviewElement>
-
-  /**
-   * Returns whether the given [PsiElement] belongs to a PreviewElement handled by this [PreviewElementFinder]. Implementations must return
-   * true if they can not determine if the element belongs to a [PreviewElement] or not.
-   * This method will be called to detect changes into [PreviewElement]s and issue a refresh.
-   *
-   * This method can not use UAST for performance reasons since it might be called very frequently.
-   *
-   * This method always runs on smart mode.
-   */
-  fun elementBelongsToPreviewElement(element: PsiElement): Boolean = true
 }
 
 internal fun requestBuild(project: Project, module: Module) {

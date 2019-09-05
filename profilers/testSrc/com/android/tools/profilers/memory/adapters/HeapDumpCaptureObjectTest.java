@@ -36,7 +36,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
-import com.android.tools.profilers.memory.adapters.instancefilters.ActivityLeakInstanceFilter;
+import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.google.common.truth.Truth;
 import java.io.File;
@@ -213,10 +213,10 @@ public class HeapDumpCaptureObjectTest {
     assertFalse(capture.isError());
 
     long allInstanceCount = capture.getInstances().count();
-    Truth.assertThat(allInstanceCount).isGreaterThan(1L);
+    Truth.assertThat(allInstanceCount).isGreaterThan(7L);
     Set<CaptureObjectInstanceFilter> filters = capture.getSupportedInstanceFilters();
     Optional<CaptureObjectInstanceFilter> leakFilter =
-      filters.stream().filter(filter -> filter instanceof ActivityLeakInstanceFilter).findAny();
+      filters.stream().filter(filter -> filter instanceof ActivityFragmentLeakInstanceFilter).findAny();
     Truth.assertThat(leakFilter.isPresent()).isTrue();
 
     CountDownLatch addFilterLatch = new CountDownLatch(1);
@@ -225,10 +225,13 @@ public class HeapDumpCaptureObjectTest {
     capture.getInstanceFilterExecutor().submit(addFilterLatch::countDown);
     addFilterLatch.await();
     List<InstanceObject> filtredInstances = capture.getInstances().collect(Collectors.toList());
-    Truth.assertThat(filtredInstances).hasSize(1);
-    InstanceObject leakedInstance = filtredInstances.get(0);
-    // The hprof contains a single instance of the ImageDetailActivity that has been leaked.
-    Truth.assertThat(leakedInstance.getClassEntry().getSimpleClassName()).isEqualTo("ImageDetailActivity");
+    Truth.assertThat(filtredInstances).hasSize(7);
+    Truth.assertThat(filtredInstances.stream().filter(
+      instance -> instance.getClassEntry().getSimpleClassName().equals("ImageDetailActivity")).count()).isEqualTo(1);
+    Truth.assertThat(filtredInstances.stream().filter(
+      instance -> instance.getClassEntry().getSimpleClassName().equals("ImageCache$RetainFragment")).count()).isEqualTo(1);
+    Truth.assertThat(filtredInstances.stream().filter(
+      instance -> instance.getClassEntry().getSimpleClassName().equals("ImageDetailFragment")).count()).isEqualTo(5);
 
     CountDownLatch removeFilterLatch = new CountDownLatch(1);
     capture.removeInstanceFilter(leakFilter.get(), Runnable::run);

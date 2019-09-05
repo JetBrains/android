@@ -314,7 +314,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
 
                        To fix this run the layout inspector again or manually run these commands:
                        """.trimIndent()
-      commands.forEach { message += "\n $ abd shell $it" }
+      commands.forEach { message += "\n $ adb shell $it" }
 
       val dialog = dialog(
         title = "Unable to connect to your device",

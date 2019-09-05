@@ -568,7 +568,6 @@ public class StudioIcons {
     }
 
     public static class Menu {
-      public static final Icon ANDROID_PREVIEW = load("/studio/icons/shell/menu/android-preview.svg"); // 16x16
       public static final Icon AVD_MANAGER = load("/studio/icons/shell/menu/avd-manager.svg"); // 16x16
       public static final Icon LAYOUT_INSPECTOR = load("/studio/icons/shell/menu/layout-inspector.svg"); // 16x16
       public static final Icon PROFILER = load("/studio/icons/shell/menu/profiler.svg"); // 16x16

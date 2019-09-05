@@ -15,9 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_ANDROID_ID;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
@@ -32,7 +39,7 @@ import java.util.HashMap;
  * TODO switch to SmartPsiElementPointer<XmlTag>
  */
 public class MotionSceneTag implements MTag {
-
+  private static final boolean DEBUG = false;
   XmlTag myXmlTag;
   MotionSceneTag mParent;
   ArrayList<MTag> myChildren = new ArrayList<>();
@@ -61,6 +68,9 @@ public class MotionSceneTag implements MTag {
 
   @Override
   public String getTagName() {
+    if (myXmlTag == null) {
+      return null;
+    }
     return myXmlTag.getName();
   }
 
@@ -96,6 +106,9 @@ public class MotionSceneTag implements MTag {
 
   @Override
   public MTag[] getChildTags(String attribute, String value) {
+    if (value == null) {
+      return  null;
+    }
     ArrayList<MTag> filter = new ArrayList<>();
     for (MTag child : myChildren) {
       String childValue = child.getAttributeValue(attribute);
@@ -117,7 +130,41 @@ public class MotionSceneTag implements MTag {
         }
       }
     }
-    return filter.toArray(new MTag[0]);  }
+    return filter.toArray(new MTag[0]);
+  }
+
+  @Override
+  @Nullable
+  public MTag getChildTagWithTreeId(String type, String treeId) {
+    if (treeId == null) {
+      return null;
+    }
+    for (MTag child : myChildren) {
+      if (child.getTagName().equals(type)) {
+        String childValue = child.getTreeId();
+        if (childValue != null && childValue.equals(treeId)) {
+          return child;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public String getTreeId() {
+    switch (getTagName()) {
+      case Tags.CONSTRAINTSET:
+        return getAttributeValue(ATTR_ANDROID_ID);
+      case Tags.TRANSITION:
+        return String.format("%1$s|%2$s|%3$s",
+                             getAttributeValue(ATTR_ANDROID_ID),
+                             getAttributeValue(ATTR_CONSTRAINTSET_START),
+                             getAttributeValue(ATTR_CONSTRAINTSET_END));
+      default:
+        return null;
+    }
+  }
 
   @Override
   public String getAttributeValue(String attribute) {
@@ -139,6 +186,11 @@ public class MotionSceneTag implements MTag {
       child.print(space + "   ");
     }
     System.out.println(space + "</" + getTagName() + ">");
+  }
+
+  @Nullable
+  public XmlTag getXmlTag() {
+    return myXmlTag != null && myXmlTag.isValid() ? myXmlTag : null;
   }
 
   @Override
@@ -214,6 +266,18 @@ public class MotionSceneTag implements MTag {
   }
 
   @Override
+  public void setClientData(String type, Object motionAttributes) {
+    if (DEBUG) {
+      Debug.log("setClientData NO SUPPORT FOR CLIENT DATA" );
+    }
+  }
+
+  @Override
+  public Object getClientData(String type) {
+    return null;
+  }
+
+  @Override
   public TagWriter getChildTagWriter(String name) {
     return new MotionSceneTagWriter(this, name);
   }
@@ -239,7 +303,6 @@ public class MotionSceneTag implements MTag {
     }
   }
 
-  private static final boolean DEBUG = true;
 
   public static MotionSceneTag parse(NlComponent motionLayout,
                                      Project project,

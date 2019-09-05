@@ -84,6 +84,7 @@ public class EnergyUsagePreprocessor implements TransportEventPreprocessor {
   }
 
   @Override
+  @NotNull
   public Iterable<Common.Event> preprocessEvent(Common.Event event) {
     switch (event.getKind()) {
       case CPU_CORE_CONFIG:

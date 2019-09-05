@@ -17,7 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import static com.android.tools.idea.lang.databinding.DataBindingLangUtil.JAVA_LANG;
 
-import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.databinding.index.BindingXmlData;
 import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.tools.idea.databinding.index.ImportData;

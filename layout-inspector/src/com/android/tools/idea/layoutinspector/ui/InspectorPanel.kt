@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -28,11 +29,11 @@ import javax.swing.JPanel
 /**
  * Main (center) panel of the layout inspector
  */
-class InspectorPanel(val project: Project, toolName: String) : JPanel(BorderLayout()) {
+class InspectorPanel(val project: Project, toolName: String, disposableParent: Disposable) : JPanel(BorderLayout()) {
   val deviceViewPanel: DeviceViewPanel
 
   init {
-    val workbench = WorkBench<LayoutInspector>(project, toolName, null)
+    val workbench = WorkBench<LayoutInspector>(project, toolName, null, disposableParent)
     val viewSettings = DeviceViewSettings()
     val layoutInspector = LayoutInspector(InspectorModel(project, ViewNode.EMPTY))
     deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings)

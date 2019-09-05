@@ -91,6 +91,10 @@ public class TransportProxy {
     myProxyService.registerEventPreprocessor(eventPreprocessor);
   }
 
+  public void registerDataPreprocessor(TransportBytesPreprocessor dataPreprocessor) {
+    myProxyService.registerDataPreprocessor(dataPreprocessor);
+  }
+
   /**
    * Must be called as the last step of initializing the proxy server, after registering proxy services
    */

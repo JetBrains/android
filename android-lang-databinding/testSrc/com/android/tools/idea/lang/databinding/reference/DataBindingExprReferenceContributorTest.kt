@@ -24,6 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -230,6 +231,35 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
           <variable name="model" type="test.langdb.Model" />
         </data>
         <TextView android:text="@{model.do<caret>Something()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val javaDoSomething = fixture.findClass("test.langdb.Model").findMethodsByName("doSomething")[0].sourceElement!!
+    val xmlDoSomething = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlDoSomething.isReferenceTo(javaDoSomething)).isTrue()
+    assertThat(xmlDoSomething.resolve()).isEqualTo(javaDoSomething)
+  }
+
+  @Test
+  fun dbMethodReferencesClassMethodWithVarArgs() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public void doSomething(Object... args) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.do<caret>Something(model, model, model)}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -599,7 +629,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
-  fun dbLambdaExpressionReferencesFunctionalInterface() {
+  fun dbLambdaParametersReferencesFunctionalInterface() {
     fixture.addClass(
       // language=java
       """
@@ -634,7 +664,45 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     val reference = fixture.getReferenceAtCaretPosition()!!
-    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("android.view.View.OnClickListener")
+    assertThat((reference.resolve() as PsiMethod).name).isEqualTo("onClick")
+  }
+
+  @Test
+  fun dbLambdaExprShouldNotReferenceFunctionalInterface() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${mode.bindingAdapter};
+
+      public class Model {
+        @BindingAdapter("android:onClick2")
+        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public String getString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{() -> unresolvable_<caret>_code}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
   }
 
   @Test
@@ -816,5 +884,46 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
 
     val reference = fixture.getReferenceAtCaretPosition()!!
     assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "getText" }).isTrue()
+  }
+
+  @Test
+  fun dbSimpleNameReferencesViewId() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <TextView
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{vie<caret>w_id.getText()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    val xmlAttribute = reference.resolve() as XmlAttribute
+    assertThat(xmlAttribute.name).isEqualTo("android:id")
+    assertThat(xmlAttribute.value).isEqualTo("@+id/view_id")
+  }
+
+  @Test
+  fun dbResolveMethodsFromInterfaceReturnType() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <EditText
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{view_id.getText().le<caret>ngth()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    val references = (fixture.getReferenceAtCaretPosition() as PsiMultiReference).references
+    // view_id.getText() should return interface Editable that extends CharSequence and inherits its method length().
+    assertThat(references.any { (it.resolve() as PsiMethod).name == "length"}).isTrue()
   }
 }

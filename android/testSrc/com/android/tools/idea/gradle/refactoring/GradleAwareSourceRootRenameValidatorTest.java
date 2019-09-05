@@ -19,6 +19,8 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
@@ -55,15 +57,8 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
     }
   }
 
-  public void testIsInputValidWithIdeaSync() throws Exception {
+  public void testIsInputValid() throws Exception {
     GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
-    StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(true);
-    verifyErrorMessage();
-  }
-
-  public void testIsInputValidWithSingleVariantSync() throws Exception {
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
-    StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(true);
     verifyErrorMessage();
   }
 
@@ -71,6 +66,7 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
     loadSimpleApplication();
     // Generate buildConfig.
     requestSyncAndWait(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
+    GradleBuildInvoker.getInstance(getProject()).generateSources();
 
     Project project = getProject();
     File sourceRoot = new File(project.getBasePath(), "app/build/generated/source/buildConfig/debug");

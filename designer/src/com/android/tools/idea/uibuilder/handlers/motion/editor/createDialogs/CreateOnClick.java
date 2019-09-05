@@ -154,7 +154,7 @@ public class CreateOnClick extends BaseCreatePanel {
     }
 
     writer.printFormal(" ", System.out);
-    MTag ret = writer.commit();
+    MTag ret = writer.commit("Create OnClick");
     mMotionEditor.setMTag(model);
     super.create();
     return ret;

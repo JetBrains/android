@@ -135,12 +135,10 @@ public class VisualizationForm implements Disposable {
     mySurface.setCentered(true);
     mySurface.setName(VISUALIZATION_DESIGN_SURFACE);
 
-    myWorkBench = new WorkBench<>(myProject, "Visualization", null);
+    myWorkBench = new WorkBench<>(myProject, "Visualization", null, this);
     myWorkBench.setLoadingText("Loading...");
     myWorkBench.setToolContext(mySurface);
     myRoot.add(new IssuePanelSplitter(mySurface, myWorkBench));
-
-    Disposer.register(this, myWorkBench);
   }
 
   private void createContentPanel() {

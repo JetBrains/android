@@ -105,6 +105,8 @@ public class NlComponent implements NlAttributesHolder {
     return myDelegate;
   }
 
+  /** @Deprecated Please dont use this anymore. */
+  // TODO(b/140254908) Remove the NlComponentDelegate completely.
   public void setDelegate(@Nullable NlComponentDelegate delegate) {
     myDelegate = delegate;
   }

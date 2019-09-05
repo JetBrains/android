@@ -32,10 +32,13 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.PathUtil;
 import com.intellij.util.containers.OrderedSet;
 import org.jetbrains.android.compiler.AndroidDexCompiler;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -46,6 +49,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import org.jetbrains.annotations.SystemDependent;
+import org.jetbrains.annotations.SystemIndependent;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getOutput;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
@@ -377,19 +382,17 @@ public class AndroidRootUtil {
   }
 
   @Nullable
-  public static String getModuleDirPath(Module module) {
-    String moduleFilePath = module.getModuleFilePath();
-    String moduleDirPath = new File(moduleFilePath).getParent();
-    if (moduleDirPath != null) {
-      moduleDirPath = toSystemIndependentName(moduleDirPath);
-    }
-    return moduleDirPath;
+  @SystemIndependent
+  public static String getModuleDirPath(@NotNull Module module) {
+    @SystemIndependent String moduleFilePath = module.getModuleFilePath();
+    return VfsUtil.getParentDir(moduleFilePath);
   }
 
   @Nullable
   public static File findModuleRootFolderPath(@NotNull Module module) {
-    File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
-    return moduleFilePath.getParentFile();
+    @SystemIndependent String path = getModuleDirPath(module);
+    if (path == null) return null;
+    return new File(PathUtil.toSystemDependentName(path));
   }
 
   @Nullable
@@ -504,22 +507,25 @@ public class AndroidRootUtil {
   }
 
   @Nullable
+  @SystemIndependent
   public static String getAptGenSourceRootPath(@NotNull AndroidFacet facet) {
     String path = facet.getProperties().GEN_FOLDER_RELATIVE_PATH_APT;
     if (path.isEmpty()) return null;
-    String moduleDirPath = getModuleDirPath(facet.getModule());
+    @SystemIndependent String moduleDirPath = getModuleDirPath(facet.getModule());
     return moduleDirPath != null ? moduleDirPath + path : null;
   }
 
   @Nullable
+  @SystemIndependent
   public static String getAidlGenSourceRootPath(@NotNull AndroidFacet facet) {
     String path = facet.getProperties().GEN_FOLDER_RELATIVE_PATH_AIDL;
     if (path.isEmpty()) return null;
-    String moduleDirPath = getModuleDirPath(facet.getModule());
+    @SystemIndependent String moduleDirPath = getModuleDirPath(facet.getModule());
     return moduleDirPath != null ? moduleDirPath + path : null;
   }
 
   @Nullable
+  @SystemDependent
   public static String getApkPath(@NotNull AndroidFacet facet) {
     if (facet.requiresAndroidModel()) {
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
@@ -537,13 +543,14 @@ public class AndroidRootUtil {
     if (path.isEmpty()) {
       return getOutputPackage(facet.getModule());
     }
-    String moduleDirPath = getModuleDirPath(facet.getModule());
+    @SystemIndependent String moduleDirPath = getModuleDirPath(facet.getModule());
     return moduleDirPath != null ? toSystemDependentName(moduleDirPath + path) : null;
   }
 
   @Nullable
+  @SystemIndependent
   public static String getPathRelativeToModuleDir(@NotNull Module module, @NotNull String path) {
-    String moduleDirPath = getModuleDirPath(module);
+    @SystemIndependent String moduleDirPath = getModuleDirPath(module);
     if (moduleDirPath == null) {
       return null;
     }

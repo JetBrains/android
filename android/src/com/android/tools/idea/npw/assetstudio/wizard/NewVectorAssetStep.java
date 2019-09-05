@@ -428,8 +428,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
    * Call {@link #enqueueUpdate()} in order to kick-start the generation of a new preview.
    */
   private final class VectorPreviewUpdater {
-    @Nullable private SwingWorker myCurrentWorker;
-    @Nullable private SwingWorker myEnqueuedWorker;
+    @Nullable private SwingWorker<VectorAsset.Preview> myCurrentWorker;
+    @Nullable private SwingWorker<VectorAsset.Preview> myEnqueuedWorker;
 
     /**
      * Updates the image preview asynchronously. If an update is already in process, then a new update
@@ -455,8 +455,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       }
     }
 
-    private SwingWorker createWorker(int previewWidth) {
-      return new SwingWorker() {
+    private SwingWorker<VectorAsset.Preview> createWorker(int previewWidth) {
+      return new SwingWorker<VectorAsset.Preview>() {
         @Nullable VectorAsset.Preview myPreview;
         @NotNull VectorAsset myAsset = myActiveAsset.get();
         @Nullable File myAssetFile = myAsset.path().getValueOrNull();
@@ -465,8 +465,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
         @WorkerThread
         @Override
-        @Nullable
-        public Object construct() {
+        @NotNull
+        public VectorAsset.Preview construct() {
           try {
             myPreview = VectorAsset.generatePreview(myVectorDrawableInfo, previewWidth, myOverrideInfo);
           } catch (Throwable t) {
@@ -476,7 +476,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
                 "Internal error generating preview for " + myAssetFile.getName();
             myPreview = new VectorAsset.Preview(message);
           }
-          return null;
+          return myPreview;
         }
 
         @UiThread

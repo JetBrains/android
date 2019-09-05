@@ -98,7 +98,7 @@ public class GuidelineTarget extends BaseTarget {
     updateAttributes(modification, snappedX, snappedY);
     modification.apply();
     component.fireLiveChangeEvent();
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     myChangedComponent = true;
   }
 
@@ -130,7 +130,7 @@ public class GuidelineTarget extends BaseTarget {
       }
     }
     if (myChangedComponent) {
-      myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+      myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     }
   }
 
@@ -152,7 +152,7 @@ public class GuidelineTarget extends BaseTarget {
     myComponent.setDragging(false);
     myTargetSnapper.reset();
     myChangedComponent = false;
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   private boolean isAutoConnectionEnabled() {

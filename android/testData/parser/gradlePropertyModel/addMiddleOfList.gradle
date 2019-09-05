@@ -1,4 +1,4 @@
 ext {
-  def var = "2"
+  def var1 = "2"
   prop1 = [1, 4]
 }

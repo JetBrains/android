@@ -59,6 +59,7 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 import java.math.BigDecimal
+import kotlin.reflect.KClass
 
 internal val ESCAPE_CHILD = Regex("[\\t ]+")
 
@@ -113,6 +114,12 @@ internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslEl
       else -> anchorAfter
     }
   }
+}
+
+internal fun needToCreateParent(element: GradleDslElement): Boolean {
+  val parent = element.parent
+  // If the parent is an extra block dslElement, we never create a psiElement for it because we don't use it in kotlin.
+  return parent != null && (parent.psiElement == null && parent !is ExtDslElement)
 }
 
 /**
@@ -373,7 +380,7 @@ internal fun createListElement(expression : GradleDslSettableExpression) : PsiEl
 
   val expressionPsi = expression.unsavedValue ?: return null
 
-  val added  = createPsiElementInsideList(parent, expression, parentPsi, expressionPsi)
+  val added  = createPsiElementInsideList(parent, expression, parentPsi, expressionPsi) ?: return null
   expression.psiElement = added
   expression.commit()
   return expression.psiElement
@@ -416,37 +423,51 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
 /**
  * Add an argument to a GradleDslList (parentDslElement). The PsiElement of the list (parentPsiElement) can either be :
  * KtCallExpression : for cases where we have a list in Kotlin (listOf())
- * KtValueArgumentList : for all the other cases (ex  : KtCallExpression arguments).
+ * KtBinaryExpression : for cases where we have binary expressions ( ex: map arguments or assignment expression)
+ * KtValueArgumentList : for all the other cases (ex  : KtCallExpression arguments)
+ * Others : not handled.
  */
 internal fun createPsiElementInsideList(parentDslElement : GradleDslElement,
                                         dslElement : GradleDslSettableExpression,
                                         parentPsiElement: PsiElement,
-                                        psiElement: PsiElement) : PsiElement {
-  val parentPsiElement =
-    if (parentPsiElement !is KtCallExpression) parentPsiElement as? KtValueArgumentList ?:
-                                               error("ParentPsi should be a KtValueArgumentList.")
-    else parentPsiElement.valueArgumentList ?: error("The parent psi element is not valid.")
+                                        psiElement: PsiElement) : PsiElement? {
+  val parentPsiElement = when (parentPsiElement){
+    is KtCallExpression -> parentPsiElement.valueArgumentList ?: return null
+    is KtBinaryExpression -> (parentPsiElement.right as? KtCallExpression)?.valueArgumentList ?: return null
+    is KtValueArgumentList -> parentPsiElement
+    else -> return null
+  }
 
   val anchor = parentDslElement.requestAnchor(dslElement)
 
   // Create a valueArgument to add to the list.
   val psiFactory = KtPsiFactory(parentPsiElement.project)
   // support named argument. ex: plugin = "kotlin-android".
-  val argument = if (dslElement.name.isNotEmpty()) {
-    psiFactory.createArgument(psiElement as? KtExpression, Name.identifier(dslElement.name))
-  }
-  else {
-    psiFactory.createArgument("${dslElement.value.toString().addQuotes(true)}")
-  }
+  val argument = if (dslElement.name.isNotEmpty()) psiFactory.createArgument(psiElement as? KtExpression, Name.identifier(dslElement.name))
+  else psiFactory.createArgument(psiElement as? KtExpression)
 
   // If the dslElement has an anchor that is not null and that the list is not empty, we add it to the list after the anchor ;
   // otherwise, we add it at the beginning of the list.
   if (parentPsiElement.arguments.isNotEmpty() && anchor != null) {
-    val anchorPsi = requireNotNull(anchor.psiElement)
-    return parentPsiElement.addArgumentAfter(argument, anchorPsi as KtValueArgument)
-  }
-  return parentPsiElement.addArgumentAfter(argument, parentPsiElement.arguments.firstOrNull())
+    val anchorPsi =
+      anchor.psiElement as? KtValueArgument ?:
+      getNextValidPsiElement(anchor.psiElement, KtValueArgument::class) as? KtValueArgument ?: return null
 
+    return parentPsiElement.addArgumentAfter(argument, anchorPsi)
+  }
+  return parentPsiElement.addArgumentBefore(argument, parentPsiElement.arguments.firstOrNull()).getArgumentExpression()
+}
+
+/**
+ * Return, if found, first parent psiElement that is of the type eClass, otherwise, return null.
+ */
+internal fun getNextValidPsiElement(psiElement: PsiElement?, eClass: KClass<*>) : PsiElement? {
+  var psiElement = psiElement ?: return null
+  do {
+    psiElement = psiElement.parent ?: return null
+  } while (!eClass.isInstance(psiElement))
+
+  return psiElement
 }
 
 internal fun getKtBlockExpression(psiElement: PsiElement) : KtBlockExpression? {
@@ -523,21 +544,20 @@ internal fun createBinaryExpression(expressionList : GradleDslExpressionList) : 
 
   val expression = psiFactory.createExpression("\"$listName\" to listOf()") as? KtBinaryExpression ?: return null
   val added : PsiElement?
-  val mapPsiElement : PsiElement
 
-  when (parentPsiElement) {
+  val mapPsiElement = when (parentPsiElement) {
     // This is the case when a map is a parameter of a KtCallExpression and use the psiElement of the expression arguments list.
     // Ex. implementation(mapOf()).
-    is KtValueArgumentList -> mapPsiElement = parentPsiElement.arguments[0].getArgumentExpression()  ?: return null
+    is KtValueArgumentList -> parentPsiElement.arguments[0].getArgumentExpression()
     // This is the case where we can have property = mapOf(), where the map has the psi element of the binary expression.
-    is KtBinaryExpression -> mapPsiElement = requireNotNull(parentPsiElement.right)
+    is KtBinaryExpression -> requireNotNull(parentPsiElement.right)
     // This is the case where the map dsl element uses it's proper psiElement (i.e. mapOf()).
-    // The dsl element holds the arguments of the original callExpression as psi element.
-    else -> mapPsiElement = parentPsiElement.parent  // We need to get back to the expression psi element.
+    is KtCallExpression -> parentPsiElement
+    else -> return null
   }
 
   // Get The map arguments list that will be updated and add a new argument to it.
-  val argumentsList = (mapPsiElement as KtCallExpression).valueArgumentList ?: return null
+  val argumentsList = (mapPsiElement as? KtCallExpression)?.valueArgumentList ?: return null
   val mapValueArgument = psiFactory.createArgument(expression)
   val lastArgument = argumentsList.arguments.last()
   added = argumentsList.addArgumentAfter(mapValueArgument, lastArgument)

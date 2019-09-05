@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
