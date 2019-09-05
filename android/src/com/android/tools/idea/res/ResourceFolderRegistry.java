@@ -32,6 +32,11 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
@@ -48,6 +53,8 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
 import com.intellij.util.messages.MessageBusConnection;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -86,6 +93,7 @@ public class ResourceFolderRegistry implements Disposable {
     });
     connection.subscribe(VirtualFileManager.VFS_CHANGES, new MyVfsListener());
     connection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new MyFileDocumentManagerListener());
+    EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new MyDocumentListener(), this);
   }
 
   @NotNull
@@ -361,6 +369,23 @@ public class ResourceFolderRegistry implements Disposable {
     @Override
     public void fileWithNoDocumentChanged(@NotNull VirtualFile file) {
       dispatchToRepositories(file, ResourceFolderRepository::scheduleScan);
+    }
+  }
+
+  private class MyDocumentListener implements DocumentListener {
+    private final FileDocumentManager myFileDocumentManager = FileDocumentManager.getInstance();
+    private final PsiDocumentManager myPsiDocumentManager = PsiDocumentManager.getInstance(myProject);
+
+    @Override
+    public void documentChanged(@NotNull DocumentEvent event) {
+      Document document = event.getDocument();
+      PsiFile psiFile = myPsiDocumentManager.getCachedPsiFile(document);
+      if (psiFile == null) {
+        VirtualFile virtualFile = myFileDocumentManager.getFile(document);
+        if (virtualFile != null) {
+          dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan);
+        }
+      }
     }
   }
 }

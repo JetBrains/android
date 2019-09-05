@@ -4174,7 +4174,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(2, repository.getResources(RES_AUTO, ResourceType.DRAWABLE).size());
   }
 
-  public void testBackgroundUpdates() throws Exception {
+  /**
+   * Simulates a common case when git is used in background resulting in a VirtualFile with no Document being modified.
+   */
+  public void testFileWithNoDocument() throws Exception {
     VirtualFile valuesXmlVirtualFile = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     ResourceFolderRepository repository = createRegisteredRepository();
 
@@ -4184,6 +4187,31 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     assertTrue(repository.hasResources(RES_AUTO, ResourceType.STRING, "from_git"));
+  }
+
+  /**
+   * Simulates what our templates do, modififying Documents that have no PSI (yet). Since PSI can be garbage-collected at any point, this
+   * is possible in other cases as well.
+   *
+   * @see com.android.tools.idea.templates.TemplateUtils#writeTextFile(Object, String, File)
+   */
+  public void testFileWithNoPsi() throws Exception {
+    VirtualFile valuesXml = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    ResourceFolderRepository repository = createRegisteredRepository();
+
+    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
+    Document document = fileDocumentManager.getDocument(valuesXml);
+
+    // Sanity check:
+    assertThat(PsiDocumentManager.getInstance(getProject()).getCachedPsiFile(document)).named("Cached PSI").isNull();
+
+    WriteAction.run(() -> {
+      document.setText("<resources><string name='from_templates'>git</string></resources>");
+      fileDocumentManager.saveDocument(document);
+    });
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+
+    assertTrue(repository.hasResources(RES_AUTO, ResourceType.STRING, "from_templates"));
   }
 
   public void testUnsavedDocument_noCache() throws Exception {
