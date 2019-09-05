@@ -1,1 +1,2 @@
-val test by extra(extra["xyz"])
+val xyz: String by project
+val test by extra(xyz)
