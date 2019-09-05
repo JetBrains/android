@@ -23,7 +23,9 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -161,9 +163,51 @@ public class MotionSceneTag implements MTag {
                              getAttributeValue(ATTR_ANDROID_ID),
                              getAttributeValue(ATTR_CONSTRAINTSET_START),
                              getAttributeValue(ATTR_CONSTRAINTSET_END));
+      case Tags.KEY_ATTRIBUTE:
+      case Tags.KEY_POSITION:
+      case Tags.KEY_CYCLE:
+      case Tags.KEY_TIME_CYCLE:
+      case Tags.KEY_TRIGGER:
+        return computeKeyFrameTreeId();
       default:
         return null;
     }
+  }
+
+  /**
+   * Compute the a treeId for a KeyFrame
+   * The intent is it should look like
+   * "KeyCycle,32|Id:button1|scaleX"
+   */
+  private String computeKeyFrameTreeId() {
+    String tagName = getTagName();
+    String target = getAttributeValue(MotionSceneAttrs.Key.MOTION_TARGET);
+    String pos = getAttributeValue(MotionSceneAttrs.Key.FRAME_POSITION);
+
+    StringBuilder key = new StringBuilder();
+    key.append(tagName);
+    if (pos != null) { // TAGS.KEY_TRIGGER may not have a framePosition
+      key.append(",").append(pos);
+    }
+    switch (tagName) {
+      case Tags.KEY_POSITION:
+      case Tags.KEY_TRIGGER:
+        break;
+      default:
+        if (target != null && target.startsWith("@")) {
+          key.append("|Id:").append(Utils.stripID(target));
+        }
+        else {
+          key.append("|Tag:").append(target);
+        }
+        for (String keyAttribute : MotionSceneAttrs.KeyAttributeOptions) {
+          if (getAttributeValue(keyAttribute) != null) {
+            key.append(",").append(keyAttribute);
+          }
+        }
+        break;
+    }
+    return key.toString();
   }
 
   @Override
