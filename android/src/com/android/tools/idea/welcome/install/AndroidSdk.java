@@ -22,7 +22,9 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.SystemInfo;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,8 +56,18 @@ public final class AndroidSdk extends InstallableComponent {
   @NotNull
   @Override
   protected Collection<String> getRequiredSdkPackages() {
+    return getRequiredSdkPackages(SystemInfo.isChromeOS);
+  }
+
+  @NotNull
+  @VisibleForTesting
+  Collection<String> getRequiredSdkPackages(boolean chromeOs) {
     Collection<String> result = Lists.newArrayList();
-    result.add(SdkConstants.FD_EMULATOR);
+
+    if (!chromeOs) {
+      result.add(SdkConstants.FD_EMULATOR);
+    }
+
     result.add(SdkConstants.FD_PLATFORM_TOOLS);
     String buildToolsPath = getLatestCompatibleBuildToolsPath();
     if (buildToolsPath != null) {
