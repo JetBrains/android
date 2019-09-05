@@ -18,7 +18,6 @@ package com.android.tools.idea.res
 import com.android.SdkConstants
 import com.android.ide.common.resources.DataBindingResourceType
 import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.res.ResourceFolderRepositoryTest.overrideCacheService
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
@@ -37,27 +36,17 @@ import org.jetbrains.android.facet.ResourceFolderManager
 import java.io.File
 
 class ResourceFolderDataBindingTest : AndroidTestCase() {
-  private lateinit var myOldFileCacheService: ResourceFolderRepositoryFileCache
   private lateinit var myRegistry: ResourceFolderRegistry
   private lateinit var psiFile: PsiFile
   private lateinit var resources: ResourceFolderRepository
   private lateinit var facet: AndroidFacet
-
-  public override fun tearDown() {
-    try {
-      overrideCacheService(myOldFileCacheService)
-    }
-    finally {
-      super.tearDown()
-    }
-  }
 
   @Throws(Exception::class)
   public override fun setUp() {
     super.setUp()
     // Use a file cache that has per-test root directories instead of sharing the system directory.
     val cache = ResourceFolderRepositoryFileCacheImpl(File(myFixture.tempDirPath))
-    myOldFileCacheService = overrideCacheService(cache)
+    ResourceFolderRepositoryTest.overrideCacheService(cache, testRootDisposable)
   }
 
   private fun setupTestWithDataBinding() {
