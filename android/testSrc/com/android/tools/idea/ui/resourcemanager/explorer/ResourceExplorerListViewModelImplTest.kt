@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -26,6 +27,7 @@ import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.google.common.truth.Truth
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
@@ -35,31 +37,34 @@ import com.intellij.psi.PsiManager
 import com.intellij.refactoring.rename.RenameDialog
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import java.awt.image.BufferedImage
 import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.ImageIcon
 
-class ResourceExplorerViewModelImplTest {
+class ResourceExplorerListViewModelImplTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
   private val chain = RuleChain(projectRule, EdtRule())
   @Rule
   fun getChain() = chain
 
-  private val disposable = Disposer.newDisposable("ModuleResourcesBrowserViewModelTest")
+  private lateinit var resourceResolver: ResourceResolver
+  private val disposable = Disposer.newDisposable("ResourceExplorerListViewModelImplTest")
 
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = getTestDataDirectory()
+    resourceResolver = Mockito.mock(ResourceResolver::class.java)
   }
 
   @After
@@ -71,9 +76,10 @@ class ResourceExplorerViewModelImplTest {
   fun getDrawablePreview() {
     val latch = CountDownLatch(1)
     val pngDrawable = projectRule.getPNGResourceItem()
-    val viewModel = createViewModel(projectRule.module)
+    val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
     val asset = Asset.fromResourceItem(pngDrawable)!! as DesignAsset
     val iconSize = 32 // To compensate the 10% margin around the icon
+    Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
     viewModel.assetPreviewManager
       .getPreviewProvider(ResourceType.DRAWABLE)
       .getIcon(asset, iconSize, iconSize, { latch.countDown() })
@@ -86,20 +92,20 @@ class ResourceExplorerViewModelImplTest {
     ImageDiffUtil.assertImageSimilar(getPNGFile(), image, 0.05)
   }
 
-  @RunsInEdt
   @Test
   fun getOtherModulesResources() {
     Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
     val module2Name = "app2"
 
-    addAndroidModule(module2Name, projectRule.project) { resourceDir ->
-      FileUtil.copy(File(getTestDataDirectory() + "/res/values/colors.xml"),
-                    resourceDir.resolve("values/colors.xml"))
+    runInEdtAndWait {
+      addAndroidModule(module2Name, projectRule.project) { resourceDir ->
+        FileUtil.copy(File(getTestDataDirectory() + "/res/values/colors.xml"),
+                      resourceDir.resolve("values/colors.xml"))
+      }
     }
 
     // Use initial module in ViewModel
-    val viewModel = createViewModel(projectRule.module)
-    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
+    val viewModel = createViewModel(projectRule.module, ResourceType.COLOR)
 
     val resourceSections = viewModel.getOtherModulesResourceLists().get()
     // Other modules resource lists should return resources from modules other than the current one.
@@ -112,12 +118,12 @@ class ResourceExplorerViewModelImplTest {
   fun getLibrariesResources() {
     val libraryName = "myLibrary"
     addAarDependency(projectRule.module,
-                     libraryName, "com.resources.test") { file -> FileUtil.copyDir(File(
-      getTestDataDirectory() + "/res"), file) }
+                     libraryName,
+                     "com.resources.test")
+    { file -> FileUtil.copyDir(File(getTestDataDirectory() + "/res"), file) }
 
-    val viewModel = createViewModel(projectRule.module)
+    var viewModel = createViewModel(projectRule.module, ResourceType.COLOR)
     Truth.assertThat(ResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
-    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
     viewModel.filterOptions.isShowLibraries = true
     val colorSection = viewModel.getCurrentModuleResourceLists().get()
     Truth.assertThat(colorSection).hasSize(2)
@@ -127,7 +133,8 @@ class ResourceExplorerViewModelImplTest {
     Truth.assertThat(colorSection[1].assetSets[0].assets[0].type).isEqualTo(ResourceType.COLOR)
     Truth.assertThat(colorSection[1].libraryName).contains(libraryName)
 
-    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.DRAWABLE)
+    viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
+    viewModel.filterOptions.isShowLibraries = true
     val drawableSection = viewModel.getCurrentModuleResourceLists().get()
     Truth.assertThat(drawableSection).hasSize(2)
     Truth.assertThat(drawableSection[0].assetSets).isEmpty()
@@ -136,13 +143,11 @@ class ResourceExplorerViewModelImplTest {
     Truth.assertThat(drawableSection[1].libraryName).contains(libraryName)
   }
 
-  @RunsInEdt
   @Test
   fun getResourceValues() {
     projectRule.fixture.copyFileToProject("res/values/colors.xml", "res/values/colors.xml")
-    val viewModel = createViewModel(projectRule.module)
+    val viewModel = createViewModel(projectRule.module, ResourceType.COLOR)
 
-    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR)
     val values = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
     Truth.assertThat(values).isNotNull()
     Truth.assertThat(values.flatMap { it.assets }
@@ -153,9 +158,8 @@ class ResourceExplorerViewModelImplTest {
   @Test
   fun updateOnFileNameChanged() {
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
-    val viewModel = createViewModel(projectRule.module)
+    val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
     val resourceChangedLatch = CountDownLatch(1)
-    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.DRAWABLE)
     val values = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
     Truth.assertThat(values).isNotNull()
     Truth.assertThat(values
@@ -185,9 +189,15 @@ class ResourceExplorerViewModelImplTest {
       .containsExactly("res/drawable/png.png", "res/drawable/new_name.xml")
   }
 
-  private fun createViewModel(module: Module): ResourceExplorerViewModelImpl {
+  private fun createViewModel(module: Module, resourceType: ResourceType): ResourceExplorerListViewModelImpl {
     val facet = AndroidFacet.getInstance(module)!!
-    val viewModel = ResourceExplorerViewModel.createResManagerViewModel(facet) as ResourceExplorerViewModelImpl
+    val viewModel = ResourceExplorerListViewModelImpl(
+      facet,
+      null,
+      resourceResolver,
+      FilterOptions.createDefault(),
+      resourceType
+    )
     Disposer.register(disposable, viewModel)
     return viewModel
   }
