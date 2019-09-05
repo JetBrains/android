@@ -709,6 +709,11 @@ public final class StudioFlags {
     BINDING, "view.binding.enabled", "Enable View Binding",
     "Enables view binding integration. Additionally, enabling the compiler may require updating Gradle settings as well",
     true);
+
+  public static final Flag<Boolean> DATA_BINDING_INSPECTIONS_ENABLED = Flag.create(
+    BINDING, "inspections.enabled", "Enable Data Binding Inspections",
+    "Enables inspections that show up in data binding layout files.",
+    true);
   //endregion
 
   private StudioFlags() { }
