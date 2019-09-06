@@ -20,6 +20,7 @@ import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Conditions;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -63,7 +64,7 @@ public final class FileDescriptionUtils {
                                                       @NotNull ResourceFolderType folderType,
                                                       @NotNull Collection<String> tagNames) {
     Condition<XmlTag> tagCondition = tagNames.isEmpty() ?
-                                      Condition.TRUE :
+                                      Conditions.alwaysTrue() :
                                       rootTag -> asStream(rootTag)
                                         .anyMatch(tag -> tagNames.contains(tag.getName()));
 
@@ -106,7 +107,7 @@ public final class FileDescriptionUtils {
                                                      @NotNull Collection<String> rootTags) {
     //noinspection unchecked
     return rootTags.isEmpty() ?
-           newResourceTypeVerifier(file, folderType, Condition.TRUE) :
+           newResourceTypeVerifier(file, folderType, Conditions.alwaysTrue()) :
            newResourceTypeVerifier(file, folderType, element -> rootTags.contains(element.getName()));
   }
 }
