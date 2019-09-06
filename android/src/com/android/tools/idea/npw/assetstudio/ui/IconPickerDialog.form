@@ -1,26 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.npw.assetstudio.ui.IconPickerDialog">
-  <grid id="27dc6" binding="myContentPanel" layout-manager="BorderLayout" hgap="20" vgap="20">
+  <grid id="27dc6" binding="myContentPanel" layout-manager="BorderLayout" hgap="20" vgap="10">
     <constraints>
-      <xy x="20" y="20" width="500" height="400"/>
+      <xy x="20" y="20" width="614" height="400"/>
     </constraints>
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="48cc" layout-manager="BorderLayout" hgap="0" vgap="0">
-        <constraints border-constraint="West"/>
+      <grid id="48cc" layout-manager="GridBagLayout">
+        <constraints border-constraint="North"/>
         <properties/>
         <border type="none"/>
         <children>
-          <grid id="f3e7" binding="myCategoriesPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
-            <constraints border-constraint="Center"/>
-            <properties/>
-            <border type="none"/>
-            <children/>
-          </grid>
           <component id="b0a87" class="com.intellij.ui.SearchTextField" binding="mySearchField" custom-create="true">
-            <constraints border-constraint="North"/>
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="1.0" weighty="0.0"/>
+            </constraints>
             <properties/>
+          </component>
+          <component id="4b4b7" class="javax.swing.JComboBox" binding="myCategoriesBox">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.0" weighty="0.0"/>
+            </constraints>
+            <properties>
+              <model/>
+            </properties>
           </component>
         </children>
       </grid>

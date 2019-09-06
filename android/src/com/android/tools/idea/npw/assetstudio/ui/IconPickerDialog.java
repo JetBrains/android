@@ -22,6 +22,7 @@ import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 import com.intellij.ide.DataManager;
@@ -30,19 +31,17 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
-import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import java.awt.Color;
-import java.awt.Component;
+import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -52,6 +51,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.swing.ComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
@@ -59,8 +60,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -134,11 +133,11 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   private final JBTable myIconTable = new JBTable(myModel);
 
   private JPanel myContentPanel;
-  private JPanel myCategoriesPanel;
   private JPanel myIconsPanel;
   @SuppressWarnings("unused") private JPanel myLicensePanel;
   private HyperlinkLabel myLicenseLabel;
   private SearchTextField mySearchField;
+  private JComboBox<String> myCategoriesBox;
 
   @Nullable private VdIcon mySelectedIcon;
 
@@ -148,55 +147,18 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     setTitle("Select Icon");
     initializeIconMap();
 
-    // On the left hand side, add the categories chooser.
+    // Categories chooser, top-right in the panel.
     String[] categories = getCategoryNames();
-    JBList<String> categoryList = new JBList<>(categories);
-    JBScrollPane categoryPane = new JBScrollPane(categoryList);
-    myCategoriesPanel.add(categoryPane);
-
+    ComboBoxModel<String> categoriesModel = new CollectionComboBoxModel<String>(ImmutableList.copyOf(categories));
+    myCategoriesBox.setModel(categoriesModel);
 
     // The default panel color in darcula mode is too dark given that our icons are all black.
     // We provide a lighter color for higher contrast.
     Color iconBackgroundColor = UIUtil.getListBackground();
 
-    TableCellRenderer tableRenderer = new DefaultTableCellRenderer() {
-      @Override
-      public void setValue(@Nullable Object value) {
-        VdIcon icon = (VdIcon)value;
-        setText("");
-        setIcon(icon);
-        String displayName = icon != null ? icon.getDisplayName() : "";
-        AccessibleContextUtil.setName(this, displayName);
-      }
-
-      @Override
-      public Component getTableCellRendererComponent(JTable table,
-                                                     Object value,
-                                                     boolean isSelected,
-                                                     boolean hasFocus,
-                                                     int row,
-                                                     int column) {
-        if (table.getValueAt(row, column) == null) {
-          Component cell = super.getTableCellRendererComponent(table, value, false, false, row, column);
-          cell.setFocusable(false);
-          return cell;
-        }
-        else {
-          JComponent component = (JComponent)super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-          component.setFont(JBUI.Fonts.miniFont());
-          if (!isSelected) {
-            component.setBackground(JBColor.WHITE);
-          }
-          component.setForeground(isSelected ? table.getSelectionForeground() : JBColor.GRAY);
-
-          return component;
-        }
-      }
-    };
-
     // For the main content area, display a grid if icons.
     myIconTable.setBackground(iconBackgroundColor);
-    myIconTable.setDefaultRenderer(VdIcon.class, tableRenderer);
+    myIconTable.setDefaultRenderer(VdIcon.class, new IconPickerCellRenderer());
     myIconTable.setRowHeight(ICON_ROW_HEIGHT);
     myIconTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myIconTable.setCellSelectionEnabled(true);
@@ -241,17 +203,14 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     colSelModel.addListSelectionListener(listener);
 
     // Setup the picking interaction for the category list.
-    categoryList.addListSelectionListener(e -> {
-      if (e.getValueIsAdjusting()) {
+    myCategoriesBox.addItemListener(e -> {
+      if (e.getStateChange() == ItemEvent.DESELECTED) {
         return;
       }
-      int selectedIndex = categoryList.getSelectedIndex();
-      if (selectedIndex >= 0) {
-        String category = ICON_CATEGORIES[selectedIndex];
-        updateIconList(category);
-      }
+      String selectedCategory = ICON_CATEGORIES[myCategoriesBox.getSelectedIndex()];
+      updateIconList(selectedCategory);
     });
-    categoryList.setSelectedIndex(0);
+    updateIconList(ICON_CATEGORIES[0]);
 
     selModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     selModel.setSelectionInterval(0, 0);
