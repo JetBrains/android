@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework.aspects;
 
 import static org.junit.Assert.fail;
 
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import java.io.BufferedReader;
@@ -40,6 +42,7 @@ import org.junit.Test;
  * <p>
  * The baseline for grandfathered violations is in tools/adt/idea/android-uitests/aspects_baseline.txt
  */
+@RunIn(TestGroup.UNRELIABLE)
 public class AspectsAgentLogTest {
 
   private static final Logger LOGGER = Logger.getInstance(AspectsAgentLogTest.class);
