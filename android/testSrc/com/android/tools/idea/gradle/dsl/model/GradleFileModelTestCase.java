@@ -156,12 +156,29 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
    * @return the String that corresponds to looking up the extra property {@code name} in the language of this test case
    */
   protected String extraName(String name) {
+    return extraName(name, null);
+  }
+
+  /**
+   * @param name the name of an extra property
+   * @param container the (dotted) name of a container holding the extra property
+   *
+   * @return the String that corresponds to looking up the extra property designated by the arguments in the language of this test case
+   */
+  protected String extraName(String name, String container) {
     if (myLanguageName.equals(GROOVY_LANGUAGE)) {
       return name;
     }
     else {
       assumeTrue("Language is neither Groovy nor Kotlin", myLanguageName.equals(KOTLIN_LANGUAGE));
-      return "extra[\"" + name + "\"]";
+      String containerPrefix;
+      if (container == null) {
+        containerPrefix = "";
+      }
+      else {
+        containerPrefix = container + ".";
+      }
+      return containerPrefix + "extra[\"" + name + "\"]";
     }
   }
 
