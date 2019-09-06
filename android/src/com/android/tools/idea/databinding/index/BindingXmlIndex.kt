@@ -18,8 +18,8 @@ package com.android.tools.idea.databinding.index
 import com.android.SdkConstants
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.TAG_LAYOUT
-import com.android.ide.common.resources.stripPrefixFromId
 import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceUrl
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingLayoutType.VIEW_BINDING_LAYOUT
 import com.intellij.ide.highlighter.XmlFileType
@@ -215,7 +215,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
                 when (key) {
                   // Used to determine view type of <View>.
                   SdkConstants.ATTR_CLASS -> currTag.viewClass = value
-                  SdkConstants.ATTR_ID -> currTag.viewId = stripPrefixFromId(value)
+                  SdkConstants.ATTR_ID -> currTag.viewId = ResourceUrl.parse(value)?.name
                 }
               }
               if (currTag.name == SdkConstants.VIEW_INCLUDE || currTag.name == SdkConstants.VIEW_MERGE) {
@@ -285,7 +285,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
     }
   }
 
-  override fun getVersion() = 5
+  override fun getVersion() = 6
 }
 
 /**
