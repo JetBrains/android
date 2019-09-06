@@ -92,7 +92,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
                           ?.firstNotNullResult { it.resolve() as? PsiClass }
                         ?: return null
         val viewType = viewClass.qualifiedName
-                         ?.let { viewName -> LayoutBindingTypeUtil.parsePsiType(viewName, facet) } ?: return null
+                         ?.let { viewName -> LayoutBindingTypeUtil.parsePsiType(viewName, attribute) } ?: return null
         return AttributeReferenceModel(attribute, facet, facade, mode, viewType)
       }
     }
