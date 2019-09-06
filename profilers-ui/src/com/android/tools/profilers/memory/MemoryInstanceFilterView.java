@@ -59,6 +59,7 @@ public class MemoryInstanceFilterView extends AspectObserver {
       filterCheckBox.addActionListener(l -> {
         if (filterCheckBox.isSelected()) {
           captureObject.addInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
+          myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackMemoryProfilerInstanceFilter(supportedFilter);
         }
         else {
           captureObject.removeInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
