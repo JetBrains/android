@@ -185,6 +185,11 @@ public interface CaptureObject extends MemoryObject {
     return Collections.EMPTY_SET;
   }
 
+  @NotNull
+  default Set<CaptureObjectInstanceFilter> getSelectedInstanceFilters() {
+    return Collections.EMPTY_SET;
+  }
+
   default void addInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
 
   default void removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
