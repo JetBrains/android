@@ -46,8 +46,6 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;

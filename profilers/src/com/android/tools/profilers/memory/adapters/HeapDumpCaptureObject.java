@@ -346,6 +346,12 @@ public class HeapDumpCaptureObject implements CaptureObject {
     return mySupportedInstanceFilters;
   }
 
+  @NotNull
+  @Override
+  public Set<CaptureObjectInstanceFilter> getSelectedInstanceFilters() {
+    return myCurrentInstanceFilters;
+  }
+
   @VisibleForTesting
   ExecutorService getInstanceFilterExecutor() {
     return myExecutorService;

@@ -21,6 +21,7 @@ import com.android.tools.profilers.memory.adapters.InstanceObject;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A filter to locate all instances of classes that directly belong to the currently opened project (excluding dependent libraries).
@@ -36,13 +37,25 @@ public class ProjectClassesInstanceFilter implements CaptureObjectInstanceFilter
   @NotNull
   @Override
   public String getDisplayName() {
-    return "Project Classes Only";
+    return "Project Classes";
   }
 
   @NotNull
   @Override
-  public String getDescription() {
+  public String getSummaryDescription() {
     return "Show instances of classes from only the current project.";
+  }
+
+  @Nullable
+  @Override
+  public String getDetailedDescription() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public String getDocumentationLink() {
+    return null;
   }
 
   @Override
