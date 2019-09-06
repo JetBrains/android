@@ -32,9 +32,17 @@ FILE_NAME_DOUBLE_QUOTED=\"([\w\-./<>*?\s()])*\"
 UNTERMINATED_FILE_NAME_SINGLE_QUOTED='([\w\-./<>*?\s()])*
 UNTERMINATED_FILE_NAME_DOUBLE_QUOTED=\"([\w\-./<>*?\s()])*
 LINE_CMT=#[^\n\r]*
-JAVA_IDENTIFIER=[a-zA-Z_][a-zA-Z\d_]*
-JAVA_IDENTIFIER_WITH_WILDCARDS=(((\?|\*{1,2})?[a-zA-Z\d_]+)+(\?|\*{1,2})?)|(\?|\*{1,2})  // Like JAVA_IDENTIFIER but can contain "?"
-// symbol (no more than one in row) and "*" (no more than two in row).
+
+// jletter includes all characters for which the Java function Character.isJavaIdentifierStart returns true and
+// jletterdigit all characters for that Character.isJavaIdentifierPart returns true.
+// We exclude the $ symbol beacause we are using it to separate inner classes
+JAVA_LETTER = [[:jletter:]&&[^$]]
+JAVA_DIGIT = [[:jletterdigit:]&&[^$]]
+JAVA_IDENTIFIER={JAVA_LETTER}{JAVA_DIGIT}*
+WILDCARD=(\?|\*{1,2})
+WILDCARD_FOLLOWED_BY_DIGITS_OR_LETTERS= {WILDCARD}{JAVA_DIGIT}+
+// Like JAVA_IDENTIFIER but contain the "?" symbol (no more than one in row) and the "*" (no more than two in row).
+JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGITS_OR_LETTERS}+{WILDCARD}?)|{WILDCARD})
 
 %state STATE_JAVA_SECTION_HEADER
 %state STATE_JAVA_SECTION_BODY
