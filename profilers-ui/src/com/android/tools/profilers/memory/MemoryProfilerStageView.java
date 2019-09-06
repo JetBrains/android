@@ -124,6 +124,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStageView.class);
   }
+
   private static final String RECORD_TEXT = "Record";
   private static final String STOP_TEXT = "Stop";
 
@@ -335,7 +336,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myAllocationSamplingRateDropDown.setRenderer(new LiveAllocationSamplingModeRenderer());
       toolBar.add(myAllocationSamplingRateLabel);
       toolBar.add(myAllocationSamplingRateDropDown);
-    } else {
+    }
+    else {
       toolBar.add(myAllocationButton);
       toolBar.add(myCaptureElapsedTime);
     }
@@ -535,15 +537,15 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.setFillEndGap(true);
 
     myGcDurationDataRenderer = new DurationDataRenderer.Builder<>(memoryUsage.getGcDurations(), Color.BLACK)
-        .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
-        // Need to offset the GcDurationData by the margin difference between the overlay component and the
-        // line chart. This ensures we are able to render the Gc events in the proper locations on the line.
-        .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2f,
-                         StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f)
-        .setHostInsets(new Insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
-        .setHoverHandler(getStage().getTooltipLegends().getGcDurationLegend()::setPickData)
-        .setClickRegionPadding(0, 0)
-        .build();
+      .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
+      // Need to offset the GcDurationData by the margin difference between the overlay component and the
+      // line chart. This ensures we are able to render the Gc events in the proper locations on the line.
+      .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2f,
+                       StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f)
+      .setHostInsets(new Insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
+      .setHoverHandler(getStage().getTooltipLegends().getGcDurationLegend()::setPickData)
+      .setClickRegionPadding(0, 0)
+      .build();
     lineChart.addCustomRenderer(myGcDurationDataRenderer);
 
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
@@ -579,16 +581,16 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       lineChart.addCustomRenderer(allocationRenderer);
       overlay.addDurationDataRenderer(allocationRenderer);
     }
-    else if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()){
+    else if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
       myAllocationSamplingRateRenderer = new DurationDataRenderer.Builder<>(getStage().getAllocationSamplingRateDurations(), Color.BLACK)
         .setDurationBg(ProfilerColors.DEFAULT_STAGE_BACKGROUND)
         .setIconMapper(durationData -> {
-            LiveAllocationSamplingMode mode = LiveAllocationSamplingMode
-              .getModeFromFrequency(durationData.getCurrentRate().getSamplingNumInterval());
-            return getIconForSamplingMode(mode);
-          })
+          LiveAllocationSamplingMode mode = LiveAllocationSamplingMode
+            .getModeFromFrequency(durationData.getCurrentRate().getSamplingNumInterval());
+          return getIconForSamplingMode(mode);
+        })
         .setLabelOffsets(-StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconWidth() / 2f,
-                           StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconHeight() / 2f)
+                         StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconHeight() / 2f)
         .setHostInsets(new Insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
         .setClickRegionPadding(0, 0)
         .setHoverHandler(getStage().getTooltipLegends().getSamplingRateDurationLegend()::setPickData)
@@ -603,7 +605,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setLabelProvider(
           data -> String.format("Dump (%s)", data.getDurationUs() == Long.MAX_VALUE ? "in progress" :
-                                             TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDurationUs(), true)))
+                                             TimeAxisFormatter.DEFAULT
+                                               .getFormattedString(viewRange.getLength(), data.getDurationUs(), true)))
         .build();
 
     for (RangedContinuousSeries series : memoryUsage.getSeries()) {
@@ -786,12 +789,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     toolbar.add(myCaptureView.getComponent());
     toolbar.add(myHeapView.getComponent());
     toolbar.add(myClassGrouping.getComponent());
-    toolbar.add(myInstanceFilterView.getComponent());
+    toolbar.add(myInstanceFilterView.getFilterToolbar());
     if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
       toolbar.add(myCaptureInfoMessage);
     }
 
-    JPanel headingPanel = new JPanel(new BorderLayout());
+    JPanel headingPanel = new JPanel(new TabularLayout("Fit,*,Fit"));
     JPanel buttonToolbar = new JPanel(createToolbarLayout());
     buttonToolbar.setBorder(new JBEmptyBorder(3, 0, 0, 0));
     if (!getStage().isMemoryCaptureOnly()) {
@@ -805,15 +808,16 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
 
       filterComponent.getModel().setFilterHandler(getStage().getFilterHandler());
-      headingPanel.add(filterComponent, BorderLayout.SOUTH);
+      headingPanel.add(filterComponent, new TabularLayout.Constraint(2, 0, 3));
       filterComponent.setVisible(false);
       filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
       FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
     }
 
     // Add the right side toolbar so that it is on top of the truncated |myCaptureInfoMessage|.
-    headingPanel.add(buttonToolbar, BorderLayout.EAST);
-    headingPanel.add(toolbar, BorderLayout.WEST);
+    headingPanel.add(buttonToolbar, new TabularLayout.Constraint(0, 2));
+    headingPanel.add(toolbar, new TabularLayout.Constraint(0, 0));
+    headingPanel.add(myInstanceFilterView.getFilterDescription(), new TabularLayout.Constraint(1, 0, 3));
 
     capturePanel.add(headingPanel, BorderLayout.PAGE_START);
     capturePanel.add(myClassifierView.getComponent(), BorderLayout.CENTER);

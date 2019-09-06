@@ -20,6 +20,7 @@ import com.android.tools.profilers.memory.adapters.ClassDb;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Helper to filter and return a subset of the input InstanceObject's that match an arbitrary criteria. Note that this is different from
@@ -31,12 +32,27 @@ public interface CaptureObjectInstanceFilter {
   @NotNull
   String getDisplayName();
 
+  /**
+   * @return high-level summary of the instance filter's function.
+   */
   @NotNull
-  String getDescription();
+  String getSummaryDescription();
 
   /**
-   * @param instances       The set of instances to filter
-   * @param classDatabase   The class database containing all the classes that the input set of instances belong to
+   * @return A more detailed explanation the instance filter's function if available, null otherwise.
+   */
+  @Nullable
+  String getDetailedDescription();
+
+  /**
+   * @return link pointing to further documentation if available, null otherwise.
+   */
+  @Nullable
+  String getDocumentationLink();
+
+  /**
+   * @param instances     The set of instances to filter
+   * @param classDatabase The class database containing all the classes that the input set of instances belong to
    * @return a subset of instances based on some arbitrary criteria.
    */
   Set<InstanceObject> filter(@NotNull Set<InstanceObject> instances, @NotNull ClassDb classDatabase);
