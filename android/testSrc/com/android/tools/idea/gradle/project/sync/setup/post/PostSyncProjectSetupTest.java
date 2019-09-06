@@ -187,13 +187,7 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     request.usingCachedGradleModels = false;
     request.lastSyncTimestamp = 1L;
 
-    try {
-      mySetup.setUpProject(request, myTaskId, null);
-      fail();
-    }
-    catch (Throwable t) {
-      // Exception is expected
-    }
+    mySetup.setUpProject(request, myTaskId, null);
 
     verify(mySyncState, times(1)).syncFailed(any(), any(), any());
     verify(mySyncState, never()).syncSucceeded();
