@@ -19,8 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameModuleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
@@ -30,7 +28,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunIn(TestGroup.UNRELIABLE) // b/77269009
 @RunWith(GuiTestRemoteRunner.class)
 public class GradleRenameModuleTest {
 
