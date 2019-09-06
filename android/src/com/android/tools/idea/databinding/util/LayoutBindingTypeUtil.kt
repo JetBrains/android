@@ -22,81 +22,46 @@ import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.ViewIdData
 import com.android.tools.idea.databinding.util.DataBindingUtil.getQualifiedBindingName
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.util.androidFacet
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiType
-import com.intellij.psi.impl.source.PsiClassReferenceType
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.caches.resolve.util.enlargedSearchScope
 
 object LayoutBindingTypeUtil {
-  private val VIEW_PACKAGE_ELEMENTS =
-    listOf(SdkConstants.VIEW, SdkConstants.VIEW_GROUP, SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW)
+  private val VIEW_PACKAGE_ELEMENTS = listOf(
+    SdkConstants.VIEW, SdkConstants.VIEW_GROUP, SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW
+  )
 
   /**
-   * Creates a [PsiType] for the target [typeStr], returning null instead of throwing an exception
-   * if it was not possible to create it for some reason.
+   * Creates a [PsiType] for the target [typeStr], returning null instead of throwing an exception if it was not possible to create it for
+   * some reason. [typeStr] can be a fully qualified class name, an array type or a primitive type.
    */
   @JvmStatic
-  fun parsePsiType(typeStr: String, facet: AndroidFacet, context: PsiElement? = null)
-    = parsePsiType(typeStr, facet.module.project, context)
-
-  fun parsePsiType(typeStr: String, project: Project, context: PsiElement? = null): PsiType? {
-    val elementFactory = PsiElementFactory.getInstance(project)
-    try {
-      return elementFactory.createTypeFromText(typeStr, context).takeUnless { it is PsiClassReferenceType && it.className == null }
+  fun parsePsiType(typeStr: String, context: PsiElement): PsiType? {
+    return try {
+      PsiElementFactory.getInstance(context.project).createTypeFromText(typeStr, context)
     }
     catch (e: IncorrectOperationException) {
       // Class named "text" not found.
-      return null
+      null
     }
   }
 
   /**
-   * Convert a view tag (e.g. &lt;TextView... /&gt;) to its PSI type, if possible, or return `null`
-   * otherwise.
+   * Convert a view tag (e.g. &lt;TextView... /&gt;) to its PSI type, if possible, or return `null` otherwise.
    */
   @JvmStatic
-  fun resolveViewPsiType(viewIdData: ViewIdData, facet: AndroidFacet): PsiType? {
-    val viewClassName = getViewClassName(viewIdData, facet) ?: return null
-    return if (viewClassName.isNotEmpty()) {
-      findPsiType(viewClassName, facet.module.project, facet.enlargedSearchScope())
-    }
-    else null
+  fun resolveViewPsiType(viewIdData: ViewIdData, context: PsiElement): PsiType? {
+    val androidFacet = context.androidFacet ?: return null
+    val viewClassName = getViewClassName(viewIdData, androidFacet) ?: return null
+    return if (viewClassName.isNotEmpty()) PsiType.getTypeByName(viewClassName, context.project, context.resolveScope) else null
   }
 
   /**
-   * Return an enlarges search scope for the current facet, particularly useful for ensuring that
-   * Android light classes (e.g. generated binding classes) for the current module can be found.
-   */
-  private fun AndroidFacet.enlargedSearchScope() =
-    enlargedSearchScope(module.getModuleWithDependenciesAndLibrariesScope(false), module, false)
-
-  fun findPsiType(typeStr: String, facet: AndroidFacet, scope: GlobalSearchScope = facet.enlargedSearchScope())
-    = findPsiType(typeStr, facet.module.project, scope)
-  /**
-   * Finds a [PsiType] for the given target [typeStr] using the passed in [scope], returning null
-   * instead of throwing an exception if it was not possible to create it for some reason.
-   *
-   * TODO(b/140494918): Revisit this to see if we can use [parsePsiType] with a context element
-   *  instead.
-   */
-  fun findPsiType(typeStr: String, project: Project, scope: GlobalSearchScope = GlobalSearchScope.projectScope(project)): PsiType? {
-    try {
-      return PsiType.getTypeByName(typeStr, project, scope)
-    }
-    catch (e: IncorrectOperationException) {
-      // Class named "text" not found.
-      return null
-    }
-  }
-
-  /**
-   * Receives a [ViewIdData] and returns the name of the View class that is implied by it.
-   * May return null if it cannot find anything reasonable (e.g. it is a merge but does not have data binding)
+   * Receives a [ViewIdData] and returns the name of the View class that is implied by it. May return null if it cannot find anything
+   * reasonable (e.g. it is a merge but does not have data binding)
    */
   private fun getViewClassName(viewIdData: ViewIdData, facet: AndroidFacet): String? {
     val viewName = viewIdData.viewName

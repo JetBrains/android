@@ -1,6 +1,8 @@
 package org.jetbrains.android.augment;
 
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.base.MoreObjects;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.navigation.ItemPresentation;
@@ -11,6 +13,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.HierarchicalMethodSignature;
 import com.intellij.psi.PsiClass;
@@ -39,6 +42,7 @@ import com.intellij.psi.impl.light.LightModifierList;
 import com.intellij.psi.impl.light.LightTypeParameterListBuilder;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.scope.PsiScopeProcessor;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -52,6 +56,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.kotlin.analyzer.ModuleInfo;
 import org.jetbrains.kotlin.idea.UserDataModuleInfoKt;
+import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger;
 
 /**
  * @author Eugene.Kudelevsky
@@ -428,5 +433,26 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
     static void setModelInfo(@NotNull PsiFile file, @NotNull Sdk sdk) {
       file.putUserData(UserDataModuleInfoKt.SDK_KEY, sdk);
     }
+  }
+
+  protected ScopeType getScopeType() {
+    return ScopeType.MAIN;
+  }
+
+  @NotNull
+  @Override
+  public GlobalSearchScope getResolveScope() {
+    Module module = ModuleUtilCore.findModuleForPsiElement(this);
+    assert module != null;
+    ScopeType scopeType = getScopeType();
+    GlobalSearchScope moduleResolveScope = ProjectSystemUtil.getModuleSystem(module).getResolveScope(scopeType);
+    Ref<GlobalSearchScope> result = Ref.create(moduleResolveScope);
+    KotlinResolveScopeEnlarger.Companion.getEP_NAME().forEachExtensionSafe(enlarger -> {
+      SearchScope additionalResolveScope = enlarger.getAdditionalResolveScope(module, scopeType.isForTest());
+      if (additionalResolveScope != null) {
+        result.set(result.get().union(additionalResolveScope));
+      }
+    });
+    return result.get();
   }
 }
