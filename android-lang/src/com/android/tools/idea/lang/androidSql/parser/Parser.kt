@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql.parser
 
+import com.android.tools.idea.lang.androidSql.ANDROID_SQL_FILE_TYPE
 import com.android.tools.idea.lang.androidSql.COMMENTS
 import com.android.tools.idea.lang.androidSql.STRING_LITERALS
 import com.android.tools.idea.lang.androidSql.WHITE_SPACES
@@ -29,8 +30,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
+import com.intellij.psi.util.PsiTreeUtil
 
 class AndroidSqlParserDefinition : ParserDefinition {
   override fun createLexer(project: Project?): Lexer = AndroidSqlLexer()
@@ -43,4 +46,12 @@ class AndroidSqlParserDefinition : ParserDefinition {
   override fun getCommentTokens(): TokenSet = COMMENTS
   override fun getStringLiteralElements(): TokenSet = STRING_LITERALS
   override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) = ParserDefinition.SpaceRequirements.MAY
+
+  companion object {
+    @JvmStatic
+    fun isValidSqlQuery(project: Project, input: String): Boolean {
+      val psiFile = PsiFileFactory.getInstance(project).createFileFromText("temp.sql", ANDROID_SQL_FILE_TYPE, input)
+      return !PsiTreeUtil.hasErrorElements(psiFile)
+    }
+  }
 }
