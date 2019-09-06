@@ -21,6 +21,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerDialogFixture;
@@ -47,6 +49,7 @@ public final class ComponentTreeTest {
   @Rule
   public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/140560022
   @Test
   public void testDropThatOpensDialog() {
     WizardUtils.createNewProject(myGuiTest);
