@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.npw.project;
 
+import static java.lang.String.format;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.ide.common.sdk.LoadStatus;
 import com.android.repository.api.UpdatablePackage;
 import com.android.tools.idea.npw.ChooseApiLevelDialog;
@@ -35,16 +38,13 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.AsyncProcessIcon;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-
 import java.util.Collection;
 import java.util.Collections;
-
-import static java.lang.String.format;
-import static org.jetbrains.android.util.AndroidBundle.message;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FormFactorSdkControls implements Disposable {
   private final BindingsManager myBindings = new BindingsManager();
@@ -79,7 +79,7 @@ public class FormFactorSdkControls implements Disposable {
     myLearnMoreLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
-        int minApiLevel = ((AndroidVersionsInfo.VersionItem)myMinSdkCombobox.getSelectedItem()).getMinApiLevel();
+        int minApiLevel = getSelectedApiLevel().getMinApiLevel();
         ChooseApiLevelDialog chooseApiLevelDialog = new ChooseApiLevelDialog(null, minApiLevel);
         Disposer.register(FormFactorSdkControls.this, chooseApiLevelDialog.getDisposable());
         if (!chooseApiLevelDialog.showAndGet()) {
@@ -108,8 +108,6 @@ public class FormFactorSdkControls implements Disposable {
   }
 
   public void startDataLoading(FormFactor formFactor, int minSdk) {
-    myApiPercentLabel.setText(getApiHelpText(minSdk)); //TODO: What? Should we only care about what item is selected on the combo?
-
     mySdkDataLoadingStatus = LoadStatus.LOADING;
     myStatsDataLoadingStatus = myStatsPanel.isVisible() ? LoadStatus.LOADING : LoadStatus.LOADED;
     updateLoadingProgress();
@@ -136,8 +134,7 @@ public class FormFactorSdkControls implements Disposable {
   }
 
   public Collection<? extends UpdatablePackage> getSdkInstallPackageList() {
-    AndroidVersionsInfo.VersionItem androidVersion = (AndroidVersionsInfo.VersionItem) myMinSdkCombobox.getSelectedItem();
-    return myAndroidVersionsInfo.loadInstallPackageList(Collections.singletonList(androidVersion));
+    return myAndroidVersionsInfo.loadInstallPackageList(Collections.singletonList(getSelectedApiLevel()));
   }
 
   @Override
@@ -160,13 +157,15 @@ public class FormFactorSdkControls implements Disposable {
     else if (myStatsDataLoadingStatus == LoadStatus.LOADING) {
       myLoadingDataLabel.setText(message("android.wizard.module.help.refreshing"));
     }
+    else if (myStatsDataLoadingStatus == LoadStatus.LOADED) {
+      AndroidVersionsInfo.VersionItem currentVersionItem = getSelectedApiLevel();
+      if (currentVersionItem != null) {
+        myApiPercentLabel.setText(getApiHelpText(currentVersionItem.getMinApiLevel()));
+      }
+    }
     else if (myStatsDataLoadingStatus == LoadStatus.FAILED) {
       myLoadingDataLabel.setText(message("android.wizard.project.loading.stats.fail"));
     }
-  }
-
-  public void setEnabled(boolean enabled) {
-    myMinSdkCombobox.setEnabled(enabled);
   }
 
   private static String getApiHelpText(int selectedApi) {
@@ -174,5 +173,10 @@ public class FormFactorSdkControls implements Disposable {
     String percentageStr = percentage < 1 ? "<b>&lt; 1%</b>" :
                            format("approximately <b>" + (percentage >= 10 ? "%.3g%%" : "%.2g%%") + "</b>", percentage);
     return format("<html>Your app will run on %1$s of devices.</html>", percentageStr);
+  }
+
+  @Nullable
+  AndroidVersionsInfo.VersionItem getSelectedApiLevel() {
+    return (AndroidVersionsInfo.VersionItem)myMinSdkCombobox.getSelectedItem();
   }
 }
