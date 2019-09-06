@@ -243,7 +243,7 @@ public class TargetMenuAction extends DropDownAction {
     @Override
     public void update(@NotNull AnActionEvent event) {
       Presentation presentation = event.getPresentation();
-      presentation.putClientProperty(SELECTED_PROPERTY, isSelected());
+      Toggleable.setSelected(presentation, isSelected());
     }
   }
 
