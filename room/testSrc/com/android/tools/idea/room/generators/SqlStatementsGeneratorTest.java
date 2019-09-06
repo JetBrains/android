@@ -73,6 +73,20 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE `table` ADD COLUMN column2 TEXT;");
   }
 
+  /**
+   * Regression test for the case when a new column (which either isn't NOT NULL, or is NOT NULL but has a default value) is added in a
+   * table which already has a NOT NULL column with no default value
+   */
+  @Test
+  public void testAddColumnNextToANotNullColumn() {
+    FieldBundle field = new FieldBundle("", "column1", "TEXT", true, null);
+    FieldBundle fieldToAdd = createFieldBundle("column2", "TEXT", null);
+
+    testMigrationStatements(createEntityBundle("table", field),
+                            createEntityBundle("table", field, fieldToAdd),
+                            "ALTER TABLE `table` ADD COLUMN column2 TEXT;");
+  }
+
   @Test
   public void testDeleteColumn() {
     FieldBundle field = createFieldBundle("column1", "TEXT", null);
