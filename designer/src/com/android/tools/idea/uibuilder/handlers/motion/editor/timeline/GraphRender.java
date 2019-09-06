@@ -390,8 +390,6 @@ public class GraphRender {
     void plot(Graphics g, int x, int y, int w, int h) {
       g.setColor(MEUI.ourGraphColor);
 
-      float scale = h / (mMaxY - mMaxY);
-      float offset = h * (-mMinY) / (mMaxY - mMaxY);
       for (int i = 0; i < xpos.length; i++) {
         int xp = (int) (w * xpos[i] + x);
         int yp = y + (int) (h - h * (ypos[i] - mMinY) / (mMaxY - mMinY));
