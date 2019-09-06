@@ -337,7 +337,7 @@ public class SqlStatementsGenerator {
     oldColumnName = getValidName(oldColumnName);
     newColumnName = getValidName(newColumnName);
 
-    return String.format("ALTER TABLE %s RENAME %s TO %s;", tableName, oldColumnName, newColumnName);
+    return String.format("ALTER TABLE %s RENAME COLUMN %s TO %s;", tableName, oldColumnName, newColumnName);
   }
 
   /**
