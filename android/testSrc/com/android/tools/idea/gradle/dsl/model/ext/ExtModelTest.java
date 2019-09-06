@@ -379,7 +379,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     GradlePropertyModel second = extModel.findProperty("SECOND");
     verifyPropertyModel(second.resolve(), INTEGER_TYPE, 123, INTEGER, REGULAR, 1);
-    verifyPropertyModel(second, STRING_TYPE, "FIRST", REFERENCE, REGULAR, 1);
+    verifyPropertyModel(second, STRING_TYPE, extraName("FIRST", "rootProject"), REFERENCE, REGULAR, 1);
     GradlePropertyModel first = second.getDependencies().get(0);
     verifyPropertyModel(first.resolve(), INTEGER_TYPE, 123, INTEGER, REGULAR, 0);
     verifyPropertyModel(first, INTEGER_TYPE, 123, INTEGER, REGULAR, 0);
@@ -399,7 +399,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     GradlePropertyModel third = extModel.findProperty("third");
     verifyPropertyModel(third.resolve(), STRING_TYPE, "value_from_gradle_properties", STRING, REGULAR, 1);
-    verifyPropertyModel(third, STRING_TYPE, "second", REFERENCE, REGULAR, 1);
+    verifyPropertyModel(third, STRING_TYPE, extraName("second", "rootProject"), REFERENCE, REGULAR, 1);
     GradlePropertyModel second = third.getDependencies().get(0);
     verifyPropertyModel(second.resolve(), STRING_TYPE, "value_from_gradle_properties", STRING, REGULAR, 1);
     verifyPropertyModel(second, STRING_TYPE, "first", REFERENCE, REGULAR, 1);
