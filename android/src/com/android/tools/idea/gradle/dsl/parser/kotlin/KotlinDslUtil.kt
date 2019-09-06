@@ -263,8 +263,8 @@ internal fun findInjections(
   val noInjections = mutableListOf<GradleReferenceInjection>()
   val injectionPsiElement = injectionElement ?: psiElement
   when (psiElement) {
-    // foo, KotlinCompilerVersion
-    is KtNameReferenceExpression -> {
+    // foo, KotlinCompilerVersion, android.compileSdkVersion
+    is KtNameReferenceExpression, is KtDotQualifiedExpression -> {
       val text = psiElement.text
       val element = context.resolveReference(text, true)
       return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
