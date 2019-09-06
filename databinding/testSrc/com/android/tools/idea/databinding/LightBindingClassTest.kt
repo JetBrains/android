@@ -290,7 +290,7 @@ class LightBindingClassTest {
     val tags = findChild(file, XmlTag::class.java) { it.localName == "view" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
-    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("com.example.Test", facet))
+    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("com.example.Test", context))
   }
 
   @Test
@@ -319,7 +319,7 @@ class LightBindingClassTest {
     val tags = findChild(file, XmlTag::class.java) { it.localName == "merge" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
-    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.findPsiType("test.db.databinding.OtherActivityBinding", facet))
+    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("test.db.databinding.OtherActivityBinding", context))
   }
 
   @Test
@@ -348,6 +348,6 @@ class LightBindingClassTest {
     val tags = findChild(file, XmlTag::class.java) { it.localName == "include" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
-    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.findPsiType("test.db.databinding.OtherActivityBinding", facet))
+    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("test.db.databinding.OtherActivityBinding", context))
   }
 }

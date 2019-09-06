@@ -319,7 +319,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         DbTokenTypes.TRUE, DbTokenTypes.FALSE -> PsiType.BOOLEAN
         DbTokenTypes.NULL -> PsiType.NULL
         DbTokenTypes.CHARACTER_LITERAL -> PsiType.CHAR
-        DbTokenTypes.STRING_LITERAL -> LayoutBindingTypeUtil.parsePsiType("java.lang.String", element.project) ?: return arrayOf()
+        DbTokenTypes.STRING_LITERAL -> LayoutBindingTypeUtil.parsePsiType("java.lang.String", element) ?: return arrayOf()
         else -> return arrayOf()
       }
       return arrayOf(PsiLiteralReference(element, psiType))
