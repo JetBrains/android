@@ -96,6 +96,7 @@ public class LayoutEditorMemoryUseTest {
     LOG.warn(sb.toString());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/140633211
   @Test
   public void navigateAndEdit() throws Exception {
     IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
