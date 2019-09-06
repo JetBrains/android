@@ -189,23 +189,18 @@ public class MotionSceneTag implements MTag {
     if (pos != null) { // TAGS.KEY_TRIGGER may not have a framePosition
       key.append(",").append(pos);
     }
-    switch (tagName) {
-      case Tags.KEY_POSITION:
-      case Tags.KEY_TRIGGER:
-        break;
-      default:
-        if (target != null && target.startsWith("@")) {
-          key.append("|Id:").append(Utils.stripID(target));
-        }
-        else {
-          key.append("|Tag:").append(target);
-        }
-        for (String keyAttribute : MotionSceneAttrs.KeyAttributeOptions) {
-          if (getAttributeValue(keyAttribute) != null) {
-            key.append(",").append(keyAttribute);
-          }
-        }
-        break;
+    if (target != null) {
+      if (target.startsWith("@")) {
+        key.append("|Id:").append(Utils.stripID(target));
+      }
+      else {
+        key.append("|Tag:").append(target);
+      }
+    }
+    for (String keyAttribute : MotionSceneAttrs.KeyAttributeOptions) {
+      if (getAttributeValue(keyAttribute) != null) {
+        key.append(",").append(keyAttribute);
+      }
     }
     return key.toString();
   }
