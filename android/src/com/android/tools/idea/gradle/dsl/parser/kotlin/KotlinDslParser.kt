@@ -114,8 +114,8 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
   override fun extractValue(context: GradleDslSimpleExpression, literal: PsiElement, resolve: Boolean): Any? {
     when (literal) {
-      // Ex: KotlinCompilerVersion
-      is KtNameReferenceExpression -> {
+      // Ex: KotlinCompilerVersion, android.compileSdkVersion
+      is KtNameReferenceExpression, is KtDotQualifiedExpression -> {
         if (resolve) {
           val gradleDslElement = context.resolveReference(literal.text, true)
           // Only get the value if the element is a GradleDslSimpleExpression.
