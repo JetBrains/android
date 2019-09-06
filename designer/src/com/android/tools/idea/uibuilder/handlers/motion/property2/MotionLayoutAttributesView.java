@@ -20,12 +20,7 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.api.CustomPanel;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.AddCustomFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.AddMotionFieldAction;
@@ -55,9 +50,7 @@ import com.intellij.xml.XmlElementDescriptor;
 import java.util.Collections;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link PropertiesView} for motion layout property editor.
@@ -103,7 +96,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     private final MotionLayoutAttributesModel myModel;
     private final EditorProvider<NelePropertyItem> myEditorProvider;
     private final TableUIProvider myTableUIProvider;
-    private final CustomPanel myCustomLayoutPanel;
     private final XmlElementDescriptorProvider myDescriptorProvider;
 
     private MotionInspectorBuilder(@NotNull MotionLayoutAttributesModel model,
@@ -112,7 +104,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       myModel = model;
       myEditorProvider = editorProvider;
       myTableUIProvider = tableUIProvider;
-      myCustomLayoutPanel = loadCustomLayoutPanel(model.getFacet());
       myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     }
 
@@ -127,7 +118,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       if (tag == null) {
         return;
       }
-      NlComponent component = any.getComponents().get(0);
       String label = tag.getLocalName();
       switch (label) {
         case MotionSceneAttrs.Tags.CONSTRAINT:
@@ -154,7 +144,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           }
           inspector.addEditor(myEditorProvider.createEditor(position, false), null);
           addPropertyTable(inspector, label, myModel, false, target, position);
-          addEasingCurveComponent(inspector, component, target.getModel().getSurface());
           break;
 
         default:
@@ -179,25 +168,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           SubTagAttributesModel subModel = new SubTagAttributesModel(model, subTagName);
           addPropertyTable(inspector, subTagName, subModel, true);
         }
-      }
-    }
-
-    @Nullable
-    private static CustomPanel loadCustomLayoutPanel(@NotNull AndroidFacet facet) {
-      ViewHandlerManager manager = ViewHandlerManager.get(facet);
-      ViewHandler handler = manager.getHandler(SdkConstants.MOTION_LAYOUT.newName());
-      return handler != null ? handler.getLayoutCustomPanel() : null;
-    }
-
-    private void addEasingCurveComponent(@NotNull InspectorPanel inspector,
-                                         @NotNull NlComponent component,
-                                         @Nullable DesignSurface surface) {
-      NlComponent parent = component.getParent();
-      String parentTag = parent != null ? parent.getTagName() : null;
-      if (myCustomLayoutPanel != null && SdkConstants.MOTION_LAYOUT.isEquals(parentTag)) {
-        InspectorLineModel title = inspector.addExpandableTitle("Easing Curve", true);
-        myCustomLayoutPanel.useComponent(component, surface);
-        inspector.addComponent(myCustomLayoutPanel.getPanel(), title);
       }
     }
 
