@@ -25,7 +25,6 @@ iml_module(
         "build.xml",
     ]),
     iml_files = ["intellij.android.core.iml"],
-    javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
     lint_baseline = "lint_baseline.xml",
     lint_timeout = "long",
     # do not sort: must match IML order
@@ -168,7 +167,6 @@ iml_module(
 iml_module(
     name = "intellij.android.core.tests",
     iml_files = ["intellij.android.core.tests.iml"],
-    javacopts = ["-XepAllErrorsAsWarnings"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
     test_coverage = True,
     # keep sorted
