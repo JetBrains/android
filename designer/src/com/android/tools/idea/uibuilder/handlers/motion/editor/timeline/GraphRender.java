@@ -21,11 +21,11 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.Mo
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.Oscillator;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 
 /**
  * Class for rendering the graphs that show in the timeline
@@ -35,6 +35,15 @@ public class GraphRender {
   private Cycle mCycle = null;
   private Attribute[] mAttribute = null;
   private String[] mStartEndString = new String[2];
+
+  static String[] ourWaveTypes = {"sin", "square", "triangle", "sawtooth", "reverseSawtooth", "cos", "bounce"};
+  static HashMap<String, Integer> ourWaveTypeMap = new HashMap<>();
+
+  static {
+    for (int i = 0; i < ourWaveTypes.length; i++) {
+      ourWaveTypeMap.put(ourWaveTypes[i], i);
+    }
+  }
 
   public boolean setUp(MeModel model, TimeLineRowData row) {
     if (DEBUG) {
@@ -91,7 +100,13 @@ public class GraphRender {
       period[i] = parse(0, kf.getAttributeValue("wavePeriod"));
       amp[i] = parse(0, kf.getAttributeValue(row.mKeyProp));
 
+      String str = kf.getAttributeValue("waveShape");
+      if (str == null) {
+        str = "sin";
+      }
+      curveType = Math.max(curveType, ourWaveTypeMap.get(str));
     }
+
     mCycle = new Cycle();
     mCycle.setCycle(pos, period, amp, offset, curveType);
     mCycle.fixRange(row.mKeyProp);
@@ -165,12 +180,10 @@ public class GraphRender {
       for (int i = 0; i < mAttribute.length; i++) {
         Attribute attribute = mAttribute[i];
         attribute.plot(g, gx, y, gw, h);
-
       }
     }
 
     g.setColor(c);
-
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -302,17 +315,16 @@ public class GraphRender {
         int count = 0;
         for (double i = 0; i <= 1; i += steps) {
           double yp = spline.getPos(i, 0);
-          xPoints[count] = (int) (x + i * w);
-          yPoints[count] = (int) (y + h - (yp - mMin) * h / (mMax - mMin));
+          xPoints[count] = (int)(x + i * w);
+          yPoints[count] = (int)(y + h - (yp - mMin) * h / (mMax - mMin));
           count++;
-
         }
         g.drawPolyline(xPoints, yPoints, count);
       }
     }
   }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   static class Cycle {
     MonotoneSpline mMonotoneSpline;
@@ -352,8 +364,7 @@ public class GraphRender {
       osc.setType(curveType);
       for (int i = 0; i < pos.length; i++) {
 
-        osc.addPoint(pos[i], (float) period[i]);
-
+        osc.addPoint(pos[i], (float)period[i]);
       }
       osc.normalize();
 
@@ -363,13 +374,13 @@ public class GraphRender {
       mMinY = Float.MAX_VALUE;
 
       for (int i = 0; i < xpos.length; i++) {
-        xpos[i] = (float) (i / (xpos.length - 1.0f));
+        xpos[i] = (float)(i / (xpos.length - 1.0f));
         double amp = mMonotoneSpline.getPos(xpos[i], 0);
         double off = mMonotoneSpline.getPos(xpos[i], 1);
         ypos[i] = mOscillator.getValue(xpos[i]) * amp + off;
-        yMax[i] = (float) (amp + off);
-        yMin[i] = (float) (-amp + off);
-        mMaxY = Math.max(mMaxY, (float) ypos[i]);
+        yMax[i] = (float)(amp + off);
+        yMin[i] = (float)(-amp + off);
+        mMaxY = Math.max(mMaxY, (float)ypos[i]);
         mMaxY = Math.max(mMaxY, yMax[i]);
         mMinY = Math.min(mMinY, yMin[i]);
       }
@@ -377,7 +388,6 @@ public class GraphRender {
       if (DEBUG) {
         Debug.log(mMinY + " " + mMaxY);
       }
-
     }
 
     void fixRange(String attr) {
@@ -390,9 +400,11 @@ public class GraphRender {
     void plot(Graphics g, int x, int y, int w, int h) {
       g.setColor(MEUI.ourGraphColor);
 
+      float scale = h / (mMaxY - mMaxY);
+      float offset = h * (-mMinY) / (mMaxY - mMaxY);
       for (int i = 0; i < xpos.length; i++) {
-        int xp = (int) (w * xpos[i] + x);
-        int yp = y + (int) (h - h * (ypos[i] - mMinY) / (mMaxY - mMinY));
+        int xp = (int)(w * xpos[i] + x);
+        int yp = y + (int)(h - h * (ypos[i] - mMinY) / (mMaxY - mMinY));
         xPoints[i] = xp;
         yPoints[i] = yp;
       }
@@ -405,8 +417,7 @@ public class GraphRender {
       }
       double amp = mMonotoneSpline.getPos(v, 0);
       double off = mMonotoneSpline.getPos(v, 1);
-      return (float) (mOscillator.getValue(v) * amp + off);
+      return (float)(mOscillator.getValue(v) * amp + off);
     }
   }
-
 }
