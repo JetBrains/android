@@ -87,10 +87,13 @@ public class EntityUpdate {
       }
       else {
         newFields.put(newField.getColumnName(), newField);
-      }
 
-      if (newField.isNonNull() && (newField.getDefaultValue() == null || newField.getDefaultValue().isEmpty())) {
-        containsUninitializedNotNullFields = true;
+        // In the case of a newly added column which is NOT NULL but does not have a default value, a complex update is needed, because
+        // creating it with ALTER TABLE would result in a compilation error. The correct way of adding the column in this case is to
+        // recreate the table with the new column and populate it with a value on all rows which already exist in the table.
+        if (newField.isNonNull() && (newField.getDefaultValue() == null || newField.getDefaultValue().isEmpty())) {
+          containsUninitializedNotNullFields = true;
+        }
       }
     }
     deletedFields = oldEntityFields;
