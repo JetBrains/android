@@ -146,10 +146,6 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(getProject());
-    ToolWindow toolWindow = toolWindowManager.registerToolWindow(
-      DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID, false, ToolWindowAnchor.RIGHT, getProject(), true);
-
     myEdtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance());
     myTaskExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE);
     myModel = new DeviceExplorerModel() {
@@ -167,7 +163,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       }
     };
     myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor);
-    myMockView = new MockDeviceExplorerView(getProject(), toolWindow, new MockDeviceFileSystemRendererFactory(), myModel);
+    myMockView = new MockDeviceExplorerView(getProject(), new MockDeviceFileSystemRendererFactory(), myModel);
     File downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true);
     myDownloadLocationSupplier = mock(Supplier.class);
     when(myDownloadLocationSupplier.get()).thenReturn(downloadPath.toPath());
