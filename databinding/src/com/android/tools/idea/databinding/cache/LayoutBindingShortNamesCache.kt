@@ -104,11 +104,6 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     return allClassNamesCache.value
   }
 
-  // TODO(b/139458402): Override a non-deprecated method instead.
-  override fun getAllClassNames(dest: HashSet<String>) {
-    dest.addAll(allClassNames)
-  }
-
   override fun getMethodsByName(name: String, scope: GlobalSearchScope): Array<PsiMethod> {
     val methods = methodsByNameCache.value[name] ?: return PsiMethod.EMPTY_ARRAY
     return methods.filter { PsiSearchScopeUtil.isInScope(scope, it) }.toTypedArray()
@@ -133,11 +128,6 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     return allMethodNamesCache.value
   }
 
-  // TODO(b/139458402): Override a non-deprecated method instead.
-  override fun getAllMethodNames(set: HashSet<String>) {
-    set.addAll(allClassNames)
-  }
-
   override fun getFieldsByName(name: String, scope: GlobalSearchScope): Array<PsiField> {
     val fields = fieldsByNameCache.value[name] ?: return PsiField.EMPTY_ARRAY
     return fields.filter { field -> PsiSearchScopeUtil.isInScope(scope, field) }.toTypedArray()
@@ -149,11 +139,6 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getAllFieldNames(): Array<String> {
     return allFieldNamesCache.value
-  }
-
-  // TODO(b/139458402): Override a non-deprecated method instead.
-  override fun getAllFieldNames(set: HashSet<String>) {
-    set.addAll(allFieldNames)
   }
 
   private class LightBindingCacheProvider(component: LayoutBindingProjectComponent)
