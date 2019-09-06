@@ -21,9 +21,9 @@ import com.intellij.openapi.ui.DialogWrapper;
 import java.awt.Component;
 import java.lang.reflect.InvocationTargetException;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -92,7 +92,7 @@ public class IconPickerDialogTest {
         TableCellRenderer renderer = table.getCellRenderer(row, column);
         Component component = renderer.getTableCellRendererComponent(table, value, false, false, row, column);
 
-        DefaultTableCellRenderer label = (DefaultTableCellRenderer)component;
+        JLabel label = (JLabel)component;
         assertThat(label.getText()).isEmpty();
         String cell = label.getAccessibleContext().getAccessibleName();
         if (cell.length() > cellWidth) {
