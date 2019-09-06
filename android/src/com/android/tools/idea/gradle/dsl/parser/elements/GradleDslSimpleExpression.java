@@ -203,6 +203,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   @Nullable
   public GradleDslElement resolveReference(@NotNull String referenceText, boolean resolveWithOrder) {
     GradleDslElement searchStartElement = this;
+    referenceText = getDslFile().getParser().convertReferenceText(searchStartElement, referenceText);
 
     List<String> referenceTextSegments = Splitter.on('.').trimResults().omitEmptyStrings().splitToList(referenceText);
     int index = 0;

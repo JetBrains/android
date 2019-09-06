@@ -100,6 +100,11 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }
   }
 
+  override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
+    val referencePsi = KtPsiFactory(context.dslFile.project).createExpression(referenceText)
+    return gradleNameFor(referencePsi) ?: referenceText
+  }
+
   override fun setUpForNewValue(context: GradleDslLiteral, newValue: PsiElement?) {
     val isReference = newValue is KtNameReferenceExpression || newValue is KtDotQualifiedExpression ||
                       newValue is KtClassLiteralExpression || newValue is KtArrayAccessExpression
@@ -119,10 +124,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         }
         return unquoteString(literal.text)
       }
+      // prop[0], rootProject.extra["kotlin_version"]
       is KtArrayAccessExpression -> {
         if (resolve) {
-          val property = gradleNameFor(literal)
-          val gradleDslElement = context.resolveReference(property ?: literal.text, true)
+          val gradleDslElement = context.resolveReference(literal.text, true)
           if (gradleDslElement is GradleDslSimpleExpression) {
             return gradleDslElement.value
           }
