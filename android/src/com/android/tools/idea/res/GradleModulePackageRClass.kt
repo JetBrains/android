@@ -16,6 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.resources.ResourceType
+import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.res.ModuleRClass.SourceSet.MAIN
 import com.android.tools.idea.res.ModuleRClass.SourceSet.TEST
 import com.android.tools.idea.res.ModuleRClass.Transitivity.NON_TRANSITIVE
@@ -30,7 +31,7 @@ import org.jetbrains.android.dom.manifest.getPackageName as getPackageNameFromMa
 class ModuleRClass(
   val facet: AndroidFacet,
   psiManager: PsiManager,
-  sourceSet: SourceSet,
+  private val sourceSet: SourceSet,
   transitivity: Transitivity,
   fieldModifier: AndroidLightField.FieldModifier
 ) : ResourceRepositoryRClass(
@@ -49,6 +50,11 @@ class ModuleRClass(
         TEST -> true
       }
     )
+  }
+
+  override fun getScopeType() = when (sourceSet) {
+    MAIN -> ScopeType.MAIN
+    TEST -> ScopeType.ANDROID_TEST
   }
 
   private class ModuleResourcesSource(
