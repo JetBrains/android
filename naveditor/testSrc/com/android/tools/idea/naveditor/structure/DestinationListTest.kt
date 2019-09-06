@@ -64,7 +64,10 @@ class DestinationListTest : NavTestCase() {
     val surface = model.surface
     val sceneView = NavView(surface as NavDesignSurface, surface.sceneManager!!)
     `when`<SceneView>(surface.getFocusedSceneView()).thenReturn(sceneView)
-    _list = DestinationList(project, surface)
+    val destinationList = DestinationList(project, surface)
+    val myList = destinationList.myList
+    myList.setSize(200,500)
+    _list = destinationList
   }
 
   override fun tearDown() {
