@@ -38,6 +38,7 @@ import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionItem;
@@ -535,6 +536,10 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackFilterMetadata(@NotNull com.android.tools.profilers.analytics.FilterMetadata filterMetadata) {
     newTracker(AndroidProfilerEvent.Type.FILTER).setFilterMetadata(filterMetadata).track();
+  }
+
+  @Override
+  public void trackMemoryProfilerInstanceFilter(@NotNull CaptureObjectInstanceFilter filter) {
   }
 
   /**
