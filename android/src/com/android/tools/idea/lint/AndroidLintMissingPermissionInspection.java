@@ -144,7 +144,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         return;
       }
 
-      final Manifest manifest = myFacet.getManifest();
+      final Manifest manifest = Manifest.getMainManifest(myFacet);
       if (manifest == null) {
         return;
       }

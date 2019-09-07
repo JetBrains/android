@@ -43,6 +43,7 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
@@ -306,7 +307,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(resolveReferenceUnderCaret()).isNull()
 
       runWriteCommandAction(project) {
-        myFacet.manifest!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
+        Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
       }
 
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
@@ -337,7 +338,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(resolveReferenceUnderCaret()).isNull()
 
       runWriteCommandAction(project) {
-        myFacet.manifest!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
+        Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
       }
 
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
@@ -518,7 +519,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       runWriteCommandAction(project) {
         libModule
           .let(AndroidFacet::getInstance)!!
-          .manifest!!
+          .let { Manifest.getMainManifest(it)!!}
           .`package`!!
           .value = "com.example.mylib"
       }
@@ -593,9 +594,9 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       val libModule = getAdditionalModuleByName("unrelatedLib")!!
 
       runWriteCommandAction(project) {
-        libModule
-          .let(AndroidFacet::getInstance)!!
-          .manifest!!
+        Manifest.getMainManifest(libModule
+                       .let(AndroidFacet::getInstance)!!
+        )!!
           .`package`!!
           .value = "p1.p2.unrelatedLib"
       }

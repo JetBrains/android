@@ -30,6 +30,7 @@ import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
+import org.jetbrains.android.facet.SourceProviderManager
 import java.io.File
 
 /**
@@ -180,8 +181,9 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
           if (androidFacet != null) {
             nest {
               nest("by Facet:") {
-                androidFacet.mainSourceProvider.dump()
-                androidFacet.mainIdeaSourceProvider.dump()
+                val sourceProviderManager = SourceProviderManager.getInstance(androidFacet)
+                sourceProviderManager.mainSourceProvider.dump()
+                sourceProviderManager.mainIdeaSourceProvider.dump()
               }
               val model = AndroidModel.get(module)
               if (model != null) {

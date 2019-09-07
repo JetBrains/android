@@ -29,7 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 inline fun updatePrimaryManifest(androidFacet: AndroidFacet, crossinline writeCommandActionBody: Manifest.() -> Unit) {
   runWriteCommandAction(androidFacet.module.project) {
-    androidFacet.manifest!!.writeCommandActionBody()
+    Manifest.getMainManifest(androidFacet)!!.writeCommandActionBody()
   }
   FileDocumentManager.getInstance().saveAllDocuments()
   MergedManifestManager.getMergedManifest(androidFacet.module).get()

@@ -32,6 +32,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 import java.awt.Color
 import java.awt.event.ItemEvent
 
@@ -116,7 +117,7 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
       return
 
     val virtualFile = drawableFileGenerator.generateColorsFile(colors.toMutableList())
-    val resFolder = facet.mainSourceProvider.resDirectories.let { resDirs ->
+    val resFolder = SourceProviderManager.getInstance(facet).mainSourceProvider.resDirectories.let { resDirs ->
       resDirs.firstOrNull { it.exists() }
       ?: resDirs.first().also { it.createNewFile() }
     }

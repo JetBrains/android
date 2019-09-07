@@ -113,7 +113,7 @@ interface IdeaSourceProvider {
     @JvmStatic
     fun getCurrentSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
       return if (!facet.requiresAndroidModel()) {
-        listOf(facet.mainIdeaSourceProvider)
+        listOf(SourceProviderManager.getInstance(facet).mainIdeaSourceProvider)
       }
       else {
         @Suppress("DEPRECATION")
@@ -132,13 +132,13 @@ interface IdeaSourceProvider {
     @JvmStatic
     fun getMainAndFlavorSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
       if (!facet.requiresAndroidModel()) {
-        return listOf(facet.mainIdeaSourceProvider)
+        return listOf(SourceProviderManager.getInstance(facet).mainIdeaSourceProvider)
       }
       else {
         val androidModel = AndroidModuleModel.get(facet)
         if (androidModel != null) {
           val result = mutableListOf<IdeaSourceProvider>()
-          result.add(facet.mainIdeaSourceProvider)
+          result.add(SourceProviderManager.getInstance(facet).mainIdeaSourceProvider)
           result.addAll(androidModel.flavorSourceProviders.toIdeaProviders())
           return result
         }
@@ -243,7 +243,7 @@ interface IdeaSourceProvider {
     @JvmStatic
     fun getAllSourceProviders(facet: AndroidFacet): List<SourceProvider> {
       return if (!facet.requiresAndroidModel() || facet.configuration.model == null) {
-        listOf(facet.mainSourceProvider)
+        listOf(SourceProviderManager.getInstance(facet).mainSourceProvider)
       }
       else {
         @Suppress("DEPRECATION")
@@ -267,7 +267,7 @@ interface IdeaSourceProvider {
     @JvmStatic
     fun getAllIdeaSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
       return if (!facet.requiresAndroidModel() || facet.configuration.model == null) {
-        listOf(facet.mainIdeaSourceProvider)
+        listOf(SourceProviderManager.getInstance(facet).mainIdeaSourceProvider)
       }
       else {
         getAllSourceProviders(facet).toIdeaProviders()
@@ -359,14 +359,14 @@ interface IdeaSourceProvider {
         getCurrentSourceProviders(facet).any { candidate == it.manifestFile }
       }
       else {
-        candidate == facet.mainIdeaSourceProvider.manifestFile
+        candidate == SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.manifestFile
       }
     }
 
     /** Returns the manifest files in the given module  */
     @JvmStatic
     fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> {
-      val main = facet.mainIdeaSourceProvider.manifestFile
+      val main = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.manifestFile
       if (!facet.requiresAndroidModel()) {
         return if (main != null) listOf(main) else emptyList()
       }

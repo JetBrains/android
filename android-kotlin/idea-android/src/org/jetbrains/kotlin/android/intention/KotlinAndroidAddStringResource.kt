@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.actions.CreateXmlResourceDialog
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidResourceUtil
@@ -43,7 +44,6 @@ import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
@@ -196,7 +196,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
         return true
     }
 
-    private fun getManifestPackage(facet: AndroidFacet) = facet.manifest?.`package`?.value
+    private fun getManifestPackage(facet: AndroidFacet) = Manifest.getMainManifest(facet)?.`package`?.value
 
     private fun PsiElement.isSubclassOrSubclassExtension(baseClasses: Collection<String>) =
             (this as? KtClassOrObject)?.isSubclassOfAny(baseClasses) ?:

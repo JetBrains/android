@@ -118,6 +118,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
@@ -1105,7 +1106,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       if (libraryModule != null) {
         AndroidFacet libraryFacet = AndroidFacet.getInstance(libraryModule);
         if (libraryFacet != null) {
-          File manifestFile = libraryFacet.getMainSourceProvider().getManifestFile();
+          File manifestFile = SourceProviderManager.getInstance(libraryFacet).getMainSourceProvider().getManifestFile();
           if (manifestFile.exists()) {
             sb.add(manifestFile.toURI().toString());
             redirected = true;

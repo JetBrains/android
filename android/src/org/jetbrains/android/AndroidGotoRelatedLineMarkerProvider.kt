@@ -43,6 +43,7 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.xml.util.XmlTagUtil
 import org.jetbrains.android.dom.AndroidAttributeValue
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidBuildCommonUtils
@@ -130,7 +131,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
                                          SdkConstants.CLASS_ADAPTER)
 
     private fun PsiClass.findComponentDeclarationInManifest(): AndroidAttributeValue<PsiClass>? {
-      val manifest = androidFacet?.manifest ?: return null
+      val manifest = Manifest.getMainManifest(androidFacet) ?: return null
       val application = manifest.application ?: return null
       return when {
         InheritanceUtil.isInheritor(this, AndroidUtils.ACTIVITY_BASE_CLASS_NAME) ->

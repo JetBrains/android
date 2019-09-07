@@ -118,7 +118,7 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
   }
 
   private static void doCollectActivityAliases(@NotNull AndroidFacet facet, @NotNull Set<String> result) {
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
 
     if (manifest == null) {
       return;

@@ -63,6 +63,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -370,7 +371,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    */
   protected void enableNamespacing(@NotNull AndroidFacet facet, @NotNull String appPackageName) {
     facet.getConfiguration().setModel(TestAndroidModel.namespaced(facet));
-    runWriteCommandAction(getProject(), () -> facet.getManifest().getPackage().setValue(appPackageName));
+    runWriteCommandAction(getProject(), () -> Manifest.getMainManifest(facet).getPackage().setValue(appPackageName));
     LocalResourceManager.getInstance(facet.getModule()).invalidateAttributeDefinitions();
   }
 
