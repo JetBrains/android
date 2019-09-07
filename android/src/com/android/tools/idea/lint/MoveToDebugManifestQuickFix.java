@@ -37,6 +37,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +67,7 @@ class MoveToDebugManifestQuickFix implements AndroidLintQuickFix {
         if (module != null) {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null) {
-            VirtualFile mainManifest = facet.getMainIdeaSourceProvider().getManifestFile();
+            VirtualFile mainManifest = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFile();
             // TODO: b/22928250
             AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
             if (androidModel != null && mainManifest != null

@@ -409,7 +409,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       if (packageName != null) {
         result.add(packageName.toLowerCase());
       }
-      final Manifest manifest = facet.getManifest();
+      final Manifest manifest = Manifest.getMainManifest(facet);
 
       if (manifest != null) {
         final XmlElement xmlElement = manifest.getXmlElement();

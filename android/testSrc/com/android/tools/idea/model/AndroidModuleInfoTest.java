@@ -30,6 +30,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.w3c.dom.Element;
@@ -174,8 +175,8 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     new WriteCommandAction.Simple(getProject(), psiFile) {
       @Override
       protected void run() throws Throwable {
-        assertNotNull(myAndroidFacet.getManifest());
-        XmlTag manifestTag = myAndroidFacet.getManifest().getXmlTag();
+        assertNotNull(Manifest.getMainManifest(myAndroidFacet));
+        XmlTag manifestTag = Manifest.getMainManifest(myAndroidFacet).getXmlTag();
         Optional<XmlTag> optional = Arrays.stream(manifestTag.getSubTags()).filter(tag -> {
           assertNotNull(tag);
           return "application".equals(tag.getName());

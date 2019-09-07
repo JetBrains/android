@@ -57,6 +57,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
@@ -779,7 +780,7 @@ public class LintIdeProject extends Project {
     public List<File> getManifestFiles() {
       if (manifestFiles == null) {
         manifestFiles = Lists.newArrayList();
-        File mainManifest = myFacet.getMainSourceProvider().getManifestFile();
+        File mainManifest = SourceProviderManager.getInstance(myFacet).getMainSourceProvider().getManifestFile();
         if (mainManifest.exists()) {
           manifestFiles.add(mainManifest);
         }

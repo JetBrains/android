@@ -545,7 +545,7 @@ public class AndroidUtils {
 
     if (visited.add(module)) {
       for (AndroidFacet depFacet : getAllAndroidDependencies(module, true)) {
-        final Manifest manifest = depFacet.getManifest();
+        final Manifest manifest = Manifest.getMainManifest(depFacet);
 
         if (manifest != null) {
           String aPackage = manifest.getPackage().getValue();

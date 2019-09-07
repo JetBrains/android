@@ -46,6 +46,7 @@ import com.intellij.ui.layout.panel
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.awt.Component
@@ -363,7 +364,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
   private fun findPackageName(): String {
     var packageName = ""
     for (module in ModuleManager.getInstance(project).modules) {
-      val modulePackageName = (AndroidFacet.getInstance(module) ?: continue).manifest?.`package`?.value ?: continue
+      val modulePackageName = (AndroidFacet.getInstance(module) ?: continue).let(::getPackageName) ?: continue
       if (packageName.isNotEmpty()) {
         // Multiple Android package names:
         return ""

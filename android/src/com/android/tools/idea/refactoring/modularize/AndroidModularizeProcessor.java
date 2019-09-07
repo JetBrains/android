@@ -73,6 +73,7 @@ import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -384,13 +385,13 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
   private PsiFile getOrCreateTargetManifestFile(AndroidFacet facet) {
     PsiManager manager = PsiManager.getInstance(myProject);
 
-    VirtualFile manifestFile = VfsUtil.findFileByIoFile(facet.getMainSourceProvider().getManifestFile(), false);
+    VirtualFile manifestFile = VfsUtil.findFileByIoFile(SourceProviderManager.getInstance(facet).getMainSourceProvider().getManifestFile(), false);
 
     if (manifestFile != null) {
       return manager.findFile(manifestFile);
     }
     else {
-      VirtualFile directory = VfsUtil.findFileByIoFile(facet.getMainSourceProvider().getManifestFile().getParentFile(), false);
+      VirtualFile directory = VfsUtil.findFileByIoFile(SourceProviderManager.getInstance(facet).getMainSourceProvider().getManifestFile().getParentFile(), false);
       if (directory != null) {
         PsiDirectory targetDirectory = manager.findDirectory(directory);
         if (targetDirectory != null) {
