@@ -16,10 +16,10 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.startup.Actions.moveAction;
 
-public final class AndroidPlugin {
+final class AndroidPlugin {
   private static final String GROUP_ANDROID_TOOLS = "AndroidToolsGroup";
 
-  public AndroidPlugin() {
+  AndroidPlugin() {
     VirtualFileSystemOpener.INSTANCE.mount();
     if (!IdeInfo.getInstance().isAndroidStudio()) {
       initializeForNonStudio();
