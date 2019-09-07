@@ -19,11 +19,11 @@ import com.android.SdkConstants
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.MultiTemplateRenderer.TemplateRendererListener
 import com.android.tools.idea.testing.AndroidGradleTests
-import com.google.common.base.Charsets
-import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.messages.MessageBusConnection
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
@@ -59,10 +59,13 @@ internal class NpwControl : TestWatcher() {
   private fun updateProjectFiles(project: Project) {
     val gradleFile = File(project.basePath!!, SdkConstants.FN_BUILD_GRADLE)
     if (gradleFile.exists()) {
-      val origContent = Files.toString(gradleFile, Charsets.UTF_8)
+      val gradleVirtualFile = VfsUtil.findFileByIoFile(gradleFile, true)!!
+      val origContent = VfsUtil.loadText(gradleVirtualFile)
       val newContent = AndroidGradleTests.updateLocalRepositories(origContent, AndroidGradleTests.getLocalRepositoriesForGroovy())
       if (newContent != origContent) {
-        Files.write(newContent, gradleFile, Charsets.UTF_8)
+        runWriteAction {
+          VfsUtil.saveText(gradleVirtualFile, newContent)
+        }
       }
     }
   }
