@@ -29,6 +29,7 @@ open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
   override var visible = true
   override var hidden = false
   override var focusable = true
+  override var enabled = false
   override var parent: InspectorLineModel? = null
   var actions = listOf<AnAction>()
   open val tableModel: PTableModel? = null
