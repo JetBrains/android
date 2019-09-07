@@ -491,6 +491,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     }
 
     GuiTests.waitForBackgroundTasks(robot());
+    com.android.tools.idea.tests.gui.framework.fixture.newpsd.UiTestUtilsKt.waitForIdle();
   }
 
   @NotNull
