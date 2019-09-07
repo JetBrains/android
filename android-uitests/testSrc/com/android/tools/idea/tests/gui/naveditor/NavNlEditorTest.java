@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.naveditor;
 
+import static com.android.tools.idea.tests.gui.framework.fixture.newpsd.UiTestUtilsKt.waitForIdle;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue;
 import static junit.framework.TestCase.assertTrue;
@@ -136,6 +137,7 @@ public class NavNlEditorTest {
         .clickFinish();
 
       ApplicationManager.getApplication().invokeAndWait(() -> dispatchAllInvocationEventsInIdeEventQueue());
+      waitForIdle();
 
       DestinationListFixture destinationListFixture = DestinationListFixture.create(guiTest.robot());
       List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
