@@ -157,8 +157,15 @@ public class StudioIcons {
     }
 
     public static class Motion {
+      public static final Icon ADD_CONSTRAINT_SET = load("/studio/icons/layout-editor/motion/add-constraint-set.svg"); // 16x16
+      public static final Icon ADD_GESTURE = load("/studio/icons/layout-editor/motion/add-gesture.svg"); // 16x16
+      public static final Icon ADD_KEYFRAME = load("/studio/icons/layout-editor/motion/add-keyframe.svg"); // 16x16
+      public static final Icon ADD_TRANSITION = load("/studio/icons/layout-editor/motion/add-transition.svg"); // 16x16
+      public static final Icon BASE_LAYOUT = load("/studio/icons/layout-editor/motion/base-layout.svg"); // 16x16
+      public static final Icon CONSTRAINT_SET = load("/studio/icons/layout-editor/motion/constraint-set.svg"); // 16x16
       public static final Icon END_CONSTRAINT_SELECTED = load("/studio/icons/layout-editor/motion/end-constraint-selected.svg"); // 16x16
       public static final Icon END_CONSTRAINT = load("/studio/icons/layout-editor/motion/end-constraint.svg"); // 16x16
+      public static final Icon GESTURE = load("/studio/icons/layout-editor/motion/gesture.svg"); // 16x16
       public static final Icon GO_TO_END = load("/studio/icons/layout-editor/motion/go-to-end.svg"); // 16x16
       public static final Icon GO_TO_START = load("/studio/icons/layout-editor/motion/go-to-start.svg"); // 16x16
       public static final Icon KEYFRAME = load("/studio/icons/layout-editor/motion/keyframe.svg"); // 16x16
@@ -167,6 +174,9 @@ public class StudioIcons {
       public static final Icon MIN_SCALE = load("/studio/icons/layout-editor/motion/min-scale.svg"); // 16x16
       public static final Icon NEXT_TICK = load("/studio/icons/layout-editor/motion/next-tick.svg"); // 16x16
       public static final Icon PAUSE = load("/studio/icons/layout-editor/motion/pause.svg"); // 16x16
+      public static final Icon PLAY_BACKWARD = load("/studio/icons/layout-editor/motion/play-backward.svg"); // 16x16
+      public static final Icon PLAY_FORWARD = load("/studio/icons/layout-editor/motion/play-forward.svg"); // 16x16
+      public static final Icon PLAY_YOYO = load("/studio/icons/layout-editor/motion/play-yoyo.svg"); // 16x16
       public static final Icon PLAY = load("/studio/icons/layout-editor/motion/play.svg"); // 16x16
       public static final Icon PREVIOUS_TICK = load("/studio/icons/layout-editor/motion/previous-tick.svg"); // 16x16
       public static final Icon SLOW_MOTION = load("/studio/icons/layout-editor/motion/slow-motion.svg"); // 16x16
@@ -178,6 +188,7 @@ public class StudioIcons {
       public static final Icon TIMELINE_KEYFRAME = load("/studio/icons/layout-editor/motion/timeline-keyframe.svg"); // 16x16
       public static final Icon TIMELINE_START_CONSTRAINT_SELECTED = load("/studio/icons/layout-editor/motion/timeline-start-constraint-selected.svg"); // 16x16
       public static final Icon TIMELINE_START_CONSTRAINT = load("/studio/icons/layout-editor/motion/timeline-start-constraint.svg"); // 16x16
+      public static final Icon TRANSITION = load("/studio/icons/layout-editor/motion/transition.svg"); // 16x16
     }
 
     public static class Palette {
