@@ -17,6 +17,7 @@ package com.android.tools.property.panel.impl.model
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.InspectorLineModel
+import kotlin.properties.Delegates
 
 private const val ERROR_NOT_FOCUSABLE = "Component is not focusable"
 
@@ -30,11 +31,7 @@ open class GenericInspectorLineModel : InspectorLineModel {
 
   override var parent: InspectorLineModel? = null
 
-  override var hidden = false
-    set(value) {
-      field = value
-      fireValueChanged()
-    }
+  override var hidden by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
 
   override var visible = true
     get() = field && !hidden
@@ -47,6 +44,8 @@ open class GenericInspectorLineModel : InspectorLineModel {
 
   override val focusable: Boolean
     get() = false
+
+  override var enabled by Delegates.observable(true) { _, _, _ -> fireValueChanged() }
 
   override fun requestFocus() {
     error(ERROR_NOT_FOCUSABLE)

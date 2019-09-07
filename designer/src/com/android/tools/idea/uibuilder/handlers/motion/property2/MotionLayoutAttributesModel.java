@@ -23,7 +23,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionDesignSurfaceEdits;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTagWriter;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
@@ -141,7 +140,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
         writeTagAttribute(sectionTag, property, newValue);
       }
       else if (newValue != null) {
-        createConstraintTag(motionTag, section, property, newValue);
+        createConstraintTag(motionTag, section, property, true, newValue);
       }
     }
   }
@@ -158,10 +157,11 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     writer.commit(String.format("Set %1$s.%2$s to %3$s", tag.getTagName(), property.getName(), String.valueOf(newValue)));
   }
 
-  private static void createConstraintTag(@NotNull MotionSceneTag constraintTag,
-                                          @NotNull String section,
-                                          @NotNull NelePropertyItem property,
-                                          @Nullable String newValue) {
+  public static void createConstraintTag(@NotNull MotionSceneTag constraintTag,
+                                         @NotNull String section,
+                                         @NotNull NelePropertyItem property,
+                                         boolean setPropertyValue,
+                                         @Nullable String newValue) {
     MTag.TagWriter writer = MotionSceneUtils.getChildTagWriter(constraintTag, section);
     MotionAttributes attrs = MotionDefaultPropertyValueProvider.getMotionAttributesForTag(property);
     if (attrs != null) {
@@ -172,7 +172,9 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
         }
       }
     }
-    writer.setAttribute(property.getNamespace(), property.getName(), newValue);
+    if (setPropertyValue) {
+      writer.setAttribute(property.getNamespace(), property.getName(), newValue);
+    }
     writer.commit(String.format("Create %1$s tag", section));
   }
 
