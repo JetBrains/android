@@ -16,7 +16,6 @@
 package org.jetbrains.android.facet;
 
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
-import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.apk.ApkFacet;
@@ -32,7 +31,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -100,46 +98,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return !getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(getModule()) == null;
   }
 
-  @NotNull
-  public final SourceProvider getMainSourceProvider() {
-    return SourceProviderManager.getInstance(this).getMainSourceProvider();
-  }
-
-  @NotNull
-  public final IdeaSourceProvider getMainIdeaSourceProvider() {
-    return SourceProviderManager.getInstance(this).getMainIdeaSourceProvider();
-  }
-
   @Override
   public void disposeFacet() {
     getConfiguration().disposeFacet();
-  }
-
-  /**
-   * @see #getManifest()
-   */
-  @Nullable
-  public final VirtualFile getManifestFile() {
-    // When opening a project, many parts of the IDE will try to read information from the manifest. If we close the project before
-    // all of this finishes, we may end up creating disposable children of an already disposed facet. This is a rather hard problem in
-    // general, but pretending there was no manifest terminates many code paths early.
-    if (isDisposed()) {
-      return null;
-    }
-
-    return getMainIdeaSourceProvider().getManifestFile();
-  }
-
-  /**
-   * Creates and returns a DOM representation of the manifest. This may come with significant overhead,
-   * as initializing the DOM model requires parsing the manifest. In performance-critical situations,
-   * callers may want to consider getting the manifest as a {@link VirtualFile} with {@link #getManifestFile()}
-   * and searching the corresponding PSI file manually.
-   */
-  @Nullable
-  public final Manifest getManifest() {
-    VirtualFile manifestFile = getManifestFile();
-    return manifestFile != null ? loadDomElement(getModule(), manifestFile, Manifest.class) : null;
   }
 
   @NotNull

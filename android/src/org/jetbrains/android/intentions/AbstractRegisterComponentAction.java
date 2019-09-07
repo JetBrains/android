@@ -57,7 +57,7 @@ public abstract class AbstractRegisterComponentAction extends AbstractIntentionA
     }
 
     final AndroidFacet facet = AndroidFacet.getInstance(file);
-    final Manifest manifest = facet == null ? null : facet.getManifest();
+    final Manifest manifest = facet == null ? null : Manifest.getMainManifest(facet);
     if (manifest == null) {
       return;
     }
@@ -104,7 +104,7 @@ public abstract class AbstractRegisterComponentAction extends AbstractIntentionA
       return false;
     }
 
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
     if (manifest == null) {
       return false;
     }

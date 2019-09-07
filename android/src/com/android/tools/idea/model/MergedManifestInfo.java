@@ -384,7 +384,7 @@ final class MergedManifestInfo {
       String versionNameSuffix = Joiner.on("").skipNulls().join(flavorVersionNameSuffix, getVersionNameSuffix(buildType));
       if (!Strings.isNullOrEmpty(versionName) || !Strings.isNullOrEmpty(versionNameSuffix)) {
         if (Strings.isNullOrEmpty(versionName)) {
-          Manifest manifest = facet.getManifest();
+          Manifest manifest = Manifest.getMainManifest(facet);
           if (manifest != null) {
             versionName = manifest.getXmlTag().getAttributeValue(SdkConstants.ATTR_VERSION_NAME, ANDROID_URI);
           }

@@ -37,6 +37,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
@@ -130,7 +131,8 @@ public final class CreateClassAction extends AnAction {
       return ide.getOrChooseDirectory();
     }
 
-    Collection<File> files = facet.getMainSourceProvider().getJavaDirectories();
+    // TODO(b/140548468): Consider all source providers.
+    Collection<File> files = SourceProviderManager.getInstance(facet).getMainSourceProvider().getJavaDirectories();
 
     if (files.size() != 1) {
       return ide.getOrChooseDirectory();

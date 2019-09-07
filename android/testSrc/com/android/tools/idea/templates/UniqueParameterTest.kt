@@ -17,7 +17,13 @@ package com.android.tools.idea.templates
 
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.templates.Parameter.Constraint.*
+import com.android.tools.idea.templates.Parameter.Constraint.CLASS
+import com.android.tools.idea.templates.Parameter.Constraint.DRAWABLE
+import com.android.tools.idea.templates.Parameter.Constraint.LAYOUT
+import com.android.tools.idea.templates.Parameter.Constraint.MODULE
+import com.android.tools.idea.templates.Parameter.Constraint.NAVIGATION
+import com.android.tools.idea.templates.Parameter.Constraint.PACKAGE
+import com.android.tools.idea.templates.Parameter.Constraint.UNIQUE
 import com.android.tools.idea.templates.Template.ATTR_CONSTRAINTS
 import com.android.tools.idea.templates.Template.ATTR_DEFAULT
 import com.android.tools.idea.templates.Template.ATTR_HELP
@@ -32,6 +38,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.mockito.Mockito
 import javax.imageio.metadata.IIOMetadataNode
@@ -75,7 +82,7 @@ class UniqueParameterTest : AndroidGradleTestCase() {
     myPaidSourceProvider = paidFlavor!!.sourceProvider
     assertNotNull(myPaidSourceProvider)
 
-    myMainSourceProvider = myAppFacet!!.mainSourceProvider
+    myMainSourceProvider = SourceProviderManager.getInstance(myAppFacet!!).mainSourceProvider
     assertNotNull(myMainSourceProvider)
 
     val mockMetadata = Mockito.mock(TemplateMetadata::class.java)

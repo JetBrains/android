@@ -108,6 +108,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
+import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.jps.model.java.JpsJavaSdkType
@@ -326,7 +327,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     val androidFacet = AndroidFacet.getInstance(baseFeature)!!
     val gradleFacet = GradleFacet.getInstance(baseFeature)!!
     val rootFolder = AndroidRootUtil.findModuleRootFolderPath(baseFeature)
-    val resDirectories = androidFacet.mainSourceProvider.resDirectories
+    val resDirectories = SourceProviderManager.getInstance(androidFacet).mainSourceProvider.resDirectories
     assert(!resDirectories.isEmpty())
     val baseModuleResourceRoot = resDirectories.iterator().next() // Put the new resources in any of the available res directories
 

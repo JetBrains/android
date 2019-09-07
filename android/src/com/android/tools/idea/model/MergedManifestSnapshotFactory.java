@@ -186,7 +186,7 @@ class MergedManifestSnapshotFactory {
       String appId = getAttributeValue(root, null, ATTRIBUTE_PACKAGE);
 
       // The package comes from the main manifest, NOT from the merged manifest.
-      Manifest manifest = facet.getManifest();
+      Manifest manifest = Manifest.getMainManifest(facet);
       String packageName = manifest == null ? appId : manifest.getPackage().getValue();
 
       AaptOptions.Namespacing namespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();

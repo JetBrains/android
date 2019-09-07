@@ -172,7 +172,7 @@ class ResourceFolderManager(
 
   private fun computeFolders(facet: AndroidFacet): Folders {
     return if (!facet.requiresAndroidModel()) {
-      Folders(main = facet.mainIdeaSourceProvider.resDirectories.toList(), test = emptyList())
+      Folders(main = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.toList(), test = emptyList())
     }
     else {
       // Listen to root change events. Be notified when project is initialized so we can update the

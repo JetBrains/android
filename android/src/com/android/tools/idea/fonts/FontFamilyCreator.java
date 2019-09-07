@@ -267,7 +267,7 @@ public class FontFamilyCreator {
   }
 
   private void addPreloadedFontsToManifest() {
-    Manifest manifest = myFacet.getManifest();
+    Manifest manifest = Manifest.getMainManifest(myFacet);
     if (manifest == null) {
       return;
     }
