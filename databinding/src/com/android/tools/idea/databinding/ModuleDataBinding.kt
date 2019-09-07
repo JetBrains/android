@@ -233,19 +233,21 @@ class ModuleDataBinding private constructor(private val module: Module) {
     val facet = AndroidFacet.getInstance(module) ?: return emptyList()
 
     synchronized(lock) {
+      fun cacheKeyFor(group: BindingLayoutGroup) = group.mainLayout.file.name
+
       // Querying bindingLayoutGroups, as a side effect, potentially updates
       // lightBindingClassesCacheCleanupPassRequested with the latest value
       val bindingLayoutGroups = bindingLayoutGroups
       if (lightBindingClassesCacheCleanupPassRequested) {
         // Clean cache if any layouts have been deleted
-        val validKeys = bindingLayoutGroups.map { group -> group.mainLayout.className }.toSet()
+        val validKeys = bindingLayoutGroups.map { group -> cacheKeyFor(group) }.toSet()
         val invalidKeys = lightBindingClassesCache.keys.filter { key -> !validKeys.contains(key) }
 
         invalidKeys.forEach { key -> lightBindingClassesCache.remove(key) }
         lightBindingClassesCacheCleanupPassRequested = false
       }
 
-      val cacheKey = group.mainLayout.className
+      val cacheKey = cacheKeyFor(group)
       var bindingClasses = lightBindingClassesCache[cacheKey]
       if (bindingClasses != null) {
         // If here, we have a previously cached set of binding classes. However, a layout
