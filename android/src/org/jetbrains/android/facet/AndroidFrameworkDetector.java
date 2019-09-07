@@ -123,7 +123,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
         showDexOptionNotification(module, ANDROID_DEX_FORCE_JUMBO_PROPERTY);
       }
 
-      Manifest manifest = facet.getManifest();
+      Manifest manifest = Manifest.getMainManifest(facet);
       if (manifest != null && DefaultActivityLocator.getDefaultLauncherActivityName(module.getProject(), manifest) != null) {
         AndroidRunConfigurations.getInstance().addRunConfiguration(facet, null);
       }

@@ -23,7 +23,6 @@ import static com.android.SdkConstants.FD_SOURCES;
 import static com.android.SdkConstants.FD_TEST;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.npw.model.NewModuleModelKt;
 import com.android.tools.idea.npw.module.ModuleModelKt;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
@@ -40,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
@@ -147,7 +147,8 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
   @NotNull
   private static Collection<SourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
     if (targetDirectory != null) {
-      return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory, androidFacet.getMainSourceProvider());
+      return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory,
+                                                          SourceProviderManager.getInstance(androidFacet).getMainSourceProvider());
     }
     else {
       return IdeaSourceProvider.getAllSourceProviders(androidFacet);

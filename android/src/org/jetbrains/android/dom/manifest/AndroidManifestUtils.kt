@@ -37,6 +37,7 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.xml.DomElement
 import com.intellij.util.xml.XmlName
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 
 /**
  * Returns the module's resource package name, or null if it could not be determined.
@@ -126,7 +127,7 @@ fun <T> AndroidFacet.cachedValueFromPrimaryManifest(valueSelector: AndroidManife
  * Returns the PSI representation of the facet's primary manifest, if available.
  */
 private fun AndroidFacet.getPrimaryManifestXml(): AndroidManifestXmlFile? {
-  val psiFile = manifestFile?.let { AndroidPsiUtils.getPsiFileSafely(module.project, it) }
+  val psiFile = SourceProviderManager.getInstance(this).mainManifestFile?.let { AndroidPsiUtils.getPsiFileSafely(module.project, it) }
   return psiFile as? AndroidManifestXmlFile
 }
 

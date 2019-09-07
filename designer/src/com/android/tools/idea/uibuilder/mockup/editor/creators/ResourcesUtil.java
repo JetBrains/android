@@ -25,6 +25,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -184,7 +185,7 @@ public final class ResourcesUtil {
                                               @NotNull Project project,
                                               @NotNull WidgetCreator.DoneCallback doneCallback,
                                               @NotNull Object requestor) {
-    Collection<VirtualFile> resDirectories = facet.getMainIdeaSourceProvider().getResDirectories();
+    Collection<VirtualFile> resDirectories = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getResDirectories();
     Iterator<VirtualFile> iterator = resDirectories.iterator();
     if (iterator.hasNext()) {
       CommandProcessor.getInstance().executeCommand(

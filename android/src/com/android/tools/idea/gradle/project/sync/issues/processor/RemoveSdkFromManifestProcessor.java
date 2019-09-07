@@ -155,7 +155,7 @@ public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
     for (Module module : myModules) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
-        Manifest manifest = androidFacet.getManifest();
+        Manifest manifest = Manifest.getMainManifest(androidFacet);
         if (manifest != null) {
           // Read and remove the value of the property from manifest.
           for (UsesSdk usesSdk : manifest.getUsesSdks()) {

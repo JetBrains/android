@@ -161,7 +161,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
         if ((AndroidFileTemplateProvider.ACTIVITY.equals(templateName) || AndroidFileTemplateProvider.FRAGMENT.equals(templateName)) &&
             createLayoutFile) {
           final boolean isActivity = AndroidFileTemplateProvider.ACTIVITY.equals(templateName);
-          final Manifest manifest = facet.getManifest();
+          final Manifest manifest = Manifest.getMainManifest(facet);
           final String appPackage = manifest != null ? manifest.getPackage().getValue() : null;
 
           if (appPackage != null && !appPackage.isEmpty()) {
