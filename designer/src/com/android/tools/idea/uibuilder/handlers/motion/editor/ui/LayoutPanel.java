@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEJTable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
 
@@ -48,7 +49,7 @@ class LayoutPanel extends JPanel {
   ArrayList<MTag> mDisplayedRows = new ArrayList<>();
   DefaultTableModel mConstraintSetModel = new DefaultTableModel(
     new String[]{"Type", "id", "Constrained"}, 0);
-  JTable mConstraintSetTable = new JTable(mConstraintSetModel);
+  JTable mConstraintSetTable = new MEJTable(mConstraintSetModel);
   private String mDerived;
   boolean showAll = false;
   private MeModel mMeModel;
@@ -62,6 +63,7 @@ class LayoutPanel extends JPanel {
     JPanel top = new JPanel(new BorderLayout());
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
+    mConstraintSetTable.setShowHorizontalLines(false);
 
     left.add(mTitle = new JLabel("Layout ", MEIcons.LIST_LAYOUT, SwingConstants.LEFT));
     JScrollPane transitionProperties = new JScrollPane(mConstraintSetTable);

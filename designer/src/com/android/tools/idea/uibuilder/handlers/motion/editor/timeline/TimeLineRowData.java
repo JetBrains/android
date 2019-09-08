@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -94,7 +93,8 @@ public class TimeLineRowData {
     if (target != null && target.startsWith("@")) {
       mRef = "Id";
       mName = Utils.stripID(target);
-    } else {
+    }
+    else {
       mRef = "Tg";
       mName = target;
     }
@@ -108,23 +108,27 @@ public class TimeLineRowData {
           Debug.log(count + " " + properties[i]);
         }
         mKeyProp = properties[i];
-
       }
     }
-
-    count = 0;
-    mKeyProp = "";
-    mKeyPropToolTip = "";
-    for (int i = 0; i < properties.length; i++) {
-      if ((mask & (1 << i)) != 0) {
-        if (count > 0) {
-          mKeyProp += ",";
-          mKeyPropToolTip += ",";
+    if (count > 1) {
+      count = 0;
+      mKeyProp = "";
+      mKeyPropToolTip = "";
+      for (int i = 0; i < properties.length; i++) {
+        if ((mask & (1 << i)) != 0) {
+          if (count > 0) {
+            mKeyProp += ",";
+            mKeyPropToolTip += ",";
+          }
+          mKeyProp += compact_properties[i];
+          mKeyPropToolTip += properties[i];
+          count++;
         }
-        mKeyProp += compact_properties[i];
-        mKeyPropToolTip += properties[i];
-        count++;
       }
+    }
+    else if (count == 0) {
+      mKeyProp = "";
+      mKeyPropToolTip = "";
     }
 
     if (mType.equals("Pos")) {
@@ -140,12 +144,12 @@ public class TimeLineRowData {
     String key = target;
     if (target != null && target.startsWith("@")) {
       key = "Id:" + Utils.stripID(target);
-    } else {
+    }
+    else {
       key = "Tag:" + target;
     }
     String name = " " + nameMap.get(keyFrame.getTagName());
     key += name;
     mKey = key;
   }
-
 }
