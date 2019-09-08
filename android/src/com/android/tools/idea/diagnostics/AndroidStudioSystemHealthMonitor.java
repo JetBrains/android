@@ -22,8 +22,8 @@ import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
 import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable;
 import com.android.tools.idea.diagnostics.kotlin.KotlinPerfCounters;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
-import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.HistogramReport;
+import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
 import com.android.tools.idea.flags.StudioFlags;
@@ -32,9 +32,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedHashMultiset;
 import com.google.common.collect.Multiset;
 import com.google.common.io.Files;
-import com.google.wireless.android.sdk.stats.*;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.GcPauseInfo;
+import com.google.wireless.android.sdk.stats.StudioCrash;
+import com.google.wireless.android.sdk.stats.StudioExceptionDetails;
+import com.google.wireless.android.sdk.stats.StudioPerformanceStats;
+import com.google.wireless.android.sdk.stats.UIActionStats;
 import com.google.wireless.android.sdk.stats.UIActionStats.InvocationKind;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.diagnostic.IdeErrorsDialog;
@@ -45,20 +50,35 @@ import com.intellij.diagnostic.VMOptions;
 import com.intellij.ide.AndroidStudioSystemHealthMonitorAdapter;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.IdeBundle;
-import com.intellij.ide.actions.*;
+import com.intellij.ide.actions.CopyAction;
+import com.intellij.ide.actions.CutAction;
+import com.intellij.ide.actions.DeleteAction;
+import com.intellij.ide.actions.NextOccurenceAction;
+import com.intellij.ide.actions.PasteAction;
+import com.intellij.ide.actions.PreviousOccurenceAction;
+import com.intellij.ide.actions.SaveAllAction;
+import com.intellij.ide.actions.UndoRedoAction;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
-import com.intellij.notification.*;
+import com.intellij.notification.BrowseNotificationAction;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationAction;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.notification.impl.NotificationFullContent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.*;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
@@ -77,39 +97,40 @@ import com.intellij.util.analytics.HistogramUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import org.HdrHistogram.Histogram;
+import org.HdrHistogram.SingleWriterRecorder;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.PropertyKey;
-
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import sun.tools.attach.HotSpotVirtualMachine;
 
 /**
@@ -147,11 +168,11 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   /**
    * Histogram of write lock wait times, in milliseconds. Must be accessed from the EDT.
    */
-  private static final Histogram myWriteLockWaitTimesMs = new Histogram(1);
+  private static final SingleWriterRecorder myWriteLockWaitTimesMs = new SingleWriterRecorder(1);
   /** Maximum freeze duration to record. Longer freeze durations are truncated to keep the size of the histogram bounded. */
   private static final long MAX_WRITE_LOCK_WAIT_TIME_MS = 30 * 60 * 1000;
 
-  private static final Map<GcPauseInfo.GcType, Histogram> myGcPauseInfo = new HashMap<>();
+  private static final ConcurrentMap<GcPauseInfo.GcType, SingleWriterRecorder> myGcPauseInfo = new ConcurrentHashMap<>();
   /** Maximum GC pause duration to record. Longer pause durations are truncated to keep the size of the histogram bounded. */
   private static final long MAX_GC_PAUSE_TIME_MS = 30 * 60 * 1000;
 
@@ -279,13 +300,13 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   }
 
   public void recordWriteLockWaitTime(long durationMs) {
-    myWriteLockWaitTimesMs.recordValueWithCount(Math.min(durationMs, MAX_WRITE_LOCK_WAIT_TIME_MS), 1);
+    myWriteLockWaitTimesMs.recordValue(Math.min(durationMs, MAX_WRITE_LOCK_WAIT_TIME_MS));
   }
 
   public static void recordGcPauseTime(String gcName, long durationMs) {
     GcPauseInfo.GcType gcType = getGcType(gcName);
-    myGcPauseInfo.computeIfAbsent(gcType, (unused) -> new Histogram(1))
-      .recordValueWithCount(Math.min(durationMs, MAX_GC_PAUSE_TIME_MS), 1);
+    myGcPauseInfo.computeIfAbsent(gcType, (unused) -> new SingleWriterRecorder(1))
+      .recordValue(Math.min(durationMs, MAX_GC_PAUSE_TIME_MS));
   }
 
   private static GcPauseInfo.GcType getGcType (String name) {
@@ -896,23 +917,18 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
       }
     }
 
-    // Move to the EDT since the histogram can only be accessed from that thread.
-    ApplicationManager.getApplication().invokeLater(() -> {
-      StudioPerformanceStats.Builder statsProto =
-          StudioPerformanceStats.newBuilder()
-              .setWriteLockWaitTimeMs(HistogramUtil.toProto(myWriteLockWaitTimesMs));
-      for (Map.Entry<GcPauseInfo.GcType, Histogram> gcEntry : myGcPauseInfo.entrySet()) {
-        statsProto.addGcPauseInfo(GcPauseInfo.newBuilder()
-                                    .setCollectorType(gcEntry.getKey())
-                                    .setPauseTimesMs(HistogramUtil.toProto(gcEntry.getValue())));
-      }
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                           .setCategory(EventCategory.STUDIO_UI)
-                           .setKind(EventKind.STUDIO_PERFORMANCE_STATS)
-                           .setStudioPerformanceStats(statsProto));
-      myWriteLockWaitTimesMs.reset();
-      myGcPauseInfo.clear();
-    });
+    StudioPerformanceStats.Builder statsProto =
+        StudioPerformanceStats.newBuilder()
+            .setWriteLockWaitTimeMs(HistogramUtil.toProto(myWriteLockWaitTimesMs.getIntervalHistogram()));
+    for (Map.Entry<GcPauseInfo.GcType, SingleWriterRecorder> gcEntry : myGcPauseInfo.entrySet()) {
+      statsProto.addGcPauseInfo(GcPauseInfo.newBuilder()
+                                  .setCollectorType(gcEntry.getKey())
+                                  .setPauseTimesMs(HistogramUtil.toProto(gcEntry.getValue().getIntervalHistogram())));
+    }
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setCategory(EventCategory.STUDIO_UI)
+                         .setKind(EventKind.STUDIO_PERFORMANCE_STATS)
+                         .setStudioPerformanceStats(statsProto));
   }
 
   /**
