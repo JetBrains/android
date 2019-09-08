@@ -115,16 +115,16 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
       row.toggleGraph();
       row.paint(g2d);
 
-      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.PLAY);
-      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.PAUSE);
-      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.START);
-      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.LOOP);
-      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.LOOP);
+      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.PLAY, 0);
+      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.PAUSE, 0);
+      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.START, 0);
+      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.LOOP, 0);
+      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.LOOP, 0);
 
-      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.END);
-      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.PLAY);
-      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.SPEED);
-      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.END);
+      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.END, 0);
+      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.PLAY, 0);
+      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.SPEED, 0);
+      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.END, 0);
 
       assertTrue(time < 1E9);
 
