@@ -174,7 +174,8 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
         .setCommon(
           configBuilder.getCommonBuilder()
             .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
-            .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get()))
+            .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get())
+            .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get()))
         .setCpu(
           Transport.DaemonConfig.CpuConfig.newBuilder()
             .setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC)
@@ -205,7 +206,8 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
         .setCommon(
           configBuilder.getCommonBuilder()
             .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
-            .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get()))
+            .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get())
+            .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get()))
         .setMem(
           Agent.AgentConfig.MemoryConfig.newBuilder()
             .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
