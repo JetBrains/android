@@ -66,7 +66,7 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here.
 public class LauncherIconGenerator extends IconGenerator {
   public static final Color DEFAULT_FOREGROUND_COLOR = Color.BLACK;
-  public static final Color DEFAULT_BACKGROUND_COLOR = new Color(0x26A69A);
+  public static final Color DEFAULT_BACKGROUND_COLOR = new Color(0x3DDC84);
   public static final Rectangle IMAGE_SIZE_FULL_BLEED_DP = new Rectangle(0, 0, 108, 108);
   public static final Dimension SIZE_FULL_BLEED_DP = IMAGE_SIZE_FULL_BLEED_DP.getSize();
   private static final Rectangle IMAGE_SIZE_SAFE_ZONE_DP = new Rectangle(0, 0, 66, 66);
