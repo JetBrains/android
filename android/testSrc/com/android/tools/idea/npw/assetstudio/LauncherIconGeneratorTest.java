@@ -230,12 +230,13 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
         "manifests/ic_launcher-playstore.png"};
     TextAsset textAsset = new TextAsset();
     textAsset.text().set("AL");
-    textAsset.color().setValue(new Color(0xA4C639));
+    textAsset.color().setValue(new Color(0x0000FF));
     myIconGenerator.sourceAsset().setValue(textAsset);
     myIconGenerator.backgroundImageAsset().setNullableValue(null);
+    myIconGenerator.backgroundColor().set(new Color(0xFFFFFF));
     myIconGenerator.generateRoundIcon().set(false);
     // Don't compare context of ic_launcher_foreground.xml because it is slightly platform dependent.
-    checkGeneratedIcons(expectedFilenames, 0.7, "resources/drawable/ic_launcher_foreground.xml");
+    checkGeneratedIcons(expectedFilenames, 1.5, "resources/drawable/ic_launcher_foreground.xml");
   }
 
   public void testImageBackgroundAndForeground() throws Exception {
@@ -280,11 +281,11 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
         "resources/values/ic_launcher_background.xml",
         "manifests/ic_launcher-playstore.png"};
     ImageAsset asset = createClipartAsset("ic_android_black_24dp.xml");
-    asset.color().setValue(new Color(0xA4C639)); // Android green.
+    asset.color().setValue(new Color(0x00FF00));
     myIconGenerator.sourceAsset().setValue(asset);
     myIconGenerator.backgroundImageAsset().setNullableValue(null);
     //noinspection UseJBColor
-    myIconGenerator.backgroundColor().set(new Color(0x26A69A));
+    myIconGenerator.backgroundColor().set(new Color(0xFFFFFF));
     myIconGenerator.generateRoundIcon().set(false);
     myIconGenerator.legacyIconShape().set(IconGenerator.Shape.VRECT);
     checkGeneratedIcons(expectedFilenames);
