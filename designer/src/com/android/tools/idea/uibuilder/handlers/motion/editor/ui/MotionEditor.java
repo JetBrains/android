@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.METabbedPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
@@ -61,7 +62,7 @@ public class MotionEditor extends JPanel {
   public final static boolean DEBUG = false;
   MeModel mMeModel;
   MotionEditorSelector mMotionEditorSelector = new MotionEditorSelector();
-  JTabbedPane mTabbedTopPane = new JTabbedPane();
+  JTabbedPane mTabbedTopPane = new METabbedPane();
   MotionScenePanel mMotionSceneTabb = new MotionScenePanel();
   private TransitionPanel mTransitionPanel = new TransitionPanel(this);
   ConstraintSetPanel mConstraintSetPanel = new ConstraintSetPanel();
@@ -114,7 +115,7 @@ public class MotionEditor extends JPanel {
       public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
         if (DEBUG) {
           Debug.log(" selectionChanged  " + selection);
-          Debug.logStack(" selectionChanged  " + selection,5);
+          Debug.logStack(" selectionChanged  " + selection, 5);
         }
         mMeModel.setSelected(selection, tag);
       }
@@ -122,7 +123,6 @@ public class MotionEditor extends JPanel {
     ui.setBackground(MEUI.ourPrimaryPanelBackground);
     mCombinedListPanel.setPreferredSize(new Dimension(10, 100));
     mTopPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mCombinedListPanel, mOverviewScrollPane);
-    mTopPanel.setBorder(BorderFactory.createMatteBorder(0, 0, MEUI.scale(1), 0, MEUI.getBorderColor()));
     //  layoutTop(LayoutMode.HORIZONTAL_LAYOUT);
 
     ui.add(mTopPanel);
@@ -183,7 +183,6 @@ public class MotionEditor extends JPanel {
     add(toolbar, BorderLayout.NORTH);
 
     layoutTop();
-
   }
 
   public void addSelectionListener(MotionEditorSelector.Listener listener) {
@@ -203,6 +202,13 @@ public class MotionEditor extends JPanel {
   }
 
   public void selectTag(MTag tag) {
+    if (tag != null && tag.equals(mSelectedTag)) {
+      mConstraintSetPanel.clearSelection();
+      mTransitionPanel.clearSelection();
+      if ("Transition".equals(tag.getTagName())) {
+        notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{tag});
+      }
+    }
     mSelectedTag = tag;
     if (tag != null) {
       mCombinedListPanel.selectTag(tag);
@@ -256,7 +262,8 @@ public class MotionEditor extends JPanel {
   private void layoutTop() {
     if (mLayoutMode == null) {
       mLayoutMode = LayoutMode.OVERVIEW_ONLY_LAYOUT;
-    } else {
+    }
+    else {
       mLayoutMode = LayoutMode.values()[(mLayoutMode.ordinal() + 1) % LayoutMode.values().length];
     }
     switch (mLayoutMode) {
@@ -303,7 +310,8 @@ public class MotionEditor extends JPanel {
     int index = mCombinedListPanel.getSelectedConstraintSet();
     if (index >= 0) {
       constraintSetSelection();
-    } else {
+    }
+    else {
       transitionSelection();
     }
   }
@@ -319,15 +327,16 @@ public class MotionEditor extends JPanel {
         mCardLayout.show(mCenterPanel, CONSTRAINTSET_PANEL);
         MTag selectedConstraintSet = c_sets[index - 1];
         notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET,
-          new MTag[]{selectedConstraintSet});
+                        new MTag[]{selectedConstraintSet});
         mSelectedTag = selectedConstraintSet;
         mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
-      } else {
+      }
+      else {
         mCardLayout.show(mCenterPanel, LAYOUT_PANEL);
         mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
         notifyListeners(MotionEditorSelector.Type.LAYOUT,
-          (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
-            new MTag[]{mCombinedListPanel.mMotionLayout});
+                        (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
+                        new MTag[]{mCombinedListPanel.mMotionLayout});
         mSelectedTag = mCombinedListPanel.mMotionLayout;
       }
     }
@@ -487,7 +496,6 @@ public class MotionEditor extends JPanel {
       gbc.weighty = 0;
       add(new JComponent() {
       }, gbc);
-
     }
   }
 

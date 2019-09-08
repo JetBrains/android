@@ -130,7 +130,7 @@ public class CombinedListPanel extends JPanel {
           titleString = "layout";
           break;
         case CONSTRAINT_SET:
-          label.setIcon(MEIcons.LIST_STATE);
+          label.setIcon(MEIcons.CONSTRAINT_SET);
           titleString = "Constraint Set";
           break;
         case TRANSITION:

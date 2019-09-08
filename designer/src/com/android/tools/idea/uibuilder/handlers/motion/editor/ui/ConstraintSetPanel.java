@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEJTable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
@@ -66,9 +67,14 @@ class ConstraintSetPanel extends JPanel {
     public Class getColumnClass(int column) {
       return (column == 0) ? Icon.class : String.class;
     }
+
+    @Override
+    public boolean isCellEditable(int row, int column) {
+      return false;
+    }
   };
 
-  JTable mConstraintSetTable = new JTable(mConstraintSetModel);
+  JTable mConstraintSetTable = new MEJTable(mConstraintSetModel);
   private String mDerived;
   boolean showAll = true;
   private MeModel mMeModel;
@@ -128,6 +134,7 @@ class ConstraintSetPanel extends JPanel {
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
     mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(16));
+    mConstraintSetTable.setShowHorizontalLines(false);
     JCheckBox cbox = new JCheckBox("All");
     cbox.setSelected(true);
     cbox.addActionListener(e -> {
@@ -136,13 +143,12 @@ class ConstraintSetPanel extends JPanel {
                            }
     );
     JLabel label;
-    left.add(label = new JLabel("ConstraintSet (", MEIcons.LIST_STATE, SwingConstants.LEFT));
+    left.add(label = new JLabel("ConstraintSet (", MEIcons.CONSTRAINT_SET, SwingConstants.LEFT));
     Font planeFont = label.getFont().deriveFont(Font.PLAIN);
     label.setFont(planeFont);
     left.add(mTitle = new JLabel("", SwingConstants.LEFT));
     left.add(label = new JLabel(")", SwingConstants.LEFT));
     label.setFont(planeFont);
-    mTitle.setFont(mTitle.getFont().deriveFont(Font.BOLD));
     makeRightMenu(right);
     right.add(cbox);
 
@@ -376,6 +382,10 @@ class ConstraintSetPanel extends JPanel {
         mConstraintSetTable.addRowSelectionInterval(i, i);
       }
     }
+  }
+
+  public void clearSelection(){
+    mConstraintSetTable.clearSelection();
   }
 
   ArrayList<MTag> getDerived(MTag[] constraintSets, String derived) {

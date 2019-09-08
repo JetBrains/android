@@ -25,19 +25,18 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Cre
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateKeyTrigger;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TimeLinePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
-
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 
 /**
  * The main transition Panel that shows the timeline
  */
-class TransitionPanel extends JPanel {
+public class TransitionPanel extends JPanel {
 
   private boolean mShowAll;
 
@@ -60,7 +59,7 @@ class TransitionPanel extends JPanel {
     JPanel top = new JPanel(new BorderLayout());
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
-    left.add(new JLabel("KeyFrames ", MEIcons.LIST_TRANSITION, SwingConstants.LEFT));
+    left.add(new JLabel("Transition ", MEIcons.LIST_TRANSITION, SwingConstants.LEFT));
     JButton create = MEUI.createToolBarButton(MEIcons.CREATE_KEYFRAME, "Create KeyFrames");
     create.setContentAreaFilled(false);
     right.add(create);
@@ -85,13 +84,9 @@ class TransitionPanel extends JPanel {
         }
       }
     });
-
   }
 
   public void setMTag(MTag transitionTag, MeModel model) {
-    if (transitionTag != null) {
-      mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{transitionTag});
-    }
     mTransitionTag = transitionTag;
     mMeModel = model;
     mTimeLinePanel.setMTag(transitionTag, model);
@@ -104,5 +99,9 @@ class TransitionPanel extends JPanel {
 
   public void addTimeLineListener(TimeLineListener timeLineListener) {
     mTimeLinePanel.addTimeLineListener(timeLineListener);
+  }
+
+  public void clearSelection() {
+    mTimeLinePanel.clearSelection();
   }
 }
