@@ -107,7 +107,7 @@ object LayoutBindingTypeUtil {
       return null
     }
     val indexEntry = BindingXmlIndex.getEntriesForLayout(facet.module.project, resourceUrl.name).firstOrNull() ?: return null
-    if (indexEntry.data.layoutType == BindingLayoutType.VIEW_BINDING_LAYOUT && !facet.isViewBindingEnabled()) {
+    if (indexEntry.data.layoutType == BindingLayoutType.PLAIN_LAYOUT && !facet.isViewBindingEnabled()) {
       // If including a non-binding layout, we just use its root tag as the type for this tag (e.g. FrameLayout, TextView)
       return getViewClassName(indexEntry.data.rootTag, null, facet)
     }

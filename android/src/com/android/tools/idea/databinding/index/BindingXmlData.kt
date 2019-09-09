@@ -22,9 +22,11 @@ package com.android.tools.idea.databinding.index
  */
 enum class BindingLayoutType {
   /**
-   * The layout XML doesn't contain any data binding information, but view binding option is enabled.
+   * The layout XML doesn't contain any data binding information, but a binding class will still
+   * be generated only if view binding is enabled.
    */
-  VIEW_BINDING_LAYOUT,
+  PLAIN_LAYOUT,
+
   /**
    * The layout XML starts with `<layout>` tag, and possibly contains a `<data>` tag.
    */
