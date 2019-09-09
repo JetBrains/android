@@ -94,7 +94,7 @@ public class JavaMigrationTestGeneratorTest extends AndroidTestCase {
                                                      2);
     });
 
-    PsiClass migrationTest = myFixture.findClass("com.example.AppDatabaseMigrationTest");
+    PsiClass migrationTest = myFixture.findClass("com.example.Migration_1_2_Test");
 
     assertThat(migrationTest).isNotNull();
     myFixture.openFileInEditor(migrationTest.getContainingFile().getVirtualFile());
@@ -115,12 +115,12 @@ public class JavaMigrationTestGeneratorTest extends AndroidTestCase {
                  "import java.io.IOException;\n" +
                  "\n" +
                  "@RunWith(AndroidJUnit4.class)\n" +
-                 "class AppDatabaseMigrationTest {\n" +
+                 "class Migration_1_2_Test {\n" +
                  "    private static final String TEST_APP_DATABASE = \"test-app-database\";\n" +
                  "    @Rule\n" +
                  "    private MigrationTestHelper migrationTestHelper;\n" +
                  "\n" +
-                 "    public AppDatabaseMigrationTest() {\n" +
+                 "    public Migration_1_2_Test() {\n" +
                  "        migrationTestHelper = new MigrationTestHelper(\n" +
                  "                InstrumentationRegistry.getInstrumentation(),\n" +
                  "                AppDatabase.class.getCanonicalName(),\n" +
