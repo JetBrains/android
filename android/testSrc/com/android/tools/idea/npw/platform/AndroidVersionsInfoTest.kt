@@ -22,7 +22,7 @@ import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
 import com.android.sdklib.SdkVersionInfo.getCodeName
 import com.android.sdklib.internal.androidTarget.MockAddonTarget
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -33,12 +33,12 @@ import org.mockito.MockitoAnnotations.initMocks
 
 class AndroidVersionsInfoTest {
   @Mock
-  private val myMockAndroidVersionsInfo: AndroidVersionsInfo? = null
+  private lateinit var mockAndroidVersionsInfo: AndroidVersionsInfo
 
   @Before
   fun setUp() {
     initMocks(this)
-    `when`(myMockAndroidVersionsInfo!!.highestInstalledVersion).thenReturn(AndroidVersion(HIGHEST_VERSION, null))
+    `when`(mockAndroidVersionsInfo.highestInstalledVersion).thenReturn(AndroidVersion(HIGHEST_VERSION, null))
   }
 
   /**
@@ -46,7 +46,7 @@ class AndroidVersionsInfoTest {
    */
   @Test
   fun noAndroidTarget() {
-    val versionItem = myMockAndroidVersionsInfo!!.VersionItem(AndroidVersion(DEFAULT_VERSION, null))
+    val versionItem = mockAndroidVersionsInfo.VersionItem(AndroidVersion(DEFAULT_VERSION, null))
     assertEquals(DEFAULT_VERSION, versionItem.minApiLevel)
     assertEquals(HIGHEST_VERSION, versionItem.buildApiLevel)
   }
@@ -57,11 +57,9 @@ class AndroidVersionsInfoTest {
   @Test
   fun withPreviewAndroidTarget() {
     val androidTarget: MockPlatformTarget = object : MockPlatformTarget(PREVIEW_VERSION, 0) {
-      override fun getVersion(): AndroidVersion {
-        return AndroidVersion(PREVIEW_VERSION - 1, "TEST_CODENAME")
-      }
+      override fun getVersion(): AndroidVersion = AndroidVersion(PREVIEW_VERSION - 1, "TEST_CODENAME")
     }
-    val versionItem = myMockAndroidVersionsInfo!!.VersionItem(androidTarget)
+    val versionItem = mockAndroidVersionsInfo.VersionItem(androidTarget)
     assertEquals(PREVIEW_VERSION, versionItem.minApiLevel)
     assertEquals(PREVIEW_VERSION, versionItem.buildApiLevel)
   }
@@ -73,7 +71,7 @@ class AndroidVersionsInfoTest {
   fun withPlatformAndroidTarget() {
     val baseTarget = MockPlatformTarget(DEFAULT_VERSION, 0)
     val projectTarget = MockAddonTarget("google", baseTarget, 1)
-    val versionItem = myMockAndroidVersionsInfo!!.VersionItem(projectTarget)
+    val versionItem = mockAndroidVersionsInfo.VersionItem(projectTarget)
     assertEquals(DEFAULT_VERSION, versionItem.minApiLevel)
     assertEquals(DEFAULT_VERSION, versionItem.buildApiLevel)
   }
@@ -84,7 +82,7 @@ class AndroidVersionsInfoTest {
   @Test
   fun highestInstalledTarget() {
     val androidTarget = MockPlatformTarget(DEFAULT_VERSION, 0)
-    val versionItem = myMockAndroidVersionsInfo!!.VersionItem(androidTarget)
+    val versionItem = mockAndroidVersionsInfo.VersionItem(androidTarget)
     assertEquals(DEFAULT_VERSION, versionItem.minApiLevel)
     assertEquals(HIGHEST_VERSION, versionItem.buildApiLevel)
   }
@@ -94,8 +92,8 @@ class AndroidVersionsInfoTest {
     val androidVersion = AndroidVersion(HIGHEST_KNOWN_API, "PREVIEW_CODE_NAME")
     val androidTarget: IAndroidTarget = mock(IAndroidTarget::class.java)
     `when`(androidTarget.version).thenReturn(androidVersion)
-    val versionItem = myMockAndroidVersionsInfo!!.VersionItem(androidTarget)
-    Truth.assertThat(versionItem.label).contains("PREVIEW_CODE_NAME")
+    val versionItem = mockAndroidVersionsInfo.VersionItem(androidTarget)
+    assertThat(versionItem.toString()).contains("PREVIEW_CODE_NAME")
   }
 
   @Test
@@ -104,8 +102,8 @@ class AndroidVersionsInfoTest {
     val androidTarget: IAndroidTarget = mock(IAndroidTarget::class.java)
     `when`(androidTarget.version).thenReturn(androidVersion)
     `when`(androidTarget.isPlatform).thenReturn(true)
-    val versionItem = myMockAndroidVersionsInfo!!.VersionItem(androidTarget)
-    Truth.assertThat(versionItem.label).contains(getCodeName(HIGHEST_KNOWN_API))
+    val versionItem = mockAndroidVersionsInfo.VersionItem(androidTarget)
+    assertThat(versionItem.toString()).contains(getCodeName(HIGHEST_KNOWN_API))
   }
 
   /**
@@ -115,14 +113,14 @@ class AndroidVersionsInfoTest {
   @Test
   fun nonPlatformTargetShouldReturnAddonNameInLabel() {
     val androidVersion = AndroidVersion(HIGHEST_KNOWN_API, null /*codename*/)
-    val androidTarget: IAndroidTarget = mock(IAndroidTarget::class.java)
+    val androidTarget = mock(IAndroidTarget::class.java)
     `when`(androidTarget.version).thenReturn(androidVersion)
     `when`(androidTarget.isPlatform).thenReturn(false)
     `when`(androidTarget.vendor).thenReturn("AddonVendor")
     `when`(androidTarget.name).thenReturn("AddonName")
-    val versionItem = myMockAndroidVersionsInfo!!.VersionItem(androidTarget)
-    assertEquals(AndroidTargetHash.getAddonHashString("AddonVendor", "AddonName", androidVersion),
-                 versionItem.label)
+    val versionItem = mockAndroidVersionsInfo.VersionItem(androidTarget)
+    assertThat(versionItem.toString())
+      .isEqualTo(AndroidTargetHash.getAddonHashString("AddonVendor", "AddonName", androidVersion))
   }
 }
 
