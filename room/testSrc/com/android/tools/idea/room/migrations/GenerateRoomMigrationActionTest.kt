@@ -83,7 +83,7 @@ class GenerateRoomMigrationActionTest : AndroidTestCase() {
     val migration = myFixture.findClass("Migration_2_3")
     assertThat(migration).isNotNull()
 
-    val test = myFixture.findClass("FooDbMigrationTest")
+    val test = myFixture.findClass("Migration_2_3_Test")
     assertThat(test).isNotNull()
   }
 }
