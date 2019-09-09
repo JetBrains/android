@@ -515,8 +515,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BaselineConstraintHandlingTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/122275283
-        "qa_sanity_unreliable",  # b/122275283
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -784,10 +782,6 @@ java_test(
         "no-remote",
         "requires-fakeroot",
         "qa_sanity",
-        "qa_sanity_emu",  # Run with emulators - needs home directory, similar to emulator tests
-        "requires_emulator",  # Run together with emulators
-        "qa_unreliable",  # b/70731570
-        "qa_sanity_unreliable_emu",  # b/70731570
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
