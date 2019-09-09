@@ -82,7 +82,6 @@ import kotlin.streams.toList
  */
 internal fun isBroken(templateName: String): Boolean {
   // See http://b.android.com/253296
-
   if (SystemInfo.isWindows) {
     if ("AidlFile" == templateName) return true
   }
@@ -131,19 +130,16 @@ internal fun createNewProjectState(createWithProject: Boolean,
 
 internal fun getModuleTemplateForFormFactor(templateFile: File): Template {
   val activityTemplate = Template.createFromPath(templateFile)
-  val moduleTemplate = defaultModuleTemplate
-  val activityMetadata = activityTemplate.metadata!!
-  val activityFormFactorName = activityMetadata.formFactor ?: return moduleTemplate
+  val activityFormFactorName = activityTemplate.metadata!!.formFactor ?: return defaultModuleTemplate
   val activityFormFactor = get(activityFormFactorName)
-  val manager = TemplateManager.getInstance()
-  val applicationTemplates = manager!!.getTemplatesInCategory(CATEGORY_APPLICATION)
-  for (formFactorTemplateFile in applicationTemplates) {
+  val manager = TemplateManager.getInstance()!!
+  manager.getTemplatesInCategory(CATEGORY_APPLICATION).forEach { formFactorTemplateFile ->
     val metadata = manager.getTemplateMetadata(formFactorTemplateFile!!)
     if (metadata?.formFactor != null && get(metadata.formFactor!!) === activityFormFactor) {
       return Template.createFromPath(formFactorTemplateFile)
     }
   }
-  return moduleTemplate
+  return defaultModuleTemplate
 }
 
 val defaultModuleTemplate: Template get() = Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME)
@@ -184,9 +180,14 @@ internal fun getLintIssueMessage(project: Project, maxSeverity: Severity, ignore
   return null
 }
 
-internal fun setAndroidSupport(setAndroidx: Boolean, moduleState: TestTemplateWizardState, activityState: TestTemplateWizardState?) {
-  moduleState.put(ATTR_ANDROIDX_SUPPORT, setAndroidx)
-  activityState?.put(ATTR_ANDROIDX_SUPPORT, setAndroidx)
+internal fun enableAndroidX(moduleState: TestTemplateWizardState, activityState: TestTemplateWizardState?) {
+  moduleState.put(ATTR_ANDROIDX_SUPPORT, true)
+  activityState?.put(ATTR_ANDROIDX_SUPPORT, true)
+}
+
+internal fun disableAndroidX(moduleState: TestTemplateWizardState, activityState: TestTemplateWizardState?) {
+  moduleState.put(ATTR_ANDROIDX_SUPPORT, false)
+  activityState?.put(ATTR_ANDROIDX_SUPPORT, false)
 }
 
 /**
@@ -214,16 +215,14 @@ private const val nonAsciiChars = "你所有的基地都属于我们"
 internal fun getModifiedProjectName(projectName: String, activityState: TestTemplateWizardState?): String = when {
   SystemInfo.isWindows -> "app"
   // Bug 137161906
-  usesSafeArgs(projectName) && activityState != null &&
-  Language.KOTLIN.toString() == activityState.getString(ATTR_LANGUAGE) -> projectName
+  usesSafeArgs(projectName) && activityState != null && Language.KOTLIN.toString() == activityState.getString(ATTR_LANGUAGE) -> projectName
   else -> "$projectName$specialChars,$nonAsciiChars"
 }
 
-private fun usesSafeArgs(projectName: String): Boolean {
-  return projectName.startsWith("BasicActivity") ||
-    projectName.startsWith("NavigationDrawerActivity") ||
-    projectName.startsWith("BottomNavigationActivity")
-}
+private fun usesSafeArgs(projectName: String) =
+  projectName.startsWith("BasicActivity") ||
+  projectName.startsWith("NavigationDrawerActivity") ||
+  projectName.startsWith("BottomNavigationActivity")
 
 /**
  * Checks that the most recent log in usageTracker is a [EventKind.TEMPLATE_RENDER] event with expected info.
@@ -255,8 +254,7 @@ fun Parameter.getDefaultValue(templateState: TestTemplateWizardState): Any? {
 
 // TODO(qumeric) should it be removed in favor of AndroidGradleTestCase.setUpFixture?
 internal fun setUpFixtureForProject(projectName: String): JavaCodeInsightTestFixture {
-  val factory = IdeaTestFixtureFactory.getFixtureFactory()
-  val projectBuilder = factory.createFixtureBuilder(projectName)
+  val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(projectName)
   return JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture).apply {
     setUp()
   }
@@ -301,7 +299,7 @@ internal fun invokeGradleForProjectDir(projectRoot: File) {
   try {
     buildLauncher.setStandardOutput(baos).setStandardError(baos).run()
   }
-  //// Use the following commented out code to debug the generated project in case of a failure.
+  // Use the following commented out code to debug the generated project in case of a failure.
   catch (e: Exception) {
     //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
     //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
@@ -323,7 +321,7 @@ internal fun shutDownGradleConnection(connection: ProjectConnection, projectRoot
     object : WaitFor(60000) {
       override fun condition(): Boolean {
         if (!FileUtil.delete(projectRoot)) {
-          println("Windows: delete project Root failed - time = " + System.currentTimeMillis())
+          println("Windows: delete project Root failed - time = ${System.currentTimeMillis()}")
         }
         return projectRoot.mkdir()
       }
@@ -352,14 +350,15 @@ data class Option(@JvmField val id: String, @JvmField val minSdk: Int, @JvmField
 
 internal fun getOption(option: Element): Option {
   fun readSdkAttribute(sdkAttr: String): Int {
-    val sdkString: String = option.getAttribute(sdkAttr).orEmpty()
-    return if (sdkString.isNotEmpty())
-      sdkString.toInt() // Templates aren't allowed to contain codenames, should  always be an integer
-    else
+    val sdkString = option.getAttribute(sdkAttr).orEmpty()
+
+    return if (sdkString.isEmpty())
       1
+    else
+      sdkString.toInt() // Templates aren't allowed to contain codenames, should  always be an integer
   }
 
-  val optionId: String = option.getAttribute(SdkConstants.ATTR_ID)
+  val optionId = option.getAttribute(SdkConstants.ATTR_ID)
   val optionMinSdk = readSdkAttribute(TemplateMetadata.ATTR_MIN_API)
   val optionMinBuildApi = readSdkAttribute(TemplateMetadata.ATTR_MIN_BUILD_API)
 
