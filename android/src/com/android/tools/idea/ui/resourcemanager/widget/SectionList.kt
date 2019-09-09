@@ -122,14 +122,11 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
     })
   }
 
+  /**
+   * Focuses the first list with a selected item, or just the first list if there's no selection.
+   */
   private fun focusInnerList() {
-    getFocusableList().requestFocusInWindow()
-  }
-
-  private fun getFocusableList(): JList<*> {
-    return allInnerLists
-             .firstOrNull { it.selectedIndex != -1 }
-           ?: allInnerLists.first()
+    allInnerLists.firstOrNull { it.selectedIndex != -1 } ?: allInnerLists.firstOrNull()?.requestFocusInWindow()
   }
 
   /**
