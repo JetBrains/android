@@ -53,6 +53,7 @@ class FrameworkTemplateTest : TemplateTestBase() {
   }
 
   fun testTemplateFormatting() {
+    setUpFixture()
     val template = Template.createFromPath(
       File(AndroidTestBase.getTestDataPath(), FileUtil.join("templates", "TestTemplate")).canonicalFile)
     val context = createRenderingContext(template, myFixture.project, File(myFixture.tempDirPath), File("dummy"))
