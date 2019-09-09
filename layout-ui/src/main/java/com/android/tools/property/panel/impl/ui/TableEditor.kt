@@ -18,6 +18,7 @@ package com.android.tools.property.panel.impl.ui
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
+import com.android.tools.adtui.stdui.registerAnActionKey
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.TableEditingRequest
 import com.android.tools.property.panel.impl.model.TableLineModelImpl
@@ -30,6 +31,8 @@ import com.android.tools.property.ptable2.PTableCellRendererProvider
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.psi.codeStyle.NameUtil
 import com.intellij.util.text.Matcher
 import com.intellij.util.ui.JBUI
@@ -46,7 +49,8 @@ private const val MINIMUM_ROW_HEIGHT = 20
  */
 class TableEditor(val lineModel: TableLineModelImpl,
                   rendererProvider: PTableCellRendererProvider,
-                  editorProvider: PTableCellEditorProvider) {
+                  editorProvider: PTableCellEditorProvider,
+                  val actions: List<AnAction> = emptyList()) {
 
   private val table = PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider, { getToolTipText(it) }, ::updateUI)
   val component = table.component as JTable
@@ -74,6 +78,19 @@ class TableEditor(val lineModel: TableLineModelImpl,
     // Ignore the events and allow the scrollPane created in PropertiesPage to handle the events.
     component.registerActionKey({}, KeyStrokes.PAGE_UP, "pageUp", { false })
     component.registerActionKey({}, KeyStrokes.PAGE_DOWN, "pageDown", { false })
+
+    // Register all single keystroke shortcuts.
+    // Ignore the shortscuts with double keystrokes since we cannot add them to the InputMap of the table.
+    // In Intellij there are special handling of these double keystrokes that happens before the normal swing
+    // key stroke delegation. Here we do not want to take keystrokes away from the cell editors.
+    actions.forEach { action ->
+      action.shortcutSet.shortcuts
+        .filterIsInstance<KeyboardShortcut>()
+        .filter { it.secondKeyStroke == null }
+        .forEach {
+          component.registerAnActionKey({ action }, it.firstKeyStroke, action.templatePresentation.description)
+        }
+    }
   }
 
   private fun updateUI() {

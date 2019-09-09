@@ -32,8 +32,10 @@ import com.android.tools.property.panel.api.TableLineModel
 import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.ptable2.PTableItem
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
 import icons.StudioIcons
 import org.jetbrains.android.formatter.AttributeComparator
 
@@ -71,7 +73,7 @@ class DeclaredAttributesInspectorBuilder(
     val deleteRowAction = DeleteRowAction()
     val actions = listOf(addNewRow, deleteRowAction)
     val titleModel = inspector.addExpandableTitle(InspectorSection.DECLARED.title, false, actions)
-    val tableLineModel = inspector.addTable(declaredTableModel, false, tableUIProvider, titleModel)
+    val tableLineModel = inspector.addTable(declaredTableModel, false, tableUIProvider, actions, titleModel)
     inspector.addComponent(EmptyTablePanel(addNewRow, tableLineModel), titleModel)
     addNewRow.titleModel = titleModel
     addNewRow.lineModel = tableLineModel
@@ -97,6 +99,11 @@ class DeclaredAttributesInspectorBuilder(
   private class DeleteRowAction: AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
+
+    init {
+      val manager = ActionManager.getInstance()
+      shortcutSet = manager.getAction(ACTION_DELETE).shortcutSet
+    }
 
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true

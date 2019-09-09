@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
-import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
 import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.create
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
@@ -41,6 +40,6 @@ class InspectorTableBuilder(
       return
     }
     val titleModel = inspector.addExpandableTitle(title, true)
-    inspector.addTable(tableModel, true, uiProvider, titleModel)
+    inspector.addTable(tableModel, true, uiProvider, emptyList(), titleModel)
   }
 }

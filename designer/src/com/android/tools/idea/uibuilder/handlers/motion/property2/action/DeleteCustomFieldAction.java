@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE;
+
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.property.panel.api.TableLineModel;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import icons.StudioIcons;
@@ -31,6 +34,8 @@ public class DeleteCustomFieldAction extends AnAction {
 
   public DeleteCustomFieldAction() {
     super(null, "Remove selected attribute", StudioIcons.Common.REMOVE);
+    ActionManager manager = ActionManager.getInstance();
+    setShortcutSet(manager.getAction(ACTION_DELETE).getShortcutSet());
   }
 
   public void setLineModel(@NotNull TableLineModel lineModel) {

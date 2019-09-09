@@ -47,6 +47,7 @@ class FakeInspectorPanel : InspectorPanel {
   override fun addTable(tableModel: PTableModel,
                         searchable: Boolean,
                         tableUI: TableUIProvider,
+                        actions: List<AnAction>,
                         parent: InspectorLineModel?): TableLineModel {
     val line = FakeTableLineModel(tableModel, searchable)
     lines.add(line)
