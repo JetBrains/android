@@ -76,6 +76,7 @@ class BindingXmlIndexTest {
 
     val data = map.values.first()
     assertThat(data.layoutType).isEqualTo(BindingLayoutType.DATA_BINDING_LAYOUT)
+    assertThat(data.rootTag).isEqualTo("layout")
     assertThat(data.customBindingName).isEqualTo("a.b.c.CustomBinding")
     assertThat(data.imports).containsExactly(ImportData("C", null), ImportData("Map<D>", "Dee"))
     assertThat(data.variables).containsExactly(
@@ -99,6 +100,7 @@ class BindingXmlIndexTest {
 
     val data = map.values.first()
     assertThat(data.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
+    assertThat(data.rootTag).isEqualTo("constraint_layout")
     assertThat(data.customBindingName).isNull()
     assertThat(data.viewBindingIgnore).isFalse()
     assertThat(data.imports).isEmpty()
@@ -122,6 +124,7 @@ class BindingXmlIndexTest {
 
     val data = map.values.first()
     assertThat(data.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
+    assertThat(data.rootTag).isEqualTo("constraint_layout")
     assertThat(data.customBindingName).isNull()
     assertThat(data.viewBindingIgnore).isTrue()
     assertThat(data.imports).isEmpty()

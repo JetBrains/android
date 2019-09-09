@@ -66,7 +66,8 @@ data class ViewIdData(val id: String, val viewName: String, val layoutName: Stri
  * For view binding data, many of these fields will be left empty.
  *
  * @param layoutType the type of binding for the target layout.
- * @param viewBindingIgnore set to True if binding should not be generated for this layout.
+ * @param rootTag the name of the root xml tag, e.g. `layout`, `LinearLayout`, etc.
+ * @param viewBindingIgnore set to true if binding should not be generated for this layout,
  *     currently only used for view binding layouts.
  * @param customBindingName optional value used to override the qualified class name of the
  *     generated binding.
@@ -75,6 +76,7 @@ data class ViewIdData(val id: String, val viewName: String, val layoutName: Stri
  * @param viewIds ids of views defined in this layout.
  */
 data class BindingXmlData(val layoutType: BindingLayoutType,
+                          val rootTag: String,
                           val viewBindingIgnore: Boolean,
                           val customBindingName: String?,
                           val imports: Collection<ImportData>,
