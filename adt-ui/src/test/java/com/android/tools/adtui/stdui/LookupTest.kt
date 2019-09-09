@@ -298,6 +298,20 @@ class LookupTest {
   }
 
   @Test
+  fun testSelectWithMouseClick() {
+    val model = TestCommonTextFieldModel("")
+    val field = CommonTextField(model)
+    val ui = TestUI()
+    val lookup = Lookup(field, ui)
+    field.text = "a"
+    lookup.showLookup()
+    lookup.selectNext()
+    lookup.selectNext()
+    ui.clickOnSelected()
+    assertThat(field.text).isEqualTo("@string/app_name")
+  }
+
+  @Test
   fun testPopupIsShownWhenDataIsAvailable() {
     val model = TestAsyncModel("")
     val field = CommonTextField(model)
@@ -358,6 +372,8 @@ class LookupTest {
     var location = Point()
     var editorLocation = Point()
 
+    override var clickAction: () -> Unit = {}
+
     override fun createList(listModel: ListModel<String>, matcher: Matcher, editor: JComponent) {
       this.listModel = listModel
     }
@@ -373,6 +389,10 @@ class LookupTest {
 
     override fun editorBounds(editor: JComponent): Rectangle {
       return Rectangle(editorLocation.x, editorLocation.y, 160, 20)
+    }
+
+    fun clickOnSelected() {
+      clickAction()
     }
 
     fun elements(): List<String> {
