@@ -99,7 +99,7 @@ class BindingXmlIndexTest {
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
     val data = map.values.first()
-    assertThat(data.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
+    assertThat(data.layoutType).isEqualTo(BindingLayoutType.PLAIN_LAYOUT)
     assertThat(data.rootTag).isEqualTo("constraint_layout")
     assertThat(data.customBindingName).isNull()
     assertThat(data.viewBindingIgnore).isFalse()
@@ -123,7 +123,7 @@ class BindingXmlIndexTest {
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
     val data = map.values.first()
-    assertThat(data.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
+    assertThat(data.layoutType).isEqualTo(BindingLayoutType.PLAIN_LAYOUT)
     assertThat(data.rootTag).isEqualTo("constraint_layout")
     assertThat(data.customBindingName).isNull()
     assertThat(data.viewBindingIgnore).isTrue()
