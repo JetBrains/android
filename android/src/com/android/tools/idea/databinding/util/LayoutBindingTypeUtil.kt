@@ -18,6 +18,7 @@ package com.android.tools.idea.databinding.util
 import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.idea.databinding.index.BindingLayoutType
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.ViewIdData
 import com.android.tools.idea.databinding.util.DataBindingUtil.getQualifiedBindingName
@@ -64,13 +65,16 @@ object LayoutBindingTypeUtil {
    * reasonable (e.g. it is a merge but does not have data binding)
    */
   private fun getViewClassName(viewIdData: ViewIdData, facet: AndroidFacet): String? {
-    val viewName = viewIdData.viewName
+    return getViewClassName(viewIdData.viewName, viewIdData.layoutName, facet)
+  }
+
+  private fun getViewClassName(viewName: String, layoutName: String?, facet: AndroidFacet): String? {
     if (viewName.indexOf('.') == -1) {
       when {
         VIEW_PACKAGE_ELEMENTS.contains(viewName) -> return SdkConstants.VIEW_PKG_PREFIX + viewName
         SdkConstants.WEB_VIEW == viewName -> return SdkConstants.ANDROID_WEBKIT_PKG + viewName
-        SdkConstants.VIEW_MERGE == viewName -> return getViewClassNameFromMergeTag(viewIdData, facet)
-        SdkConstants.VIEW_INCLUDE == viewName -> return getViewClassNameFromIncludeTag(viewIdData, facet)
+        SdkConstants.VIEW_MERGE == viewName -> return getViewClassNameFromMergeTag(layoutName, facet)
+        SdkConstants.VIEW_INCLUDE == viewName -> return getViewClassNameFromIncludeTag(layoutName, facet)
         SdkConstants.VIEW_STUB == viewName -> {
           val mode = DataBindingUtil.getDataBindingMode(facet)
           return mode.viewStubProxy
@@ -83,26 +87,30 @@ object LayoutBindingTypeUtil {
     }
   }
 
-  private fun getViewClassNameFromIncludeTag(viewIdData: ViewIdData, facet: AndroidFacet): String {
-    val reference = getViewClassNameFromLayoutAttribute(viewIdData.layoutName, facet)
+  private fun getViewClassNameFromIncludeTag(layoutName: String?, facet: AndroidFacet): String {
+    val reference = getViewClassNameFromLayoutAttribute(layoutName, facet)
     return reference ?: SdkConstants.CLASS_VIEW
   }
 
-  private fun getViewClassNameFromMergeTag(viewIdData: ViewIdData, facet: AndroidFacet): String? {
-    return getViewClassNameFromLayoutAttribute(viewIdData.layoutName, facet)
+  private fun getViewClassNameFromMergeTag(layoutName: String?, facet: AndroidFacet): String? {
+    return getViewClassNameFromLayoutAttribute(layoutName, facet)
   }
 
-  private fun getViewClassNameFromLayoutAttribute(layout: String?, facet: AndroidFacet): String? {
-    if (layout == null) {
+  private fun getViewClassNameFromLayoutAttribute(layoutName: String?, facet: AndroidFacet): String? {
+    if (layoutName == null) {
       return null
     }
     // The following line must be called to make sure the underlying repositories are initialized
     ResourceRepositoryManager.getInstance(facet).existingAppResources ?: return null
-    val resourceUrl = ResourceUrl.parse(layout)
+    val resourceUrl = ResourceUrl.parse(layoutName)
     if (resourceUrl == null || resourceUrl.type != ResourceType.LAYOUT) {
       return null
     }
     val indexEntry = BindingXmlIndex.getEntriesForLayout(facet.module.project, resourceUrl.name).firstOrNull() ?: return null
+    if (indexEntry.data.layoutType == BindingLayoutType.VIEW_BINDING_LAYOUT && !facet.isViewBindingEnabled()) {
+      // If including a non-binding layout, we just use its root tag as the type for this tag (e.g. FrameLayout, TextView)
+      return getViewClassName(indexEntry.data.rootTag, null, facet)
+    }
     return getQualifiedBindingName(facet, indexEntry)
   }
 
