@@ -38,7 +38,7 @@ import com.intellij.util.ProcessingContext
  */
 class ProguardR8CompletionContributor : CompletionContributor() {
   companion object {
-    val VALID_FLAGS = arrayOf(
+    val VALID_FLAGS = setOf(
       "adaptclassstrings",
       "adaptresourcefilecontents",
       "adaptresourcefilenames",
@@ -83,7 +83,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       "whyareyoukeeping"
     )
 
-    private val FIELD_METHOD_MODIFIERS = arrayOf(
+    private val FIELD_METHOD_MODIFIERS = setOf(
       "abstract",
       "final",
       "native",
@@ -104,7 +104,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       "<methods>" to "matches all methods"
     )
 
-    private val CLASS_TYPE = arrayOf(
+    private val CLASS_TYPE = setOf(
       "class",
       "interface",
       "enum"
@@ -154,15 +154,9 @@ class ProguardR8CompletionContributor : CompletionContributor() {
 
     private val anyProguardElement = psiElement().withLanguage(ProguardR8Language.INSTANCE)
 
-    private val javaIdentifier = or(
-      psiElement(ProguardR8PsiTypes.JAVA_IDENTIFIER),
-      psiElement(ProguardR8PsiTypes.JAVA_IDENTIFIER_WITH_WILDCARDS)
-    )
+    private val insideClassSpecification = psiElement().inside(psiElement(ProguardR8PsiTypes.CLASS_SPECIFICATION_BODY))
 
-    private val insideClassSpecification = or(
-      anyProguardElement.withSuperParent(2, psiElement(ProguardR8PsiTypes.CLASS_SPECIFICATION_BODY)),
-      anyProguardElement.withParent(psiElement(ProguardR8PsiTypes.CLASS_SPECIFICATION_BODY))
-    )
+    private val insideTypeList = anyProguardElement.inside(psiElement(ProguardR8PsiTypes.TYPE_LIST))
   }
 
   init {
@@ -178,12 +172,12 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       and(
         insideClassSpecification,
-        not(
-          anyProguardElement.afterLeaf(
-            or(
-              javaIdentifier,
-              psiElement().withText(string().oneOf("(", "<"))
-            )
+        not(insideTypeList),
+        psiElement().afterLeaf(
+          or(
+            psiElement(ProguardR8PsiTypes.SEMICOLON),
+            psiElement(ProguardR8PsiTypes.OPEN_BRACE),
+            psiElement().withText(string().oneOf(FIELD_METHOD_MODIFIERS))
           )
         )
       ),
@@ -195,6 +189,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       and(
         insideClassSpecification,
+        not(insideTypeList),
         anyProguardElement.afterLeaf(psiElement().withText("<"))
       ),
       fieldsAndMethodsWildcardsCompletionProvider
