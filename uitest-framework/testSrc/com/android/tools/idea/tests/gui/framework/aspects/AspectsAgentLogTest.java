@@ -36,9 +36,8 @@ import java.util.Set;
 import org.junit.Test;
 
 /**
- * Test to run after all GUI tests of {@link com.android.tools.idea.tests.gui.framework.TestGroup.DEFAULT} runs. While these tests log the
- * aspects agent violations to a file, this test reads the log and fail in case there are any violations. Therefore, it's very important to
- * run after all DEFAULT tests run.
+ * A test that fails when the aspects-agent log has violations not in the baseline.
+ * The log is written during UI tests, so this should run after them.
  * <p>
  * The baseline for grandfathered violations is in tools/adt/idea/android-uitests/aspects_baseline.txt
  */
