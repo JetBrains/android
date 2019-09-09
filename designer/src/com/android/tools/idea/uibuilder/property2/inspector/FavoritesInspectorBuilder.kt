@@ -37,8 +37,10 @@ import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Splitter
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.IdeActions
 import icons.StudioIcons
 
 private const val ADD_ATTRIBUTE_ACTION_TITLE = "Add favorite"
@@ -129,7 +131,7 @@ class FavoritesInspectorBuilder(
     val deleteRowAction = DeleteRowAction()
     val actions = listOf(addNewRow, deleteRowAction)
     val titleModel = inspector.addExpandableTitle(InspectorSection.FAVORITES.title, false, actions)
-    val tableLineModel = inspector.addTable(favoritesTableModel, false, tableUIProvider, titleModel)
+    val tableLineModel = inspector.addTable(favoritesTableModel, false, tableUIProvider, actions, titleModel)
     inspector.addComponent(EmptyTablePanel(addNewRow, tableLineModel), titleModel)
     addNewRow.titleModel = titleModel
     addNewRow.lineModel = tableLineModel
@@ -168,6 +170,11 @@ class FavoritesInspectorBuilder(
   private inner class DeleteRowAction: AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
+
+    init {
+      val manager = ActionManager.getInstance()
+      shortcutSet = manager.getAction(IdeActions.ACTION_DELETE).shortcutSet
+    }
 
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true

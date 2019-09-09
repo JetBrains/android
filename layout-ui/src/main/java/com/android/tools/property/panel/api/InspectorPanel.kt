@@ -75,6 +75,7 @@ interface InspectorPanel {
   fun addTable(tableModel: PTableModel,
                searchable: Boolean,
                tableUI: TableUIProvider,
+               actions: List<AnAction> = emptyList(),
                parent: InspectorLineModel? = null): TableLineModel
 
   /**

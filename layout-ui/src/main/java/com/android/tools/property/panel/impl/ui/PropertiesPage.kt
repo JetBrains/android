@@ -150,10 +150,11 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   override fun addTable(tableModel: PTableModel,
                         searchable: Boolean,
                         tableUI: TableUIProvider,
+                        actions: List<AnAction>,
                         parent: InspectorLineModel?): TableLineModel {
     // Do NOT call addSeparatorAfterTitle since tables should not be preceded with spacing after a title
     val model = TableLineModelImpl(tableModel, searchable)
-    val editor = TableEditor(model, tableUI.tableCellRendererProvider, tableUI.tableCellEditorProvider)
+    val editor = TableEditor(model, tableUI.tableCellRendererProvider, tableUI.tableCellEditorProvider, actions)
     addLine(model, parent)
     inspector.addLineElement(editor.component)
     return model

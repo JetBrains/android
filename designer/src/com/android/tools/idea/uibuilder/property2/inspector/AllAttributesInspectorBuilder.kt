@@ -47,7 +47,7 @@ class AllAttributesInspectorBuilder(
 
     val allTableModel = FilteredPTableModel.create(model, { true }, {}, alphabeticalSortOrder, createGroups(properties))
     val titleModel = inspector.addExpandableTitle(InspectorSection.ALL.title, false)
-    inspector.addTable(allTableModel, true, allTableUIProvider, titleModel)
+    inspector.addTable(allTableModel, true, allTableUIProvider, emptyList(), titleModel)
   }
 
   private fun createGroups(properties: PropertiesTable<NelePropertyItem>): List<GroupSpec<NelePropertyItem>> {

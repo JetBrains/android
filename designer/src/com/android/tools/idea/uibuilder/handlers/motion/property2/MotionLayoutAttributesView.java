@@ -169,7 +169,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       List<AnAction> actions = ImmutableList.<AnAction>builder().add(addFieldAction).add(deleteFieldAction).build();
 
       InspectorLineModel title = inspector.addExpandableTitle("CustomAttributes", true, actions);
-      TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
+      TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, actions, title);
       inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
       addFieldAction.setLineModel(lineModel);
       deleteFieldAction.setLineModel(lineModel);
@@ -207,7 +207,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       List<AnAction> actions = actionsBuilder.build();
 
       InspectorLineModel title = inspector.addExpandableTitle(sectionTagName, true, actions);
-      TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
+      TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, actions, title);
       inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
       controlAction.setLineModel(title);
       addFieldAction.setLineModel(lineModel);
