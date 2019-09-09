@@ -21,7 +21,7 @@ import com.android.SdkConstants.TAG_LAYOUT
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
-import com.android.tools.idea.databinding.index.BindingLayoutType.VIEW_BINDING_LAYOUT
+import com.android.tools.idea.databinding.index.BindingLayoutType.PLAIN_LAYOUT
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -273,7 +273,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
         }
       })
 
-      val layoutType = if (isDataBindingLayout) DATA_BINDING_LAYOUT else VIEW_BINDING_LAYOUT
+      val layoutType = if (isDataBindingLayout) DATA_BINDING_LAYOUT else PLAIN_LAYOUT
       mapOf(getKeyForFile(inputData.file) to
               BindingXmlData(layoutType, rootTag.orEmpty(), viewBindingIgnore, customBindingName, imports, variables, viewIds))
     }
