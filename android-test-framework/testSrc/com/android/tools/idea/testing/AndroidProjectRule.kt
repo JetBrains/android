@@ -17,34 +17,23 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.io.FilePaths.toSystemDependentPath
-import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModel
-import com.intellij.ProjectTopics
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
-import com.intellij.facet.FacetManagerAdapter
 import com.intellij.facet.FacetType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ModuleRootEvent
-import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
+import com.intellij.testFramework.fixtures.*
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.Function
-import org.jetbrains.android.AndroidFacetProjectDescriptor
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
@@ -112,12 +101,12 @@ class AndroidProjectRule private constructor(
   companion object {
     /**
      * Returns an [AndroidProjectRule] that uses a fixture which create the
-     * project in an in memory TempFileSystem
+     * project in an in memeroy TempFileSystem
      *
      * @see IdeaTestFixtureFactory.createLightFixtureBuilder()
      */
     @JvmStatic
-    fun inMemory() = AndroidProjectRule(initAndroid = false)
+    fun inMemory() = AndroidProjectRule()
 
     /**
      * Returns an [AndroidProjectRule] that uses a fixture on disk
@@ -175,31 +164,7 @@ class AndroidProjectRule private constructor(
     else {
       createJavaCodeInsightTestFixture(description)
     }
-
     fixture.setUp()
-
-    if (lightFixture) {
-      val connection = ApplicationManager.getApplication().messageBus.connect(fixture.projectDisposable)
-      val exception = AssertionError("Structure of in-memory projects cannot be modified, since the projects are " +
-                                     "re-used between tests.")
-
-      connection.subscribe(ProjectTopics.PROJECT_ROOTS, object : ModuleRootListener {
-        override fun rootsChanged(event: ModuleRootEvent) = throw exception
-      })
-
-      connection.subscribe(ProjectTopics.MODULES, object : ModuleListener {
-        override fun moduleAdded(project: Project, module: Module): Unit = throw exception
-        override fun moduleRemoved(project: Project, module: Module): Unit = throw exception
-        override fun modulesRenamed(project: Project, modules: MutableList<Module>, names: Function<Module, String>) = throw exception
-      })
-
-      connection.subscribe(FacetManager.FACETS_TOPIC, object : FacetManagerAdapter() {
-        override fun facetAdded(facet: Facet<*>): Unit = throw exception
-        override fun facetRemoved(facet: Facet<*>): Unit = throw exception
-        override fun facetRenamed(facet: Facet<*>, oldName: String): Unit = throw exception
-      })
-    }
-
     // Initialize an Android manifest
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
@@ -225,7 +190,7 @@ class AndroidProjectRule private constructor(
   private fun createLightFixture(): CodeInsightTestFixture {
     // This is a very abstract way to initialize a new Project and a single Module.
     val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createLightFixtureBuilder(AndroidFacetProjectDescriptor)
+    val projectBuilder = factory.createLightFixtureBuilder(LightCodeInsightFixtureTestCase.JAVA_8)
     return factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
   }
 
