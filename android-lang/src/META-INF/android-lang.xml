@@ -30,8 +30,8 @@
               language="AIDL"
               extensions="aidl"/>
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
-    <lang.syntaxHighlighterFactory language="AIDL"
-                                   implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighter language="AIDL"
+                                   implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighter"/>
     <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
     <lang.findUsagesProvider language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.findUsages.AidlFindUsageProvider"/>
@@ -106,8 +106,8 @@
         language="SHRINKER_CONFIG"
         implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InspectionSuppressor"/>
 
-    <lang.syntaxHighlighterFactory language="PROGUARD"
-                                   implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighter language="PROGUARD"
+                                   implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighter"/>
     <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter"/>
     <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor"/>
 
@@ -119,8 +119,8 @@
               extensions="rs;fs;rsh" />
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
-    <lang.syntaxHighlighterFactory language="Renderscript"
-                                   implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighter language="Renderscript"
+                                   implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighter"/>
 
     <!-- SQL support -->
     <fileType name="Android Room SQL"
