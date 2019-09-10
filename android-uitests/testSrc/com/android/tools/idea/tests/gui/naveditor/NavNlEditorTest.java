@@ -111,6 +111,7 @@ public class NavNlEditorTest {
     assertEquals(0, selectedComponents.size());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/137919011
   @Test
   public void testCreateNewFragmentFromWizard() throws Exception {
     StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
