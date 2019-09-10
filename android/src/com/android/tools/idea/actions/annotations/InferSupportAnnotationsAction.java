@@ -37,7 +37,6 @@ import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
 import com.intellij.ide.scratch.ScratchFileService;
 import com.intellij.ide.scratch.ScratchRootType;
-import com.intellij.lang.StdLanguages;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,6 +45,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -500,7 +500,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
         String report = InferSupportAnnotations.generateReport(myInfos);
         String fileName = "Annotation Inference Report";
         ScratchFileService.Option option = ScratchFileService.Option.create_new_always;
-        VirtualFile f = ScratchRootType.getInstance().createScratchFile(myProject, fileName, StdLanguages.TEXT, report, option);
+        VirtualFile f = ScratchRootType.getInstance().createScratchFile(myProject, fileName, PlainTextLanguage.INSTANCE, report, option);
         if (f != null) {
           FileEditorManager.getInstance(myProject).openFile(f, true);
         }
