@@ -25,13 +25,11 @@ import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.truth.Truth.assertThat
-import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildViewManager
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.StartBuildEvent
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import java.io.File
 import java.nio.file.Path
@@ -53,7 +51,7 @@ class BuildInvokerTest : AndroidGradleTestCase() {
     // Replace BuildViewManager service before loading a project, but leave it inactive until later moment.
     IdeComponents(project).replaceProjectService(
       BuildViewManager::class.java,
-      object : BuildViewManager(project, ServiceManager.getService(project, BuildContentManager::class.java)) {
+      object : BuildViewManager(project) {
         override fun onEvent(buildId: Any, event: BuildEvent) {
           if (!enabled) return // Skip events until activated.
           when (event) {
