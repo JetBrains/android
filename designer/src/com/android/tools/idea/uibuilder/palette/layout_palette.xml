@@ -195,7 +195,17 @@
   <group name="Buttons">
     <item tag="Button" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html"/>
     <item tag="ImageButton" suggested="true"/>
-    <item tag="com.google.android.material.chip.ChipGroup" suggested="true"  meta="material" info="new-m2"/>
+    <item tag="com.google.android.material.chip.ChipGroup" suggested="true"  meta="material" info="new-m2">
+      <xml>
+        <![CDATA[
+            <com.google.android.material.chip.ChipGroup
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content">
+
+            </com.google.android.material.chip.ChipGroup>
+          ]]>
+      </xml>
+    </item>
     <item tag="com.google.android.material.chip.Chip" suggested="true" meta="material" info="new-m2"/>
     <item tag="CheckBox" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
     <item tag="RadioGroup" materialReference="https://material.io/guidelines/selection-controls.html#selection-controls-radio-button"/>
