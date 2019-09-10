@@ -22,6 +22,7 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstra
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.ColorSet;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ConnectionDraw;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
@@ -231,18 +232,18 @@ public class SingleWidgetView extends JPanel {
     mAspectText = new JTextField();
     mAspectLabel = new JLabel("ratio");
 
-    mTopKill.setToolTipText("Delete Top Constraint");
-    mLeftKill.setToolTipText("Delete Left Constraint");
+    mTopKill.setToolTipText(AnchorTarget.createAnchorToolTips(AnchorTarget.Type.TOP, false, false, false));
+    mLeftKill.setToolTipText(AnchorTarget.createAnchorToolTips(AnchorTarget.Type.LEFT, false, false ,false));
 
     mRightKill.setName("deleteRightConstraintButton");
-    mRightKill.setToolTipText("Delete Right Constraint");
+    mRightKill.setToolTipText(AnchorTarget.createAnchorToolTips(AnchorTarget.Type.RIGHT, false, false ,false));
 
-    mBottomKill.setToolTipText("Delete Bottom Constraint");
-    mBaselineKill.setToolTipText("Delete Baseline Constraint");
-    mTopConnect.setToolTipText("Create a connection above");
-    mLeftConnect.setToolTipText("Create a connection to the left");
-    mRightConnect.setToolTipText("Create a connection to the right");
-    mBottomConnect.setToolTipText("Create a connection below");
+    mBottomKill.setToolTipText(AnchorTarget.createAnchorToolTips(AnchorTarget.Type.BOTTOM, false, false ,false));
+    mBaselineKill.setToolTipText(AnchorTarget.createAnchorToolTips(AnchorTarget.Type.BASELINE, false, false ,false));
+    mTopConnect.setToolTipText(AnchorTarget.createAnchorToolTips(AnchorTarget.Type.TOP, true, false ,false));
+    mLeftConnect.setToolTipText(AnchorTarget.createAnchorToolTips(AnchorTarget.Type.LEFT, true, false ,false));
+    mRightConnect.setToolTipText(AnchorTarget.createAnchorToolTips(AnchorTarget.Type.RIGHT, true, false ,false));
+    mBottomConnect.setToolTipText(AnchorTarget.createAnchorToolTips(AnchorTarget.Type.BOTTOM, true, false ,false));
     mAspectButton.setToolTipText("Toggle Aspect Ratio Constraint");
 
     mHbar1.setSister(mHbar2);
