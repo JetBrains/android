@@ -67,7 +67,7 @@ private class TestSyncManager(val project: Project) : ProjectSystemSyncManager {
 class SyncUtilTest {
   @Rule
   @JvmField
-  val projectRule = AndroidProjectRule.inMemory()
+  val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
   private lateinit var project: Project
   private lateinit var listener: SyncResultListener
 

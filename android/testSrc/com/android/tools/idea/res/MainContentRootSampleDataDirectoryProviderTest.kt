@@ -31,7 +31,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class MainContentRootSampleDataDirectoryProviderTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
   private lateinit var provider: MainContentRootSampleDataDirectoryProvider
   private lateinit var mainContentRoot: VirtualFile
 
