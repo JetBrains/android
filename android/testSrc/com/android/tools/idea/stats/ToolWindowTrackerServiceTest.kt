@@ -21,7 +21,7 @@ import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.util.pico.DefaultPicoContainer
+import com.intellij.testFramework.registerComponentInstance
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -41,7 +41,7 @@ class ToolWindowTrackerServiceTest : AndroidTestCase() {
     UsageTracker.setWriterForTest(myUsageTracker)
     val project = project
     myService = ToolWindowTrackerService(project)
-    (project.picoContainer as DefaultPicoContainer).registerComponentInstance(ToolWindowManager::class.java, myMockToolWindowManager)
+    project.registerComponentInstance(ToolWindowManager::class.java, myMockToolWindowManager, testRootDisposable)
   }
 
   override fun tearDown() {
