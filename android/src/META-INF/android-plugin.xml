@@ -458,7 +458,7 @@
     <fileType name="AndroidDataBinding" language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbFileType" extensions="android_data_binding" fieldName="INSTANCE"/>
 
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition" />
-    <lang.syntaxHighlighterFactory language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
+    <lang.syntaxHighlighter language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighter" />
     <lang.braceMatcher language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbPairedBraceMatcher"/>
 
     <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector" />
