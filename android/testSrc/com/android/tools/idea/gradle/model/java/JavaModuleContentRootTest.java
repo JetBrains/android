@@ -70,11 +70,23 @@ public class JavaModuleContentRootTest {
     originalContentRoot.getGeneratedTestDirectories();
     expectLastCall().andStubReturn(DomainObjectHashSet.newSet(genTestDir));
 
+    mock = createSourceDirectoryMock("resource");
+    File resourceDirPath = mock.getFirst();
+    IdeaSourceDirectory resourceDir = mock.getSecond();
+    originalContentRoot.getResourceDirectories();
+    expectLastCall().andStubReturn(DomainObjectHashSet.newSet(resourceDir));
+
+    mock = createSourceDirectoryMock("resource-test");
+    File testResourceDirPath = mock.getFirst();
+    IdeaSourceDirectory testResourceDir = mock.getSecond();
+    originalContentRoot.getTestResourceDirectories();
+    expectLastCall().andStubReturn(DomainObjectHashSet.newSet(testResourceDir));
+
     File exclude = new File("exclude");
     Set<File> allExclude = Sets.newSet(exclude, null);
     expect(originalContentRoot.getExcludeDirectories()).andStubReturn(allExclude);
 
-    replay(originalContentRoot, sourceDir, genSourceDir, testDir, genTestDir);
+    replay(originalContentRoot, sourceDir, genSourceDir, testDir, genTestDir, resourceDir, testResourceDir);
 
     JavaModuleContentRoot contentRoot = JavaModuleContentRoot.copy(originalContentRoot);
     assertNotNull(contentRoot);
@@ -83,8 +95,8 @@ public class JavaModuleContentRootTest {
     assertThat(contentRoot.getGenSourceDirPaths()).containsExactly(genSourceDirPath);
     assertThat(contentRoot.getTestDirPaths()).containsExactly(testDirPath);
     assertThat(contentRoot.getGenTestDirPaths()).containsExactly(genTestDirPath);
-    assertThat(contentRoot.getResourceDirPaths()).isEmpty();
-    assertThat(contentRoot.getTestResourceDirPaths()).isEmpty();
+    assertThat(contentRoot.getResourceDirPaths()).containsExactly(resourceDirPath);
+    assertThat(contentRoot.getTestResourceDirPaths()).containsExactly(testResourceDirPath);
 
     verify(originalContentRoot, sourceDir, genSourceDir, testDir, genTestDir);
   }
