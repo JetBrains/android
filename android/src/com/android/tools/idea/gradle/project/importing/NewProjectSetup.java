@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
+import java.nio.file.Paths;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleProjects.open;
@@ -66,13 +66,8 @@ public class NewProjectSetup {
   }
 
   @NotNull
-  Project openProject(@NotNull String projectPath) throws IOException {
-    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-    Project newProject = projectManager.loadProject(projectPath);
-    if (newProject == null) {
-      throw new NullPointerException("Failed to open project at '" + projectPath + "'");
-    }
-    return newProject;
+  Project openProject(@NotNull String projectPath) {
+    return ProjectManagerEx.getInstanceEx().loadProject(Paths.get(projectPath));
   }
 
   void prepareProjectForImport(@NotNull Project project, @Nullable LanguageLevel languageLevel, boolean openProject) {
