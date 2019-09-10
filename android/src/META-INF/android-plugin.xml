@@ -35,11 +35,6 @@
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
 
-  <application-components>
-    <component>
-      <implementation-class>org.jetbrains.android.AndroidPlugin</implementation-class>
-    </component>
-  </application-components>
   <project-components>
     <component>
       <implementation-class>org.jetbrains.android.AndroidProjectComponent</implementation-class>
@@ -333,6 +328,7 @@
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
     <console.folding implementation="com.android.tools.idea.logcat.ExceptionFolding"/>
     <consoleActionsPostProcessor implementation="com.android.tools.idea.logcat.LogcatConsoleActionsPostProcessor" />
+    <applicationService serviceImplementation="org.jetbrains.android.AndroidPlugin" preload="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
     <applicationService serviceImplementation="com.android.tools.idea.IdeInfo" />
     <applicationService serviceImplementation="com.android.tools.idea.ui.GuiTestingService"/>
