@@ -57,9 +57,10 @@ import java.io.IOException
 data class ProjectChecker(
   private val syncProject: Boolean,
   private val projectState: TestNewProjectWizardState,
-  private val activityState: TestTemplateWizardState?,
+  private val activityState: TestTemplateWizardState,
   private val usageTracker: TestUsageTracker,
-  private val language: Language
+  private val language: Language,
+  private val createActivity: Boolean
 ) {
   private val moduleState: TestTemplateWizardState get() = projectState.moduleTemplateState
 
@@ -76,7 +77,7 @@ data class ProjectChecker(
     try {
       project.createWithIconGenerator()
       val projectRoot = project.guessProjectDir()!!.toIoFile()
-      if (activityState != null && !moduleState.getBoolean(ATTR_CREATE_ACTIVITY)) {
+      if (!createActivity) {
         val template = activityState.template
         val moduleRoot = File(projectRoot, modifiedProjectName)
         activityState.apply {
@@ -103,6 +104,7 @@ data class ProjectChecker(
     }
   }
 
+  // TODO(parentej) test the icon generator
   private fun Project.createWithIconGenerator() {
     runWriteAction {
       val minSdkVersion = moduleState.getString(ATTR_MIN_API).toInt()
@@ -139,42 +141,46 @@ data class ProjectChecker(
     }
   }
 
+  /**
+   * Renders the project.
+   */
   private fun Project.create(iconGenerator: IconGenerator?) {
     moduleState.populateDirectoryParameters()
-    val moduleName = moduleState.getString(ATTR_MODULE_NAME)
     val projectPath = moduleState.getString(ATTR_TOP_OUT)
-    val projectRoot = File(projectPath)
+    val moduleName = moduleState.getString(ATTR_MODULE_NAME)
     val paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, moduleName).paths
+
+    val projectRoot = File(projectPath)
+    val moduleRoot = paths.moduleRoot!!
+
+    val projectTemplate = projectState.projectTemplate
+    val moduleTemplate = moduleState.template
+
+    projectState.updateParameters()
 
     if (!FileUtilRt.createDirectory(projectRoot)) {
       throw IOException("Unable to create directory '$projectPath'.")
     }
 
-    if (iconGenerator != null) {
-      // TODO(parentej) test the icon generator
+    fun createRenderingContext(template: Template, templateValues: Map<String, Any>) =
+      createRenderingContext(template, this, projectRoot, moduleRoot, templateValues)
+
+    fun Template.renderAndCheck(templateValues: Map<String, Any>): MutableCollection<File> {
+      val context = createRenderingContext(this, templateValues)
+      render(context, false)
+      usageTracker.checkAfterRender(metadata!!, templateValues)
+      return context.filesToOpen
     }
 
-    projectState.updateParameters()
-    val moduleRoot = paths.moduleRoot!!
-    // If this is a new project, instantiate the project-level files
-    val projectTemplate = projectState.projectTemplate
-    val projectContext = createRenderingContext(projectTemplate, this, projectRoot, moduleRoot, moduleState.templateValues)
-    projectTemplate.render(projectContext, false)
-
-    val moduleContext = createRenderingContext(moduleState.template, this, projectRoot, moduleRoot, moduleState.templateValues)
-    val moduleTemplate = moduleState.template
-
-    usageTracker.checkAfterRender(projectTemplate.metadata!!, projectContext.paramMap)
+    // TODO(qumeric): should it be projectState.templateValues?
+    projectTemplate.renderAndCheck(moduleState.templateValues)
     setGradleWrapperExecutable(projectRoot)
-    moduleTemplate.render(moduleContext, false)
-    usageTracker.checkAfterRender(moduleTemplate.metadata!!, moduleContext.paramMap)
-    if (moduleState.getBoolean(ATTR_CREATE_ACTIVITY)) {
-      val activityTemplateState = projectState.activityTemplateState
-      val activityTemplate = activityTemplateState.template
-      val activityContext = createRenderingContext(activityTemplate, this, moduleRoot, moduleRoot, activityTemplateState.templateValues)
-      activityTemplate.render(activityContext, false)
-      usageTracker.checkAfterRender(activityTemplate.metadata!!, activityContext.paramMap)
-      moduleContext.filesToOpen.addAll(activityContext.filesToOpen)
+    val moduleFilesToOpen = moduleTemplate.renderAndCheck(moduleState.templateValues)
+
+    if (createActivity) {
+      val activityState = projectState.activityTemplateState
+      val activityFilesToOpen = activityState.template.renderAndCheck(activityState.templateValues)
+      moduleFilesToOpen.addAll(activityFilesToOpen)
     }
   }
 

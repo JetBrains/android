@@ -68,7 +68,6 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.inspections.lint.ProblemData
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.w3c.dom.Element
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -110,13 +109,10 @@ internal fun isInterestingApiLevel(api: Int, manualApi: Int, apiSensitiveTemplat
   }
 }
 
-internal fun createNewProjectState(
-  createWithProject: Boolean, sdkData: AndroidSdkData, moduleTemplate: Template
-): TestNewProjectWizardState {
+internal fun createNewProjectState(sdkData: AndroidSdkData, moduleTemplate: Template): TestNewProjectWizardState {
   val projectState = TestNewProjectWizardState(moduleTemplate)
   val moduleState = projectState.moduleTemplateState.apply {
     Template.convertApisToInt(templateValues)
-    put(ATTR_CREATE_ACTIVITY, createWithProject)
     put(ATTR_MODULE_NAME, "TestModule")
     put(ATTR_PACKAGE_NAME, "test.pkg")
   }
@@ -133,6 +129,7 @@ internal fun getModuleTemplateForFormFactor(templateFile: File): Template {
   val activityFormFactorName = activityTemplate.metadata!!.formFactor ?: return defaultModuleTemplate
   val activityFormFactor = get(activityFormFactorName)
   val manager = TemplateManager.getInstance()!!
+
   manager.getTemplatesInCategory(CATEGORY_APPLICATION).forEach { formFactorTemplateFile ->
     val metadata = manager.getTemplateMetadata(formFactorTemplateFile!!)
     if (metadata?.formFactor != null && get(metadata.formFactor!!) === activityFormFactor) {
@@ -268,14 +265,8 @@ internal fun addIconsIfNecessary(activityState: TestTemplateWizardState) {
 internal fun verifyLanguageFiles(projectDir: File, language: Language) {
   // Note: Files.walk() stream needs to be closed (or consumed completely), otherwise it will leave locked directories on Windows
   val allPaths = Files.walk(projectDir.toPath()).toList()
-  if (language === Language.KOTLIN) {
-    assertFalse(allPaths.any { it.toString().endsWith(".java") })
-    assertTrue(allPaths.any { it.toString().endsWith(".kt") })
-  }
-  else {
-    assertFalse(allPaths.any { it.toString().endsWith(".kt") })
-    assertTrue(allPaths.any { it.toString().endsWith(".java") })
-  }
+  val wrongLanguageExtension = if (language == Language.KOTLIN) ".java" else ".kt"
+  assertTrue(allPaths.none { it.toString().endsWith(wrongLanguageExtension) })
 }
 
 internal fun invokeGradleForProjectDir(projectRoot: File) {
@@ -340,22 +331,17 @@ internal fun cleanupProjectFiles(projectDir: File) {
 
 data class Option(@JvmField val id: String, @JvmField val minSdk: Int, @JvmField val minBuild: Int)
 
-internal fun getOption(option: Element): Option {
-  fun readSdkAttribute(sdkAttr: String): Int {
-    val sdkString = option.getAttribute(sdkAttr).orEmpty()
-
-    return if (sdkString.isEmpty())
-      1
-    else
-      sdkString.toInt() // Templates aren't allowed to contain codenames, should  always be an integer
-  }
-
-  val optionId = option.getAttribute(SdkConstants.ATTR_ID)
-  val optionMinSdk = readSdkAttribute(TemplateMetadata.ATTR_MIN_API)
-  val optionMinBuildApi = readSdkAttribute(TemplateMetadata.ATTR_MIN_BUILD_API)
-
-  return Option(optionId, optionMinSdk, optionMinBuildApi)
+private fun Element.readSdkAttribute(sdkAttr: String): Int {
+  val sdkString = getAttribute(sdkAttr).orEmpty()
+  // Templates aren't allowed to contain codenames, should  always be an integer
+  return if (sdkString.isEmpty()) 1 else sdkString.toInt()
 }
+
+internal fun Element.toOption() = Option(
+  id = getAttribute(SdkConstants.ATTR_ID),
+  minSdk = readSdkAttribute(TemplateMetadata.ATTR_MIN_API),
+  minBuild =  readSdkAttribute(TemplateMetadata.ATTR_MIN_BUILD_API)
+  )
 
 internal fun getCheckKey(category: String, name: String, createWithProject: Boolean) = "$category:$name:$createWithProject"
 
@@ -364,3 +350,4 @@ internal fun findTemplate(category: String, name: String) =
     assertTrue("Couldn't find template ${it.path}", it.exists())
   }
 
+internal fun <T> Iterable<T>.takeOneIfTrueElseAll(condition: Boolean) = if (condition) take(1) else take(Int.MAX_VALUE)
