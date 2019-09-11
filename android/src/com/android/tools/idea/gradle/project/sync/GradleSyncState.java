@@ -48,6 +48,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
@@ -130,6 +131,7 @@ public final class GradleSyncState {
   }
 
   @VisibleForTesting
+  @NonInjectable
   GradleSyncState(@NotNull Project project,
                   @NotNull GradleFiles gradleFiles,
                   @NotNull MessageBus messageBus,

@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,11 +60,12 @@ public class AndroidPluginVersionUpdater {
     return ServiceManager.getService(project, AndroidPluginVersionUpdater.class);
   }
 
-  public AndroidPluginVersionUpdater(@NotNull Project project, @NotNull GradleSyncState syncState) {
-    this(project, syncState, new TextSearch(project));
+  public AndroidPluginVersionUpdater(@NotNull Project project) {
+    this(project, GradleSyncState.getInstance(project), new TextSearch(project));
   }
 
   @VisibleForTesting
+  @NonInjectable
   AndroidPluginVersionUpdater(@NotNull Project project,
                               @NotNull GradleSyncState syncState,
                               @NotNull TextSearch textSearch) {

@@ -45,7 +45,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myVersionUpdater = new AndroidPluginVersionUpdater(getProject(), mock(GradleSyncState.class));
+    myVersionUpdater = new AndroidPluginVersionUpdater(getProject(), mock(GradleSyncState.class), new AndroidPluginVersionUpdater.TextSearch(getProject()));
   }
 
   @Override

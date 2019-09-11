@@ -69,6 +69,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,6 +114,7 @@ public final class PostSyncProjectSetup {
   }
 
   @VisibleForTesting
+  @NonInjectable
   PostSyncProjectSetup(@NotNull Project project,
                        @NotNull IdeInfo ideInfo,
                        @NotNull ProjectStructure projectStructure,

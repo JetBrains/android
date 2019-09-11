@@ -37,6 +37,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.serviceContainer.NonInjectable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
@@ -68,6 +69,7 @@ public final class AndroidGradleProjectComponent implements ProjectComponent {
   }
 
   @VisibleForTesting
+  @NonInjectable
   public AndroidGradleProjectComponent(@NotNull Project project, @NotNull LegacyAndroidProjects legacyAndroidProjects) {
     myProject = project;
     myLegacyAndroidProjects = legacyAndroidProjects;
