@@ -69,7 +69,7 @@ class ClangOutputParserTest {
   @Test
   fun `ndk - simple case`() = assertParser("""
     > Task :some:gradle:task UP-TO-DATE
-    > Task :app:externalNativeBuildDebug
+    > Task :foo:bar:app:externalNativeBuildDebug
   * Build app_armeabi-v7a
   * [armeabi-v7a] Compile++ arm  : app <= app.cpp
   * /usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal
@@ -79,7 +79,23 @@ class ClangOutputParserTest {
     > Task :some:other:gradle:task UP-TO-DATE
     """) {
     assertDiagnosticMessages(
-      "[:app Debug armeabi-v7a]" to "/usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal")
+      "[:foo:bar:app Debug armeabi-v7a]" to "/usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal")
+  }
+
+  @Test
+  fun `ndk - no module name`() = assertParser("""
+    > Task :some:gradle:task UP-TO-DATE
+    > Task :externalNativeBuildDebug
+  * Build app_armeabi-v7a
+  * [armeabi-v7a] Compile++ arm  : app <= app.cpp
+  * /usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal
+  *         some randome code
+  *         ^~~~~~~~~
+  * 1 warning generated.
+    > Task :some:other:gradle:task UP-TO-DATE
+    """) {
+    assertDiagnosticMessages(
+      "[ Debug armeabi-v7a]" to "/usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal")
   }
 
   @Test
