@@ -43,6 +43,11 @@ import org.jetbrains.kotlin.psi.KtParameterList;
 import org.jetbrains.kotlin.psi.KtPsiFactory;
 import org.jetbrains.kotlin.resolve.ImportPath;
 
+/**
+ * Creates a new Migration class in Kotlin, given the description of the database schema changes.
+ *
+ * <p>The class will always be generated in a new file</p>
+ */
 public class KotlinMigrationClassGenerator implements MigrationClassGenerator<KtClassOrObject> {
   private static final String MIGRATION_FILE_NAME_TEMPLATE = "%s.kt";
   private static final String MIGRATION_CLASS_TEMPLATE = "object %s: %s(%d, %d) {}";
