@@ -142,7 +142,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     require(!isBroken(templateFile.name))
     val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()!!
 
-    val projectState = createNewProjectState(createWithProject, sdkData, getModuleTemplateForFormFactor(templateFile))
+    val projectState = createNewProjectState(sdkData, getModuleTemplateForFormFactor(templateFile))
     val moduleState = projectState.moduleTemplateState
     val activityState = projectState.activityTemplateState.apply { setTemplateLocation(templateFile) }
 
@@ -189,7 +189,9 @@ open class TemplateTestBase : AndroidGradleTestCase() {
           if (overrides.isNotEmpty()) {
             base += "_overrides"
           }
-          checkApiTarget(minSdk, targetSdk, buildTarget.version, projectState, base, activityState, overrides, projectOverrides)
+          checkApiTarget(
+            minSdk, targetSdk, buildTarget.version, projectState, base, activityState, overrides, projectOverrides, createWithProject
+          )
           ranTest = true
         }
       }
@@ -210,7 +212,8 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     projectNameBase: String,
     activityState: TestTemplateWizardState,
     overrides: Map<String, Any>,
-    projectOverrides: Map<String, Any>
+    projectOverrides: Map<String, Any>,
+    createActivity: Boolean = true
   ) {
     fun Option.needsCheck(initial: Any?, moduleState: TestTemplateWizardState): Boolean {
       val projectMinApi = moduleState.getInt(ATTR_MIN_API_LEVEL)
@@ -227,7 +230,6 @@ open class TemplateTestBase : AndroidGradleTestCase() {
       put(ATTR_BUILD_API_STRING, getBuildApiString(buildVersion))
       putAll(projectOverrides)
     }
-    val createActivity = moduleState[ATTR_CREATE_ACTIVITY] as Boolean? ?: true
     val templateState = (if (createActivity) projectState.activityTemplateState else activityState).apply { putAll(overrides) }
 
     val parameters = if (!createActivity) {
@@ -244,7 +246,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
       fun checkAndRestore(parameterValue: Any) {
         templateState.put(p.id!!, parameterValue)
         val projectName = "${projectNameBase}_${p.id}_$parameterValue"
-        checkProject(projectName, projectState, activityState)
+        checkProject(projectName, projectState, activityState, createActivity)
         templateState.put(p.id!!, initial)
       }
 
@@ -265,7 +267,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
       }
     }
     val projectName = "${projectNameBase}_default"
-    checkProject(projectName, projectState, activityState)
+    checkProject(projectName, projectState, activityState, createActivity)
   }
 
   /**
@@ -274,13 +276,14 @@ open class TemplateTestBase : AndroidGradleTestCase() {
    * 2. Without androidX if it is not required.
    * 3. Library version if it is mobile activity.
    */
-  private fun checkProject(projectName: String, projectState: TestNewProjectWizardState, activityState: TestTemplateWizardState) {
+  private fun checkProject(
+    projectName: String, projectState: TestNewProjectWizardState, activityState: TestTemplateWizardState, createActivity: Boolean
+  ) {
     val moduleState = projectState.moduleTemplateState
     val templateMetadata = activityState.template.metadata
-    val checkLib = "Activity" == templateMetadata?.category && "Mobile" == templateMetadata.formFactor &&
-                   !moduleState.getBoolean(ATTR_CREATE_ACTIVITY)
+    val checkLib = "Activity" == templateMetadata?.category && "Mobile" == templateMetadata.formFactor && !createActivity
     val language = Language.fromName(moduleState[ATTR_LANGUAGE] as String?, Language.JAVA)
-    val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker, language)
+    val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker, language, createActivity)
 
     if (templateMetadata?.androidXRequired == true) {
       enableAndroidX(moduleState, activityState)
@@ -345,5 +348,3 @@ internal val TEST_FEWER_API_VERSIONS = !COMPREHENSIVE
 private val TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE
 private val TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE
 private val TEST_JUST_ONE_TARGET_SDK_VERSION = !COMPREHENSIVE
-// TODO: this is used only in TemplateTest. We should pass this value without changing template values.
-internal const val ATTR_CREATE_ACTIVITY = "createActivity"

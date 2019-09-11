@@ -59,7 +59,8 @@ data class ProjectChecker(
   private val projectState: TestNewProjectWizardState,
   private val activityState: TestTemplateWizardState,
   private val usageTracker: TestUsageTracker,
-  private val language: Language
+  private val language: Language,
+  private val createActivity: Boolean
 ) {
   private val moduleState: TestTemplateWizardState get() = projectState.moduleTemplateState
 
@@ -76,7 +77,7 @@ data class ProjectChecker(
     try {
       project.createWithIconGenerator()
       val projectRoot = project.guessProjectDir()!!.toIoFile()
-      if (!moduleState.getBoolean(ATTR_CREATE_ACTIVITY)) {
+      if (!createActivity) {
         val template = activityState.template
         val moduleRoot = File(projectRoot, modifiedProjectName)
         activityState.apply {
@@ -176,7 +177,7 @@ data class ProjectChecker(
     setGradleWrapperExecutable(projectRoot)
     val moduleFilesToOpen = moduleTemplate.renderAndCheck(moduleState.templateValues)
 
-    if (moduleState.getBoolean(ATTR_CREATE_ACTIVITY)) {
+    if (createActivity) {
       val activityState = projectState.activityTemplateState
       val activityFilesToOpen = activityState.template.renderAndCheck(activityState.templateValues)
       moduleFilesToOpen.addAll(activityFilesToOpen)
