@@ -162,8 +162,8 @@ open class TemplateTestBase : AndroidGradleTestCase() {
           .filter { isInterestingApiLevel(it, MANUAL_TARGET_API, apiSensitiveTemplate) }
           .takeOneIfOtherwiseAll(TEST_JUST_ONE_TARGET_SDK_VERSION)
           .filter {
-            validateTemplate(moduleMetadata, minSdk, target.version.apiLevel) == null &&
-            validateTemplate(activityMetadata, minSdk, target.version.apiLevel) == null
+            moduleMetadata.validateTemplate(minSdk, target.version.apiLevel) == null &&
+            activityMetadata.validateTemplate(minSdk, target.version.apiLevel) == null
           }
 
         for (targetSdk in interestingTargetSdks) {
@@ -213,9 +213,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     }
 
     // Next check all other parameters, cycling through booleans and enums.
-    val templateHandler = templateState.template
-    val template = templateHandler.metadata
-    var parameters = template!!.parameters
+    var parameters = templateState.template.metadata!!.parameters
     if (!createActivity) {
       templateState.setParameterDefaults()
     }
@@ -226,7 +224,6 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     templateState.putAll(overrides)
     moduleState.putAll(projectOverrides)
     
-    var projectName: String
     for (parameter in parameters) {
       if (parameter.type === Type.SEPARATOR || parameter.type === Type.STRING) {
         // TODO: Consider whether we should attempt some strings here
@@ -249,7 +246,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
           val projectBuildApi = moduleState.getInt(ATTR_BUILD_API)
           if (projectMinApi >= optionMinSdk && projectBuildApi >= optionMinBuildApi && optionId != initial) {
             templateState.put(parameter.id!!, optionId)
-            projectName = projectNameBase + "_" + parameter.id + "_" + optionId
+            val projectName = "${projectNameBase}_${parameter.id}_$optionId"
             checkProject(projectName, projectState, activityState)
             if (!COMPREHENSIVE) {
               break
@@ -267,26 +264,23 @@ open class TemplateTestBase : AndroidGradleTestCase() {
         // The default value is already used when running checkProject in the default state for all variables.
         val value = !(initial as Boolean)
         templateState.put(parameter.id!!, value)
-        projectName = projectNameBase + "_" + parameter.id + "_" + value
+        val projectName = "${projectNameBase}_${parameter.id}_$value"
         checkProject(projectName, projectState, activityState)
       }
       templateState.put(parameter.id!!, initial!!)
     }
-    projectName = projectNameBase + "_default"
+    val projectName = "${projectNameBase}_default"
     checkProject(projectName, projectState, activityState)
   }
 
   private fun checkProject(projectName: String, projectState: TestNewProjectWizardState, activityState: TestTemplateWizardState?) {
     val moduleState = projectState.moduleTemplateState
-    var checkLib = false
-    if (activityState != null) {
-      val template = activityState.template
-      val templateMetadata = template.metadata!!
-      checkLib = "Activity" == templateMetadata.category && "Mobile" == templateMetadata.formFactor &&
-                 !moduleState.getBoolean(ATTR_CREATE_ACTIVITY)
-      if (templateMetadata.androidXRequired) {
-        enableAndroidX(moduleState, activityState)
-      }
+
+    val templateMetadata = activityState?.template?.metadata
+    val checkLib = "Activity" == templateMetadata?.category && "Mobile" == templateMetadata.formFactor &&
+               !moduleState.getBoolean(ATTR_CREATE_ACTIVITY)
+    if (templateMetadata?.androidXRequired == true) {
+      enableAndroidX(moduleState, activityState)
     }
 
     val language = Language.fromName(moduleState[ATTR_LANGUAGE] as String?, Language.JAVA)
@@ -295,25 +289,24 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     if (moduleState[ATTR_ANDROIDX_SUPPORT] != true) {
       // Make sure we test all templates against androidx
       enableAndroidX(moduleState, activityState)
-      projectChecker.checkProjectNow(projectName + "_x")
+      projectChecker.checkProject(projectName + "_x")
       disableAndroidX(moduleState, activityState)
     }
-    if (checkLib) {
-      moduleState.put(ATTR_IS_LIBRARY_MODULE, false)
-      activityState!!.put(ATTR_IS_LIBRARY_MODULE, false)
-      activityState.put(ATTR_HAS_APPLICATION_THEME, true)
-    }
-    projectChecker.checkProjectNow(projectName)
-
     // check that new Activities can be created on lib modules as well as app modules.
-    if (checkLib) {
-      moduleState.put(ATTR_IS_LIBRARY_MODULE, true)
-      activityState!!.put(ATTR_IS_LIBRARY_MODULE, true)
-      activityState.put(ATTR_HAS_APPLICATION_THEME, false)
-      // For a library project a theme doesn't exist. This is derived in the IDE using FmGetApplicationThemeMethod
-      moduleState.put(ATTR_THEME_EXISTS, false)
-      projectChecker.checkProjectNow(projectName + "_lib")
+    if (!checkLib) {
+      projectChecker.checkProject(projectName)
+      return
     }
+    moduleState.put(ATTR_IS_LIBRARY_MODULE, false)
+    activityState!!.put(ATTR_IS_LIBRARY_MODULE, false)
+    activityState.put(ATTR_HAS_APPLICATION_THEME, true)
+    projectChecker.checkProject(projectName)
+    moduleState.put(ATTR_IS_LIBRARY_MODULE, true)
+    activityState.put(ATTR_IS_LIBRARY_MODULE, true)
+    activityState.put(ATTR_HAS_APPLICATION_THEME, false)
+    // For a library project a theme doesn't exist. This is derived in the IDE using FmGetApplicationThemeMethod
+    moduleState.put(ATTR_THEME_EXISTS, false)
+    projectChecker.checkProject(projectName + "_lib")
   }
 
   @MustBeDocumented
