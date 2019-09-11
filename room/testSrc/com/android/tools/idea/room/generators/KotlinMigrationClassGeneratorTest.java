@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.room.generators;
 
-import static com.android.tools.idea.room.generators.TestUtils.*;
+import static com.android.tools.idea.room.generators.TestUtils.createDatabaseBundle;
+import static com.android.tools.idea.room.generators.TestUtils.createEntityBundle;
 import static com.android.tools.idea.room.generators.TestUtils.createFieldBundle;
-import static com.google.common.truth.Truth.*;
+import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.room.migrations.generators.JavaMigrationClassGenerator;
+import com.android.tools.idea.room.migrations.generators.KotlinMigrationClassGenerator;
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
@@ -30,7 +31,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiPackage;
 import org.jetbrains.android.AndroidTestCase;
 
-public class JavaMigrationClassGeneratorTest extends AndroidTestCase {
+public class KotlinMigrationClassGeneratorTest extends AndroidTestCase {
   private DatabaseBundle db1;
   private DatabaseBundle db2;
 
@@ -39,10 +40,14 @@ public class JavaMigrationClassGeneratorTest extends AndroidTestCase {
     super.setUp();
 
     myFixture.addClass("package androidx.room.migration;" +
-                       "public abstract class Migration {}");
+                       "public abstract class Migration {" +
+                       "public Migration(int starVersion, int endVersion) {}" +
+                       "public void migrate(androidx.sqlite.db.SupportSQLiteDatabase db) {}" +
+                       "}");
 
     myFixture.addClass("package androidx.sqlite.db;" +
-                       "public abstract class SupportSQLiteDatabase {}");
+                       "public abstract class SupportSQLiteDatabase {" +
+                       "public void execSQL(String sql) {}}");
 
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -63,28 +68,24 @@ public class JavaMigrationClassGeneratorTest extends AndroidTestCase {
     PsiDirectory targetDirectory = databaseClass.getContainingFile().getParent();
 
     WriteCommandAction.runWriteCommandAction(myFixture.getProject(), () -> {
-      JavaMigrationClassGenerator javaMigrationClassGenerator = new JavaMigrationClassGenerator(myFixture.getProject());
-      javaMigrationClassGenerator.createMigrationClass(targetPackage, targetDirectory, new DatabaseUpdate(db1, db2));
+      KotlinMigrationClassGenerator ktMigrationClassGenerator = new KotlinMigrationClassGenerator(myFixture.getProject());
+      ktMigrationClassGenerator.createMigrationClass(targetPackage, targetDirectory, new DatabaseUpdate(db1, db2));
     });
 
     PsiClass migrationClass = myFixture.findClass("com.example.Migration_1_2");
 
     assertThat(migrationClass).isNotNull();
-    assertEquals("package com.example;\n" +
+    assertEquals("package com.example\n" +
                  "\n" +
-                 "import androidx.room.migration.Migration;\n" +
-                 "import androidx.sqlite.db.SupportSQLiteDatabase;\n" +
+                 "import androidx.room.migration.Migration\n" +
+                 "import androidx.sqlite.db.SupportSQLiteDatabase\n" +
                  "\n" +
-                 "class Migration_1_2 extends Migration {\n" +
-                 "    public Migration_1_2() {\n" +
-                 "        super(1, 2);\n" +
+                 "object Migration_1_2 : Migration(1, 2) {\n" +
+                 "    override fun migrate(database: SupportSQLiteDatabase) {\n" +
+                 "        database.execSQL(\"\"\"CREATE TABLE table3 (column1 TEXT, column3 TEXT, PRIMARY KEY (column1));\"\"\"\n" +
+                 "                .trimIndent())\n" +
                  "    }\n" +
-                 "\n" +
-                 "    @Override\n" +
-                 "    public void migrate(SupportSQLiteDatabase database) {\n" +
-                 "        database.execSQL(\"CREATE TABLE table3 (column1 TEXT, column3 TEXT, PRIMARY KEY (column1));\");\n" +
-                 "    }\n" +
-                 "}\n",
+                 "}",
                  migrationClass.getContainingFile().getText());
   }
 }

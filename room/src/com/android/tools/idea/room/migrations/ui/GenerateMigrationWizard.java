@@ -114,6 +114,11 @@ public class GenerateMigrationWizard extends AbstractWizard<GenerateMigrationWiz
   }
 
   @NotNull
+  public PsiPackage getTargetPackage() {
+    return myWizardData.getTargetPackage();
+  }
+
+  @NotNull
   public PsiDirectory getMigrationClassDirectory() {
     return myWizardData.getMigrationClassDirectory();
   }
