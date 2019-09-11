@@ -616,6 +616,7 @@ public class StudioIcons {
       public static final Icon LINT = load("/studio/icons/shell/tool-windows/lint.svg"); // 13x13
       public static final Icon LOCK = load("/studio/icons/shell/tool-windows/lock.svg"); // 16x16
       public static final Icon LOGCAT = load("/studio/icons/shell/tool-windows/logcat.svg"); // 13x13
+      public static final Icon MULTI_PREVIEW = load("/studio/icons/shell/tool-windows/multi-preview.svg"); // 13x13
       public static final Icon PALETTE = load("/studio/icons/shell/tool-windows/palette.svg"); // 13x13
       public static final Icon PROJECT = load("/studio/icons/shell/tool-windows/project.svg"); // 13x13
       public static final Icon RUN = load("/studio/icons/shell/tool-windows/run.svg"); // 13x13
