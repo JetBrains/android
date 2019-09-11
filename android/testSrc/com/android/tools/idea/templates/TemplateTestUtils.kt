@@ -110,9 +110,9 @@ internal fun isInterestingApiLevel(api: Int, manualApi: Int, apiSensitiveTemplat
   }
 }
 
-internal fun createNewProjectState(createWithProject: Boolean,
-                                   sdkData: AndroidSdkData,
-                                   moduleTemplate: Template): TestNewProjectWizardState {
+internal fun createNewProjectState(
+  createWithProject: Boolean, sdkData: AndroidSdkData, moduleTemplate: Template
+): TestNewProjectWizardState {
   val projectState = TestNewProjectWizardState(moduleTemplate)
   val moduleState = projectState.moduleTemplateState.apply {
     Template.convertApisToInt(templateValues)
@@ -144,7 +144,6 @@ internal fun getModuleTemplateForFormFactor(templateFile: File): Template {
 
 val defaultModuleTemplate: Template get() = Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME)
 
-@JvmOverloads
 internal fun createRenderingContext(
   projectTemplate: Template, project: Project, projectRoot: File, moduleRoot: File, parameters: Map<String, Any> = mapOf()
 ): RenderingContext = Builder.newContext(projectTemplate, project)
@@ -197,17 +196,13 @@ internal fun disableAndroidX(moduleState: TestTemplateWizardState, activityState
  * @param buildApi      the build API, or -1 or 0 if unknown (e.g. codename)
  * @return an error message, or null if there is no problem
  */
-internal fun validateTemplate(metadata: TemplateMetadata, currentMinSdk: Int, buildApi: Int): String? {
-  val templateMinSdk = metadata.minSdk
-  val templateMinBuildApi = metadata.minBuildApi
-  return when {
-    !metadata.isSupported -> "This template requires a more recent version of Android Studio. Please update."
-    currentMinSdk in 1 until templateMinSdk ->
-      "This template requires a minimum SDK version of at least $templateMinSdk, and the current min version is $currentMinSdk"
-    buildApi in 1 until templateMinBuildApi ->
-      "This template requires a build target API version of at least $templateMinBuildApi, and the current version is $buildApi"
-    else -> null
-  }
+internal fun TemplateMetadata.validateTemplate(currentMinSdk: Int, buildApi: Int): String? = when {
+  !isSupported -> "This template requires a more recent version of Android Studio. Please update."
+  currentMinSdk in 1 until minSdk ->
+    "This template requires a minimum SDK version of at least $minSdk, and the current min version is $currentMinSdk"
+  buildApi in 1 until minBuildApi ->
+    "This template requires a build target API version of at least $minBuildApi, and the current version is $buildApi"
+  else -> null
 }
 
 private const val specialChars = "!@#$^&()_+=-.`~"
@@ -231,11 +226,8 @@ private fun usesSafeArgs(projectName: String) =
  * @param paramMap         the paramMap, containing kotlin support info for template render event
  */
 internal fun verifyLastLoggedUsage(usageTracker: TestUsageTracker, templateRenderer: TemplateRenderer, paramMap: Map<String, Any>) {
-  val usages = usageTracker.usages
-  assertFalse(usages.isEmpty())
-  // get last logged usage
-  val usage = usages.last()
-  assertEquals(EventKind.TEMPLATE_RENDER, usage!!.studioEvent.kind)
+  val usage = usageTracker.usages.last()!!
+  assertEquals(EventKind.TEMPLATE_RENDER, usage.studioEvent.kind)
   assertEquals(templateRenderer, usage.studioEvent.templateRenderer)
   assertTrue(paramMap.getOrDefault(ATTR_KOTLIN_VERSION, "unknown") is String)
   assertEquals(KotlinSupport.newBuilder()
@@ -246,7 +238,7 @@ internal fun verifyLastLoggedUsage(usageTracker: TestUsageTracker, templateRende
 
 fun Parameter.getDefaultValue(templateState: TestTemplateWizardState): Any? {
   requireNotNull(id)
-  return templateState.get(id!!) ?: if (type === Type.BOOLEAN)
+  return templateState[id!!] ?: if (type === Type.BOOLEAN)
     initial!!.toBoolean()
   else
     initial
@@ -262,7 +254,7 @@ internal fun setUpFixtureForProject(projectName: String): JavaCodeInsightTestFix
 
 @UiThread
 internal fun addIconsIfNecessary(activityState: TestTemplateWizardState) {
-  if (activityState.template.metadata == null || activityState.template.metadata!!.iconName == null) {
+  if (activityState.template.metadata?.iconName == null) {
     return
   }
   val drawableFolder = File(FileUtil.join(activityState.getString(TemplateMetadata.ATTR_RES_OUT)), FileUtil.join("drawable"))
@@ -367,10 +359,8 @@ internal fun getOption(option: Element): Option {
 
 internal fun getCheckKey(category: String, name: String, createWithProject: Boolean) = "$category:$name:$createWithProject"
 
-internal fun findTemplate(category: String, name: String): File {
-  val templateRootFolder = TemplateManager.getTemplateRootFolder()!!
-  val file = File(templateRootFolder, category + File.separator + name)
-  assertTrue(file.path, file.exists())
-  return file
-}
+internal fun findTemplate(category: String, name: String) =
+  File(TemplateManager.getTemplateRootFolder()!!, category + File.separator + name).also {
+    assertTrue("Couldn't find template ${it.path}", it.exists())
+  }
 
