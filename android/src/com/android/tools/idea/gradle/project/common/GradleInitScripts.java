@@ -24,6 +24,7 @@ import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.serviceContainer.NonInjectable;
 import kotlin.reflect.KType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +43,7 @@ import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
 
-public class GradleInitScripts {
+public final class GradleInitScripts {
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final ContentCreator myContentCreator;
 
@@ -51,11 +52,12 @@ public class GradleInitScripts {
     return ServiceManager.getService(GradleInitScripts.class);
   }
 
-  public GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths) {
-    this(embeddedDistributionPaths, new ContentCreator());
+  public GradleInitScripts() {
+    this(EmbeddedDistributionPaths.getInstance(), new ContentCreator());
   }
 
   @VisibleForTesting
+  @NonInjectable
   GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths, @NotNull ContentCreator contentCreator) {
     myEmbeddedDistributionPaths = embeddedDistributionPaths;
     myContentCreator = contentCreator;

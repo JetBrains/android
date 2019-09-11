@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.containers.ContainerUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +52,7 @@ import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
  */
-public class GradleProjectImporter {
+public final class GradleProjectImporter {
   @NotNull private final SdkSync mySdkSync;
   @NotNull private final GradleSyncInvoker myGradleSyncInvoker;
   @NotNull private final NewProjectSetup myNewProjectSetup;
@@ -68,11 +69,12 @@ public class GradleProjectImporter {
     return ServiceManager.getService(GradleProjectImporter.class);
   }
 
-  public GradleProjectImporter(@NotNull SdkSync sdkSync, @NotNull GradleSyncInvoker gradleSyncInvoker) {
-    this(sdkSync, gradleSyncInvoker, new NewProjectSetup(), new ProjectFolder.Factory());
+  public GradleProjectImporter() {
+    this(SdkSync.getInstance(), GradleSyncInvoker.getInstance(), new NewProjectSetup(), new ProjectFolder.Factory());
   }
 
   @VisibleForTesting
+  @NonInjectable
   GradleProjectImporter(@NotNull SdkSync sdkSync,
                         @NotNull GradleSyncInvoker gradleSyncInvoker,
                         @NotNull NewProjectSetup newProjectSetup,

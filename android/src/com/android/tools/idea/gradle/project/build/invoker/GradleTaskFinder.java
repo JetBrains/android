@@ -37,6 +37,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.NonInjectable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,6 +69,7 @@ public class GradleTaskFinder {
   }
 
   @VisibleForTesting
+  @NonInjectable
   GradleTaskFinder(GradleRootPathFinder rootPathFinder) {
     myRootPathFinder = rootPathFinder;
   }

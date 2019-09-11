@@ -50,6 +50,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathsList;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.ProjectModel;
@@ -113,6 +114,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @VisibleForTesting
+  @NonInjectable
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
                                @NotNull ProjectImportErrorHandler errorHandler,
                                @NotNull ProjectFinder projectFinder,

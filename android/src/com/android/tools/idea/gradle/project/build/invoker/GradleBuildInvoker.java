@@ -60,6 +60,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.Ref;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.xdebugger.XDebugSession;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
@@ -106,6 +107,7 @@ public class GradleBuildInvoker {
     this(project, null, new GradleTasksExecutorFactory(), new NativeDebugSessionFinder(project));
   }
 
+  @NonInjectable
   @VisibleForTesting
   protected GradleBuildInvoker(@NotNull Project project,
                                @Nullable FileDocumentManager documentManager,
