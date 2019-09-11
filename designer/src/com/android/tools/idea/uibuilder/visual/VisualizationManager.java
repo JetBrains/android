@@ -123,7 +123,7 @@ public class VisualizationManager implements ProjectComponent {
     final String toolWindowId = getToolWindowId();
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
-    myToolWindow.setIcon(StudioIcons.Avd.DEVICE_MOBILE);
+    myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.MULTI_PREVIEW);
 
     // Do not give focus to the preview when first opened:
     myToolWindow.getComponent().setFocusTraversalPolicy(new NoDefaultFocusTraversalPolicy());
