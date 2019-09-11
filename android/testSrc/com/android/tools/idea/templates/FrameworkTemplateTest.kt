@@ -18,7 +18,6 @@ package com.android.tools.idea.templates
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION
-import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -49,7 +48,7 @@ class FrameworkTemplateTest : TemplateTestBase() {
     // TODO: Allow null activity state!
     val activity = findTemplate("activities", "BasicActivity")
     state.activityTemplateState.setTemplateLocation(activity)
-    checkApiTarget(19, 19, target!!, state, "Test17", null, overrides, ImmutableMap.of())
+    checkApiTarget(19, 19, target.version, state, "Test17", TestTemplateWizardState(), overrides, mapOf())
   }
 
   fun testTemplateFormatting() {
