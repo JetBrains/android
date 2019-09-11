@@ -42,7 +42,7 @@ class FrameworkTemplateTest : TemplateTestBase() {
     val overrides = mutableMapOf<String, Any>(
       ATTR_JAVA_VERSION to "1.7"
     )
-    val state = createNewProjectState(true, sdkData, defaultModuleTemplate)
+    val state = createNewProjectState(sdkData, defaultModuleTemplate)
 
     ensureSdkManagerAvailable()
     // TODO: Allow null activity state!
