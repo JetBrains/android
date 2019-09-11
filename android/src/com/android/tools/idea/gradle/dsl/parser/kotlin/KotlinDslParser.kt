@@ -59,6 +59,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
+import org.jetbrains.kotlin.psi.KtPostfixExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtReferenceExpression
@@ -535,10 +536,14 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       is KtDotQualifiedExpression -> GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true)
       // Ex: Delete::class.
       is KtClassLiteralExpression -> GradleDslLiteral(
-        parentElement, psiElement, propertyName, propertyExpression.receiverExpression as  PsiElement, true)
+        parentElement, psiElement, propertyName, propertyExpression.receiverExpression as PsiElement, true)
       // Ex: extra["COMPILE_SDK_VERSION"]
       is KtArrayAccessExpression -> GradleDslLiteral(
         parentElement, psiElement, propertyName, propertyExpression, true)
+      // Ex: extra["COMPILE_SDK_VERSION"]!!
+      is KtPostfixExpression -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression.baseExpression as PsiElement, true
+      )
       else -> {
         // The expression is not supported.
         parentElement.notification(NotificationTypeReference.INCOMPLETE_PARSING).addUnknownElement(propertyExpression)
