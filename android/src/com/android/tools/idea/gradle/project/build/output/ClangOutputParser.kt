@@ -51,7 +51,7 @@ private enum class ClangDiagnosticClass(val tag: String) {
  *
  * > Task :app:externalNativeBuildDebug
  */
-private val nativeBuildTaskPattern = Regex("> Task (:[^:]+)*:externalNativeBuild([^ ]+)(?: [-A-Z]+)?")
+private val nativeBuildTaskPattern = Regex("> Task ((?::[^:]+)*):externalNativeBuild([^ ]+)(?: [-A-Z]+)?")
 
 /**
  * Pattern matching a line output by ninja when it changes the working directory.
