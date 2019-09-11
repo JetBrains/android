@@ -189,7 +189,7 @@ public class JavaMigrationTestGenerator {
     PsiCodeBlock methodBody = migrationTestMethod.getBody();
     assert methodBody != null;
 
-    String statementText = String.format(Locale.ENGLISH,
+    String statementText = String.format(Locale.US,
                                          SUPPORT_SQLITE_DATABASE_FIELD_DECLARATION_STATEMENT_TEMPLATE,
                                          MIGRATION_TEST_HELPER_FIELD_NAME,
                                          getTestDatabaseFieldName(databaseName),
@@ -200,7 +200,7 @@ public class JavaMigrationTestGenerator {
     addMethodStatement(methodBody, EXEC_SQL_STATEMENT, EXEC_SQL_COMMENT);
     addMethodStatement(methodBody, CLOSE_STATEMENT, CLOSE_COMMENT);
 
-    statementText = String.format(Locale.ENGLISH,
+    statementText = String.format(Locale.US,
                                   RUN_AND_VALIDATE_MIGRATION_STATEMENT_TEMPLATE,
                                   MIGRATION_TEST_HELPER_FIELD_NAME,
                                   getTestDatabaseFieldName(databaseName),
@@ -223,7 +223,7 @@ public class JavaMigrationTestGenerator {
   }
 
   private static String getMigrationMethodName(int starVersion, int endVersion) {
-    return String.format(Locale.ENGLISH, MIGRATION_TEST_METHOD_NAME_TEMPLATE, starVersion, endVersion);
+    return String.format(Locale.US, MIGRATION_TEST_METHOD_NAME_TEMPLATE, starVersion, endVersion);
   }
 
   private static String getTestDatabaseFieldName(@NotNull String databaseName) {
