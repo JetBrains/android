@@ -109,13 +109,10 @@ internal fun isInterestingApiLevel(api: Int, manualApi: Int, apiSensitiveTemplat
   }
 }
 
-internal fun createNewProjectState(
-  createWithProject: Boolean, sdkData: AndroidSdkData, moduleTemplate: Template
-): TestNewProjectWizardState {
+internal fun createNewProjectState(sdkData: AndroidSdkData, moduleTemplate: Template): TestNewProjectWizardState {
   val projectState = TestNewProjectWizardState(moduleTemplate)
   val moduleState = projectState.moduleTemplateState.apply {
     Template.convertApisToInt(templateValues)
-    put(ATTR_CREATE_ACTIVITY, createWithProject)
     put(ATTR_MODULE_NAME, "TestModule")
     put(ATTR_PACKAGE_NAME, "test.pkg")
   }
