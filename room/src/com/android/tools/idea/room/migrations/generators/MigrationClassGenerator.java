@@ -22,6 +22,9 @@ import com.intellij.psi.PsiPackage;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Common interface for Migration generators.
+ */
 public interface MigrationClassGenerator<T extends PsiElement> {
   String SUPER_CLASS_NAME = "androidx.room.migration.Migration";
   String MIGRATION_METHOD_NAME = "migrate";
@@ -40,8 +43,7 @@ public interface MigrationClassGenerator<T extends PsiElement> {
                          @NotNull DatabaseUpdate databaseUpdate);
 
   /**
-   *
-   * Returns a name of a new Migration class, given the start and end version
+   * Returns the name of a new Migration class, given the start and end version pf the migration
    *
    * @param migrationStartVersion the initial version of the database schema
    * @param migrationEndVersion the final version of the database schema
