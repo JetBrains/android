@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.room.generators;
 
-import static com.google.common.truth.Truth.*;
+import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.room.migrations.generators.JavaMigrationTestGenerator;
+import com.android.tools.idea.room.migrations.generators.KotlinMigrationTestGenerator;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiPackage;
 import org.jetbrains.android.AndroidTestCase;
 
-public class JavaMigrationTestGeneratorTest extends AndroidTestCase {
+public class KotlinMigrationTestGeneratorTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -88,8 +88,8 @@ public class JavaMigrationTestGeneratorTest extends AndroidTestCase {
     PsiDirectory targetDirectory = databaseClass.getContainingFile().getParent();
 
     WriteCommandAction.runWriteCommandAction(myFixture.getProject(), () -> {
-      JavaMigrationTestGenerator javaMigrationTestGenerator = new JavaMigrationTestGenerator(myFixture.getProject());
-      javaMigrationTestGenerator.createMigrationTest(targetPackage,
+      KotlinMigrationTestGenerator ktMigrationTestGenerator = new KotlinMigrationTestGenerator(myFixture.getProject());
+      ktMigrationTestGenerator.createMigrationTest(targetPackage,
                                                      targetDirectory,
                                                      "com.example.AppDatabase",
                                                      "com.example.Migration_1_2",
@@ -100,50 +100,42 @@ public class JavaMigrationTestGeneratorTest extends AndroidTestCase {
     PsiClass migrationTest = myFixture.findClass("com.example.Migration_1_2_Test");
 
     assertThat(migrationTest).isNotNull();
-    myFixture.openFileInEditor(migrationTest.getContainingFile().getVirtualFile());
-    myFixture.checkHighlighting();
-    assertEquals("package com.example;\n" +
+    assertEquals("package com.example\n" +
                  "\n" +
-                 "import androidx.room.testing.MigrationTestHelper;\n" +
-                 "import androidx.sqlite.db.SupportSQLiteDatabase;\n" +
-                 "import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;\n" +
-                 "import androidx.test.ext.junit.runners.AndroidJUnit4;\n" +
-                 "import androidx.test.platform.app.InstrumentationRegistry;\n" +
+                 "import androidx.room.testing.MigrationTestHelper\n" +
+                 "import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory\n" +
+                 "import androidx.test.platform.app.InstrumentationRegistry\n" +
+                 "import androidx.test.ext.junit.runners.AndroidJUnit4\n" +
+                 "import java.io.IOException\n" +
+                 "import org.junit.Assert\n" +
+                 "import org.junit.runner.RunWith\n" +
+                 "import org.junit.Rule\n" +
+                 "import org.junit.Test\n" +
                  "\n" +
-                 "import org.junit.Assert;\n" +
-                 "import org.junit.Rule;\n" +
-                 "import org.junit.Test;\n" +
-                 "import org.junit.runner.RunWith;\n" +
-                 "\n" +
-                 "import java.io.IOException;\n" +
-                 "\n" +
-                 "@RunWith(AndroidJUnit4.class)\n" +
+                 "@RunWith(AndroidJUnit4::class)\n" +
                  "class Migration_1_2_Test {\n" +
-                 "    private static final String TEST_APP_DATABASE = \"test-app-database\";\n" +
+                 "    private val TEST_APP_DATABASE = \"test-app-database\"\n" +
                  "    @Rule\n" +
-                 "    private MigrationTestHelper migrationTestHelper;\n" +
-                 "\n" +
-                 "    public Migration_1_2_Test() {\n" +
-                 "        migrationTestHelper = new MigrationTestHelper(\n" +
-                 "                InstrumentationRegistry.getInstrumentation(),\n" +
-                 "                AppDatabase.class.getCanonicalName(),\n" +
-                 "                new FrameworkSQLiteOpenHelperFactory());\n" +
-                 "    }\n" +
+                 "    val migrationTestHelper: MigrationTestHelper = MigrationTestHelper(\n" +
+                 "            InstrumentationRegistry.getInstrumentation(),\n" +
+                 "            AppDatabase::class.java.canonicalName,\n" +
+                 "            FrameworkSQLiteOpenHelperFactory())\n" +
                  "\n" +
                  "    @Test\n" +
-                 "    public void testMigrate1To2() throws IOException {\n" +
+                 "    @Throws(IOException::class)\n" +
+                 "    fun testMigrate1To2() {\n" +
                  "        // Create database with schema version 1.\n" +
-                 "        SupportSQLiteDatabase db = migrationTestHelper.createDatabase(TEST_APP_DATABASE, 1);\n" +
+                 "        var db = migrationTestHelper.createDatabase(TEST_APP_DATABASE, 1)\n" +
                  "        // TODO: Insert data in the test database using SQL queries.\n" +
-                 "        db.execSQL(\"INSERT INTO table_name (column_name) VALUES (value);\");\n" +
+                 "        db.execSQL(\"INSERT INTO table_name (column_name) VALUES (value);\")\n" +
                  "        // Prepare for the next version.\n" +
-                 "        db.close();\n" +
+                 "        db.close()\n" +
                  "        // Re-open the database with version 2 and provide Migration_1_2 as the migration process.\n" +
-                 "        db = migrationTestHelper.runMigrationsAndValidate(TEST_APP_DATABASE, 2, true, new Migration_1_2());\n" +
+                 "        db = migrationTestHelper.runMigrationsAndValidate(TEST_APP_DATABASE, 2, true, Migration_1_2())\n" +
                  "        // MigrationTestHelper automatically verifies the schema changes, but you need to validate that the data was migrated properly.\n" +
-                 "        Assert.fail(\"TODO: Verify data after migration is correct\");\n" +
+                 "        Assert.fail(\"TODO: Verify data after migration is correct\")\n" +
                  "    }\n" +
-                 "}\n",
+                 "}",
                  migrationTest.getContainingFile().getText());
   }
 }
