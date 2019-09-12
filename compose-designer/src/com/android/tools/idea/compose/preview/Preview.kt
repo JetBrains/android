@@ -25,6 +25,7 @@ import com.android.tools.idea.common.editor.SmartAutoRefresher
 import com.android.tools.idea.common.editor.SmartRefreshable
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.error.IssuePanelSplitter
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
@@ -48,11 +49,13 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.TextEditor
@@ -107,17 +110,36 @@ else {
   "${dimension}dp"
 }
 
+const val BORDER_DEFINITION = """
+<aapt:attr name="android:background">
+  <shape
+    android:shape="rectangle">
+    <stroke
+        android:width="1dp"
+        android:color="#55AAAAAA" />
+  </shape>
+</aapt:attr>""";
+
 /**
  * Generates the XML string wrapper for one [PreviewElement]
  */
-private fun PreviewElement.toPreviewXmlString() =
+private fun PreviewElement.toPreviewXmlString(withBorder: Boolean = true) =
   """
-      <$COMPOSE_VIEW_ADAPTER xmlns:android="http://schemas.android.com/apk/res/android"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
+      <$COMPOSE_VIEW_ADAPTER
         xmlns:tools="http://schemas.android.com/tools"
+        xmlns:aapt="http://schemas.android.com/aapt"
         android:layout_width="${dimensionToString(configuration.width)}"
         android:layout_height="${dimensionToString(configuration.height)}"
         android:padding="5dp"
-        $COMPOSABLE_NAME_ATTR="$composableMethodFqn"/>
+        $COMPOSABLE_NAME_ATTR="$composableMethodFqn">
+        ${if (withBorder) BORDER_DEFINITION else ""}
+      </$COMPOSE_VIEW_ADAPTER>
+    </LinearLayout>
   """.trimIndent()
 
 val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
@@ -142,9 +164,15 @@ interface ComposePreviewManager {
   fun needsBuild(): Boolean
 
   /**
-   * Requests a preview refresh
+   * Requests a refresh of the preview surfaces. This will retrieve all the Preview annotations and render those elements.
+   * The refresh will only happen if the Preview elements have changed from the last render.
    */
   fun refresh()
+
+  /**
+   * Invalidates the last cached [PreviewElement]s and forces a refresh
+   */
+  fun invalidateAndRefresh()
 }
 
 /**
@@ -158,8 +186,9 @@ interface ComposePreviewManager {
  * @param previewProvider call to obtain the [PreviewElement]s from the file.
  */
 private class PreviewEditor(private val psiFile: PsiFile,
-                    private val previewProvider: () -> List<PreviewElement>) : ComposePreviewManager, SmartRefreshable, DesignFileEditor(psiFile.virtualFile!!) {
-    private val LOG = Logger.getInstance(PreviewEditor::class.java)
+                            private val previewProvider: () -> List<PreviewElement>) : ComposePreviewManager, SmartRefreshable, DesignFileEditor(
+  psiFile.virtualFile!!) {
+  private val LOG = Logger.getInstance(PreviewEditor::class.java)
   private val project = psiFile.project
 
   private val navigationHandler = PreviewNavigationHandler()
@@ -237,29 +266,20 @@ private class PreviewEditor(private val psiFile: PsiFile,
       it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
     }
 
-  /**
-   * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
-   */
-  override fun refresh() {
-    val filePreviewElements = previewProvider()
-
-    if (filePreviewElements == previewElements) {
-      // There are not elements, skip model creation
-      clearCacheAndRefreshSurface(surface)
-      return
-    }
-
+  fun doRefresh(filePreviewElements: List<PreviewElement>) {
+    // Only display component border if decorations are not showed
+    val showBorder = !RenderSettings.getProjectSettings(project).showDecorations
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
     val newModels = filePreviewElements
       .onEach {
         if (LOG.isDebugEnabled) {
           LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
 
-              ${it.toPreviewXmlString()}
+              ${it.toPreviewXmlString(withBorder = false)}
           """.trimIndent())
         }
       }
-      .map { Pair(it, ComposeAdapterLightVirtualFile("testFile.xml", it.toPreviewXmlString())) }
+      .map { Pair(it, ComposeAdapterLightVirtualFile("testFile.xml", it.toPreviewXmlString(withBorder = showBorder))) }
       .map {
         val (previewElement, file) = it
         val facet = AndroidFacet.getInstance(psiFile)!!
@@ -337,10 +357,34 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
         onRefresh?.invoke()
       }
+  }
 
+  /**
+   * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
+   * The refresh will only happen if the Preview elements have changed from the last render.
+   */
+  override fun refresh() {
+    val filePreviewElements = previewProvider()
+
+    if (filePreviewElements == previewElements) {
+      // There are not elements, skip model creation
+      clearCacheAndRefreshSurface(surface)
+      return
+    }
+
+    doRefresh(filePreviewElements)
+  }
+
+  /**
+   * Invalidates the last cached [PreviewElement]s and forces a fresh refresh
+   */
+  override fun invalidateAndRefresh() {
+    doRefresh(previewProvider())
   }
 
   override fun getName(): String = "Compose Preview"
+
+  fun isEditorForSurface(surface: DesignSurface) = surface == this.surface
 }
 
 /**
@@ -353,7 +397,8 @@ private fun VirtualFile.isKotlinFileType(): Boolean =
 /**
  * [ToolbarActionGroups] that includes the [ForceCompileAndRefreshAction]
  */
-private class ComposePreviewToolbar(private val surface: DesignSurface) : ToolbarActionGroups(surface) {
+private class ComposePreviewToolbar(private val surface: DesignSurface) :
+  ToolbarActionGroups(surface) {
   /**
    * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
    * of the surface.
@@ -366,8 +411,33 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) : Toolba
     }
   }
 
+  private fun findComposePreviewManagerForSurface(surface: DesignSurface): ComposePreviewManager? =
+    FileEditorManager.getInstance(surface.project).allEditors
+      .filterIsInstance<ComposeTextEditorWithPreview>()
+      .filter { it.preview.isEditorForSurface(surface) }
+      .map { it.preview }
+      .singleOrNull()
+
+  // TODO(http://b/140948062): needs icon
+  private inner class ToggleShowDecorationAction :
+    ToggleAction(message("action.show.decorations.title"), message("action.show.decorations.description"), null) {
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      val settings = RenderSettings.getProjectSettings(surface.project)
+
+      if (settings.showDecorations != state) {
+        // We also persist the settings to the RenderSettings
+        settings.showDecorations = state
+        findComposePreviewManagerForSurface(surface)?.invalidateAndRefresh()
+      }
+    }
+
+    override fun isSelected(e: AnActionEvent): Boolean = RenderSettings.getProjectSettings(surface.project).showDecorations
+  }
+
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(listOf(
-    ForceCompileAndRefreshAction()
+    ForceCompileAndRefreshAction(),
+    ToggleShowDecorationAction()
   ))
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
@@ -413,6 +483,9 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
 
         override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups =
           ComposePreviewToolbar(surface)
+
+        override fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
+          DefaultActionGroup()
 
         override fun isEditable(): Boolean {
           return true
@@ -474,7 +547,7 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
       composeEditorWithPreview.isPureTextEditor = previewEditor.previewElements.isEmpty()
     }
 
-    PsiDocumentManager.getInstance(project).getDocument(psiFile)!!.addDocumentListener(object: DocumentListener {
+    PsiDocumentManager.getInstance(project).getDocument(psiFile)!!.addDocumentListener(object : DocumentListener {
       override fun documentChanged(event: DocumentEvent) {
         if (event.isWholeTextReplaced) {
           modificationQueue.queue(refreshPreview)
