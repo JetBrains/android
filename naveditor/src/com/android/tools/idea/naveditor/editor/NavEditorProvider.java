@@ -18,15 +18,19 @@ package com.android.tools.idea.naveditor.editor;
 import com.android.tools.idea.common.editor.DesignerEditor;
 import com.android.tools.idea.common.editor.DesignerEditorProvider;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NavEditorProvider extends DesignerEditorProvider {
 
@@ -51,6 +55,12 @@ public class NavEditorProvider extends DesignerEditorProvider {
     private static NavigationFileType ourInstance;
 
     private NavigationFileType() {}
+
+    @NotNull
+    @Override
+    public DefaultActionGroup getSelectionContextToolbar(@NotNull DesignSurface surface, @NotNull List<? extends NlComponent> selection) {
+      return surface.getActionManager().getToolbarActions(null, selection);
+    }
 
     public static NavigationFileType getInstance() {
       if (ourInstance == null) {
