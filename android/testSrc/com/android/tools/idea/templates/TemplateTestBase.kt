@@ -28,6 +28,8 @@ import com.android.tools.idea.templates.Parameter.Type
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
@@ -98,6 +100,13 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     projectMap[ATTR_LANGUAGE] = Language.KOTLIN.toString()
     templateMap[ATTR_LANGUAGE] = Language.KOTLIN.toString()
     templateMap[ATTR_PACKAGE_NAME] = "test.pkg.in" // Add in a Kotlin keyword ("in") in the package name to trigger escape code too
+  }
+
+  protected val withCpp = { templateMap: MutableMap<String, Any>, projectMap: MutableMap<String, Any> ->
+    projectMap[ATTR_CPP_SUPPORT] = true
+    projectMap[ATTR_CPP_FLAGS] = ""
+    templateMap[ATTR_CPP_SUPPORT] = true
+    templateMap[ATTR_CPP_FLAGS] = ""
   }
 
   /**

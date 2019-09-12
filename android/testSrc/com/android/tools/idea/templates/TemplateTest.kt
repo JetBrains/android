@@ -68,6 +68,11 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testNewProjectWithEmptyActivityWithCpp() {
+    checkCreateTemplate("activities", "EmptyActivity", true, withCpp)
+  }
+
+  @TemplateCheck
   fun testNewViewModelActivity() {
     checkCreateTemplate("activities", "ViewModelActivity", false)
   }
