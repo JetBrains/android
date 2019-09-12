@@ -13,7 +13,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
@@ -21,6 +20,7 @@ import org.picocontainer.PicoContainer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -33,7 +33,7 @@ public class AndroidGradleTaskManagerTest {
   @Test
   public void executeTasks() {
     String projectPath = "projectPath";
-    List<String> taskNames = ContainerUtil.list("fooTask");
+    List<String> taskNames = Arrays.asList("fooTask");
     ExternalSystemTaskId taskId = mock(ExternalSystemTaskId.class);
     Project project = mock(Project.class);
     GradleBuildInvoker gradleBuildInvoker = createInvokerMock(projectPath, taskId, project);

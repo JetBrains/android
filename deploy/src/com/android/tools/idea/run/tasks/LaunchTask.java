@@ -29,12 +29,6 @@ import java.util.Collections;
 /**
  * A step in launching a run configuration on device, for example installing an APK or unlocking
  * the screen.
- *
- * <p>You can define your launch task by two ways. An easy and recommended way is to implement
- * {@link #perform}. This method is invoked by {@link org.jetbrains.ide.PooledThreadExecutor} so you
- * can do expensive operation here directly. If you need more control, this is not recommended
- * however, you can override {@link #run} and do whatever you want. It is your responsibility to
- * call {@link #perform} from your customized {@link #run} method.
  */
 public interface LaunchTask {
   /**
@@ -66,28 +60,8 @@ public interface LaunchTask {
    * @param printer use this printer to output arbitrary messages
    * @return the result of this task
    */
-  default LaunchResult run(@NotNull Executor executor, @NotNull IDevice device,
-                           @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    boolean success = perform(device, launchStatus, printer);
-    return success ? LaunchResult.success() : LaunchResult.error("", getDescription());
-  }
-
-  /**
-   * Performs this task. Do not call this method directly, call {@link #run} instead. This method is
-   * public for historical reason but this should have been protected method.
-   *
-   * <p>This method is called by {@link org.jetbrains.ide.PooledThreadExecutor} so you can perform
-   * expensive operations here.
-   *
-   * @param device an android device to perform this task against
-   * @param launchStatus a current status of this launch operation. An implementor of this method
-   *                     should check the status periodically and cancel ongoing operations if it is
-   *                     being terminated.
-   * @param printer use this printer to output arbitrary messages
-   * @return true on success otherwise false
-   */
-  boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus,
-                  @NotNull ConsolePrinter printer);
+  LaunchResult run(@NotNull Executor executor, @NotNull IDevice device,
+                           @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer);
 
   /**
    * Returns an arbitrary identifier string for this task. This ID is recorded in

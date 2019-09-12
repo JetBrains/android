@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.databinding.validation
 
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lang.databinding.config.DbFile
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
@@ -83,6 +84,10 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   private var holder: AnnotationHolder? = null
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
+    if (!StudioFlags.DATA_BINDING_INSPECTIONS_ENABLED.get()) {
+      return
+    }
+
     try {
       this.holder = holder
       element.accept(this)

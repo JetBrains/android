@@ -15,31 +15,49 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.energy.FakeEnergyService;
+import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
+import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.sessions.SessionsManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-public class CpuProfilerTest {
+@RunWith(Parameterized.class)
+public final class CpuProfilerTest {
+  @Parameterized.Parameters
+  public static Collection<Boolean> useUnifiedPipeline() {
+    return Arrays.asList(false, true);
+  }
 
   private static final int FAKE_PID = 1234;
 
@@ -53,7 +71,8 @@ public class CpuProfilerTest {
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuProfilerTest", myTransportService, myProfilerService, new FakeMemoryService(), myCpuService);
+    new FakeGrpcChannel("CpuProfilerTest", myTransportService, myProfilerService, new FakeMemoryService(), myCpuService,
+                        new FakeEventService(), new FakeNetworkService.Builder().build(), new FakeEnergyService());
 
   @Rule public final ExpectedException myExpectedException = ExpectedException.none();
 
@@ -63,22 +82,23 @@ public class CpuProfilerTest {
 
   private StudioProfilers myProfilers;
 
+  private final boolean myUnifiedPipeline;
+
+  public CpuProfilerTest(boolean useUnifiedPipeline) {
+    myUnifiedPipeline = useUnifiedPipeline;
+  }
+
   @Before
   public void setUp() {
     myIdeServices = new FakeIdeProfilerServices();
-    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeServices, new FakeTimer());
-  }
-
-  @Test
-  public void newMonitor() {
-    myCpuProfiler = new CpuProfiler(myProfilers);
-    ProfilerMonitor monitor = myCpuProfiler.newMonitor();
-    assertThat(monitor).isNotNull();
-    assertThat(monitor).isInstanceOf(CpuMonitor.class);
+    myIdeServices.enableEventsPipeline(myUnifiedPipeline);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeServices, myTimer);
   }
 
   @Test
   public void startProfilingCallStartMonitoringAppId() {
+    Assume.assumeFalse("Unified pipeline does not go through StartMonitoringApp", myUnifiedPipeline);
+
     myCpuProfiler = new CpuProfiler(myProfilers);
     myCpuProfiler.startProfiling(FAKE_SESSION);
     // Make sure the session of the service was set to FAKE_SESSION by the start monitoring request
@@ -87,6 +107,8 @@ public class CpuProfilerTest {
 
   @Test
   public void stopProfilingCallStopMonitoringAppId() {
+    Assume.assumeFalse("Unified pipeline does not go through StopMonitoringApp", myUnifiedPipeline);
+
     myCpuProfiler = new CpuProfiler(myProfilers);
     myCpuProfiler.stopProfiling(FAKE_SESSION);
     // Make sure the session of the service was set to FAKE_SESSION by the stop monitoring request
@@ -94,7 +116,40 @@ public class CpuProfilerTest {
   }
 
   @Test
+  public void stopMonitoringStopsOngoingTraces() {
+    myCpuProfiler = new CpuProfiler(myProfilers);
+
+    myCpuProfiler.stopProfiling(FAKE_SESSION);
+    if (myUnifiedPipeline) {
+      StopCpuTrace stopCpuTrace = (StopCpuTrace)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
+      assertThat(stopCpuTrace.getLastTraceInfo()).isEqualTo(Cpu.CpuTraceInfo.getDefaultInstance());
+
+      myTransportService.addEventToStream(
+        FAKE_SESSION.getStreamId(),
+        Common.Event.newBuilder()
+          .setTimestamp(1).setGroupId(1).setPid(FAKE_SESSION.getPid()).setKind(Common.Event.Kind.CPU_TRACE)
+          .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceStarted(
+            Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(Cpu.CpuTraceInfo.newBuilder().setTraceId(1).setToTimestamp(-1))))
+          .build());
+      myCpuProfiler.stopProfiling(FAKE_SESSION);
+      assertThat(stopCpuTrace.getLastTraceInfo()).isNotEqualTo(Cpu.CpuTraceInfo.getDefaultInstance());
+    }
+    else {
+      // No ongoing so we don't expect stop tracing to be called.
+      assertThat(myCpuService.getStartStopCapturingSession()).isNull();
+
+      // There is an ongoing trace so stop tracing should be called.
+      myCpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder().setTraceId(1).setFromTimestamp(10).setToTimestamp(-1).build());
+      myCpuProfiler.stopProfiling(FAKE_SESSION);
+      assertThat(myCpuService.getStartStopCapturingSession()).isEqualTo(FAKE_SESSION);
+    }
+  }
+
+  @Test
   public void importedSessionListenerShouldBeRegistered() {
+    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
+                       myUnifiedPipeline);
+
     // Enable the import trace flag
     myIdeServices.enableImportTrace(true);
 
@@ -112,12 +167,16 @@ public class CpuProfilerTest {
 
   @Test
   public void importedSessionListenerShouldntBeRegisteredIfFlagIsDisabled() {
+    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
+                       myUnifiedPipeline);
+
     // Enable the import trace flag
     myIdeServices.enableImportTrace(false);
 
     myCpuProfiler = new CpuProfiler(myProfilers);
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    Common.Session session = sessionsManager.createImportedSessionLegacy("name.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0);
+    Common.Session session =
+      sessionsManager.createImportedSessionLegacy("name.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0);
     sessionsManager.update();
     // Expect setting the session to fail, because session manager shouldn't be aware of Common.SessionMetaData.SessionType.CPU_CAPTURE,
     // as we didn't register a listener for this type of captures.
@@ -127,6 +186,9 @@ public class CpuProfilerTest {
 
   @Test
   public void traceImportHandlerShouldBeRegistered() {
+    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
+                       myUnifiedPipeline);
+
     // Enable the import trace flag
     myIdeServices.enableImportTrace(true);
 
@@ -142,6 +204,9 @@ public class CpuProfilerTest {
 
   @Test
   public void traceImportHandlerShouldntBeRegisteredIfFlagIsDisabled() {
+    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
+                       myUnifiedPipeline);
+
     // Disable the import trace flag
     myIdeServices.enableImportTrace(false);
 
@@ -157,6 +222,9 @@ public class CpuProfilerTest {
 
   @Test
   public void referenceToTraceFilesAreSavedPerSession() {
+    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
+                       myUnifiedPipeline);
+
     // Enable the import trace flag
     myIdeServices.enableImportTrace(true);
 
@@ -177,6 +245,9 @@ public class CpuProfilerTest {
 
   @Test
   public void importedSessionsStartTimeShouldBeTraceCreationTime() throws IOException {
+    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
+                       myUnifiedPipeline);
+
     // Enable the import trace flag
     myIdeServices.enableImportTrace(true);
 
@@ -188,6 +259,75 @@ public class CpuProfilerTest {
 
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
     // Imported session's start time should be equal to the imported trace file creation time
+    sessionsManager.importSessionFromFile(trace);
+    assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isEqualTo(traceCreationTime);
+  }
+
+  @Test
+  public void testGetTraceInfoFromSession() {
+    Assume.assumeTrue(myUnifiedPipeline);
+
+    Common.Session session = myProfilers.getSession();
+
+    // Insert a completed CpuTraceInfo.
+    Cpu.CpuTraceInfo info1 = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceId(1).setFromTimestamp(1).setToTimestamp(2)
+      .setStartStatus(Cpu.TraceStartStatus.newBuilder().setStatus(Cpu.TraceStartStatus.Status.SUCCESS))
+      .setStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.SUCCESS))
+      .build();
+    myTransportService.addEventToStream(
+      session.getStreamId(),
+      Common.Event.newBuilder().setGroupId(1).setPid(session.getPid())
+        .setIsEnded(true).setKind(Common.Event.Kind.CPU_TRACE).setTimestamp(1)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(info1))).build());
+
+    List<Cpu.CpuTraceInfo> infos = CpuProfiler.getTraceInfoFromSession(myProfilers.getClient(), session, myUnifiedPipeline);
+    assertThat(infos).containsExactly(info1);
+
+    // Insert a not yet completed info followed up by a generic end event.
+    Cpu.CpuTraceInfo info2 = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceId(5).setFromTimestamp(5).setToTimestamp(-1)
+      .setStartStatus(Cpu.TraceStartStatus.newBuilder().setStatus(Cpu.TraceStartStatus.Status.SUCCESS))
+      .build();
+    myTransportService.addEventToStream(
+      session.getStreamId(),
+      Common.Event.newBuilder().setGroupId(5).setPid(session.getPid()).setKind(Common.Event.Kind.CPU_TRACE).setTimestamp(5)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder().setTraceStarted(Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(info2)))
+        .build());
+    myTransportService.addEventToStream(
+      session.getStreamId(),
+      Common.Event.newBuilder()
+        .setTimestamp(10).setGroupId(5).setKind(Common.Event.Kind.CPU_TRACE).setPid(session.getPid()).setIsEnded(true).build());
+    infos = CpuProfiler.getTraceInfoFromSession(myProfilers.getClient(), session, myUnifiedPipeline);
+    assertThat(infos)
+      .containsExactly(info1, info2.toBuilder().setToTimestamp(session.getEndTimestamp())
+        .setStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.APP_PROCESS_DIED)).build());
+  }
+
+  @Test
+  public void reimportTraceShouldSelectSameSession() throws IOException {
+    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
+                       myUnifiedPipeline);
+
+    // Enable the import trace flag
+    myIdeServices.enableImportTrace(true);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    long traceCreationTime =
+      Files.readAttributes(Paths.get(trace.getPath()), BasicFileAttributes.class).creationTime().to(TimeUnit.NANOSECONDS);
+
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    // Imported session's start time should be equal to the imported trace file creation time
+    sessionsManager.importSessionFromFile(trace);
+    assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isEqualTo(traceCreationTime);
+
+    // Create and select a different session.
+    sessionsManager.beginSession(FAKE_DEVICE, FAKE_PROCESS);
+    assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isNotEqualTo(traceCreationTime);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Reimport again should select the existing session.
     sessionsManager.importSessionFromFile(trace);
     assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isEqualTo(traceCreationTime);
   }

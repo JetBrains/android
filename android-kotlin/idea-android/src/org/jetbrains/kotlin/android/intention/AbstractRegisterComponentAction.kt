@@ -35,7 +35,7 @@ abstract class AbstractRegisterComponentAction(text: String) : SelfTargetingInte
 
     final override fun isApplicableTo(element: KtClass, caretOffset: Int): Boolean {
         val androidFacet = AndroidFacet.getInstance(element.containingFile) ?: return false
-        val manifest = androidFacet.manifest ?: return false
+        val manifest = Manifest.getMainManifest(androidFacet) ?: return false
         return !element.isLocal &&
                !element.isAbstract() &&
                !element.isPrivate() &&
@@ -47,7 +47,7 @@ abstract class AbstractRegisterComponentAction(text: String) : SelfTargetingInte
     }
 
     final override fun applyTo(element: KtClass, editor: Editor?) {
-        AndroidFacet.getInstance(element.containingFile)?.manifest?.let {
+        AndroidFacet.getInstance(element.containingFile)?.let(Manifest::getMainManifest)?.let {
             applyTo(element, it)
         }
     }

@@ -8,9 +8,11 @@ package org.jetbrains.kotlin.android.model.impl
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.ResourceFolderManager
+import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider
 
 class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModuleInfoProvider {
@@ -25,10 +27,10 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
         return ResourceFolderManager.getInstance(facet).folders
     }
 
-    override fun getApplicationPackage() = androidFacet?.manifest?.`package`?.toString()
+    override fun getApplicationPackage() = androidFacet?.let { Manifest.getMainManifest(it) }?.`package`?.toString()
 
     override fun getMainSourceProvider(): AndroidModuleInfoProvider.SourceProviderMirror? {
-        return androidFacet?.mainIdeaSourceProvider?.let(::SourceProviderMirrorImpl)
+        return androidFacet?.let { SourceProviderManager.getInstance(it).mainIdeaSourceProvider }?.let(::SourceProviderMirrorImpl)
     }
 
     override fun getActiveSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {

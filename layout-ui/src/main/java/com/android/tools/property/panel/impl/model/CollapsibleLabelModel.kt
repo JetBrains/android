@@ -23,6 +23,7 @@ import com.intellij.util.text.Matcher
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.TestOnly
 import javax.swing.Icon
+import kotlin.properties.Delegates
 
 // Prefix to the keys used to store/restore the state of expandable groups in the inspector
 @VisibleForTesting
@@ -96,6 +97,8 @@ open class CollapsibleLabelModel(
 
   override val focusable: Boolean
     get() = editorModel != null
+
+  override var enabled by Delegates.observable(true) { _, _, _ -> fireValueChanged() }
 
   override fun requestFocus() {
     editorModel?.requestFocus()

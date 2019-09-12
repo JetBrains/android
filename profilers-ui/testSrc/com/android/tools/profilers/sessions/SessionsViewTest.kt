@@ -698,7 +698,7 @@ class SessionsViewTest {
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
 
     val allocationInfo = MemoryProfiler.MemoryData.newBuilder()
-      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(10).setEndTime(11).setLegacy(true).build())
+      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(10).setEndTime(11).setLegacy(true).setSuccess(true).build())
       .build()
     myMemoryService.setMemoryData(allocationInfo)
 

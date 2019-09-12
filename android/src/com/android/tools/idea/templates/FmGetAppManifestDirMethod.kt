@@ -20,8 +20,8 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ProjectLocator
 import com.intellij.openapi.vfs.LocalFileSystem
 import freemarker.template.TemplateMethodModelEx
-import freemarker.template.TemplateModelException
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 
 import java.io.File
 
@@ -29,7 +29,7 @@ class FmGetAppManifestDirMethod(private val myParamMap: Map<String, Any>) : Temp
   override fun exec(arguments: List<*>): Any? {
     val module = findAppModuleIfAny() ?: return null
     val facet = AndroidFacet.getInstance(module) ?: return null
-    val provider = facet.mainIdeaSourceProvider
+    val provider = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider
     val file = provider.manifestFile ?: return null
 
     return file.parent.canonicalPath

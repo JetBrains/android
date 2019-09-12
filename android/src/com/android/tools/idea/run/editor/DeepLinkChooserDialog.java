@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -34,6 +33,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,7 +119,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
   private static XmlFile getAndroidManifestPsi(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      VirtualFile manifest = facet.getMainIdeaSourceProvider().getManifestFile();
+      VirtualFile manifest = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFile();
       if (manifest != null) {
         PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(manifest);
         if (psiFile instanceof XmlFile) {

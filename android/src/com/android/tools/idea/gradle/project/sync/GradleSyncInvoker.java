@@ -106,18 +106,18 @@ public class GradleSyncInvoker {
    * This method should not be called within a {@link DumbModeTask}, the platform will take care of ensuring that
    * sync is not run at the same time as indexing.
    */
-  public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
-                                                    @NotNull GradleSyncStats.Trigger trigger) {
-    requestProjectSyncAndSourceGeneration(project, trigger, null);
+  public void requestProjectSync(@NotNull Project project,
+                                 @NotNull GradleSyncStats.Trigger trigger) {
+    requestProjectSync(project, trigger, null);
   }
 
   /**
    * This method should not be called within a {@link DumbModeTask}, the platform will take care of ensuring that
    * sync is not run at the same time as indexing.
    */
-  public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
-                                                    @NotNull GradleSyncStats.Trigger trigger,
-                                                    @Nullable GradleSyncListener listener) {
+  public void requestProjectSync(@NotNull Project project,
+                                 @NotNull GradleSyncStats.Trigger trigger,
+                                 @Nullable GradleSyncListener listener) {
     Request request = new Request(trigger);
     requestProjectSync(project, request, listener);
   }

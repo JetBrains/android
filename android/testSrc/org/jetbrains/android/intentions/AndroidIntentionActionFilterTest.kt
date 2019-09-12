@@ -23,6 +23,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.JavaProjectRootsUtil
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.util.AndroidResourceUtil.isRJavaClass
 import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
@@ -35,7 +36,7 @@ class AndroidIntentionActionFilterTest : AndroidTestCase() {
     myFixture.addFileToProject("res/values/strings.xml", "<resources><string name='existing_res'></string></resources>")
 
     runWriteCommandAction(project) {
-      val permission = myFacet.manifest!!.addPermission()
+      val permission = Manifest.getMainManifest(myFacet)!!.addPermission()
       permission.name.value = "existing_permission"
     }
 

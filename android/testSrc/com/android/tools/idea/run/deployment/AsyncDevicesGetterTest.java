@@ -56,20 +56,20 @@ public final class AsyncDevicesGetterTest {
 
     VirtualDevice pixel2ApiQVirtualDevice = new VirtualDevice.Builder()
       .setName("Pixel 2 API Q")
-      .setKey("Pixel_2_API_Q")
+      .setKey(new Key("Pixel_2_API_Q"))
       .setAndroidDevice(pixel2ApiQAndroidDevice)
       .build();
 
     VirtualDevice pixel3ApiQVirtualDevice = new VirtualDevice.Builder()
       .setName("Pixel 3 API Q")
-      .setKey("Pixel_3_API_Q")
+      .setKey(new Key("Pixel_3_API_Q"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     AndroidDevice googlePixel3AndroidDevice = Mockito.mock(AndroidDevice.class);
 
     ConnectedDevice googlePixel3ConnectedDevice = new TestConnectedDevice.Builder()
-      .setKey("86UX00F4R")
+      .setKey(new Key("86UX00F4R"))
       .setAndroidDevice(googlePixel3AndroidDevice)
       .setPhysicalDeviceName("Google Pixel 3")
       .build();
@@ -77,9 +77,9 @@ public final class AsyncDevicesGetterTest {
     AndroidDevice pixel3ApiQAndroidDevice = Mockito.mock(AndroidDevice.class);
 
     ConnectedDevice pixel3ApiQConnectedDevice = new TestConnectedDevice.Builder()
-      .setKey("emulator-5554")
+      .setKey(new Key("emulator-5554"))
       .setAndroidDevice(pixel3ApiQAndroidDevice)
-      .setVirtualDeviceKey("Pixel_3_API_Q")
+      .setVirtualDeviceKey(new Key("Pixel_3_API_Q"))
       .build();
 
     // Act
@@ -90,21 +90,21 @@ public final class AsyncDevicesGetterTest {
     // Assert
     Object expectedPixel3ApiQDevice = new VirtualDevice.Builder()
       .setName("Pixel 3 API Q")
-      .setKey("Pixel_3_API_Q")
+      .setKey(new Key("Pixel_3_API_Q"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
       .setAndroidDevice(pixel3ApiQAndroidDevice)
       .build();
 
     Object expectedGooglePixel3Device = new PhysicalDevice.Builder()
       .setName("Google Pixel 3")
-      .setKey("86UX00F4R")
+      .setKey(new Key("86UX00F4R"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
       .setAndroidDevice(googlePixel3AndroidDevice)
       .build();
 
     Object expectedPixel2ApiQDevice = new VirtualDevice.Builder()
       .setName("Pixel 2 API Q")
-      .setKey("Pixel_2_API_Q")
+      .setKey(new Key("Pixel_2_API_Q"))
       .setAndroidDevice(pixel2ApiQAndroidDevice)
       .build();
 

@@ -19,9 +19,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.CharsetToolkit;
+import com.intellij.util.io.URLUtil;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -178,7 +178,7 @@ public class HttpData {
       String lastName;
       do {
         lastName = name;
-        name = URLDecoder.decode(name, CharsetToolkit.UTF8);
+        name = URLUtil.decode(name);
       }
       while (!name.equals(lastName));
       return name;

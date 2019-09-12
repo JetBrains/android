@@ -103,7 +103,7 @@ final class ConnectedDevicesTask implements Callable<Collection<ConnectedDevice>
     AndroidDevice androidDevice = new ConnectedAndroidDevice(ddmlibDevice, null);
 
     ConnectedDevice.Builder builder = new ConnectedDevice.Builder()
-      .setKey(ddmlibDevice.getSerialNumber())
+      .setKey(new Key(ddmlibDevice.getSerialNumber()))
       .setAndroidDevice(androidDevice);
 
     if (myChecker == null) {

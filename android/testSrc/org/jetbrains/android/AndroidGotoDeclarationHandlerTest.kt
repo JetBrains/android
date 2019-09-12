@@ -40,6 +40,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.dom.AndroidValueResourcesTest
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -457,8 +458,8 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
 
   open fun testGotoPermission() {
     WriteCommandAction.runWriteCommandAction(project) {
-      myFacet.manifest!!.addPermission()?.apply { name.value = "com.example.SEND_MESSAGE" }
-      myFacet.manifest!!.addPermission()?.apply { name.value = "com.example.SEND-MESSAGE" }
+      Manifest.getMainManifest(myFacet)!!.addPermission()?.apply { name.value = "com.example.SEND_MESSAGE" }
+      Manifest.getMainManifest(myFacet)!!.addPermission()?.apply { name.value = "com.example.SEND-MESSAGE" }
     }
 
     val file = myFixture.addFileToProject(

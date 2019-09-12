@@ -33,6 +33,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.util.containers.isNullOrEmpty
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.getCustomPermissionGroups
 import org.jetbrains.android.dom.manifest.getCustomPermissions
 import org.jetbrains.android.dom.manifest.getPackageName
@@ -95,7 +96,7 @@ sealed class ManifestInnerClass(
   private val factory = JavaPsiFacade.getElementFactory(project)
 
   private val myFieldsCache: CachedValue<Array<PsiField>> = CachedValuesManager.getManager(project).createCachedValue {
-    val manifest = myFacet.manifest
+    val manifest = Manifest.getMainManifest(myFacet)
     if (manifest == null) {
       CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, PsiModificationTracker.MODIFICATION_COUNT)
     }

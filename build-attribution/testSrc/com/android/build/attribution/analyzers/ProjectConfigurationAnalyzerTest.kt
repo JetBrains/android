@@ -49,7 +49,7 @@ class ProjectConfigurationAnalyzerTest {
       Pair(pluginC, Duration.ofMillis(300)),
       Pair(buildScript, Duration.ofMillis(250))), 0, 830))
 
-    analyzer.onBuildSuccess(null)
+    analyzer.onBuildSuccess()
   }
 
   @Test

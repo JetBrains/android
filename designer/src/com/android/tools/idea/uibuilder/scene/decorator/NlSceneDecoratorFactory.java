@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutV7Decorator;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.relative.draw.RelativeLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,8 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
     try {
       ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT.oldName(), ConstraintLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT.newName(), ConstraintLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.CLASS_MOTION_LAYOUT.oldName(), MotionLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.CLASS_MOTION_LAYOUT.newName(), MotionLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.PROGRESS_BAR, ProgressBarDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.BUTTON, ButtonDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.TOGGLE_BUTTON, ToggleButtonDecorator.class.getConstructor());

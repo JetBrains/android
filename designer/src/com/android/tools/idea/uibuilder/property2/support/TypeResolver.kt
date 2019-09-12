@@ -245,6 +245,10 @@ object TypeResolver {
 
       SdkConstants.ATTR_NAME -> NelePropertyType.CLASS_NAME
 
+      SdkConstants.ATTR_CONSTRAINT_LAYOUT_DESCRIPTION -> NelePropertyType.XML
+
+      SdkConstants.ATTR_MOTION_TARGET -> NelePropertyType.ID_OR_STRING
+
       else -> null
     }
 

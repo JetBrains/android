@@ -120,7 +120,7 @@ class FixNdkVersionProcessor(
 
     projectBuildModel.applyChanges()
 
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_QF_NDK_INSTALLED)
+    GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_NDK_INSTALLED)
   }
 
   /**

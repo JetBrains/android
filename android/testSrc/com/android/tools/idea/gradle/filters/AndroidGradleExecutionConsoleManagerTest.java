@@ -72,7 +72,7 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
 
     // Verify that GradleSyncInvoker is called, and verify that extra command line options are set.
     verify(syncInvoker)
-      .requestProjectSyncAndSourceGeneration(project, GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS);
+      .requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS);
     assertThat(project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY)).asList().containsExactly("--info");
   }
 

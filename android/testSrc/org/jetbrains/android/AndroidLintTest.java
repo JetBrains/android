@@ -1313,6 +1313,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testResourceTypes() throws Exception {
     createManifest();
+    addDrawableRes();
     doTestNoFix(new AndroidLintResourceTypeInspection(),
                 "/src/p1/p2/ResourceTypes.java", "java");
   }
@@ -1702,6 +1703,26 @@ public class AndroidLintTest extends AndroidTestCase {
                                "}");
   }
 
+  private void addDrawableRes() {
+    myFixture.addFileToProject("/src/android/support/annotation/DrawableRes.java",
+                               "" +
+                               "package android.support.annotation;\n" +
+                               "import static java.lang.annotation.ElementType.FIELD;\n" +
+                               "import static java.lang.annotation.ElementType.LOCAL_VARIABLE;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "\n" +
+                               "import java.lang.annotation.Documented;\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "@Documented\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({METHOD, PARAMETER, FIELD, LOCAL_VARIABLE})\n" +
+                               "public @interface DrawableRes {\n" +
+                               "}\n");
+  }
+
   // --- AndroidX ---
 
   private void addColorInt() {
@@ -1742,5 +1763,4 @@ public class AndroidLintTest extends AndroidTestCase {
                                "public @interface ColorRes {\n" +
                                "}\n");
   }
-
 }

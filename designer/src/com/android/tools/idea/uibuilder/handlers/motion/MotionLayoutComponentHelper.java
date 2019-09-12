@@ -15,11 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
+import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.utils.Pair;
+import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
@@ -29,6 +38,8 @@ public class MotionLayoutComponentHelper {
 
   private Method myCallSetTransitionPosition;
   private Method myCallSetState;
+  private Method myCallGetState;
+  private Method myCallGetProgress;
   private Method myCallSetTransition;
   private Method myGetMaxTimeMethod;
   private Method mySetKeyframePositionMethod;
@@ -38,6 +49,8 @@ public class MotionLayoutComponentHelper {
   private Method mySetKeyframeMethod;
   private Method myGetPositionKeyframeMethod;
   private Method myGetKeyframeAtLocationMethod;
+  private Method myCallIsInTransition;
+  private Method myUpdateLiveAttributesMethod;
 
   public static final int PATH_PERCENT = 0;
   public static final int PATH_PERPENDICULAR = 1;
@@ -409,6 +422,111 @@ public class MotionLayoutComponentHelper {
     model.notifyLiveUpdate(false);
   }
 
+  public String getState() {
+    String state = null;
+    if (myDesignTool == null) {
+      return state;
+    }
+    if (myCallGetState == null) {
+      try {
+        myCallGetState = myDesignTool.getClass().getMethod("getState");
+      }
+      catch (NoSuchMethodException e) {
+        e.printStackTrace();
+        myCallGetState = null;
+        return state;
+      }
+    }
+    if (myCallGetState != null) {
+      try {
+        state = RenderService.runRenderAction(() -> {
+          try {
+            return (String)myCallGetState.invoke(myDesignTool);
+          }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallSetState = null;
+            e.printStackTrace();
+          }
+          return null;
+        });
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return state;
+  }
+
+  public float getProgress() {
+    float progress = 0;
+    if (myDesignTool == null) {
+      return progress;
+    }
+    if (myCallGetProgress == null) {
+      try {
+        myCallGetProgress = myDesignTool.getClass().getMethod("getProgress");
+      }
+      catch (NoSuchMethodException e) {
+        e.printStackTrace();
+        myCallGetProgress = null;
+        return progress;
+      }
+    }
+    if (myCallGetProgress != null) {
+      try {
+        progress = RenderService.runRenderAction(() -> {
+          try {
+            return (Float) myCallGetProgress.invoke(myDesignTool);
+          }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallGetProgress = null;
+            e.printStackTrace();
+          }
+          return 0f;
+        });
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return progress;
+  }
+
+  public boolean isInTransition() {
+    boolean isInTransition = false;
+    if (myDesignTool == null) {
+      return isInTransition;
+    }
+    if (myCallIsInTransition == null) {
+      try {
+        myCallIsInTransition = myDesignTool.getClass().getMethod("isInTransition");
+      }
+      catch (NoSuchMethodException e) {
+        e.printStackTrace();
+        myCallIsInTransition = null;
+        return isInTransition;
+      }
+    }
+    if (myCallIsInTransition != null) {
+      try {
+        isInTransition = RenderService.runRenderAction(() -> {
+          try {
+            return (Boolean) myCallIsInTransition.invoke(myDesignTool);
+          }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallIsInTransition = null;
+            e.printStackTrace();
+          }
+          return false;
+        });
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return isInTransition;
+  }
+
   public long getMaxTimeMs() {
     if (myDesignTool == null) {
       return 0;
@@ -465,5 +583,77 @@ public class MotionLayoutComponentHelper {
       e.printStackTrace();
     }
     return -1;
+  }
+
+  /**
+   * Make sure we have usable Ids, even if only temporary
+   * @param component
+   */
+  private void updateIds(@NotNull NlComponent component) {
+    ResourceIdManager manager = ResourceIdManager.get(component.getModel().getModule());
+    updateId(manager, component);
+    if (NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
+      for (NlComponent child : component.getChildren()) {
+        updateId(manager, child);
+      }
+    }
+    component = component.getParent();
+    if (component != null && NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
+      for (NlComponent child : component.getChildren()) {
+        updateId(manager, child);
+      }
+    }
+  }
+
+  private void updateId(@NotNull ResourceIdManager manager, @NotNull NlComponent component) {
+    String id = component.getId();
+    ResourceReference reference = new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, id);
+    Integer resolved = manager.getCompiledId(reference);
+    if (resolved == null) {
+      resolved = manager.getOrGenerateId(reference);
+      if (resolved != null) {
+        ViewInfo view = NlComponentHelperKt.getViewInfo(component);
+        if (view != null && view.getViewObject() != null) {
+          android.view.View androidView = (android.view.View) view.getViewObject();
+          androidView.setId(resolved.intValue());
+        }
+      }
+    }
+  }
+
+  public void updateLiveAttributes(NlComponent component, ComponentModification modification, String state) {
+    final Configuration configuration = modification.getComponent().getModel().getConfiguration();
+    final int dpiValue = configuration.getDensity().getDpiValue();
+    ResourceIdManager manager = ResourceIdManager.get(modification.getComponent().getModel().getModule());
+    ViewInfo info = NlComponentHelperKt.getViewInfo(modification.getComponent());
+
+    if (info == null || (info != null && info.getViewObject() == null)) {
+      return;
+    }
+
+//    System.out.println("\nupdate live attributes");
+    HashMap<String, String> attributes = new HashMap<>();
+    for (Pair<String, String> key : modification.getAttributes().keySet()) {
+      String value = modification.getAttributes().get(key);
+//      System.out.println("update live <" + key + "> => " + value);
+      if (value != null) {
+        if (value.startsWith("@id/") || value.startsWith("@+id/")) {
+          value = value.substring(value.indexOf('/') + 1);
+          Integer resolved = manager.getCompiledId(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, value));
+          if (resolved == null) {
+            updateIds(modification.getComponent());
+            resolved = manager.getOrGenerateId(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, value));
+          }
+          if (resolved != null) {
+            value = resolved.toString();
+          }
+        } else if (value.equalsIgnoreCase("parent")) {
+          value = "0";
+        }
+      }
+      attributes.put(key.getSecond(), value);
+    }
+
+    setAttributes(dpiValue, state, info.getViewObject(), attributes);
   }
 }

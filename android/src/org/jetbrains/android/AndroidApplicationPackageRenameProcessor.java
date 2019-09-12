@@ -54,7 +54,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
 
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         final AndroidFacet facet = AndroidFacet.getInstance(module);
-        final Manifest manifest = facet != null ? facet.getManifest() : null;
+        final Manifest manifest = facet != null ? Manifest.getMainManifest(facet) : null;
 
         if (manifest != null) {
           final XmlElement manifestElement = manifest.getXmlElement();

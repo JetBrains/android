@@ -27,8 +27,8 @@ import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
@@ -59,9 +59,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -110,12 +107,8 @@ public class MemoryProfiler extends StudioProfiler {
   @Override
   public void stopProfiling(Common.Session session) {
     try {
-      Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
-        .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(session.getSessionId()).build());
-      // Only stops live tracking if one is available.
-      if (response.getData().getLiveAllocationEnabled() && isUsingLiveAllocation(myProfilers, session)) {
-        trackAllocations(myProfilers, session, false, null);
-      }
+      // Stop any ongoing allocation tracking sessions (either legacy or jvmti-based).
+      trackAllocations(myProfilers, session, false, null);
     }
     catch (StatusRuntimeException e) {
       getLogger().info(e);
@@ -161,8 +154,15 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   private void importHprof(@NotNull File file) {
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
     long startTimestampEpochMs = System.currentTimeMillis();
-    long sessionStartTimeNs = TimeUnit.MILLISECONDS.toNanos(startTimestampEpochMs);
+    long sessionStartTimeNs = StudioProfilers.getFileCreationTimestampNs(file, startTimestampEpochMs);
+
+    // Select the session if the hprof has already been imported.
+    if (sessionsManager.setSessionById(sessionStartTimeNs)) {
+      return;
+    }
+
     // We don't really care about the session having a duration - arbitrarily create a 1-ns session.
     long sessionEndTimeNs = sessionStartTimeNs + 1;
     byte[] bytes;
@@ -174,7 +174,6 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
     // Bind the imported session with heap dump data through MemoryClient.
     HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
       .setStartTime(sessionStartTimeNs)
@@ -221,7 +220,12 @@ public class MemoryProfiler extends StudioProfiler {
   private void importLegacyAllocations(@NotNull File file) {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
     long startTimestampEpochMs = System.currentTimeMillis();
-    long sessionStartTimeNs = TimeUnit.MILLISECONDS.toNanos(startTimestampEpochMs);
+    long sessionStartTimeNs = StudioProfilers.getFileCreationTimestampNs(file, startTimestampEpochMs);
+    // Select the session if the hprof has already been imported.
+    if (sessionsManager.setSessionById(sessionStartTimeNs)) {
+      return;
+    }
+
     long sessionEndTimeNs = sessionStartTimeNs + 1;
     byte[] bytes;
     try {
@@ -236,6 +240,7 @@ public class MemoryProfiler extends StudioProfiler {
       .setStartTime(sessionStartTimeNs)
       .setEndTime(sessionEndTimeNs)
       .setLegacy(true)
+      .setSuccess(true)
       .build();
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       Common.Event heapDumpEvent = Common.Event.newBuilder()
@@ -384,14 +389,15 @@ public class MemoryProfiler extends StudioProfiler {
                                                                    @NotNull Common.Session session,
                                                                    @NotNull Range rangeUs,
                                                                    @NotNull IdeProfilerServices profilerService) {
-
+    long fromTimestamp = rangeUs.getMin() == Long.MIN_VALUE ? Long.MIN_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
+    long toTimestamp = rangeUs.getMax() == Long.MAX_VALUE ? Long.MAX_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
     if (profilerService.getFeatureConfig().isUnifiedPipelineEnabled()) {
       Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
         .setStreamId(session.getStreamId())
         .setPid(session.getPid())
         .setKind(Common.Event.Kind.MEMORY_ALLOC_TRACKING)
-        .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
-        .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+        .setFromTimestamp(fromTimestamp)
+        .setToTimestamp(toTimestamp)
         .build();
       Transport.GetEventGroupsResponse response = client.getTransportClient().getEventGroups(request);
 
@@ -399,15 +405,26 @@ public class MemoryProfiler extends StudioProfiler {
       for (Transport.EventGroup group : response.getGroupsList()) {
         // We only need the last event to get the most recent HeapDumpInfo
         Common.Event lastEvent = group.getEvents(group.getEventsCount() - 1);
-        infos.add(lastEvent.getMemoryAllocTracking().getInfo());
+        AllocationsInfo info = lastEvent.getMemoryAllocTracking().getInfo();
+        if (info.equals(AllocationsInfo.getDefaultInstance())) {
+          // A default instance means that we have a generically ended group due to device disconnect.
+          // In those case, we look for the start event and use its AllocationsInfo instead.
+          assert group.getEventsCount() > 1;
+          info = group.getEvents(0).getMemoryAllocTracking().getInfo();
+          if (info.getLegacy() && info.getEndTime() == Long.MAX_VALUE) {
+            info = info.toBuilder().setEndTime(session.getEndTimestamp()).setSuccess(false).build();
+          }
+        }
+
+        infos.add(info);
       }
       return infos;
     }
     else {
       MemoryRequest dataRequest = MemoryRequest.newBuilder()
         .setSession(session)
-        .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
-        .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+        .setStartTime(fromTimestamp)
+        .setEndTime(toTimestamp)
         .build();
       return client.getMemoryClient().getData(dataRequest).getAllocationsInfoList();
     }

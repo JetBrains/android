@@ -22,6 +22,7 @@ import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
 import org.jetbrains.annotations.NotNull;
@@ -358,4 +359,9 @@ public interface FeatureTracker {
    * Track additional data when a user selects an energy event to see its details.
    */
   void trackSelectEnergyEvent(@NotNull EnergyEventMetadata eventMetadata);
+
+  /**
+   * Track when the user selects instance filter for a Memory Profiler's CaptureObject.
+   */
+  void trackMemoryProfilerInstanceFilter(@NotNull CaptureObjectInstanceFilter filter);
 }

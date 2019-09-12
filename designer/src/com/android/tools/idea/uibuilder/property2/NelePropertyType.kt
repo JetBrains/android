@@ -45,6 +45,7 @@ enum class NelePropertyType {
   FRACTION,
   FRAGMENT,
   ID,
+  ID_OR_STRING,
   INTEGER,
   INTERPOLATOR,
   LAYOUT,
@@ -56,7 +57,8 @@ enum class NelePropertyType {
   STRING_ARRAY,
   STYLE,
   THREE_STATE_BOOLEAN,
-  TEXT_APPEARANCE;
+  TEXT_APPEARANCE,
+  XML;
 
   val resourceTypes: EnumSet<ResourceType>
     get() = when (this) {
@@ -75,6 +77,7 @@ enum class NelePropertyType {
       FRACTION -> EnumSet.of(ResourceType.FRACTION)
       FONT_SIZE -> EnumSet.of(ResourceType.DIMEN)
       ID -> EnumSet.of(ResourceType.ID)
+      ID_OR_STRING -> EnumSet.of(ResourceType.ID, ResourceType.STRING)
       INTEGER -> EnumSet.of(ResourceType.INTEGER)
       INTERPOLATOR -> EnumSet.of(ResourceType.INTERPOLATOR)
       LAYOUT -> EnumSet.of(ResourceType.LAYOUT)
@@ -87,6 +90,7 @@ enum class NelePropertyType {
       STYLE -> EnumSet.of(ResourceType.STYLE)
       TEXT_APPEARANCE -> EnumSet.of(ResourceType.STYLE)
       THREE_STATE_BOOLEAN -> EnumSet.of(ResourceType.BOOL)
+      XML -> EnumSet.of(ResourceType.XML)
       else -> EnumSet.noneOf(ResourceType.BOOL.javaClass)
     }
 

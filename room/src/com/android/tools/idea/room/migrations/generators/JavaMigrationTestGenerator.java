@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
  * Creates a test file for a given database Migration class.
  */
 public class JavaMigrationTestGenerator {
-  private static final String MIGRATION_TEST_NAME_TEMPLATE = "%sMigrationTest";
+  private static final String MIGRATION_TEST_NAME_TEMPLATE = "%s_Test";
   private static final String TEST_DATABASE_NAME_TEMPLATE = "\"test-%s\"";
   private static final String TEST_DATABASE_FIELD_NAME_TEMPLATE = "TEST_%s";
   private static final String MIGRATION_TEST_HELPER_FIELD_NAME = "migrationTestHelper";
@@ -100,7 +100,7 @@ public class JavaMigrationTestGenerator {
                                   int migrationStartVersion,
                                   int migrationEndVersion) {
     String databaseName = StringUtil.getShortName(databaseClassFullyQualifiedName);
-    String migrationTestName = String.format(MIGRATION_TEST_NAME_TEMPLATE, databaseName);
+    String migrationTestName = String.format(MIGRATION_TEST_NAME_TEMPLATE, StringUtil.getShortName(migrationClassFullyQualifiedName));
     PsiClass migrationTest = JavaDirectoryService.getInstance().createClass(targetDirectory, migrationTestName);
 
     addRunWithAnnotation(migrationTest);

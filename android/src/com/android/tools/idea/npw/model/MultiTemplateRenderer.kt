@@ -25,11 +25,12 @@ import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 import org.jetbrains.android.util.AndroidBundle.message
 
+typealias ProjectRenderRunner = ((Project) -> Unit) -> Unit
 /**
  * Sometimes there are several separate classes which want to render templates, in some order, but the whole process should be aborted if
  * any of them fail a validation pass. This class acts as a central way to coordinate such render request.
  */
-class MultiTemplateRenderer(private var project: Project?, private val projectSyncInvoker: ProjectSyncInvoker) {
+class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner, private val projectSyncInvoker: ProjectSyncInvoker) {
   interface TemplateRendererListener {
     /**
      * Called just before rendering multiple templates. Since rendering typically involves adding quite a lot of files
@@ -77,15 +78,6 @@ class MultiTemplateRenderer(private var project: Project?, private val projectSy
 
   private val templateRenderers: MutableList<TemplateRenderer> = mutableListOf()
   private var requestCount = 1
-  /**
-   * When creating a new Project, the new Project instance is only available after the [MultiTemplateRenderer] is created.
-   * Use this method to set Project instance later.
-   *
-   * @param project
-   */
-  fun setProject(project: Project) {
-    this.project = project
-  }
 
   /**
    * Call this method to indicate that one more render is available. Every call to this method needs to be later matched by a
@@ -124,29 +116,30 @@ class MultiTemplateRenderer(private var project: Project?, private val projectSy
     if (requestCount != 0 || templateRenderers.isEmpty()) {
       return
     }
-    checkNotNull(project) { "Project instance is always expected to be not null at this point." }
-    object : Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
-      override fun run(indicator: ProgressIndicator) {
-        multiRenderingStarted(myProject)
+    renderRunner { project ->
+      object : Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
+        override fun run(indicator: ProgressIndicator) {
+          multiRenderingStarted(myProject)
 
-        // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,
-        // we make sure they are properly initialized when doDryRun/render is called bellow.
-        with(templateRenderers) {
-          forEach(TemplateRenderer::init)
-          if (!all(TemplateRenderer::doDryRun)) return
-          forEach(TemplateRenderer::render)
+          // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,
+          // we make sure they are properly initialized when doDryRun/render is called bellow.
+          with(templateRenderers) {
+            forEach(TemplateRenderer::init)
+            if (!all(TemplateRenderer::doDryRun)) return
+            forEach(TemplateRenderer::render)
+          }
+
+          if (myProject.isInitialized) {
+            projectSyncInvoker.syncProject(myProject)
+          }
         }
 
-        if (myProject.isInitialized) {
-          projectSyncInvoker.syncProject(myProject)
+        override fun onFinished() {
+          multiRenderingFinished(myProject)
+          templateRenderers.forEach(TemplateRenderer::finish)
         }
-      }
-
-      override fun onFinished() {
-        multiRenderingFinished(myProject)
-        templateRenderers.forEach(TemplateRenderer::finish)
-      }
-    }.queue()
+      }.queue()
+    }
   }
 
   companion object {

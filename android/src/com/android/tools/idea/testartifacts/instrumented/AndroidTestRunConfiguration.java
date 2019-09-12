@@ -426,7 +426,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     else {
       // In non-Gradle project, instrumentation runner must be defined in AndroidManifest.
       return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> {
-        Manifest manifest = facet.getManifest();
+        Manifest manifest = Manifest.getMainManifest(facet);
         if (manifest == null) {
           return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
         }

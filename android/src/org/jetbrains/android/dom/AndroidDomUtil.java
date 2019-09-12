@@ -534,7 +534,7 @@ public class AndroidDomUtil {
     if (!isActivity && !isService && !isReceiver && !isProvider) {
       return null;
     }
-    Manifest manifest = facet.getManifest();
+    Manifest manifest = Manifest.getMainManifest(facet);
     if (manifest == null) {
       return null;
     }

@@ -53,6 +53,7 @@ import com.intellij.ui.speedSearch.FilteringListModel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -119,7 +120,18 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     Disposer.register(parentDisposable, this);
     setLayout(new BorderLayout());
     setBackground(StudioColorsKt.getSecondaryPanelBackground());
-    myList = new JBList<>(myListModel);
+    myList = new JBList<NlComponent>(myListModel) {
+      @Override
+      public int locationToIndex(Point location) {
+        int index = super.locationToIndex(location);
+        if (index != -1 && !getCellBounds(index, index).contains(location)) {
+          return -1;
+        }
+        else {
+          return index;
+        }
+      }
+    };
     myList.getEmptyText().setText("");
     myList.setName("DestinationList");
     myList.setCellRenderer(new ColoredListCellRenderer<NlComponent>() {
@@ -185,7 +197,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
 
     JScrollPane pane = ScrollPaneFactory.createScrollPane(myList, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
     pane.setBorder(null);
-    add(pane, BorderLayout.NORTH);
+    add(pane, BorderLayout.CENTER);
 
     myModel = surface.getModel();
     mySelectionModel = surface.getSelectionModel();
@@ -314,7 +326,11 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
   private class DestinationListMouseListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
-      if (e.getClickCount() == 2) {
+      JList list = (JList) e.getSource();
+      if (list.locationToIndex(e.getPoint()) == -1) {
+        list.clearSelection();
+      }
+      else if (e.getClickCount() == 2) {
         handleDoubleClick(e);
       }
       else {

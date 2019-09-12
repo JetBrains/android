@@ -116,6 +116,11 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
 
   @Override
   public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
+    if (!myInfo.getSuccess()) {
+      myIsLoadingError = true;
+      return false;
+    }
+
     Transport.BytesResponse response;
     while (true) {
       response = myClient.getTransportClient().getBytes(Transport.BytesRequest.newBuilder()

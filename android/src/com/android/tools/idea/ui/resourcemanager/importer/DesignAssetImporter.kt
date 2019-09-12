@@ -27,6 +27,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 import java.io.File
 
 private const val IMPORT_COMMAND_NAME = "Import resources"
@@ -111,7 +112,7 @@ class DesignAssetImporter {
  * If the facet has no res/ directory, it will try to create one.
  */
 fun getOrCreateDefaultResDirectory(androidFacet: AndroidFacet): File {
-  val resDirectories = androidFacet.mainSourceProvider.resDirectories
+  val resDirectories = SourceProviderManager.getInstance(androidFacet).mainSourceProvider.resDirectories
   if (resDirectories.isEmpty()) {
     val projectPath = androidFacet.module.project.basePath
     if (projectPath != null) {

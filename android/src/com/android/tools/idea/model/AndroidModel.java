@@ -42,8 +42,7 @@ public interface AndroidModel {
   }
   /**
    * @return the default source provider.
-   * TODO: To be build-system-agnostic, simplify source provider usage.
-   * {@link AndroidFacet#getMainSourceProvider()}
+   * @see org.jetbrains.android.facet.SourceProviderManager
    */
   @Deprecated
   @NotNull

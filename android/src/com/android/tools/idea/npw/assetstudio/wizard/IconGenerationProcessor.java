@@ -57,12 +57,15 @@ public class IconGenerationProcessor {
 
     myRunningRequest = myQueuedRequest;
     myQueuedRequest = null;
-    Worker worker = new Worker(myRunningRequest, () -> {
-      ApplicationManager.getApplication().assertIsDispatchThread();
-      myRunningRequest = null;
-      processNextRequest();
-    });
-    worker.start();
+    Request request = myRunningRequest;
+    if (request != null) {
+      Worker worker = new Worker(request, () -> {
+        ApplicationManager.getApplication().assertIsDispatchThread();
+        myRunningRequest = null;
+        processNextRequest();
+      });
+      worker.start();
+    }
   }
 
   @NotNull
@@ -106,7 +109,7 @@ public class IconGenerationProcessor {
     }
   }
 
-  private static class Worker extends SwingWorker {
+  private static class Worker extends SwingWorker<Request> {
     @NotNull private final Request myRequest;
     @NotNull private final Runnable myOnDone;
 
@@ -116,12 +119,13 @@ public class IconGenerationProcessor {
     }
 
     @Override
-    public Object construct() {
+    @NotNull
+    public Request construct() {
       long start = System.currentTimeMillis();
       myRequest.run();
       long end = System.currentTimeMillis();
       getLog().info(String.format(Locale.US, "Icons generated in %.2g sec", (end - start) / 1000.));
-      return null;
+      return myRequest;
     }
 
     @Override

@@ -20,17 +20,13 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.api.CustomPanel;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.AddCustomFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.AddMotionFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.DeleteCustomFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.DeleteMotionFieldAction;
+import com.android.tools.idea.uibuilder.handlers.motion.property2.action.SubSectionControlAction;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.property2.model.SelectedComponentModel;
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider;
@@ -47,6 +43,7 @@ import com.android.tools.property.panel.api.PropertiesTable;
 import com.android.tools.property.panel.api.PropertiesView;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.property.panel.api.TableUIProvider;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlTag;
@@ -55,9 +52,7 @@ import com.intellij.xml.XmlElementDescriptor;
 import java.util.Collections;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link PropertiesView} for motion layout property editor.
@@ -103,7 +98,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     private final MotionLayoutAttributesModel myModel;
     private final EditorProvider<NelePropertyItem> myEditorProvider;
     private final TableUIProvider myTableUIProvider;
-    private final CustomPanel myCustomLayoutPanel;
     private final XmlElementDescriptorProvider myDescriptorProvider;
 
     private MotionInspectorBuilder(@NotNull MotionLayoutAttributesModel model,
@@ -112,7 +106,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       myModel = model;
       myEditorProvider = editorProvider;
       myTableUIProvider = tableUIProvider;
-      myCustomLayoutPanel = loadCustomLayoutPanel(model.getFacet());
       myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     }
 
@@ -127,7 +120,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       if (tag == null) {
         return;
       }
-      NlComponent component = any.getComponents().get(0);
       String label = tag.getLocalName();
       switch (label) {
         case MotionSceneAttrs.Tags.CONSTRAINT:
@@ -136,7 +128,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
             item -> !item.getNamespace().isEmpty() &&
                     item != targetId &&
                     (item.getRawValue() != null));
-          addPropertyTable(inspector, label, myModel, showDefaultValues, targetId);
+          addPropertyTable(inspector, label, myModel, showDefaultValues, false, targetId);
           addSubTagSections(inspector, tag, myModel);
           break;
 
@@ -153,12 +145,11 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
             return;
           }
           inspector.addEditor(myEditorProvider.createEditor(position, false), null);
-          addPropertyTable(inspector, label, myModel, false, target, position);
-          addEasingCurveComponent(inspector, component, target.getModel().getSurface());
+          addPropertyTable(inspector, label, myModel, false, false, target, position);
           break;
 
         default:
-          addPropertyTable(inspector, label, myModel, false);
+          addPropertyTable(inspector, label, myModel, false, false);
           break;
       }
       if (hasCustomAttributes(tag)) {
@@ -177,27 +168,8 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         String subTagName = childDescriptor.getName();
         if (!subTagName.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
           SubTagAttributesModel subModel = new SubTagAttributesModel(model, subTagName);
-          addPropertyTable(inspector, subTagName, subModel, true);
+          addPropertyTable(inspector, subTagName, subModel, true, true);
         }
-      }
-    }
-
-    @Nullable
-    private static CustomPanel loadCustomLayoutPanel(@NotNull AndroidFacet facet) {
-      ViewHandlerManager manager = ViewHandlerManager.get(facet);
-      ViewHandler handler = manager.getHandler(SdkConstants.MOTION_LAYOUT.newName());
-      return handler != null ? handler.getLayoutCustomPanel() : null;
-    }
-
-    private void addEasingCurveComponent(@NotNull InspectorPanel inspector,
-                                         @NotNull NlComponent component,
-                                         @Nullable DesignSurface surface) {
-      NlComponent parent = component.getParent();
-      String parentTag = parent != null ? parent.getTagName() : null;
-      if (myCustomLayoutPanel != null && SdkConstants.MOTION_LAYOUT.isEquals(parentTag)) {
-        InspectorLineModel title = inspector.addExpandableTitle("Easing Curve", true);
-        myCustomLayoutPanel.useComponent(component, surface);
-        inspector.addComponent(myCustomLayoutPanel.getPanel(), title);
       }
     }
 
@@ -221,7 +193,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
                                   @NotNull String titleName,
                                   @NotNull PropertiesModel<NelePropertyItem> model,
                                   boolean showDefaultValues,
+                                  boolean showSectionControl,
                                   @NotNull NelePropertyItem... excluded) {
+      NelePropertyItem any = model.getProperties().getFirst();
       Function1<NelePropertyItem, Boolean> filter =
         (item) -> !item.getNamespace().isEmpty() &&
                   ArrayUtil.find(excluded, item) < 0 &&
@@ -230,11 +204,16 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       FilteredPTableModel<NelePropertyItem> tableModel =
         PTableModelFactory.create(
           model, filter, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), true, true);
+      SubSectionControlAction controlAction = new SubSectionControlAction(any);
       AddMotionFieldAction addFieldAction = new AddMotionFieldAction(myModel, tableModel, model.getProperties());
       DeleteMotionFieldAction deleteFieldAction = new DeleteMotionFieldAction(tableModel);
-      InspectorLineModel title = inspector.addExpandableTitle(titleName, true, addFieldAction, deleteFieldAction);
+      AnAction[] actions = showSectionControl
+                           ? new AnAction[]{controlAction, addFieldAction, deleteFieldAction}
+                           : new AnAction[]{addFieldAction, deleteFieldAction};
+      InspectorLineModel title = inspector.addExpandableTitle(titleName, true, actions);
       TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
       inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
+      controlAction.setLineModel(title);
       addFieldAction.setLineModel(lineModel);
       deleteFieldAction.setLineModel(lineModel);
     }

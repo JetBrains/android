@@ -251,7 +251,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(moduleFile);
 
     // Try finding main flavor
-    IdeaSourceProvider mainFlavorSourceProvider = myAppFacet.getMainIdeaSourceProvider();
+    IdeaSourceProvider mainFlavorSourceProvider = SourceProviderManager.getInstance(myAppFacet).getMainIdeaSourceProvider();
     assertNotNull(mainFlavorSourceProvider);
 
     VirtualFile javaMainSrcFile = moduleFile.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/");

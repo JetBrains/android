@@ -145,8 +145,7 @@ final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
 
     VirtualDevice.Builder builder = new VirtualDevice.Builder()
       .setName(AvdManagerConnection.getAvdDisplayName(avd))
-      // TODO Set a proper key when you have a snapshot
-      .setKey(avd.getName())
+      .setKey(new Key(avd.getName(), snapshot))
       .setAndroidDevice(device)
       .setSnapshot(snapshot);
 

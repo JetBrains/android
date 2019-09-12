@@ -28,13 +28,13 @@ public final class DevicesTest {
     // Arrange
     Device device1 = new PhysicalDevice.Builder()
       .setName("Google Pixel 3")
-      .setKey("86UX00F4R")
+      .setKey(new Key("86UX00F4R"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
       .setName("Google Pixel 3")
-      .setKey("86UX00F4R")
+      .setKey(new Key("86UX00F4R"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 

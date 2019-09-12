@@ -15,25 +15,30 @@
  */
 package com.android.tools.idea.explorer.mocks;
 
-import com.android.tools.idea.explorer.*;
+import com.android.tools.idea.explorer.DeviceExplorerModel;
+import com.android.tools.idea.explorer.DeviceExplorerModelListener;
+import com.android.tools.idea.explorer.DeviceExplorerView;
+import com.android.tools.idea.explorer.DeviceExplorerViewListener;
+import com.android.tools.idea.explorer.DeviceExplorerViewProgressListener;
+import com.android.tools.idea.explorer.DeviceFileEntryNode;
+import com.android.tools.idea.explorer.DeviceFileSystemRendererFactory;
+import com.android.tools.idea.explorer.FutureValuesTracker;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
-import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JComboBox;
+import javax.swing.JTree;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultTreeSelectionModel;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"NullableProblems", "unused"})
 public class MockDeviceExplorerView implements DeviceExplorerView {
@@ -71,10 +76,9 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   private int myBusyIndicatorCount;
 
   public MockDeviceExplorerView(@NotNull Project project,
-                                @NotNull ToolWindow toolWindow,
                                 @NotNull DeviceFileSystemRendererFactory deviceRendererFactory,
                                 @NotNull DeviceExplorerModel model) {
-    myViewImpl = new DeviceExplorerViewImpl(project, toolWindow, deviceRendererFactory, model);
+    myViewImpl = new DeviceExplorerViewImpl(project, deviceRendererFactory, model);
     myViewImpl.addListener(new MyDeviceExplorerViewListener());
     myViewImpl.addProgressListener(new MyDeviceExplorerViewProgressListener());
     model.addListener(new MyDeviceExplorerModelListener());

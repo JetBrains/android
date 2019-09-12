@@ -63,10 +63,17 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.StatusRuntimeException;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -87,6 +94,11 @@ import org.jetbrains.annotations.TestOnly;
  * global across all the profilers, device management, process management, current state of the tool etc.
  */
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
+
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(StudioProfilers.class);
+  }
 
   // Device directory where the transport daemon lives.
   public static final String DAEMON_DEVICE_DIR_PATH = "/data/local/tmp/perfd";
@@ -687,6 +699,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE &&
             (myPreferredProcessFilter == null || myPreferredProcessFilter.test(process))) {
           myIdeServices.getFeatureTracker().trackAutoProfilingSucceeded();
+          myAutoProfilingEnabled = false;
           return process;
         }
       }
@@ -972,5 +985,22 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     return matched;
+  }
+
+  /**
+   * Returns the start timestamp, in nanoseconds, of the imported trace session. First, we try to get the trace file creation time.
+   * If there is an error to obtain it, we fallback to the input |fallbackTimesampMs| and convert that into nanoseconds.
+   */
+  public static long getFileCreationTimestampNs(File file, long fallbackTimesampMs) {
+    Path tracePath = Paths.get(file.getPath());
+    try {
+      BasicFileAttributes attributes = Files.readAttributes(tracePath, BasicFileAttributes.class);
+      return attributes.creationTime().to(TimeUnit.NANOSECONDS);
+    }
+    catch (IOException e) {
+      getLogger().warn("File creation time could not be read. Falling back to session start time.");
+    }
+
+    return TimeUnit.MICROSECONDS.toNanos(fallbackTimesampMs);
   }
 }

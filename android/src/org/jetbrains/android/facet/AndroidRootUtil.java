@@ -87,7 +87,7 @@ public class AndroidRootUtil {
   @Deprecated
   public static VirtualFile getManifestFile(@NotNull AndroidFacet facet) {
     if (facet.requiresAndroidModel()) {
-      return facet.getMainIdeaSourceProvider().getManifestFile();
+      return SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFile();
     }
     return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
   }
@@ -99,7 +99,7 @@ public class AndroidRootUtil {
    */
   @Nullable
   public static VirtualFile getPrimaryManifestFile(@NotNull AndroidFacet facet) {
-    return facet.getMainIdeaSourceProvider().getManifestFile();
+    return SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFile();
   }
 
   @Nullable
