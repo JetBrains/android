@@ -31,7 +31,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.containers.ContainerUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -39,6 +38,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 import static com.android.tools.idea.util.ToolWindows.activateProjectView;
@@ -191,7 +191,8 @@ public final class GradleProjectImporter {
       String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
       GradleProjectSettings projectSettings = gradleSettings.getLinkedProjectSettings(externalProjectPath);
       if (projectSettings == null) {
-        Set<GradleProjectSettings> projects = ContainerUtilRt.newHashSet(gradleSettings.getLinkedProjectsSettings());
+        Set<GradleProjectSettings> projects =
+          new HashSet<>(gradleSettings.getLinkedProjectsSettings());
         projectSettings = new GradleProjectSettings();
         projectSettings.setExternalProjectPath(externalProjectPath);
         projects.add(projectSettings);
