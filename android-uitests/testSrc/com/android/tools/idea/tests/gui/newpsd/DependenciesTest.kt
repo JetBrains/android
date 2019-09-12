@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.items
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
@@ -35,7 +33,6 @@ import org.junit.runner.RunWith
 import java.util.regex.Pattern
 import kotlin.test.assertNotNull
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
 class DependenciesTest {
 

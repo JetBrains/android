@@ -229,7 +229,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       row.addToPanel(parametersPanel)
       val language = (row.property as SelectedItemProperty<Language>)
       // LanguageComboProvider always sets this
-      bindings.bindTwoWay(ObjectProperty.wrap(language), model.language)
+      bindings.bindTwoWay(ObjectProperty.wrap(language), model.renderLanguage)
     }
 
     fun displaySourceSetChoiceIfNeeded() {

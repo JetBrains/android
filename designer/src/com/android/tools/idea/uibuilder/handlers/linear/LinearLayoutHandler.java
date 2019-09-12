@@ -15,6 +15,33 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_GRAVITY;
+import static com.android.SdkConstants.ATTR_LAYOUT_GRAVITY;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.ATTR_WEIGHT_SUM;
+import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
+import static com.android.SdkConstants.GRAVITY_VALUE_CENTER_HORIZONTAL;
+import static com.android.SdkConstants.GRAVITY_VALUE_CENTER_VERTICAL;
+import static com.android.SdkConstants.GRAVITY_VALUE_END;
+import static com.android.SdkConstants.GRAVITY_VALUE_FILL;
+import static com.android.SdkConstants.GRAVITY_VALUE_LEFT;
+import static com.android.SdkConstants.GRAVITY_VALUE_RIGHT;
+import static com.android.SdkConstants.GRAVITY_VALUE_START;
+import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.VALUE_1;
+import static com.android.SdkConstants.VALUE_HORIZONTAL;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.VALUE_VERTICAL;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.SdkConstants.VALUE_ZERO_DP;
+import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
+import static com.android.utils.XmlUtils.formatFloatValue;
+
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
@@ -24,7 +51,10 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.Interaction;
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder;
@@ -41,17 +71,12 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
-import static com.android.utils.XmlUtils.formatFloatAttribute;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Handler for the {@code <LinearLayout>} layout
@@ -274,7 +299,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     else {
       share = sum / numTargets;
     }
-    String value = formatFloatAttribute((float)share);
+    String value = formatFloatValue((float)share);
     String sizeAttribute = isVertical(component) ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH;
     for (NlComponent selected : selectedChildren) {
       selected.setAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT, value);

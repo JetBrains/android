@@ -23,12 +23,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.projectImport.ProjectOpenProcessor;
 import com.intellij.util.containers.HashSet;
 import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemIndependent;
-import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProcessor;
+import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -62,13 +61,10 @@ class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
         }
       }
       if (rootProjectCandidate == null) {
-        GradleProjectOpenProcessor gradleProjectOpenProcessor =
-          ProjectOpenProcessor.EXTENSION_POINT_NAME.findExtensionOrFail(GradleProjectOpenProcessor.class);
-
         VirtualFile projectRootFolder = project.getBaseDir();
         projectRootFolder.refresh(false /* synchronous */, true /* recursive */);
 
-        if (gradleProjectOpenProcessor.canOpenProject(projectRootFolder)) {
+        if (GradleProjectImportUtil.canImportProjectFrom(projectRootFolder)) {
           rootProjectCandidate = new GradleProjectSettings();
           rootProjectCandidate.setExternalProjectPath(externalProjectPath);
           projectsSettings.add(rootProjectCandidate);

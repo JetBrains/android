@@ -34,7 +34,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.isFromContext;
 import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.shouldUseAndroidJUnitConfigurations;
@@ -60,9 +59,11 @@ public class TestMethodAndroidConfigurationProducer extends JUnitConfigurationPr
   }
 
   @Override
-  protected boolean setupConfigurationFromContext(JUnitConfiguration configuration,
-                                                  ConfigurationContext context,
-                                                  Ref<PsiElement> sourceElement) {
+  protected boolean setupConfigurationFromContext(
+    @NotNull JUnitConfiguration configuration,
+    @NotNull ConfigurationContext context,
+    @NotNull Ref<PsiElement> sourceElement) {
+
     if (RunConfigurationProducer.getInstance(PatternConfigurationProducer.class).isMultipleElementsSelected(context)) {
       return false;
     }
@@ -113,7 +114,7 @@ public class TestMethodAndroidConfigurationProducer extends JUnitConfigurationPr
   }
 
   @Override
-  public boolean isConfigurationFromContext(JUnitConfiguration unitConfiguration, ConfigurationContext context) {
+  public boolean isConfigurationFromContext(@NotNull JUnitConfiguration unitConfiguration, @NotNull ConfigurationContext context) {
     return isFromContext(unitConfiguration, context, getConfigurationFactory());
   }
 }

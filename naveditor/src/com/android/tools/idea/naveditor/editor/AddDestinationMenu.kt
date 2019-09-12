@@ -161,7 +161,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
 
   @VisibleForTesting
-  lateinit var blankDestinationButton: ActionButtonWithText
+  lateinit var createNewDestinationButton: ActionButtonWithText
 
   private var neverShown = true
 
@@ -193,10 +193,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         createNewDestination(e)
       }
     }
-    blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
+    createNewDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
     val buttonPanel = AdtSecondaryPanel(BorderLayout(0, 8))
     buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 1), DottedRoundedBorder(JBUI.emptyInsets(), HIGHLIGHTED_FRAME, 8.0f))
-    buttonPanel.add(blankDestinationButton, BorderLayout.CENTER)
+    buttonPanel.add(createNewDestinationButton, BorderLayout.CENTER)
     buttonPanel.background = BACKGROUND_COLOR
     val scrollable = AdtSecondaryPanel(BorderLayout(0, 8))
     scrollable.add(buttonPanel, BorderLayout.NORTH)

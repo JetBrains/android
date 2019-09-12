@@ -42,8 +42,8 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS
 import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
-import com.google.common.base.Stopwatch
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 typealias ProjectStateCustomizer = (templateMap: MutableMap<String, Any>, projectMap: MutableMap<String, Any>) -> Unit
 
@@ -55,24 +55,19 @@ typealias ProjectStateCustomizer = (templateMap: MutableMap<String, Any>, projec
  * - Fix clean model syncing, and hook up clean lint checks.
  * - Test more combinations of parameters.
  * - Test all combinations of build tools.
- * - Test creating a project *without* a template.
  */
 open class TemplateTestBase : AndroidGradleTestCase() {
   /**
    * A UsageTracker implementation that allows introspection of logged metrics in tests.
    */
-  private var usageTracker: TestUsageTracker? = null
+  private lateinit var usageTracker: TestUsageTracker
 
-  // TODO(qumeric): we should not depend on the test name.
-  override fun createDefaultProject() = when (name) {
-    "testTemplateFormatting" -> true
-    else -> false
-  }
+  override fun createDefaultProject() = false
 
   override fun setUp() {
     super.setUp()
     usageTracker = TestUsageTracker(VirtualTimeScheduler())
-    setWriterForTest(usageTracker!!)
+    setWriterForTest(usageTracker)
     apiSensitiveTemplate = true
 
     // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
@@ -85,7 +80,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
 
   override fun tearDown() {
     try {
-      usageTracker!!.close()
+      usageTracker.close()
       cleanAfterTesting()
     }
     finally {
@@ -110,9 +105,8 @@ open class TemplateTestBase : AndroidGradleTestCase() {
    *
    * @param category          the template category
    * @param name              the template name
-   * @param createWithProject whether the template should be created as part of creating the project (which should
-   * only be done for activities), or whether it should be added as as a separate template
-   * into an existing project (which is created first, followed by the template)
+   * @param createWithProject whether the template should be created as part of creating the project (only for activities), or whether it
+   * should be added as as a separate template into an existing project (which is created first, followed by the template).
    * @param customizer        An instance of [ProjectStateCustomizer] used for providing template and project overrides.
    */
   protected open fun checkCreateTemplate(
@@ -126,13 +120,13 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     if (isBroken(templateFile.name)) {
       return
     }
-    val stopwatch: Stopwatch = Stopwatch.createStarted()
     val templateOverrides = mutableMapOf<String, Any>()
     val projectOverrides = mutableMapOf<String, Any>()
     customizer(templateOverrides, projectOverrides)
-    checkTemplate(templateFile, createWithProject, templateOverrides, projectOverrides)
-    stopwatch.stop()
-    println("Checked " + templateFile.name + " successfully in " + stopwatch.toString())
+    val msToCheck = measureTimeMillis {
+      checkTemplate(templateFile, createWithProject, templateOverrides, projectOverrides)
+    }
+    println("Checked ${templateFile.name} successfully in ${msToCheck}ms")
   }
 
   private fun checkTemplate(
@@ -141,7 +135,6 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     require(!isBroken(templateFile.name))
     val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()
     val projectState = createNewProjectState(createWithProject, sdkData!!, getModuleTemplateForFormFactor(templateFile))
-    val projectNameBase = templateFile.name
     val activityState = projectState.activityTemplateState.apply { setTemplateLocation(templateFile) }
     val moduleState = projectState.moduleTemplateState
 
@@ -169,8 +162,8 @@ open class TemplateTestBase : AndroidGradleTestCase() {
           .filter { isInterestingApiLevel(it, MANUAL_TARGET_API, apiSensitiveTemplate) }
           .takeOneIfOtherwiseAll(TEST_JUST_ONE_TARGET_SDK_VERSION)
           .filter {
-            validateTemplate(moduleMetadata, minSdk, target.version.apiLevel) == null &&
-            validateTemplate(activityMetadata, minSdk, target.version.apiLevel) == null
+            moduleMetadata.validateTemplate(minSdk, target.version.apiLevel) == null &&
+            activityMetadata.validateTemplate(minSdk, target.version.apiLevel) == null
           }
 
         for (targetSdk in interestingTargetSdks) {
@@ -181,7 +174,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
             // TODO: Handle all enums here. None of the projects have this currently at this level.
             return fail("Not expecting enums at the root level")
           }
-          var base = "${projectNameBase}_min_${minSdk}_target_${targetSdk}_build_${target.version.apiLevel}"
+          var base = "${templateFile.name}_min_${minSdk}_target_${targetSdk}_build_${target.version.apiLevel}"
           if (overrides.isNotEmpty()) {
             base += "_overrides"
           }
@@ -220,9 +213,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     }
 
     // Next check all other parameters, cycling through booleans and enums.
-    val templateHandler = templateState.template
-    val template = templateHandler.metadata
-    var parameters = template!!.parameters
+    var parameters = templateState.template.metadata!!.parameters
     if (!createActivity) {
       templateState.setParameterDefaults()
     }
@@ -233,7 +224,6 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     templateState.putAll(overrides)
     moduleState.putAll(projectOverrides)
     
-    var projectName: String
     for (parameter in parameters) {
       if (parameter.type === Type.SEPARATOR || parameter.type === Type.STRING) {
         // TODO: Consider whether we should attempt some strings here
@@ -246,7 +236,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
         continue
       }
 
-      // revert to this one after cycling,
+      // revert to this one after cycling
       val initial = parameter.getDefaultValue(templateState)
       if (parameter.type === Type.ENUM) {
         val options = parameter.options
@@ -256,7 +246,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
           val projectBuildApi = moduleState.getInt(ATTR_BUILD_API)
           if (projectMinApi >= optionMinSdk && projectBuildApi >= optionMinBuildApi && optionId != initial) {
             templateState.put(parameter.id!!, optionId)
-            projectName = projectNameBase + "_" + parameter.id + "_" + optionId
+            val projectName = "${projectNameBase}_${parameter.id}_$optionId"
             checkProject(projectName, projectState, activityState)
             if (!COMPREHENSIVE) {
               break
@@ -270,58 +260,53 @@ open class TemplateTestBase : AndroidGradleTestCase() {
           // Skipping this one: always true when launched from new project
           continue
         }
-        val initialValue = initial as Boolean
         // For boolean values, only run checkProject in the non-default setting.
         // The default value is already used when running checkProject in the default state for all variables.
-        val value = !initialValue
+        val value = !(initial as Boolean)
         templateState.put(parameter.id!!, value)
-        projectName = projectNameBase + "_" + parameter.id + "_" + value
+        val projectName = "${projectNameBase}_${parameter.id}_$value"
         checkProject(projectName, projectState, activityState)
       }
       templateState.put(parameter.id!!, initial!!)
     }
-    projectName = projectNameBase + "_default"
+    val projectName = "${projectNameBase}_default"
     checkProject(projectName, projectState, activityState)
   }
 
   private fun checkProject(projectName: String, projectState: TestNewProjectWizardState, activityState: TestTemplateWizardState?) {
     val moduleState = projectState.moduleTemplateState
-    var checkLib = false
-    if (activityState != null) {
-      val template = activityState.template
-      val templateMetadata = template.metadata!!
-      checkLib = "Activity" == templateMetadata.category && "Mobile" == templateMetadata.formFactor &&
-                 !moduleState.getBoolean(ATTR_CREATE_ACTIVITY)
-      if (templateMetadata.androidXRequired) {
-        setAndroidSupport(true, moduleState, activityState)
-      }
+
+    val templateMetadata = activityState?.template?.metadata
+    val checkLib = "Activity" == templateMetadata?.category && "Mobile" == templateMetadata.formFactor &&
+               !moduleState.getBoolean(ATTR_CREATE_ACTIVITY)
+    if (templateMetadata?.androidXRequired == true) {
+      enableAndroidX(moduleState, activityState)
     }
 
     val language = Language.fromName(moduleState[ATTR_LANGUAGE] as String?, Language.JAVA)
 
-    val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker!!, language)
+    val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker, language)
     if (moduleState[ATTR_ANDROIDX_SUPPORT] != true) {
       // Make sure we test all templates against androidx
-      setAndroidSupport(true, moduleState, activityState)
-      projectChecker.checkProjectNow(projectName + "_x")
-      setAndroidSupport(false, moduleState, activityState)
+      enableAndroidX(moduleState, activityState)
+      projectChecker.checkProject(projectName + "_x")
+      disableAndroidX(moduleState, activityState)
     }
-    if (checkLib) {
-      moduleState.put(ATTR_IS_LIBRARY_MODULE, false)
-      activityState!!.put(ATTR_IS_LIBRARY_MODULE, false)
-      activityState.put(ATTR_HAS_APPLICATION_THEME, true)
-    }
-    projectChecker.checkProjectNow(projectName)
-
     // check that new Activities can be created on lib modules as well as app modules.
-    if (checkLib) {
-      moduleState.put(ATTR_IS_LIBRARY_MODULE, true)
-      activityState!!.put(ATTR_IS_LIBRARY_MODULE, true)
-      activityState.put(ATTR_HAS_APPLICATION_THEME, false)
-      // For a library project a theme doesn't exist. This is derived in the IDE using FmGetApplicationThemeMethod
-      moduleState.put(ATTR_THEME_EXISTS, false)
-      projectChecker.checkProjectNow(projectName + "_lib")
+    if (!checkLib) {
+      projectChecker.checkProject(projectName)
+      return
     }
+    moduleState.put(ATTR_IS_LIBRARY_MODULE, false)
+    activityState!!.put(ATTR_IS_LIBRARY_MODULE, false)
+    activityState.put(ATTR_HAS_APPLICATION_THEME, true)
+    projectChecker.checkProject(projectName)
+    moduleState.put(ATTR_IS_LIBRARY_MODULE, true)
+    activityState.put(ATTR_IS_LIBRARY_MODULE, true)
+    activityState.put(ATTR_HAS_APPLICATION_THEME, false)
+    // For a library project a theme doesn't exist. This is derived in the IDE using FmGetApplicationThemeMethod
+    moduleState.put(ATTR_THEME_EXISTS, false)
+    projectChecker.checkProject(projectName + "_lib")
   }
 
   @MustBeDocumented

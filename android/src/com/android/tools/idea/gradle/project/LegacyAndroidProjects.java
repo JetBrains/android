@@ -49,7 +49,7 @@ class LegacyAndroidProjects {
   @Nullable
   private static String getPackageNameInLegacyIdeaAndroidModule(@NotNull AndroidFacet facet) {
     // This invocation must happen after the project has been initialized.
-    Manifest manifest = facet.getManifest();
+    Manifest manifest = Manifest.getMainManifest(facet);
     return manifest != null ? manifest.getPackage().getValue() : null;
   }
 

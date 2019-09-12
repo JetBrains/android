@@ -22,8 +22,6 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.DeviceFutures;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -43,7 +41,7 @@ final class PhysicalDevice extends Device {
   static PhysicalDevice newDevice(@NotNull ConnectedDevice device,
                                   @NotNull DeviceNamePropertiesFetcher fetcher,
                                   @NotNull KeyToConnectionTimeMap map) {
-    String key = device.getKey();
+    Key key = device.getKey();
 
     return new Builder()
       .setName(device.getPhysicalDeviceName(fetcher))
@@ -78,7 +76,7 @@ final class PhysicalDevice extends Device {
 
     @NotNull
     @VisibleForTesting
-    Builder setKey(@NotNull String key) {
+    Builder setKey(@NotNull Key key) {
       myKey = key;
       return this;
     }
@@ -123,10 +121,10 @@ final class PhysicalDevice extends Device {
     return true;
   }
 
-  @NotNull
+  @Nullable
   @Override
-  ImmutableCollection<Snapshot> getSnapshots() {
-    return ImmutableList.of();
+  Snapshot getSnapshot() {
+    return null;
   }
 
   @NotNull

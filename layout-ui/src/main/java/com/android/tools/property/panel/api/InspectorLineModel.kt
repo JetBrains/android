@@ -59,6 +59,14 @@ interface InspectorLineModel {
   val focusable: Boolean
 
   /**
+   * Show this line in enabled state.
+   *
+   * Title lines have the option of being displayed with a faded text color.
+   * Ignored for other lines.
+   */
+  var enabled: Boolean
+
+  /**
    * Request the focus to be placed in this line.
    */
   fun requestFocus()

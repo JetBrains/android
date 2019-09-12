@@ -194,7 +194,7 @@ public class AttributeProcessingUtil {
       if (!facet.getConfiguration().isAppProject() || facet.requiresAndroidModel()) {
         return AUTO_URI;
       }
-      Manifest manifest = facet.getManifest();
+      Manifest manifest = Manifest.getMainManifest(facet);
       if (manifest != null) {
         String aPackage = manifest.getPackage().getValue();
         if (aPackage != null && !aPackage.isEmpty()) {

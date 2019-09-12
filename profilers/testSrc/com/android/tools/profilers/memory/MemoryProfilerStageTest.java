@@ -137,7 +137,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Prepares the AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
-      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).build()).build());
+      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setSuccess(true)).build());
     myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
 
     // The timeline has reset at this point so we need to advance the current time so data range is advanced during the next update.
@@ -482,22 +482,6 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testAgentStatusUpdatesObjectSeries() {
-    // Test that agent status change fires after a process is selected.
-    Common.Device device = Common.Device.newBuilder()
-      .setDeviceId(FAKE_DEVICE_ID)
-      .setSerial("FakeDevice")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    Common.Process process = Common.Process.newBuilder()
-      .setPid(20)
-      .setDeviceId(FAKE_DEVICE_ID)
-      .setState(Common.Process.State.ALIVE)
-      .setName("FakeProcess")
-      .build();
-    myTransportService.addDevice(device);
-    myTransportService.addProcess(device, process);
-    myStage.getStudioProfilers().setPreferredProcess("FakeDevice", "FakeProcess", null);
-
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS)
       .addAllocStatsSamples(
@@ -714,7 +698,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Prepares a finished AllocationsInfo with the correct start time in the FakeMemoryService.
     myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(
-      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true)).build());
+      AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setSuccess(true)).build());
     myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
 
     // Advancing time (data range) - stage should select it since the tracking session is now done.

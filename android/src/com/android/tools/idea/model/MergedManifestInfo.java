@@ -42,6 +42,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -55,13 +56,14 @@ import com.intellij.psi.PsiManager;
 import gnu.trove.TObjectLongHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.input.CharSequenceInputStream;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -384,7 +386,7 @@ final class MergedManifestInfo {
       String versionNameSuffix = Joiner.on("").skipNulls().join(flavorVersionNameSuffix, getVersionNameSuffix(buildType));
       if (!Strings.isNullOrEmpty(versionName) || !Strings.isNullOrEmpty(versionNameSuffix)) {
         if (Strings.isNullOrEmpty(versionName)) {
-          Manifest manifest = facet.getManifest();
+          Manifest manifest = Manifest.getMainManifest(facet);
           if (manifest != null) {
             versionName = manifest.getXmlTag().getAttributeValue(SdkConstants.ATTR_VERSION_NAME, ANDROID_URI);
           }
@@ -403,10 +405,11 @@ final class MergedManifestInfo {
 
     Module module = facet.getModule();
     Project project = module.getProject();
+    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
 
     manifestMergerInvoker.withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
       @Override
-      protected InputStream getInputStream(@NotNull File file) throws FileNotFoundException {
+      protected InputStream getInputStream(@NotNull File file) throws IOException {
         VirtualFile vFile;
         if (file == mainManifestFile) {
           // Some tests use VirtualFile files (e.g. temp:///src/AndroidManifest.xml) for the main manifest
@@ -440,20 +443,17 @@ final class MergedManifestInfo {
           }
         }
 
-        try {
-          PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
-          if (psiFile != null) {
-            String text = psiFile.getText();
-            return new ByteArrayInputStream(text.getBytes(UTF_8));
-          }
+        // If it exists, read from the in-memory document for this file.
+        // This ensures that we pick up any unsaved edits.
+        com.intellij.openapi.editor.Document document = fileDocumentManager.getCachedDocument(vFile);
+        if (document != null) {
+          return new CharSequenceInputStream(document.getCharsSequence(), UTF_8);
         }
-        catch (ProcessCanceledException ignore) {
-          // During startup we may receive a progress canceled exception here,
-          // but we don't *need* to read from PSI; we can read directly from
-          // disk. PSI is useful when the file has been modified, but that's not
-          // the case in the typical scenario where we hit process canceled.
-        }
-        return super.getInputStream(file);
+
+        // Read from the VirtualFile (instead of the java.io.File) because the VFS
+        // caches file contents on disk. This could matter if the original file resides
+        // on a network file system, for example.
+        return vFile.getInputStream();
       }
 
       @Nullable

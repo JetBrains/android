@@ -8,6 +8,7 @@ import org.jetbrains.jps.incremental.ModuleLevelBuilder;
 import org.jetbrains.jps.incremental.TargetBuilder;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ public class AndroidBuilderService extends BuilderService {
   @NotNull
   @Override
   public List<? extends ModuleLevelBuilder> createModuleLevelBuilders() {
-    return Arrays.asList(new AndroidSourceGeneratingBuilder());
+    return Collections.singletonList(new AndroidSourceGeneratingBuilder());
   }
 
   @NotNull

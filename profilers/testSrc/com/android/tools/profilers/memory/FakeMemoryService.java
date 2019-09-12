@@ -18,8 +18,6 @@ package com.android.tools.profilers.memory;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.Memory.AllocatedClass;
-import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.BatchAllocationContexts;
 import com.android.tools.profiler.proto.Memory.BatchAllocationEvents;
@@ -226,7 +224,8 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   public FakeMemoryService setExplicitAllocationsInfo(long startTime, long endTime, boolean legacy) {
-    myExplicitAllocationsInfo = AllocationsInfo.newBuilder().setStartTime(startTime).setEndTime(endTime).setLegacy(legacy).build();
+    myExplicitAllocationsInfo =
+      AllocationsInfo.newBuilder().setStartTime(startTime).setEndTime(endTime).setLegacy(legacy).setSuccess(true).build();
     return this;
   }
 

@@ -18,8 +18,6 @@ package com.android.tools.idea.tests.gui.newpsd
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.findSuggestionsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.items
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
@@ -35,7 +33,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
 class BuildVariantsTest {
 

@@ -56,8 +56,8 @@ public class ChooseProcessDialogFixture extends IdeaDialogFixture<DialogWrapper>
     return this;
   }
 
-  public ChooseProcessDialogFixture clickOk() {
+  public IdeFrameFixture clickOk() {
     GuiTests.findAndClickOkButton(this);
-    return this;
+    return myIdeFrameFixture;
   }
 }

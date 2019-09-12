@@ -41,7 +41,7 @@ import java.util.Locale;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.util.ui.UIUtil.getParentOfType;
-import static com.intellij.util.ui.tree.TreeUtil.selectFirstNode;
+import static com.intellij.util.ui.tree.TreeUtil.promiseSelectFirst;
 
 /**
  * Tree view displayed in the "Messages" window. The difference between this one and the original one is that this one displays messages as
@@ -182,7 +182,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
       });
     }
     else {
-      selectFirstNode(myTree);
+      promiseSelectFirst(myTree);
     }
   }
 

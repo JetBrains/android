@@ -61,7 +61,7 @@ public class SyncProjectActionTest extends PlatformTestCase {
     myAction.doPerform(myEvent, project);
 
     assertTrue(myPresentation.isEnabled());
-    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_SYNC_ACTION);
+    verify(mySyncInvoker).requestProjectSync(project, TRIGGER_USER_SYNC_ACTION);
     verify(buildVariantView).projectImportStarted();
   }
 

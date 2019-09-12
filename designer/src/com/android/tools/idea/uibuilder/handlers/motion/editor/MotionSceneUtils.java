@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
@@ -78,6 +79,24 @@ public class MotionSceneUtils {
 
     }
     return null;
+  }
+
+  /**
+   * Get access to a {@link MTag.TagWriter}.
+   *
+   * We may later add some business logic at this level.
+   */
+  public static MTag.TagWriter getTagWriter(@NotNull MTag tag) {
+    return tag.getTagWriter();
+  }
+
+  /**
+   * Get access to a {@link MTag.TagWriter} for creating a tag.
+   *
+   * We may later add some business logic at this level.
+   */
+  public static MTag.TagWriter getChildTagWriter(@NotNull MTag tag, @NotNull String newChildTag) {
+    return tag.getChildTagWriter(newChildTag);
   }
 
   public static boolean isUnderConstraintSet(NlComponent nlComponent) {

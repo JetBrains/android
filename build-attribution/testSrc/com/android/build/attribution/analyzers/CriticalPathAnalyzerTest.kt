@@ -17,6 +17,7 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -25,7 +26,7 @@ class CriticalPathAnalyzerTest {
 
   @Test
   fun testCriticalPathAnalyzer() {
-    val analyzer = CriticalPathAnalyzer(BuildAttributionWarningsFilter())
+    val analyzer = CriticalPathAnalyzer(BuildAttributionWarningsFilter(), TaskContainer())
 
     val pluginA = createBinaryPluginIdentifierStub("pluginA")
     val pluginB = createBinaryPluginIdentifierStub("pluginB")
@@ -53,7 +54,7 @@ class CriticalPathAnalyzerTest {
 
     // When the build is finished successfully and the analyzer is run
 
-    analyzer.onBuildSuccess(null)
+    analyzer.onBuildSuccess()
 
     // Then the analyzer should find this critical path
     // A(10)             D(20) -> F(10)
@@ -97,7 +98,7 @@ class CriticalPathAnalyzerTest {
 
     // When the build is finished successfully and the analyzer is run
 
-    analyzer.onBuildSuccess(null)
+    analyzer.onBuildSuccess()
 
     // Then the analyzer should find this critical path
     // A(10) -> B(5) -> D(25)

@@ -117,7 +117,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     assertEquals("LaunchActivity", computeDefaultActivity(myFacet, null));
 
     // make sure that the dom based approach to getting values works as well
-    final Manifest manifest = myFacet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(myFacet);
     assertEquals("LaunchActivity", DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest));
   }
 

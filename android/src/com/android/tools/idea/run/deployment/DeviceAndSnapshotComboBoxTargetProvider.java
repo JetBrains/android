@@ -133,6 +133,6 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
     ActionManager manager = ActionManager.getInstance();
     DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
 
-    return new DeviceAndSnapshotComboBoxTarget(action.getSelectedDevice(project), action.getSelectedSnapshot(project));
+    return new DeviceAndSnapshotComboBoxTarget(action.getSelectedDevice(project), null);
   }
 }

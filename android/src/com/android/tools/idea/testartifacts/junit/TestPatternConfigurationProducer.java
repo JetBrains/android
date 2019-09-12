@@ -52,9 +52,11 @@ public class TestPatternConfigurationProducer extends AbstractPatternBasedConfig
   }
 
   @Override
-  protected boolean setupConfigurationFromContext(AndroidJUnitConfiguration configuration,
-                                                  ConfigurationContext context,
-                                                  Ref<PsiElement> sourceElement) {
+  protected boolean setupConfigurationFromContext(
+    @NotNull AndroidJUnitConfiguration configuration,
+    @NotNull ConfigurationContext context,
+    @NotNull Ref<PsiElement> sourceElement) {
+
     LinkedHashSet<String> classes = new LinkedHashSet<String>();
     PsiElement element = checkPatterns(context, classes);
     if (element == null) {
@@ -83,7 +85,7 @@ public class TestPatternConfigurationProducer extends AbstractPatternBasedConfig
   }
 
   @Override
-  public boolean isConfigurationFromContext(AndroidJUnitConfiguration unitConfiguration, ConfigurationContext context) {
+  public boolean isConfigurationFromContext(@NotNull AndroidJUnitConfiguration unitConfiguration, @NotNull ConfigurationContext context) {
     if (JUnitConfiguration.TEST_PATTERN.equals(unitConfiguration.getPersistentData().TEST_OBJECT)) {
       Set<String> patterns = unitConfiguration.getPersistentData().getPatterns();
       if (isConfiguredFromContext(context, patterns)) {

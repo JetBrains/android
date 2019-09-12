@@ -16,8 +16,6 @@
 package com.android.tools.idea.structure.dialog
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
@@ -27,7 +25,6 @@ import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES
 import com.google.wireless.android.sdk.stats.PSDEvent
-import com.intellij.icons.AllIcons
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
@@ -283,7 +280,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     if (needsSync) {
       // NOTE: If the user applied the changes in the dialog and then cancelled the dialog, sync still needs to happen here since
       //       we do not perform a sync when applying changes on "apply".
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PSD_CHANGES)
+      GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_PSD_CHANGES)
     }
   }
 

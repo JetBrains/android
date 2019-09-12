@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.utils.XmlUtils.formatFloatAttribute;
+import static com.android.utils.XmlUtils.formatFloatValue;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.res.ResourceHelper;
@@ -95,7 +95,7 @@ public class VectorDrawableTransformer {
       if (originalAlphaValue != null) {
         opacity *= parseDoubleValue(originalAlphaValue, "");
       }
-      String alphaValue = formatFloatAttribute(opacity);
+      String alphaValue = formatFloatValue(opacity);
       if (alphaValue.equals("1")) {
         alphaValue = null; // No need to set the default opacity.
       }
@@ -176,10 +176,10 @@ public class VectorDrawableTransformer {
         }
       }
 
-      result.append(String.format("%s%sandroid:width=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(targetWidth)));
-      result.append(String.format("%s%sandroid:height=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(targetHeight)));
-      result.append(String.format("%s%sandroid:viewportWidth=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(viewportWidth)));
-      result.append(String.format("%s%sandroid:viewportHeight=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(viewportHeight)));
+      result.append(String.format("%s%sandroid:width=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetWidth)));
+      result.append(String.format("%s%sandroid:height=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetHeight)));
+      result.append(String.format("%s%sandroid:viewportWidth=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(viewportWidth)));
+      result.append(String.format("%s%sandroid:viewportHeight=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(viewportHeight)));
       if (tintValue != null) {
         result.append(String.format("%s%sandroid:tint=\"%s\"", lineSeparator, DOUBLE_INDENT, tintValue));
       }
@@ -201,42 +201,104 @@ public class VectorDrawableTransformer {
       result.append('>');
 
       String indent = "";
-      String translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatAttribute(x) : null;
-      String translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatAttribute(y) : null;
+      int copyDepth = 2;
+      startLine = parser.getLineNumber();
+      startColumn = parser.getColumnNumber();
+      String translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatValue(x) : null;
+      String translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatValue(y) : null;
       if (translateX != null || translateY != null) {
-        // Wrap the contents of the drawable into a translation group.
-        result.append(lineSeparator).append(INDENT);
-        result.append("<group");
-        String delimiter = " ";
-        if (translateX != null) {
-          result.append(String.format("%sandroid:translateX=\"%s\"", delimiter, translateX));
-          delimiter = lineSeparator + INDENT + DOUBLE_INDENT;
+        boolean reuseExistingGroup = false;
+        double existingTranslateX = 0;
+        double existingTranslateY = 0;
+        // Skip until next tag.
+        while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.START_TAG) {
+          // Just skip.
         }
-        if (translateY != null) {
-          result.append(String.format("%sandroid:translateY=\"%s\"", delimiter, translateY));
+        if (token == XmlPullParser.START_TAG && "group".equals(parser.getName()) && parser.getPrefix() == null &&
+            parser.getAttributeCount() <= 2) {
+          // Found existing group tag. Try to reuse it.
+          reuseExistingGroup = true;
+          for (int i = 0; i < parser.getAttributeCount(); i++) {
+            String prefix = parser.getAttributePrefix(i);
+            String name = parser.getAttributeName(i);
+            if (SdkConstants.ANDROID_NS_NAME.equals(prefix) && "translateX".equals(name)) {
+              existingTranslateX = parseDoubleValue(parser.getAttributeValue(i), "");
+              if (Double.isNaN(existingTranslateX)) {
+                reuseExistingGroup = false;
+              }
+            }
+            else if (SdkConstants.ANDROID_NS_NAME.equals(prefix) && "translateY".equals(name)) {
+              existingTranslateY = parseDoubleValue(parser.getAttributeValue(i), "");
+              if (Double.isNaN(existingTranslateY)) {
+                reuseExistingGroup = false;
+              }
+            }
+            else {
+              reuseExistingGroup = false;
+            }
+          }
         }
-        result.append('>');
-        indent = INDENT;
+
+        if (reuseExistingGroup) {
+          x += existingTranslateX;
+          y += existingTranslateY;
+          translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatValue(x) : null;
+          translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatValue(y) : null;
+        }
+
+        if (translateX != null || translateY != null) {
+          // Wrap the contents of the drawable into a translation group.
+          result.append(lineSeparator).append(INDENT);
+          result.append("<group");
+          String delimiter = " ";
+          if (translateX != null) {
+            result.append(String.format("%sandroid:translateX=\"%s\"", delimiter, translateX));
+            delimiter = lineSeparator + INDENT + DOUBLE_INDENT;
+          }
+          if (translateY != null) {
+            result.append(String.format("%sandroid:translateY=\"%s\"", delimiter, translateY));
+          }
+          result.append('>');
+          if (reuseExistingGroup) {
+            startLine = parser.getLineNumber();
+            startColumn = parser.getColumnNumber();
+            copyDepth++;
+          }
+          else {
+            indent = INDENT;
+          }
+        }
       }
 
       // Copy the contents before the </vector> tag.
-      startLine = parser.getLineNumber();
-      startColumn = parser.getColumnNumber();
-      while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.END_TAG || parser.getDepth() > 1) {
+      while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.END_TAG ||
+             parser.getDepth() >= copyDepth) {
         int endLineNumber = parser.getLineNumber();
         int endColumnNumber = parser.getColumnNumber();
         indenter.copy(startLine, startColumn, endLineNumber, endColumnNumber, token == XmlPullParser.CDSECT ? "" : indent, result);
         startLine = endLineNumber;
         startColumn = endColumnNumber;
       }
-      if (startColumn != 1) {
+      if (startColumn > INDENT.length() + 1) {
         result.append(lineSeparator);
+        startColumn = 1;
       }
       if (translateX != null || translateY != null) {
-        result.append(INDENT).append(String.format("</group>%s", lineSeparator));
+        if (startColumn == 1) {
+          result.append(INDENT);
+        }
+        result.append(String.format("</group>%s", lineSeparator));
       }
-      // Copy the closing </vector> tag and the remainder of the document.
-      while (parser.nextToken() != XmlPullParser.END_DOCUMENT) {
+      if (copyDepth > 2) {
+        // Skip the existing </group> tag.
+        while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.END_TAG ||
+               parser.getDepth() >= 2) {
+          startLine = parser.getLineNumber();
+          startColumn = parser.getColumnNumber();
+        }
+      }
+      // Copy the closing </group> tag, if the group is not reused, the </vector> tag and the remainder of the document.
+      for (; token != XmlPullParser.END_DOCUMENT; token = parser.nextToken()) {
         int endLineNumber = parser.getLineNumber();
         int endColumnNumber = parser.getColumnNumber();
         indenter.copy(startLine, startColumn, endLineNumber, endColumnNumber, "", result);

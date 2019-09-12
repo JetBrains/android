@@ -362,7 +362,7 @@ public class ResourceHelperTest extends AndroidTestCase {
   private void setProjectNamespace(ResourceNamespace appNs) {
     CommandProcessor.getInstance().runUndoTransparentAction(() -> ApplicationManager.getApplication().runWriteAction(() -> {
       myFacet.getConfiguration().setModel(TestAndroidModel.namespaced(myFacet));
-      myFacet.getManifest().getPackage().setValue(appNs.getPackageName());
+      Manifest.getMainManifest(myFacet).getPackage().setValue(appNs.getPackageName());
     }));
   }
 
@@ -415,7 +415,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertThat(ResourceHelper.getResourceNamespace(rClass)).isEqualTo(RES_AUTO);
 
     // Project manifest:
-    Manifest manifest = myFacet.getManifest();
+    Manifest manifest = Manifest.getMainManifest(myFacet);
     assertThat(ResourceHelper.getResourceNamespace(manifest.getXmlElement())).isEqualTo(RES_AUTO);
     assertThat(ResourceHelper.getResourceNamespace(manifest.getXmlElement().getContainingFile())).isEqualTo(RES_AUTO);
 

@@ -22,8 +22,6 @@ import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
@@ -36,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDevice extends Device {
-  static final ImmutableCollection<Snapshot> DEFAULT_SNAPSHOT_COLLECTION = ImmutableList.of(Snapshot.DEFAULT);
   private static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
   @Nullable
@@ -46,7 +43,7 @@ final class VirtualDevice extends Device {
   static VirtualDevice newConnectedDevice(@NotNull VirtualDevice virtualDevice,
                                           @NotNull ConnectedDevice connectedDevice,
                                           @NotNull KeyToConnectionTimeMap map) {
-    String key = virtualDevice.getKey();
+    Key key = virtualDevice.getKey();
 
     return new Builder()
       .setName(virtualDevice.getName())
@@ -82,7 +79,7 @@ final class VirtualDevice extends Device {
     }
 
     @NotNull
-    Builder setKey(@NotNull String key) {
+    Builder setKey(@NotNull Key key) {
       myKey = key;
       return this;
     }
@@ -129,11 +126,10 @@ final class VirtualDevice extends Device {
     return getConnectionTime() != null;
   }
 
-  @NotNull
+  @Nullable
   @Override
-  ImmutableCollection<Snapshot> getSnapshots() {
-    // TODO Delete Device::getSnapshots?
-    return mySnapshot == null ? ImmutableList.of() : ImmutableList.of(mySnapshot);
+  Snapshot getSnapshot() {
+    return mySnapshot;
   }
 
   @NotNull

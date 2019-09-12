@@ -120,20 +120,20 @@ class LegacyAllocationCommandHandler(val device: IDevice,
       val lastInfoBuilder = lastInfo.toBuilder()
       lastInfoBuilder.endTime = requestTime
       lastInfoBuilder.success = success
-      if (success) {
-        // Sends the MEMORY_ALLOC_TRACKING event
-        val allocEvent = Common.Event.newBuilder().apply {
-          pid = command.pid
-          kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
-          groupId = lastInfoBuilder.startTime
-          isEnded = true
-          timestamp = requestTime // Not exactly the current time, but it's close enough and saves a query to get the actual device time.
-          memoryAllocTracking = Memory.MemoryAllocTrackingData.newBuilder().apply {
-            info = lastInfoBuilder.build()
-          }.build()
+      // Sends the MEMORY_ALLOC_TRACKING event
+      val allocEvent = Common.Event.newBuilder().apply {
+        pid = command.pid
+        kind = Common.Event.Kind.MEMORY_ALLOC_TRACKING
+        groupId = lastInfoBuilder.startTime
+        isEnded = true
+        timestamp = requestTime // Not exactly the current time, but it's close enough and saves a query to get the actual device time.
+        memoryAllocTracking = Memory.MemoryAllocTrackingData.newBuilder().apply {
+          info = lastInfoBuilder.build()
         }.build()
-        eventQueue.offer(allocEvent)
+      }.build()
+      eventQueue.offer(allocEvent)
 
+      if (success) {
         statusBuilder.setStatus(Memory.TrackStatus.Status.SUCCESS).setStartTime(lastInfo.startTime)
       }
       else {

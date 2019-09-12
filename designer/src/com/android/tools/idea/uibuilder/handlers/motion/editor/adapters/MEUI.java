@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
@@ -52,6 +51,10 @@ public class MEUI {
 
   public static void invokeLater(Runnable runnable) {
     ApplicationManager.getApplication().invokeLater(runnable);
+  }
+
+  public static Color getBorderColor() {
+    return JBColor.border();
   }
 
   private static Color makeColor(String name, int rgb, int darkRGB) {

@@ -55,6 +55,8 @@ import java.util.List;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleClassLoaderTest extends AndroidTestCase {
@@ -222,7 +224,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testLibRClass() throws Exception {
-    VirtualFile defaultManifest = myFacet.getManifestFile();
+    VirtualFile defaultManifest = SourceProviderManager.getInstance(myFacet).getMainManifestFile();
 
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
     androidProject.setProjectType(AndroidProject.PROJECT_TYPE_LIBRARY);
@@ -237,7 +239,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(myFacet.requiresAndroidModel()).isTrue();
 
     WriteAction.run(() -> {
-      File sourceProviderManifestFile = myFacet.getMainSourceProvider().getManifestFile();
+      File sourceProviderManifestFile = SourceProviderManager.getInstance(myFacet).getMainSourceProvider().getManifestFile();
       FileUtil.createIfDoesntExist(sourceProviderManifestFile);
       VirtualFile manifestFile = VfsUtil.findFileByIoFile(sourceProviderManifestFile, true);
       assertThat(manifestFile).named("Manifest virtual file").isNotNull();
@@ -245,7 +247,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
       assertNotNull(defaultManifestContent);
       manifestFile.setBinaryContent(defaultManifestContent);
     });
-    assertThat(myFacet.getManifest()).isNotNull();
+    assertThat(Manifest.getMainManifest(myFacet)).isNotNull();
 
     ModuleClassLoader loader = ModuleClassLoader.get(new LayoutLibrary() {}, myModule);
     loader.loadClass("p1.p2.R");

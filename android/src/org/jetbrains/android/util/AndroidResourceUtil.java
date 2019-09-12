@@ -145,6 +145,7 @@ import org.jetbrains.android.augment.ManifestClass;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
@@ -277,7 +278,7 @@ public class AndroidResourceUtil {
   private static Collection<? extends PsiClass> findRJavaClasses(@NotNull AndroidFacet facet, boolean onlyInOwnPackages) {
     final Module module = facet.getModule();
     final Project project = module.getProject();
-    if (facet.getManifest() == null) {
+    if (Manifest.getMainManifest(facet) == null) {
       return Collections.emptySet();
     }
 

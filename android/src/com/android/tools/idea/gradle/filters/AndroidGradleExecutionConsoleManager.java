@@ -73,7 +73,7 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
       // Create a hyperlink that when clicked invoking Gradle Sync with the given command line options.
       return (project) -> {
         project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, options.toArray(new String[0]));
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS);
+        GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS);
       };
     }
   }

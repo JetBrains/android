@@ -112,7 +112,7 @@ public class ViewLoader {
         return null;
       }
 
-      final Manifest manifest = facet.getManifest();
+      final Manifest manifest = Manifest.getMainManifest(facet);
       if (manifest == null) {
         return null;
       }

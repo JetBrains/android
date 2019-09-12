@@ -28,13 +28,14 @@ final class Devices {
     return getText(device, devices, null);
   }
 
+  // TODO Delete this overload and use the snapshot in the device. Do not display it if it's null or the default.
   @NotNull
   static String getText(@NotNull Device device, @NotNull Collection<Device> devices, @Nullable Snapshot snapshot) {
-    String key = device.getKey();
+    String key = device.getKey().getDeviceKey();
     String name = device.getName();
 
     boolean match = devices.stream()
-      .filter(d -> !d.getKey().equals(key))
+      .filter(d -> !d.getKey().getDeviceKey().equals(key))
       .map(Device::getName)
       .anyMatch(name::equals);
 

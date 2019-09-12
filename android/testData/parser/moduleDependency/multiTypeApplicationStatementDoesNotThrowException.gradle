@@ -3,3 +3,4 @@ dependencies {
     exclude module: 'module1'
     exclude module: 'module2'
   }
+}
