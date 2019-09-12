@@ -21,7 +21,7 @@ import com.android.resources.ResourceType
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider
 import com.intellij.openapi.module.ModuleUtil
-import org.jetbrains.android.AndroidGotoRelatedLineMarkerProvider
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
@@ -35,7 +35,7 @@ class KotlinAndroidResourceQuickFixProvider : UnresolvedReferenceQuickFixProvide
         val expression = ref.expression
         val contextModule = ModuleUtil.findModuleForPsiElement(expression) ?: return
         val facet = AndroidFacet.getInstance(contextModule) ?: return
-        val manifest = facet.manifest ?: return
+        val manifest = Manifest.getMainManifest(facet) ?: return
         manifest.`package`.value ?: return
         val contextFile = expression.containingFile ?: return
 

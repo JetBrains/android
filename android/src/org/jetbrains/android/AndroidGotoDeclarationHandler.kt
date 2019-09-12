@@ -18,6 +18,7 @@ import com.intellij.psi.impl.compiled.ClsFieldImpl
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.augment.ManifestInnerClass
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
@@ -75,7 +76,7 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
                                       fieldName: String,
                                       facet: AndroidFacet): Array<PsiElement> {
     val result = ArrayList<PsiElement>()
-    val manifest = facet.manifest ?: return PsiElement.EMPTY_ARRAY
+    val manifest = Manifest.getMainManifest(facet) ?: return PsiElement.EMPTY_ARRAY
 
     val list: List<ManifestElementWithRequiredName> = when (nestedClassName) {
       "permission" ->  manifest.permissions

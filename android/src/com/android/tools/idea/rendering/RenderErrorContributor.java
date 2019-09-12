@@ -715,7 +715,7 @@ public class RenderErrorContributor {
       }
 
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      Manifest manifest = facet != null ? facet.getManifest() : null;
+      Manifest manifest = facet != null ? Manifest.getMainManifest(facet) : null;
       Application application = manifest != null ? manifest.getApplication() : null;
       if (application == null) {
         return;

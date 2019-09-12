@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.annotations.NotNull;
 
 public class TagToClassMapperImplTest extends AndroidTestCase {
@@ -104,7 +105,7 @@ public class TagToClassMapperImplTest extends AndroidTestCase {
     new IdeComponents(getProject()).replaceModuleService(myModule, TagToClassMapper.class, countingMapper);
 
     // Use a min API level that affects short names, to make sure it's used in up-to-date checks. See ResourceHelper.isViewPackageNeeded.
-    runWriteCommandAction(getProject(), () -> myFacet.getManifest().addUsesSdk().getMinSdkVersion().setValue("21"));
+    runWriteCommandAction(getProject(), () -> Manifest.getMainManifest(myFacet).addUsesSdk().getMinSdkVersion().setValue("21"));
 
     countingMapper.getClassMap(SdkConstants.CLASS_VIEW);
     assertThat(countingMapper.fullRebuilds.longValue()).named("Number of full rebuilds").isEqualTo(1);

@@ -94,6 +94,7 @@ class CollapsibleLabelPanel(
     isVisible = model.visible
     label.isVisible = isVisible
     label.text = if (model.showEllipses) valueWithTrailingEllipsis else valueWithoutEllipsis
+    label.foreground = if (model.enabled) UIUtil.getLabelForeground() else UIUtil.getLabelDisabledForeground()
     button.icon = model.icon
     revalidateParent?.revalidate()
     revalidateParent?.repaint()

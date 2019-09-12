@@ -66,7 +66,7 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here.
 public class LauncherIconGenerator extends IconGenerator {
   public static final Color DEFAULT_FOREGROUND_COLOR = Color.BLACK;
-  public static final Color DEFAULT_BACKGROUND_COLOR = new Color(0x26A69A);
+  public static final Color DEFAULT_BACKGROUND_COLOR = new Color(0x3DDC84);
   public static final Rectangle IMAGE_SIZE_FULL_BLEED_DP = new Rectangle(0, 0, 108, 108);
   public static final Dimension SIZE_FULL_BLEED_DP = IMAGE_SIZE_FULL_BLEED_DP.getSize();
   private static final Rectangle IMAGE_SIZE_SAFE_ZONE_DP = new Rectangle(0, 0, 66, 66);
@@ -351,7 +351,7 @@ public class LauncherIconGenerator extends IconGenerator {
       iconOptions.density = Density.ANYDPI;
       iconOptions.generatePlayStoreIcon = false;
       iconOptions.iconFolderKind = IconFolderKind.MIPMAP;
-      iconOptions.apiVersion = 26; // Temporary until http://b/62316340 is fixed.
+      iconOptions.apiVersion = 26; // TODO: Remove since http://b/79676805 is fixed.
 
       tasks.add(() -> {
         String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
@@ -361,13 +361,15 @@ public class LauncherIconGenerator extends IconGenerator {
                                         xmlAdaptiveIcon);
       });
 
-      tasks.add(() -> {
-        String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
-        return new GeneratedXmlResource(name + "_round",
-                                        new PathString(getIconPath(iconOptions, name + "_round")),
-                                        IconCategory.XML_RESOURCE,
-                                        xmlAdaptiveIcon);
-      });
+      if (iconOptions.generateRoundIcon) {
+        tasks.add(() -> {
+          String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
+          return new GeneratedXmlResource(name + "_round",
+                                          new PathString(getIconPath(iconOptions, name + "_round")),
+                                          IconCategory.XML_RESOURCE,
+                                          xmlAdaptiveIcon);
+        });
+      }
     }
 
     if (options.foregroundImage != null && options.foregroundImage.isDrawable()) {

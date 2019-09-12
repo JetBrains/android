@@ -37,7 +37,10 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public class GenerateMigrationWizardSelectDestinationStep implements Step {
+/**
+ * Step of the {@link GenerateMigrationWizard} for selecting the destination folders for the new Migration class and test
+ */
+public class GenerateMigrationWizardSelectDestinationStep implements GenerateMigrationWizardStep {
   private static final String TARGET_PACKAGE_LABEL = "Choose target package package";
   private static final String MIGRATION_CLASS_COMBO_BOX_LABEL = "Choose destination directory for the migration class";
   private static final String MIGRATION_TEST_COMBO_BOX_LABEL = "Choose destination directory for the migration test";
@@ -174,5 +177,10 @@ public class GenerateMigrationWizardSelectDestinationStep implements Step {
     directoriesPanel.add(createTargetDirectoryPanel(migrationTestDirectoryComboBox, MIGRATION_TEST_COMBO_BOX_LABEL), BorderLayout.SOUTH);
 
     centerPanel.add(directoriesPanel, BorderLayout.SOUTH);
+  }
+
+  @Override
+  public boolean shouldBeSkipped() {
+    return false;
   }
 }

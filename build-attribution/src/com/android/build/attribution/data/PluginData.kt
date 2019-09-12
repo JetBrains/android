@@ -26,13 +26,13 @@ data class PluginData(val pluginType: PluginType, val displayName: String) {
     SCRIPT
   }
 
-  constructor(pluginIdentifier: PluginIdentifier?) : this(getPluginType(pluginIdentifier), pluginIdentifier?.displayName ?: "")
+  constructor(pluginIdentifier: PluginIdentifier?) : this(getPluginType(pluginIdentifier), getPluginName(pluginIdentifier))
 
   fun equals(pluginIdentifier: PluginIdentifier?): Boolean {
     if (pluginIdentifier == null) {
       return pluginType == PluginType.UNKNOWN
     }
-    return pluginType == getPluginType(pluginIdentifier) && displayName == pluginIdentifier.displayName
+    return pluginType == getPluginType(pluginIdentifier) && displayName == getPluginName(pluginIdentifier)
   }
 
   override fun toString(): String {
@@ -50,6 +50,16 @@ data class PluginData(val pluginType: PluginType, val displayName: String) {
         is ScriptPluginIdentifier -> PluginType.SCRIPT
         else -> PluginType.UNKNOWN
       }
+    }
+
+    private fun getPluginName(pluginIdentifier: PluginIdentifier?): String {
+      if (pluginIdentifier == null) {
+        return ""
+      }
+      if (pluginIdentifier.displayName.startsWith("com.android.internal.")) {
+        return pluginIdentifier.displayName.replace("com.android.internal.", "com.android.")
+      }
+      return pluginIdentifier.displayName
     }
   }
 }

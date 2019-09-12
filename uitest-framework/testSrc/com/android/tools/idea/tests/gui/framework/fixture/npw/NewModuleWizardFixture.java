@@ -105,7 +105,7 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
 
   @NotNull
   public IdeFrameFixture clickFinish() {
-    super.clickFinish(Wait.seconds(5));
+    super.clickFinish(Wait.seconds(10));
     GuiTests.waitForProjectIndexingToFinish(myIdeFrameFixture.getProject());
 
     return myIdeFrameFixture;

@@ -270,7 +270,7 @@ public class MakeBeforeRunTaskProviderTest extends PlatformTestCase {
     // Invoke method to test.
     provider.runGradleSyncIfNeeded(myRunConfiguration, mock(DataContext.class));
     // Gradle sync should not be invoked.
-    verify(syncInvoker, never()).requestProjectSync(eq(myProject), any(), any());
+    verify(syncInvoker, never()).requestProjectSync(eq(myProject), any(GradleSyncInvoker.Request.class), any());
   }
 
   public void testRunGradleSyncWithPostBuildSyncNotSupported() {
@@ -288,6 +288,6 @@ public class MakeBeforeRunTaskProviderTest extends PlatformTestCase {
     // Invoke method to test.
     provider.runGradleSyncIfNeeded(myRunConfiguration, mock(DataContext.class));
     // Gradle sync should be invoked to make sure Android models are up-to-date.
-    verify(syncInvoker, times(1)).requestProjectSync(eq(myProject), any(), any());
+    verify(syncInvoker, times(1)).requestProjectSync(eq(myProject), any(GradleSyncInvoker.Request.class), any());
   }
 }

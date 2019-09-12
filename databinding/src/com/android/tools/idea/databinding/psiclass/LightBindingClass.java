@@ -21,11 +21,11 @@ import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.databinding.BindingLayout;
-import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
-import com.android.tools.idea.databinding.index.ViewIdData;
 import com.android.tools.idea.databinding.index.ImportData;
 import com.android.tools.idea.databinding.index.VariableData;
+import com.android.tools.idea.databinding.index.ViewIdData;
+import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.highlighter.JavaFileType;
@@ -297,7 +297,7 @@ public class LightBindingClass extends AndroidLightClassBase {
     if (variableType == null) {
       return;
     }
-    PsiType type = LayoutBindingTypeUtil.parsePsiType(variableType, myConfig.getFacet(), this);
+    PsiType type = LayoutBindingTypeUtil.parsePsiType(variableType, xmlTag);
     if (type == null) {
       return;
     }
@@ -387,7 +387,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   @Nullable
   private PsiField createPsiField(@NotNull ViewIdData viewIdData) {
     String name = DataBindingUtil.convertToJavaFieldName(viewIdData.getId());
-    PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(viewIdData, myConfig.getFacet());
+    PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(viewIdData, this);
     if (type == null) {
       return null;
     }

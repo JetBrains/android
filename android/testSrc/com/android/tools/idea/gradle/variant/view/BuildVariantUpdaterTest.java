@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -286,7 +287,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
         syncListener.syncSucceeded(myProject);
         return null;
       }
-    }).when(syncInvoker).requestProjectSyncAndSourceGeneration(eq(myProject), any(), any());
+    }).when(syncInvoker).requestProjectSync(eq(myProject), any(GradleSyncStats.Trigger.class), any());
 
     String variantToSelect = "release";
     when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
@@ -295,7 +296,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(syncInvoker).requestProjectSyncAndSourceGeneration(eq(myProject), any(), any());
+    verify(syncInvoker).requestProjectSync(eq(myProject), any(GradleSyncStats.Trigger.class), any());
     verify(myVariantSelectionChangeListener).selectionChanged();
 
     // Verify that module setup steps are not being called.

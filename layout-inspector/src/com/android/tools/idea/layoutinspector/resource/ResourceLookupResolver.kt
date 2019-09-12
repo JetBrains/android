@@ -66,6 +66,7 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil
 import javax.swing.Icon
@@ -78,7 +79,7 @@ import javax.swing.Icon
 fun findFacetFromPackage(project: Project, packageName: String): AndroidFacet? {
   return ModuleManager.getInstance(project).modules
     .mapNotNull { AndroidFacet.getInstance(it) }
-    .firstOrNull { it.manifest?.`package`?.value == packageName }
+    .firstOrNull { Manifest.getMainManifest(it)?.`package`?.value == packageName }
 }
 
 /**

@@ -151,7 +151,7 @@ public final class ConstraintComponentUtilities {
 
   private static final HashMap<String, String> ourLTRConvertedAttributes = new HashMap<>();
   private static final HashMap<Pair<AnchorTarget.Type, AnchorTarget.Type>, String> ourLTRConstraintAnchorsToMargin = new HashMap<>();
-  private static final HashMap<String, AnchorTarget.Type> ourLTRMapSideToTargetAnchors = new HashMap<>();
+  public static final HashMap<String, AnchorTarget.Type> ourLTRMapSideToTargetAnchors = new HashMap<>();
 
   static {
     ourLTRConvertedAttributes.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_START_TO_START_OF);
@@ -179,7 +179,7 @@ public final class ConstraintComponentUtilities {
 
   private static final HashMap<String, String> ourRTLConvertedAttributes = new HashMap<>();
   private static final HashMap<Pair<AnchorTarget.Type, AnchorTarget.Type>, String> ourRTLConstraintAnchorsToMargin = new HashMap<>();
-  private static final HashMap<String, AnchorTarget.Type> ourRTLMapSideToTargetAnchors = new HashMap<>();
+  public static final HashMap<String, AnchorTarget.Type> ourRTLMapSideToTargetAnchors = new HashMap<>();
 
   static {
     ourRTLConvertedAttributes.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_END_TO_END_OF);

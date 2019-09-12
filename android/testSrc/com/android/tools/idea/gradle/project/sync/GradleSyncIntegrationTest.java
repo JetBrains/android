@@ -793,7 +793,7 @@ b/137231583 */
     // Verify that FinishBuildEvent was created only once.
     List<BuildEvent> buildEvents = buildEventCaptor.getAllValues().stream().filter(FinishBuildEvent.class::isInstance).collect(toList());
     assertThat(buildEvents).hasSize(1);
-    assertThat(buildEvents.get(0).getMessage()).isEqualTo("synced successfully");
+    assertThat(buildEvents.get(0).getMessage()).isEqualTo("successful");
   }
 
   public void testContentRootDataNodeWithBuildSrcModule() throws Exception {

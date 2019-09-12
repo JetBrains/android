@@ -21,6 +21,7 @@ import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.findDependenciesWithResources
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.android.tools.idea.res.ModuleRClass.SourceSet
 import com.android.tools.idea.res.ModuleRClass.Transitivity
@@ -151,11 +152,23 @@ class ProjectLightResourceClassService(
       result.add(getAarRClasses(aarLibrary))
     }
 
-    return result.flatMap { (namespaced, nonNamespaced, testNonNamespaced) ->
+    return result.flatMap { resourceClasses ->
       when (namespacing) {
-        AaptOptions.Namespacing.REQUIRED -> listOf(namespaced)
+        AaptOptions.Namespacing.REQUIRED -> {
+          if (includeTestClasses) {
+            listOf(resourceClasses.namespaced, resourceClasses.testNamespaced)
+          }
+          else {
+            listOf(resourceClasses.namespaced)
+          }
+        }
         AaptOptions.Namespacing.DISABLED -> {
-          if (includeTestClasses) listOf(nonNamespaced, testNonNamespaced) else listOf(nonNamespaced)
+          if (includeTestClasses) {
+            listOf(resourceClasses.nonNamespaced, resourceClasses.testNonNamespaced)
+          }
+          else {
+            listOf(resourceClasses.nonNamespaced)
+          }
         }
       }
     }.filterNotNull()
@@ -190,10 +203,22 @@ class ProjectLightResourceClassService(
       val modifier = if (facet.configuration.isLibraryProject) FieldModifier.NON_FINAL else FieldModifier.FINAL
 
       ResourceClasses(
+        nonNamespaced = ModuleRClass(
+          facet,
+          psiManager,
+          SourceSet.MAIN,
+          if (StudioFlags.TRANSITIVE_R_CLASSES.get()) Transitivity.TRANSITIVE else Transitivity.NON_TRANSITIVE,
+          modifier
+        ),
+        testNonNamespaced = ModuleRClass(
+          facet,
+          psiManager,
+          SourceSet.TEST,
+          if (StudioFlags.TRANSITIVE_R_CLASSES.get()) Transitivity.TRANSITIVE else Transitivity.NON_TRANSITIVE,
+          modifier
+        ),
         namespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, Transitivity.NON_TRANSITIVE, modifier),
-        nonNamespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, Transitivity.TRANSITIVE, modifier),
-        testNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, Transitivity.NON_TRANSITIVE, modifier),
-        testNonNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, Transitivity.TRANSITIVE, modifier)
+        testNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, Transitivity.NON_TRANSITIVE, modifier)
       )
     }
   }

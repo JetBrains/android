@@ -52,8 +52,10 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
       val targetPackage = getDefaultTargetPackage(databaseClassQualifiedName, project) ?: return
       val migrationClassDirectory = getMigrationDefaultTargetDirectory(project, module) ?: return
       val migrationTestDirectory = getTestDefaultTargetDirectory(project, module) ?: return
-      val migrationWizard = GenerateMigrationWizard(project, targetPackage, migrationClassDirectory, migrationTestDirectory)
-
+      val oldSchema = SchemaBundle.deserialize(files[0].inputStream) ?: return
+      val newSchema = SchemaBundle.deserialize(files[1].inputStream) ?: return
+      val databaseUpdate = DatabaseUpdate(oldSchema.database, newSchema.database)
+      val migrationWizard = GenerateMigrationWizard(project, targetPackage, migrationClassDirectory, migrationTestDirectory, databaseUpdate)
 
       if (!ApplicationManager.getApplication().isUnitTestMode) {
         if (!migrationWizard.showAndGet()) {
@@ -61,14 +63,12 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
         }
       }
 
-      val oldSchema = SchemaBundle.deserialize(files[0].inputStream)
-      val newSchema = SchemaBundle.deserialize(files[1].inputStream)
+
       WriteCommandAction.runWriteCommandAction(project) {
         try {
           val javaMigrationClassGenerator = JavaMigrationClassGenerator(project)
-          val databaseUpdate = DatabaseUpdate(oldSchema.database, newSchema.database)
           val migrationClass = javaMigrationClassGenerator.createMigrationClass(migrationWizard.migrationClassDirectory,
-                                                                                databaseUpdate)
+                                                                                migrationWizard.userReviewedDatabaseUpdate)
           if (!migrationClass.qualifiedName.isNullOrEmpty()) {
             val javaMigrationTestGenerator = JavaMigrationTestGenerator(project)
             javaMigrationTestGenerator.createMigrationTest(migrationWizard.migrationTestDirectory,

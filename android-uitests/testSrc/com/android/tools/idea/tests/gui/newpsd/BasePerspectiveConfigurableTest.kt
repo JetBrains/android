@@ -18,8 +18,6 @@ package com.android.tools.idea.tests.gui.newpsd
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectBuildVariantsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
@@ -41,7 +39,6 @@ private const val APP_MINIMIZED_LIST_LABEL = "<html><body>:<B>app</B></body></ht
 private const val MY_LIBRARY_LABEL = "mylibrary"
 private const val MY_LIBRARY_MINIMIZED_LIST_LABEL = "<html><body>:<B>mylibrary</B></body></html>"
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
 class BasePerspectiveConfigurableTest {
 

@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
+import com.android.sdklib.AndroidVersion.VersionCodes.P
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
@@ -93,6 +94,7 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_TEST_OUT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
 import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Iterables
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -106,6 +108,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
+import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.jps.model.java.JpsJavaSdkType
@@ -179,9 +182,25 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     myTemplateValues[ATTR_IS_NEW_MODULE] = true // Android Modules are called Gradle Projects
     myTemplateValues[ATTR_THEME_EXISTS] = true // New modules always have a theme (unless its a library, but it will have no activity)
 
+    setBuildAttributes(buildVersion, project, isNewProject)
+    addGradleVersions(project, isNewProject)
+    addKotlinVersion()
+    addAndroidxSupport(project, isNewProject)
+    return this
+  }
+
+  @VisibleForTesting
+  fun setBuildAttributes(buildVersion: AndroidVersionsInfo.VersionItem, project: Project?, isNewProject: Boolean) {
     myTemplateValues[ATTR_MIN_API_LEVEL] = buildVersion.minApiLevel
     myTemplateValues[ATTR_MIN_API] = buildVersion.minApiLevelStr
-    myTemplateValues[ATTR_BUILD_API] = buildVersion.buildApiLevel
+    if (project.hasAndroidxSupport(isNewProject)) {
+      myTemplateValues[ATTR_BUILD_API] = buildVersion.buildApiLevel
+    }
+    else {
+      // The highest supported/recommended appCompact version is P(28)
+      myTemplateValues[ATTR_BUILD_API] = buildVersion.buildApiLevel.coerceAtMost(P)
+    }
+
     myTemplateValues[ATTR_BUILD_API_STRING] = buildVersion.buildApiLevelStr
     myTemplateValues[ATTR_TARGET_API] = buildVersion.targetApiLevel
     myTemplateValues[ATTR_TARGET_API_STRING] = buildVersion.targetApiLevelStr
@@ -195,10 +214,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
         addBuildToolVersion(project, isNewProject, info.revision)
       }
     }
-    addGradleVersions(project, isNewProject)
-    addKotlinVersion()
-    addAndroidxSupport(project, isNewProject)
-    return this
   }
 
   // We can't JUST look at the overall project level language level, since  Gradle sync appears not to sync the overall project level;
@@ -312,7 +327,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     val androidFacet = AndroidFacet.getInstance(baseFeature)!!
     val gradleFacet = GradleFacet.getInstance(baseFeature)!!
     val rootFolder = AndroidRootUtil.findModuleRootFolderPath(baseFeature)
-    val resDirectories = androidFacet.mainSourceProvider.resDirectories
+    val resDirectories = SourceProviderManager.getInstance(androidFacet).mainSourceProvider.resDirectories
     assert(!resDirectories.isEmpty())
     val baseModuleResourceRoot = resDirectories.iterator().next() // Put the new resources in any of the available res directories
 
@@ -349,9 +364,12 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   private fun addAndroidxSupport(project: Project?, isNewProject: Boolean) {
-    // Note: New projects are always created with androidx dependencies
-    myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project == null || isNewProject || project.isAndroidx()
+    myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project.hasAndroidxSupport(isNewProject)
   }
+
+  // Note: New projects are always created with androidx dependencies
+  private fun Project?.hasAndroidxSupport(isNewProject: Boolean) : Boolean =
+    this == null || isNewProject || this.isAndroidx()
 
   private fun addDebugKeyStore(templateValues: MutableMap<String, Any>, facet: AndroidFacet?) {
     try {

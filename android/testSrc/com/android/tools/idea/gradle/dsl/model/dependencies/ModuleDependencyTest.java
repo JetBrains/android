@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_ADD_CLOSURE_TO_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
@@ -38,6 +39,10 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.intellij.psi.PsiElement;
 import java.io.IOException;
 import java.util.List;
@@ -478,6 +483,39 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     else if(myLanguageName.equals("Kotlin")){
       assertTrue(((KtFile)psiFile).getScript().getBlockExpression().getFirstChild().getNode().getElementType() == BLOCK_COMMENT);
     }
+  }
+
+  @Test
+  public void testAddClosureBlockToDependency() throws IOException {
+    writeToBuildFile(MODULE_DEPENDENCY_ADD_CLOSURE_TO_DEPENDENCY);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<DependencyModel> dependencies = buildModel.dependencies().all();
+    List<ModuleDependencyModel> modules = buildModel.dependencies().modules();
+
+    assertEquals(modules.size(), 1);
+    assertThat(modules.get(0).configurationName()).isEqualTo("testImplementation");
+    assertThat(modules.get(0).path().toString()).isEqualTo(":");
+
+    DependencyModelImpl testDependency = ((DependencyModelImpl)dependencies.get(0));
+
+    GradleDslClosure excludeBlock = new GradleDslClosure(testDependency.getDslElement(), null, testDependency.getDslElement().getNameElement());
+    GradleDslMethodCall exclude = new GradleDslMethodCall(excludeBlock, GradleNameElement.fake("exclude"), "exclude");
+    GradleDslLiteral moduleValue = new GradleDslLiteral(exclude, GradleNameElement.fake("module"));
+    moduleValue.setValue("module1");
+    exclude.addNewArgument(moduleValue);
+    excludeBlock.addNewElementAt(0, exclude);
+    testDependency.getDslElement().setNewClosureElement(excludeBlock);
+
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    modules = buildModel.dependencies().modules();
+    assertEquals(modules.size(), 1);
+    assertThat(modules.get(0).configurationName()).isEqualTo("testImplementation");
+    assertNotNull(((ModuleDependencyModelImpl)modules.get(0)).getDslElement().getClosureElement());
   }
 
   private static void assertMatches(@NotNull ExpectedModuleDependency expected, @NotNull ModuleDependencyModel actual) {

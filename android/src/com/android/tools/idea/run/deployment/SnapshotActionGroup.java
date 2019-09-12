@@ -19,39 +19,48 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class SnapshotActionGroup extends ActionGroup {
-  private final Device myDevice;
+  @NotNull
+  private final Collection<Device> myDevices;
+
+  @NotNull
   private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
+
+  @NotNull
   private final Project myProject;
 
-  SnapshotActionGroup(@NotNull VirtualDevice device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction, @NotNull Project project) {
-    super(device.getName(), null, device.getIcon());
+  SnapshotActionGroup(@NotNull List<Device> devices, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction, @NotNull Project project) {
+    super(getProperty(devices, Device::getName), null, getProperty(devices, Device::getIcon));
     setPopup(true);
 
-    myDevice = device;
+    myDevices = devices;
     myComboBoxAction = comboBoxAction;
     myProject = project;
   }
 
   @NotNull
-  @Override
-  public AnAction[] getChildren(@Nullable AnActionEvent event) {
-    return myDevice.getSnapshots().stream()
-      .map(this::newSelectDeviceAndSnapshotAction)
-      .toArray(AnAction[]::new);
+  private static <P> P getProperty(@NotNull List<Device> devices, @NotNull Function<Device, P> accessor) {
+    P property = accessor.apply(devices.get(0));
+
+    assert devices.subList(1, devices.size()).stream()
+      .map(accessor)
+      .allMatch(p -> p.equals(property));
+
+    return property;
   }
 
   @NotNull
-  private AnAction newSelectDeviceAndSnapshotAction(@NotNull Snapshot snapshot) {
-    return new SelectDeviceAndSnapshotAction.Builder()
-      .setComboBoxAction(myComboBoxAction)
-      .setProject(myProject)
-      .setDevice(myDevice)
-      .setSnapshot(snapshot)
-      .build();
+  @Override
+  public AnAction[] getChildren(@Nullable AnActionEvent event) {
+    return myDevices.stream()
+      .map(device -> SelectDeviceAction.newSnapshotActionGroupChild(myComboBoxAction, myProject, device))
+      .toArray(AnAction[]::new);
   }
 
   @Override
@@ -61,12 +70,12 @@ final class SnapshotActionGroup extends ActionGroup {
     }
 
     SnapshotActionGroup group = (SnapshotActionGroup)object;
-    return myDevice.equals(group.myDevice) && myComboBoxAction.equals(group.myComboBoxAction) && myProject.equals(group.myProject);
+    return myDevices.equals(group.myDevices) && myComboBoxAction.equals(group.myComboBoxAction) && myProject.equals(group.myProject);
   }
 
   @Override
   public int hashCode() {
-    int hashCode = myDevice.hashCode();
+    int hashCode = myDevices.hashCode();
 
     hashCode = 31 * hashCode + myComboBoxAction.hashCode();
     hashCode = 31 * hashCode + myProject.hashCode();

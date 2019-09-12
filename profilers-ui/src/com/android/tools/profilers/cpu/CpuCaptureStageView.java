@@ -24,17 +24,19 @@ import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.components.JBScrollPane;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.HashMap;
 import java.util.Map;
-import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
-import com.intellij.ui.JBSplitter;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import javax.swing.ScrollPaneConstants;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -75,7 +77,9 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private JComponent createAnalyzingComponents() {
     JPanel container = new JPanel(new BorderLayout());
     container.add(new CpuCaptureMinimapView(getStage().getMinimapModel()).getComponent(), BorderLayout.NORTH);
-    container.add(myTrackGroupList, BorderLayout.CENTER);
+    container.add(
+      new JBScrollPane(myTrackGroupList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER),
+      BorderLayout.CENTER);
     mySplitter.setFirstComponent(container);
     mySplitter.setSecondComponent(myAnalysisPanel.getComponent());
     return mySplitter;

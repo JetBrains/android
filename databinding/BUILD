@@ -69,7 +69,9 @@ iml_module(
     test_coverage = True,
     # keep sorted
     test_data = [
+        ":testapp_deps.zip",
         "//prebuilts/studio/jdk",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
@@ -80,6 +82,7 @@ iml_module(
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/templates",
         "//tools/data-binding:data_binding_runtime.zip",
+        "//tools/data-binding:integration-test-projects",
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
@@ -133,5 +136,25 @@ iml_module(
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+    ],
+)
+
+load("//tools/base/bazel:maven.bzl", "maven_repo")
+
+maven_repo(
+    # Dependencies needed for
+    # tools/data-binding/integration-tests/TestApp
+    name = "testapp_deps",
+    # keep sorted
+    artifacts = [
+        "//prebuilts/tools/common/m2/repository/com/android/support/test/espresso/espresso-core/3.0.1:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/test/espresso/espresso-idling-resource/3.0.1:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/test/rules/1.0.1:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/test/runner/1.0.1:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/dexmaker/dexmaker-mockito/1.2:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/dexmaker/dexmaker/1.2:jar",
+        "//prebuilts/tools/common/m2/repository/javax/annotation/jsr250-api/1.0:jar",
+        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/1.9.5:jar",
+        "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/1.0:jar",
     ],
 )

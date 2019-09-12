@@ -84,7 +84,6 @@ public class MotionDefaultPropertyValueProvider implements DefaultPropertyValueP
       return null;
     }
     return (MotionAttributes)component.getClientProperty(MotionSceneUtils.MOTION_LAYOUT_PROPERTIES);
-
   }
 
   @Override

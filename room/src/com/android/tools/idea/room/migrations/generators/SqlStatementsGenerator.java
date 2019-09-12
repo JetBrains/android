@@ -147,20 +147,29 @@ public class SqlStatementsGenerator {
   @NotNull
   private static List<String> getComplexTableUpdate(@NotNull EntityUpdate entityUpdate) {
     List<String> updateStatements = new ArrayList<>();
-    String oldTableName = !entityUpdate.shouldRenameTable() ? entityUpdate.getNewTableName() : entityUpdate.getOldTableName();
-    String newTableName = !entityUpdate.shouldRenameTable() ? String.format(TMP_TABLE_NAME_TEMPLATE, oldTableName) : entityUpdate.getNewTableName() ;
     String dataSource = getDataSourceForComplexUpdate(entityUpdate);
     Map<String, String> columnNameToColumnValue = getColumnNameToColumnValueMapping(entityUpdate);
 
-    updateStatements.add(getCreateTableStatement(newTableName, entityUpdate.getNewState()));
-    updateStatements.add(getInsertIntoTableStatement(newTableName,
-                                                     new ArrayList<>(columnNameToColumnValue.keySet()),
-                                                     getSelectFromTableStatement(
-                                                       dataSource,
-                                                       new ArrayList<>(columnNameToColumnValue.values()))));
-    updateStatements.add(getDropTableStatement(oldTableName));
-    if (!entityUpdate.shouldRenameTable())
-    updateStatements.add(getRenameTableStatement(newTableName, oldTableName));
+    if (columnNameToColumnValue.isEmpty()) {
+      updateStatements.add(getDropTableStatement(entityUpdate.getOldTableName()));
+      updateStatements.add(getCreateTableStatement(entityUpdate.getNewTableName(), entityUpdate.getNewState()));
+    }
+    else {
+      String oldTableName = !entityUpdate.shouldRenameTable() ? entityUpdate.getNewTableName() : entityUpdate.getOldTableName();
+      String newTableName =
+        !entityUpdate.shouldRenameTable() ? String.format(TMP_TABLE_NAME_TEMPLATE, oldTableName) : entityUpdate.getNewTableName();
+
+      updateStatements.add(getCreateTableStatement(newTableName, entityUpdate.getNewState()));
+      updateStatements.add(getInsertIntoTableStatement(newTableName,
+                                                       new ArrayList<>(columnNameToColumnValue.keySet()),
+                                                       getSelectFromTableStatement(
+                                                         dataSource,
+                                                         new ArrayList<>(columnNameToColumnValue.values()))));
+      updateStatements.add(getDropTableStatement(oldTableName));
+      if (!entityUpdate.shouldRenameTable()) {
+        updateStatements.add(getRenameTableStatement(newTableName, oldTableName));
+      }
+    }
 
     return updateStatements;
   }
@@ -328,7 +337,7 @@ public class SqlStatementsGenerator {
     oldColumnName = getValidName(oldColumnName);
     newColumnName = getValidName(newColumnName);
 
-    return String.format("ALTER TABLE %s RENAME %s TO %s;", tableName, oldColumnName, newColumnName);
+    return String.format("ALTER TABLE %s RENAME COLUMN %s TO %s;", tableName, oldColumnName, newColumnName);
   }
 
   /**

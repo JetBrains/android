@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
-import com.android.tools.idea.common.model.NlComponentDelegate;
-
 public interface MotionLayoutInterface {
-  NlComponentDelegate getNlComponentDelegate();
   boolean showPopupMenuActions();
 }

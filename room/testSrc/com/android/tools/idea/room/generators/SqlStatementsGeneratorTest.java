@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.room.generators;
 
+import static com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition.isValidSqlQuery;
 import static com.android.tools.idea.room.generators.TestUtils.createDatabaseBundle;
 import static com.android.tools.idea.room.generators.TestUtils.createEntityBundle;
 import static com.android.tools.idea.room.generators.TestUtils.createFieldBundle;
@@ -36,34 +37,41 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
 
-public class SqlStatementsGeneratorTest {
+public class SqlStatementsGeneratorTest extends AndroidTestCase {
 
-  private static void testMigrationStatements(@NotNull DatabaseBundle oldDatabase,
+  private void testMigrationStatements(@NotNull DatabaseBundle oldDatabase,
                                               @NotNull DatabaseBundle newDatabase,
                                               String... statements) {
+    List<String> generatedStatements = SqlStatementsGenerator.getMigrationStatements(new DatabaseUpdate(oldDatabase, newDatabase));
+    generatedStatements.forEach(statement -> assertThat(isValidSqlQuery(myFixture.getProject(), statement)).isTrue());
     assertThat(SqlStatementsGenerator.getMigrationStatements(new DatabaseUpdate(oldDatabase, newDatabase)))
       .containsExactly((Object[])statements).inOrder();
   }
 
-  private static void testMigrationStatements(@NotNull DatabaseUpdate databaseUpdate, String... statements) {
+  private void testMigrationStatements(@NotNull DatabaseUpdate databaseUpdate, String... statements) {
+    List<String> generatedStatements = SqlStatementsGenerator.getMigrationStatements(databaseUpdate);
+    generatedStatements.forEach(statement -> assertThat(isValidSqlQuery(myFixture.getProject(), statement)).isTrue());
     assertThat(SqlStatementsGenerator.getMigrationStatements(databaseUpdate))
       .containsExactly((Object[])statements).inOrder();
   }
 
-  private static void testMigrationStatements(@NotNull EntityBundle oldEntity, @NotNull EntityBundle newEntity, String... statements) {
+  private void testMigrationStatements(@NotNull EntityBundle oldEntity, @NotNull EntityBundle newEntity, String... statements) {
+    List<String> generatedStatements = SqlStatementsGenerator.getMigrationStatements(new EntityUpdate(oldEntity, newEntity));
+    generatedStatements.forEach(statement -> assertThat(isValidSqlQuery(myFixture.getProject(), statement)).isTrue());
     assertThat(SqlStatementsGenerator.getMigrationStatements(new EntityUpdate(oldEntity, newEntity)))
       .containsExactly((Object[])statements).inOrder();
   }
 
-  private static void testMigrationStatements(@NotNull EntityUpdate entityUpdate, String... statements) {
+  private void testMigrationStatements(@NotNull EntityUpdate entityUpdate, String... statements) {
+    List<String> generatedStatements = SqlStatementsGenerator.getMigrationStatements(entityUpdate);
+    generatedStatements.forEach(statement -> assertThat(isValidSqlQuery(myFixture.getProject(), statement)).isTrue());
     assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate))
       .containsExactly((Object[])statements).inOrder();
   }
 
-  @Test
   public void testAddColumn() {
     FieldBundle field = createFieldBundle("column1", "TEXT", null);
     FieldBundle fieldToAdd = createFieldBundle("column2", "TEXT", null);
@@ -73,7 +81,19 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE `table` ADD COLUMN column2 TEXT;");
   }
 
-  @Test
+  /**
+   * Regression test for the case when a new column (which either isn't NOT NULL, or is NOT NULL but has a default value) is added in a
+   * table which already has a NOT NULL column with no default value
+   */
+  public void testAddColumnNextToANotNullColumn() {
+    FieldBundle field = new FieldBundle("", "column1", "TEXT", true, null);
+    FieldBundle fieldToAdd = createFieldBundle("column2", "TEXT", null);
+
+    testMigrationStatements(createEntityBundle("table", field),
+                            createEntityBundle("table", field, fieldToAdd),
+                            "ALTER TABLE `table` ADD COLUMN column2 TEXT;");
+  }
+
   public void testDeleteColumn() {
     FieldBundle field = createFieldBundle("column1", "TEXT", null);
     FieldBundle fieldToDelete = createFieldBundle("column2", "TEXT", null);
@@ -92,7 +112,6 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;");
   }
 
-  @Test
   public void testAddAndDeleteColumn() {
     FieldBundle field = createFieldBundle("column1", "TEXT", null);
     FieldBundle fieldToDelete = createFieldBundle("column2", "TEXT", null);
@@ -113,7 +132,20 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;");
   }
 
-  @Test
+  public void testAllInitialColumnsAreDeleted() {
+    FieldBundle fieldToDelete = createFieldBundle("column1", "TEXT", null);
+    FieldBundle fieldToAdd = createFieldBundle("column2", "TEXT", null);
+
+    testMigrationStatements(createEntityBundle("table", fieldToDelete),
+                            createEntityBundle("table", fieldToAdd),
+                            "DROP TABLE `table`;",
+                            "CREATE TABLE `table`\n" +
+                            "(\n" +
+                            "\tcolumn2 TEXT,\n" +
+                            "\tPRIMARY KEY (column2)\n" +
+                            ");");
+  }
+
   public void testModifyColumn() {
     FieldBundle fieldToModify = createFieldBundle("column1", "TEXT", null);
     FieldBundle modifiedField = createFieldBundle("column1", "CHAR", null);
@@ -134,7 +166,6 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;");
   }
 
-  @Test
   public void testModifyColumnDefaultValue() {
     FieldBundle field = createFieldBundle("column1", "TEXT", null);
     FieldBundle fieldToModify = createFieldBundle("column2", "TEXT", null);
@@ -156,7 +187,6 @@ public class SqlStatementsGeneratorTest {
     );
   }
 
-  @Test
   public void testAddColumnsWithUserSpecifiedValues() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -177,7 +207,6 @@ public class SqlStatementsGeneratorTest {
     );
   }
 
-  @Test
   public void testAddNotNullColumnWithDefaultValue() {
     FieldBundle field = createFieldBundle("column1", "TEXT", null);
     FieldBundle notNullFieldWithDefaultValue = new FieldBundle("", "column2", "TEXT", true, "default");
@@ -187,7 +216,6 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE `table` ADD COLUMN column2 TEXT DEFAULT 'default' NOT NULL;");
   }
 
-  @Test
   public void testAddNotNullColumnWithoutDefaultValue() {
     FieldBundle idField = new FieldBundle("id", "id", "INTEGER", true, null);
     FieldBundle nameField = new FieldBundle("name", "name", "TEXT", true, null);
@@ -212,7 +240,6 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE my_table_data$android_studio_tmp RENAME TO my_table;");
   }
 
-  @Test
   public void testRenameColumn() {
     FieldBundle field = createFieldBundle("column1", "TEXT", null);
     FieldBundle fieldToRename = createFieldBundle("column2", "TEXT", null);
@@ -224,11 +251,12 @@ public class SqlStatementsGeneratorTest {
     EntityUpdate entityUpdate = new EntityUpdate(entity, entityWithRenamedField);
     entityUpdate.applyRenameMapping(ImmutableMap.of("column2", "column3"));
 
-    testMigrationStatements(entityUpdate,
-                            "ALTER TABLE `table` RENAME column2 TO column3;");
+    // TODO: Replace next assertion with a call to testMigrationStatement().
+    //  Currently it cannot be used because the SQL parser does not handle renaming column queries
+    assertThat(SqlStatementsGenerator.getMigrationStatements(entityUpdate))
+      .containsExactly("ALTER TABLE `table` RENAME COLUMN column2 TO column3;");
   }
 
-  @Test
   public void testComplexUpdateWithRenamedColumnStatements() {
     FieldBundle field = createFieldBundle("column1", "TEXT", null);
     FieldBundle fieldToRename = createFieldBundle("column2", "TEXT", null);
@@ -255,7 +283,6 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;");
   }
 
-  @Test
   public void testRenameAndModifyColumnStatements() {
     FieldBundle field = createFieldBundle("column2", "TEXT", null);
     FieldBundle fieldToModifyAndRename = createFieldBundle("column3", "TEXT", null);
@@ -281,7 +308,6 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;");
   }
 
-  @Test
   public void testAddEntity() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -301,7 +327,6 @@ public class SqlStatementsGeneratorTest {
                             ");");
   }
 
-  @Test
   public void testDeleteEntity() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -316,7 +341,6 @@ public class SqlStatementsGeneratorTest {
                             "DROP TABLE table2;");
   }
 
-  @Test
   public void testModifyEntity() {
     FieldBundle fieldToModify = createFieldBundle("column1", "TEXT", null);
     FieldBundle modifiedField = createFieldBundle("column1", "CHAR", null);
@@ -341,7 +365,6 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE table1_data$android_studio_tmp RENAME TO table1;");
   }
 
-  @Test
   public void testModifyPrimaryKey() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -372,7 +395,6 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;");
   }
 
-  @Test
   public void testPrimaryKeyAutoIncrement() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -403,7 +425,6 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE table_data$android_studio_tmp RENAME TO `table`;");
   }
 
-  @Test
   public void testAddForeignKey() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -440,7 +461,6 @@ public class SqlStatementsGeneratorTest {
                             "PRAGMA foreign_key_check(table2);");
   }
 
-  @Test
   public void testForeignKeyCheckIsAddedOnReferencedTableUpdate() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -475,7 +495,6 @@ public class SqlStatementsGeneratorTest {
   }
 
 
-  @Test
   public void testDropIndex() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -490,7 +509,6 @@ public class SqlStatementsGeneratorTest {
     testMigrationStatements(entityWithIndex, entityAfterIndexDrop, "DROP INDEX index_table_column1;");
   }
 
-  @Test
   public void testAddIndex() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -505,7 +523,6 @@ public class SqlStatementsGeneratorTest {
     testMigrationStatements(entity, entityWithIndex, "CREATE INDEX index_table_column1 ON `table` (column1);");
   }
 
-  @Test
   public void testAddUniqueIndex() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -520,7 +537,6 @@ public class SqlStatementsGeneratorTest {
     testMigrationStatements(entity, entityWithUniqueIndex, "CREATE UNIQUE INDEX index_table_column1 ON `table` (column1);");
   }
 
-  @Test
   public void testRenameIndex() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -539,7 +555,6 @@ public class SqlStatementsGeneratorTest {
                             "CREATE INDEX index_column1 ON `table` (column1);");
   }
 
-  @Test
   public void testUpdateIndexOnTableChange() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -569,7 +584,6 @@ public class SqlStatementsGeneratorTest {
                             "CREATE INDEX index_table_column1 ON `table` (column1);");
   }
 
-  @Test
   public void testDropView() {
     DatabaseViewBundle view = new DatabaseViewBundle(
       "viewName",
@@ -582,7 +596,6 @@ public class SqlStatementsGeneratorTest {
                             "DROP VIEW viewName;");
   }
 
-  @Test
   public void testAddView() {
     DatabaseViewBundle view = new DatabaseViewBundle(
       "viewName",
@@ -597,7 +610,6 @@ public class SqlStatementsGeneratorTest {
                             "FROM myTable;");
   }
 
-  @Test
   public void testModifyView() {
     DatabaseViewBundle view1 = new DatabaseViewBundle(
       "viewName",
@@ -618,7 +630,6 @@ public class SqlStatementsGeneratorTest {
                             "FROM myTable;");
   }
 
-  @Test
   public void testAddFtsTable() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -633,7 +644,6 @@ public class SqlStatementsGeneratorTest {
                             "CREATE VIRTUAL TABLE ftsTable USING fts4(column1, column2);");
   }
 
-  @Test
   public void testDropFtsTable() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -648,7 +658,6 @@ public class SqlStatementsGeneratorTest {
                             "DROP TABLE ftsTable;");
   }
 
-  @Test
   public void testModifyFtsTable() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -670,7 +679,6 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE ftsTable_data$android_studio_tmp RENAME TO ftsTable;");
   }
 
-  @Test
   public void testUpdateFtsTableWithContentTable() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -692,7 +700,6 @@ public class SqlStatementsGeneratorTest {
                             "\tFROM `table`;");
   }
 
-  @Test
   public void testRenameTable() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -707,7 +714,6 @@ public class SqlStatementsGeneratorTest {
     testMigrationStatements(databaseUpdate, "ALTER TABLE `table` RENAME TO renamedTable;");
   }
 
-  @Test
   public void testRenameTableAndAddColumn() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -724,7 +730,6 @@ public class SqlStatementsGeneratorTest {
                             "ALTER TABLE renamedTable ADD COLUMN column2 TEXT;");
   }
 
-  @Test
   public void testRenameAndModifyTable() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -748,7 +753,6 @@ public class SqlStatementsGeneratorTest {
                             "DROP TABLE `table`;");
   }
 
-  @Test
   public void testRenameFtsTableWithContentTable() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);
@@ -773,7 +777,6 @@ public class SqlStatementsGeneratorTest {
                             "\tFROM `table`;");
   }
 
-  @Test
   public void testRenameAndModifyFtsTableWithContentTable() {
     FieldBundle field1 = createFieldBundle("column1", "TEXT", null);
     FieldBundle field2 = createFieldBundle("column2", "TEXT", null);

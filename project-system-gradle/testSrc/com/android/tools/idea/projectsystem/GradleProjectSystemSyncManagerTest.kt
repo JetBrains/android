@@ -31,6 +31,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.startup.impl.StartupManagerImpl
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.messages.MessageBusConnection
@@ -89,7 +90,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
           gradleSyncState.syncFailed("", null, null)
         }
       }
-    }).`when`(syncInvoker).requestProjectSync(any(), any())
+    }).`when`(syncInvoker).requestProjectSync(any(), any<GradleSyncInvoker.Request>())
 
     val listenableFuture = syncManager.syncProject(SyncReason.PROJECT_MODIFIED)
     if (buildResult != null) {
@@ -113,7 +114,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
     `when`(gradleProjectInfo.isImportedProject).thenReturn(true)
 
     project.getProjectSystem().getSyncManager().syncProject(SyncReason.PROJECT_LOADED)
-    verify(syncInvoker, never()).requestProjectSync(same(project), any())
+    verify(syncInvoker, never()).requestProjectSync(same(project), any<GradleSyncInvoker.Request>())
   }
 
   fun testGetLastSyncResult_unknownIfNeverSynced() {

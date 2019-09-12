@@ -22,6 +22,7 @@ import com.intellij.openapi.util.text.CharFilter;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +79,7 @@ public class InstantAppFontFamilyCreatorTest extends AndroidGradleTestCase {
         "    </array>%n" +
         "</resources>%n"
       ));
-    assertThat(StringUtil.strip(baseFacet.getManifest().getXmlTag().getText(), CharFilter.NOT_WHITESPACE_FILTER)).contains(
+    assertThat(StringUtil.strip(Manifest.getMainManifest(baseFacet).getXmlTag().getText(), CharFilter.NOT_WHITESPACE_FILTER)).contains(
       StringUtil.strip(
         "        <meta-data\n" +
         "            android:name=\"preloaded_fonts\"\n" +

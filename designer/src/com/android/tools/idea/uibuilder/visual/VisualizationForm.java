@@ -275,6 +275,9 @@ public class VisualizationForm implements Disposable {
       myCancelPreviousAddModelsRequestTask = null;
     }
 
+    if (myFile == null) {
+      return;
+    }
     PsiFile file = PsiManager.getInstance(myProject).findFile(myFile);
     AndroidFacet facet = file != null ? AndroidFacet.getInstance(file) : null;
     if (facet == null) {

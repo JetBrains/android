@@ -195,6 +195,14 @@ enum class ScopeType {
   ANDROID_TEST,
   UNIT_TEST,
   SHARED_TEST,
+  ;
+
+  /** Converts this [ScopeType] to a [Boolean], so it can be used with APIs that don't distinguish between test types. */
+  val isForTest
+    get() = when (this) {
+      MAIN -> false
+      ANDROID_TEST, UNIT_TEST, SHARED_TEST -> true
+    }
 }
 
 fun AndroidModuleSystem.getResolveScope(file: VirtualFile): GlobalSearchScope {

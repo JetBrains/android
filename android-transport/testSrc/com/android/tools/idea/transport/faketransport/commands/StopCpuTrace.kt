@@ -24,11 +24,12 @@ import java.util.concurrent.TimeUnit
 class StopCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
   var stopStatus: Cpu.TraceStopStatus = Cpu.TraceStopStatus.getDefaultInstance()
   var traceDurationNs: Long = TimeUnit.SECONDS.toNanos(1)
+  var lastTraceInfo: Cpu.CpuTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance()
 
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val traceId = timer.currentTimeNs
     val endTimestamp = traceId + traceDurationNs
-    val info = Cpu.CpuTraceInfo.newBuilder()
+    lastTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setTraceId(traceId)
       .setFromTimestamp(traceId)
       .setToTimestamp(endTimestamp)
@@ -57,7 +58,7 @@ class StopCpuTrace(timer: FakeTimer) : CommandHandler(timer) {
         isEnded = true
         cpuTrace = Cpu.CpuTraceData.newBuilder().apply {
           traceEnded = Cpu.CpuTraceData.TraceEnded.newBuilder().apply {
-            traceInfo = info
+            traceInfo = lastTraceInfo
           }.build()
         }.build()
       }.build())

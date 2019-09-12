@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A filter to locate possible leaked activity/fragment instances.
@@ -48,16 +49,25 @@ public class ActivityFragmentLeakInstanceFilter implements CaptureObjectInstance
   @NotNull
   @Override
   public String getDisplayName() {
-    return "Potential Activity/Fragment Leaks";
+    return "Activity/Fragment Leaks";
   }
 
   @NotNull
   @Override
-  public String getDescription() {
-    return "Activity and Fragment instances that might be causing memory leaks.\n" +
-           "For Activities, these are instances that have been destroyed but are still being referenced.\n" +
-           "For Fragments, these are instances that do not have a valid FragmentManager but are still being referenced.\n" +
-           "Note, these instance might include Fragments that were created but are not yet being utilized.";
+  public String getSummaryDescription() {
+    return "Show Activities and Fragments that are potentially causing memory leaks.";
+  }
+
+  @Nullable
+  @Override
+  public String getDetailedDescription() {
+    return "Note that Activity/Fragment leaks may include false positives. Please see the documentation for details.";
+  }
+
+  @Nullable
+  @Override
+  public String getDocumentationLink() {
+    return "https://developer.android.com/docs";
   }
 
   @Override

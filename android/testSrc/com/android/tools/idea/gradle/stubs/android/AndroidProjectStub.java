@@ -20,10 +20,12 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub;
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -361,6 +363,12 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   public boolean isBaseSplit() {
     return false;
+  }
+
+  @NonNull
+  @Override
+  public AndroidGradlePluginProjectFlags getFlags() {
+    return new AndroidGradlePluginProjectFlagsStub(ImmutableMap.of());
   }
 
   @NonNull

@@ -184,6 +184,40 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
+  fun dbIdReferencesXmlVariableFromOtherLayoutFiles() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+      public class Model {
+        String getStrValue() {}
+      }
+    """.trimIndent())
+
+    fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="text"/>
+      </layout>
+    """.trimIndent())
+
+    val landFile = fixture.addFileToProject("res/layout-land/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <TextView android:text="@{mo<caret>del.strValue}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(landFile.virtualFile)
+
+    val element = fixture.elementAtCaret as XmlTag
+    assertThat(element.name).isEqualTo("variable")
+    assertThat(element.attributes.find { attr -> attr.name == "name" && attr.value == "model" }).isNotNull()
+  }
+
+  @Test
   fun dbFieldReferencesClassField() {
     fixture.addClass("""
       package test.langdb;

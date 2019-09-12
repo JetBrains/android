@@ -57,7 +57,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
     loadProject(SYNC_MULTIPROJECT);
     setAndroidPluginVersion("1.0.0");
 
-    UpdateResult result = myVersionUpdater.updatePluginVersion(GradleVersion.parse("20.0.0"), null);
+    UpdateResult result = myVersionUpdater.updatePluginVersion(GradleVersion.parse("20.0.0"), null, null);
     assertTrue(result.isPluginVersionUpdated());
     assertFalse(result.isGradleVersionUpdated());
 
@@ -72,7 +72,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
 
     setAndroidPluginVersion("20.0.0");
 
-    UpdateResult result = myVersionUpdater.updatePluginVersion(GradleVersion.parse("20.0.0"), null);
+    UpdateResult result = myVersionUpdater.updatePluginVersion(GradleVersion.parse("20.0.0"), null, null);
     assertFalse(result.isPluginVersionUpdated());
     assertFalse(result.isGradleVersionUpdated());
 
