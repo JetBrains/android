@@ -244,7 +244,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   }
 
   private static void requestSync(@NotNull Project project) {
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_REFACTOR_MODULE_RENAMED);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_REFACTOR_MODULE_RENAMED);
   }
 
   private static String getNewPath(@NotNull String oldPath, @NotNull String newName) {

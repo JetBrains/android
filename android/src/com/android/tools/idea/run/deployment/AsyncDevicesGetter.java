@@ -126,7 +126,7 @@ public class AsyncDevicesGetter {
 
     List<Device> devices = deviceStream.collect(Collectors.toList());
 
-    Collection<String> keys = devices.stream()
+    Collection<Key> keys = devices.stream()
       .filter(Device::isConnected)
       .map(Device::getKey)
       .collect(Collectors.toList());
@@ -138,7 +138,7 @@ public class AsyncDevicesGetter {
   @NotNull
   private Stream<VirtualDevice> connectedVirtualDeviceStream(@NotNull Collection<ConnectedDevice> connectedDevices,
                                                              @NotNull Collection<VirtualDevice> virtualDevices) {
-    Map<String, VirtualDevice> keyToVirtualDeviceMap = virtualDevices.stream().collect(Collectors.toMap(Device::getKey, device -> device));
+    Map<Key, VirtualDevice> keyToVirtualDeviceMap = virtualDevices.stream().collect(Collectors.toMap(Device::getKey, device -> device));
 
     return connectedDevices.stream()
       .filter(device -> keyToVirtualDeviceMap.containsKey(device.getVirtualDeviceKey()))
@@ -155,7 +155,7 @@ public class AsyncDevicesGetter {
   @NotNull
   private static Stream<VirtualDevice> disconnectedVirtualDeviceStream(@NotNull Collection<VirtualDevice> virtualDevices,
                                                                        @NotNull Collection<ConnectedDevice> connectedDevices) {
-    Collection<String> connectedVirtualDeviceKeys = connectedDevices.stream()
+    Collection<Key> connectedVirtualDeviceKeys = connectedDevices.stream()
       .map(ConnectedDevice::getVirtualDeviceKey)
       .collect(Collectors.toSet());
 

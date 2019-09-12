@@ -59,6 +59,8 @@ public class SideConstraintHandlingTest {
     EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
                                   .getEditor()
                                   .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
+    guiTest.ideFrame().closeProjectPanel();
+
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
 
     layoutEditor

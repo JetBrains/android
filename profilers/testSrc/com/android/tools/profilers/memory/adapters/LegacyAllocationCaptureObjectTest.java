@@ -55,6 +55,20 @@ public class LegacyAllocationCaptureObjectTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LegacyAllocationCaptureObjectTest", myTransportService, myService);
 
+  @Test
+  public void testFailedAllocationsInfo() {
+    AllocationsInfo testInfo = AllocationsInfo.newBuilder().setSuccess(false).build();
+    LegacyAllocationCaptureObject capture =
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+                                        ProfilersTestData.SESSION_DATA,
+                                        testInfo,
+                                        myIdeProfilerServices.getFeatureTracker());
+
+    capture.load(null, null);
+    assertTrue(capture.isDoneLoading());
+    assertTrue(capture.isError());
+  }
+
   /**
    * This is a high-level test that validates the generation of allocation tracking MemoryObjects hierarchy based on fake allocation events.
    * We want to ensure not only the LegacyAllocationCaptureObject holds the correct HeapSet(s) representing the allocated classes, but
@@ -65,7 +79,7 @@ public class LegacyAllocationCaptureObjectTest {
     long startTimeNs = TimeUnit.MILLISECONDS.toNanos(3);
     long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
 
-    AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).setSuccess(true).build();
     LegacyAllocationCaptureObject capture =
       new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
                                         ProfilersTestData.SESSION_DATA,

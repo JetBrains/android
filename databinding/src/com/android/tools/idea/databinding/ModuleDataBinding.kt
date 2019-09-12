@@ -23,7 +23,6 @@ import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.facet.Facet
@@ -83,6 +82,36 @@ class ModuleDataBinding private constructor(private val module: Module) {
   @GuardedBy("lock")
   private val lightBindingClassesCache = mutableMapOf<String, List<LightBindingClass>>()
 
+  /**
+   * Generates all [BindingLayoutGroup]s for the current module.
+   */
+  private fun generateGroups(facet: AndroidFacet, moduleResources: LocalResourceRepository): Collection<BindingLayoutGroup> {
+    val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
+    return layoutResources.values()
+      .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
+      .filter { bindingLayout -> !bindingLayout.data.viewBindingIgnore }
+      .groupBy { info -> info.file.name }
+      .map { entry -> BindingLayoutGroup(entry.value) }
+  }
+
+  /**
+   * Generates a cache result of all [BindingLayoutGroup] for the current module.
+   *
+   * Note: The reason this logic is extracted into a function instead of being inlined is because
+   * it calls [ResourceRepositoryManager.getModuleResources] on the UI thread, which is potentially
+   * expensive, and this triggers a warning on our test setup.
+   *
+   * For now, we need whitelist it, so we put it in a named method; but if the root cause is ever
+   * fixed, this method can be inlined again.
+   *
+   * See also: AspectsAgentLogTest, aspects_baseline.txt
+   */
+  private fun createGroupsCacheResult(facet: AndroidFacet): CachedValueProvider.Result<Collection<BindingLayoutGroup>> {
+    val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
+    val groups = generateGroups(facet, moduleResources)
+    return CachedValueProvider.Result.create(groups, moduleResources)
+  }
+
   init {
     fun syncModeWithFacetConfiguration() {
       dataBindingMode = AndroidFacet.getInstance(module)?.configuration?.model?.dataBindingMode ?: return
@@ -98,28 +127,11 @@ class ModuleDataBinding private constructor(private val module: Module) {
     })
     syncModeWithFacetConfiguration()
 
-    /**
-     * Generates all [BindingLayoutGroup]s for the current module.
-     */
-    fun generateGroups(facet: AndroidFacet, moduleResources: LocalResourceRepository): Collection<BindingLayoutGroup> {
-      val modulePackage = MergedManifestManager.getSnapshot(facet).getPackage() ?: return emptySet()
-      val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
-      return layoutResources.values()
-        .map { resource -> BindingLayout(facet, modulePackage, resource) }
-        .filter { bindingLayout -> !bindingLayout.data.viewBindingIgnore }
-        .groupBy { info -> info.file.name }
-        .map { entry -> BindingLayoutGroup(entry.value) }
-    }
-
     synchronized(lock) {
       val facet = AndroidFacet.getInstance(module)
       val cachedValuesManager = CachedValuesManager.getManager(module.project)
       if (facet != null) {
-        bindingLayoutGroupsCache = cachedValuesManager.createCachedValue {
-          val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
-          val groups = generateGroups(facet, moduleResources)
-          CachedValueProvider.Result.create(groups, moduleResources)
-        }
+        bindingLayoutGroupsCache = cachedValuesManager.createCachedValue { createGroupsCacheResult(facet) }
       }
       else {
         bindingLayoutGroupsCache = cachedValuesManager.createCachedValue {

@@ -17,7 +17,6 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginData
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
@@ -74,7 +73,7 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
     projectsConfigurationData.clear()
   }
 
-  override fun onBuildSuccess(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData?) {
+  override fun onBuildSuccess() {
     // nothing to be done
   }
 

@@ -63,7 +63,6 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.projectImport.ProjectOpenProcessor;
 import com.intellij.util.SystemProperties;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,8 +71,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectOpenProcessor;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
+import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -165,9 +164,7 @@ public class GradleSyncExecutor {
     GradleSettings gradleSettings = GradleSettings.getInstance(project);
     Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
     if (projectsSettings.isEmpty()) {
-      GradleProjectOpenProcessor
-        projectOpenProcessor = ProjectOpenProcessor.EXTENSION_POINT_NAME.findExtensionOrFail(GradleProjectOpenProcessor.class);
-      if (project.getBasePath() != null && projectOpenProcessor.canOpenProject(project.getBaseDir())) {
+      if (project.getBasePath() != null && GradleProjectImportUtil.canImportProjectFrom(project.getBaseDir())) {
         GradleProjectSettings projectSettings = new GradleProjectSettings();
         String externalProjectPath = toCanonicalPath(project.getBasePath());
         projectSettings.setExternalProjectPath(externalProjectPath);

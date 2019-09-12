@@ -657,7 +657,7 @@ public class AndroidCompileUtil {
     final Project project = module.getProject();
     final Set<String> packages = new HashSet<String>();
 
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
     final String aPackage = manifest != null ? manifest.getPackage().getStringValue() : null;
 
     if (aPackage != null) {
@@ -824,14 +824,14 @@ public class AndroidCompileUtil {
 
   @Nullable
   public static Module findCircularDependencyOnLibraryWithSamePackage(@NotNull AndroidFacet facet) {
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
     final String aPackage = manifest != null ? manifest.getPackage().getValue() : null;
     if (aPackage == null) {
       return null;
     }
 
     for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(facet.getModule(), true)) {
-      final Manifest depManifest = depFacet.getManifest();
+      final Manifest depManifest = Manifest.getMainManifest(depFacet);
       final String depPackage = depManifest != null ? depManifest.getPackage().getValue() : null;
       if (aPackage.equals(depPackage)) {
         final List<AndroidFacet> depDependencies = AndroidUtils.getAllAndroidDependencies(depFacet.getModule(), false);
@@ -870,7 +870,7 @@ public class AndroidCompileUtil {
 
     final List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), false);
 
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
     if (manifest == null) {
       return false;
     }
@@ -907,7 +907,7 @@ public class AndroidCompileUtil {
     if (facet.getProperties().USE_CUSTOM_MANIFEST_PACKAGE) {
       return facet.getProperties().CUSTOM_MANIFEST_PACKAGE;
     }
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
 
     return manifest != null
            ? manifest.getPackage().getStringValue()

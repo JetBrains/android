@@ -119,7 +119,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
                 new FixNdkVersionProcessor(project, buildFiles, highestLocalNdk.getVersion().toString()).run();
               });
             } else {
-              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_NDK_INSTALLED);
+              GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_NDK_INSTALLED);
             }
           }
           return;

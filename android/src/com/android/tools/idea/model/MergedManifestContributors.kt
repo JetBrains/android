@@ -23,8 +23,8 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import org.jetbrains.android.facet.AndroidRootUtil.getManifestFile
 import org.jetbrains.android.facet.IdeaSourceProvider
+import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidUtils
 import java.io.File
 
@@ -68,7 +68,7 @@ data class MergedManifestContributors(
 
 private fun AndroidFacet.getFlavorAndBuildTypeManifests(): List<VirtualFile> {
   // get all other manifests for this module, (NOT including the default one)
-  val defaultSourceProvider = mainIdeaSourceProvider
+  val defaultSourceProvider = SourceProviderManager.getInstance(this).mainIdeaSourceProvider
   return IdeaSourceProvider.getCurrentSourceProviders(this)
     .filter { it != defaultSourceProvider }
     .mapNotNull(IdeaSourceProvider::manifestFile)
@@ -79,7 +79,7 @@ private fun AndroidFacet.getFlavorAndBuildTypeManifestsOfLibs(dependencies: List
 }
 
 private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
-  val localLibManifests = dependencies.mapNotNull { it.mainIdeaSourceProvider.manifestFile }
+  val localLibManifests = dependencies.mapNotNull { SourceProviderManager.getInstance(it).mainIdeaSourceProvider.manifestFile }
 
   val aarManifests = hashSetOf<File>()
   AndroidModuleModel.get(this)

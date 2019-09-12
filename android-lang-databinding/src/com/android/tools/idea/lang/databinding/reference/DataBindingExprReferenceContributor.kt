@@ -319,7 +319,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         DbTokenTypes.TRUE, DbTokenTypes.FALSE -> PsiType.BOOLEAN
         DbTokenTypes.NULL -> PsiType.NULL
         DbTokenTypes.CHARACTER_LITERAL -> PsiType.CHAR
-        DbTokenTypes.STRING_LITERAL -> LayoutBindingTypeUtil.parsePsiType("java.lang.String", element.project) ?: return arrayOf()
+        DbTokenTypes.STRING_LITERAL -> LayoutBindingTypeUtil.parsePsiType("java.lang.String", element) ?: return arrayOf()
         else -> return arrayOf()
       }
       return arrayOf(PsiLiteralReference(element, psiType))
@@ -342,10 +342,10 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   }
 
   /**
-   * Returns the index entry that has information about the target [element]'s parent layout XML
-   * file, or null if that isn't possible (e.g. databinding isn't enabled for this module).
+   * Returns the index entries that might have information about the target [element],
+   * or null if that isn't possible (e.g. databinding isn't enabled for this module).
    */
-  private fun getBindingIndexEntry(module: Module, element: PsiElement): BindingXmlIndex.Entry? {
+  private fun getBindingIndexEntries(module: Module, element: PsiElement): Iterable<BindingXmlIndex.Entry>? {
     AndroidFacet.getInstance(module)?.takeIf { facet -> DataBindingUtil.isDataBindingEnabled(facet) } ?: return null
     var topLevelFile = InjectedLanguageManager.getInstance(element.project).getTopLevelFile(element) ?: return null
     if (topLevelFile === DbFileType.INSTANCE) {
@@ -355,7 +355,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     }
 
     val fileNameWithoutExtension = topLevelFile.name.substringBefore('.')
-    return BindingXmlIndex.getEntriesForLayout(module, fileNameWithoutExtension).firstOrNull()
+    return BindingXmlIndex.getEntriesForLayout(module, fileNameWithoutExtension).takeIf { it.isNotEmpty() }
   }
 
   /**
@@ -365,29 +365,27 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
   private fun getReferencesBySimpleName(element: PsiElement, simpleName: String): Array<PsiReference> {
     val module = ModuleUtilCore.findModuleForPsiElement(element) ?: return PsiReference.EMPTY_ARRAY
 
-    // Search the parent layout file, as that will let us check if the current identifier is found
-    // somewhere in the <data> section.
     run {
-      val indexEntry = getBindingIndexEntry(module, element) ?: return PsiReference.EMPTY_ARRAY
-      val bindingData = indexEntry.data
-
-      val project = element.project
-      val xmlFile = DataBindingUtil.findXmlFile(project, indexEntry.file)!!
-      bindingData.findVariable(simpleName)?.let { variable ->
-        xmlFile.findVariableTag(variable.name)?.let { variableTag ->
-          return arrayOf(XmlVariableReference(element, variableTag, variable, bindingData, module))
+      // Search potential layout files to find the identifier.
+      getBindingIndexEntries(module, element)?.forEach { entry ->
+        val xmlFile = DataBindingUtil.findXmlFile(element.project, entry.file) ?: return@forEach
+        val bindingData = entry.data
+        bindingData.findVariable(simpleName)?.let { variable ->
+          xmlFile.findVariableTag(variable.name)?.let { variableTag ->
+            return arrayOf(XmlVariableReference(element, variableTag, variable, bindingData, module))
+          }
         }
-      }
 
-      bindingData.findImport(simpleName)?.let { import ->
-        xmlFile.findImportTag(simpleName)?.let { importTag ->
-          return arrayOf(XmlImportReference(element, importTag, import, module))
+        bindingData.findImport(simpleName)?.let { import ->
+          xmlFile.findImportTag(simpleName)?.let { importTag ->
+            return arrayOf(XmlImportReference(element, importTag, import, module))
+          }
         }
-      }
 
-      bindingData.findViewId(simpleName)?.let { viewId ->
-        xmlFile.findIdAttribute(viewId.id)?.let { attribute ->
-          return arrayOf(XmlAttributeReference(element, attribute))
+        bindingData.findViewId(simpleName)?.let { viewId ->
+          xmlFile.findIdAttribute(viewId.id)?.let { attribute ->
+            return arrayOf(XmlAttributeReference(element, attribute))
+          }
         }
       }
     }

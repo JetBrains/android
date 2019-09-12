@@ -288,7 +288,6 @@ open class TemplateTest : TemplateTestBase() {
 
   //--- Non-activity templates ---
 
-
   @TemplateCheck
   fun testNewBroadcastReceiver() {
     // No need to try this template with multiple platforms, one is adequate

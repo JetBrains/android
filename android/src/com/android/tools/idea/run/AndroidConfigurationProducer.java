@@ -31,6 +31,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBase<AndroidRunConfiguration> {
@@ -68,14 +69,16 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
 
   @Nullable
   @Override
-  public ConfigurationFromContext createConfigurationFromContext(ConfigurationContext context) {
+  public ConfigurationFromContext createConfigurationFromContext(@NotNull ConfigurationContext context) {
     return getActivityClass(context) == null ? null : super.createConfigurationFromContext(context);
   }
 
   @Override
-  protected boolean setupConfigurationFromContext(AndroidRunConfiguration configuration,
-                                                  ConfigurationContext context,
-                                                  Ref<PsiElement> sourceElement) {
+  protected boolean setupConfigurationFromContext(
+    @NotNull AndroidRunConfiguration configuration,
+    @NotNull ConfigurationContext context,
+    @NotNull Ref<PsiElement> sourceElement) {
+
     final PsiClass activity = getActivityClass(context);
 
     if (activity == null) {
@@ -102,7 +105,7 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
   }
 
   @Override
-  public boolean isConfigurationFromContext(AndroidRunConfiguration configuration, ConfigurationContext context) {
+  public boolean isConfigurationFromContext(@NotNull AndroidRunConfiguration configuration, @NotNull ConfigurationContext context) {
     final PsiClass activity = getActivityClass(context);
     if (activity == null) {
       return false;

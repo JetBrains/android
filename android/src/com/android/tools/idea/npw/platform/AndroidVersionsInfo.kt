@@ -60,12 +60,12 @@ import java.util.function.Consumer
  * The list can be filtered by min sdk level and a callback mechanism allows information to be provided asynchronously.
  * It is also possible to query the list of packages that the system needs to install to satisfy the requirements of an API level.
  */
-open class AndroidVersionsInfo { // open for Mockito
+class AndroidVersionsInfo {
   private lateinit var knownTargetVersions: List<VersionItem>
   private lateinit var installedVersions: Set<AndroidVersion>
   private var highestInstalledApiTarget: IAndroidTarget? = null
   @VisibleForTesting
-  open val highestInstalledVersion: AndroidVersion? // open for mockito
+  val highestInstalledVersion: AndroidVersion?
     get() = highestInstalledApiTarget?.version
 
   /**
@@ -283,7 +283,7 @@ private fun getLabel(version: AndroidVersion, target: IAndroidTarget?): String {
 
   return when {
       version.isPreview ->
-        "API %s: Android %s (%s preview))".format(
+        "API %s: Android %s (%s preview)".format(
           featureLevel,
           SdkVersionInfo.getVersionStringSanitized(featureLevel),
           SdkVersionInfo.getCodeName(featureLevel))

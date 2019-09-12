@@ -22,6 +22,7 @@ import com.intellij.ide.actions.WhatsNewAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -32,6 +33,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
@@ -57,6 +59,8 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
     }
 
     action.update(e);
+    presentation.setDescription(AndroidBundle.message("whatsnew.action.custom.description",
+                                                      ApplicationNamesInfo.getInstance().getFullProductName()));
   }
 
   @Override

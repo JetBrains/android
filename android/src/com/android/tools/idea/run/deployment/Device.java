@@ -22,7 +22,6 @@ import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.intellij.openapi.project.Project;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -39,7 +38,7 @@ public abstract class Device {
   private final String myValidityReason;
 
   @NotNull
-  private final String myKey;
+  private final Key myKey;
 
   @Nullable
   private final Instant myConnectionTime;
@@ -57,7 +56,7 @@ public abstract class Device {
     String myValidityReason;
 
     @Nullable
-    String myKey;
+    Key myKey;
 
     @Nullable
     Instant myConnectionTime;
@@ -108,11 +107,11 @@ public abstract class Device {
     return myValidityReason;
   }
 
-  @NotNull
-  abstract Collection<Snapshot> getSnapshots();
+  @Nullable
+  abstract Snapshot getSnapshot();
 
   @NotNull
-  public final String getKey() {
+  public final Key getKey() {
     return myKey;
   }
 

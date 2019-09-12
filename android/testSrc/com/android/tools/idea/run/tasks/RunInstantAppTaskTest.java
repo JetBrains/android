@@ -26,6 +26,7 @@ import com.google.android.instantapps.sdk.api.RunHandler;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
+import com.intellij.execution.Executor;
 import org.jetbrains.android.AndroidTestCase;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +50,7 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
   private InstantAppSdks instantAppSdks;
   @Mock private ExtendedSdk sdkLib;
   @Mock private RunHandler runHandler;
+  @Mock private Executor executor;
   @Mock private IDevice device;
   @Mock private LaunchStatus launchStatus;
   @Mock private ConsolePrinter consolePrinter;
@@ -71,14 +73,14 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
     when(launchStatus.isLaunchTerminated()).thenReturn(true);
 
     RunInstantAppTask task = new RunInstantAppTask(apkInfoListForZip, "");
-    assertThat(task.perform(device, launchStatus, consolePrinter)).isFalse();
+    assertThat(task.run(executor, device, launchStatus, consolePrinter).getSuccess()).isFalse();
     verifyNoMoreInteractions(runHandler);
   }
 
   @Test
   public void testPerformWithNoZipFile() {
     RunInstantAppTask task = new RunInstantAppTask(ImmutableList.of(), "");
-    assertThat(task.perform(device, launchStatus, consolePrinter)).isFalse();
+    assertThat(task.run(executor, device, launchStatus, consolePrinter).getSuccess()).isFalse();
     verifyNoMoreInteractions(runHandler);
   }
 
@@ -95,7 +97,7 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
       /* resultStream= */ any(),
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
-    assertThat(task.perform(device, launchStatus, consolePrinter)).isTrue();
+    assertThat(task.run(executor, device, launchStatus, consolePrinter).getSuccess()).isTrue();
   }
 
   @Test
@@ -110,7 +112,7 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
       /* resultStream= */ any(),
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
-    assertThat(task.perform(device, launchStatus, consolePrinter)).isTrue();
+    assertThat(task.run(executor, device, launchStatus, consolePrinter).getSuccess()).isTrue();
   }
 
   @Test
@@ -137,7 +139,7 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
 
-    assertThat(task.perform(device, launchStatus, consolePrinter)).isTrue();
+    assertThat(task.run(executor, device, launchStatus, consolePrinter).getSuccess()).isTrue();
 
     verify(runHandler).runApks(
       /* apkFiles= */ eq(ImmutableList.of(apk1, apk2)),

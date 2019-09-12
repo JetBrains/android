@@ -37,6 +37,7 @@ import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.inspections.lint.AndroidLintUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -260,7 +261,7 @@ public class LintIdeUtils {
         return resDirectories;
       }
     }
-    return new ArrayList<>(facet.getMainSourceProvider().getResDirectories());
+    return new ArrayList<>(SourceProviderManager.getInstance(facet).getMainSourceProvider().getResDirectories());
   }
 
   public static boolean isApiLevelAtLeast(@Nullable PsiFile file, int minApiLevel, boolean defaultValue) {

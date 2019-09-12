@@ -100,7 +100,7 @@ public class ConfigureBenchmarkModuleStep extends SkippableWizardStep<NewBenchma
         return new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text"));
       }
 
-      if (value.get().getTargetApiLevel() >= AndroidVersion.VersionCodes.Q && !isAndroidx(model.getProject())) {
+      if (value.get().getMinApiLevel() >= AndroidVersion.VersionCodes.Q && !isAndroidx(model.getProject())) {
         return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.module.needs.androidx"));
       }
 

@@ -89,7 +89,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(
     NPW, "show.fragment.gallery", "Show fragment gallery",
     "Show fragment gallery which contains fragment based templates",
-    false);
+    true);
   //endregion
 
   //region Profiler
@@ -589,6 +589,22 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_COMPLETION_ICONS = Flag.create(
+    EDITOR, "compose.completion.icons",
+    "Custom icons in completion for Compose",
+    "If enabled, code completion for composable functions uses different icons.",
+    false
+  );
+
+  public static final Flag<Boolean> TRANSITIVE_R_CLASSES = Flag.create(
+    EDITOR, "transitive.r.classes",
+    "Transitive R classes",
+    "If enabled, R classes for local modules contain resources from all dependencies (this has historically been the case). " +
+    "Otherwise they only contain fields for resources defined in the module itself. R classes for AARs are built based on R.txt and are " +
+    "not affected. This flag only affects non resource-namespace aware modules.",
+    true
+  );
+
   //endregion
 
   //region Analyzer
@@ -699,6 +715,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> VIEW_BINDING_ENABLED = Flag.create(
     BINDING, "view.binding.enabled", "Enable View Binding",
     "Enables view binding integration. Additionally, enabling the compiler may require updating Gradle settings as well",
+    true);
+
+  public static final Flag<Boolean> DATA_BINDING_INSPECTIONS_ENABLED = Flag.create(
+    BINDING, "inspections.enabled", "Enable Data Binding Inspections",
+    "Enables inspections that show up in data binding layout files.",
     true);
   //endregion
 

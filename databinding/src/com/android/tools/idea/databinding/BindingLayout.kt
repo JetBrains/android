@@ -16,9 +16,11 @@
 package com.android.tools.idea.databinding
 
 import com.android.ide.common.resources.ResourceItem
+import com.android.tools.idea.databinding.BindingLayout.Companion.tryCreate
 import com.android.tools.idea.databinding.index.BindingXmlData
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
@@ -34,20 +36,36 @@ import org.jetbrains.android.facet.AndroidFacet
  * (assuming it is a data binding or a view binding layout).
  *
  * See also: [BindingLayoutGroup], which owns one (or more) related [BindingLayout] instances.
+ *
+ * Note: In order to ensure that all necessary constructor fields are non-null, and to avoid a user from
+ * specifying values that are inconsistent with each other, you cannot instantiate this class directly.
+ * Instead, you must use [tryCreate].
+ *
+ * @param facet the facet of the Android module this layout belongs to.
+ * @param modulePackage the base package for all classes in the current module.
+ * @param file the [VirtualFile] backing the XML layout associated with this binding.
+ * @param data the raw [BindingXmlData] extracted from this binding's layout. If you need a PSI representation of this data, see
+ *   [toXmlFile]
+ * @param resource the [ResourceItem] representation of the XML layout file.
  */
-class BindingLayout(private val facet: AndroidFacet, private val modulePackage: String, internal val resource: ResourceItem) {
+class BindingLayout private constructor(
+  private val facet: AndroidFacet, private val modulePackage: String, val file: VirtualFile, val data: BindingXmlData, internal val resource: ResourceItem) {
 
-  /**
-   * The [VirtualFile] backing the XML layout associated with this binding.
-   */
-  val file = resource.getSourceAsVirtualFile()!!
-
-  /**
-   * Raw [BindingXmlData] extracted from this binding's layout.
-   *
-   * If you need a PSI representation of this data, see [toXmlFile]
-   */
-  val data = BindingXmlIndex.getDataForFile(facet.module.project, file)!!
+  companion object {
+    /**
+     * Tries to create a [BindingLayout] instance corresponding to a target resource file,
+     * returning null if unable to do so.
+     *
+     * Most logic in here is not expected to return null, but it has been reported in production,
+     * so the following plays it safe to avoid crashing. See: b/140308533
+     */
+    fun tryCreate(facet: AndroidFacet, resource: ResourceItem): BindingLayout? {
+      val modulePackage = MergedManifestManager.getSnapshot(facet).getPackage() ?: return null
+      val file = resource.getSourceAsVirtualFile() ?: return null
+      val data = BindingXmlIndex.getDataForFile(facet.module.project, file) ?: return null
+      return BindingLayout(facet, modulePackage, file, data, resource)
+    }
+  }
 
   /**
    * Creates a PSI representation of the XML layout associated with this binding.

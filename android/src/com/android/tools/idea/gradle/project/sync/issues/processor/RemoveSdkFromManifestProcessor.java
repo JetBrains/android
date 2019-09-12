@@ -136,7 +136,7 @@ public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
     }
 
     if (xmlChanged.get() || buildFileChanged.get()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST);
+      GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST);
     }
   }
 
@@ -155,7 +155,7 @@ public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
     for (Module module : myModules) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
-        Manifest manifest = androidFacet.getManifest();
+        Manifest manifest = Manifest.getMainManifest(androidFacet);
         if (manifest != null) {
           // Read and remove the value of the property from manifest.
           for (UsesSdk usesSdk : manifest.getUsesSdks()) {

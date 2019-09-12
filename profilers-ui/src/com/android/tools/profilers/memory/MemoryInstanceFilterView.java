@@ -15,33 +15,48 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
-import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI;
+import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 
-public class MemoryInstanceFilterView extends AspectObserver {
+public class MemoryInstanceFilterView extends AspectModel<MemoryProfilerAspect> {
   @NotNull private final MemoryProfilerStage myStage;
 
-
   @NotNull private JPanel myFilterToolbar = new JPanel(createToolbarLayout());
+  @NotNull private JPanel myFilterDescriptionPanel = new JPanel(new TabularLayout("Fit,*"));
 
   MemoryInstanceFilterView(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
+
+    myFilterDescriptionPanel.setBorder(JBUI.Borders.merge(ProfilerLayout.TOOLBAR_LABEL_BORDER, DEFAULT_TOP_BORDER, true));
+    myFilterDescriptionPanel.setBackground(ProfilerColors.WARNING_BAR_COLOR);
+    myFilterDescriptionPanel.setVisible(false);
 
     myStage.getAspect().addDependency(this).onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::updateFilters);
   }
 
   @NotNull
-  JComponent getComponent() {
+  JComponent getFilterToolbar() {
     return myFilterToolbar;
+  }
+
+  JComponent getFilterDescription() {
+    return myFilterDescriptionPanel;
   }
 
   private void updateFilters() {
@@ -54,15 +69,38 @@ public class MemoryInstanceFilterView extends AspectObserver {
 
     for (CaptureObjectInstanceFilter supportedFilter : captureObject.getSupportedInstanceFilters()) {
       JBCheckBox filterCheckBox = new JBCheckBox(supportedFilter.getDisplayName());
-      filterCheckBox.setBorder(new JBEmptyBorder(0, 2, 0, 2));
-      filterCheckBox.setToolTipText(supportedFilter.getDescription());
+      filterCheckBox.setBorder(new JBEmptyBorder(0, 4, 0, 4));
+      filterCheckBox.setToolTipText(supportedFilter.getSummaryDescription());
       filterCheckBox.addActionListener(l -> {
         if (filterCheckBox.isSelected()) {
           captureObject.addInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
+          myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackMemoryProfilerInstanceFilter(supportedFilter);
         }
         else {
           captureObject.removeInstanceFilter(supportedFilter, SwingUtilities::invokeLater);
         }
+
+        boolean hasFilterDescription = false;
+        myFilterDescriptionPanel.removeAll();
+        // Update the selected filter description.
+        Set<CaptureObjectInstanceFilter> selectedFilters = captureObject.getSelectedInstanceFilters();
+        int i = 0;
+        for (CaptureObjectInstanceFilter filter : selectedFilters) {
+          String description = filter.getDetailedDescription();
+          if (description != null) {
+            HyperlinkLabel label = new HyperlinkLabel();
+            String docLink = filter.getDocumentationLink();
+            // Add an extra space after description before the link.
+            label.setHyperlinkText(description + " ", docLink == null ? "" : "[link]", "");
+            if (docLink != null) {
+              label.setHyperlinkTarget(docLink);
+            }
+            myFilterDescriptionPanel.add(label, new TabularLayout.Constraint(i++, 0));
+            hasFilterDescription = true;
+          }
+        }
+
+        myFilterDescriptionPanel.setVisible(hasFilterDescription);
       });
       myFilterToolbar.add(filterCheckBox);
     }

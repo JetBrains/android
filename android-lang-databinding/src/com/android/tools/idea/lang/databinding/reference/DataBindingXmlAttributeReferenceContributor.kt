@@ -92,7 +92,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
                           ?.firstNotNullResult { it.resolve() as? PsiClass }
                         ?: return null
         val viewType = viewClass.qualifiedName
-                         ?.let { viewName -> LayoutBindingTypeUtil.parsePsiType(viewName, facet) } ?: return null
+                         ?.let { viewName -> LayoutBindingTypeUtil.parsePsiType(viewName, attribute) } ?: return null
         return AttributeReferenceModel(attribute, facet, facade, mode, viewType)
       }
     }
@@ -208,16 +208,16 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
      * Example: `setText(String s)` for attribute app:text in its containing view.
      */
     fun getReferencesFromViewSetter(): List<PsiReference> {
-      if (attribute.namespace == SdkConstants.AUTO_URI) {
-        val setterName = "set" + attribute.name.substringAfter(":").usLocaleCapitalize()
-        for (method in PsiModelClass(viewType, mode).findMethods(setterName, false)) {
-          val parameters = method.psiMethod.parameterList.parameters
-          if (parameters.size == 1) {
-            return listOf(PsiParameterReference(attribute, parameters[0]), PsiMethodReference(attribute, method))
-          }
+      val setterName = "set" + attribute.name.substringAfter(":").usLocaleCapitalize()
+      val referenceList = mutableListOf<PsiReference>()
+      for (method in PsiModelClass(viewType, mode).findMethods(setterName, false)) {
+        val parameters = method.psiMethod.parameterList.parameters
+        if (parameters.size == 1) {
+          referenceList.add(PsiParameterReference(attribute, parameters[0]))
+          referenceList.add(PsiMethodReference(attribute, method))
         }
       }
-      return listOf()
+      return referenceList
     }
 
     /**

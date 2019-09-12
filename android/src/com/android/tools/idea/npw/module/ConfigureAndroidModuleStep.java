@@ -144,7 +144,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
         return new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text"));
       }
 
-      if ((value.get().getTargetApiLevel() >= VersionCodes.Q || myFormFactor == FormFactor.WEAR) && !isAndroidx(project)) {
+      if ((value.get().getMinApiLevel() >= VersionCodes.Q || myFormFactor == FormFactor.WEAR) && !isAndroidx(project)) {
         return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.module.needs.androidx"));
       }
 

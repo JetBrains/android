@@ -85,11 +85,6 @@ public abstract class ActivityLaunchTask implements LaunchTask {
     return ShellCommandLauncher.execute(command, device, launchStatus, printer, timeout, timeoutUnit);
   }
 
-  @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    return false;
-  }
-
   @VisibleForTesting
   @Nullable
   public String getStartActivityCommand(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {

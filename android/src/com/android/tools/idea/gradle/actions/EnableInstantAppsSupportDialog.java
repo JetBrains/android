@@ -96,7 +96,7 @@ public class EnableInstantAppsSupportDialog extends DialogWrapper {
       return;
     }
 
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
     if (manifest == null) {
       return;
     }

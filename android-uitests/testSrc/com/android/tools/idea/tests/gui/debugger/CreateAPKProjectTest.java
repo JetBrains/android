@@ -31,9 +31,9 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -258,7 +258,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
   }
 
   private int countOccurrencesOfSourceFolders(@NotNull Iterable<ProjectViewFixture.NodeFixture> nodes) {
-    Collection<ProjectViewFixture.NodeFixture> sourceFolders = ContainerUtil.newArrayList();
+    Collection<ProjectViewFixture.NodeFixture> sourceFolders = new ArrayList<>();
     nodes.forEach(fixture -> {
       if (fixture.isSourceFolder()) {
         sourceFolders.add(fixture);

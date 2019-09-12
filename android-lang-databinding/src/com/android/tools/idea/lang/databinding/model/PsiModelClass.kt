@@ -148,9 +148,9 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    */
   private val isObservableField
     get() =
-      psiClass?.project?.let { project ->
+      psiClass?.let { resolvedClass ->
         mode.observableFields.any { className ->
-          val observableFieldClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(className, project)!!, mode)
+          val observableFieldClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(className, resolvedClass)!!, mode)
           observableFieldClass.isAssignableFrom(erasure())
         }
       } ?: false
@@ -159,8 +159,8 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * Returns true if this is a LiveData
    */
   private val isLiveData
-    get() = psiClass?.project?.let { project ->
-      val liveDataClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(mode.liveData, project)!!, mode)
+    get() = psiClass?.let { resolvedClass ->
+      val liveDataClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(mode.liveData, resolvedClass)!!, mode)
       liveDataClass.isAssignableFrom(erasure())
     } ?: false
 

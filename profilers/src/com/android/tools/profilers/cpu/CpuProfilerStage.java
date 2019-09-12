@@ -37,6 +37,7 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
+import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Commands;
@@ -536,43 +537,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
 
     setCaptureState(CaptureState.STOPPING);
-    if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      assert getStudioProfilers().getProcess() != null;
-      Commands.Command stopCommand = Commands.Command.newBuilder()
-        .setStreamId(mySession.getStreamId())
-        .setPid(mySession.getPid())
-        .setType(Commands.Command.CommandType.STOP_CPU_TRACE)
-        .setStopCpuTrace(Cpu.StopCpuTrace.newBuilder().setConfiguration(myInProgressTraceInfo.getConfiguration()).build())
-        .build();
-      Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
-        Transport.ExecuteRequest.newBuilder().setCommand(stopCommand).build());
-      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.CPU_TRACE_STATUS,
-                                                                         getStudioProfilers().getIdeServices().getMainExecutor(),
-                                                                         event -> event.getCommandId() == response.getCommandId(),
-                                                                         () -> mySession.getStreamId(),
-                                                                         () -> mySession.getPid(),
-                                                                         event -> {
-                                                                           stopCapturingCallback(
-                                                                             event.getCpuTraceStatus().getTraceStopStatus());
-                                                                           // unregisters the listener.
-                                                                           return true;
-                                                                         });
-      getStudioProfilers().getTransportPoller().registerListener(statusListener);
-    }
-    else {
-      CpuProfilingAppStopRequest request = CpuProfilingAppStopRequest.newBuilder()
-        .setTraceType(myInProgressTraceInfo.getConfiguration().getUserOptions().getTraceType())
-        .setTraceMode(myInProgressTraceInfo.getConfiguration().getUserOptions().getTraceMode())
-        .setSession(mySession)
-        // This is needed to stop an ongoing trace and should be handled via an explicit stop-trace command in the new pipeline.
-        // In the new pipeline, we can potentially pass the same info down via EndSession.
-        .setAppName(getStudioProfilers().getProcess() != null ? getStudioProfilers().getProcess().getName() : "")
-        .build();
-      CompletableFuture.supplyAsync(
-        () -> getCpuClient().stopProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
-        .thenAcceptAsync(response -> this.stopCapturingCallback(response.getStatus()),
-                         getStudioProfilers().getIdeServices().getMainExecutor());
-    }
+    CpuProfiler.stopTracing(getStudioProfilers(), mySession, myInProgressTraceInfo.getConfiguration(), this::stopCapturingCallback);
   }
 
   public long getCaptureElapsedTimeUs() {
@@ -701,6 +666,24 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         timeline.getViewRange().set(parsedCapture.getRange().getMin() - expandAmountUs,
                                     parsedCapture.getRange().getMax() + expandAmountUs);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
+
+
+        if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+          EventStreamServer streamServer = getStudioProfilers().getSessionsManager().getEventStreamServer(mySession.getStreamId());
+          if (streamServer != null) {
+            // Insert the CPU_Trace event into the database. This is used by the Sessions' panel to display the correct trace type
+            // associated with the imported file.
+            streamServer.getEventDeque().offer(Common.Event.newBuilder()
+                                                 .setGroupId(myImportedTraceInfo.getTraceId())
+                                                 .setTimestamp((long)captureRangeNs.getMax())
+                                                 .setIsEnded(true)
+                                                 .setKind(Common.Event.Kind.CPU_TRACE)
+                                                 .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                                                                .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder()
+                                                                                 .setTraceInfo(myImportedTraceInfo)))
+                                                 .build());
+          }
+        }
 
         // Track import trace success
         getStudioProfilers().getIdeServices().getFeatureTracker().trackImportTrace(parsedCapture.getType(), true);
@@ -1084,7 +1067,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
       if (finishedTraceToSelect != null) {
         myInProgressTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance();
-        setAndSelectCapture(finishedTraceToSelect.getTraceId());
+        if (finishedTraceToSelect.getStopStatus().getStatus() == Cpu.TraceStopStatus.Status.SUCCESS) {
+          setAndSelectCapture(finishedTraceToSelect.getTraceId());
+        }
+        else {
+          setCaptureState(CaptureState.IDLE);
+        }
 
         // When API-initiated tracing ends, we want to update the config combo box back to the entry before API tracing.
         // This is done by fire aspect PROFILING_CONFIGURATION.

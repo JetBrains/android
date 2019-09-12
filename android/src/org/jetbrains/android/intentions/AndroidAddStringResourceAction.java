@@ -416,7 +416,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
 
   @Nullable
   private static String getPackage(@NotNull AndroidFacet facet) {
-    Manifest manifest = facet.getManifest();
+    Manifest manifest = Manifest.getMainManifest(facet);
     if (manifest == null) return null;
     return manifest.getPackage().getValue();
   }

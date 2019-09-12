@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
@@ -51,10 +52,12 @@ class CpuThreadTrackRendererTest {
   @Test
   fun renderComponentsForThreadTrack() {
     val mockCapture = Mockito.mock(CpuCapture::class.java)
+    Mockito.`when`(mockCapture.range).thenReturn(Range())
     val threadTrackModel = TrackModel(CpuThreadTrackModel(profilers, Range(), mockCapture, 1), ProfilerTrackRendererType.CPU_THREAD, "Foo")
     val renderer = CpuThreadTrackRenderer()
     val component = renderer.render(threadTrackModel)
-    assertThat(component.componentCount).isEqualTo(1)
-    assertThat(component.getComponent(0)).isInstanceOf(StateChart::class.java)
+    assertThat(component.componentCount).isEqualTo(2)
+    assertThat(component.components[0]).isInstanceOf(StateChart::class.java)
+    assertThat(component.components[1]).isInstanceOf(HTreeChart::class.java)
   }
 }

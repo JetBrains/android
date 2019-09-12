@@ -117,5 +117,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/adt/idea/android-lang:intellij.android.lang[module]",
     ],
 )

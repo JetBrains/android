@@ -20,6 +20,7 @@ import com.android.tools.idea.assistant.PanelFactory;
 import com.google.common.base.Stopwatch;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WhatsNewAssistantUpdateEvent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +54,13 @@ public final class WhatsNewMetricsTracker {
   }
 
   void scrolledToBottom(@NotNull Project project) {
-    myProjectToBuilderMap.get(project).myBuilder.setScrolledToBottom(true);
+    MetricsEventBuilder metricsEventBuilder = myProjectToBuilderMap.get(project);
+    if (metricsEventBuilder == null) {
+      Logger.getInstance(WhatsNewMetricsTracker.class).warn("Attempted to scroll to bottom before metrics builder was created.");
+    }
+    else {
+      metricsEventBuilder.myBuilder.setScrolledToBottom(true);
+    }
   }
 
   public void dismissed(@NotNull Project project) {

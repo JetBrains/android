@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Drawing;
 
 import javax.swing.JPanel;
+import javax.swing.border.StrokeBorder;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -55,6 +56,7 @@ class OverviewPanel extends JPanel {
   private MTag mLayout;
   Listener mListener;
   private Stroke mThickStroke = new BasicStroke(2);
+  private Stroke mDashStroke = new BasicStroke(1f,BasicStroke.CAP_BUTT,BasicStroke.JOIN_ROUND,1, new float[]{5,5},0);
   GeneralPath mPath = new GeneralPath();
   int mRectPathLen = 4;
   int[] mRectPathX = new int[mRectPathLen];
@@ -462,9 +464,7 @@ class OverviewPanel extends JPanel {
     }
 
     // Draw Derived Constraint
-    if (true) {
-      return;
-    }
+
     int rectY = constraintSetY;
     int lineY = rectY + csHeight;
     if (!mComputedDerivedLines) {
@@ -531,10 +531,11 @@ class OverviewPanel extends JPanel {
 
     // ======================= draw the lines
     int GAP = 10;
-    g2g.setStroke(stroke);
-    g.setColor(Color.LIGHT_GRAY);
+
 
     for (int i = 0; i < mTotalDerivedLines; i++) {
+      g2g.setStroke(mDashStroke);
+      g.setColor(Color.LIGHT_GRAY);
       mPath.reset();
       mRectPathX[0] = mDerivedLines[i].mSrcX - 5;
       mRectPathY[0] = lineY;
@@ -548,14 +549,18 @@ class OverviewPanel extends JPanel {
       mRectPathX[3] = mRectPathX[2];
       mRectPathY[3] = lineY + 5;
       mPath.moveTo(mRectPathX[0], mRectPathY[0]);
-      Drawing.drawRound(mPath, mRectPathX, mRectPathY, mRectPathLen, GAP);
-      Drawing.drawPick(picker, mDerivedLines[i], mRectPathX, mRectPathY, mRectPathLen, GAP);
+      Drawing.drawRound(mPath, mRectPathX, mRectPathY, mRectPathLen, 20);
+      Drawing.drawPick(picker, mDerivedLines[i], mRectPathX, mRectPathY, mRectPathLen, 20);
+      g2g.draw(mPath);
+      mPath.reset();
+      mPath.moveTo(mRectPathX[3] , mRectPathY[3]);
       mPath.lineTo(mRectPathX[3] - 5, mRectPathY[3]);
       mPath.lineTo(mRectPathX[3], mRectPathY[3] - 5);
       mPath.lineTo(mRectPathX[3] + 5, mRectPathY[3]);
       mPath.lineTo(mRectPathX[3], mRectPathY[3]);
-
+      g2g.setStroke(stroke);
       g2g.draw(mPath);
+
     }
 
   }
@@ -668,7 +673,7 @@ class OverviewPanel extends JPanel {
 
         if (Math.max(Math.min(l1.mSrcX, l1.mDstX), Math.min(l2.mSrcX, l2.mDstX)) < Math
           .min(Math.max(l1.mSrcX, l1.mDstX), Math.max(l2.mSrcX, l2.mDstX))
-          && l1.mPathYOffset == l2.mPathYOffset) {
+            && l1.mPathYOffset == l2.mPathYOffset) {
           ret += 5;
         } else {
           boolean l1Inside = ((l1.mSrcX - l2.mSrcX) * (l1.mSrcX - l2.mDstX) <= 0) && (
