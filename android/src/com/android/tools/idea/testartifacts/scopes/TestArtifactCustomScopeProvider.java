@@ -21,6 +21,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.FileIndexFacade;
 import com.intellij.openapi.roots.TestSourcesFilter;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.search.scope.TestsScope;
 import com.intellij.psi.search.scope.packageSet.AbstractPackageSet;
 import com.intellij.psi.search.scope.packageSet.CustomScopesProviderEx;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
@@ -40,7 +41,7 @@ import java.util.List;
  * <ul>
  *   <li>AndroidTestsScope: includes android test files</li>
  *   <li>UnitTestsScope: includes unit tests file if android tests exists, otherwise include all tests file
- *       just as {@link com.intellij.psi.search.scope.TestsScope}
+ *       just as {@link TestsScope}
  *   </li>
  * </ul>
  *
