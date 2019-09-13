@@ -278,7 +278,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
       .toList()
 
     if (newModels.isEmpty()) {
-      workbench.loadingStopped("No previews defined")
+      workbench.loadingStopped(message("panel.no.previews.defined"))
     }
 
     // All models are now ready, remove the old ones and add the new ones
@@ -349,7 +349,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) : Toolba
    * of the surface.
    */
   private inner class ForceCompileAndRefreshAction :
-    AnAction("Build & Refresh", null, AllIcons.Actions.ForceRefresh) {
+    AnAction(message("notification.action.build.and.refresh"), null, AllIcons.Actions.ForceRefresh) {
     override fun actionPerformed(e: AnActionEvent) {
       val module = surface.model?.module ?: return
       requestBuild(surface.project, module)
