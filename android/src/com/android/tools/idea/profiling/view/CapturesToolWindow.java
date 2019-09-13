@@ -34,6 +34,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -139,7 +140,10 @@ public class CapturesToolWindow
       return;
     }
     for (VFileEvent event : events) {
-      if (event.getFile() != null && VfsUtilCore.isAncestor(captures, event.getFile(), false)) {
+      VirtualFile file;
+      VirtualFile parent = event instanceof VFileCreateEvent
+                           ? ((VFileCreateEvent)event).getParent() : (file = event.getFile()) == null ? null : file.getParent();
+      if (parent != null && VfsUtilCore.isAncestor(captures, parent, false)) {
         queueUpdate();
         return;
       }
