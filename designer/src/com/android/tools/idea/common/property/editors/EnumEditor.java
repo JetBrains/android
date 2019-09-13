@@ -139,8 +139,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
         ValueWithDisplayString value = createFromEditorValue(myEditor.getText());
         UndoManager undoManager = UndoManager.getInstance(myProperty.getModel().getProject());
         // b/110880308: Avoid updating the property during undo/redo
-        if (!Objects.equals(value.getValue(), myProperty.getValue()) &&
-            !undoManager.isUndoInProgress() && !undoManager.isRedoInProgress()) {
+        if (!Objects.equals(value.getValue(), myProperty.getValue()) && !undoManager.isUndoOrRedoInProgress()) {
           stopEditing(value.getValue());
         }
 
