@@ -15,25 +15,32 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.repository.api.*;
+import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.adtui.validation.Validator.Severity.OK;
+
+import com.android.repository.api.Downloader;
 import com.android.repository.api.RepoManager.RepoLoadedCallback;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.RepositorySource;
+import com.android.repository.api.SettingsController;
+import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.installer.AbstractPackageOperation;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.npw.PathValidationResult;
-import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.progress.StudioProgressRunner;
-import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.progress.StudioProgressRunner;
+import com.android.tools.idea.ui.ApplicationUtils;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.wizard.deprecated.ConsolidatedProgressStep;
@@ -45,12 +52,16 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.common.collect.TreeMultimap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -72,29 +83,42 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.table.SelectionProvider;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.accessibility.ScreenReader;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import sun.awt.CausedFocusEvent;
-
-import javax.swing.*;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.List;
-
-import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import sun.awt.CausedFocusEvent;
 
 /**
  * Main panel for {@link SdkUpdaterConfigurable}
@@ -238,7 +262,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myBindingsManager.bindTwoWay(
       mySelectedSdkLocation,
       new AdapterProperty<String, Optional<File>>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
-        @Nullable
+        @NotNull
         @Override
         protected Optional<File> convertFromSourceType(@NotNull String value) {
           if (value.isEmpty()) {
@@ -247,11 +271,10 @@ public class SdkUpdaterConfigPanel implements Disposable {
           return Optional.of(new File(value));
         }
 
-        @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
         @NotNull
         @Override
         protected String convertFromDestType(@NotNull Optional<File> value) {
-          return value.isPresent() ? value.get().getPath() : "";
+          return value.map(File::getPath).orElse("");
         }
       });
 
@@ -610,40 +633,30 @@ public class SdkUpdaterConfigPanel implements Disposable {
    * Validates {@link #mySdkLocationTextField} and shows appropriate errors in the UI if needed.
    */
   private void validate() {
-    File sdkLocation = myConfigurable.getRepoManager().getLocalPath();
-    String sdkLocationPath = sdkLocation == null ? null : sdkLocation.getAbsolutePath();
+    File nullableSdkLocation = myConfigurable.getRepoManager().getLocalPath();
+    @NotNull File sdkLocation = nullableSdkLocation == null ? new File("") : nullableSdkLocation;
 
-    PathValidationResult result =
-      validateLocation(sdkLocationPath, "Android SDK location", false, WritableCheckMode.NOT_WRITABLE_IS_WARNING);
+    Validator<File> validator = new PathValidator.Builder().withCommonRules(true).build("Android SDK location");
+    Validator.Result result = validator.validate(sdkLocation);
+    Validator.Severity severity = result.getSeverity();
 
-    switch (result.getStatus()) {
-      case OK:
-        mySdkLocationLabel.setForeground(JBColor.foreground());
-        mySdkErrorLabel.setVisible(false);
-        myPlatformComponentsPanel.setEnabled(true);
-        myTabPane.setEnabled(true);
-
-        break;
-      case WARN:
-        mySdkErrorLabel.setIcon(AllIcons.General.BalloonWarning);
-        mySdkErrorLabel.setText(result.getFormattedMessage());
-        mySdkErrorLabel.setVisible(true);
-
-        myPlatformComponentsPanel.setEnabled(true);
-        myTabPane.setEnabled(true);
-
-        break;
-      case ERROR:
-        mySdkErrorLabel.setIcon(AllIcons.General.BalloonError);
-        mySdkErrorLabel.setText(result.getFormattedMessage());
-        mySdkErrorLabel.setVisible(true);
-
-        myPlatformComponentsPanel.setEnabled(false);
-        myTabPane.setEnabled(false);
-
-        break;
+    if (severity == OK) {
+      mySdkLocationLabel.setForeground(JBColor.foreground());
+      mySdkErrorLabel.setVisible(false);
+    } else {
+      mySdkErrorLabel.setIcon(severity.getIcon());
+      mySdkErrorLabel.setText(result.getMessage());
+      mySdkErrorLabel.setVisible(true);
     }
+
+    boolean enabled = severity == ERROR;
+    myPlatformComponentsPanel.setEnabled(enabled);
+    myTabPane.setEnabled(enabled);
+
+    mySdkErrorLabel.setVisible(severity != OK);
+    myPlatformComponentsPanel.setEnabled(severity != ERROR);
   }
+
 
   private void loadPackages(RepositoryPackages packages) {
     Multimap<AndroidVersion, UpdatablePackage> platformPackages = TreeMultimap.create();
