@@ -27,10 +27,10 @@ import javax.swing.JComponent
 class FakeInspectorPanel : InspectorPanel {
   val lines = mutableListOf<FakeInspectorLineModel>()
 
-  override fun addTitle(title: String, vararg actions: AnAction): InspectorLineModel {
+  override fun addTitle(title: String, actions: List<AnAction>): InspectorLineModel {
     val line = FakeInspectorLineModel(FakeLineType.TITLE)
     line.title = title
-    line.actions = actions.asList()
+    line.actions = actions
     lines.add(line)
     return line
   }

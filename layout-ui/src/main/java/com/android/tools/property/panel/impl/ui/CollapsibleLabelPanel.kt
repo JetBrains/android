@@ -46,7 +46,7 @@ class CollapsibleLabelPanel(
   val model: CollapsibleLabelModel,
   fontSize: UIUtil.FontSize,
   fontStyle: Int,
-  vararg actions: AnAction
+  actions: List<AnAction> = emptyList()
 ) : JPanel(BorderLayout()) {
   val label = ExpandableLabel(model.name, this, fontSize, fontStyle)
 

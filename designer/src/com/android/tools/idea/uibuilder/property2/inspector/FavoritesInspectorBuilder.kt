@@ -127,7 +127,8 @@ class FavoritesInspectorBuilder(
       { !favorites.contains(it.asReference)}, { newDelegate(it, favoritesTableModel) })
     val addNewRow = AddNewRowAction(favoritesTableModel, newPropertyInstance)
     val deleteRowAction = DeleteRowAction(favoritesTableModel)
-    val titleModel = inspector.addExpandableTitle(InspectorSection.FAVORITES.title, false, addNewRow, deleteRowAction)
+    val actions = listOf(addNewRow, deleteRowAction)
+    val titleModel = inspector.addExpandableTitle(InspectorSection.FAVORITES.title, false, actions)
     val tableLineModel = inspector.addTable(favoritesTableModel, false, tableUIProvider, titleModel)
     inspector.addComponent(EmptyTablePanel(addNewRow, tableLineModel), titleModel)
     addNewRow.titleModel = titleModel

@@ -164,7 +164,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         customModel, filter, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), false, true);
       AddCustomFieldAction addFieldAction = new AddCustomFieldAction(tableModel, any);
       DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction();
-      InspectorLineModel title = inspector.addExpandableTitle("CustomAttributes", true, addFieldAction, deleteFieldAction);
+      List<AnAction> actions = ImmutableList.<AnAction>builder().add(addFieldAction).add(deleteFieldAction).build();
+
+      InspectorLineModel title = inspector.addExpandableTitle("CustomAttributes", true, actions);
       TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
       inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
       deleteFieldAction.setLineModel(lineModel);
@@ -192,9 +194,14 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       SubSectionControlAction controlAction = new SubSectionControlAction(any);
       AddMotionFieldAction addFieldAction = new AddMotionFieldAction(myModel, tableModel, model.getProperties());
       DeleteMotionFieldAction deleteFieldAction = new DeleteMotionFieldAction(tableModel);
-      AnAction[] actions = showSectionControl
-                           ? new AnAction[]{controlAction, addFieldAction, deleteFieldAction}
-                           : new AnAction[]{addFieldAction, deleteFieldAction};
+      ImmutableList.Builder<AnAction> actionsBuilder = ImmutableList.builder();
+      if (showSectionControl) {
+        actionsBuilder.add(controlAction);
+      }
+      actionsBuilder.add(addFieldAction);
+      actionsBuilder.add(deleteFieldAction);
+      List<AnAction> actions = actionsBuilder.build();
+
       InspectorLineModel title = inspector.addExpandableTitle(sectionTagName, true, actions);
       TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
       inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
