@@ -143,6 +143,17 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myLoadingPanel.abortLoading(message, AllIcons.General.Warning);
   }
 
+  /**
+   * Returns true if the WorkBench is displaying a message. The WorkBench will display a message when in one of two states:
+   * <ul>
+   *   <li>Loading state initiated by calling {@link WorkBench#showLoading}</li>
+   *   <li>Error state initiated by calling {@link WorkBench#loadingStopped(String)}</li>
+   * </ul>
+   */
+  public boolean isMessageVisible() {
+    return myLoadingPanel.isLoading() || myLoadingPanel.hasError();
+  }
+
   @TestOnly
   public WorkBenchLoadingPanel getLoadingPanel() {
     return myLoadingPanel;
