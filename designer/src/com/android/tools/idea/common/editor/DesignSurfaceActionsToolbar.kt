@@ -183,7 +183,7 @@ class DesignSurfaceActionsToolbar(
 
   private fun getActionGroups(): DesignSurfaceActionGroups {
     return if (StudioFlags.NELE_DESIGN_SURFACE_ZOOM.get()) {
-      if (designSurface.layoutType.isEditable()) {
+      if (designSurface.isEditable) {
         // Only editable file types support panning.
         EditableDesignSurfaceActionGroups(component)
       }
