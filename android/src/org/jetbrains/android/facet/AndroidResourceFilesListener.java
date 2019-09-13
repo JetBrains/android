@@ -34,7 +34,9 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.util.PathUtil;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -76,28 +78,31 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
     final Set<VirtualFile> result = new HashSet<>();
 
     for (VFileEvent event : events) {
-      final VirtualFile file = event.getFile();
+      VirtualFile file;
 
-      if (file != null && shouldScheduleUpdate(file)) {
-        result.add(file);
+      CharSequence fileName = event instanceof VFileCreateEvent ? ((VFileCreateEvent)event).getChildName() : PathUtil.getFileName(event.getPath());
+      VirtualFile parent = event instanceof VFileCreateEvent ? ((VFileCreateEvent)event).getParent() : (file = event.getFile()) == null ? null : file.getParent();
+      if (shouldScheduleUpdate(fileName, parent)) {
+        file = event.getFile();
+        if (file != null) {
+          result.add(file);
+        }
       }
     }
     return result;
   }
 
-  private static boolean shouldScheduleUpdate(@NotNull VirtualFile file) {
-    final FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(file.getNameSequence());
+  private static boolean shouldScheduleUpdate(@NotNull CharSequence fileName, VirtualFile fileParent) {
+    final FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileName);
 
     if (fileType == AidlFileType.INSTANCE ||
         fileType == AndroidRenderscriptFileType.INSTANCE ||
-        SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
+        SdkConstants.FN_ANDROID_MANIFEST_XML.equals(fileName.toString())) {
       return true;
     }
     else if (fileType == StdFileTypes.XML) {
-      final VirtualFile parent = file.getParent();
-
-      if (parent != null && parent.isDirectory()) {
-        final ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
+      if (fileParent != null && fileParent.isDirectory()) {
+        final ResourceFolderType resType = ResourceFolderType.getFolderType(fileParent.getName());
         return ResourceFolderType.VALUES == resType;
       }
     }
