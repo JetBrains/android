@@ -2,14 +2,6 @@
 <issues format="5" by="lint 3.6.0-dev">
 
     <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/util/AndroidOSProcessHandler.java"
-            line="52"/>
-    </issue>
-
-    <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location

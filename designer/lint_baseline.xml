@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 26.6.0-dev">
+<issues format="5" by="lint 3.6.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -54,7 +54,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintAnchorTarget.java"
-            line="429"/>
+            line="432"/>
     </issue>
 
     <issue
@@ -62,7 +62,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="622"/>
+            line="634"/>
     </issue>
 
     <issue
@@ -70,7 +70,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="747"/>
+            line="759"/>
     </issue>
 
     <issue
@@ -78,7 +78,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="752"/>
+            line="764"/>
     </issue>
 
     <issue
@@ -86,7 +86,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="814"/>
+            line="826"/>
     </issue>
 
     <issue
@@ -94,7 +94,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="825"/>
+            line="837"/>
     </issue>
 
     <issue
@@ -102,7 +102,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="1493"/>
+            line="1503"/>
     </issue>
 
     <issue
@@ -143,14 +143,6 @@
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/ConstraintDragTarget.java"
             line="273"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintLayoutHandler.java"
-            line="442"/>
     </issue>
 
     <issue
@@ -283,18 +275,10 @@
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/common/scene/draw/DrawTextRegion.java"
-            line="200"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/actions/GenerateLayoutTestSkeletonAction.java"
-            line="277"/>
+            line="276"/>
     </issue>
 
     <issue
@@ -302,7 +286,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineCycleTarget.java"
-            line="142"/>
+            line="143"/>
     </issue>
 
     <issue
@@ -310,7 +294,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineCycleTarget.java"
-            line="146"/>
+            line="147"/>
     </issue>
 
     <issue
@@ -318,7 +302,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineCycleTarget.java"
-            line="169"/>
+            line="170"/>
     </issue>
 
     <issue
@@ -326,7 +310,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineCycleTarget.java"
-            line="176"/>
+            line="177"/>
     </issue>
 
     <issue
@@ -334,7 +318,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineTarget.java"
-            line="308"/>
+            line="309"/>
     </issue>
 
     <issue
@@ -342,7 +326,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/targets/GuidelineTarget.java"
-            line="312"/>
+            line="313"/>
     </issue>
 
     <issue
@@ -422,7 +406,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="665"/>
+            line="647"/>
     </issue>
 
     <issue
@@ -430,7 +414,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/scout/ScoutDirectConvert.java"
-            line="206"/>
+            line="252"/>
     </issue>
 
     <issue
@@ -438,23 +422,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/ScreenViewLayer.java"
-            line="249"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/drawing/decorator/TextWidget.java"
-            line="140"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/drawing/decorator/TextWidget.java"
-            line="206"/>
+            line="258"/>
     </issue>
 
     <issue
@@ -462,7 +430,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintModel.java"
-            line="619"/>
+            line="623"/>
     </issue>
 
     <issue
@@ -534,7 +502,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/model/NlComponent.java"
-            line="99"/>
+            line="100"/>
     </issue>
 
     <issue
@@ -542,7 +510,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/model/NlComponent.java"
-            line="99"/>
+            line="100"/>
     </issue>
 
     <issue
@@ -550,7 +518,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="779"/>
+            line="747"/>
     </issue>
 
     <issue
@@ -558,7 +526,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="781"/>
+            line="751"/>
     </issue>
 
     <issue
@@ -574,7 +542,7 @@
         message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/ui/AppBarConfigurationDialog.java"
-            line="354"/>
+            line="253"/>
     </issue>
 
     <issue
@@ -582,7 +550,7 @@
         message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/NlPreviewForm.java"
-            line="404"/>
+            line="408"/>
     </issue>
 
     <issue
@@ -598,7 +566,7 @@
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/MotionLayoutTimelinePanel.java"
-            line="547"/>
+            line="545"/>
     </issue>
 
     <issue
