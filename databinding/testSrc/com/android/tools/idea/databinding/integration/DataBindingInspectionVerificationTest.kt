@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding.integration
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
@@ -60,34 +61,23 @@ class DataBindingInspectionVerificationTest {
 
   // TODO(b/122983052): These are currently failing. Get these blacklisted files down to zero!
   private val excludedFiles = setOf(
-    "app/src/main/res/layout-land/multi_res_layout.xml",
-    "app/src/main/res/layout/live_data.xml",
-    "app/src/main/res/layout/included_layout.xml",
-    "app/src/main/res/layout/two_way.xml",
-    "app/src/main/res/layout/multi_res_layout.xml",
-    "app/src/main/res/layout/conditional_binding.xml",
-    "app/src/main/res/layout/listeners_with_dot.xml",
-    "app/src/main/res/layout/leak_test.xml",
-    "app/src/main/res/layout/bind_to_final.xml",
-    "app/src/main/res/layout/live_data_included.xml",
+    "app/src/androidTest/java/android/databinding/testapp/InstanceAdapterTest.java",
+    "app/src/androidTest/java/androidx/databinding/DataBindingMapperTest.java",
     "app/src/main/res/layout/auto_context.xml",
-    "app/src/main/res/layout/use_default.xml",
     "app/src/main/res/layout/bracket_test.xml",
-    "app/src/main/res/layout/bind_to_final_observable.xml",
-    "app/src/main/res/layout/static_access_import_on_demand_with_conflict.xml",
+    "app/src/main/res/layout/conditional_binding.xml",
     "app/src/main/res/layout/find_method_test.xml",
     "app/src/main/res/layout/fragment_main.xml",
-    "app/src/main/res/layout/resource_test.xml",
+    "app/src/main/res/layout/included_layout.xml",
+    "app/src/main/res/layout/leak_test.xml",
+    "app/src/main/res/layout/listeners_with_dot.xml",
+    "app/src/main/res/layout/live_data.xml",
+    "app/src/main/res/layout/live_data_included.xml",
     "app/src/main/res/layout/observable_field_test.xml",
-    "app/src/androidTest/java/android/databinding/testapp/InstanceAdapterTest.java",
-    "app/src/androidTest/java/android/databinding/testapp/TwoWayBindingAdapterTest.java",
-    "app/src/androidTest/java/android/databinding/testapp/ResourceTest.java",
-    "app/src/androidTest/java/android/databinding/testapp/LiveDataTest.java",
-    "app/src/androidTest/java/android/databinding/testapp/IncludeTagTest.java",
-    "app/src/androidTest/java/android/databinding/testapp/NoVariableIncludeTest.java",
-    "app/src/androidTest/java/android/databinding/testapp/CustomBindingTest.java",
-    "app/src/androidTest/java/android/databinding/testapp/BasicBindingTest.java",
-    "app/src/androidTest/java/androidx/databinding/DataBindingMapperTest.java"
+    "app/src/main/res/layout/resource_test.xml",
+    "app/src/main/res/layout/static_access_import_on_demand_with_conflict.xml",
+    "app/src/main/res/layout/two_way.xml",
+    "app/src/main/res/layout/use_default.xml"
   )
 
   @Before
@@ -126,6 +116,9 @@ class DataBindingInspectionVerificationTest {
     fixture.testDataPath = temporaryFolder.root.absolutePath
     projectRule.load("TestApp")
     projectRule.requestSyncAndWait()
+
+    // Trigger resource repository initialization
+    ResourceRepositoryManager.getAppResources(projectRule.androidFacet)
 
     // Need to do this or else highlighting will fail with a
     // "Access to tree elements not allowed" error
@@ -173,6 +166,8 @@ class DataBindingInspectionVerificationTest {
 
     if (excludedPaths.isNotEmpty()) {
       // Copy/paste console this output over the "excludedFiles" property above and reformat code
+      excludedPaths.sort() // For consistent output across runs
+
       println("private val excludedFiles = setOf(")
       println(excludedPaths.joinToString(",\n") { "\"$it\"" })
       println(")")
