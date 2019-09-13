@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.concurrency.GuardedBy;
@@ -31,6 +30,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.siyeh.ig.InspectionGadgetsFix;
+import gnu.trove.THashMap;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -429,8 +429,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         // shows the setting as modified, even though the name seems totally unrelated)
         InspectionProfileImpl base = InspectionProfileKt.getBASE_PROFILE();
         InspectionProfileImpl current = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
-        base.addTool(project, factory, null);
-        current.addTool(project, factory, null);
+        base.addTool(project, factory, new THashMap<>());
+        current.addTool(project, factory, new THashMap<>());
 
         name = tool.getShortName();
         ourIssue2InspectionShortName.put(issue, name);
@@ -692,7 +692,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     private final String myFamilyName;
     private final AndroidLintQuickFix[] myFixes;
 
-    CompositeLintFix(String displayName, String familyName, AndroidLintQuickFix[] myFixes) {
+    public CompositeLintFix(String displayName, String familyName, AndroidLintQuickFix[] myFixes) {
       myDisplayName = displayName;
       myFamilyName = familyName;
       this.myFixes = myFixes;
