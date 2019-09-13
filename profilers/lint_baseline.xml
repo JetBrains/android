@@ -14,7 +14,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="136"/>
+            line="141"/>
     </issue>
 
     <issue
@@ -22,7 +22,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="196"/>
+            line="205"/>
     </issue>
 
     <issue
@@ -30,7 +30,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="203"/>
+            line="212"/>
     </issue>
 
     <issue
@@ -38,7 +38,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="304"/>
+            line="323"/>
     </issue>
 
     <issue
@@ -46,7 +46,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="312"/>
+            line="331"/>
     </issue>
 
     <issue
@@ -54,7 +54,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuProfiler.java"
-            line="198"/>
+            line="210"/>
     </issue>
 
     <issue
@@ -62,7 +62,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/CpuProfilerStage.java"
-            line="460"/>
+            line="461"/>
     </issue>
 
     <issue
@@ -78,7 +78,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/memory/adapters/HeapDumpInstanceObject.java"
-            line="69"/>
+            line="66"/>
     </issue>
 
     <issue
@@ -86,7 +86,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/memory/adapters/JniReferenceInstanceObject.java"
-            line="295"/>
+            line="292"/>
     </issue>
 
     <issue
@@ -102,7 +102,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/profilers/event/LifecycleEventDataSeries.java"
-            line="106"/>
+            line="107"/>
     </issue>
 
     <issue
@@ -110,23 +110,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/profilers/event/LifecycleEventDataSeries.java"
-            line="124"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/profilers/event/LifecycleEventDataSeries.java"
-            line="197"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/profilers/event/LifecycleEventDataSeries.java"
-            line="220"/>
+            line="125"/>
     </issue>
 
     <issue
@@ -134,15 +118,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/memory/MemoryProfilerStage.java"
-            line="418"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/profilers/network/httpdata/Payload.java"
-            line="91"/>
+            line="450"/>
     </issue>
 
     <issue
@@ -158,7 +134,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
-            line="227"/>
+            line="232"/>
     </issue>
 
     <issue
@@ -166,7 +142,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
-            line="278"/>
+            line="274"/>
     </issue>
 
     <issue
@@ -174,7 +150,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
-            line="281"/>
+            line="280"/>
     </issue>
 
     <issue
@@ -182,7 +158,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
-            line="283"/>
+            line="285"/>
     </issue>
 
     <issue
@@ -190,7 +166,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
-            line="293"/>
+            line="289"/>
     </issue>
 
     <issue
@@ -198,7 +174,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
-            line="299"/>
+            line="295"/>
     </issue>
 
     <issue
@@ -206,7 +182,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
-            line="304"/>
+            line="332"/>
     </issue>
 
     <issue
@@ -214,7 +190,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
-            line="308"/>
+            line="335"/>
     </issue>
 
     <issue
@@ -222,7 +198,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
-            line="314"/>
+            line="337"/>
     </issue>
 
     <issue
@@ -230,7 +206,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfSampleReporter.java"
-            line="70"/>
+            line="68"/>
     </issue>
 
     <issue
@@ -238,7 +214,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfSampleReporter.java"
-            line="130"/>
+            line="128"/>
     </issue>
 
     <issue
@@ -262,7 +238,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/profilers/memory/adapters/ClassSet.java"
-            line="31"/>
+            line="33"/>
     </issue>
 
     <issue
@@ -270,7 +246,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/profilers/memory/adapters/ClassSet.java"
-            line="73"/>
+            line="75"/>
     </issue>
 
     <issue
@@ -286,7 +262,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/profilers/memory/HprofSessionArtifact.java"
-            line="92"/>
+            line="89"/>
     </issue>
 
     <issue
@@ -294,7 +270,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/profilers/memory/LegacyAllocationsSessionArtifact.java"
-            line="86"/>
+            line="85"/>
     </issue>
 
     <issue
@@ -302,7 +278,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/profilers/memory/adapters/MethodSet.java"
-            line="70"/>
+            line="69"/>
     </issue>
 
     <issue
