@@ -60,7 +60,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       addStep(FirstRunWelcomeStep(sdkExists))
       if (initialSdkLocation.path.isEmpty()) {
         // We don't have a default path specified, have to do custom install.
-        model.installationType().set(CUSTOM)
+        model.installationType.set(CUSTOM)
       }
       else {
         addStep(InstallationTypeWizardStep(model))
