@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.common.editor;
 
+import static java.awt.event.InputEvent.ALT_DOWN_MASK;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
+import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
+
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.codeHighlighting.HighlightingPass;
 import com.intellij.icons.AllIcons;
@@ -29,12 +35,18 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.fileEditor.TextEditorWithPreview;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.util.ArrayUtil;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.stream.Stream;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.Icon;
+import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +55,9 @@ import org.jetbrains.annotations.Nullable;
  * XML file being displayed in the preview.
  */
 public class SplitEditor extends TextEditorWithPreview implements TextEditor {
+
+  @VisibleForTesting
+  static final int ACTION_SHORTCUT_MODIFIERS = (SystemInfo.isMac ? CTRL_DOWN_MASK : ALT_DOWN_MASK) | SHIFT_DOWN_MASK;
 
   @NotNull
   private final Project myProject;
@@ -69,6 +84,7 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
     super(textEditor, designerEditor, editorName);
     myProject = project;
     myDesignerEditor = designerEditor;
+    registerModeNavigationShortcuts();
   }
 
   @NotNull
@@ -133,6 +149,46 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
     return new AnActionEvent(null, DataManager.getInstance().getDataContext(getComponent()), "", new Presentation(),
                              ActionManager.getInstance(),
                              0);
+  }
+
+  private void registerModeNavigationShortcuts() {
+    Action navigateLeftAction = new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (isTextMode()) {
+          selectDesignMode(true);
+        }
+        else if (isSplitMode()) {
+          selectTextMode(true);
+        }
+        else { // Design mode
+          selectSplitMode(true);
+        }
+      }
+    };
+    final String navLeftInputKey = "navigate_split_editor_mode_left";
+    getComponent().getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+      .put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ACTION_SHORTCUT_MODIFIERS), navLeftInputKey);
+    getComponent().getActionMap().put(navLeftInputKey, navigateLeftAction);
+
+    Action navigateRightAction = new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (isTextMode()) {
+          selectSplitMode(true);
+        }
+        else if (isSplitMode()) {
+          selectDesignMode(true);
+        }
+        else { // Design mode
+          selectTextMode(true);
+        }
+      }
+    };
+    final String navRightInputKey = "navigate_split_editor_mode_right";
+    getComponent().getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+      .put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ACTION_SHORTCUT_MODIFIERS), navRightInputKey);
+    getComponent().getActionMap().put(navRightInputKey, navigateRightAction);
   }
 
   @Override
@@ -206,6 +262,7 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
         // example of indirectly changing the mode is triggering "Go to XML" when in design-only mode, as we change the mode to text-only.
         surface.getAnalyticsManager().trackSelectEditorMode();
       }
+      getComponent().requestFocus();
       // TODO(b/136174865): hide editor tool windows (e.g. palette) depending on the mode selected.
     }
   }
