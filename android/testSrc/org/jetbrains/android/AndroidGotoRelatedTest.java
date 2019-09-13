@@ -181,7 +181,7 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
   private List<LineMarkerInfo> doGetRelatedLineMarkers() {
     myFixture.doHighlighting();
 
-    final List<LineMarkerInfo> markers = DaemonCodeAnalyzerImpl.getLineMarkers(
+    final List<LineMarkerInfo<?>> markers = DaemonCodeAnalyzerImpl.getLineMarkers(
       myFixture.getEditor().getDocument(), myFixture.getProject());
     final List<LineMarkerInfo> relatedMarkers = new ArrayList<>();
 
