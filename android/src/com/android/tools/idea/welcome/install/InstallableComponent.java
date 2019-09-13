@@ -16,7 +16,6 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.RepoManager;
 import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -24,7 +23,7 @@ import com.android.repository.io.FileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.SdkLocationUtils;
-import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
+import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Lists;
@@ -63,7 +62,7 @@ public abstract class InstallableComponent extends ComponentTreeNode {
 
   @Override
   public String getLabel() {
-    String sizeLabel = isInstalled() ? "installed" : WelcomeUIUtils.getSizeLabel(getDownloadSize());
+    String sizeLabel = isInstalled() ? "installed" : WelcomeUiUtils.getSizeLabel(getDownloadSize());
     return String.format("%s – (%s)", myName, sizeLabel);
   }
 

@@ -23,7 +23,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallableComponent;
-import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
+import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
@@ -49,7 +49,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -169,7 +168,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     if (file == null) {
       return "";
     }
-    String available = WelcomeUIUtils.getSizeLabel(file.getFreeSpace());
+    String available = WelcomeUiUtils.getSizeLabel(file.getFreeSpace());
     if (SystemInfo.isWindows) {
       while (file.getParentFile() != null) {
         file = file.getParentFile();
@@ -273,7 +272,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
       String path = myState.get(mySdkDownloadPathKey);
       myAvailableSpace.setText(getDiskSpace(path));
       long selected = getComponentsSize();
-      myNeededSpace.setText(String.format("Total download size: %s", WelcomeUIUtils.getSizeLabel(selected)));
+      myNeededSpace.setText(String.format("Total download size: %s", WelcomeUiUtils.getSizeLabel(selected)));
     }
   }
 
