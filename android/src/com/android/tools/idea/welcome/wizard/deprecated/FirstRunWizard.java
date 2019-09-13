@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import com.android.SdkConstants;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
