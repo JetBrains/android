@@ -346,9 +346,6 @@ filegroup(
 filegroup(
     name = "deploy-artifacts",
     srcs = select({
-        "//tools/base/bazel:remote_windows": [
-            "//tools/base/deploy/proto:deploy_java_proto",
-        ],
         "//tools/base/bazel:windows": [
             "//tools/base/deploy/installer:android-installer",
             "//tools/base/deploy/proto:deploy_java_proto",
@@ -418,7 +415,6 @@ filegroup(
         "//tools/base/tracer:trace_agent",
     ] + select({
         "//tools/base/bazel:windows": [],
-        "//tools/base/bazel:remote_windows": [],
         "//conditions:default": [
             "//tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents:jnibleakhelper",
         ],
