@@ -178,11 +178,12 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
 
   private fun startLoading() {
     ApplicationManager.getApplication().executeOnPooledThread {
-      val psi = surface.model?.file
-      if (psi == null) {
+      val model = surface.model
+      if (model == null) {
         cardLayout.show(this, "ERROR")
         return@executeOnPooledThread
       }
+      val psi = model.file
 
       ProgressManager.getInstance().executeProcessUnderProgress(
         {
