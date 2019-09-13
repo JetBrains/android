@@ -36,5 +36,6 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
     <orderEntry type="library" name="com.android.tools:ninepatch" level="project" />
     <orderEntry type="library" exported="" name="com.android.tools:dvlib" level="project" />
+    <orderEntry type="library" name="com.android.tools.build:builder-test-api" level="project" />
   </component>
 </module>
