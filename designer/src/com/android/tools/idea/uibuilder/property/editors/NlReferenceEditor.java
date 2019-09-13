@@ -228,7 +228,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
   protected void editorFocusLost(@NotNull FocusEvent event) {
     UndoManager undoManager = UndoManager.getInstance(myProject);
     // b/110880308: Avoid updating the property during undo/redo
-    if (event.getOppositeComponent() != mySlider && !(undoManager.isUndoInProgress() || undoManager.isRedoInProgress())) {
+    if (event.getOppositeComponent() != mySlider && !undoManager.isUndoOrRedoInProgress()) {
       stopEditing(getText());
       // Remove the selection after we lose focus for feedback on which editor is the active editor
       myTextEditorWithAutoCompletion.removeSelection();
