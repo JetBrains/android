@@ -61,8 +61,9 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
 
     val addAction = AddAction(this, component, model)
     val deleteAction = DeleteAction(this, component, model, list)
+    val actions = listOf(addAction, deleteAction)
 
-    val titleModel = inspector.addExpandableTitle(title(component), model.size > 0, addAction, deleteAction)
+    val titleModel = inspector.addExpandableTitle(title(component), model.size > 0, actions)
     addAction.model = titleModel
     deleteAction.model = titleModel
 

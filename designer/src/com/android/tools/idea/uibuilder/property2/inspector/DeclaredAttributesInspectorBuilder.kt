@@ -69,7 +69,8 @@ class DeclaredAttributesInspectorBuilder(
     val declaredTableModel = FilteredPTableModel.create(model, { item -> item.rawValue != null }, androidSortOrder)
     val addNewRow = AddNewRowAction(declaredTableModel, newPropertyInstance)
     val deleteRowAction = DeleteRowAction(declaredTableModel)
-    val titleModel = inspector.addExpandableTitle(InspectorSection.DECLARED.title, false, addNewRow, deleteRowAction)
+    val actions = listOf(addNewRow, deleteRowAction)
+    val titleModel = inspector.addExpandableTitle(InspectorSection.DECLARED.title, false, actions)
     val tableLineModel = inspector.addTable(declaredTableModel, false, tableUIProvider, titleModel)
     inspector.addComponent(EmptyTablePanel(addNewRow, tableLineModel), titleModel)
     addNewRow.titleModel = titleModel
