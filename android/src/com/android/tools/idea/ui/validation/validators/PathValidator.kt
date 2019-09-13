@@ -101,8 +101,12 @@ class PathValidator
     /**
      * Useful for creating a [PathValidator] with most rules enforced.
      */
-    fun withCommonRules(): Builder {
+    @JvmOverloads
+    fun withCommonRules(checkWritable: Boolean = false): Builder {
       withCommonTestRules()
+      if (checkWritable) {
+        withWarning(PATH_NOT_WRITABLE)
+      }
       if (SystemInfo.isWindows) {
         withError(WINDOWS_PATH_TOO_LONG)
       }
@@ -240,7 +244,7 @@ val PARENT_IS_NOT_A_DIRECTORY = createSimpleRule(
 
 val PATH_NOT_WRITABLE = createSimpleRule(
   { fileOp, file -> fileOp.exists(file) && !fileOp.canWrite(file) },
-  { file, _ -> "The path '${file.path}' is not writable. Please choose a new location." }
+  { file, _ -> "The path '${file.path}' is not writable." }
 )
 
 val PATH_INSIDE_ANDROID_STUDIO = createSimpleRule(
