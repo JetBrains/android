@@ -1174,7 +1174,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * @return true if the content is editable (e.g. move position or drag-and-drop), false otherwise.
    */
-  private boolean isEditable() {
+  public boolean isEditable() {
     return getLayoutType().isEditable() && myIsEditable;
   }
 
