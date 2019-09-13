@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -70,6 +71,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotifications
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
@@ -99,6 +101,15 @@ const val COMPOSABLE_NAME_ATTR = "tools:composableName"
 
 const val BUILDING_MESSAGE = "Waiting for build to finish..."
 
+private val WHITE_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
+                                                                            JBColor(0x6E6E6E, 0xAFB1B3))
+private val BLUE_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
+                                                                           JBColor(0x389FD6, 0x3592C4))
+private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
+                                                                            JBColor(0x59A869, 0x499C54))
+private val RED_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
+                                                                          JBColor(0xDB5860, 0xC75450))
+
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
  * is converted to `wrap_content`. Otherwise, the value is returned concatenated with `dp`.
@@ -118,7 +129,7 @@ const val BORDER_DEFINITION = """
         android:width="1dp"
         android:color="#55AAAAAA" />
   </shape>
-</aapt:attr>""";
+</aapt:attr>"""
 
 /**
  * Generates the XML string wrapper for one [PreviewElement]
@@ -404,10 +415,23 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
    * of the surface.
    */
   private inner class ForceCompileAndRefreshAction :
-    AnAction(message("notification.action.build.and.refresh"), null, AllIcons.Actions.ForceRefresh) {
+    AnAction(message("notification.action.build.and.refresh"), null, WHITE_REFRESH_BUTTON) {
     override fun actionPerformed(e: AnActionEvent) {
       val module = surface.model?.module ?: return
       requestBuild(surface.project, module)
+    }
+
+    override fun update(e: AnActionEvent) {
+      val presentation = e.presentation
+      presentation.isEnabled = true
+      when {
+        GradleBuildState.getInstance(surface.project).isBuildInProgress -> {
+          presentation.icon = BLUE_REFRESH_BUTTON
+          presentation.isEnabled = false
+        }
+        findComposePreviewManagerForSurface(surface)?.needsBuild() == true -> presentation.icon = RED_REFRESH_BUTTON
+        else -> presentation.icon = GREEN_REFRESH_BUTTON
+      }
     }
   }
 
