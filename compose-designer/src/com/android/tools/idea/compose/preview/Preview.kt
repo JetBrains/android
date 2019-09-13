@@ -33,6 +33,9 @@ import com.android.tools.idea.compose.preview.ComposePreviewToolbar.ForceCompile
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.build.BuildContext
+import com.android.tools.idea.gradle.project.build.GradleBuildListener
+import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.rendering.RefreshRenderAction.clearCacheAndRefreshSurface
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.run.util.StopWatch
@@ -87,6 +90,8 @@ const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
 
 /** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
 const val COMPOSABLE_NAME_ATTR = "tools:composableName"
+
+const val BUILDING_MESSAGE = "Waiting for build to finish..."
 
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
@@ -199,13 +204,23 @@ private class PreviewEditor(private val psiFile: PsiFile,
     val issueErrorSplitter = IssuePanelSplitter(surface, surfacePanel)
 
     init(issueErrorSplitter, surface, listOf())
-    showLoading("Waiting for build to finish...")
+    showLoading(BUILDING_MESSAGE)
   }
 
   /**
    * Calls refresh method on the the successful gradle build
    */
   private val refresher = SmartAutoRefresher(psiFile, this, workbench)
+
+  init {
+    GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
+      override fun buildStarted(context: BuildContext) {
+        if (workbench.isMessageVisible) {
+          workbench.setLoadingText(BUILDING_MESSAGE)
+        }
+      }
+    }, this)
+  }
 
   override fun needsBuild(): Boolean = surface.models.asSequence()
     .mapNotNull { surface.getSceneManager(it) }
