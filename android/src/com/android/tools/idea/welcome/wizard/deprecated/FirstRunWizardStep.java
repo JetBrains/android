@@ -75,7 +75,7 @@ public abstract class FirstRunWizardStep extends DynamicWizardStep {
     return myComponent;
   }
 
-  // This is here for legacy
+  @Deprecated
   protected final void setComponent(@NotNull JComponent component) {
     int inset = WizardConstants.STUDIO_WIZARD_TOP_INSET * 2;
     component.setBorder(BorderFactory.createEmptyBorder(inset, inset, inset, inset));

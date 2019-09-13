@@ -26,6 +26,7 @@ import javax.swing.*;
 
 /**
  * Provides guidance for setting up Intel® HAXM on Linux platform.
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.LinuxHaxmInfoStep}
  */
 public class LinuxHaxmInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
@@ -69,6 +70,5 @@ public class LinuxHaxmInfoStep extends FirstRunWizardStep {
     myUrlPane.setText(description.getHtml());
     SwingHelper.setHtml(myUrlPane, description.getHtml(), UIUtil.getLabelForeground());
     myUrlPane.setBackground(UIUtil.getLabelBackground());
-
   }
 }

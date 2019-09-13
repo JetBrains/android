@@ -19,13 +19,16 @@ import com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.Installa
 import org.jetbrains.android.util.AndroidBundle.message
 
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.getInitialSdkLocation
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.WelcomeScreen
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame
 import java.awt.Window
@@ -65,9 +68,20 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       else {
         addStep(InstallationTypeWizardStep(model))
       }
+      // FIXME(qumeric): do it only if custom
+
+      // FIXME override fun isStepVisible(): Boolean = java.lang.Boolean.TRUE == myState.get(FirstRunWizard.KEY_CUSTOM_INSTALL)
+      addStep(JdkSetupStep())
       addStep(SelectThemeStep())
-      // TODO(qumeric): Add JdkSetupStep here
+      // TODO(qumeric): addStep(SdkComponentsStep())
+      // TODO(qumeric): addStep(InstallSummaryStep())
+      if (SystemInfo.isLinux && !SystemInfo.isChromeOS) {
+        addStep(LinuxHaxmInfoStep()) // FIXME(qumeric): only if needed
+      }
+      // TODO(qumeric): add support for MISSING_SDK case and for INSTALL_HANDOFF
+      //addStep(LicenseAgreementStep())
     }.build()
+
 
     // Note: We create a ModelWizardDialog, but we are only interested in its Content Panel
     // This is a bit of a hack, but it's the simplest way to reuse logic from ModelWizardDialog
