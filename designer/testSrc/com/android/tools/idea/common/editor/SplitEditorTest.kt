@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.editor
+package com.android.tools.idea.common.editor
 
+import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.common.analytics.CommonUsageTracker
-import com.android.tools.idea.common.editor.DesignerEditor
-import com.android.tools.idea.common.editor.DesignerEditorPanel
-import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -29,7 +27,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
 import javax.swing.JComponent
+import javax.swing.KeyStroke
 
 class SplitEditorTest : AndroidTestCase() {
 
@@ -52,10 +53,10 @@ class SplitEditorTest : AndroidTestCase() {
     textEditor = mock(TextEditor::class.java)
     `when`(textEditor.component).thenReturn(textEditorComponent)
     `when`(textEditor.file).thenReturn(mock(VirtualFile::class.java))
+    val component = mock(JComponent::class.java)
+    `when`(component.getActionForKeyStroke(any(KeyStroke::class.java))).thenCallRealMethod()
     splitEditor = object : SplitEditor(textEditor, designerEditor, "testEditor", project) {
-      override fun getComponent(): JComponent {
-        return mock(JComponent::class.java)
-      }
+      override fun getComponent() = component
     }
     CommonUsageTracker.NOP_TRACKER.resetLastTrackedEvent()
   }
@@ -95,6 +96,26 @@ class SplitEditorTest : AndroidTestCase() {
   fun testFileIsDelegateToTextEditor() {
     val splitEditorFile = splitEditor.file!!
     assertThat(splitEditorFile).isEqualTo(textEditor.file)
+  }
+
+  fun testKeyboardShortcuts() {
+    splitEditor.selectSplitMode(true)
+    val leftKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, SplitEditor.ACTION_SHORTCUT_MODIFIERS)
+    val navigateLeftAction = splitEditor.component.getActionForKeyStroke(leftKey)
+    val navigateLeftActionEvent = ActionEvent(splitEditor.component, 0, leftKey.keyChar.toString(), leftKey.modifiers)
+
+    assertThat(splitEditor.isSplitMode).isTrue()
+    navigateLeftAction.actionPerformed(navigateLeftActionEvent)
+    assertThat(splitEditor.isTextMode).isTrue()
+
+    splitEditor.selectSplitMode(true)
+    val rightKey = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SplitEditor.ACTION_SHORTCUT_MODIFIERS)
+    val navigateRightAction = splitEditor.component.getActionForKeyStroke(rightKey)
+    val navigateRightActionEvent = ActionEvent(splitEditor.component, 0, rightKey.keyChar.toString(), rightKey.modifiers)
+
+    assertThat(splitEditor.isSplitMode).isTrue()
+    navigateRightAction.actionPerformed(navigateRightActionEvent)
+    assertThat(splitEditor.isDesignMode).isTrue()
   }
 
   override fun tearDown() {
