@@ -451,29 +451,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     });
   }
 
-  public void chooseJdkLocation() {
-    JComboBox comboBox = myJdkLocationComboBox.getComboBox();
-    comboBox.requestFocus();
-
-    VirtualFile suggestedDir = null;
-    File jdkLocation = getUserSelectedJdkLocation();
-    if (jdkLocation.isDirectory()) {
-      suggestedDir = findFileByIoFile(jdkLocation, false);
-    }
-    VirtualFile chosen = chooseFile(createSingleFolderDescriptor("Choose JDK Location", file -> {
-      if (validateJdkPath(file) == null) {
-        throw new IllegalArgumentException(generateChooseValidJdkDirectoryError());
-      }
-      return null;
-    }), null, suggestedDir);
-    if (chosen != null) {
-      File validJdkLocation = validateJdkPath(virtualToIoFile(chosen));
-      assert validJdkLocation != null;
-      myUserSelectedJdkHomePath = validJdkLocation.getPath();
-      setJdkLocationComboBox(validJdkLocation);
-    }
-  }
-
   @NotNull
   private static FileChooserDescriptor createSingleFolderDescriptor(@NotNull String title, @NotNull Function<File, Void> validation) {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false) {
