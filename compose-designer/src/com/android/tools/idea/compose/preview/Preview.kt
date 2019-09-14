@@ -43,11 +43,13 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.intellij.icons.AllIcons
+import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileEditor
@@ -59,6 +61,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -159,9 +162,11 @@ private class PreviewEditor(private val psiFile: PsiFile,
     private val LOG = Logger.getInstance(PreviewEditor::class.java)
   private val project = psiFile.project
 
+  private val navigationHandler = PreviewNavigationHandler()
   private val surface = NlDesignSurface.builder(project, this)
     .setIsPreview(true)
     .showModelNames()
+    .setNavigationHandler(navigationHandler)
     .setSceneManagerProvider { surface, model ->
       val settingsProvider = Supplier {
         // For the compose preview we always use live rendering enabled to make use of the image pool. Also
@@ -175,6 +180,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
         enableShrinkRendering()
       }
     }
+    .setEditable(true)
     .build()
     .apply {
       setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true)
@@ -271,6 +277,10 @@ private class PreviewEditor(private val psiFile: PsiFile,
       .map {
         val (previewElement, model) = it
 
+        val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
+              project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
+        navigationHandler.addMap(model, navigable)
+
         previewElement.configuration.applyTo(model.configuration)
 
         model
@@ -366,8 +376,22 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) : Toolba
   }
 }
 
-private class ComposeTextEditorWithPreview constructor(editor: TextEditor, val preview: PreviewEditor) :
-  SeamlessTextEditorWithPreview(editor, preview, "Compose Editor")
+private class ComposeTextEditorWithPreview constructor(
+  val composeTextEditor: TextEditor,
+  val preview: PreviewEditor) :
+  SeamlessTextEditorWithPreview(composeTextEditor, preview, "Compose Editor"), TextEditor {
+  override fun canNavigateTo(navigatable: Navigatable): Boolean {
+    return composeTextEditor.canNavigateTo(navigatable)
+  }
+
+  override fun navigateTo(navigatable: Navigatable) {
+    composeTextEditor.navigateTo(navigatable)
+  }
+
+  override fun getEditor(): Editor {
+    return composeTextEditor.editor
+  }
+}
 
 /**
  * Returns the Compose [PreviewEditor] or null if this [FileEditor] is not a Compose preview.
@@ -389,6 +413,10 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
 
         override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups =
           ComposePreviewToolbar(surface)
+
+        override fun isEditable(): Boolean {
+          return true
+        }
       })
     }
   }
