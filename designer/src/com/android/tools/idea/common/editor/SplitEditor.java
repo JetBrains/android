@@ -54,7 +54,7 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
   private final BackgroundEditorHighlighter myBackgroundEditorHighlighter = new CompoundBackgroundHighlighter();
 
   private final MyToolBarAction myTextViewAction =
-    new MyToolBarAction("Text", AllIcons.General.LayoutEditorOnly, super.getShowEditorAction(), DesignSurface.State.DEACTIVATED);
+    new MyToolBarAction("Code", AllIcons.General.LayoutEditorOnly, super.getShowEditorAction(), DesignSurface.State.DEACTIVATED);
 
   private final MyToolBarAction myDesignViewAction =
     new MyToolBarAction("Design", AllIcons.General.LayoutPreviewOnly, super.getShowPreviewAction(), DesignSurface.State.FULL);
