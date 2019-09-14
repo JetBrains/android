@@ -927,6 +927,10 @@ public class InteractionManager implements Disposable {
           String.format("Problem with drop: dragged.size(%1$d) != components.size(%2$d)", dragged.size(), components.size()));
       }
       for (int index = 0; index < dragged.size(); index++) {
+        if (!NlComponentHelperKt.getHasNlComponentInfo(components.get(index)) ||
+            !NlComponentHelperKt.getHasNlComponentInfo(dragged.get(index))) {
+          continue;
+        }
         NlComponentHelperKt.setX(components.get(index), NlComponentHelperKt.getX(dragged.get(index)));
         NlComponentHelperKt.setY(components.get(index), NlComponentHelperKt.getY(dragged.get(index)));
       }
