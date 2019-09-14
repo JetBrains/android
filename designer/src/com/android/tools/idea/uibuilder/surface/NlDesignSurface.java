@@ -72,6 +72,8 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.pom.Navigatable;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
@@ -101,6 +103,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private boolean myShowModelName = false;
     private boolean myIsEditable = true;
     private SurfaceLayoutManager myLayoutManager;
+    private NavigationHandler myNavigationHandler;
 
     /**
      * Factory to create an action manager for the NlDesignSurface
@@ -178,6 +181,16 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * When the surface is clicked, it can delegate navigation related task to the given handler.
+     * @param navigationHandler handles the navigation when the surface is clicked.
+     */
+    @NotNull
+    public Builder setNavigationHandler(NavigationHandler navigationHandler) {
+      myNavigationHandler = navigationHandler;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
@@ -188,8 +201,20 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myShowModelName,
                                  mySceneManagerProvider,
                                  layoutManager,
-                                 myActionManagerProvider);
+                                 myActionManagerProvider,
+                                 myNavigationHandler);
     }
+  }
+
+  /**
+   * Optional navigation helper for when the surface is clicked.
+   */
+  public interface NavigationHandler extends Disposable {
+
+    /**
+     * Triggered when preview in the design surface is clicked.
+     */
+    void handleNavigate(SceneView view, ImmutableList<NlModel> models, boolean editor);
   }
 
   @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
@@ -211,6 +236,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @NotNull private final SurfaceLayoutManager myLayoutManager;
 
+  @Nullable private final NavigationHandler myNavigationHandler;
+
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
@@ -218,7 +245,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           boolean showModelNames,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
                           @NotNull SurfaceLayoutManager layoutManager,
-                          @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider) {
+                          @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
+                          @Nullable NavigationHandler navigationHandler) {
     super(project, parentDisposable, actionManagerProvider, isEditable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
@@ -226,6 +254,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myShowModelNames = showModelNames;
     myLayoutManager = layoutManager;
     mySceneManagerProvider = sceneManagerProvider;
+    myNavigationHandler = navigationHandler;
+
+    if (myNavigationHandler != null) {
+      Disposer.register(this, myNavigationHandler);
+    }
   }
 
   /**
@@ -542,6 +575,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (sceneView == null) {
       return;
     }
+
+    if (myNavigationHandler != null) {
+      myNavigationHandler.handleNavigate(sceneView, getModels(), needsFocusEditor);
+      return;
+    }
+
     NlComponent component = Coordinates.findComponent(sceneView, x, y);
     if (component != null) {
       navigateToComponent(component, needsFocusEditor);

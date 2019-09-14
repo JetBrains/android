@@ -56,6 +56,9 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
   return minOf(maxOf(this, min), max)
 }
 
+/**
+ * Contain settings for rendering
+ */
 data class PreviewConfiguration private constructor(val apiLevel: Int,
                                                     val theme: String?,
                                                     val width: Int,
