@@ -76,11 +76,18 @@ class ModuleDataBinding private constructor(private val module: Module) {
   /**
    * A backing cache of light binding classes, keyed by their layout names.
    *
-   * If a layout file is deleted, this cache will remove the corresponding entry the next time
-   * [getLightBindingClasses] is called.
+   * See also: [lightBindingClassesCacheCleanupPassRequested]
    */
   @GuardedBy("lock")
   private val lightBindingClassesCache = mutableMapOf<String, List<LightBindingClass>>()
+
+  /**
+   * A value which, if true, means the cache backing [lightBindingClassesCache] has been updated
+   * and we should run a pass to remove any dead key/value pairs, since one or more layout files
+   * may have been deleted.
+   */
+  @GuardedBy("lock")
+  private var lightBindingClassesCacheCleanupPassRequested = false
 
   /**
    * Generates all [BindingLayoutGroup]s for the current module.
@@ -150,6 +157,14 @@ class ModuleDataBinding private constructor(private val module: Module) {
   val bindingLayoutGroups: Collection<BindingLayoutGroup>
     get() {
       synchronized(lock) {
+        if (!bindingLayoutGroupsCache.hasUpToDateValue()) {
+          // lightBindingClassesCache grows over time, pulling values out of
+          // bindingLayoutGroupsCache. If this backing cache is out of date, then the next call to
+          // access its value will return a new list, with some entries potentially removed. At
+          // this point, lightBindingClassesCache should be searched at the next possible chance to
+          // see if it is holding onto any obsolete values.
+          lightBindingClassesCacheCleanupPassRequested = true
+        }
         return bindingLayoutGroupsCache.value
       }
     }
@@ -218,12 +233,16 @@ class ModuleDataBinding private constructor(private val module: Module) {
     val facet = AndroidFacet.getInstance(module) ?: return emptyList()
 
     synchronized(lock) {
-      run {
+      // Querying bindingLayoutGroups, as a side effect, potentially updates
+      // lightBindingClassesCacheCleanupPassRequested with the latest value
+      val bindingLayoutGroups = bindingLayoutGroups
+      if (lightBindingClassesCacheCleanupPassRequested) {
         // Clean cache if any layouts have been deleted
         val validKeys = bindingLayoutGroups.map { group -> group.mainLayout.className }.toSet()
         val invalidKeys = lightBindingClassesCache.keys.filter { key -> !validKeys.contains(key) }
 
         invalidKeys.forEach { key -> lightBindingClassesCache.remove(key) }
+        lightBindingClassesCacheCleanupPassRequested = false
       }
 
       val cacheKey = group.mainLayout.className
