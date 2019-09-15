@@ -19,6 +19,7 @@ import com.android.tools.adtui.stdui.StandardDimensions
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.JBColor
+import com.intellij.ui.SimpleTextAttributes.GRAYED_ATTRIBUTES
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -71,7 +72,12 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
   }
 
   protected open fun customize(item: EnumValue) {
-    append(item.display)
+    if(item.value == null) {
+      append(item.display, GRAYED_ATTRIBUTES)
+    }
+    else {
+      append(item.display)
+    }
   }
 
   // The index will be -1 if this is a dropdown (i.e. a non editable comboBox) when displaying the selected value

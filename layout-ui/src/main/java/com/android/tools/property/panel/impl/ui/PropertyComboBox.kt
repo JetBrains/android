@@ -27,6 +27,7 @@ import com.android.tools.property.panel.impl.support.TextEditorFocusListener
 import com.intellij.ide.actions.UndoRedoAction
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.util.text.nullize
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
@@ -150,8 +151,9 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
   }
 
   private fun findIndexWithValue(value: String): Int {
+    val nullable = value.nullize()
     for (index in 0 until model.size) {
-      if (model.getElementAt(index)?.value == value) {
+      if (model.getElementAt(index)?.value == nullable) {
         return index
       }
     }
