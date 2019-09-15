@@ -46,9 +46,9 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val action1 = model.find("action1")!!
     val values = getValues(AUTO_URI, ATTR_DESTINATION, NelePropertyType.DESTINATION, action1)
 
-    val expected = listOf("", "fragment3", "navigation1", "fragment2", "root", "fragment1")
+    val expected = listOf("none", "fragment3", "navigation1", "fragment2", "root", "fragment1")
     testDisplays(expected, values)
-    testValues(expected.map { if (it.isBlank()) null else "@id/$it" }, values)
+    testValues(expected.map { if (it == "none") null else "@id/$it" }, values)
   }
 
   fun testStartDestinations() {
@@ -64,9 +64,9 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val root = model.find("root")!!
     val values = getValues(AUTO_URI, ATTR_START_DESTINATION, NelePropertyType.DESTINATION, root)
 
-    val expected = listOf("", "activity1", "fragment1", "navigation1")
+    val expected = listOf("none", "activity1", "fragment1", "navigation1")
     testDisplays(expected, values)
-    testValues(expected.map { if (it.isBlank()) null else "@id/$it" }, values)
+    testValues(expected.map { if (it == "none") null else "@id/$it" }, values)
   }
 
   fun testNames() {
@@ -83,7 +83,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val fragment1 = model.find("fragment1")!!
     val values = getValues(ANDROID_URI, ATTR_NAME, NelePropertyType.CLASS_NAME, fragment1)
 
-    val expectedDisplays = listOf("",
+    val expectedDisplays = listOf("none",
                                   "BlankFragment (mytest.navtest)",
                                   "fragment1 (mytest.navtest)",
                                   "fragment2 (mytest.navtest)",
