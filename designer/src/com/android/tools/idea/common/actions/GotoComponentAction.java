@@ -49,6 +49,14 @@ public class GotoComponentAction extends DumbAwareAction {
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     super.update(e);
+    InputEvent inputEvent = e.getInputEvent();
+    if (inputEvent instanceof MouseEvent) {
+      if (mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent) || AdtUiUtils.isActionKeyDown(inputEvent)) {
+        // We don't want to perform navigation while holding some modifiers on mouse event.
+        return;
+      }
+    }
+
     if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
       FileEditor selectedEditor = FileEditorManager.getInstance(mySurface.getProject()).getSelectedEditor();
       if (selectedEditor instanceof SplitEditor) {
@@ -60,13 +68,6 @@ public class GotoComponentAction extends DumbAwareAction {
       }
     }
 
-    InputEvent inputEvent = e.getInputEvent();
-    if (inputEvent instanceof MouseEvent) {
-      if (mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent) || AdtUiUtils.isActionKeyDown(inputEvent)) {
-        // We don't want to perform navigation while holding some modifiers on mouse event.
-        return;
-      }
-    }
     SelectionModel selectionModel = mySurface.getSelectionModel();
     NlComponent primary = selectionModel.getPrimary();
     NlModel model = mySurface.getModel();
