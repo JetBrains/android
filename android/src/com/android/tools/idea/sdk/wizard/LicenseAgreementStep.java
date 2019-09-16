@@ -278,7 +278,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
         License license = p.getLicense();
         if (license != null) {
           getModel().getLicenses().add(license);
-          if (!license.checkAccepted(getModel().sdkRoot().getValue(), FileOpUtils.create())) {
+          if (!license.checkAccepted(getModel().getSdkRoot().getValue(), FileOpUtils.create())) {
             toReturn.add(new Change(p, license));
           }
         }
