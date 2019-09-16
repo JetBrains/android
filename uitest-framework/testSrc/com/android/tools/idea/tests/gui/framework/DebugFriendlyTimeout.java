@@ -15,21 +15,47 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.utils.FileUtils;
+import com.intellij.diagnostic.ThreadDumper;
+import com.intellij.openapi.application.PathManager;
+import java.io.File;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.rules.Timeout;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 /** A {@link Timeout} that is disabled when the idea.debug.mode property is true. */
 public class DebugFriendlyTimeout extends Timeout {
+  private boolean dumpThreadsOnTimeout = false;
+
   public DebugFriendlyTimeout(long timeout, TimeUnit timeUnit) {
     super(timeout, timeUnit);
+  }
+
+  public DebugFriendlyTimeout withThreadDumpOnTimeout() {
+    dumpThreadsOnTimeout = true;
+    return this;
   }
 
   @Override
   public Statement apply(Statement base, Description description) {
     if (Boolean.getBoolean("idea.debug.mode")) {
       return base;
+    } else if (dumpThreadsOnTimeout) {
+      Statement dumpThreads = new Statement() {
+        @Override
+        public void evaluate() throws Throwable {
+          try {
+            base.evaluate();
+          } catch (TimeoutException e) {
+            String fileName = description.getTestClass().getSimpleName() + "." + description.getMethodName() + "-TimeoutThreadDump";
+            FileUtils.writeToFile(new File(PathManager.getLogPath(), fileName), ThreadDumper.dumpThreadsToString());
+            throw e;
+          }
+        }
+      };
+      return super.apply(dumpThreads, description);
     } else {
       return super.apply(base, description);
     }
