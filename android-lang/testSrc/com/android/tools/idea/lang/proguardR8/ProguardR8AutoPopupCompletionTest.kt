@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth
 import com.intellij.testFramework.TestRunnerUtil
 import com.intellij.testFramework.fixtures.CompletionAutoPopupTester
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.runInEdtAndWait
 
-class ProguardR8AutoPopupCompletionTest : JavaCodeInsightFixtureTestCase() {
+class ProguardR8AutoPopupCompletionTest : ProguardR8TestCase() {
   private lateinit var tester: CompletionAutoPopupTester
 
   override fun runInDispatchThread(): Boolean = false
@@ -32,13 +30,11 @@ class ProguardR8AutoPopupCompletionTest : JavaCodeInsightFixtureTestCase() {
 
   override fun setUp() {
     TestRunnerUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
-    StudioFlags.R8_SUPPORT_ENABLED.override(true);
     runInEdtAndWait { super.setUp() }
     tester = CompletionAutoPopupTester(myFixture)
   }
 
   override fun tearDown() {
-    StudioFlags.R8_SUPPORT_ENABLED.clearOverride()
     runInEdtAndWait { super.tearDown() }
   }
 

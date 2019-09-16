@@ -15,22 +15,11 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 
-class ProguardR8CompletionContributorTest : JavaCodeInsightFixtureTestCase() {
-
-  override fun setUp() {
-    StudioFlags.R8_SUPPORT_ENABLED.override(true)
-    super.setUp()
-  }
-
-  override fun tearDown() {
-    StudioFlags.R8_SUPPORT_ENABLED.clearOverride()
-    super.tearDown()
-  }
+class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
   fun testFlagCompletion() {
 
