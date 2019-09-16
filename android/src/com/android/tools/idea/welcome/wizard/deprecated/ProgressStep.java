@@ -21,7 +21,6 @@ import com.android.tools.idea.welcome.wizard.ConsoleHighlighter;
 import com.intellij.execution.impl.ConsoleViewUtil;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.ide.util.DelegatingProgressIndicator;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -32,14 +31,20 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import java.awt.BorderLayout;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
-
 /**
  * Wizard step with progress bar and "more details" button.
+ *
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.ProgressStep}
  */
 public abstract class ProgressStep extends FirstRunWizardStep {
   private final ConsoleHighlighter myHighlighter;
@@ -57,11 +62,10 @@ public abstract class ProgressStep extends FirstRunWizardStep {
     super(name);
     setComponent(myRoot);
     myLabel.setText("Installing");
-    //noinspection ConstantConditions
     myConsoleEditor = ConsoleViewUtil.setupConsoleEditor((Project)null, false, false);
     myConsoleEditor.getSettings().setUseSoftWraps(true);
     myConsoleEditor.reinitSettings();
-    myConsoleEditor.setBorder(BorderFactory.createEmptyBorder(6,6,6,0));
+    myConsoleEditor.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 0));
     Disposer.register(parent, () -> EditorFactory.getInstance().releaseEditor(myConsoleEditor));
     myHighlighter = new ConsoleHighlighter();
     myHighlighter.setModalityState(ModalityState.stateForComponent(myLabel));
@@ -124,7 +128,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
    * Note: current version does not support collecting user input. We may
    * reconsider this at a later point.
    *
-   * @param processHandler  process to track
+   * @param processHandler process to track
    */
   public void attachToProcess(ProcessHandler processHandler) {
     myHighlighter.attachToProcess(processHandler);
@@ -151,7 +155,8 @@ public abstract class ProgressStep extends FirstRunWizardStep {
    * Runs the computable under progress manager but only gives a portion of the progress bar to it.
    */
   public void run(final Runnable runnable, double progressPortion) {
-    ProgressIndicator progress = new ProgressPortionReporter(getProgressIndicator(), myFraction, progressPortion);
+    ProgressIndicator progress =
+      new com.android.tools.idea.welcome.wizard.ProgressStep.ProgressPortionReporter(getProgressIndicator(), myFraction, progressPortion);
     ProgressManager.getInstance().executeProcessUnderProgress(runnable, progress);
   }
 
@@ -159,35 +164,6 @@ public abstract class ProgressStep extends FirstRunWizardStep {
     myFraction = fraction;
     myProgressBar.setMaximum(1000);
     myProgressBar.setValue((int)(1000 * fraction));
-  }
-
-  /**
-   * Progress indicator that scales task to only use a portion of the parent indicator.
-   */
-  private static class ProgressPortionReporter extends DelegatingProgressIndicator {
-    private final double myStart;
-    private final double myPortion;
-
-    public ProgressPortionReporter(@NotNull ProgressIndicator indicator, double start, double portion) {
-      super(indicator);
-      myStart = start;
-      myPortion = portion;
-    }
-
-    @Override
-    public void start() {
-      setFraction(0);
-    }
-
-    @Override
-    public void stop() {
-      setFraction(myPortion);
-    }
-
-    @Override
-    public void setFraction(double fraction) {
-      super.setFraction(myStart + (fraction * myPortion));
-    }
   }
 
   /**
