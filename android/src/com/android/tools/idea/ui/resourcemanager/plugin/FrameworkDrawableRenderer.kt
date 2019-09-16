@@ -29,6 +29,7 @@ import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 
 private val FRAMEWORK_DRAWABLE_KEY = Key.create<FrameworkDrawableRenderer>(FrameworkDrawableRenderer::class.java.name)
@@ -47,12 +48,24 @@ class FrameworkDrawableRenderer
 @VisibleForTesting
 constructor(
   facet: AndroidFacet,
-  private val configuration: Configuration,
+  configuration: Configuration,
   private val futuresManager: ImageFuturesManager<ResourceValue>
 ) : AndroidFacetScopedService(facet) {
 
+  private val renderTaskLock = Any()
+  private val renderTaskFuture = createRenderTask(facet, configuration)
+
   init {
     Disposer.register(this, futuresManager)
+  }
+
+  override fun onServiceDisposal(facet: AndroidFacet) {
+    renderTaskFuture.whenComplete { renderTask, _ ->
+      synchronized(renderTaskLock) {
+        // Wait for dispose to finish since this is a module level disposal (closed project, removed module, etc).
+        renderTask?.dispose()?.get(5L, TimeUnit.MINUTES)
+      }
+    }
   }
 
   fun getDrawableRender(resourceValue: ResourceValue,
@@ -62,15 +75,14 @@ constructor(
   }
 
   private fun getImage(value: ResourceValue, dimension: Dimension): CompletableFuture<BufferedImage?> {
-    return createRenderTask(facet, configuration)
-      .thenCompose {
+    return renderTaskFuture.thenCompose {
+      synchronized(renderTaskLock) {
         it?.setOverrideRenderSize(dimension.width, dimension.height)
         it?.setMaxRenderSize(dimension.width, dimension.height)
         it?.renderDrawable(value)
       }
+    }
   }
-
-  override fun onServiceDisposal(facet: AndroidFacet) {}
 
   companion object {
     @JvmStatic
