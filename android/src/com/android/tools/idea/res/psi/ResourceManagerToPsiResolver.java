@@ -37,12 +37,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementResolveResult;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.DeclareStyleable;
@@ -187,6 +189,13 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
         new LazyValueResourceElementWrapper(new ValueResourceInfoImpl(resourceItem, file, facet.getModule().getProject()), context));
     }
     return elementList.toArray(PsiElement.EMPTY_ARRAY);
+  }
+
+  @NotNull
+  @Override
+  public PsiFile[] getGotoDeclarationFileBasedTargets(@NotNull ResourceReference resourceReference, @NotNull PsiElement context) {
+    PsiElement[] targets = getGotoDeclarationTargets(resourceReference, context);
+    return Arrays.stream(targets).filter(element -> element instanceof PsiFile).map(PsiFile.class::cast).toArray(PsiFile[]::new);
   }
 
   @Override
