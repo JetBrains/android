@@ -195,7 +195,7 @@ class PTableImpl(
   // The LayoutFocusTraversalPolicy for the container of the table would include
   // the table as the last possible focus component when navigating backwards.
   override fun isFocusable(): Boolean {
-    return super.isFocusable() && !isEditing
+    return super.isFocusable() && !isEditing && rowCount > 0
   }
 
   override fun startEditing(row: Int) {
@@ -679,7 +679,7 @@ class PTableImpl(
       }
 
       // Make sure we don't loop forever
-      while (pos.rowIterations < rows) {
+      while (pos.rowIterations <= rows) {
         if (!pos.next(forwards)) {
           break
         }
