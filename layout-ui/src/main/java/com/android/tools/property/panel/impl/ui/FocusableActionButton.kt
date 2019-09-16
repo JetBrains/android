@@ -28,7 +28,10 @@ class FocusableActionButton(action: AnAction) :
   ActionButton(action, action.templatePresentation, "", ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE) {
 
   init {
-    isFocusable = true
     registerActionKey({ click() }, KeyStrokes.ENTER, "enter")
+  }
+
+  override fun isFocusable(): Boolean {
+    return action.templatePresentation.isEnabled
   }
 }
