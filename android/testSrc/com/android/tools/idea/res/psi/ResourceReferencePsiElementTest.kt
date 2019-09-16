@@ -56,6 +56,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(
       ResourceReference(ResourceNamespace.ANDROID, ResourceType.COLOR, "black"))
+    assertThat(fakePsiElement.getIcon(false)).isNotNull()
   }
 
   fun testClsFieldImplJava() {
@@ -77,6 +78,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(
       ResourceReference(ResourceNamespace.ANDROID, ResourceType.COLOR, "black"))
+    assertThat(fakePsiElement.getIcon(false)).isNotNull()
   }
 
   fun testAndroidLightFieldKotlin() {
@@ -99,6 +101,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary"))
+    assertThat(fakePsiElement.getIcon(false)).isNotNull()
   }
 
   fun testAndroidLightFieldJava() {
