@@ -27,6 +27,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.IconManager;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -129,7 +130,7 @@ public class IconFactory {
           }
 
           return null;
-        });
+        }, SameThreadExecutor.INSTANCE);
       // TODO maybe have a different icon for state list drawable
       // Return the async icon
       return new AsyncIcon(futureIcon, placeHolderIcon, onIconLoaded);
