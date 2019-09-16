@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.wizard.deprecated;
 
 import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL;
 import static com.android.tools.idea.sdk.IdeSdks.isSameAsJavaHomeJdk;
+import static com.android.tools.idea.welcome.wizard.InstallSummaryStepKt.getPackagesTable;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 import com.android.repository.api.RemotePackage;
@@ -27,22 +28,18 @@ import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Sets;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.TreeSet;
 import java.util.function.Supplier;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import org.jetbrains.annotations.NotNull;
@@ -70,8 +67,8 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
     myPackagesProvider = packagesProvider;
     mySummaryText.setContentType(UIUtil.HTML_MIME);
     // There is no need to add whitespace on the top
-    mySummaryText.setBorder(new EmptyBorder(0, WizardConstants.STUDIO_WIZARD_INSET_SIZE, WizardConstants.STUDIO_WIZARD_INSET_SIZE,
-                                            WizardConstants.STUDIO_WIZARD_INSET_SIZE));
+    mySummaryText.setBorder(JBUI.Borders.empty(0, WizardConstants.STUDIO_WIZARD_INSET_SIZE, WizardConstants.STUDIO_WIZARD_INSET_SIZE,
+                                               WizardConstants.STUDIO_WIZARD_INSET_SIZE));
     mySummaryText.addHyperlinkListener(new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent event) {
@@ -88,30 +85,6 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
 
   private static Section getPackagesSection(@NotNull Collection<RemotePackage> remotePackages) {
     return new Section("SDK Components to Download", getPackagesTable(remotePackages));
-  }
-
-  @Nullable
-  private static String getPackagesTable(@NotNull Collection<RemotePackage> remotePackages) {
-    if (remotePackages.isEmpty()) {
-      return null;
-    }
-    TreeSet<RemotePackage> sortedPackagesList = Sets.newTreeSet(new PackageInfoComparator());
-    sortedPackagesList.addAll(remotePackages);
-    StringBuilder table = new StringBuilder("<table>");
-    for (RemotePackage remotePkgInfo : sortedPackagesList) {
-      Archive archive = remotePkgInfo.getArchive();
-      assert archive != null;
-
-      // Adds some whitespace between name and size columns
-      table
-        .append("<tr><td>")
-        .append(remotePkgInfo.getDisplayName())
-        .append("</td><td>&nbsp;&nbsp;</td><td>")
-        .append(WelcomeUiUtils.getSizeLabel(archive.getComplete().getSize()))
-        .append("</td></tr>");
-    }
-    table.append("</table>");
-    return table.toString();
   }
 
   private static Section getDownloadSizeSection(@NotNull Collection<RemotePackage> remotePackages) {
@@ -223,26 +196,6 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
 
     public String toHtml() {
       return String.format("<p><strong>%1$s:</strong><br>%2$s</p>", myTitle, myText);
-    }
-  }
-
-  /**
-   * Sorts package info in descending size order. Packages with the same size are sorted alphabetically.
-   */
-  private static class PackageInfoComparator implements Comparator<RemotePackage> {
-    @Override
-    public int compare(RemotePackage o1, RemotePackage o2) {
-      if (o1 == o2) {
-        return 0;
-      }
-      else if (o1 == null) {
-        return -1;
-      }
-      else if (o2 == null) {
-        return 1;
-      }
-      ComparisonChain comparisonChain = ComparisonChain.start();
-      return comparisonChain.compare(o1.getDisplayName(), o2.getDisplayName()).result();
     }
   }
 }
