@@ -26,6 +26,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementResolveResult
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.search.GlobalSearchScope
@@ -37,6 +38,16 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
+  override fun getGotoDeclarationFileBasedTargets(resourceReference: ResourceReference, context: PsiElement): Array<PsiFile> {
+    return ResourceRepositoryManager.getInstance(context)
+      ?.allResources
+      ?.getResources(resourceReference)
+      ?.filter { it.isFileBased }
+      ?.mapNotNull { resolveToDeclaration(it, context.project) }
+      ?.filterIsInstance(PsiFile::class.java)
+      .orEmpty()
+      .toTypedArray()
+  }
 
   override fun resolveToDeclaration(resource: ResourceItem, project: Project): PsiElement? {
     return if (resource.isFileBased) {
