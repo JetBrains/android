@@ -34,23 +34,34 @@ private val zoomInShortcuts = listOf(
   KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, ACTION_MASK), null),
   KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, ACTION_MASK + SHIFT_MASK), null),
   KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, ACTION_MASK), null),
-  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, ACTION_MASK + SHIFT_MASK), null)
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, ACTION_MASK + SHIFT_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, ACTION_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, ACTION_MASK + SHIFT_MASK), null)
 )
 
 private val zoomOutShortcuts = listOf(
   KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, ACTION_MASK), null),
   KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, ACTION_MASK + SHIFT_MASK), null),
   KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_UNDERSCORE, ACTION_MASK), null),
-  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_UNDERSCORE, ACTION_MASK + SHIFT_MASK), null)
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_UNDERSCORE, ACTION_MASK + SHIFT_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, ACTION_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, ACTION_MASK + SHIFT_MASK), null)
 )
 
 private val zoomToFitShortcuts = listOf(
-  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_0, ACTION_MASK), null)
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_0, ACTION_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_0, ACTION_MASK + SHIFT_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT_PARENTHESIS, ACTION_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT_PARENTHESIS, ACTION_MASK + SHIFT_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, ACTION_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, ACTION_MASK + SHIFT_MASK), null)
 )
 
 private val zoomToActualShortcuts = listOf(
   KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH, ACTION_MASK), null),
-  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_DIVIDE, ACTION_MASK), null)
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH, ACTION_MASK + SHIFT_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_DIVIDE, ACTION_MASK), null),
+  KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_DIVIDE, ACTION_MASK + SHIFT_MASK), null)
 )
 
 enum class ZoomShortcut(shortcuts: List<KeyboardShortcut>) {
