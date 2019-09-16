@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
  * An [ActionButton] that is focusable.
  */
 class FocusableActionButton(action: AnAction) :
-  ActionButton(action, action.templatePresentation.clone(), "", ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE) {
+  ActionButton(action, action.templatePresentation, "", ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE) {
 
   init {
     isFocusable = true

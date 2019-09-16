@@ -17,27 +17,37 @@ package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_INPUT_TYPE
-import com.android.tools.property.ptable2.DefaultPTableCellRendererProvider
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.ptable2.impl.PTableImpl
-import com.android.tools.property.panel.api.*
+import com.android.tools.property.panel.api.ControlType
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumSupportProvider
+import com.android.tools.property.panel.api.FlagsPropertyItem
+import com.android.tools.property.panel.api.NewPropertyItem
+import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.TableLineModelImpl
 import com.android.tools.property.panel.impl.model.util.FakeFlagsPropertyItem
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.panel.impl.table.EditorPanel
 import com.android.tools.property.panel.impl.table.PTableCellEditorProviderImpl
+import com.android.tools.property.ptable2.DefaultPTableCellRendererProvider
+import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable2.impl.PTableImpl
 import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.IdeActions
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import javax.swing.JScrollPane
 
 class FlagPropertyEditorTest {
@@ -48,6 +58,7 @@ class FlagPropertyEditorTest {
   @Before
   fun setUp() {
     `when`(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(SomeAction("ClearText"))
+    `when`(DataManager.getInstance().getDataContext(ArgumentMatchers.any())).thenReturn(mock(DataContext::class.java))
   }
 
   @Test
