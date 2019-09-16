@@ -19,13 +19,17 @@ import com.android.SdkConstants.*
 import com.android.tools.property.panel.api.*
 import com.android.tools.idea.uibuilder.model.PreferenceUtils
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.intellij.util.containers.toArray
+import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
+import org.jetbrains.kotlin.util.collectionUtils.concat
 
 /**
  * An [InspectorBuilder] for the [ATTR_ID] attribute shown on top in the Nele inspector.
  */
 class IdInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
-
-  private val menuTags = setOf(TAG_GROUP, TAG_ITEM, TAG_MENU)
+  private val menuTags = listOf(TAG_GROUP, TAG_ITEM, TAG_MENU)
+  private val navTags = listOf(TAG_DEEP_LINK, TAG_ARGUMENT)
+  private val hiddenTags = PreferenceUtils.VALUES.union(menuTags).union(navTags)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     val property = properties.getOrNull(ANDROID_URI, ATTR_ID) ?: return
@@ -35,6 +39,6 @@ class IdInspectorBuilder(private val editorProvider: EditorProvider<NeleProperty
   }
 
   private fun isApplicable(property: NelePropertyItem): Boolean {
-    return property.components.size == 1 && property.components.none { it.tagName in PreferenceUtils.VALUES || it.tagName in menuTags}
+    return property.components.size == 1 && property.components.none { it.tagName in hiddenTags }
   }
 }
