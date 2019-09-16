@@ -436,6 +436,7 @@ class PTableImpl(
     // Do not remove the editor i.e. do not call the super method.
     if (tableCellEditor.editor.cancelEditing()) {
       super.editingCanceled(event)
+      requestFocus()
     }
   }
 
