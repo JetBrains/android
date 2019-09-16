@@ -42,6 +42,15 @@ public class DeleteMotionFieldAction extends AnAction {
   }
 
   @Override
+  public void update(@NotNull AnActionEvent event) {
+    boolean enabled = myLineModel != null && !myLineModel.getTableModel().getItems().isEmpty();
+    event.getPresentation().setEnabled(enabled);
+
+    // Hack: the FocusableActionButton will update when the state of the template presentation is updated:
+    getTemplatePresentation().setEnabled(enabled);
+  }
+
+  @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
     NelePropertyItem property = getSelectedOrFirstItem(myLineModel);
     if (property != null) {

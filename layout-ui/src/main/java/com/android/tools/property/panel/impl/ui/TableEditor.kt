@@ -31,7 +31,9 @@ import com.android.tools.property.ptable2.PTableCellRendererProvider
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.psi.codeStyle.NameUtil
 import com.intellij.util.text.Matcher
@@ -71,6 +73,7 @@ class TableEditor(val lineModel: TableLineModelImpl,
       val index = component.selectedRow
       val item = if (index >= 0 && index < component.rowCount) component.getValueAt(index, 1) as? PTableItem else null
       lineModel.selectedItem = item
+      updateActions()
     }
     HelpSupportBinding.registerHelpKeyActions(component, { lineModel.selectedItem as? PropertyItem })
 
@@ -96,6 +99,11 @@ class TableEditor(val lineModel: TableLineModelImpl,
   private fun updateUI() {
     // The font height may change on a LaF change: recompute and set the row height.
     component.rowHeight = computeRowHeight()
+  }
+
+  private fun updateActions() {
+    val context = DataManager.getInstance().getDataContext(component)
+    actions.forEach { it.update(AnActionEvent.createFromAnAction(it, null, "", context)) }
   }
 
   private fun handleValueChanged() {

@@ -16,6 +16,7 @@
 package com.android.tools.property.testing
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.intellij.ide.DataManager
 import com.intellij.ide.ui.UISettings
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionManager
@@ -31,5 +32,6 @@ class PropertyAppRule : ApplicationRule() {
     super.before()
     testApplication.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock())
     testApplication.registerServiceInstance(ActionManager::class.java, mock(ActionManager::class.java))
+    testApplication.registerServiceInstance(DataManager::class.java, mock(DataManager::class.java))
   }
 }

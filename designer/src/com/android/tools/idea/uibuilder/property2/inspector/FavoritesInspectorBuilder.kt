@@ -176,6 +176,14 @@ class FavoritesInspectorBuilder(
       shortcutSet = manager.getAction(IdeActions.ACTION_DELETE).shortcutSet
     }
 
+    override fun update(event: AnActionEvent) {
+      val enabled = lineModel?.tableModel?.items?.isNotEmpty() ?: false
+      event.presentation.isEnabled = enabled
+
+      // Hack: the FocusableActionButton will update when the state of the template presentation is updated:
+      templatePresentation.isEnabled = enabled
+    }
+
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true
       val model = lineModel ?: return
