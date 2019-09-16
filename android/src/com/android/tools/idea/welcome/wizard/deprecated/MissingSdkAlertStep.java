@@ -23,6 +23,7 @@ import java.awt.*;
 
 /**
  * Step to show a message that the SDK is missing.
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.MissingSdkAlertStep}
  */
 public class MissingSdkAlertStep extends FirstRunWizardStep {
   public MissingSdkAlertStep() {

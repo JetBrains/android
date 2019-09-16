@@ -40,7 +40,7 @@ private const val KVM_DOCUMENTATION_URL = "http://developer.android.com/r/studio
 class LinuxHaxmInfoStep : ModelWizardStep.WithoutModel("Emulator Settings") {
   private var urlPane = SwingHelper.createHtmlViewer(true, null, null, null).apply {
     addHyperlinkListener(BrowserHyperlinkListener.INSTANCE)
-    val description = HtmlBuilder().apply {
+    text = HtmlBuilder().apply {
       beginParagraph()
       addHtml("We have detected that your system can run the Android emulator in an accelerated performance mode.")
       endParagraph()
@@ -52,9 +52,8 @@ class LinuxHaxmInfoStep : ModelWizardStep.WithoutModel("Emulator Settings") {
       addLink("Android KVM Linux Installation", KVM_DOCUMENTATION_URL)
       addHtml(") that KVM is enabled for faster Android emulator performance.</p>")
       endParagraph()
-    }
-    text = description.html
-    SwingHelper.setHtml(this, description.html, UIUtil.getLabelForeground())
+    }.html
+    SwingHelper.setHtml(this, text, UIUtil.getLabelForeground())
     background = UIUtil.getLabelBackground()
   }
 
