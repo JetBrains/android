@@ -23,7 +23,7 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
-import com.android.tools.idea.welcome.install.FirstRunWizardDefaults
+import com.android.tools.idea.welcome.install.getInitialSdkLocation
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.WelcomeScreen
@@ -45,7 +45,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
   private val mainPanel: JComponent
 
   init {
-    val initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(mode)
+    val initialSdkLocation = getInitialSdkLocation(mode)
     val sdkExists = if (initialSdkLocation.isDirectory) {
       val sdkHandler = AndroidSdkHandler.getInstance(initialSdkLocation)
       val progress = StudioLoggerProgressIndicator(javaClass)
