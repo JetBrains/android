@@ -49,9 +49,11 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
 import com.intellij.usageView.UsageViewTypeLocation
 import com.intellij.refactoring.rename.RenameHandler
+import icons.StudioIcons
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
 import org.jetbrains.android.util.AndroidResourceUtil
+import javax.swing.Icon
 
 /**
  * A fake PsiElement that wraps a [ResourceReference].
@@ -73,6 +75,8 @@ class ResourceReferencePsiElement(
   val writable: Boolean = false) : FakePsiElement() {
 
   companion object {
+
+    @JvmField val RESOURCE_ICON: Icon =  StudioIcons.Shell.ToolWindows.VISUAL_ASSETS
 
     @JvmStatic
     fun create(element: PsiElement): ResourceReferencePsiElement? {
@@ -150,6 +154,8 @@ class ResourceReferencePsiElement(
       }
     }
   }
+
+  override fun getIcon(open: Boolean): Icon = RESOURCE_ICON
 
   override fun getManager(): PsiManager = psiManager
 
