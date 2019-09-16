@@ -980,6 +980,14 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
+   * Returns user preference for the scaling factor for fonts, relative to the base density scaling.
+   * See {@link android.content.res.Configuration#fontScale}
+   */
+  public float getFontScale() {
+    return myFontScale;
+  }
+
+  /**
    * Updates the folder configuration such that it reflects changes in
    * configuration state such as the device orientation, the UI mode, the
    * rendering target, etc.

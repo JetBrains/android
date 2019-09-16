@@ -31,6 +31,7 @@ import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
+import kotlin.math.max
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
@@ -58,7 +59,8 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
 data class PreviewConfiguration private constructor(val apiLevel: Int,
                                                     val theme: String?,
                                                     val width: Int,
-                                                    val height: Int) {
+                                                    val height: Int,
+                                                    val fontScale: Float) {
   fun applyTo(renderConfiguration: Configuration) {
     if (apiLevel != UNDEFINED_API_LEVEL) {
       val highestTarget = renderConfiguration.configurationManager.highestApiTarget!!
@@ -69,6 +71,8 @@ data class PreviewConfiguration private constructor(val apiLevel: Int,
     if (theme != null) {
       renderConfiguration.setTheme(theme)
     }
+
+    renderConfiguration.fontScale = max(0f, fontScale)
   }
 
   companion object {
@@ -80,13 +84,15 @@ data class PreviewConfiguration private constructor(val apiLevel: Int,
     fun cleanAndGet(apiLevel: Int?,
                     theme: String?,
                     width: Int?,
-                    height: Int?): PreviewConfiguration =
+                    height: Int?,
+                    fontScale: Float?): PreviewConfiguration =
       // We only limit the sizes. We do not limit the API because using an incorrect API level will throw an exception that
       // we will handle and any other error.
       PreviewConfiguration(apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
                            theme = theme,
                            width = width.truncate(1, MAX_WIDTH) ?: UNDEFINED_DIMENSION,
-                           height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION)
+                           height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION,
+                           fontScale = fontScale ?: 1f)
   }
 }
 
