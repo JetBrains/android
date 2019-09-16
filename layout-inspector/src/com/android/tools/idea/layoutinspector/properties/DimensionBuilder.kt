@@ -62,6 +62,15 @@ class DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
         Item(WIDTH, view.bounds.width.toString()),
         Item(HEIGHT, view.bounds.height.toString()))
     }
+
+    override fun addItem(item: PTableItem): PTableItem {
+      // Not supported
+      return item
+    }
+
+    override fun removeItem(item: PTableItem) {
+      // Not supported
+    }
   }
 
   private class Item(override val name: String, override val value: String) : PTableItem

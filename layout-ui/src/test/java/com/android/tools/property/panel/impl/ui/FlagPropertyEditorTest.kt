@@ -124,10 +124,19 @@ class FlagPropertyEditorTest {
 
 private class PTableTestModel(vararg items: PTableItem) : PTableModel {
   override var editedItem: PTableItem? = null
-  override val items: List<PTableItem> = listOf(*items)
+  override val items = mutableListOf(*items)
 
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
     return column == PTableColumn.VALUE
+  }
+
+  override fun addItem(item: PTableItem): PTableItem {
+    items.add(item)
+    return item
+  }
+
+  override fun removeItem(item: PTableItem) {
+    items.remove(item)
   }
 }
 

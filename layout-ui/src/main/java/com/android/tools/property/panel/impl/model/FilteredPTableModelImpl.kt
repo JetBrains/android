@@ -40,6 +40,7 @@ import com.android.tools.property.ptable2.PTableModelUpdateListener
 class FilteredPTableModelImpl<P : PropertyItem>(
   private val model: PropertiesModel<P>,
   private val itemFilter: (P) -> Boolean,
+  private val deleteOperation: (P) -> Unit,
   private val itemComparator: Comparator<PTableItem>,
   private val groups: List<GroupSpec<P>>,
   private val keepNewAfterFlyAway: Boolean,
@@ -82,13 +83,19 @@ class FilteredPTableModelImpl<P : PropertyItem>(
     return item
   }
 
-  override fun deleteItem(item: P, delete: (P) -> Unit) {
+  override fun addItem(item: PTableItem): PTableItem {
+    @Suppress("UNCHECKED_CAST")
+    return addNewItem(item as P)
+  }
+
+  override fun removeItem(item: PTableItem) {
     val newItems = ArrayList(items)
     if (!newItems.remove(item)) {
       return
     }
-    delete(item)
-    updateItems(newItems, lastItem())
+    @Suppress("UNCHECKED_CAST")
+    deleteOperation(item as P)
+    updateItems(newItems, null)
   }
 
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {

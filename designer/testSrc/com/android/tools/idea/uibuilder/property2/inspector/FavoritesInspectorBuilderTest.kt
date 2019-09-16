@@ -127,7 +127,8 @@ class FavoritesInspectorBuilderTest {
     lineModel.checkItem(0, ANDROID_URI, ATTR_ALPHA)
     lineModel.checkItem(1, ANDROID_URI, ATTR_TEXT)
     lineModel.checkItem(2, ANDROID_URI, ATTR_VISIBILITY)
-    lineModel.checkItemCount(3)
+    lineModel.checkItem(3, "", "")  // placeholder
+    lineModel.checkItemCount(4)
     assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY)).isEqualTo(":alpha;tools:gravity;:visibility;:text;")
   }
 

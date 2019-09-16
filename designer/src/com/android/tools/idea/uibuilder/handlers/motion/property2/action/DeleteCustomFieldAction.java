@@ -39,10 +39,7 @@ public class DeleteCustomFieldAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    if (myLineModel == null) {
-      return;
-    }
-    NelePropertyItem property = (NelePropertyItem)myLineModel.getSelectedItem();
+    NelePropertyItem property = DeleteMotionFieldAction.getSelectedOrFirstItem(myLineModel);
     if (property == null) {
       return;
     }

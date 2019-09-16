@@ -41,8 +41,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
-private const val ADD_ATTRIBUTE_ACTION_TITLE = "Add Favorite"
-private const val DELETE_ROW_ACTION_TITLE = "Remove Selected Favorite"
+private const val ADD_ATTRIBUTE_ACTION_TITLE = "Add favorite"
+private const val DELETE_ROW_ACTION_TITLE = "Remove selected favorite"
 private const val FAVORITE_SEPARATOR_CHAR = ';'
 private const val PACKAGE_SEPARATOR_CHAR = ':'
 
@@ -122,11 +122,11 @@ class FavoritesInspectorBuilder(
       return
     }
     val favorites = loadFavoritePropertiesIfNeeded()
-    val favoritesTableModel = FilteredPTableModel.create(model, { favorites.contains(it.asReference) }, androidSortOrder)
+    val favoritesTableModel = FilteredPTableModel.create(model, { favorites.contains(it.asReference) }, {}, androidSortOrder)
     val newPropertyInstance = NeleNewPropertyItem(model, PropertiesTable.emptyTable(),
       { !favorites.contains(it.asReference)}, { newDelegate(it, favoritesTableModel) })
-    val addNewRow = AddNewRowAction(favoritesTableModel, newPropertyInstance)
-    val deleteRowAction = DeleteRowAction(favoritesTableModel)
+    val addNewRow = AddNewRowAction(newPropertyInstance)
+    val deleteRowAction = DeleteRowAction()
     val actions = listOf(addNewRow, deleteRowAction)
     val titleModel = inspector.addExpandableTitle(InspectorSection.FAVORITES.title, false, actions)
     val tableLineModel = inspector.addTable(favoritesTableModel, false, tableUIProvider, titleModel)
@@ -146,13 +146,11 @@ class FavoritesInspectorBuilder(
     val newFavorites = favorites.plus(reference)
     saveFavoriteProperties(newFavorites)
     newPropertyItem.name = ""
-    tableModel.deleteItem(newPropertyItem) {}
     tableModel.addNewItem(delegate)
     newPropertyItem.model.firePropertyValueChangeIfNeeded()
   }
 
   private class AddNewRowAction(
-    val tableModel: FilteredPTableModel<NelePropertyItem>,
     val newProperty: NeleNewPropertyItem
   ) : AnAction(null, ADD_ATTRIBUTE_ACTION_TITLE, StudioIcons.Common.ADD) {
 
@@ -162,26 +160,29 @@ class FavoritesInspectorBuilder(
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true
       val model = lineModel ?: return
-      val nextItem = tableModel.addNewItem(newProperty)
+      val nextItem = model.addItem(newProperty)
       model.requestFocus(nextItem)
     }
   }
 
-  private inner class DeleteRowAction(
-    private val tableModel: FilteredPTableModel<NelePropertyItem>
-  ) : AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
-
+  private inner class DeleteRowAction: AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
 
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true
-      val selected = lineModel?.selectedItem as? NelePropertyItem ?: return
+      val model = lineModel ?: return
+      val selected = (model.selectedItem ?: model.tableModel.items.firstOrNull()) as? NelePropertyItem ?: return
+      if (selected is NeleNewPropertyItem) {
+        // This item is not in the favorites yet, just remove the item in the table:
+        model.removeItem(selected)
+        return
+      }
       val favorites = loadFavoritePropertiesIfNeeded()
       val reference = selected.asReference ?: return
       val newFavorites = favorites.minus(reference)
       if (newFavorites.size < favorites.size) {
-        tableModel.deleteItem(selected) {}
+        model.removeItem(selected)
         saveFavoriteProperties(newFavorites)
       }
     }
