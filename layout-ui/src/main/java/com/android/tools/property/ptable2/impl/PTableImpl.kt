@@ -605,7 +605,8 @@ class PTableImpl(
 
     override fun keyTyped(event: KeyEvent) {
       val row = selectedRow
-      if (isEditing || row == -1 || event.keyChar == '\t' || event.keyCode == KeyEvent.VK_ESCAPE) {
+      val type = Character.getType(event.keyChar).toByte()
+      if (isEditing || row == -1 || type == Character.CONTROL || type == Character.OTHER_SYMBOL) {
         return
       }
       autoStartEditingAndForwardKeyEventToEditor(row, event)
