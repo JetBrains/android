@@ -319,8 +319,8 @@ class ResourceExplorerListViewModelImpl(
                         showModuleDependencies = filterOptions.isShowModuleDependencies,
                         showLibraries = filterOptions.isShowLibraries,
                         showSampleData = filterOptions.isShowSampleData,
-                        showAndroidResources = filterOptions.showAndroidResources,
-                        showThemeAttributes = filterOptions.showThemeAttributes)
+                        showAndroidResources = filterOptions.isShowFramework,
+                        showThemeAttributes = filterOptions.isShowThemeAttributes)
   }
 
   override fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>> = resourceExplorerSupplyAsync {
