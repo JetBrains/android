@@ -26,7 +26,7 @@ fun createModel(vararg items: PTableItem): PTableTestModel {
 }
 
 fun addModelListener(model: PTableModelImpl): TableModelListener {
-  val listener = Mockito.mock<TableModelListener>(TableModelListener::class.java)
+  val listener = Mockito.mock(TableModelListener::class.java)
   model.addTableModelListener(listener)
   return listener
 }
@@ -65,6 +65,15 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
 
   override fun addListener(listener: PTableModelUpdateListener) {
     listeners.add(listener)
+  }
+
+  override fun addItem(item: PTableItem): PTableItem {
+    items.add(item)
+    return item
+  }
+
+  override fun removeItem(item: PTableItem) {
+    items.remove(item)
   }
 
   fun find(name: String): PTableItem? {

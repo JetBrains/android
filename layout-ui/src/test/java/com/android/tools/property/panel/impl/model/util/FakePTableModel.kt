@@ -38,6 +38,15 @@ class FakePTableModel(expanded: Boolean,
     }
   }
 
+  override fun addItem(item: PTableItem): PTableItem {
+    items.add(item)
+    return item
+  }
+
+  override fun removeItem(item: PTableItem) {
+    items.remove(item)
+  }
+
   override fun isCellEditable(item: PTableItem, column: PTableColumn) =
     column == PTableColumn.VALUE
 

@@ -37,8 +37,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 import org.jetbrains.android.formatter.AttributeComparator
 
-private const val ADD_PROPERTY_ACTION_TITLE = "Add Attribute"
-private const val DELETE_ROW_ACTION_TITLE = "Remove Selected Attribute"
+private const val ADD_PROPERTY_ACTION_TITLE = "Add attribute"
+private const val DELETE_ROW_ACTION_TITLE = "Remove selected attribute"
 
 /**
  * Comparator that is sorting [PTableItem] in Android sorting order.
@@ -66,9 +66,9 @@ class DeclaredAttributesInspectorBuilder(
     }
     newPropertyInstance.properties = properties
     newPropertyInstance.name = ""
-    val declaredTableModel = FilteredPTableModel.create(model, { item -> item.rawValue != null }, androidSortOrder)
-    val addNewRow = AddNewRowAction(declaredTableModel, newPropertyInstance)
-    val deleteRowAction = DeleteRowAction(declaredTableModel)
+    val declaredTableModel = FilteredPTableModel.create(model, { it.rawValue != null }, { it.value = null }, androidSortOrder)
+    val addNewRow = AddNewRowAction(newPropertyInstance)
+    val deleteRowAction = DeleteRowAction()
     val actions = listOf(addNewRow, deleteRowAction)
     val titleModel = inspector.addExpandableTitle(InspectorSection.DECLARED.title, false, actions)
     val tableLineModel = inspector.addTable(declaredTableModel, false, tableUIProvider, titleModel)
@@ -80,7 +80,6 @@ class DeclaredAttributesInspectorBuilder(
   }
 
   private class AddNewRowAction(
-    val tableModel: FilteredPTableModel<NelePropertyItem>,
     val newProperty: NeleNewPropertyItem
   ) : AnAction(null, ADD_PROPERTY_ACTION_TITLE, StudioIcons.Common.ADD) {
 
@@ -90,22 +89,20 @@ class DeclaredAttributesInspectorBuilder(
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true
       val model = lineModel ?: return
-      val nextItem = tableModel.addNewItem(newProperty)
+      val nextItem = model.addItem(newProperty)
       model.requestFocus(nextItem)
     }
   }
 
-  private class DeleteRowAction(
-    private val tableModel: FilteredPTableModel<NelePropertyItem>
-  ) : AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
-
+  private class DeleteRowAction: AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
 
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true
-      val selected = lineModel?.selectedItem as? NelePropertyItem ?: return
-      tableModel.deleteItem(selected)
+      val model = lineModel ?: return
+      val selected = (model.selectedItem ?: model.tableModel.items.firstOrNull()) ?: return
+      model.removeItem(selected)
     }
   }
 }

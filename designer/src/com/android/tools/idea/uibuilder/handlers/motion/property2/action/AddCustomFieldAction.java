@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPr
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
-import com.android.tools.property.panel.api.FilteredPTableModel;
+import com.android.tools.property.panel.api.TableLineModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -31,15 +31,18 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 public class AddCustomFieldAction extends AnAction {
-  private final FilteredPTableModel<NelePropertyItem> myTableModel;
   private final NelePropertyItem myProperty;
   private final MotionLayoutAttributesModel myModel;
+  private TableLineModel myLineModel;
 
-  public AddCustomFieldAction(@NotNull FilteredPTableModel<NelePropertyItem> tableModel, @NotNull NelePropertyItem property) {
-    super(null, "Add Custom Attribute", AllIcons.General.Add);
-    myTableModel = tableModel;
+  public AddCustomFieldAction(@NotNull NelePropertyItem property) {
+    super(null, "Add custom attribute", AllIcons.General.Add);
     myProperty = property;
     myModel = (MotionLayoutAttributesModel)myProperty.getModel();
+  }
+
+  public void setLineModel(@NotNull TableLineModel lineModel) {
+    myLineModel = lineModel;
   }
 
   @Override
@@ -62,7 +65,7 @@ public class AddCustomFieldAction extends AnAction {
     Consumer<MotionSceneTag> applyToModel = newCustomTag -> {
       NelePropertyItem newProperty = MotionLayoutPropertyProvider.createCustomProperty(
         attributeName, type.getTagName(), selection, myProperty.getModel());
-      myTableModel.addNewItem(newProperty);
+      myLineModel.addItem(newProperty);
     };
 
     myModel.createCustomXmlTag(selection, attributeName, value, type, applyToModel);

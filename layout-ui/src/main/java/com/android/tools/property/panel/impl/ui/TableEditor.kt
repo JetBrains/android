@@ -93,8 +93,22 @@ class TableEditor(val lineModel: TableLineModelImpl,
       TableEditingRequest.SPECIFIED_ITEM -> table.startEditing(findRowOf(item))
       TableEditingRequest.STOP_EDITING -> table.startEditing(-1)
       TableEditingRequest.BEST_MATCH -> table.startEditing(findRowOfBestMatch())
+      TableEditingRequest.SELECT -> selectItem(item)
       else -> {}
     }
+  }
+
+  private fun selectItem(item: PTableItem?) {
+    if (item != null) {
+      for (row in 0 until component.rowCount) {
+        if (component.getValueAt(row, 0) == item) {
+          component.setRowSelectionInterval(row, row)
+          return
+        }
+      }
+    }
+    // If there is no row to select transfer the focus out of the table:
+    component.transferFocusBackward()
   }
 
   private fun getToolTipText(event: MouseEvent): String? {

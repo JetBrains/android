@@ -18,24 +18,21 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
-import com.android.tools.property.panel.api.FilteredPTableModel;
 import com.android.tools.property.panel.api.PropertiesTable;
 import com.android.tools.property.panel.api.TableLineModel;
+import com.android.tools.property.ptable2.PTableItem;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class AddMotionFieldAction extends AnAction {
-  private final FilteredPTableModel<NelePropertyItem> myTableModel;
   private final NeleNewPropertyItem myNewProperty;
   private TableLineModel myLineModel;
 
   public AddMotionFieldAction(@NotNull MotionLayoutAttributesModel model,
-                              @NotNull FilteredPTableModel<NelePropertyItem> tableModel,
                               @NotNull PropertiesTable<NelePropertyItem> properties) {
-    super(null, "Add Attribute", AllIcons.General.Add);
-    myTableModel = tableModel;
+    super(null, "Add attribute", AllIcons.General.Add);
     myNewProperty = new NeleNewPropertyItem(model, properties, (item) -> item.getRawValue() == null, (delegate) -> null);
   }
 
@@ -45,7 +42,7 @@ public class AddMotionFieldAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    NelePropertyItem nextItem = myTableModel.addNewItem(myNewProperty);
+    PTableItem nextItem = myLineModel.addItem(myNewProperty);
     myLineModel.requestFocus(nextItem);
   }
 }

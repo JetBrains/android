@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 
-import com.android.tools.property.panel.api.FilteredPTableModel;
-import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.property.panel.api.TableLineModel;
+import com.android.tools.property.ptable2.PTableItem;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import icons.StudioIcons;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DeleteMotionFieldAction extends AnAction {
-  private final FilteredPTableModel<NelePropertyItem> myTableModel;
   private TableLineModel myLineModel;
 
-  public DeleteMotionFieldAction(@NotNull FilteredPTableModel<NelePropertyItem> tableModel) {
-    super(null, "Remove Selected Property", StudioIcons.Common.REMOVE);
-    myTableModel = tableModel;
+  public DeleteMotionFieldAction() {
+    super(null, "Remove selected attribute", StudioIcons.Common.REMOVE);
   }
 
   public void setLineModel(@NotNull TableLineModel lineModel) {
@@ -38,11 +38,25 @@ public class DeleteMotionFieldAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    NelePropertyItem selected = (NelePropertyItem)myLineModel.getSelectedItem();
-    if (selected == null) {
-      return;
+    NelePropertyItem property = getSelectedOrFirstItem(myLineModel);
+    if (property != null) {
+      myLineModel.removeItem(property);
     }
+  }
 
-    myTableModel.deleteItem(selected);
+  @Nullable
+  public static NelePropertyItem getSelectedOrFirstItem(@Nullable TableLineModel lineModel) {
+    if (lineModel == null) {
+      return null;
+    }
+    NelePropertyItem property = (NelePropertyItem)lineModel.getSelectedItem();
+    if (property == null) {
+      List<PTableItem> items = lineModel.getTableModel().getItems();
+      if (items.isEmpty()) {
+        return null;
+      }
+      property = (NelePropertyItem)items.get(0);
+    }
+    return property;
   }
 }

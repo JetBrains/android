@@ -38,26 +38,6 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
    */
   fun addNewItem(item: P): P
 
-  /**
-   * Remove an [item] from the table model.
-   *
-   * If the deleteItem operation requires an XML update, that update
-   * must be specified with the [delete] lambda.
-   */
-  fun deleteItem(item: P, delete: (P) -> Unit)
-
-  /**
-   * Remove an [item] from the table model.
-   *
-   * Same as the above [deleteItem] method where the delete lambda
-   * will set the value of the item to null.
-   *
-   * The method is overloaded for Java interoperability.
-   */
-  fun deleteItem(item: P) {
-    deleteItem(item) { it.value = null }
-  }
-
   companion object PTableModelFactory {
 
     /**
@@ -73,6 +53,7 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
      *
      * The [refresh] method will repopulate the table with items from
      * the available properties from the [model] applying the [itemFilter].
+     * The [deleteOperation] is applied when [removeItem] is called.
      * If the model includes an item implementing [NewPropertyItem] that
      * item will be excluded if a corresponding matching item is found
      * in the [model] except if [keepNewAfterFlyAway] is true, then the
@@ -85,12 +66,13 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
     fun <P : PropertyItem> create(
       model: PropertiesModel<P>,
       itemFilter: (P) -> Boolean,
+      deleteOperation: (P) -> Unit = {},
       itemComparator: Comparator<PTableItem> = alphabeticalSortOrder,
       groups: List<GroupSpec<P>> = emptyList(),
       keepNewAfterFlyAway: Boolean = true,
       allowEditing: Boolean = true
     ): FilteredPTableModel<P> {
-      return FilteredPTableModelImpl(model, itemFilter, itemComparator, groups, keepNewAfterFlyAway, allowEditing)
+      return FilteredPTableModelImpl(model, itemFilter, deleteOperation, itemComparator, groups, keepNewAfterFlyAway, allowEditing)
     }
   }
 }

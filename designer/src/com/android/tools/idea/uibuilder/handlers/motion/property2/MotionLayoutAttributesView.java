@@ -53,6 +53,7 @@ import com.intellij.xml.XmlElementDescriptor;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.annotations.NotNull;
@@ -159,16 +160,18 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       }
       SubTagAttributesModel customModel = new SubTagAttributesModel(model, MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
       Function1<NelePropertyItem, Boolean> filter = (item) -> item.getNamespace().isEmpty() && item.getRawValue() != null;
+      Function1<NelePropertyItem, Unit> deleteOp = (item) -> null;
 
       FilteredPTableModel<NelePropertyItem> tableModel = PTableModelFactory.create(
-        customModel, filter, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), false, true);
-      AddCustomFieldAction addFieldAction = new AddCustomFieldAction(tableModel, any);
+        customModel, filter, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), false, true);
+      AddCustomFieldAction addFieldAction = new AddCustomFieldAction(any);
       DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction();
       List<AnAction> actions = ImmutableList.<AnAction>builder().add(addFieldAction).add(deleteFieldAction).build();
 
       InspectorLineModel title = inspector.addExpandableTitle("CustomAttributes", true, actions);
       TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
       inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
+      addFieldAction.setLineModel(lineModel);
       deleteFieldAction.setLineModel(lineModel);
     }
 
@@ -187,13 +190,14 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         (item) -> !item.getNamespace().isEmpty() &&
                   ArrayUtil.find(excluded, item) < 0 &&
                   (item.getRawValue() != null || (showDefaultValues && item.getDefaultValue() != null));
+      Function1<NelePropertyItem, Unit> deleteOp = (item) -> { item.setValue(null); return null; };
 
       FilteredPTableModel<NelePropertyItem> tableModel =
         PTableModelFactory.create(
-          model, filter, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), true, true);
+          model, filter, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), true, true);
       SubSectionControlAction controlAction = new SubSectionControlAction(any);
-      AddMotionFieldAction addFieldAction = new AddMotionFieldAction(myModel, tableModel, model.getProperties());
-      DeleteMotionFieldAction deleteFieldAction = new DeleteMotionFieldAction(tableModel);
+      AddMotionFieldAction addFieldAction = new AddMotionFieldAction(myModel, model.getProperties());
+      DeleteMotionFieldAction deleteFieldAction = new DeleteMotionFieldAction();
       ImmutableList.Builder<AnAction> actionsBuilder = ImmutableList.builder();
       if (showSectionControl) {
         actionsBuilder.add(controlAction);
