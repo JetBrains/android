@@ -174,6 +174,18 @@ class ResourceExplorerToolbarViewModel(
       filterOptions.isShowLibraries = value
     }
 
+  var isShowFrameworkResources: Boolean
+    get() = filterOptions.isShowFramework
+    set(value) {
+      filterOptions.isShowFramework = value
+    }
+
+  var isShowThemeAttributes: Boolean
+    get() = filterOptions.isShowThemeAttributes
+    set(value) {
+      filterOptions.isShowThemeAttributes = value
+    }
+
   var searchString: String by Delegates.observable("") { _, old, new ->
     if (new != old) {
       filterOptions.searchString = new
