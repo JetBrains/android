@@ -15,6 +15,8 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -27,5 +29,6 @@ class FocusableActionButton(action: AnAction) :
 
   init {
     isFocusable = true
+    registerActionKey({ click() }, KeyStrokes.ENTER, "enter")
   }
 }
