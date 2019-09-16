@@ -73,6 +73,8 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       // FIXME override fun isStepVisible(): Boolean = java.lang.Boolean.TRUE == myState.get(FirstRunWizard.KEY_CUSTOM_INSTALL)
       addStep(JdkSetupStep())
       addStep(SelectThemeStep())
+      // if (mode == FirstRunWizardMode.MISSING_SDK) {
+      addStep(MissingSdkAlertStep())
       // TODO(qumeric): addStep(SdkComponentsStep())
       // TODO(qumeric): addStep(InstallSummaryStep())
       if (SystemInfo.isLinux && !SystemInfo.isChromeOS) {
