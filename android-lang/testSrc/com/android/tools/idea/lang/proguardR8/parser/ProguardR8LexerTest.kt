@@ -42,6 +42,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.SEMICOLON
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.STATIC
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes._INIT_
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes._METHODS_
+import com.google.common.truth.Truth.assertThat
 
 class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
 
@@ -399,5 +400,13 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       NEWLINE,
       "}" to CLOSE_BRACE
     )
+  }
+
+  fun testIsJavaIdentifier() {
+    assertThat(ProguardR8Lexer.isJavaIdentifier("simple")).isTrue()
+    assertThat(ProguardR8Lexer.isJavaIdentifier("ανδρος")).isTrue()
+    assertThat(ProguardR8Lexer.isJavaIdentifier("wildcards**")).isFalse()
+    assertThat(ProguardR8Lexer.isJavaIdentifier("goodStart^^^^")).isFalse()
+    assertThat(ProguardR8Lexer.isJavaIdentifier("public")).isFalse()
   }
 }
