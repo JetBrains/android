@@ -31,25 +31,48 @@ import com.intellij.psi.xml.XmlAttribute
 /**
  * Reference that refers to a [PsiMethod]
  */
-internal class PsiMethodReference(element: PsiElement, method: PsiModelMethod, textRange: TextRange)
+internal class PsiMethodReference private constructor(element: PsiElement,
+                                                      method: PsiModelMethod,
+                                                      textRange: TextRange,
+                                                      val kind: Kind)
   : DbExprReference(element, method.psiMethod, textRange) {
 
-  constructor(expr: PsiDbCallExpr, method: PsiModelMethod)
-    : this(expr, method, expr.refExpr.id.textRange.shiftLeft(expr.textOffset))
+  enum class Kind {
+    /**
+     * This reference points to a method being called, e.g. `model.doSomething(...)`.
+     *
+     * Such a method expression can be chained further.
+     */
+    METHOD_CALL,
 
-  constructor(expr: PsiDbRefExpr, method: PsiModelMethod)
-    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset))
+    /**
+     * This reference points to a method reference, e.g. `model::doSomething`, `model.doSomething`
+     *
+     * Such a method expression should not be chained any further.
+     */
+    METHOD_REFERENCE,
+  }
+
+  constructor(expr: PsiDbCallExpr, method: PsiModelMethod)
+    : this(expr, method, expr.refExpr.id.textRange.shiftLeft(expr.textOffset), Kind.METHOD_CALL)
+
+  constructor(expr: PsiDbRefExpr, method: PsiModelMethod, kind: Kind)
+    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset), kind)
 
   constructor(expr: PsiDbFunctionRefExpr, method: PsiModelMethod)
-    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset))
+    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset), Kind.METHOD_REFERENCE)
 
   constructor(attr: XmlAttribute, method: PsiModelMethod)
-    : this(attr, method, attr.textRange.shiftLeft(attr.textOffset))
+    : this(attr, method, attr.textRange.shiftLeft(attr.textOffset), Kind.METHOD_REFERENCE)
 
   constructor(parameters: PsiDbLambdaParameters, method: PsiModelMethod)
-    : this(parameters, method, parameters.textRange.shiftLeft(parameters.textOffset))
+    : this(parameters, method, parameters.textRange.shiftLeft(parameters.textOffset), Kind.METHOD_REFERENCE)
 
-  override val resolvedType = method.returnType
+  /**
+   * Note: Returning null for the resolvedType prevents this expression from participating in auto completions
+   * e.g. `user.getName().toUpperCase()` is valid while `user::getName.toUpperCase()` is not
+   */
+  override val resolvedType = if (kind == Kind.METHOD_REFERENCE) null else method.returnType
 
   override val isStatic = false
 
