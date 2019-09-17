@@ -60,6 +60,9 @@
   ]
 
   generate=[names='long' java='8']
+
+  implements("method_name|field_name")="com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMember"
+  extends("method_name|field_name")="com.android.tools.idea.lang.proguardR8.psi.AbstractProguardR8ClassMember"
 }
 
 root ::= (rule_with_class_specification | rule )*
@@ -83,7 +86,9 @@ qualifiedName ::= java_identifier_ ("." java_identifier_)* ("$" java_identifier_
 
 annotation_name ::= AT qualifiedName
 class_name ::= qualifiedName
-field_name ::= java_identifier_
+field_name ::= java_identifier_ {
+  methods=[getReference getType]
+}
 method_name ::= java_identifier_
 java_primitive ::= boolean|byte|char|short|int|long|float|double|void {
   methods=[getPsiPrimitive]
@@ -102,8 +107,11 @@ class_specification_body ::= OPEN_BRACE java CLOSE_BRACE {pin=1}
 class_modifier ::= ("!"?(public|final|abstract))
 class_type ::= "!"?(interface|class|enum)
 
-class_specification_header ::= annotation_name? class_modifier* class_type class_name ((extends|implements) annotation_name? class_name)?
-{pin=class_type recoverWhile=not_open_brace_or_new_flag}
+class_specification_header ::= annotation_name? class_modifier* class_type class_name ((extends|implements) annotation_name? class_name)? {
+  pin=class_type
+  recoverWhile=not_open_brace_or_new_flag
+  methods=[resolvePsiClasses]
+}
 
 fields_specification ::= annotation_name? fields_modifier* (<fields>|(type field_name)|any_field_or_method)
 fields_modifier ::= ("!"?(public|private|protected|static|volatile|transient|final))
