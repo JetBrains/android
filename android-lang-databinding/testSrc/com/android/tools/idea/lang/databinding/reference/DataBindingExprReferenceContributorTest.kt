@@ -426,6 +426,70 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
+  fun dbMethodDotReferenceReferencesClassMethod() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class ClickHandler {
+        public void handleClick(View v) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="clickHandler" type="test.langdb.ClickHandler" />
+        </data>
+        <TextView android:onClick="@{clickHandler.handle<caret>Click}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val javaHandleClick = fixture.findClass("test.langdb.ClickHandler").findMethodsByName("handleClick")[0].sourceElement!!
+    val xmlHandleClick = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlHandleClick.isReferenceTo(javaHandleClick)).isTrue()
+    assertThat(xmlHandleClick.resolve()).isEqualTo(javaHandleClick)
+  }
+
+  @Test
+  fun dbMethodDotReferenceReferencesClassMethodWithoutArgument() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class ClickHandler {
+        public void handleClick() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="clickHandler" type="test.langdb.ClickHandler" />
+        </data>
+        <TextView android:onClick="@{clickHandler.handle<caret>Click}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val javaHandleClick = fixture.findClass("test.langdb.ClickHandler").findMethodsByName("handleClick")[0].sourceElement!!
+    val xmlHandleClick = fixture.getReferenceAtCaretPosition()!!
+
+    // Make sure xmlHandleClick references a method reference instead of a method call.
+    assertThat((xmlHandleClick as ModelClassResolvable).resolvedType).isNull()
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlHandleClick.isReferenceTo(javaHandleClick)).isTrue()
+    assertThat(xmlHandleClick.resolve()).isEqualTo(javaHandleClick)
+  }
+
+  @Test
   fun dbMethodCallReferencesClassMethod() {
     fixture.addClass("""
       package test.langdb;
@@ -956,8 +1020,8 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
-    val references = (fixture.getReferenceAtCaretPosition() as PsiMultiReference).references
+    val reference = fixture.getReferenceAtCaretPosition()!!
     // view_id.getText() should return interface Editable that extends CharSequence and inherits its method length().
-    assertThat(references.any { (it.resolve() as PsiMethod).name == "length"}).isTrue()
+    assertThat((reference.resolve() as PsiMethod).name).isEqualTo("length")
   }
 }
