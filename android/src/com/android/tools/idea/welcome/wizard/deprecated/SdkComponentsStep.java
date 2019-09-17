@@ -77,6 +77,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Wizard page for selecting SDK components to download.
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.SdkComponentsStep}
  */
 public class SdkComponentsStep extends FirstRunWizardStep implements Disposable {
   @NotNull private final ComponentTreeNode myRootNode;
