@@ -35,7 +35,7 @@ class MissingSdkAlertStep : ModelWizardStep.WithoutModel("Missing SDK") {
       beginParagraph()
       addHtml("Before continuing, you must download the necessary components or select an existing SDK.")
       endParagraph()
-      openHtmlBody()
+      closeHtmlBody()
     }.html
     add(JBLabel(description), BorderLayout.NORTH)
   }
