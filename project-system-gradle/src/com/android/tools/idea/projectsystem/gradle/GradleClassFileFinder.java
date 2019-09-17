@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.projectsystem.gradle;
 
+import static com.android.SdkConstants.FN_R_CLASS_JAR;
+
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
@@ -22,15 +24,15 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.ModuleBasedClassFileFinder;
 import com.android.tools.idea.projectsystem.ClassFileFinderUtil;
+import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
 
@@ -65,7 +67,7 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
     String variantName = variant.getName();
     AndroidArtifact mainArtifactInfo = model.getMainArtifact();
     File classesFolder = mainArtifactInfo.getClassesFolder();
-    ImmutableList.Builder<VirtualFile> listBuilder = new ImmutableList.Builder<>();
+    ImmutableList.Builder<VirtualFile> compilerOutputs = new ImmutableList.Builder<>();
 
     // Older models may not supply it; in that case, we rely on looking relative to the .APK file location:
     //noinspection ConstantConditions
@@ -83,17 +85,44 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
     if (outFolder.exists()) {
       VirtualFile file = VfsUtil.findFileByIoFile(outFolder, true);
       if (file != null) {
-        listBuilder.add(file);
+        compilerOutputs.add(file);
       }
     }
 
     for (File additionalFolder : mainArtifactInfo.getAdditionalClassesFolders()) {
       VirtualFile file = VfsUtil.findFileByIoFile(additionalFolder, true);
       if (file != null) {
-        listBuilder.add(file);
+        compilerOutputs.add(file);
       }
     }
 
-    return listBuilder.build();
+    VirtualFile rJar = findRJar(model);
+    if (rJar != null) {
+      compilerOutputs.add(rJar);
+    }
+
+    return compilerOutputs.build();
+  }
+
+  /**
+   * Finds the R.jar file of the given {@link AndroidArtifact}, if it exists.
+   */
+  @Nullable
+  private static VirtualFile findRJar(AndroidModuleModel model) {
+    // TODO(b/133326990): read this from the model
+    String variantName = model.getSelectedVariant().getName();
+    File classesFolder = model.getMainArtifact().getClassesFolder();
+
+    File p1 = classesFolder.getParentFile();
+    if (p1 == null) return null;
+
+    File p2 = p1.getParentFile();
+    if (p2 == null) return null;
+
+    File p3 = p2.getParentFile();
+    if (p3 == null) return null;
+
+    File rJar = FileUtils.join(p3, "compile_and_runtime_not_namespaced_r_class_jar", variantName, FN_R_CLASS_JAR);
+    return VfsUtil.findFileByIoFile(rJar, true);
   }
 }
