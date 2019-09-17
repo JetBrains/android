@@ -85,6 +85,20 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
     myProject = project;
     myDesignerEditor = designerEditor;
     registerModeNavigationShortcuts();
+    restoreSurfaceState();
+  }
+
+  private void restoreSurfaceState() {
+    DesignSurface surface = myDesignerEditor.getComponent().getSurface();
+    if (isTextMode()) {
+      surface.setState(DesignSurface.State.DEACTIVATED);
+    }
+    else if (isSplitMode()) {
+      surface.setState(DesignSurface.State.SPLIT);
+    }
+    else { // Design mode
+      surface.setState(DesignSurface.State.FULL);
+    }
   }
 
   @NotNull
@@ -263,7 +277,6 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
         surface.getAnalyticsManager().trackSelectEditorMode();
       }
       getComponent().requestFocus();
-      // TODO(b/136174865): hide editor tool windows (e.g. palette) depending on the mode selected.
     }
   }
 
