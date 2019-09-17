@@ -197,6 +197,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @NotNull
   private State myState = State.FULL;
+  @Nullable
+  private StateChangeListener myStateChangeListener;
 
   private final Timer myRepaintTimer = new Timer(15, (actionEvent) -> {
     repaint();
@@ -561,11 +563,22 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public final void setState(@NotNull State state) {
     myState = state;
+    if (myStateChangeListener != null) {
+      myStateChangeListener.onStateChange(state);
+    }
   }
 
   @NotNull
   public final State getState() {
     return myState;
+  }
+
+  public void setStateChangeListener(@Nullable StateChangeListener stateChangeListener) {
+    myStateChangeListener = stateChangeListener;
+  }
+
+  public interface StateChangeListener {
+    void onStateChange(@NotNull State newState);
   }
 
   public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
