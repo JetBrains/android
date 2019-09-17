@@ -60,7 +60,7 @@ public class AccordionVisualTest extends VisualTest {
 
   private ArrayList<RangedContinuousSeries> mRangedData;
 
-  private ArrayList<LongDataSeries> mData;
+  private ArrayList<DefaultDataSeries<Long>> mData;
 
   @Override
   protected List<Updatable> createModelList() {
@@ -89,7 +89,7 @@ public class AccordionVisualTest extends VisualTest {
       if (i % 2 == 0) {
         yRange = new Range(0.0, 100.0);
       }
-      LongDataSeries series = new LongDataSeries();
+      DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets #" + i, timeGlobalRangeUs, yRange, series);
       mRangedData.add(ranged);
       mData.add(series);
@@ -118,7 +118,7 @@ public class AccordionVisualTest extends VisualTest {
       try {
         while (true) {
           long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
-          for (LongDataSeries series : mData) {
+          for (DefaultDataSeries<Long> series : mData) {
             List<SeriesData<Long>> data = series.getAllData();
             long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
             float delta = 10 * ((float)Math.random() - 0.45f);

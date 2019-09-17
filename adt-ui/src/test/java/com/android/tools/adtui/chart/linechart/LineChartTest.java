@@ -16,6 +16,7 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.model.*;
+import com.google.common.truth.Truth;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
@@ -27,6 +28,7 @@ import java.awt.geom.PathIterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.truth.Truth.*;
 import static java.awt.BasicStroke.CAP_SQUARE;
 import static java.awt.BasicStroke.JOIN_MITER;
 import static org.mockito.Matchers.any;
@@ -326,12 +328,43 @@ public class LineChartTest {
     }
   }
 
+  @Test
+  public void testStackedConfigsDoNotModifyUnderlyingDataSeries() {
+    final int dataCount = 10;
+    LineChartModel model = new LineChartModel();
+    DefaultDataSeries<Long> series1 = new DefaultDataSeries<>();
+    DefaultDataSeries<Long> series2 = new DefaultDataSeries<>();
+    for (int i = 0; i <= dataCount; i++) {
+      series1.add(i, (long)i);
+      series2.add(i, (long)i);
+    }
+    RangedContinuousSeries rangedSeries1 = new RangedContinuousSeries("series1", new Range(0, dataCount), new Range(0, 0), series1);
+    RangedContinuousSeries rangedSeries2 = new RangedContinuousSeries("series2", new Range(0, dataCount), new Range(0, 0), series2);
+    model.add(rangedSeries1);
+    model.add(rangedSeries2);
+
+    LineChart chart = new LineChart(model);
+    chart.configure(rangedSeries1, new LineConfig(Color.BLACK).setStacked(true));
+    chart.configure(rangedSeries2, new LineConfig(Color.WHITE).setStacked(true));
+    model.update(TimeUnit.SECONDS.toNanos(1));
+    chart.setSize(100, 100);
+    Graphics2D fakeGraphics = mock(Graphics2D.class);
+    when(fakeGraphics.create()).thenReturn(fakeGraphics);
+    chart.paint(fakeGraphics);
+
+    for (int i = 0; i < dataCount; i++) {
+      assertThat(series1.getY(i)).isEqualTo(i);
+      assertThat(series2.getY(i)).isEqualTo(i);
+    }
+  }
+
   /**
    * Helper function to convert from series data to expected test value.
-   * @param previousY the series value expected from a previous point.
-   * @param nextY the series value expected on the current or next point.
-   * @param ratio the ratio between the two values used.
-   * @param range the range used for normalizing the y values between 0 and 1.
+   *
+   * @param previousY    the series value expected from a previous point.
+   * @param nextY        the series value expected on the current or next point.
+   * @param ratio        the ratio between the two values used.
+   * @param range        the range used for normalizing the y values between 0 and 1.
    * @param windowHeight the scaler used to scale the y points back to the window size.
    * @return the pixel location of two Y values interpolated between some ratio.
    */
