@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.model
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_CONSTRAINT_SET_START
 import com.android.SdkConstants.ATTR_FONT_FAMILY
 import com.android.SdkConstants.ATTR_LAYOUT_GRAVITY
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
@@ -29,6 +30,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_VISIBLE
+import com.android.SdkConstants.ATTR_WIDTH
 import com.android.SdkConstants.VALUE_MATCH_PARENT
 import com.android.SdkConstants.VALUE_TOP
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
@@ -171,6 +173,36 @@ class FilteredPTableModelImplTest {
       .containsExactly(ATTR_TEXT, ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, "").inOrder()
     assertThat(listener.updateCount).isEqualTo(1)
     assertThat(listener.nextEditedItem).isEqualTo(property)
+  }
+
+  @Test
+  fun testAddNonExistingPropertyToModelWithNewProperty() {
+    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    tableModel.addNewItem(FakeNewPropertyItem())
+    val listener = FakePTableModelUpdateListener()
+    val property = FakePropertyItem(ANDROID_URI, ATTR_FONT_FAMILY, "Sans")
+    tableModel.editedItem = propHeight
+    tableModel.addListener(listener)
+    tableModel.addNewItem(property)
+    assertThat(tableModel.items.map { it.name })
+      .containsExactly(ATTR_TEXT, ATTR_FONT_FAMILY, ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, "").inOrder()
+    assertThat(listener.updateCount).isEqualTo(1)
+    assertThat(listener.nextEditedItem).isEqualTo(propHeight)
+  }
+
+  @Test
+  fun testAddNonExistingPropertyTEndOfModelWithNewProperty() {
+    val tableModel = FilteredPTableModel.create(model!!, itemFilter, deleteOp, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    tableModel.addNewItem(FakeNewPropertyItem())
+    val listener = FakePTableModelUpdateListener()
+    val property = FakePropertyItem(ANDROID_URI, ATTR_CONSTRAINT_SET_START, "@id/btn")
+    tableModel.editedItem = propHeight
+    tableModel.addListener(listener)
+    tableModel.addNewItem(property)
+    assertThat(tableModel.items.map { it.name })
+      .containsExactly(ATTR_TEXT, ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_CONSTRAINT_SET_START, "").inOrder()
+    assertThat(listener.updateCount).isEqualTo(1)
+    assertThat(listener.nextEditedItem).isEqualTo(propHeight)
   }
 
   @Test
