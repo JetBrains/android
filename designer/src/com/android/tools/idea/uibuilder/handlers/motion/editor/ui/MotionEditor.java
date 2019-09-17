@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.METabbedPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
@@ -30,6 +31,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSe
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -69,7 +71,7 @@ public class MotionEditor extends JPanel {
   LayoutPanel mLayoutPanel = new LayoutPanel();
   CombinedListPanel mCombinedListPanel = new CombinedListPanel();
   OverviewPanel mOverviewPanel = new OverviewPanel();
-  JScrollPane mOverviewScrollPane = new JScrollPane(mOverviewPanel);
+  JScrollPane mOverviewScrollPane = new MEScrollPane(mOverviewPanel);
   CardLayout mCardLayout = new CardLayout();
   JPanel mCenterPanel = new JPanel(mCardLayout);
   private static String LAYOUT_PANEL = "Layout";
@@ -81,6 +83,29 @@ public class MotionEditor extends JPanel {
   CreateTransition mCreateTransition = new CreateTransition();
   JSplitPane mTopPanel;
   boolean mUpdatingModel;
+  JPopupMenu myPopupMenu = new JPopupMenu();
+
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (mMotionSceneTabb != null) { // any are not null they have been initialized
+      mMotionSceneTabb.updateUI();
+      mTransitionPanel.updateUI();
+      mConstraintSetPanel.updateUI();
+      mLayoutPanel.updateUI();
+      mCombinedListPanel.updateUI();
+      mOverviewScrollPane.updateUI();
+      mCenterPanel.updateUI();
+      myPopupMenu.updateUI();
+      int n = myPopupMenu.getComponentCount();
+      for (int i = 0; i < n; i++) {
+        Component component = myPopupMenu.getComponent(i);
+        if (component instanceof JComponent) {
+          ((JComponent)component).updateUI();
+        }
+      }
+    }
+  }
 
   public void setSelection(MotionEditorSelector.Type type, MTag[] tag) {
     mSelectedTag = tag[0];
@@ -163,13 +188,12 @@ public class MotionEditor extends JPanel {
     create_transition.setHideActionText(true);
     create_touch.setHideActionText(true);
 
-    JPopupMenu popupMenu = new JPopupMenu();
 
-    popupMenu.add(mCreateOnClick.getAction(create_touch, this));
-    popupMenu.add(mCreateOnSwipe.getAction(create_touch, this));
+    myPopupMenu.add(mCreateOnClick.getAction(create_touch, this));
+    myPopupMenu.add(mCreateOnSwipe.getAction(create_touch, this));
 
     create_touch.addActionListener(e -> {
-      popupMenu.show(create_constraintSet, 0, 0);
+      myPopupMenu.show(create_constraintSet, 0, 0);
     });
 
     JButton cycle = MEUI.createToolBarButton(MEIcons.CYCLE_LAYOUT, "Vertical view");

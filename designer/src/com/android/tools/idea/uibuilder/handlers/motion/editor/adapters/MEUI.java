@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
+import com.android.tools.adtui.stdui.menu.CommonPopupMenuUI;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.ui.popup.Balloon;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
@@ -23,6 +27,8 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPopupMenu;
 import javax.swing.plaf.basic.BasicButtonUI;
 
 /**
@@ -85,14 +91,16 @@ public class MEUI {
   public static Color ourGraphColor = makeColor("UIDesigner.motion.GraphColor", 0x97b1c0, 0x97b1c0);
 
   public static class Overview {
-    public static Color ourConstraintSet = makeColor("UIDesigner.motion.ConstraintSet", 0xFFFFFF, 0x515658);
-    public static Color ourConstraintSetText = makeColor("UIDesigner.motion.ConstraintSetText", 0x000000, 0xFFFFFF);
+    public static Color ourCS = makeColor("UIDesigner.motion.ConstraintSet", 0xFFFFFF, 0x515658);
+    public static Color ourCSText = makeColor("UIDesigner.motion.ConstraintSetText", 0x000000, 0xC7C7C7);
+    public static Color ourCS_Hover = makeColor("UIDesigner.motion.HoverColor", 0XEAF2FE, 0X6E869B);
+    public static Color ourCS_Select = makeColor("UIDesigner.motion.SelectedSetColor", 0xE1E2E1, 0X7792AC);
     public static Color ourLayoutHeaderColor = makeColor("UIDesigner.motion.LayoutHeaderColor", 0xD8D8D8, 0x808385);
     public static Color ourLayoutColor = makeColor("UIDesigner.motion.LayoutColor", 0xFFFFFF, 0x515658);
-    public static Color ourSelectedSetColor = makeColor("UIDesigner.motion.SelectedSetColor", 0xE1E2E1, 0xF0F1F0);
     public static Color ourHoverColor = makeColor("UIDesigner.motion.HoverColor", 0xD0D1D0, 0xD0D1D0);
-    public static Color ourLineColor = makeColor("UIDesigner.motion.LineColor", 0xBEBEBE, 0x3B3F41);
+    public static Color ourLineColor = makeColor("UIDesigner.motion.LineColor", 0xBEBEBE, 0x6D6D6E);
     public static Color ourSelectedLineColor = makeColor("UIDesigner.motion.SelectedLineColor", 0x1886F7, 0x9CCDFF);
+    public static Color ourHoverLineColor = makeColor("UIDesigner.motion.LineColor", 0xBEBEBE, 0x6D6D6E);
   }
 
   public static Color ourSelectedSetColor = new JBColor(0xE1E2E1, 0xF0F1F0);
@@ -104,23 +112,80 @@ public class MEUI {
   public static final int DIR_BOTTOM = 3;
 
   public static JButton createToolBarButton(Icon icon, String tooltip) {
-    JButton button = new JButton(icon);
+    JButton button = new JButton(icon) {
+      @Override
+      public void updateUI() {
+        setUI(new BasicButtonUI());
+      }
+    };
     button.setBorderPainted(false);
     button.setContentAreaFilled(false);
     button.setToolTipText(tooltip);
     button.setUI(new BasicButtonUI());
     button.setOpaque(false);
-    //button.setBorder(null);
+    button.setBorder(null);
     return button;
   }
 
   public static JButton createToolBarButton(Icon icon, Icon disable_icon, String tooltip) {
-    JButton button = new JButton(icon);
+    JButton button = new JButton(icon) {
+      @Override
+      public void updateUI() {
+        setUI(new BasicButtonUI());
+      }
+    };
     button.setContentAreaFilled(false);
     button.setBorderPainted(false);
     button.setUI(new BasicButtonUI());
     button.setToolTipText(tooltip);
-    //button.setBorder(null);
+    button.setBorder(null);
     return button;
+  }
+
+  public static JPopupMenu createPopupMenu() {
+    JPopupMenu ret = new JPopupMenu();
+    ret.setUI(new CommonPopupMenuUI());
+    return ret;
+  }
+
+
+  public interface Popup {
+    void dismiss();
+    void hide();
+    void show();
+  }
+
+  public static Popup createPopup(JComponent component, JComponent local) {
+    Balloon balloon = JBPopupFactory.getInstance().createBalloonBuilder(component)
+      .setFillColor(ourSecondaryPanelBackground)
+      .setBorderColor(JBColor.border())
+      .setBorderInsets(JBUI.insets(1))
+      .setAnimationCycle(Registry.intValue("ide.tooltip.animationCycle"))
+      .setShowCallout(true)
+      .setPositionChangeYShift(2)
+      .setHideOnKeyOutside(false)
+      .setHideOnAction(false)
+      .setBlockClicksThroughBalloon(true)
+      .setRequestFocus(true)
+      .setDialogMode(false)
+      .createBalloon();
+    balloon.showInCenterOf(local);
+    return new Popup() {
+      @Override
+      public void dismiss() {
+        balloon.dispose();
+      }
+
+      @Override
+      public void hide() {
+        balloon.hide();
+      }
+
+      @Override
+      public void show() {
+         balloon.showInCenterOf(local);
+      }
+    };
+
   }
 }

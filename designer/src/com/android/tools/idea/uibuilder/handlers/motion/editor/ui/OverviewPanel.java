@@ -421,13 +421,13 @@ class OverviewPanel extends JPanel {
       String name = isLayout ? "Layout" : mConstraintSetNames[setIndex];
 
       if (mConstraintSetSelected == i) {
-        g.setColor((hover) ? MEUI.Overview.ourHoverColor : MEUI.Overview.ourSelectedSetColor);
+        g.setColor((hover) ? MEUI.Overview.ourCS_Hover : MEUI.Overview.ourCS_Select);
         g.fillRoundRect(x, y, csWidth, csHeight, space, space);
         g.setColor(MEUI.Overview.ourSelectedLineColor);
         g.drawRoundRect(x, y, csWidth, csHeight, space, space);
       }
       else {
-        g.setColor((hover) ? MEUI.Overview.ourHoverColor : MEUI.Overview.ourConstraintSet);
+        g.setColor((hover) ? MEUI.Overview.ourCS_Hover : MEUI.Overview.ourCS);
         g.fillRoundRect(x, y, csWidth, csHeight, space, space);
         if (selectedEnd == setIndex || selectedStart == setIndex) {
           g.setColor(MEUI.Overview.ourSelectedLineColor);
@@ -439,7 +439,7 @@ class OverviewPanel extends JPanel {
         g.setColor(MEUI.Overview.ourLineColor);
       }
       if (i == 0) {
-        g.setColor((hover) ? MEUI.Overview.ourHoverColor : MEUI.Overview.ourLayoutColor);
+        g.setColor((hover) ? MEUI.Overview.ourCS_Hover : MEUI.Overview.ourLayoutColor);
         g.fillRoundRect(x, y, csWidth, csHeight, space, space);
         g.setColor(MEUI.Overview.ourLayoutHeaderColor);
         g.fillRoundRect(x, y, csWidth, csHeight / 4 + 1, space, space);
@@ -447,7 +447,7 @@ class OverviewPanel extends JPanel {
         g.drawRoundRect(x, y, csWidth, csHeight, space, space);
         g.fillRect(x, y + csHeight / 4, csWidth, 2);
       }
-      g.setColor(MEUI.Overview.ourConstraintSetText);
+      g.setColor(MEUI.Overview.ourCSText);
 
       if (isLayout) {
         int stringWidth = fm.stringWidth("Motion");
@@ -598,7 +598,7 @@ class OverviewPanel extends JPanel {
       Stroke originalStroke = ((Graphics2D)g).getStroke();
       Color originalColor = g.getColor();
       g.setStroke(ourFatStroke);
-      g.setColor(MEUI.Overview.ourHoverColor);
+      g.setColor(MEUI.Overview.ourHoverLineColor);
       g.draw(mPath);
       g.setColor(originalColor);
       g.setStroke(originalStroke);
