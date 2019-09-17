@@ -26,8 +26,10 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Cre
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TimeLinePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -51,6 +53,7 @@ public class TransitionPanel extends JPanel {
   CreateKeyTrigger mCreateKeyTrigger = new CreateKeyTrigger();
   CreateKeyCycle mCreateKeyCycle = new CreateKeyCycle();
   CreateKeyTimeCycle mCreateKeyTimeCycle = new CreateKeyTimeCycle();
+  JPopupMenu myPopupMenu = new JPopupMenu();
 
   public TransitionPanel(MotionEditor motionEditor) {
     super(new BorderLayout());
@@ -63,15 +66,14 @@ public class TransitionPanel extends JPanel {
     JButton create = MEUI.createToolBarButton(MEIcons.CREATE_KEYFRAME, "Create KeyFrames");
     create.setContentAreaFilled(false);
     right.add(create);
-    JPopupMenu popupMenu = new JPopupMenu();
-    popupMenu.add(mCreateKeyPosition.getAction(create, motionEditor));
-    popupMenu.add(mCreateKeyAttribute.getAction(create, motionEditor));
-    popupMenu.add(mCreateKeyTrigger.getAction(create, motionEditor));
-    popupMenu.add(mCreateKeyCycle.getAction(create, motionEditor));
-    popupMenu.add(mCreateKeyTimeCycle.getAction(create, motionEditor));
+    myPopupMenu.add(mCreateKeyPosition.getAction(create, motionEditor));
+    myPopupMenu.add(mCreateKeyAttribute.getAction(create, motionEditor));
+    myPopupMenu.add(mCreateKeyTrigger.getAction(create, motionEditor));
+    myPopupMenu.add(mCreateKeyCycle.getAction(create, motionEditor));
+    myPopupMenu.add(mCreateKeyTimeCycle.getAction(create, motionEditor));
 
     create.addActionListener(e -> {
-      popupMenu.show(create, 0, 0);
+      myPopupMenu.show(create, 0, 0);
     });
     add(top, BorderLayout.NORTH);
     add(mTimeLinePanel, BorderLayout.CENTER);
@@ -84,6 +86,21 @@ public class TransitionPanel extends JPanel {
         }
       }
     });
+  }
+
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (myPopupMenu != null) { // update UI can be called before construction
+      myPopupMenu.updateUI();
+      int n = myPopupMenu.getComponentCount();
+      for (int i = 0; i < n; i++) {
+        Component component = myPopupMenu.getComponent(i);
+        if (component instanceof JComponent) {
+          ((JComponent)component).updateUI();
+        }
+      }
+    }
   }
 
   public void setMTag(MTag transitionTag, MeModel model) {
