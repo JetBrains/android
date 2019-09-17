@@ -298,7 +298,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       return null
     }
     val capitalized = StringUtils.capitalize(name)!!
-    val methodNames = arrayOf("get" + capitalized, "is$capitalized", name)
+    val methodNames = arrayOf("get$capitalized", "is$capitalized")
     for (methodName in methodNames) {
       val methods = getMethods(methodName, ArrayList(), staticOnly, allowProtected = false, unwrapObservableFields = false)
       for (method in methods) {
