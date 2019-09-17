@@ -20,6 +20,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
@@ -80,7 +81,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   enum PropertyType {AUTO_HIDE, MINIMIZED, LEFT, SPLIT, DETACHED, FLOATING}
 
-  private final String myWorkBenchName;
+  private final WorkBench<T> myWorkBench;
   private final ToolWindowDefinition<T> myDefinition;
   private final PropertiesComponent myPropertiesComponent;
   private final SideModel<T> myModel;
@@ -98,9 +99,9 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
                      @NotNull ButtonDragListener<T> dragListener,
-                     @NotNull String workBenchName,
+                     @NotNull WorkBench<T> workBench,
                      @NotNull SideModel<T> model) {
-    myWorkBenchName = workBenchName;
+    myWorkBench = workBench;
     myDefinition = definition;
     myDragListener = dragListener;
     myPropertiesComponent = PropertiesComponent.getInstance();
@@ -112,7 +113,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myActionButtons = new ArrayList<>(4);
     myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
-    mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + workBenchName + ".TEXT_SEARCH_HISTORY");
+    mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + workBench.getName() + ".TEXT_SEARCH_HISTORY");
     mySearchActionButton = createActionButton(new SearchAction(), myDefinition.getButtonSize());
     setDefaultProperty(PropertyType.LEFT, definition.getSide().isLeft());
     setDefaultProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
@@ -250,7 +251,9 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   private String getPropertyName(@NotNull Layout layout, @NotNull PropertyType property) {
-    return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myWorkBenchName + "." + myDefinition.getName() + "." + property.name();
+    String context = myWorkBench.getContext();
+    return String.format("%s%s%s.%s.%s%s%s", TOOL_WINDOW_PROPERTY_PREFIX, layout.getPrefix(), myWorkBench.getName(), myDefinition.getName(),
+                         context, StringUtil.isEmpty(context) ? "" : ".", property.name());
   }
 
   public void setPropertyAndUpdate(@NotNull PropertyType property, boolean value) {
