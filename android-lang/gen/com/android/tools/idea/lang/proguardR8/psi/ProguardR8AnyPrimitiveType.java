@@ -22,18 +22,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ProguardR8Type extends PsiElement {
-
-  @Nullable
-  ProguardR8AnyPrimitiveType getAnyPrimitiveType();
-
-  @Nullable
-  ProguardR8AnyType getAnyType();
-
-  @Nullable
-  ProguardR8JavaPrimitive getJavaPrimitive();
-
-  @Nullable
-  ProguardR8QualifiedName getQualifiedName();
+public interface ProguardR8AnyPrimitiveType extends PsiElement {
 
 }

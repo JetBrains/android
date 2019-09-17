@@ -85,6 +85,30 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // ANY_PRIMITIVE_TYPE_
+  public static boolean any_primitive_type(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "any_primitive_type")) return false;
+    if (!nextTokenIs(builder, ANY_PRIMITIVE_TYPE_)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, ANY_PRIMITIVE_TYPE_);
+    exit_section_(builder, marker, ANY_PRIMITIVE_TYPE, result);
+    return result;
+  }
+
+  /* ********************************************************** */
+  // ANY_TYPE_
+  public static boolean any_type(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "any_type")) return false;
+    if (!nextTokenIs(builder, ANY_TYPE_)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, ANY_TYPE_);
+    exit_section_(builder, marker, ANY_TYPE, result);
+    return result;
+  }
+
+  /* ********************************************************** */
   // class_name type_list_
   static boolean class_description(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_description")) return false;
@@ -981,13 +1005,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ANY_TYPE|ANY_PRIMITIVE_TYPE|((qualifiedName|java_primitive) "[]"?)
+  // any_type|any_primitive_type|((qualifiedName|java_primitive) "[]"?)
   public static boolean type(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "type")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, TYPE, "<type>");
-    result = consumeToken(builder, ANY_TYPE);
-    if (!result) result = consumeToken(builder, ANY_PRIMITIVE_TYPE);
+    result = any_type(builder, level + 1);
+    if (!result) result = any_primitive_type(builder, level + 1);
     if (!result) result = type_2(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
     return result;
