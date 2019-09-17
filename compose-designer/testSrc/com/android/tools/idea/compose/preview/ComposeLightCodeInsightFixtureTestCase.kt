@@ -27,7 +27,7 @@ open class ComposeLightJavaCodeInsightFixtureTestCase : LightJavaCodeInsightFixt
 
     @Language("kotlin")
     val previewAnnotation = myFixture.addFileToProject("src/com/android/tools/preview/Preview.kt", """
-      package com.android.tools.preview
+      package androidx.ui.tooling.preview
 
       data class Configuration(private val apiLevel: Int? = null,
                                private val theme: String? = null,
@@ -38,8 +38,8 @@ open class ComposeLightJavaCodeInsightFixtureTestCase : LightJavaCodeInsightFixt
       annotation class Preview(val name: String = "",
                                val apiLevel: Int = -1,
                                val theme: String = "",
-                               val width: Int = -1,
-                               val height: Int = -1,
+                               val widthDp: Int = -1,
+                               val heightDp: Int = -1,
                                val fontScale: Float = 1f)
 
       fun Preview(name: String? = null,
