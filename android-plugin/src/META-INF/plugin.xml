@@ -7,7 +7,7 @@
     ]]>
   </description>
   <version>10.3.4</version>
-  <vendor>JetBrains &amp; Google</vendor>
+  <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.modules.java</depends>
 
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
