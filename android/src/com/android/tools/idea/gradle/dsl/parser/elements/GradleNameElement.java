@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -66,13 +67,13 @@ public class GradleNameElement {
    * Requires read access.
    */
   @NotNull
-  public static GradleNameElement from(@NotNull PsiElement element) {
-    return new GradleNameElement(element);
+  public static GradleNameElement from(@NotNull PsiElement element, GradleDslNameConverter converter) {
+    return new GradleNameElement(element, converter);
   }
 
   @NotNull
   public static GradleNameElement empty() {
-    return new GradleNameElement((PsiElement)null);
+    return new GradleNameElement(null, null);
   }
 
   @NotNull
@@ -91,8 +92,8 @@ public class GradleNameElement {
   /**
    * Requires read access.
    */
-  private GradleNameElement(@Nullable PsiElement element) {
-    setUpFrom(element);
+  private GradleNameElement(@Nullable PsiElement element, GradleDslNameConverter converter) {
+    setUpFrom(element, converter);
   }
 
   private GradleNameElement(@NotNull String name, boolean isFake) {
@@ -113,8 +114,8 @@ public class GradleNameElement {
    * Changes this element to be backed by the given PsiElement. This method should not be called outside of
    * GradleWriter subclasses.
    */
-  public void commitNameChange(@Nullable PsiElement nameElement) {
-    setUpFrom(nameElement);
+  public void commitNameChange(@Nullable PsiElement nameElement, GradleDslNameConverter converter) {
+    setUpFrom(nameElement, converter);
   }
 
   @NotNull
@@ -252,13 +253,13 @@ public class GradleNameElement {
   /**
    * READ ACCESS REQUIRED.
    */
-  private void setUpFrom(@Nullable PsiElement element) {
+  private void setUpFrom(@Nullable PsiElement element, GradleDslNameConverter converter) {
     myNameElement = element;
     if (myNameElement instanceof PsiNamedElement) {
       myLocalName = ((PsiNamedElement)myNameElement).getName();
     }
     else if (myNameElement != null) {
-      myLocalName = myNameElement.getText();
+      myLocalName = converter.psiToName(myNameElement);
     }
     myName = null;
   }

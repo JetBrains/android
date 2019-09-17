@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
  * own implementation of both {@link GradleDslParser} and {@link GradleDslWriter}.
  *
  */
-public interface GradleDslWriter {
+public interface GradleDslWriter extends GradleDslNameConverter {
   PsiElement moveDslElement(@NotNull GradleDslElement element);
 
   PsiElement createDslElement(@NotNull GradleDslElement element);

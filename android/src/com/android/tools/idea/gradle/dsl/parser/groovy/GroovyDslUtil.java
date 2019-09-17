@@ -487,13 +487,13 @@ public final class GroovyDslUtil {
     }
   }
 
-  static void applyDslLiteralOrReference(@NotNull GradleDslSettableExpression expression) {
+  static void applyDslLiteralOrReference(@NotNull GradleDslSettableExpression expression, GroovyDslWriter writer) {
     PsiElement psiElement = ensureGroovyPsi(expression.getPsiElement());
     if (psiElement == null) {
       return;
     }
 
-    maybeUpdateName(expression);
+    maybeUpdateName(expression, writer);
 
     GrExpression newLiteral = extractUnsavedExpression(expression);
     if (newLiteral == null) {
@@ -713,7 +713,7 @@ public final class GroovyDslUtil {
     return ((GrAssignmentExpression)expression).getLValue();
   }
 
-  static void maybeUpdateName(@NotNull GradleDslElement element) {
+  static void maybeUpdateName(@NotNull GradleDslElement element, GroovyDslWriter writer) {
     PsiElement oldName = element.getNameElement().getNamedPsiElement();
     String newName = element.getNameElement().getLocalName();
     PsiElement newElement;
@@ -732,7 +732,7 @@ public final class GroovyDslUtil {
       }
       newElement = oldName.replace(psiElement);
     }
-    element.getNameElement().commitNameChange(newElement);
+    element.getNameElement().commitNameChange(newElement, writer);
   }
 
   @Nullable
