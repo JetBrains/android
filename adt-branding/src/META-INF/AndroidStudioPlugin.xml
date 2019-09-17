@@ -1,9 +1,12 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <module value="com.intellij.modules.androidstudio"/>
+  <module value="com.intellij.modules.java-capable"/>
+
   <xi:include href="/META-INF/JavaIdePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/connection-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/whats-new-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <module value="com.intellij.modules.androidstudio"/>
+
   <application-components>
     <component>
       <implementation-class>com.android.tools.idea.AndroidInitialConfigurator</implementation-class>
