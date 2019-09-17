@@ -51,6 +51,7 @@ class TestNewProjectWizardState(moduleTemplate: Template) {
     put(ATTR_IS_LAUNCHER, true)
     put(ATTR_IS_NEW_MODULE, true)
     put(ATTR_THEME_EXISTS, true)
+    put(ATTR_CREATE_ACTIVITY, true)
     put(ATTR_IS_LIBRARY_MODULE, false)
     put(ATTR_TOP_OUT, WizardUtils.getProjectLocationParent().path)
     put(ATTR_MIN_API_LEVEL, defaultMinApi)
