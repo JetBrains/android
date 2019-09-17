@@ -114,7 +114,7 @@ class EnergyMonitorTest {
 
   @Test
   fun testEnergyUsage() {
-    val dataSeries = monitor.usage.usageDataSeries
+    val dataSeries = monitor.usage.totalUsageDataSeries
     assertThat(dataSeries.series.size).isEqualTo(1)
     assertThat(dataSeries.series[0].x).isEqualTo(2)
     assertThat(dataSeries.series[0].value).isEqualTo(50)

@@ -16,23 +16,32 @@
 
 package com.android.tools.adtui.chart.linechart;
 
-import com.google.common.annotations.VisibleForTesting;
+import static java.awt.BasicStroke.CAP_SQUARE;
+import static java.awt.BasicStroke.JOIN_MITER;
+
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import com.google.common.annotations.VisibleForTesting;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import static java.awt.BasicStroke.CAP_SQUARE;
-import static java.awt.BasicStroke.JOIN_MITER;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class LineChart extends AnimatedComponent {
 
@@ -187,7 +196,8 @@ public class LineChart extends AnimatedComponent {
       List<SeriesData<Long>> seriesList = ranged.getSeries();
       if (config.isStacked()) {
         if (lastStackedSeries == null) {
-          lastStackedSeries = new ArrayList<>(seriesList);
+          // Create a new list of SeriesData to prevent modifying the backing data series, which could be cached.
+          lastStackedSeries = seriesList.stream().map(data -> new SeriesData<>(data.x, data.value)).collect(Collectors.toList());
         }
         else {
           // If the current series is stacked, increment its value by the value of the last stacked
@@ -263,7 +273,8 @@ public class LineChart extends AnimatedComponent {
           }
           // Set our new X position and carry on.
           xd = newPosition;
-        } else if (xd > 1) {
+        }
+        else if (xd > 1) {
           double xdPrev = (dataPrev.x - xMin) / xLength;
           if (xdPrev > 1) {
             break;
@@ -283,7 +294,8 @@ public class LineChart extends AnimatedComponent {
           // x value, i.e. (xd + interval, 1), move the path start point to (xd, 1).
           // Otherwise, move the path start point to (xd, yd).
           path.moveTo(xd, xBucketInterval != 0 ? 1 : yd);
-        } else if (xBucketInterval == 0) {
+        }
+        else if (xBucketInterval == 0) {
           // If the chart is stepped, a horizontal line should be drawn from the current
           // point (e.g. (x0, y0)) to the destination's X value (e.g. (x1, y0)) before
           // drawing a line to the destination point itself (e.g. (x1, y1)).

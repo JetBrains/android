@@ -14,8 +14,6 @@
 package com.android.tools.profilers.energy;
 
 import com.android.tools.adtui.model.DataSeries;
-import com.android.tools.adtui.model.LineChartModel;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Energy;
@@ -23,15 +21,14 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import org.jetbrains.annotations.NotNull;
 
-public class DetailedEnergyUsage extends LineChartModel {
+public class DetailedEnergyUsage extends EnergyUsage {
 
   @NotNull private final RangedContinuousSeries myCpuUsageSeries;
   @NotNull private final RangedContinuousSeries myNetworkUsageSeries;
   @NotNull private final RangedContinuousSeries myLocationUsageSeries;
-  @NotNull private final Range myUsageRange;
 
   public DetailedEnergyUsage(@NotNull StudioProfilers profilers) {
-    myUsageRange = new Range(0, EnergyMonitor.MAX_EXPECTED_USAGE);
+    super(profilers);
 
     DataSeries<Long> locationDataSeries;
     DataSeries<Long> networkDataSeries;
@@ -71,17 +68,13 @@ public class DetailedEnergyUsage extends LineChartModel {
     }
 
     myLocationUsageSeries =
-      new RangedContinuousSeries("Location", profilers.getTimeline().getViewRange(), myUsageRange, locationDataSeries);
+      new RangedContinuousSeries("Location", profilers.getTimeline().getViewRange(), getUsageRange(), locationDataSeries);
     add(myLocationUsageSeries);
-    myNetworkUsageSeries = new RangedContinuousSeries("Network", profilers.getTimeline().getViewRange(), myUsageRange, networkDataSeries);
+    myNetworkUsageSeries =
+      new RangedContinuousSeries("Network", profilers.getTimeline().getViewRange(), getUsageRange(), networkDataSeries);
     add(myNetworkUsageSeries);
-    myCpuUsageSeries = new RangedContinuousSeries("CPU", profilers.getTimeline().getViewRange(), myUsageRange, cpuDataSeries);
+    myCpuUsageSeries = new RangedContinuousSeries("CPU", profilers.getTimeline().getViewRange(), getUsageRange(), cpuDataSeries);
     add(myCpuUsageSeries);
-  }
-
-  @NotNull
-  public Range getUsageRange() {
-    return myUsageRange;
   }
 
   @NotNull
