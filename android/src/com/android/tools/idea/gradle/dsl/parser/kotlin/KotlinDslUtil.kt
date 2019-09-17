@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtLambdaArgument
@@ -181,9 +182,9 @@ internal fun createLiteral(context : GradleDslElement, value : Any) : PsiElement
 }
 
 // Check if this is a block with a methodCall as name, and get the name... e.g. getByName("release") -> "release"
-// Note: does not check whether this is a valid place for such a thing; this is purely syntax
 internal fun methodCallBlockName(expression: KtCallExpression): String? {
-  // TODO(xof): should we check the name of the method call against a whitelist? (create, getByName, ...)
+  val callName = expression.name()
+  if (!isValidBlockName(callName)) return null
   val arguments = expression.valueArgumentList?.arguments ?: return null
   if (arguments.size != 1) return null
   // TODO(xof): we should handle injections / resolving here:
@@ -199,7 +200,12 @@ internal fun methodCallBlockName(expression: KtCallExpression): String? {
   }
 }
 
-internal fun gradleNameFor(expression: KtExpression): String? {
+// TODO(xof): I would have liked to mark this with @VisibleForTesting, but the visibility that it would otherwise need
+//  would be internal, and we have a lint rule that assumes by default that the visibility should otherwise be private.
+//  the lint rule error message references an otherwise parameter, but that I think refers to the
+//  android.support.annotation.VisibleForTesting annotation, which we don't have, rather than the
+//  com.google.common.annotations.VisibleForTesting annotation which supports no parameters.
+fun gradleNameFor(expression: KtExpression): String? {
   val sb = StringBuilder()
   var lastExtra = false
   var allValid = true
@@ -248,6 +254,10 @@ internal fun gradleNameFor(expression: KtExpression): String? {
         }
         else -> super.visitReferenceExpression(expression)
       }
+    }
+
+    override fun visitKtElement(element: KtElement) {
+      allValid = false
     }
   }, null)
 
