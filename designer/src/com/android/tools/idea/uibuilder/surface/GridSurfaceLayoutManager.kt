@@ -79,13 +79,13 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
       var currentHeight = 0
       for (view in row) {
         rowX += view.sizeFunc().width + horizontalViewDelta
-        currentHeight = max(currentHeight, rowY + verticalViewDelta + view.sizeFunc().height)
+        currentHeight = max(currentHeight, rowY + verticalViewDelta + view.sizeFunc().height + view.nameLabelHeight)
       }
       requiredWidth = max(requiredWidth, rowX)
       requiredHeight = currentHeight
     }
 
-    dim.setSize(requiredWidth, requiredHeight)
+    dim.setSize(requiredWidth, max(0, requiredHeight - verticalViewDelta))
     return dim
   }
 
