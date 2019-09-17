@@ -44,8 +44,8 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
 
     @Language("kotlin")
     val previewFile = myFixture.addFileToProject("src/Preview.kt", """
-      import com.android.tools.preview.Preview
-      import com.android.tools.preview.Configuration
+      import androidx.ui.tooling.preview.Preview
+      import androidx.ui.tooling.preview.Configuration
       import androidx.compose.Composable
 
       @Preview
@@ -67,7 +67,7 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
 
     @Language("kotlin")
     val previewFile = myFixture.addFileToProject("src/Preview.kt", """
-      import com.android.tools.preview.Preview
+      import androidx.ui.tooling.preview.Preview
       import androidx.compose.Composable
 
       @Preview
@@ -94,7 +94,7 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
 
     @Language("java")
     val previewFile = myFixture.addFileToProject("src/KOnly.java", """
-      import com.android.tools.preview.Preview;
+      import androidx.ui.tooling.preview.Preview;
       import androidx.compose.Composable;
 
       public class KOnly {
@@ -102,6 +102,31 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
         @Composable
         public void PreviewTest() {
         }
+      }
+    """.trimIndent())
+
+    assertFalse(provider.accept(previewFile))
+  }
+
+  /**
+   * Check that the projectContainsOldPackageImportsHandler is called when the project contains files using the old import
+   * `com.android.tools.preview.Preview` instead of the new `androidx.ui.tooling.preview.Preview`.
+   */
+  fun testOldPackageImportsCalled() {
+    var handlerCalled = 0
+    val provider = ComposeFileEditorProvider(projectContainsOldPackageImportsHandler = { _ ->
+      handlerCalled
+    })
+
+    @Language("kotlin")
+    val previewFile = myFixture.addFileToProject("src/Preview.kt", """
+      import com.android.tools.preview.Preview
+      import androidx.compose.Composable
+
+      @Preview
+      @Composable
+      fun PreviewTest() {
+
       }
     """.trimIndent())
 

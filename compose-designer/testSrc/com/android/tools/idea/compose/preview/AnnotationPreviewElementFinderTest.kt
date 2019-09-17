@@ -39,7 +39,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTes
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
-      import com.android.tools.preview.Preview
+      import androidx.ui.tooling.preview.Preview
       import androidx.compose.Composable
 
       @Composable
@@ -53,7 +53,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTes
       }
 
       @Composable
-      @Preview(name = "preview3", width = 1, height = 2, fontScale = 0.2f)
+      @Preview(name = "preview3", widthDp = 1, heightDp = 2, fontScale = 0.2f)
       fun Preview3() {
       }
 
@@ -96,7 +96,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTes
       assertEquals(0.2f, it.configuration.fontScale)
 
       assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
-      assertEquals("@Preview(name = \"preview3\", width = 1, height = 2, fontScale = 0.2f)", it.previewElementDefinitionPsi?.element?.text)
+      assertEquals("@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f)", it.previewElementDefinitionPsi?.element?.text)
     }
 
     elements[0].let {
@@ -117,7 +117,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTes
   fun testNoDuplicatePreviewElements() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
-      import com.android.tools.preview.Preview
+      import androidx.ui.tooling.preview.Preview
       import androidx.compose.Composable
 
       @Composable
@@ -145,8 +145,8 @@ class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTes
       annotation class Preview(val name: String = "",
                                val apiLevel: Int = -1,
                                val theme: String = "",
-                               val width: Int = -1,
-                               val height: Int = -1)
+                               val widthDp: Int = -1,
+                               val heightDp: Int = -1)
     """.trimIndent())
 
     @Language("kotlin")

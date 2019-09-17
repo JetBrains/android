@@ -41,7 +41,7 @@ class PreviewEntryPointTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val fileContent = """
-      import com.android.tools.preview.Preview
+      import androidx.ui.tooling.preview.Preview
       import androidx.compose.Composable
 
       @Composable

@@ -72,6 +72,7 @@ import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
@@ -79,6 +80,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtImportDirective
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -89,7 +91,7 @@ import javax.swing.JPanel
 const val PREVIEW_NAME = "Preview"
 
 /** Package containing the preview definitions */
-const val PREVIEW_PACKAGE = "com.android.tools.preview"
+const val PREVIEW_PACKAGE = "androidx.ui.tooling.preview"
 
 /** Only composables with this annotation will be rendered to the surface */
 const val PREVIEW_ANNOTATION_FQN = "$PREVIEW_PACKAGE.$PREVIEW_NAME"
@@ -110,6 +112,9 @@ private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllI
                                                                             JBColor(0x59A869, 0x499C54))
 private val RED_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                           JBColor(0xDB5860, 0xC75450))
+
+/** Old FQN to lookup and throw a warning. This import should not be used anymore after migrating to using ui-tooling */
+const val OLD_PREVIEW_ANNOTATION_FQN = "com.android.tools.preview.Preview"
 
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
@@ -611,8 +616,12 @@ fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = (this as? Co
 
 /**
  * Provider for Compose Preview editors.
+ *
+ * @param projectContainsOldPackageImportsHandler Handler method called when the provider finds imports of the old preview packages. This is
+ *  a temporary mechanism until all our internal users have migrated out of the old name.
  */
-class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
+class ComposeFileEditorProvider(
+  private val projectContainsOldPackageImportsHandler: (Project) -> Unit = ::defaultOldPackageNotificationsHandler) : FileEditorProvider, DumbAware {
   private val LOG = Logger.getInstance(ComposeFileEditorProvider::class.java)
   private val previewElementProvider = AnnotationPreviewElementFinder
 
@@ -643,6 +652,15 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
     val hasPreviewMethods = previewElementProvider.hasPreviewMethods(project, file)
     if (LOG.isDebugEnabled) {
       LOG.debug("${file.path} hasPreviewMethods=${hasPreviewMethods}")
+    }
+
+    if (!hasPreviewMethods) {
+      val hasOldImports = PsiTreeUtil.findChildrenOfType(PsiManager.getInstance(project).findFile(file), KtImportDirective::class.java)
+        .any { OLD_PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() }
+
+      if (hasOldImports) {
+        projectContainsOldPackageImportsHandler(project)
+      }
     }
 
     return hasPreviewMethods
