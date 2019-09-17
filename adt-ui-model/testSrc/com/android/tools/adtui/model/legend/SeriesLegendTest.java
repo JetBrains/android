@@ -30,21 +30,21 @@ public class SeriesLegendTest {
 
   @Test
   public void legendNameIsProperlyGot() {
-    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), new LongDataSeries());
+    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), new DefaultDataSeries<>());
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(0, 100));
     assertEquals("test", legend.getName());
   }
 
   @Test
   public void legendValueIsNaGivenNoData() {
-    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), new LongDataSeries());
+    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), new DefaultDataSeries<>());
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(0, 100));
     assertEquals(SeriesLegend.UNAVAILABLE_MESSAGE, legend.getValue());
   }
 
   @Test
   public void legendValueIsNaGivenFailedPredicate() {
-    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), new LongDataSeries());
+    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), new DefaultDataSeries<>());
     SeriesLegend legend = new SeriesLegend(series,
                                            new MockAxisFormatter(1, 1, 1),
                                            new Range(0, 100),
