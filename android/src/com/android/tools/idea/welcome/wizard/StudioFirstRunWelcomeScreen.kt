@@ -19,9 +19,7 @@ import com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.Installa
 import org.jetbrains.android.util.AndroidBundle.message
 
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
@@ -68,8 +66,6 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       else {
         addStep(InstallationTypeWizardStep(model))
       }
-      // FIXME(qumeric): do it only if custom
-
       // FIXME override fun isStepVisible(): Boolean = java.lang.Boolean.TRUE == myState.get(FirstRunWizard.KEY_CUSTOM_INSTALL)
       addStep(JdkSetupStep())
       addStep(SelectThemeStep())
@@ -82,6 +78,9 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       }
       // TODO(qumeric): add support for MISSING_SDK case and for INSTALL_HANDOFF
       //addStep(LicenseAgreementStep())
+      //if(SystemInfo.isMac || SystemInfo.isWindows) {
+      addStep(HaxmUninstallInfoStep())
+      //}
     }.build()
 
 
