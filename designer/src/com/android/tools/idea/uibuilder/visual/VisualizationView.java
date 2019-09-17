@@ -48,6 +48,9 @@ public class VisualizationView extends ScreenView {
     if (getSurface().isShowModelNames()) {
       builder.add(new ModelNameLayer(this));
     }
+
+    // Always has border in visualization tool.
+    builder.add(new BorderLayer(this));
     builder.add(new ScreenViewLayer(this));
 
     if (NELE_RENDER_DIAGNOSTICS.get()) {
