@@ -15,21 +15,42 @@
  */
 package com.android.tools.idea.gradle.service.resolve;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.lint.checks.GradleDetector;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.psi.*;
+import com.intellij.psi.CommonClassNames;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiArrayType;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.ResolveState;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,11 +67,6 @@ import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightParameter;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightVariable;
 import org.jetbrains.plugins.groovy.lang.psi.util.GroovyPropertyUtils;
 import org.jetbrains.plugins.groovy.lang.resolve.ResolveUtilKt;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 /**
  * {@link AndroidDslContributor} provides symbol resolution for identifiers inside the android block
@@ -383,17 +399,52 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
   /** Returns the class corresponding to the android extension for given file. */
   @Nullable
   private static String resolveAndroidExtension(PsiFile file) {
+    // 1 - First attempt to find the module for the given build file.
+    Module[] modules = ModuleManager.getInstance(file.getProject()).getModules();
+    Module found = null;
+    for (Module module : modules) {
+      GradleFacet facet = GradleFacet.getInstance(module);
+      if (facet == null) {
+        continue;
+      }
+
+      GradleModuleModel gradleModuleModel = facet.getGradleModuleModel();
+      if (gradleModuleModel == null) {
+        continue;
+      }
+
+      if (Objects.equals(gradleModuleModel.getBuildFile(), file.getVirtualFile())) {
+        found = module;
+        break;
+      }
+    }
+
+    // 2 - If we found it, check the type of the module
+    if (found != null) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(found);
+      if (androidModuleModel != null) {
+        if (androidModuleModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
+          return ANDROID_FQCN;
+        }
+        else if (androidModuleModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_LIBRARY) {
+          return ANDROID_LIB_FQCN;
+        }
+      }
+    }
+
+    // 3 - Otherwise fall back to simply searching for the string.
     assert file instanceof GroovyFile;
-    List<String> plugins = GradleBuildFile.getPlugins((GroovyFile)file);
-    if (plugins.contains(GradleDetector.APP_PLUGIN_ID) || plugins.contains(GradleDetector.OLD_APP_PLUGIN_ID)) {
+
+    String fileContents = file.getText();
+    if (fileContents.contains(GradleDetector.APP_PLUGIN_ID) || fileContents.contains(GradleDetector.OLD_APP_PLUGIN_ID)) {
       return ANDROID_FQCN;
     }
-    else if (plugins.contains(GradleDetector.LIB_PLUGIN_ID) || plugins.contains(GradleDetector.OLD_LIB_PLUGIN_ID)) {
+    else if (fileContents.contains(GradleDetector.LIB_PLUGIN_ID) || fileContents.contains(GradleDetector.OLD_LIB_PLUGIN_ID)) {
       return ANDROID_LIB_FQCN;
     }
-    else {
-      return null;
-    }
+
+    // Nothing was found.
+    return null;
   }
 
   /**
