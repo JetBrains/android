@@ -31,6 +31,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 
 import java.io.File
+import kotlin.math.min
 
 const val HAXM_DOCUMENTATION_URL = "https://software.intel.com/android/articles/intel-hardware-accelerated-execution-manager"
 const val HAXM_WINDOWS_INSTALL_URL = "https://software.intel.com/android/articles/installation-instructions-for-intel-hardware-accelerated-execution-manager-windows"
@@ -70,10 +71,20 @@ fun getRecommendedHaxmMemory(memorySize: Long): Int {
     memorySize > 16 * gb -> 4 * gb
     memorySize > 4 * gb -> 2 * gb
     memorySize > 2 * gb -> gb
-    else -> gb / 2
+    else -> min(memorySize, gb / 2)
   }
-  return (defaultMemory / UI_UNITS.numberOfBytes).toInt()
+  return (defaultMemory / UI_UNITS.numberOfBytes).toInt().coerceAtMost(getMaxHaxmMemory(memorySize))
 }
+
+/**
+ * Returns maximum memory allocation given the computer RAM size.
+ */
+fun getMaxHaxmMemory(memorySize: Long): Int {
+  val gb = Storage.Unit.GiB.numberOfBytes
+  val maxMemory = (memorySize - 2 * gb).coerceAtLeast(memorySize / 2)
+  return (maxMemory / UI_UNITS.numberOfBytes).toInt()
+}
+
 
 /**
  * Returns initial SDK location. That will be the SDK location from the installer handoff file in the handoff case,

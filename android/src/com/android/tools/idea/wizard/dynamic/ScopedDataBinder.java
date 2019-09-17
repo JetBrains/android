@@ -113,7 +113,9 @@ import org.jetbrains.annotations.Nullable;
  * }
  * </pre>
  * Value derivation cannot be cyclical. Each key may only be touched once per update cycle.
+ * @deprecated use {@link com.android.tools.idea.observable.BindingsManager} instead
  */
+@Deprecated
 public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, FocusListener, ChangeListener, ActionListener,
                                          DocumentListener, ItemListener {
   // State store

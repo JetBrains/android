@@ -40,7 +40,6 @@ import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JPanel
 
-
 // TODO(qumiric): Should it be proper model instead of Data?
 data class InstallSummaryModel(
   // TODO(qumeric): Change to enum (already exists)
@@ -85,24 +84,31 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
         addStep(InstallationTypeWizardStep(model))
       }
       // FIXME override fun isStepVisible(): Boolean = java.lang.Boolean.TRUE == myState.get(FirstRunWizard.KEY_CUSTOM_INSTALL)
-      addStep(JdkSetupStep())
+      //addStep(JdkSetupStep())
+      // if (!SystemInfo.isLinux && customInstall && installHaxm
+      addStep(HaxmInstallSettingsStep())
+      if (mode == FirstRunWizardMode.MISSING_SDK) {
+        addStep(MissingSdkAlertStep())
+      }
       addStep(SelectThemeStep())
-      // if (mode == FirstRunWizardMode.MISSING_SDK) {
-      addStep(MissingSdkAlertStep())
       // TODO(qumeric): addStep(SdkComponentsStep())
       // TODO(qumeric): addStep(InstallSummaryStep())
-      if (isLinux && !isChromeOSAndIsNotHWAccelerated()) { // && mode == FirstRunWizardMode.NEW_INSTALL
-        addStep(LinuxHaxmInfoStep()) // FIXME(qumeric): only if needed
+
+      if (isLinux && !isChromeOSAndIsNotHWAccelerated() && mode == FirstRunWizardMode.NEW_INSTALL) {
+        addStep(LinuxHaxmInfoStep())
       }
       // if (mode != INSTALL_HANDOFF) {
       addStep(InstallSummaryStep(installSummaryData, Supplier { listOf<RemotePackage>() }))
       // TODO(qumeric): add support for MISSING_SDK case and for INSTALL_HANDOFF
-      //addStep(LicenseAgreementStep())
-      //if(SystemInfo.isMac || SystemInfo.isWindows) {
-      addStep(HaxmUninstallInfoStep())
+       //if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
+       //  addStep(LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), listOf()))
+       //}
+      //if (!SystemInfo.isLinux && myKeyCustomInstall && myKeyInstallHaxm) {
+      addStep(HaxmInstallSettingsStep())
       //}
-      // if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      //addStep(LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), listOf()))
+      //if(SystemInfo.isMac || SystemInfo.isWindows) {
+        addStep(HaxmUninstallInfoStep())
+      //}
     }.build()
 
 
