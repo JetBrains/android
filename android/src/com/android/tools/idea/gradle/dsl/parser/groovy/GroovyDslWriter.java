@@ -227,7 +227,7 @@ public class GroovyDslWriter implements GradleDslWriter {
 
   @Override
   public void applyDslLiteral(@NotNull GradleDslLiteral literal) {
-    applyDslLiteralOrReference(literal);
+    applyDslLiteralOrReference(literal, this);
   }
 
   @Override
@@ -299,7 +299,7 @@ public class GroovyDslWriter implements GradleDslWriter {
 
   @Override
   public void applyDslMethodCall(@NotNull GradleDslMethodCall element) {
-    maybeUpdateName(element);
+    maybeUpdateName(element, this);
     element.getArgumentsElement().applyChanges();
     if (element.getUnsavedClosure() != null) {
       createAndAddClosure(element.getUnsavedClosure(), element);
@@ -369,7 +369,7 @@ public class GroovyDslWriter implements GradleDslWriter {
 
   @Override
   public void applyDslExpressionList(@NotNull GradleDslExpressionList expressionList) {
-    maybeUpdateName(expressionList);
+    maybeUpdateName(expressionList, this);
   }
 
   @Override
@@ -427,12 +427,12 @@ public class GroovyDslWriter implements GradleDslWriter {
 
   @Override
   public void applyDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap) {
-    maybeUpdateName(expressionMap);
+    maybeUpdateName(expressionMap, this);
   }
 
   @Override
   public void applyDslPropertiesElement(@NotNull GradlePropertiesDslElement element) {
-    maybeUpdateName(element);
+    maybeUpdateName(element, this);
   }
 
   private PsiElement createDslLiteralOrReference(@NotNull GradleDslSettableExpression expression) {

@@ -82,7 +82,7 @@ import java.util.Locale
 /**
  * Parser for .gradle.kt files. This method produces a [GradleDslElement] tree.
  */
-class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisitor<Unit, GradlePropertiesDslElement>(), GradleDslParser {
+class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisitor<Unit, GradlePropertiesDslElement>(), KotlinDslNameConverter, GradleDslParser {
 
   //
   // Methods for GradleDslParser
@@ -104,11 +104,6 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       dslFile.context.getNotificationForType(dslFile, INVALID_EXPRESSION).addError(e)
       null
     }
-  }
-
-  override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
-    val referencePsi = KtPsiFactory(context.dslFile.project).createExpression(referenceText)
-    return gradleNameFor(referencePsi) ?: referenceText
   }
 
   override fun setUpForNewValue(context: GradleDslLiteral, newValue: PsiElement?) {
@@ -266,7 +261,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
       val referenceExpression = expression.referenceExpression()
       val name =
-        if (referenceExpression != null) GradleNameElement.from(referenceExpression) else GradleNameElement.create(referenceName)
+        if (referenceExpression != null) GradleNameElement.from(referenceExpression, this) else GradleNameElement.create(referenceName)
       if (argumentsList != null) {
         val callExpression =
           getCallExpression(parent, expression, name, argumentsList, referenceName, true) ?: return
@@ -326,8 +321,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     val left = expression.left ?: return
     val right = expression.right ?: return
 
-    val nameString = gradleNameFor(left) ?: return
-    name = GradleNameElement.create(nameString)
+    name = GradleNameElement.from(left, this)
     if (name.isEmpty) return
     if (name.isQualified) {
       val nestedElement = getBlockElement(name.qualifyingParts(), parent, null) ?: return
@@ -350,7 +344,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
       // if we've got this far, we have a variable declaration/initialization of the form "val foo = bar"
 
-      val name = GradleNameElement.from(identifier)
+      val name = GradleNameElement.from(identifier, this)
       val propertyElement = createExpressionElement(parent, expression, name, initializer, true) ?: return
       propertyElement.elementType = VARIABLE
       parent.setParsedElement(propertyElement)
@@ -372,7 +366,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // If we've got this far, we have an extra property declaration/initialization of the form "val foo by extra(bar)".
 
       val ext = getBlockElement(listOf("ext"), parent, null) ?: return
-      val name = GradleNameElement.from(identifier) // TODO(xof): error checking: empty/qualified/etc
+      val name = GradleNameElement.from(identifier, this) // TODO(xof): error checking: empty/qualified/etc
       val propertyElement = createExpressionElement(ext, expression, name, initializer, true) ?: return
       // This Property is assigning a value to a property, so we need to set the UseAssignment to true.
       propertyElement.setUseAssignment(true)
@@ -482,7 +476,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
                     expression.left != null && expression.right != null
     }.mapNotNull {
       expression -> createExpressionElement(
-      expressionMap, mapPsiElement, GradleNameElement.from((expression as KtBinaryExpression).left!!), expression.right!!)
+      expressionMap, mapPsiElement, GradleNameElement.from((expression as KtBinaryExpression).left!!, this), expression.right!!)
     }.forEach(expressionMap::addParsedElement)
 
     return expressionMap

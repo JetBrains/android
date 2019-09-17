@@ -283,7 +283,7 @@ public class GroovyDslParser implements GradleDslParser {
   }
 
   private boolean parse(@NotNull GrReferenceExpression element, @NotNull GradlePropertiesDslElement dslElement) {
-    GradleNameElement name = GradleNameElement.from(element);
+    GradleNameElement name = GradleNameElement.from(element, this);
 
     if (name.isQualified()) {
       GradlePropertiesDslElement nestedElement = getBlockElement(name.qualifyingParts(), dslElement, null);
@@ -315,7 +315,7 @@ public class GroovyDslParser implements GradleDslParser {
       return parse((GrMethodCallExpression)referenceExpression.getChildren()[0], dslElement);
     }
 
-    GradleNameElement name = GradleNameElement.from(referenceExpression);
+    GradleNameElement name = GradleNameElement.from(referenceExpression, this);
     if (name.isEmpty()) {
       return false;
     }
@@ -416,7 +416,7 @@ public class GroovyDslParser implements GradleDslParser {
       return false;
     }
 
-    GradleNameElement name = GradleNameElement.from(referenceExpression);
+    GradleNameElement name = GradleNameElement.from(referenceExpression, this);
     if (name.isEmpty()) {
       return false;
     }
@@ -514,7 +514,7 @@ public class GroovyDslParser implements GradleDslParser {
         return false;
       }
 
-      GradleNameElement name = GradleNameElement.from(variable);
+      GradleNameElement name = GradleNameElement.from(variable, this);
       GradleDslElement variableElement =
         createExpressionElement(blockElement, declaration, name, init);
 
@@ -531,7 +531,7 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     GrExpression left = assignment.getLValue();
-    GradleNameElement name = GradleNameElement.from(left);
+    GradleNameElement name = GradleNameElement.from(left, this);
     if (name.isEmpty()) {
       return false;
     }
@@ -663,7 +663,7 @@ public class GroovyDslParser implements GradleDslParser {
       if (nameLabel == null) {
         continue;
       }
-      GradleNameElement argName = GradleNameElement.from(nameLabel.getNameElement());
+      GradleNameElement argName = GradleNameElement.from(nameLabel.getNameElement(), this);
       if (argName.isEmpty()) {
         continue;
       }

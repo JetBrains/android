@@ -81,7 +81,7 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
       }
       GradleDslSimpleExpression value = elements.get(1);
       // Set the name element of the value to be the previous element.
-      value.getNameElement().commitNameChange(elements.get(0).getPsiElement());
+      value.getNameElement().commitNameChange(elements.get(0).getPsiElement(), this.getDslFile().getWriter());
 
       GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
         getPropertyElement("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);

@@ -47,7 +47,7 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.plugins.groovy.lang.psi.impl.PsiImplUtil.isWhiteSpaceOrNls
 
-class KotlinDslWriter : GradleDslWriter {
+class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
   override fun moveDslElement(element: GradleDslElement): PsiElement? {
     val anchorAfter = element.anchor ?: return null
     val parentPsiElement = getParentPsi(element) ?: return null
@@ -285,7 +285,7 @@ class KotlinDslWriter : GradleDslWriter {
 
   override fun applyDslLiteral(literal: GradleDslLiteral) {
     val psiElement = literal.psiElement ?: return
-    maybeUpdateName(literal)
+    maybeUpdateName(literal, this)
 
     val newLiteral = literal.unsavedValue ?: return
     val psiExpression = literal.expression
@@ -413,7 +413,7 @@ class KotlinDslWriter : GradleDslWriter {
   }
 
   override fun applyDslMethodCall(methodCall: GradleDslMethodCall) {
-    maybeUpdateName(methodCall)
+    maybeUpdateName(methodCall, this)
     methodCall.argumentsElement.applyChanges()
     val unsavedClosure = methodCall.unsavedClosure
     if (unsavedClosure != null) {
@@ -474,7 +474,7 @@ class KotlinDslWriter : GradleDslWriter {
   }
 
   override fun applyDslExpressionList(expressionList: GradleDslExpressionList) {
-    maybeUpdateName(expressionList)
+    maybeUpdateName(expressionList, this)
   }
 
   override fun createDslExpressionMap(expressionMap: GradleDslExpressionMap): PsiElement? {
@@ -498,10 +498,10 @@ class KotlinDslWriter : GradleDslWriter {
   }
 
   override fun applyDslExpressionMap(expressionMap: GradleDslExpressionMap) {
-    maybeUpdateName(expressionMap)
+    maybeUpdateName(expressionMap, this)
   }
 
   override fun applyDslPropertiesElement(element: GradlePropertiesDslElement) {
-    maybeUpdateName(element)
+    maybeUpdateName(element, this)
   }
 }

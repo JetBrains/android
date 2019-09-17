@@ -531,7 +531,7 @@ internal fun getKtBlockExpression(psiElement: PsiElement) : KtBlockExpression? {
   return (psiElement as? KtCallExpression)?.lambdaArguments?.lastOrNull()?.getLambdaExpression()?.bodyExpression
 }
 
-internal fun maybeUpdateName(element : GradleDslElement) {
+internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter) {
   val oldName = element.nameElement.namedPsiElement
   val newName = element.nameElement.localName
   if (newName == null || oldName == null) return
@@ -551,7 +551,7 @@ internal fun maybeUpdateName(element : GradleDslElement) {
     // For Kotlin, committing changes is a bit different, and if the psiElement is invalid, it throws an exception (unlike Groovy), so we
     // need to check if the oldName is still valid, otherwise, we use the psiElement created to update the name.
     if (!oldName.isValid) {
-      element.nameElement.commitNameChange(psiElement)
+      element.nameElement.commitNameChange(psiElement, writer)
       return
     }
     else {
@@ -559,7 +559,7 @@ internal fun maybeUpdateName(element : GradleDslElement) {
     }
   }
 
-  element.nameElement.commitNameChange(newElement)
+  element.nameElement.commitNameChange(newElement, writer)
 }
 
 internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDslElement) {
