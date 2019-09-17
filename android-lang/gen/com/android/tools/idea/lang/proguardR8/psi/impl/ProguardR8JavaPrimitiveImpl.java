@@ -27,6 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
+import com.intellij.psi.PsiPrimitiveType;
 
 public class ProguardR8JavaPrimitiveImpl extends ASTWrapperPsiElement implements ProguardR8JavaPrimitive {
 
@@ -41,6 +42,12 @@ public class ProguardR8JavaPrimitiveImpl extends ASTWrapperPsiElement implements
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ProguardR8Visitor) accept((ProguardR8Visitor)visitor);
     else super.accept(visitor);
+  }
+
+  @Override
+  @Nullable
+  public PsiPrimitiveType getPsiPrimitive() {
+    return ProguardR8PsiImplUtil.getPsiPrimitive(this);
   }
 
 }

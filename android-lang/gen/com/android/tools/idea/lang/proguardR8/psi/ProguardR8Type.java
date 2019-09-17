@@ -21,6 +21,7 @@ package com.android.tools.idea.lang.proguardR8.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiType;
 
 public interface ProguardR8Type extends PsiElement {
 
@@ -35,5 +36,9 @@ public interface ProguardR8Type extends PsiElement {
 
   @Nullable
   ProguardR8QualifiedName getQualifiedName();
+
+  boolean matchesPsiType(@NotNull PsiType other);
+
+  boolean isArray();
 
 }
