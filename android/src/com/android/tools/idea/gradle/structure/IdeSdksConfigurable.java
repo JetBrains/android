@@ -639,7 +639,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
    */
   @Nullable
   private String validateAndroidSdkPath() {
-    Validator<File> validator = new PathValidator.Builder().withCommonRules(false).build("Android SDK location");
+    Validator<File> validator = new PathValidator.Builder().withCommonRules().build("Android SDK location");
     Validator.Result result = validator.validate(getSdkLocation());
     Validator.Severity severity = result.getSeverity();
     if (severity == ERROR) {
