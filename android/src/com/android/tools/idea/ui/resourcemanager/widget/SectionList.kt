@@ -69,7 +69,7 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
   /**
    * Gap between lists
    */
-  private val listsGap = JBUI.scale(50)
+  private val listsGap = JBUI.scale(16)
 
   /**
    * Returns the list of [Section] name
