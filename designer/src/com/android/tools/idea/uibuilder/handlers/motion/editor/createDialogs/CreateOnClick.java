@@ -45,7 +45,6 @@ public class CreateOnClick extends BaseCreatePanel {
 
   public CreateOnClick() {
     icon = MEIcons.CREATE_ON_CLICK;
-    ;
     viewIds.setEditable(true);
     GridBagConstraints gbc = new GridBagConstraints();
     int y = 0;
