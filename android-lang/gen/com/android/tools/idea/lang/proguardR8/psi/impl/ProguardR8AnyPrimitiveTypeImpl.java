@@ -28,43 +28,19 @@ import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
 
-public class ProguardR8TypeImpl extends ASTWrapperPsiElement implements ProguardR8Type {
+public class ProguardR8AnyPrimitiveTypeImpl extends ASTWrapperPsiElement implements ProguardR8AnyPrimitiveType {
 
-  public ProguardR8TypeImpl(@NotNull ASTNode node) {
+  public ProguardR8AnyPrimitiveTypeImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ProguardR8Visitor visitor) {
-    visitor.visitType(this);
+    visitor.visitAnyPrimitiveType(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof ProguardR8Visitor) accept((ProguardR8Visitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8AnyPrimitiveType getAnyPrimitiveType() {
-    return findChildByClass(ProguardR8AnyPrimitiveType.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8AnyType getAnyType() {
-    return findChildByClass(ProguardR8AnyType.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8JavaPrimitive getJavaPrimitive() {
-    return findChildByClass(ProguardR8JavaPrimitive.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8QualifiedName getQualifiedName() {
-    return findChildByClass(ProguardR8QualifiedName.class);
   }
 
 }

@@ -27,6 +27,8 @@ public interface ProguardR8PsiTypes {
 
   IElementType ANNOTATION_NAME = new ProguardR8AstNodeType("ANNOTATION_NAME");
   IElementType ANY_FIELD_OR_METHOD = new ProguardR8AstNodeType("ANY_FIELD_OR_METHOD");
+  IElementType ANY_PRIMITIVE_TYPE = new ProguardR8AstNodeType("ANY_PRIMITIVE_TYPE");
+  IElementType ANY_TYPE = new ProguardR8AstNodeType("ANY_TYPE");
   IElementType CLASS_MODIFIER = new ProguardR8AstNodeType("CLASS_MODIFIER");
   IElementType CLASS_NAME = new ProguardR8AstNodeType("CLASS_NAME");
   IElementType CLASS_SPECIFICATION_BODY = new ProguardR8AstNodeType("CLASS_SPECIFICATION_BODY");
@@ -53,8 +55,8 @@ public interface ProguardR8PsiTypes {
   IElementType ALLOWOBFUSCATION = new ProguardR8TokenType("allowobfuscation");
   IElementType ALLOWOPTIMIZATION = new ProguardR8TokenType("allowoptimization");
   IElementType ALLOWSHRINKING = new ProguardR8TokenType("allowshrinking");
-  IElementType ANY_PRIMITIVE_TYPE = new ProguardR8TokenType("%");
-  IElementType ANY_TYPE = new ProguardR8TokenType("***");
+  IElementType ANY_PRIMITIVE_TYPE_ = new ProguardR8TokenType("%");
+  IElementType ANY_TYPE_ = new ProguardR8TokenType("***");
   IElementType ANY_TYPE_AND_NUM_OF_ARGS = new ProguardR8TokenType("...");
   IElementType ARRAY = new ProguardR8TokenType("[]");
   IElementType ASTERISK = new ProguardR8TokenType("*");
@@ -120,6 +122,12 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == ANY_FIELD_OR_METHOD) {
         return new ProguardR8AnyFieldOrMethodImpl(node);
+      }
+      else if (type == ANY_PRIMITIVE_TYPE) {
+        return new ProguardR8AnyPrimitiveTypeImpl(node);
+      }
+      else if (type == ANY_TYPE) {
+        return new ProguardR8AnyTypeImpl(node);
       }
       else if (type == CLASS_MODIFIER) {
         return new ProguardR8ClassModifierImpl(node);

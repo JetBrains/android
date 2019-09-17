@@ -41,9 +41,9 @@
     DOT='.'
     ASTERISK='*'
     AT='@'
-    ANY_TYPE='***'
+    ANY_TYPE_='***'
     ANY_TYPE_AND_NUM_OF_ARGS='...'
-    ANY_PRIMITIVE_TYPE='%'
+    ANY_PRIMITIVE_TYPE_='%'
     ARRAY = '[]'
     DOLLAR = '$'
 
@@ -86,7 +86,9 @@ class_name ::= qualifiedName
 field_name ::= java_identifier_
 method_name ::= java_identifier_
 java_primitive ::= boolean|byte|char|short|int|long|float|double|void
-type ::= ANY_TYPE|ANY_PRIMITIVE_TYPE|((qualifiedName|java_primitive) "[]"?)
+any_type ::= ANY_TYPE_
+any_primitive_type ::=ANY_PRIMITIVE_TYPE_
+type ::= any_type|any_primitive_type|((qualifiedName|java_primitive) "[]"?)
 type_list ::= type ("," type)* {pin=1 recoverWhile=not_right_paren}
 
 private java ::= (java_rule SEMICOLON)* {pin(".*")=1 recoverWhile=not_close_brace}

@@ -16,7 +16,7 @@
 package com.android.tools.idea.lang.proguardR8.parser
 
 import com.android.tools.idea.lang.AndroidLexerTestCase
-import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.ANY_TYPE
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.ANY_TYPE_
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.ANY_TYPE_AND_NUM_OF_ARGS
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.ASTERISK
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.AT
@@ -283,7 +283,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       NEWLINE,
       "static" to STATIC,
       SPACE,
-      "***" to ANY_TYPE,
+      "***" to ANY_TYPE_,
       SPACE,
       "fieldName" to JAVA_IDENTIFIER,
       ";" to SEMICOLON,
