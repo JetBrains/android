@@ -113,8 +113,13 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       return
     }
 
-    // Delegate attribute type check to visitInferredFormalParameterList and visitFunctionRefExpr.
-    if (rootExpression is PsiDbLambdaExpression || rootExpression is PsiDbFunctionRefExpr) {
+    // Delegate attribute type check to visitInferredFormalParameterList.
+    if (rootExpression is PsiDbLambdaExpression) {
+      return
+    }
+
+    if ((rootExpression.reference as? PsiMethodReference)?.kind == PsiMethodReference.Kind.METHOD_REFERENCE) {
+      annotateMethodsWithUnmatchedSignatures(rootExpression)
       return
     }
 
@@ -128,6 +133,31 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       val tagName = attribute.parentOfType<XmlTag>()?.references?.firstNotNullResult { it.resolve() as? PsiClass }?.name
                     ?: "View"
       annotateError(rootExpression, SETTER_NOT_FOUND, tagName, attribute.name, dbExprType.type.canonicalText)
+    }
+  }
+
+  /**
+   * Annotates method references when their signatures are not matched with the attribute.
+   *
+   * e.g. "var.onClick" in "android:onClick=@{var.OnClick}" or "var::onClick" in "android:onClick=@{var::OnClick}".
+   */
+  private fun annotateMethodsWithUnmatchedSignatures(rootExpression: PsiElement) {
+    val attribute = rootExpression.containingFile.context?.parent as? XmlAttribute ?: return
+    val attributeMethods = attribute.references
+      .filterIsInstance<PsiParameterReference>()
+      .mapNotNull { LambdaUtil.getFunctionalInterfaceMethod(it.resolvedType.type) }
+    if (attributeMethods.isEmpty()) {
+      return
+    }
+
+    val dbMethods = rootExpression.references
+      .filterIsInstance<PsiMethodReference>()
+      .mapNotNull { it.resolve() as? PsiMethod }
+    if (dbMethods.isNotEmpty() && dbMethods.none { method -> isMethodMatchingAttribute(method, attributeMethods) }) {
+      val listenerClassName = attribute.references
+                                .filterIsInstance<PsiParameterReference>()
+                                .firstNotNullResult { it.resolvedType.type.canonicalText } ?: "Listener"
+      annotateError(rootExpression, METHOD_SIGNATURE_MISMATCH, listenerClassName, attributeMethods[0].name, attribute.name)
     }
   }
 
@@ -238,31 +268,6 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       parameters.inferredFormalParameterList.count { it.text == parameter.text } > 1
     }.forEach {
       annotateError(it, DUPLICATE_CALLBACK_ARGUMENT, it.text)
-    }
-  }
-
-  /**
-   * Annotates function reference expressions if they are not matched by the attribute.
-   */
-  override fun visitFunctionRefExpr(psiDbFunctionRefExpr: PsiDbFunctionRefExpr) {
-    super.visitFunctionRefExpr(psiDbFunctionRefExpr)
-
-    val attribute = psiDbFunctionRefExpr.containingFile.context?.parent as? XmlAttribute ?: return
-    val attributeMethods = attribute.references
-      .filterIsInstance<PsiParameterReference>()
-      .mapNotNull { LambdaUtil.getFunctionalInterfaceMethod(it.resolvedType.type) }
-    if (attributeMethods.isEmpty()) {
-      return
-    }
-
-    val dbMethods = psiDbFunctionRefExpr.references
-      .filterIsInstance<PsiMethodReference>()
-      .mapNotNull { it.resolve() as? PsiMethod }
-    if (dbMethods.isNotEmpty() && dbMethods.none { method -> isMethodMatchingAttribute(method, attributeMethods) }) {
-      val listenerClassName = attribute.references
-                                .filterIsInstance<PsiParameterReference>()
-                                .firstNotNullResult { it.resolvedType.type.canonicalText } ?: "Listener"
-      annotateError(psiDbFunctionRefExpr, METHOD_SIGNATURE_MISMATCH, listenerClassName, attributeMethods[0].name, attribute.name)
     }
   }
 
