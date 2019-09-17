@@ -27,6 +27,7 @@ import java.awt.*;
 /**
  * Base class for the first run wizard steps. Ensures consistent look and
  * feel for the pages.
+ * @deprecated use {@link com.android.tools.idea.wizard.model.ModelWizardStep}
  */
 public abstract class FirstRunWizardStep extends DynamicWizardStep {
   public static final String SETUP_WIZARD = "Setup Wizard";
