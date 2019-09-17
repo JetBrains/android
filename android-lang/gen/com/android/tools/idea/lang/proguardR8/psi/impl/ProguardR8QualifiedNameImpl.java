@@ -27,6 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiReference;
 
 public class ProguardR8QualifiedNameImpl extends ASTWrapperPsiElement implements ProguardR8QualifiedName {
@@ -48,6 +49,12 @@ public class ProguardR8QualifiedNameImpl extends ASTWrapperPsiElement implements
   @NotNull
   public PsiReference[] getReferences() {
     return ProguardR8PsiImplUtil.getReferences(this);
+  }
+
+  @Override
+  @Nullable
+  public PsiClass resolveToPsiClass() {
+    return ProguardR8PsiImplUtil.resolveToPsiClass(this);
   }
 
 }

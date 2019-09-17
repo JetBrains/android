@@ -77,7 +77,7 @@ keep_option_modifier ::= includedescriptorclasses|includecode|allowshrinking|all
 private java_identifier_ ::= JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK
 
 qualifiedName ::= java_identifier_ ("." java_identifier_)* ("$" java_identifier_)? {
-  methods=[getReferences]
+  methods=[getReferences resolveToPsiClass]
   extraRoot=true
 }
 
@@ -85,10 +85,14 @@ annotation_name ::= AT qualifiedName
 class_name ::= qualifiedName
 field_name ::= java_identifier_
 method_name ::= java_identifier_
-java_primitive ::= boolean|byte|char|short|int|long|float|double|void
+java_primitive ::= boolean|byte|char|short|int|long|float|double|void {
+  methods=[getPsiPrimitive]
+}
 any_type ::= ANY_TYPE_
 any_primitive_type ::=ANY_PRIMITIVE_TYPE_
-type ::= any_type|any_primitive_type|((qualifiedName|java_primitive) "[]"?)
+type ::= any_type|any_primitive_type|((qualifiedName|java_primitive) "[]"?) {
+  methods=[matchesPsiType isArray]
+}
 type_list ::= type ("," type)* {pin=1 recoverWhile=not_right_paren}
 
 private java ::= (java_rule SEMICOLON)* {pin(".*")=1 recoverWhile=not_close_brace}

@@ -21,11 +21,15 @@ package com.android.tools.idea.lang.proguardR8.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiReference;
 
 public interface ProguardR8QualifiedName extends PsiElement {
 
   @NotNull
   PsiReference[] getReferences();
+
+  @Nullable
+  PsiClass resolveToPsiClass();
 
 }
