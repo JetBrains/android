@@ -18,6 +18,7 @@ package com.android.tools.idea.templates
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION
+import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -42,13 +43,13 @@ class FrameworkTemplateTest : TemplateTestBase() {
     val overrides = mutableMapOf<String, Any>(
       ATTR_JAVA_VERSION to "1.7"
     )
-    val state = createNewProjectState(sdkData, defaultModuleTemplate)
+    val state = createNewProjectState(true, sdkData, defaultModuleTemplate)
 
     ensureSdkManagerAvailable()
     // TODO: Allow null activity state!
     val activity = findTemplate("activities", "BasicActivity")
     state.activityTemplateState.setTemplateLocation(activity)
-    checkApiTarget(19, 19, target.version, state, "Test17", TestTemplateWizardState(), overrides, mapOf())
+    checkApiTarget(19, 19, target!!, state, "Test17", null, overrides, ImmutableMap.of())
   }
 
   fun testTemplateFormatting() {
