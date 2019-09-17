@@ -88,6 +88,11 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
    */
   private inner class RefExprReferenceProvider : PsiReferenceProvider() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+      // Do not add similar references twice if the element is within a [PsiDbCallExpr]. e.g. "var.method" in "var.method()".
+      if (element.parent is PsiDbCallExpr) {
+        return PsiReference.EMPTY_ARRAY
+      }
+
       val refExpr = element as PsiDbRefExpr
 
       // If this expression is actually not qualified, e.g. "value" or "String", return references
@@ -175,8 +180,6 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       }
 
       // Resolve fully qualified methods / fields, e.g. "variable.value" or "variable.method"
-      // TODO (b/140592807): Search for methods with args also. The following only searches for methods with no args.
-      //  This results in attributes like 'android:onClick="@{variable.method}"' being left unresolved.
       val psiClass = psiModelClass.psiClass ?: return PsiReference.EMPTY_ARRAY
 
 
@@ -186,7 +189,8 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         PsiCallable.Type.METHOD -> {
           val methodsByName = psiClass.findMethodsByName(getterOrField.name, true)
           if (methodsByName.isNotEmpty()) {
-            return arrayOf(PsiMethodReference(refExpr, PsiModelMethod(psiModelClass, methodsByName[0])))
+            return arrayOf(
+              PsiMethodReference(refExpr, PsiModelMethod(psiModelClass, methodsByName[0]), PsiMethodReference.Kind.METHOD_CALL))
           }
         }
         PsiCallable.Type.FIELD -> {
@@ -195,6 +199,14 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
             return arrayOf(PsiFieldReference(refExpr, PsiModelField(psiModelClass, fieldsByName)))
           }
         }
+      }
+
+      // Find the reference to a listener method without parentheses. e.g. "var.onClick".
+      val methods = psiModelClass.findMethods(fieldText, staticOnly = false)
+      if (methods.isNotEmpty()) {
+        return methods.map { modelMethod ->
+          PsiMethodReference(refExpr, modelMethod, PsiMethodReference.Kind.METHOD_REFERENCE)
+        }.toTypedArray()
       }
 
       // Find the reference to an inner class.
