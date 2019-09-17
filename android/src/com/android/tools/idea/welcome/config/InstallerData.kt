@@ -21,15 +21,16 @@ import com.android.tools.idea.npw.PathValidationResult
 import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStep
 import com.google.common.base.Charsets
 import com.google.common.base.MoreObjects
-import com.google.common.collect.Maps
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.text.StringUtil
 
 import java.io.File
 import java.io.IOException
+
+private val log: Logger = logger<InstallerData>()
 
 /**
  * Wrapper around data passed from the installer.
@@ -37,24 +38,19 @@ import java.io.IOException
 class InstallerData(
   val androidSrc: File?,
   val androidDest: File?,
-  private val myCreateAvd: Boolean,
+  private val createAvd: Boolean,
   val timestamp: String?,
-  private val myVersion: String?
+  private val version: String?
 ) {
-
   val isCurrentVersion: Boolean
-    get() {
-      val buildNumber = ApplicationInfo.getInstance().build.components
-      val build = if (buildNumber.isNotEmpty()) buildNumber[buildNumber.size - 1] else 0
-      return build.toString() == myVersion
-    }
+    get() = (ApplicationInfo.getInstance().build.components.lastOrNull() ?: 0).toString() == version
 
-  fun shouldCreateAvd(): Boolean = myCreateAvd
+  fun shouldCreateAvd(): Boolean = createAvd
 
   override fun toString(): String = MoreObjects.toStringHelper(this)
     .add(PROPERTY_SDK_REPO, androidSrc)
     .add(PROPERTY_SDK, androidDest)
-    .add(PROPERTY_AVD, myCreateAvd)
+    .add(PROPERTY_AVD, createAvd)
     .add(PROPERTY_TIMESTAMP, timestamp)
     .toString()
 
@@ -65,6 +61,7 @@ class InstallerData(
     return !validationResult.isError
   }
 
+  // TODO(qumeric): turn this object into a static field
   private object Holder {
     var INSTALLER_DATA = parse()
   }
@@ -73,62 +70,13 @@ class InstallerData(
     @JvmField
     val EMPTY = InstallerData(null, null, true, null, null)
 
-    private val PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.data")
-    private const val PROPERTY_SDK = "androidsdk.dir"
-    private const val PROPERTY_SDK_REPO = "androidsdk.repo"
-    private const val PROPERTY_TIMESTAMP = "install.timestamp"
-    private const val PROPERTY_AVD = "create.avd"
-    private const val PROPERTY_VERSION = "studio.version"
-    private val LOG = Logger.getInstance(InstallerData::class.java)
-
     private fun parse(): InstallerData? {
       val properties = readProperties() ?: return null
       val androidSdkPath = properties[PROPERTY_SDK]
-      val androidDest = if (StringUtil.isEmptyOrSpaces(androidSdkPath)) null else File(androidSdkPath)
+      val androidDest = if (androidSdkPath.isNullOrBlank()) null else File(androidSdkPath)
       return InstallerData(getIfPathExists(properties, PROPERTY_SDK_REPO), androidDest,
-                           java.lang.Boolean.valueOf(if (properties.containsKey(PROPERTY_AVD)) properties[PROPERTY_AVD] else "true"),
+                           properties[PROPERTY_AVD]?.toBoolean() ?: true,
                            properties[PROPERTY_TIMESTAMP], properties[PROPERTY_VERSION])
-    }
-
-    private fun readProperties(): Map<String, String>? {
-      try {
-        // Firstrun properties file contains a series of "key=value" lines.
-        val file = File(AndroidLocation.getFolder(), PATH_FIRST_RUN_PROPERTIES)
-        if (file.isFile) {
-          val properties = Maps.newHashMap<String, String>()
-          val lines = Files.readLines(file, Charsets.UTF_16LE)
-          for (line in lines) {
-            val keyValueSeparator = line.indexOf('=')
-            if (keyValueSeparator < 0) {
-              continue
-            }
-            val key = line.substring(0, keyValueSeparator).trim { it <= ' ' }
-            val value = line.substring(keyValueSeparator + 1).trim { it <= ' ' }
-            if (key.isEmpty()) {
-              continue
-            }
-            properties[key] = value
-          }
-          return properties
-        }
-      }
-      catch (e: AndroidLocation.AndroidLocationException) {
-        LOG.error(e)
-      }
-      catch (e: IOException) {
-        LOG.error(e)
-      }
-
-      return null
-    }
-
-    private fun getIfPathExists(properties: Map<String, String>, propertyName: String): File? {
-      val path = properties[propertyName]
-      if (!StringUtil.isEmptyOrSpaces(path)) {
-        val file = File(path)
-        return if (file.isDirectory) file else null
-      }
-      return null
     }
 
     @VisibleForTesting
@@ -138,14 +86,44 @@ class InstallerData(
       Holder.INSTALLER_DATA = data
     }
 
-    fun exists(): Boolean {
-      return Holder.INSTALLER_DATA != null
-    }
+    fun exists(): Boolean = Holder.INSTALLER_DATA != null
 
     @Synchronized
     @JvmStatic
-    fun get(): InstallerData {
-      return Holder.INSTALLER_DATA!!
-    }
+    fun get(): InstallerData = Holder.INSTALLER_DATA!!
   }
+}
+
+private const val PROPERTY_SDK = "androidsdk.dir"
+private const val PROPERTY_SDK_REPO = "androidsdk.repo"
+private const val PROPERTY_TIMESTAMP = "install.timestamp"
+private const val PROPERTY_AVD = "create.avd"
+private const val PROPERTY_VERSION = "studio.version"
+
+private val PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.data")
+private fun readProperties(): Map<String, String>? {
+  try {
+    // First run properties file contains a series of "key=value" lines.
+    val file = File(AndroidLocation.getFolder(), PATH_FIRST_RUN_PROPERTIES)
+    if (!file.isFile) {
+      return null
+    }
+    return Files.readLines(file, Charsets.UTF_16LE)
+      .filter { '=' in it }
+      .map { it.split('=') }
+      .filterNot { (k, _) -> k.isEmpty() }
+      .associate { (k, v) -> k to v }
+  }
+  catch (e: AndroidLocation.AndroidLocationException) {
+    log.error(e)
+  }
+  catch (e: IOException) {
+    log.error(e)
+  }
+  return null
+}
+
+private fun getIfPathExists(properties: Map<String, String>, propertyName: String): File? {
+  val path = properties[propertyName] ?: return null
+  return File(path).takeIf { it.isDirectory }
 }
