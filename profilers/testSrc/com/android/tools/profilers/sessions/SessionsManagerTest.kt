@@ -577,7 +577,6 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testDeleteProfilingSession() {
-    Assume.assumeFalse(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
@@ -657,7 +656,6 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testDeleteUnselectedSession() {
-    Assume.assumeFalse(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setDeviceId(1).setState(Common.Process.State.ALIVE).build()

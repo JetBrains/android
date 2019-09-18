@@ -57,6 +57,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     val events = mutableListOf(Common.Event.newBuilder().build())
     return mutableListOf(
       (Consumer { it.insertUnifiedEvent(1, events[0]) }),
+      (Consumer { it.deleteEvents(1, 1, 1, Common.Event.Kind.SESSION, 1, 1) }),
       (Consumer {
         it.queryUnifiedEventGroups(
           GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setStreamId(1).setPid(1).setToTimestamp(
@@ -105,6 +106,18 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     assertThat(eventResult).containsExactlyElementsIn(listOf(event))
   }
 
+  @Test
+  fun deleteEvents() {
+    val eventCount = 5
+    insertData(eventCount, true)
+    assertThat(table.queryUnifiedEvents()).hasSize(eventCount)
+
+    // Delete inserted events 1 by 1.
+    for (i in eventCount - 1 downTo 0) {
+      table.deleteEvents(1, 1, i + 1L, Common.Event.Kind.SESSION, i + 1L, i + 1L)
+      assertThat(table.queryUnifiedEvents()).hasSize(i)
+    }
+  }
 
   @Test
   fun queryEvents() {
