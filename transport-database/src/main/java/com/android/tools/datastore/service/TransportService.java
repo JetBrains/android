@@ -28,6 +28,7 @@ import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Common.StreamData;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.BytesRequest;
 import com.android.tools.profiler.proto.Transport.BytesResponse;
@@ -252,6 +253,18 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     Collection<EventGroup> events = myTable.queryUnifiedEventGroups(request);
     response.addAllGroups(events);
     responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void deleteEvents(Transport.DeleteEventsRequest request, StreamObserver<Transport.DeleteEventsResponse> responseObserver) {
+    myTable.deleteEvents(request.getStreamId(),
+                         request.getPid(),
+                         request.getGroupId(),
+                         request.getKind(),
+                         request.getFromTimestamp(),
+                         request.getToTimestamp());
+    responseObserver.onNext(Transport.DeleteEventsResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
 }
