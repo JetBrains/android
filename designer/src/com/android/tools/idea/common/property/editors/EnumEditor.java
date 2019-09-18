@@ -35,7 +35,6 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
-import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,6 +52,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Objects;
+import org.apache.commons.lang3.SystemUtils;
 
 abstract public class EnumEditor extends BaseComponentEditor implements NlComponentEditor {
   private EnumSupport myEnumSupport;
@@ -466,17 +466,20 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
 
     @Override
     public void setUI(ComboBoxUI ui) {
-      myUseDarculaUI = !(ui instanceof WindowsComboBoxUI) && !ApplicationManager.getApplication().isUnitTestMode();
-      if (myUseDarculaUI) {
-        // There are multiple reasons for hardcoding the ComboBoxUI here:
-        // 1) Some LAF will draw a beveled border which does not look good in the table grid.
-        // 2) In the inspector we would like the reference editor and the combo boxes to have a similar width.
-        //    This is very hard unless you can control the UI.
-        // Note: forcing the Darcula UI does not imply dark colors.
-        ui = new CustomDarculaComboBoxUI(this);
+      // Only check for WindowsComboBoxUI when on Windows
+      if (SystemUtils.IS_OS_WINDOWS) {
+        myUseDarculaUI = !(ui instanceof com.sun.java.swing.plaf.windows.WindowsComboBoxUI) && !ApplicationManager.getApplication().isUnitTestMode();
+        if (myUseDarculaUI) {
+          // There are multiple reasons for hardcoding the ComboBoxUI here:
+          // 1) Some LAF will draw a beveled border which does not look good in the table grid.
+          // 2) In the inspector we would like the reference editor and the combo boxes to have a similar width.
+          //    This is very hard unless you can control the UI.
+          // Note: forcing the Darcula UI does not imply dark colors.
+          ui = new CustomDarculaComboBoxUI(this);
+        }
+        super.setUI(ui);
+        setBorders();
       }
-      super.setUI(ui);
-      setBorders();
     }
   }
 
