@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property2.inspector
 
+import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.argumentName
@@ -38,18 +39,16 @@ class DefaultValueInspectorBuilder : InspectorBuilder<NelePropertyItem> {
       return
     }
 
-    addDefaultValuePanel(inspector, component)
-  }
-
-  private fun addDefaultValuePanel(inspector: InspectorPanel, component: NlComponent) {
     val arguments = getArguments(component)
     val list = arguments.map { DefaultValueModel(it, component) }
       .sortedBy { it.name }
 
-    val panel = DefaultValuePanel(DefaultValueTableModel(list))
+    val tableModel = DefaultValueTableModel(list)
+    val panel = DefaultValuePanel(tableModel)
 
     val title = inspector.addExpandableTitle("Argument Default Values", list.isNotEmpty())
-    inspector.addComponent(panel, title)
+    val lineModel = inspector.addComponent(panel, title)
+    lineModel.addValueChangedListener(ValueChangedListener { tableModel.fireTableDataChanged() })
   }
 
   private fun getArguments(component: NlComponent): List<NlComponent> {
