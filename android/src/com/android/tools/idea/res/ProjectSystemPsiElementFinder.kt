@@ -17,6 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
@@ -36,6 +37,9 @@ abstract class ProjectSystemPsiElementFinder(private val project: Project) : Psi
       val projectSystem = project.getProjectSystem()
       return try {
         projectSystem.getPsiElementFinders()
+      }
+      catch (e: ProcessCanceledException) {
+        throw e
       }
       catch (e: Throwable) {
         // Sometimes we get AbstractMethodError here, see b/109945376.
