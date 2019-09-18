@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Eugene.Kudelevsky
  */
 public class AndroidUiUtil {
-  private static final Logger LOG = Logger.getInstance("org.jetbrains.android.util.AndroidUiUtil");
+  private static final Logger LOG = Logger.getInstance(AndroidUiUtil.class);
 
   private AndroidUiUtil() {
   }
