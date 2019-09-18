@@ -40,7 +40,10 @@
                            implementationClass="com.android.tools.idea.lang.proguardR8.parser.ProguardR8ParserDefinition"/>
     <lang.syntaxHighlighterFactory language="PROGUARD_R8"
                                    implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8SyntaxHighlighterFactory"/>
-    <completion.contributor language="PROGUARD_R8" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8CompletionContributor"/>
+    <completion.contributor language="PROGUARD_R8"
+                            implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8CompletionContributor"
+                            order="before javaClassReference"
+    />
     <typedHandler implementation="com.android.tools.idea.lang.proguardR8.ProguardR8TypedHandler" id="proguardR8CompletionAutoPopup"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName"
                              implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedNameManipulator"/>
