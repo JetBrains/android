@@ -15,20 +15,26 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiFile
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Type
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionInitializationContext
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.codeInsight.completion.JavaClassNameCompletionContributor
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.StandardPatterns.and
 import com.intellij.patterns.StandardPatterns.not
 import com.intellij.patterns.StandardPatterns.or
 import com.intellij.patterns.StandardPatterns.string
+import com.intellij.psi.impl.source.tree.CompositeElement
+import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
 
 /**
@@ -152,11 +158,34 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       }
     }
 
+    private val classNameCompletionProvider = object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(
+        parameters: CompletionParameters,
+        processingContext: ProcessingContext,
+        resultSet: CompletionResultSet
+      ) {
+        // If we already have package prefix there is no need to additional code complete,
+        // we get completion from ProguardR8JavaClassReferenceProvider.
+        if ((parameters.position.parentOfType(ProguardR8QualifiedName::class)?.node as? CompositeElement)?.countChildren(
+            JAVA_IDENTIFIER_TOKENS) ?: 0 > 1) {
+          return
+        }
+        // filterByScope parameter is false because otherwise we will suggest only classes with PsiUtil.ACCESS_LEVEL_PUBLIC
+        JavaClassNameCompletionContributor.addAllClasses(parameters, false, resultSet.prefixMatcher, resultSet)
+      }
+    }
+
     private val anyProguardElement = psiElement().withLanguage(ProguardR8Language.INSTANCE)
 
     private val insideClassSpecification = psiElement().inside(psiElement(ProguardR8PsiTypes.CLASS_SPECIFICATION_BODY))
 
     private val insideTypeList = anyProguardElement.inside(psiElement(ProguardR8PsiTypes.TYPE_LIST))
+
+    private val startOfNewJavaRule = and(
+      insideClassSpecification,
+      psiElement().afterLeaf(or(psiElement(ProguardR8PsiTypes.SEMICOLON), psiElement(ProguardR8PsiTypes.OPEN_BRACE)))
+    )
+    private val afterFieldOrMethodModifier = psiElement().afterLeaf(psiElement().withText(string().oneOf(FIELD_METHOD_MODIFIERS)))
   }
 
   init {
@@ -170,17 +199,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
     // Add autocompletion for java key words ("private", "public" ...) inside class specification body
     extend(
       CompletionType.BASIC,
-      and(
-        insideClassSpecification,
-        not(insideTypeList),
-        psiElement().afterLeaf(
-          or(
-            psiElement(ProguardR8PsiTypes.SEMICOLON),
-            psiElement(ProguardR8PsiTypes.OPEN_BRACE),
-            psiElement().withText(string().oneOf(FIELD_METHOD_MODIFIERS))
-          )
-        )
-      ),
+      or(startOfNewJavaRule, afterFieldOrMethodModifier),
       methodModifierCompletionProvider
     )
 
@@ -193,6 +212,18 @@ class ProguardR8CompletionContributor : CompletionContributor() {
         anyProguardElement.afterLeaf(psiElement().withText("<"))
       ),
       fieldsAndMethodsWildcardsCompletionProvider
+    )
+
+    // Add autocompletion for qualified class names by typing short class name
+    extend(
+      CompletionType.BASIC,
+      or(
+        psiElement().inside(psiElement(ProguardR8ClassName::class.java)),
+        psiElement().inside(psiElement(ProguardR8Type::class.java)),
+        startOfNewJavaRule,
+        afterFieldOrMethodModifier
+      ),
+      classNameCompletionProvider
     )
 
     // Add autocompletion for CLASS_TYPE keywords in class specification header.

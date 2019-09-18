@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.proguardR8
 import com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.completion.JavaPsiClassReferenceElement
 
 class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
@@ -109,7 +110,6 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
     assertThat(keys.map { it.lookupString }.toList()).containsExactly("<fields>", "<init>", "<methods>", "<clinit>")
   }
 
-
   fun testFieldMethodModifiersCompletion() {
     myFixture.configureByText(ProguardR8FileType.INSTANCE, """
         pu$caret
@@ -161,5 +161,101 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
     assertThat(keys.map { it.lookupString }.toList()).containsNoneOf("public", "private", "protected",
                                                                      "static", "synchronized", "native", "abstract", "strictfp",
                                                                      "volatile", "transient", "final")
+  }
+
+  fun testSuggestClassName() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package p1.p2;
+
+      class MyClass {}
+    """.trimIndent()
+    ).containingFile
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class $caret
+      """.trimIndent()
+    )
+
+    var fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
+
+    // suggest in header after enum/class/interface
+    assertThat(fields).isNotEmpty()
+    assertThat(fields.map { it.qualifiedName }).containsAllOf("p1.p2.MyClass", "java.lang.String")
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class SomeClass extends $caret
+      """.trimIndent()
+    )
+
+    fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
+
+    // suggest in header after extends/implements
+    assertThat(fields).isNotEmpty()
+    assertThat(fields.map { it.qualifiedName }).containsAllOf("p1.p2.MyClass", "java.lang.String")
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class SomeClass {
+        $caret
+      }
+      """.trimIndent()
+    )
+
+    fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
+
+    // suggest at the start of new java rule
+    assertThat(fields).isNotEmpty()
+    assertThat(fields.map { it.qualifiedName }).containsAllOf("p1.p2.MyClass", "java.lang.String")
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class SomeClass {
+        public $caret
+      }
+      """.trimIndent()
+    )
+
+    fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
+
+    // suggest after modifier
+    assertThat(fields).isNotEmpty()
+    assertThat(fields.map { it.qualifiedName }).containsAllOf("p1.p2.MyClass", "java.lang.String")
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class SomeClass {
+        public int method($caret
+      }
+      """.trimIndent()
+    )
+
+    fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
+
+    // suggest inside parameter list
+    assertThat(fields).isNotEmpty()
+    assertThat(fields.map { it.qualifiedName }).containsAllOf("p1.p2.MyClass", "java.lang.String")
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class SomeClass {
+        public int member$caret
+      }
+      """.trimIndent()
+    )
+
+    fields = myFixture.completeBasic().filterIsInstance<JavaPsiClassReferenceElement>()
+
+    // don't suggest after class member
+    assertThat(fields).isEmpty()
   }
 }
