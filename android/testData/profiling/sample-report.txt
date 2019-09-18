@@ -156,8 +156,8 @@ Root 1:
 [   18/  5%/  512B]   788B         17   []: java.lang.Object[]
 [    1/  0%/   28B]    28B          1 * []: java.lang.Object[]
 Root 2:
-[   24/  7%/3.21KB] 55.3KB          1   ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader
-[   24/  7%/3.21KB] 55.3KB          1   (root): sun.misc.Launcher$AppClassLoader
+[   23/  6%/3.12KB] 54.2KB          1   ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader
+[   23/  6%/3.12KB] 54.2KB          1   (root): sun.misc.Launcher$AppClassLoader
 [   14/  4%/2.24KB] 31.2KB          1   ucp: sun.misc.URLClassPath
 [   12/  3%/1.72KB] 18.0KB          1   loaders: java.util.ArrayList
 [   12/  3%/1.72KB] 17.9KB          1   elementData: java.lang.Object[]
@@ -190,8 +190,8 @@ Root 2:
 
 CLASS: sun.misc.URLClassPath$JarLoader (35 objects)
 Root 1:
-[   30/ 85%/2.43KB] 55.3KB          1   ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader
-[   30/ 85%/2.43KB] 55.3KB          1   (root): sun.misc.Launcher$AppClassLoader
+[   30/ 85%/2.43KB] 54.2KB          1   ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader
+[   30/ 85%/2.43KB] 54.2KB          1   (root): sun.misc.Launcher$AppClassLoader
 [   20/ 57%/1.62KB] 31.2KB          1   ucp: sun.misc.URLClassPath
 [   20/ 57%/1.62KB] 18.0KB          1   loaders: java.util.ArrayList
 [   20/ 57%/1.62KB] 17.9KB          1   elementData: java.lang.Object[]
@@ -221,8 +221,8 @@ Root 2:
 
 CLASS: sun.nio.cs.UTF_8$Encoder (17 objects)
 Root 1:
-[   12/ 70%/  828B] 55.3KB          1   ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader
-[   12/ 70%/  828B] 55.3KB          1   (root): sun.misc.Launcher$AppClassLoader
+[   12/ 70%/  828B] 54.2KB          1   ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader
+[   12/ 70%/  828B] 54.2KB          1   (root): sun.misc.Launcher$AppClassLoader
 [   11/ 64%/  759B] 31.2KB          1   ucp: sun.misc.URLClassPath
 [   11/ 64%/  759B] 18.0KB          1   loaders: java.util.ArrayList
 [   11/ 64%/  759B] 17.9KB          1   elementData: java.lang.Object[]
@@ -231,17 +231,11 @@ Root 1:
 [   11/ 64%/  759B] 1.45KB         11   zc: java.util.zip.ZipCoder
 [   11/ 64%/  759B]   968B         11 * enc: sun.nio.cs.UTF_8$Encoder
 Root 2:
-[    2/ 11%/  138B] 1.86KB          1   ROOT: Thread object
-[    2/ 11%/  138B] 1.86KB          1   (root): java.lang.Thread
-[    1/  5%/   69B]   852B          1   group: java.lang.ThreadGroup
-[    1/  5%/   69B]   752B          1   threads: java.lang.Thread[]
-[    1/  5%/   69B]   708B          1   []: com.intellij.rt.execution.application.AppMainV2$1
-[    1/  5%/   69B]   384B          1   threadLocals: java.lang.ThreadLocal$ThreadLocalMap
-[    1/  5%/   69B]   360B          1   table: java.lang.ThreadLocal$ThreadLocalMap$Entry[]
-[    1/  5%/   69B]   220B          1   []: java.lang.ThreadLocal$ThreadLocalMap$Entry
-[    1/  5%/   69B]   172B          1   value: java.lang.ref.SoftReference
-[    1/  5%/   69B]   124B          1 ! (soft): java.lang.StringCoding$StringEncoder
-[    1/  5%/   69B]    88B          1 * ce: sun.nio.cs.UTF_8$Encoder
+[    1/  5%/   69B] 25.1KB          1   ROOT: Static field: sun.launcher.LauncherHelper.ostream
+[    1/  5%/   69B] 25.1KB          1   (root): java.io.PrintStream
+[    1/  5%/   69B] 8.44KB          1   charOut: java.io.OutputStreamWriter
+[    1/  5%/   69B] 8.41KB          1   se: sun.nio.cs.StreamEncoder
+[    1/  5%/   69B]    88B          1 * encoder: sun.nio.cs.UTF_8$Encoder
 
 CLASS: sun.util.locale.BaseLocale$Key (19 objects)
 Root 1:

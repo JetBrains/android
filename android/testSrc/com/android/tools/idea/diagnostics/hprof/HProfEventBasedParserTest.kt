@@ -77,13 +77,13 @@ class HProfEventBasedParserTest {
       true
     }
     assertEquals(2, counts[RootReason.rootGlobalJNI])
-    assertEquals(19, javaFrameRootsCount)
+    assertEquals(16, javaFrameRootsCount)
     assertEquals(1, counts[RootReason.rootLocalJNI])
     assertEquals(2, counts[RootReason.rootMonitorUsed])
     assertEquals(0, counts[RootReason.rootNativeStack])
     assertEquals(621, counts[RootReason.rootStickyClass])
     assertEquals(0, counts[RootReason.rootThreadBlock])
-    assertEquals(3, counts[RootReason.rootThreadObject])
+    assertEquals(6, counts[RootReason.rootThreadObject])
     assertEquals(0, counts[RootReason.rootUnknown])
   }
 

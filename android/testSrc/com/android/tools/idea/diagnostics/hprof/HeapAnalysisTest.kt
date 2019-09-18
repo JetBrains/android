@@ -216,4 +216,23 @@ class HeapAnalysisTest {
                             "MyTestClass!2"),
                             classNameMapping)
   }
+
+  @Test
+  fun testJavaFrameGCRootPriority() {
+    class C1
+    class C2
+
+    val scenario: HProfBuilder.() -> Unit = {
+      val o1 = C1()
+      val o2 = C2()
+      addRootUnknown(o1)
+      val threadSerialNumber = addStackTrace(Thread.currentThread(), 2)
+      // This java frame should be overshadowed by root unknown
+      addRootJavaFrame(o1, threadSerialNumber, 1)
+      // This objects sole reference is from a frame
+      addRootJavaFrame(o2, threadSerialNumber, 1)
+    }
+    runHProfScenario(scenario, "testJavaFrameGCRootPriority.txt",
+                     listOf("C1", "C2"))
+  }
 }
