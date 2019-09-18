@@ -16,9 +16,10 @@
 package com.android.tools.idea.lang.databinding.reference
 
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.index.BindingXmlData
 import com.android.tools.idea.databinding.index.VariableData
+import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
@@ -47,11 +48,13 @@ internal class XmlVariableReference(element: PsiElement,
    */
   private fun resolveType(name: String): PsiClassType? {
     val index = name.indexOf('<')
-    val classString = if (index == -1) name else name.substring(0, index).trim()
+    val simpleName = if (index == -1) name else name.substring(0, index).trim()
+    val qualifiedName = LayoutBindingTypeUtil.toQualifiedName(simpleName)
+
     // Create the string for parameters in the format of "psiType1, psiType2, ... lastPsiType,"
     val parametersString = if (index == -1) "" else name.substring(index + 1, name.lastIndexOf('>')).trim() + ","
     val psiClass =
-      JavaPsiFacade.getInstance(element.project).findClass(classString, module.getModuleWithDependenciesAndLibrariesScope(false))
+      JavaPsiFacade.getInstance(element.project).findClass(qualifiedName, module.getModuleWithDependenciesAndLibrariesScope(false))
       ?: return null
 
     // Parse and resolve type parameters recursively
@@ -68,7 +71,7 @@ internal class XmlVariableReference(element: PsiElement,
     var layerCount = 0
     parametersString.forEach { c ->
       if (c == ',' && layerCount == 0) {
-        parameters.add(resolveType(stringBuilder.toString()))
+        parameters.add(resolveType(stringBuilder.trim().toString()))
         stringBuilder.clear()
       }
       else {

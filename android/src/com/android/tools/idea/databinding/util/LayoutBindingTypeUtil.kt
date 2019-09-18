@@ -22,6 +22,7 @@ import com.android.tools.idea.databinding.index.BindingLayoutType
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.ViewIdData
 import com.android.tools.idea.databinding.util.DataBindingUtil.getQualifiedBindingName
+import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
 import com.intellij.psi.PsiElement
@@ -34,6 +35,11 @@ object LayoutBindingTypeUtil {
   private val VIEW_PACKAGE_ELEMENTS = listOf(
     SdkConstants.VIEW, SdkConstants.VIEW_GROUP, SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW
   )
+
+  /**
+   * Adds [JAVA_LANG] prefix to simple class name.
+   */
+  fun toQualifiedName(simpleName: String) = if (simpleName.contains('.')) simpleName else JAVA_LANG + simpleName
 
   /**
    * Creates a [PsiType] for the target [typeStr], returning null instead of throwing an exception if it was not possible to create it for
