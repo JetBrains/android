@@ -83,4 +83,8 @@ class NlAnalyticsManager(surface: DesignSurface) : DesignerAnalyticsManager(surf
   fun trackVisualizationToolWindow(visible: Boolean) =
     if (visible) track(LayoutEditorEvent.LayoutEditorEventType.SHOW_LAYOUT_VISUALIZATION_TOOL)
     else track(LayoutEditorEvent.LayoutEditorEventType.HIDE_LAYOUT_VISUALIZATION_TOOL)
+
+  fun trackAddConstraint() = track(LayoutEditorEvent.LayoutEditorEventType.ADD_CONSTRAINT)
+
+  fun trackRemoveConstraint() = track(LayoutEditorEvent.LayoutEditorEventType.DELETE_CONSTRAINT)
 }

@@ -38,6 +38,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
@@ -240,6 +241,9 @@ public class ModelBuilder {
     when(surface.getScale()).thenReturn(0.5);
     when(surface.getSelectionAsTransferable()).thenCallRealMethod();
     when(surface.getInteractionManager()).thenReturn(new InteractionManager(surface));
+    if (surface instanceof NlDesignSurface) {
+      when(surface.getAnalyticsManager()).thenReturn(new NlAnalyticsManager(surface));
+    }
     doAnswer(inv -> listeners.add(inv.getArgument(0))).when(surface).addListener(any(DesignSurfaceListener.class));
     doAnswer(inv -> listeners.remove((DesignSurfaceListener)inv.getArgument(0))).when(surface).removeListener(any(DesignSurfaceListener.class));
     selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));
