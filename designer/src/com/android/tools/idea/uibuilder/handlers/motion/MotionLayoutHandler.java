@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
+import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.ATTR_TRANSITION_SHOW_PATHS;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
+import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
+import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
+import static com.android.SdkConstants.SHERPA_URI;
+
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.model.NlComponent;
@@ -53,23 +64,11 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
-import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL;
-import static com.android.SdkConstants.ATTR_ORIENTATION;
-import static com.android.SdkConstants.ATTR_TRANSITION_SHOW_PATHS;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
-import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
-import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
-import static com.android.SdkConstants.SHERPA_URI;
 
 public class MotionLayoutHandler extends ViewGroupHandler /* implements NlComponentDelegate */ {
   private static final boolean DEBUG = false;
@@ -173,12 +172,10 @@ public class MotionLayoutHandler extends ViewGroupHandler /* implements NlCompon
 
   @Override
   public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
-    MotionLayoutInterface panel = getTimeline(component.getNlComponent());
-    if (panel == null || panel.showPopupMenuActions()) {
-      super.addPopupMenuActions(component, actions);
-    }
+    CommonActions.getPopupMenuActions(component, actions);
 
-    actions.add(new ComponentAssistantViewAction((nlComponent) -> getComponentAssistant(component.getScene().getDesignSurface(), nlComponent)));
+    actions
+      .add(new ComponentAssistantViewAction((nlComponent) -> getComponentAssistant(component.getScene().getDesignSurface(), nlComponent)));
 
     return false;
   }
@@ -206,15 +203,16 @@ public class MotionLayoutHandler extends ViewGroupHandler /* implements NlCompon
             Debug.println("SOUTH PANEL");
           }
           return new MotionAccessoryPanel(surface, parent, panelVisibility);
-         //return new MotionLayoutTimelinePanel(surface, parent, panelVisibility);
+        //return new MotionLayoutTimelinePanel(surface, parent, panelVisibility);
         case EAST_PANEL:
           if (DEBUG) {
             Debug.println("EAST PANEL");
           }
-          return  new MotionAttributePanel(parent, panelVisibility);
+          return new MotionAttributePanel(parent, panelVisibility);
         //return  new MotionLayoutAttributePanel(parent, panelVisibility);
       }
-    } else {
+    }
+    else {
       switch (type) {
         case SOUTH_PANEL:
           return new MotionAccessoryPanel(surface, parent, panelVisibility);
@@ -222,13 +220,12 @@ public class MotionLayoutHandler extends ViewGroupHandler /* implements NlCompon
           return new MotionAccessoryPanel(surface, parent, panelVisibility);
       }
     }
-     throw new IllegalArgumentException("Unsupported type");
+    throw new IllegalArgumentException("Unsupported type");
   }
 
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
     return super.createInteraction(screenView, component);
-//    return new MotionLayoutSceneInteraction(screenView, component);
   }
 
   public static MotionLayoutInterface getTimeline(@NotNull NlComponent component) {
@@ -241,7 +238,11 @@ public class MotionLayoutHandler extends ViewGroupHandler /* implements NlCompon
     if (property == null || !(property instanceof MotionLayoutTimelinePanel)) {
       return null;
     }
-    return (MotionLayoutTimelinePanel) property;
+    return (MotionLayoutTimelinePanel)property;
   }
 
+  @Override
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {
+    CommonActions.getToolbarActions(actions);
+  }
 }
