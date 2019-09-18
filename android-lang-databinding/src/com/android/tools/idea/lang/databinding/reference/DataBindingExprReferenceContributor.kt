@@ -219,6 +219,14 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
           return arrayOf(PsiClassReference(refExpr, innerClass))
         }
       }
+
+      // Find the reference to get() method if [psiModelClass] is an instance of [java.util.Map] and we can not find any other references.
+      if (LayoutBindingTypeUtil.parsePsiType("java.util.Map", refExpr)?.isAssignableFrom(psiModelClass.type) == true) {
+        val getMethod = psiClass.findMethodsByName("get", false).firstOrNull { it.parameterList.parametersCount == 1 }
+        if (getMethod != null) {
+          return arrayOf(PsiMethodReference(refExpr, PsiModelMethod(psiModelClass, getMethod), PsiMethodReference.Kind.METHOD_CALL))
+        }
+      }
       return PsiReference.EMPTY_ARRAY
     }
 
