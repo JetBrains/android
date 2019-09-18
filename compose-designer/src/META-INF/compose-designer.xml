@@ -18,5 +18,16 @@
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.compose.preview.ComposeFileEditorProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewNotificationProvider"/>
+
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewAnnotationInFunctionWithParametersInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     level="ERROR"/>
+
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNeedsComposableAnnotationInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     level="ERROR"/>
+
   </extensions>
 </idea-plugin>
