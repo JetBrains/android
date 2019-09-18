@@ -1099,4 +1099,45 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     // view_id.getText() should return interface Editable that extends CharSequence and inherits its method length().
     assertThat((reference.resolve() as PsiMethod).name).isEqualTo("length")
   }
+
+  @Test
+  fun dbResolveContextSimpleNameToContextInstance() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <EditText
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{con<caret>text.getText()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("android.content.Context")
+  }
+
+  @Test
+  fun dbResolveContextSimpleNameToVariable() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <variable name="context" type="String" />
+        </data>
+        <EditText
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{con<caret>text}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+  }
 }
