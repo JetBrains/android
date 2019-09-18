@@ -309,7 +309,7 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
     showLoading("Waiting for build to finish...")
   }
 
-  private val refresher = SmartAutoRefresher(psiFile, this, workbench)
+  private val refresher = SmartAutoRefresher(psiFile, this)
 
   /**
    * Refresh the preview surfaces
@@ -323,6 +323,10 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
       return
     }
     updateModel()
+  }
+
+  override fun buildFailed() {
+    workbench.loadingStopped("Preview is unavailable until after a successful project sync")
   }
 
   private fun updateModel() {
