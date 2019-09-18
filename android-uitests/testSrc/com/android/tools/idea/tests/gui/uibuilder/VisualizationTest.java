@@ -23,6 +23,8 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DeleteDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -41,6 +43,7 @@ import org.junit.runner.RunWith;
 /**
  * UI test for the visualization tool window
  */
+@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner.class)
 public class VisualizationTest {
 
