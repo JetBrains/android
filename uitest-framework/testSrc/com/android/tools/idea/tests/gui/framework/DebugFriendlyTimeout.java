@@ -20,10 +20,10 @@ import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.openapi.application.PathManager;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.junit.rules.Timeout;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.junit.runners.model.TestTimedOutException;
 
 /** A {@link Timeout} that is disabled when the idea.debug.mode property is true. */
 public class DebugFriendlyTimeout extends Timeout {
@@ -48,7 +48,7 @@ public class DebugFriendlyTimeout extends Timeout {
         public void evaluate() throws Throwable {
           try {
             base.evaluate();
-          } catch (TimeoutException e) {
+          } catch (TestTimedOutException e) {
             String fileName = description.getTestClass().getSimpleName() + "." + description.getMethodName() + "-TimeoutThreadDump";
             FileUtils.writeToFile(new File(PathManager.getLogPath(), fileName), ThreadDumper.dumpThreadsToString());
             throw e;
