@@ -24,19 +24,27 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.project.getLastSyncTimestamp
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.getFolderType
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
+import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
+import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
 import kotlin.properties.Delegates
@@ -78,6 +86,32 @@ class ResourceExplorerViewModel(
     filterParams
   )
 
+  private val listViewImageCache = ImageCache.createLargeImageCache(
+    parentDisposable = this,
+    mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
+
+  private val summaryImageCache = ImageCache.createSmallImageCache(
+    parentDisposable = this,
+    mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
+
+  private var resourceVersion: ResourceNotificationManager.ResourceVersion? = null
+
+  private val resourceNotificationManager = ResourceNotificationManager.getInstance(defaultFacet.module.project)
+
+  private val resourceNotificationListener = ResourceNotificationManager.ResourceChangeListener { reason ->
+    if (reason.size == 1 && reason.contains(ResourceNotificationManager.Reason.EDIT)) {
+      // We don't want to update all resources for every resource file edit.
+      // TODO cache the resources, notify the view to only update the rendering of the edited resource.
+      return@ResourceChangeListener
+    }
+    val currentVersion = resourceNotificationManager.getCurrentVersion(defaultFacet, null, null)
+    if (resourceVersion == currentVersion) {
+      return@ResourceChangeListener
+    }
+    resourceVersion = currentVersion
+    refreshListModel()
+  }
+
   /**
    * View callback for when the ResourceType has changed.
    */
@@ -101,6 +135,8 @@ class ResourceExplorerViewModel(
   var facet: AndroidFacet by Delegates.observable(defaultFacet) { _, oldFacet, newFacet ->
     if (newFacet != oldFacet) {
       contextFileForConfiguration = null // AndroidFacet changed, optional Configuration file is not valid.
+      unsubscribeListener(oldFacet)
+      subscribeListener(newFacet)
       facetUpdaterCallback(newFacet)
       populateResourcesCallback()
     }
@@ -115,6 +151,27 @@ class ResourceExplorerViewModel(
         updateResourceTabCallback()
       }
     }
+
+  private val resetPreviewsOnNextSuccessfulSync = Runnable {
+    defaultFacet.module.project.runWhenSmartAndSyncedOnEdt(this, Consumer { result ->
+      if (result.isSuccessful) {
+        listViewImageCache.clear()
+      }
+    })
+  }
+
+  init {
+    subscribeListener(defaultFacet)
+    val project = defaultFacet.module.project
+    if (project.getLastSyncTimestamp() < 0L) {
+      // No existing successful sync, since there's a fair chance of having rendering errors, wait for next successful sync and reset cache,
+      // then re-render all assets.
+      ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(
+        onCacheClean = resetPreviewsOnNextSuccessfulSync,
+        onSourceGenerationError = EmptyRunnable.INSTANCE
+      )
+    }
+  }
 
   fun getTabIndexForFile(virtualFile: VirtualFile): Int {
     val folderType = if (virtualFile.isDirectory) ResourceFolderType.getFolderType(virtualFile.name) else getFolderType(virtualFile)
@@ -135,25 +192,22 @@ class ResourceExplorerViewModel(
             resourceResolver,
             filterOptions,
             supportedResourceTypes[resourceTypeIndex],
+            listViewImageCache,
+            summaryImageCache,
             selectAssetAction,
             { assetSet ->
               updateResourceCallback?.invoke(assetSet.getHighestDensityAsset().resourceItem)
             }
           ).also {
-            if (!Disposer.isDisposed(this)) {
-              listViewModel = it
-              it.facetUpdaterCallback = { newFacet -> this@ResourceExplorerViewModel.facet = newFacet }
-              Disposer.register(this, it)
-              updateListModelIfNeeded()
-            } else {
-              Disposer.dispose(it)
-            }
+            listViewModel = it
+            it.facetUpdaterCallback = { newFacet -> this@ResourceExplorerViewModel.facet = newFacet }
+            updateListModelIfNeeded()
           }
         }, EdtExecutorService.getInstance())
   }
 
   override fun dispose() {
-    // Do nothing.
+    unsubscribeListener(facet)
   }
 
   //region ListModel update functions
@@ -205,7 +259,17 @@ class ResourceExplorerViewModel(
   }
   //endregion
 
-  companion object{
+  private fun subscribeListener(facet: AndroidFacet) {
+    resourceNotificationManager
+      .addListener(resourceNotificationListener, facet, null, null)
+  }
+
+  private fun unsubscribeListener(oldFacet: AndroidFacet) {
+    resourceNotificationManager
+      .removeListener(resourceNotificationListener, oldFacet, null, null)
+  }
+
+  companion object {
     fun createResManagerViewModel(facet: AndroidFacet): ResourceExplorerViewModel =
       ResourceExplorerViewModel(
         facet,
