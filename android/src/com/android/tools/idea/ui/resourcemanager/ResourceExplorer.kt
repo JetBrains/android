@@ -61,7 +61,7 @@ class ResourceExplorer private constructor(
 
   init {
     toolbarViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
-    toolbarViewModel.resourceUpdaterCallback = { name, type -> selectAsset(name, type, newResource = true) }
+    toolbarViewModel.resourceUpdaterCallback = { name, type -> selectAsset(name, type) }
     resourceExplorerViewModel.facetUpdaterCallback = { newValue -> this.facet = newValue}
     resourceExplorerViewModel.resourceTypeUpdaterCallback = this::updateResourceType
 
@@ -90,7 +90,9 @@ class ResourceExplorer private constructor(
         resourceExplorerViewModel.filterOptions)
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
       val toolbar = ResourceExplorerToolbar.create(toolbarViewModel, moduleComboEnabled = true)
-      val resourceExplorerView = ResourceExplorerView(resourceExplorerViewModel, resourceImportDragTarget)
+      val resourceExplorerView = ResourceExplorerView(
+        viewModel = resourceExplorerViewModel,
+        resourceImportDragTarget = resourceImportDragTarget)
       return ResourceExplorer(
         facet,
         resourceExplorerViewModel,
@@ -105,7 +107,9 @@ class ResourceExplorer private constructor(
      */
     fun createResourcePicker(
       facet: AndroidFacet,
-      types: Set<ResourceType>,
+      types: Array<ResourceType>,
+      preselectedResourceName: String?,
+      preferredResourceType: ResourceType?,
       showSampleData: Boolean,
       currentFile: VirtualFile?,
       updateResourceCallback: (resourceItem: ResourceItem) -> Unit,
@@ -113,7 +117,8 @@ class ResourceExplorer private constructor(
       val importersProvider = ImportersProvider()
       val resourceExplorerViewModel = ResourceExplorerViewModel.createResPickerViewModel(facet,
                                                                                          currentFile,
-                                                                                         types.toTypedArray(),
+                                                                                         preferredResourceType ?: types.first(),
+                                                                                         types,
                                                                                          showSampleData,
                                                                                          { asset ->
                                                                                            doSelectResourceCallback(asset.resourceItem)
@@ -126,8 +131,9 @@ class ResourceExplorer private constructor(
         resourceExplorerViewModel.filterOptions)
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
       val toolbar = ResourceExplorerToolbar.create(toolbarViewModel, moduleComboEnabled = false)
-      val resourceExplorerView = ResourceExplorerView(resourceExplorerViewModel,
-                                                      resourceImportDragTarget,
+      val resourceExplorerView = ResourceExplorerView(viewModel = resourceExplorerViewModel,
+                                                      preselectedResourceName = preselectedResourceName,
+                                                      resourceImportDragTarget = resourceImportDragTarget,
                                                       withMultiModuleSearch = false,
                                                       withSummaryView = true,
                                                       withDetailView = false,
@@ -178,8 +184,8 @@ class ResourceExplorer private constructor(
    *
    * @param newResource True if the resource was recently added (i.e: created in the same EDT call).
    */
-  fun selectAsset(resourceName: String, type: ResourceType, newResource: Boolean) {
+  private fun selectAsset(resourceName: String, type: ResourceType) {
     resourceExplorerViewModel.resourceTypeIndex = resourceExplorerViewModel.supportedResourceTypes.indexOf(type)
-    resourceExplorerView.selectAsset(resourceName, newResource)
+    resourceExplorerView.selectAsset(resourceName, true)
   }
 }
