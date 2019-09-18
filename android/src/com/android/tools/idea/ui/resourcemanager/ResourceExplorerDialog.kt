@@ -35,6 +35,8 @@ import javax.swing.BorderFactory
  * @param facet The current [AndroidFacet], used to determine the module in the ResourceExplorer.
  * @param initialResourceUrl The resourceUrl (@string/name) of the initial value, if any.
  * @param supportedTypes The supported [ResourceType]s that can be picked.
+ * @param preferredType The preferred [ResourceType] to show when the [ResourceExplorerDialog] opens, this may be ignored if there's a
+ * valid initialResourceUrl given. Eg: "@drawable/foo" will open the dialog in [ResourceType.DRAWABLE].
  * @param showSampleData Includes [ResourceType.SAMPLE_DATA] resources as options to pick.
  * @param currentFile The [VirtualFile] that may have an specific preview configuration.
  */
@@ -42,24 +44,32 @@ class ResourceExplorerDialog(
   facet: AndroidFacet,
   initialResourceUrl: String?,
   supportedTypes: Set<ResourceType>,
+  preferredType: ResourceType?,
   showSampleData: Boolean,
   currentFile: VirtualFile?
 ): ResourcePickerDialog(facet.module.project) {
 
-  @TestOnly // TODO: consider getting this in a better way.
-  val resourceExplorerPanel = ResourceExplorer.createResourcePicker(
-    facet, supportedTypes, showSampleData, currentFile, this::updateSelectedResource, this::doSelectResource)
+  @TestOnly // TODO: consider getting this for tests in a better way.
+  val resourceExplorerPanel = kotlin.run {
+    // Get the resource name and type from the given resource url and try to select it in the ResourceExplorer.
+    // Eg: From '@android:color/color_primary' we select 'color_primary' under 'Color' resources.
+    val resourceValue = initialResourceUrl?.let {
+      ResourceValue.reference(initialResourceUrl)?.takeIf { it.resourceName != null && it.type != null }
+    }
+    val resourceType = resourceValue?.type?.takeIf { supportedTypes.contains(it) } ?: preferredType
+    return@run ResourceExplorer.createResourcePicker(facet,
+                                                     getSortedResourceTypes(supportedTypes),
+                                                     resourceValue?.resourceName,
+                                                     resourceType,
+                                                     showSampleData,
+                                                     currentFile,
+                                                     this::updateSelectedResource,
+                                                     this::doSelectResource)
+  }
 
   private var pickedResourceName: String? = null
 
   init {
-    initialResourceUrl?.let { stringValue ->
-      ResourceValue.reference(stringValue)?.takeIf { it.resourceName != null && it.type != null }?.let { value ->
-        // Get the resource name and type from the given resource url and try to select it in the ResourceExplorer.
-        // Eg: From '@android:color/color_primary' we select 'color_primary' under 'Color' resources.
-        resourceExplorerPanel.selectAsset(value.resourceName!!, value.type!!, newResource = false)
-      }
-    }
     ResourceManagerTracking.logDialogOpens()
     init()
     doValidate()
@@ -85,6 +95,25 @@ class ResourceExplorerDialog(
     updateSelectedResource(resource)
     doOKAction()
   }
+}
+
+/**
+ * Returns a sorted array of the given [originalSet] so that the order matches the tabs in the Resource Manager.
+ *
+ * Any [ResourceType] not supported in the Resource Manager is just added to the end of the array.
+ */
+private fun getSortedResourceTypes(originalSet: Set<ResourceType>): Array<ResourceType> {
+  val resManagerTypes = MANAGER_SUPPORTED_RESOURCES
+  val sortedTypes = ArrayList<ResourceType>()
+  val remainingTypes = mutableSetOf(*originalSet.toTypedArray())
+
+  resManagerTypes.forEach { resourceType ->
+    if (remainingTypes.remove(resourceType)) {
+      sortedTypes.add(resourceType)
+    }
+  }
+  sortedTypes.addAll(remainingTypes)
+  return sortedTypes.toTypedArray()
 }
 
 /** The resource reference in the form of @namespace:color/color_name or ?namespace:attr/attr_name. */
