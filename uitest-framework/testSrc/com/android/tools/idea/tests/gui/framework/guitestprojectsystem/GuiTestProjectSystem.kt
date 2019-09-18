@@ -19,7 +19,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.intellij.ide.plugins.IdeaPluginDescriptor
 import com.intellij.ide.plugins.IdeaPluginDescriptorImpl
 import com.intellij.ide.plugins.PluginManagerCore
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.project.Project
@@ -82,14 +82,17 @@ interface GuiTestProjectSystem {
   companion object {
     private val EP_NAME = ExtensionPointName<GuiTestProjectSystem>("com.android.project.guitestprojectsystem")
 
-    fun forBuildSystem(buildSystem: TargetBuildSystem.BuildSystem): GuiTestProjectSystem? = try {
-      EP_NAME.findFirstSafe { it.buildSystem == buildSystem }
-    } catch (e: IllegalArgumentException) {
-      // b/73902993: Additional logging to identify the root cause of some sporadic errors
-      val message = getPluginLoadingDebugLogs()
-      println(message)
-      Logger.getInstance(GuiTestProjectSystem::class.java).info(message)
-      throw e
+    fun forBuildSystem(buildSystem: TargetBuildSystem.BuildSystem): GuiTestProjectSystem? {
+      try {
+        return EP_NAME.findFirstSafe { it.buildSystem == buildSystem }
+      }
+      catch (e: IllegalArgumentException) {
+        // b/73902993: Additional logging to identify the root cause of some sporadic errors
+        val message = getPluginLoadingDebugLogs()
+        println(message)
+        logger<GuiTestProjectSystem>().info(message)
+        throw e
+      }
     }
 
     private fun getPluginLoadingDebugLogs() : String {
