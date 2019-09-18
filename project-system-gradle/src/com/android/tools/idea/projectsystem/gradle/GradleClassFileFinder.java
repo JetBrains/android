@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.projectsystem.gradle;
 
-import static com.android.SdkConstants.FN_R_CLASS_JAR;
-
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
@@ -24,7 +22,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.ModuleBasedClassFileFinder;
 import com.android.tools.idea.projectsystem.ClassFileFinderUtil;
-import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -96,33 +93,6 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
       }
     }
 
-    VirtualFile rJar = findRJar(model);
-    if (rJar != null) {
-      compilerOutputs.add(rJar);
-    }
-
     return compilerOutputs.build();
-  }
-
-  /**
-   * Finds the R.jar file of the given {@link AndroidArtifact}, if it exists.
-   */
-  @Nullable
-  private static VirtualFile findRJar(AndroidModuleModel model) {
-    // TODO(b/133326990): read this from the model
-    String variantName = model.getSelectedVariant().getName();
-    File classesFolder = model.getMainArtifact().getClassesFolder();
-
-    File p1 = classesFolder.getParentFile();
-    if (p1 == null) return null;
-
-    File p2 = p1.getParentFile();
-    if (p2 == null) return null;
-
-    File p3 = p2.getParentFile();
-    if (p3 == null) return null;
-
-    File rJar = FileUtils.join(p3, "compile_and_runtime_not_namespaced_r_class_jar", variantName, FN_R_CLASS_JAR);
-    return VfsUtil.findFileByIoFile(rJar, true);
   }
 }
