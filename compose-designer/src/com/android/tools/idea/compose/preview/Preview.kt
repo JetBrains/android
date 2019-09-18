@@ -379,7 +379,7 @@ fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = (this as? Co
  */
 class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
   private val LOG = Logger.getInstance(ComposeFileEditorProvider::class.java)
-  private val previewElemementProvider = MultiPreviewElementFinder(listOf(AnnotationPreviewElementFinder, MethodPreviewElementFinder))
+  private val previewElementProvider = MultiPreviewElementFinder(listOf(AnnotationPreviewElementFinder, MethodPreviewElementFinder))
 
   init {
     if (StudioFlags.COMPOSE_PREVIEW.get()) {
@@ -398,7 +398,7 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
       return false
     }
 
-    val hasPreviewMethods = previewElemementProvider.hasPreviewMethods(project, file)
+    val hasPreviewMethods = previewElementProvider.hasPreviewMethods(project, file)
     if (LOG.isDebugEnabled) {
       LOG.debug("${file.path} hasPreviewMethods=${hasPreviewMethods}")
     }
@@ -412,7 +412,7 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
     }
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = getInstance().createEditor(project, file) as TextEditor
-    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = { previewElemementProvider.findPreviewMethods(project, file) })
+    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = { previewElementProvider.findPreviewMethods(project, file) })
     val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor, previewEditor)
 
     // Queue to avoid refreshing notifications on every key stroke
