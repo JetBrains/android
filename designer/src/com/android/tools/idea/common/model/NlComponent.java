@@ -28,6 +28,8 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -651,7 +653,9 @@ public class NlComponent implements NlAttributesHolder {
    */
   @NotNull
   private String assignId(@NotNull Set<String> ids) {
-    return assignId(getTagName(), ids);
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(this);
+    String baseName = handler != null ? handler.generateBaseId(this) : getTagName();
+    return assignId(baseName, ids);
   }
 
   /**
@@ -689,7 +693,7 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   @NotNull
-  public static String generateId(@NotNull String baseName, @NotNull Set<String> ids, ResourceFolderType type, Module module) {
+  private static String generateId(@NotNull String baseName, @NotNull Set<String> ids, ResourceFolderType type, Module module) {
     String idValue = StringUtil.decapitalize(baseName.substring(baseName.lastIndexOf('.') + 1));
 
     Project project = module.getProject();
