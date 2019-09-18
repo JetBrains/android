@@ -44,6 +44,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
 )
 
@@ -90,5 +91,6 @@ iml_module(
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
 )
