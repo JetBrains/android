@@ -36,6 +36,7 @@ import java.util.Set;
  * Importers for different project types, e.g. ADT, Gradle.
  */
 public abstract class ModuleImporter {
+  private static final Logger LOG = Logger.getInstance(ModuleImporter.class);
   private static final Key<ModuleImporter[]> KEY_IMPORTERS = new Key<>("com.android.tools.importers");
   private static final Key<ModuleImporter> KEY_CURRENT_IMPORTER = new Key<>("com.android.tools.currentImporter");
   private static final ModuleImporter NONE = new ModuleImporter() {
@@ -71,7 +72,6 @@ public abstract class ModuleImporter {
       return Collections.emptySet();
     }
   };
-  private static Logger LOG = Logger.getInstance(ModuleImporter.class);
 
   /**
    * Importers live in the wizard context. This method lazily creates importers if they are
