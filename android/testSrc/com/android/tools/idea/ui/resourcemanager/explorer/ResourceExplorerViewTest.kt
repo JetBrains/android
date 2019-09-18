@@ -23,38 +23,32 @@ import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.simulateMouseClick
+import com.android.tools.idea.ui.resourcemanager.waitAndAssert
 import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
 import com.android.tools.idea.ui.resourcemanager.widget.LinkLabelSearchView
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.labels.LinkLabel
-import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Point
-import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
-import java.awt.event.MouseEvent
 import java.io.File
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
-
-private const val WAIT_TIMEOUT = 3000
 
 class ResourceExplorerViewTest {
 
@@ -169,6 +163,7 @@ class ResourceExplorerViewTest {
     val viewModel = ResourceExplorerViewModel.createResPickerViewModel(
       projectRule.module.androidFacet!!,
       null,
+      ResourceType.DRAWABLE,
       arrayOf(ResourceType.DRAWABLE),
       false,
       { asset ->
@@ -228,6 +223,7 @@ class ResourceExplorerViewTest {
 
   private fun createResourceExplorerView(viewModel: ResourceExplorerViewModel, withSummaryView: Boolean = false): ResourceExplorerView {
     val view = ResourceExplorerView(viewModel,
+                                    null,
                                     ResourceImportDragTarget(
                                       projectRule.module.androidFacet!!,
                                       ImportersProvider()),
@@ -245,25 +241,6 @@ private fun simulatePressEnter(component: JComponent) {
   component.keyListeners.forEach {
     it.keyPressed(keyEvent)
   }
-}
-
-private fun simulateMouseClick(component: JComponent, point: Point, clickCount: Int) {
-  runInEdtAndWait {
-    // A click is done through a mouse pressed & released event, followed by the actual mouse clicked event.
-    component.dispatchEvent(MouseEvent(
-      component, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
-    component.dispatchEvent(MouseEvent(
-      component, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
-    component.dispatchEvent(MouseEvent(
-      component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, clickCount, false))
-  }
-}
-
-private inline fun <reified T : JComponent> waitAndAssert(view: ResourceExplorerView, crossinline condition: (list: T?) -> Boolean) {
-  val waitForComponentCondition = object : WaitFor(WAIT_TIMEOUT) {
-    public override fun condition() = condition(UIUtil.findComponentOfType(view, T::class.java))
-  }
-  assertTrue(waitForComponentCondition.isConditionRealized)
 }
 
 private fun selectAndAssertAsset(view: ResourceExplorerView, assetName: String) {
