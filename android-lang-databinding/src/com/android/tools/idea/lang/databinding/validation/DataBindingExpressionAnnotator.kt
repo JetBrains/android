@@ -40,6 +40,7 @@ import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.psi.util.MethodSignatureUtil
+import com.intellij.psi.util.TypeConversionUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
@@ -71,7 +72,8 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
           .forEach { annotatedMethod ->
             val parameters = annotatedMethod.parameterList.parameters
             val returnType = annotatedMethod.returnType ?: return@forEach
-            if (parameters.size == 1 && parameters[0].type.isAssignableFrom(dbExprType)) {
+            // Convert parameters[0] to its erasure to remove unwanted type parameter e.g. "T" in List<T> when assigned from List<String>.
+            if (parameters.size == 1 && TypeConversionUtil.erasure(parameters[0].type).isAssignableFrom(dbExprType)) {
               bindingConversionTypes.add(PsiModelClass(returnType, mode).unwrapped)
             }
           }
