@@ -61,8 +61,8 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 
 public class RecyclerViewAssistant extends AssistantPopupPanel {
+  private static final Logger LOG = Logger.getInstance(RecyclerViewAssistant.class);
   private static final int ITEM_COUNT_DEFAULT = 10;
-  private static Logger LOG = Logger.getInstance(RecyclerViewAssistant.class);
 
   private static final ImmutableList<Template> TEMPLATES = ImmutableList.of(
     Template.NONE_TEMPLATE,

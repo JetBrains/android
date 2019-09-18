@@ -38,7 +38,7 @@ import java.util.function.BiConsumer;
  * existence of the class in order to detect if they are running Android. This is just a workaround for that.
  */
 public class LayoutlibClassLoader extends ClassLoader {
-  private static Logger LOG = Logger.getInstance(LayoutlibClassLoader.class);
+  private static final Logger LOG = Logger.getInstance(LayoutlibClassLoader.class);
 
   LayoutlibClassLoader(@NotNull ClassLoader parent) {
     super(parent);

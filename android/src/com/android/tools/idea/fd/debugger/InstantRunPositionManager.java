@@ -48,7 +48,7 @@ import java.util.Collection;
 import java.util.Map;
 
 public class InstantRunPositionManager extends PositionManagerImpl {
-  private static Logger LOG = Logger.getInstance(InstantRunPositionManager.class);
+  private static final Logger LOG = Logger.getInstance(InstantRunPositionManager.class);
 
   private Map<AndroidVersion, VirtualFile> mySourceFoldersByApiLevel;
 
