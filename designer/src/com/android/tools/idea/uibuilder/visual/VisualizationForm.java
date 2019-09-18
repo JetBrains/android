@@ -31,6 +31,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.surface.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -421,6 +422,7 @@ public class VisualizationForm implements Disposable {
     isActive = true;
     initPreviewForm();
     mySurface.activate();
+    getAnalyticsManager().trackVisualizationToolWindow(true);
   }
 
   /**
@@ -438,6 +440,11 @@ public class VisualizationForm implements Disposable {
     if (myContentPanel != null) {
       setNoActiveModel();
     }
+    getAnalyticsManager().trackVisualizationToolWindow(false);
+  }
+
+  private NlAnalyticsManager getAnalyticsManager() {
+    return mySurface.getAnalyticsManager();
   }
 
   @Nullable
