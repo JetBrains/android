@@ -22,6 +22,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModelImpl
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -29,7 +30,6 @@ import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFileSystem
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
@@ -84,13 +84,16 @@ class LayoutRendererTest {
     LayoutRenderer.setInstance(androidFacet, layoutRenderer)
     val designAsset = DesignAsset(createLayoutFile().virtualFile, emptyList(), ResourceType.LAYOUT)
     lateinit var resourceExplorerListViewModel: ResourceExplorerListViewModel
+    val disposable = Disposer.newDisposable("LayoutRendererTest")
     try {
       resourceExplorerListViewModel = ResourceExplorerListViewModelImpl(
         androidFacet,
         null,
         Mockito.mock(ResourceResolver::class.java),
         FilterOptions.createDefault(),
-        ResourceType.DRAWABLE
+        ResourceType.DRAWABLE,
+        ImageCache.createLargeImageCache(disposable),
+        ImageCache.createSmallImageCache(disposable)
       )
       val previewProvider = resourceExplorerListViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
       val width = 150
@@ -113,8 +116,7 @@ class LayoutRendererTest {
       assertThat(image.height).isEqualTo(height)
     }
     finally {
-      assert(resourceExplorerListViewModel is Disposable)
-      Disposer.dispose(resourceExplorerListViewModel as Disposable)
+      Disposer.dispose(disposable)
     }
   }
 

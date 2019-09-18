@@ -29,12 +29,9 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.idea.actions.OpenStringResourceEditorAction
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.editors.theme.ResolutionUtils
-import com.android.tools.idea.project.getLastSyncTimestamp
-import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.resources.aar.AarResourceRepository
-import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
@@ -46,10 +43,8 @@ import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerIm
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableConfigurations
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableValue
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.navigation.NavigationUtil
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.runReadAction
@@ -58,13 +53,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.xml.XmlFileImpl
 import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.CompletableFuture.supplyAsync
-import java.util.function.Consumer
 import java.util.function.Supplier
 import kotlin.properties.Delegates
 
@@ -79,6 +72,8 @@ private const val UNRESOLVED_VALUE = "Could not resolve"
  * @param resourceResolver [ResourceResolver] that it's used to obtain most of the information for resources.
  * @param filterOptions The [FilterOptions] that defines the resources to include in [getResourceSections].
  * @param defaultResourceType The initial value of [currentResourceType].
+ * @param listViewImageCache The [ImageCache] for previews in the resources list.
+ * @param summaryImageCache The [ImageCache] for resource previews in the summary view.
  * @param selectAssetAction Optional callback for asset selection, default behavior opens the asset's file.
  * @param updateSelectedAssetSetCallback Optional callback, called whenever the selection is updated with the corresponding asset.
  */
@@ -88,9 +83,11 @@ class ResourceExplorerListViewModelImpl(
   private val resourceResolver: ResourceResolver,
   override val filterOptions: FilterOptions,
   defaultResourceType: ResourceType,
+  private val listViewImageCache: ImageCache,
+  private val summaryImageCache: ImageCache,
   selectAssetAction: ((asset: Asset) -> Unit)? = null,
   updateSelectedAssetSetCallback: ((assetSet: ResourceAssetSet) -> Unit)? = null
-) : Disposable, ResourceExplorerListViewModel {
+) : ResourceExplorerListViewModel {
   /**
    * callback called when the resource model have change. This happen when the facet is changed.
    */
@@ -104,35 +101,7 @@ class ResourceExplorerListViewModelImpl(
     }
   }
 
-  private var resourceVersion: ResourceNotificationManager.ResourceVersion? = null
-
-  private val resourceNotificationManager = ResourceNotificationManager.getInstance(facet.module.project)
-
   private val dataManager = ResourceDataManager(facet)
-
-  private val listViewImageCache = ImageCache.createLargeImageCache(
-    parentDisposable = this,
-    mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
-
-  private val summaryImageCache: ImageCache by lazy {
-    ImageCache.createSmallImageCache(
-      parentDisposable = this,
-      mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
-  }
-
-  private val resourceNotificationListener = ResourceNotificationManager.ResourceChangeListener { reason ->
-    if (reason.size == 1 && reason.contains(ResourceNotificationManager.Reason.EDIT)) {
-      // We don't want to update all resources for every resource file edit.
-      // TODO cache the resources, notify the view to only update the rendering of the edited resource.
-      return@ResourceChangeListener
-    }
-    val currentVersion = resourceNotificationManager.getCurrentVersion(facet, null, null)
-    if (resourceVersion == currentVersion) {
-      return@ResourceChangeListener
-    }
-    resourceVersion = currentVersion
-    resourceChangedCallback?.invoke()
-  }
 
   override val selectedTabName: String get() = currentResourceType.displayName
 
@@ -154,28 +123,6 @@ class ResourceExplorerListViewModelImpl(
         else -> emptyList()
       }
 
-  private val resetPreviewsOnNextSuccessfulSync = Runnable {
-    facet.module.project.runWhenSmartAndSyncedOnEdt(this, Consumer { result ->
-      if (result.isSuccessful) {
-        listViewImageCache.clear()
-      }
-    })
-  }
-
-
-  init {
-    subscribeListener(facet)
-    val project = facet.module.project
-    if (project.getLastSyncTimestamp() < 0L) {
-      // No existing successful sync, since there's a fair chance of having rendering errors, wait for next successful sync and reset cache,
-      // then re-render all assets.
-      ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(
-        onCacheClean = resetPreviewsOnNextSuccessfulSync,
-        onSourceGenerationError = Runnable { /* Do nothing */ }
-      )
-    }
-  }
-
   override val assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, listViewImageCache, resourceResolver)
 
   /**
@@ -188,16 +135,6 @@ class ResourceExplorerListViewModelImpl(
 
   override fun facetUpdated(newFacet: AndroidFacet) {
     facetUpdaterCallback?.invoke(newFacet)
-  }
-
-  private fun subscribeListener(facet: AndroidFacet) {
-    resourceNotificationManager
-      .addListener(resourceNotificationListener, facet, null, null)
-  }
-
-  private fun unsubscribeListener(oldFacet: AndroidFacet) {
-    resourceNotificationManager
-      .removeListener(resourceNotificationListener, oldFacet, null, null)
   }
 
   private fun getModuleResources(forFacet: AndroidFacet, type: ResourceType): ResourceSection {
@@ -370,11 +307,6 @@ class ResourceExplorerListViewModelImpl(
       getThemeAttributes(forFacet, resourceType)?.let { resources.add(it) }
     }
     return resources
-  }
-
-  override fun dispose() {
-    // TODO(b/141106784): Refactor out the behavior related to the ResourceNotificationManager. So that this class doesn't need to be disposable.
-    unsubscribeListener(facet)
   }
 
   override fun getData(dataId: String?, selectedAssets: List<Asset>): Any? {

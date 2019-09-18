@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.ide.common.resources.ResourceResolver
 import com.android.SdkConstants
+import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.getPNGFile
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
@@ -30,15 +31,11 @@ import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.google.common.truth.Truth
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.psi.PsiManager
-import com.intellij.refactoring.rename.RenameDialog
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
-import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
@@ -165,40 +162,6 @@ class ResourceExplorerListViewModelImplTest {
       .containsExactly("#3F51B5", "#303F9F", "#9dff00")
   }
 
-  @Test
-  fun updateOnFileNameChanged() {
-    projectRule.fixture.copyDirectoryToProject("res/", "res/")
-    val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
-    val resourceChangedLatch = CountDownLatch(1)
-    val values = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
-    Truth.assertThat(values).isNotNull()
-    Truth.assertThat(values
-                       .flatMap { it.assets }
-                       .mapNotNull { it.resourceItem.resourceValue?.value }
-                       .map {
-                         FileUtil.getRelativePath(projectRule.fixture.tempDirPath, it, '/')
-                       })
-      .containsExactly("res/drawable/png.png", "res/drawable/vector_drawable.xml")
-
-    viewModel.resourceChangedCallback = {
-      resourceChangedLatch.countDown()
-    }
-
-    val file = projectRule.fixture.findFileInTempDir("res/drawable/vector_drawable.xml")!!
-    val psiFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(file)!! }
-    runInEdtAndGet { RenameDialog(projectRule.project, psiFile, null, null).performRename("new_name.xml") }
-    Truth.assertWithMessage("resourceChangedCallback was called").that(resourceChangedLatch.await(1, TimeUnit.SECONDS)).isTrue()
-
-    val newValues = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
-    Truth.assertThat(newValues
-                       .flatMap { it.assets }
-                       .mapNotNull { it.resourceItem.resourceValue?.value }
-                       .map {
-                         FileUtil.getRelativePath(projectRule.fixture.tempDirPath, it, '/')
-                       })
-      .containsExactly("res/drawable/png.png", "res/drawable/new_name.xml")
-  }
-
   private fun createViewModel(module: Module, resourceType: ResourceType): ResourceExplorerListViewModelImpl {
     val facet = AndroidFacet.getInstance(module)!!
     val viewModel = ResourceExplorerListViewModelImpl(
@@ -206,9 +169,10 @@ class ResourceExplorerListViewModelImplTest {
       null,
       resourceResolver,
       FilterOptions.createDefault(),
-      resourceType
+      resourceType,
+      ImageCache.createLargeImageCache(disposable),
+      ImageCache.createSmallImageCache(disposable)
     )
-    Disposer.register(disposable, viewModel)
     return viewModel
   }
 }
