@@ -39,6 +39,8 @@ import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
@@ -559,6 +561,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     clearMe(modification);
     ConstraintComponentUtilities.cleanup(modification, myComponent.getNlComponent());
     modification.commit();
+    logConstraintDisconnected(myComponent);
     myComponent.getScene().markNeedsLayout(Scene.ANIMATED_LAYOUT);
   }
 
@@ -753,6 +756,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
             NlComponent targetComponent = closestTarget.myComponent.getAuthoritativeNlComponent();
             ComponentModification modification = connectMe(component, attribute, targetComponent);
             modification.commit();
+            logConstraintConnected(myComponent);
             myComponent.getScene().markNeedsLayout(Scene.ANIMATED_LAYOUT);
           }
         }
@@ -850,6 +854,26 @@ public class ConstraintAnchorTarget extends AnchorTarget {
         myComponent.getScene().needsRebuildList();
       }
     }
+  }
+
+  private static void logConstraintConnected(SceneComponent component) {
+    DesignSurface surface = component.getScene().getDesignSurface();
+    if (!(surface instanceof NlDesignSurface)) {
+      return;
+    }
+
+    NlAnalyticsManager manager = ((NlDesignSurface)surface).getAnalyticsManager();
+    manager.trackAddConstraint();
+  }
+
+  private static void logConstraintDisconnected(SceneComponent component) {
+    DesignSurface surface = component.getScene().getDesignSurface();
+    if (!(surface instanceof NlDesignSurface)) {
+      return;
+    }
+
+    NlAnalyticsManager manager = ((NlDesignSurface)surface).getAnalyticsManager();
+    manager.trackRemoveConstraint();
   }
 
   @Override
@@ -984,6 +1008,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     public void actionPerformed(ActionEvent e) {
       List<NlComponent> list = Arrays.asList(mySrc.getAuthoritativeNlComponent(), myDest.getAuthoritativeNlComponent());
       Scout.connect(list, myType, false, true);
+      logConstraintConnected(mySrc);
       NlDesignSurface designSurface = (NlDesignSurface)mySrc.getScene().getDesignSurface();
       designSurface.forceLayersPaint(true);
       designSurface.repaint();
