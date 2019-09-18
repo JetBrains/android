@@ -83,7 +83,6 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
 
     if (StudioFlags.PROFILER_USE_ATRACE.get()) {
       CpuProfilerConfig atraceConfig = new CpuProfilerConfig(CpuProfilerConfig.Technology.ATRACE);
-      atraceConfig.setBufferSizeMb(CpuProfilerConfig.DEFAULT_ATRACE_BUFFER_SIZE_MB);
       configs.add(atraceConfig);
     }
     return configs.build();
