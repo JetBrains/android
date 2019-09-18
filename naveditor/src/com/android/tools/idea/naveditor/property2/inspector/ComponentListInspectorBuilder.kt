@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property2.inspector
 
+import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.property2.ui.ComponentList
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
@@ -92,7 +93,8 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
       }
     })
 
-    inspector.addComponent(componentList, titleModel)
+    val lineModel = inspector.addComponent(componentList, titleModel)
+    lineModel.addValueChangedListener(ValueChangedListener { refresh(component, model) })
   }
 
   protected abstract fun onAdd(parent: NlComponent)
