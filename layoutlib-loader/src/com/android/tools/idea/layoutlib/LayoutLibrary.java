@@ -31,7 +31,6 @@ import com.android.ide.common.sdk.LoadStatus;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.PluginId;
 import org.jetbrains.annotations.NotNull;
 
@@ -90,9 +89,6 @@ public class LayoutLibrary implements Disposable {
     }
 
     public static boolean isNative() {
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
-            return true;
-        }
         IdeaPluginDescriptor nativePlugin = PluginManager.getPlugin(PluginId.findId("com.android.layoutlib.native"));
         return nativePlugin != null && nativePlugin.isEnabled();
     }
