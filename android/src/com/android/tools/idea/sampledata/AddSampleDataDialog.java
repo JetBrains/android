@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.sampledata;
 
-import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
-
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sampledata.datasource.*;
@@ -44,11 +42,14 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.function.Function;
 
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+
 public class AddSampleDataDialog extends DialogWrapper {
-  private static Logger LOG = Logger.getInstance(AddSampleDataDialog.class);
+  private static final Logger LOG = Logger.getInstance(AddSampleDataDialog.class);
   private VirtualFile myCreatedFile;
 
   private static class SampleDataSource {
