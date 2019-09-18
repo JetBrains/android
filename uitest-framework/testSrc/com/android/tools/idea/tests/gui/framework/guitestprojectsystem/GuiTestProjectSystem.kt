@@ -83,7 +83,7 @@ interface GuiTestProjectSystem {
     private val EP_NAME = ExtensionPointName<GuiTestProjectSystem>("com.android.project.guitestprojectsystem")
 
     fun forBuildSystem(buildSystem: TargetBuildSystem.BuildSystem): GuiTestProjectSystem? = try {
-      EP_NAME.iterable.firstOrNull { it.buildSystem == buildSystem }
+      EP_NAME.findFirstSafe { it.buildSystem == buildSystem }
     } catch (e: IllegalArgumentException) {
       // b/73902993: Additional logging to identify the root cause of some sporadic errors
       val message = getPluginLoadingDebugLogs()
