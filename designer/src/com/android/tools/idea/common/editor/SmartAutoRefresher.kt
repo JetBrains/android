@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.common.editor
 
-import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
@@ -32,20 +30,19 @@ import java.util.function.Consumer
 
 interface SmartRefreshable : Disposable {
   fun refresh()
+  fun buildFailed() {}
 }
 
 /**
- * This is the component that receives updates every time gradle build finishes. On successful build, it calls [refresh] method of the
- * passed [SmartRefreshable]. On the failed build it displays an error message on a passed [WorkBench] stating that the preview is not
- * available unless the build is successful.
+ * This is the component that receives updates every time gradle build finishes. On successful build, it calls [SmartRefreshable#refresh]
+ * method of the passed [SmartRefreshable]. If the build fails, [SmartRefreshable#buildFailed] will be called instead.
  *
  * This is intended to be used by [com.intellij.openapi.fileEditor.FileEditor]'s. The editor should recreate/amend the model to reflect
  * build changes. This component should be created the last, so that all other members are initialized as it could call [refresh] method
  * straight away.
  */
 class SmartAutoRefresher(psiFile: PsiFile,
-                         private val refreshable: SmartRefreshable,
-                         private val workbench: WorkBench<DesignSurface>) {
+                         private val refreshable: SmartRefreshable) {
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
 
@@ -81,6 +78,11 @@ class SmartAutoRefresher(psiFile: PsiFile,
         if (status.isSuccess()) {
           refresh()
         }
+        else {
+          if (!Disposer.isDisposed(refreshable)) {
+            refreshable.buildFailed()
+          }
+        }
       }
     }, refreshable)
   }
@@ -95,7 +97,6 @@ class SmartAutoRefresher(psiFile: PsiFile,
         initPreviewWhenSmartAndSynced()
       }
       else {
-        workbench.loadingStopped("Preview is unavailable until after a successful project sync")
         // The project failed to sync, run initialization when the project syncs correctly
         project.listenUntilNextSync(refreshable, object : ProjectSystemSyncManager.SyncResultListener {
           override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {

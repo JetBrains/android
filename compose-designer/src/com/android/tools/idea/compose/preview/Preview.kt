@@ -99,8 +99,6 @@ const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
 /** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
 const val COMPOSABLE_NAME_ATTR = "tools:composableName"
 
-const val BUILDING_MESSAGE = "Waiting for build to finish..."
-
 private val WHITE_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                             JBColor(0x6E6E6E, 0xAFB1B3))
 private val BLUE_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
@@ -250,19 +248,21 @@ private class PreviewEditor(private val psiFile: PsiFile,
     val issueErrorSplitter = IssuePanelSplitter(surface, surfacePanel)
 
     init(issueErrorSplitter, surface, listOf())
-    showLoading(BUILDING_MESSAGE)
+    showLoading(message("panel.building"))
   }
 
   /**
    * Calls refresh method on the the successful gradle build
    */
-  private val refresher = SmartAutoRefresher(psiFile, this, workbench)
+  private val refresher = SmartAutoRefresher(psiFile, this)
 
   init {
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       override fun buildStarted(context: BuildContext) {
+        //  Show a loading message only if the content is not already displaying to avoid hiding it.
         if (workbench.isMessageVisible) {
-          workbench.setLoadingText(BUILDING_MESSAGE)
+          workbench.showLoading(message("panel.building"))
+          workbench.hideContent()
         }
       }
     }, this)
@@ -277,7 +277,54 @@ private class PreviewEditor(private val psiFile: PsiFile,
       it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
     }
 
+  /**
+   * Returns true if the surface has at least one correctly rendered preview.
+   */
+  fun hasAtLeastOneValidPreview() = surface.models.asSequence()
+    .mapNotNull { surface.getSceneManager(it) }
+    .filterIsInstance<LayoutlibSceneManager>()
+    .mapNotNull { it.renderResult }
+    .any { it.renderResult.isSuccess && it.logger?.brokenClasses?.values?.isEmpty() }
+
+  /**
+   * Hides the preview content and shows an error message on the surface.
+   */
+  private fun showModalErrorMessage(message: String) {
+    LOG.debug("showModelErrorMessage: $message")
+    workbench.loadingStopped(message)
+  }
+
+  /**
+   * Updates the surface visibility and displays the content or an error message depending on the build state. This method is called after
+   * certain updates like a build or a preview refresh has happened.
+   */
+  private fun updateSurfaceVisibility() {
+    if (workbench.isMessageVisible && !hasAtLeastOneValidPreview()) {
+      showModalErrorMessage(message("panel.needs.build"))
+    }
+    else {
+      workbench.hideLoading()
+      workbench.showContent()
+    }
+  }
+
+  override fun buildFailed() {
+    updateSurfaceVisibility()
+  }
+
+  /**
+   * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
+   */
   fun doRefresh(filePreviewElements: List<PreviewElement>) {
+    val filePreviewElements = previewProvider()
+
+    if (filePreviewElements == previewElements) {
+      clearCacheAndRefreshSurface(surface)
+      updateSurfaceVisibility()
+
+      return
+    }
+
     // Only display component border if decorations are not showed
     val showBorder = !RenderSettings.getProjectSettings(project).showDecorations
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
@@ -318,15 +365,18 @@ private class PreviewEditor(private val psiFile: PsiFile,
       }
       .toList()
 
-    if (newModels.isEmpty()) {
-      workbench.loadingStopped(message("panel.no.previews.defined"))
-    }
-
     // All models are now ready, remove the old ones and add the new ones
     surface.models.forEach { surface.removeModel(it) }
-    val renders = newModels.map { surface.addModel(it) }
+    val rendersCompletedFuture = if (newModels.isNotEmpty()) {
+      val renders = newModels.map { surface.addModel(it) }
+      CompletableFuture.allOf(*(renders.toTypedArray()))
+    }
+    else {
+      showModalErrorMessage(message("panel.no.previews.defined"))
+      CompletableFuture.completedFuture(null)
+    }
 
-    CompletableFuture.allOf(*(renders.toTypedArray()))
+    rendersCompletedFuture
       .whenComplete { _, ex ->
         if (LOG.isDebugEnabled) {
           LOG.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
@@ -350,15 +400,8 @@ private class PreviewEditor(private val psiFile: PsiFile,
             }
         }
 
-        if (needsBuild()) {
-          LOG.debug("needsBuild")
-          workbench.loadingStopped("Some classes could not be found")
-        }
-        else {
-          previewElements = filePreviewElements
-          LOG.debug("hideLoading")
-          workbench.hideLoading()
-        }
+        previewElements = filePreviewElements
+        updateSurfaceVisibility()
         if (ex != null) {
           LOG.warn(ex)
         }
