@@ -28,7 +28,7 @@ class LowMemoryReporter : ApplicationComponent {
   private var lowMemoryWatcherAll: LowMemoryWatcher? = null
   private var lowMemoryWatcherAfterGc: LowMemoryWatcher? = null
 
-  private val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), singleShotOnly = true)
+  private val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), manualReset = true)
 
   override fun initComponent() {
     lowMemoryWatcherAll = LowMemoryWatcher.register {
@@ -39,15 +39,25 @@ class LowMemoryReporter : ApplicationComponent {
                          .setKind(AndroidStudioEvent.EventKind.STUDIO_LOW_MEMORY_EVENT)
                          .setJavaProcessStats(CommonMetricsData.javaProcessStats))
       if (limiter.tryAcquire()) {
-        AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.FrequentLowMemoryNotification)
+        try {
+          AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.FrequentLowMemoryNotification)
+        } finally {
+          limiter.reset()
+        }
       }
     }
-    lowMemoryWatcherAfterGc = LowMemoryWatcher.register({
-      val wasDisabled = limiter.disable()
-      if (!wasDisabled) {
-        AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.LowMemory)
-      }
-    }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
+    lowMemoryWatcherAfterGc = LowMemoryWatcher.register(
+      {
+        if (limiter.disable()) {
+          // Already disabled, one of previous calls called lowMemoryDetected and is responsible for resetting the limiter.
+          return@register
+        }
+        try {
+          AndroidStudioSystemHealthMonitor.getInstance()?.lowMemoryDetected(MemoryReportReason.LowMemory)
+        } finally {
+          limiter.reset()
+        }
+      }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
   }
 
   override fun disposeComponent() {
