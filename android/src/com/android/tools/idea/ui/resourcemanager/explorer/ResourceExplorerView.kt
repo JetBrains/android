@@ -64,6 +64,7 @@ private val DEFAULT_LIST_MODE_WIDTH get() = JBUI.scale(60)
  */
 class ResourceExplorerView(
   private val viewModel: ResourceExplorerViewModel,
+  preselectedResourceName: String? = null,
   private val resourceImportDragTarget: ResourceImportDragTarget,
   private val withMultiModuleSearch: Boolean = true,
   private val withSummaryView: Boolean = false,
@@ -72,7 +73,7 @@ class ResourceExplorerView(
 ) : JPanel(BorderLayout()), Disposable {
 
   private var fileToSelect: VirtualFile? = null
-  private var resourceToSelect: String? = null
+  private var resourceToSelect: String? = preselectedResourceName
 
   private var previewSize: Int by Delegates.observable(DEFAULT_LIST_MODE_WIDTH) { _, oldValue, newValue ->
     if (newValue != oldValue) {

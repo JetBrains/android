@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.explorer.AssetListView
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceDetailView
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
+import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWrapper
 import com.google.common.truth.Truth.assertThat
 import com.intellij.application.runInAllowSaveMode
 import com.intellij.openapi.application.runWriteAction
@@ -32,10 +33,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Point
-import java.awt.event.InputEvent
-import java.awt.event.MouseEvent
-import javax.swing.JComponent
 import kotlin.test.assertNull
 
 private const val WAIT_TIMEOUT = 3000
@@ -136,39 +133,62 @@ class ResourceExplorerDialogTest {
     assertNull(UIUtil.findComponentOfType(explorerView, ResourceDetailView::class.java))
   }
 
-  private fun createResourcePickerDialog(showSampleData: Boolean): ResourceExplorerDialog {
+  @Test
+  fun openWithInitialResource() {
+    pickerDialog = createResourcePickerDialog(
+      false, "@drawable/png", setOf(ResourceType.STRING, ResourceType.DRAWABLE), ResourceType.STRING)
+    Disposer.register(projectRule.project, pickerDialog.disposable)
+    val explorerView = UIUtil.findComponentOfType(pickerDialog.resourceExplorerPanel, ResourceExplorerView::class.java)!!
+
+    // Selected tab should be Drawable, from the type of the given resource.
+    waitAndAssert<OverflowingTabbedPaneWrapper>(explorerView) {
+      it != null && (it.tabbedPane.selectedIndex == it.tabbedPane.indexOfTab(ResourceType.DRAWABLE.displayName))
+    }
+    // First tab should be Drawable instead of String, to match the Resource Manager tab order.
+    waitAndAssert<OverflowingTabbedPaneWrapper>(explorerView) {
+      it != null && it.tabbedPane.indexOfTab(ResourceType.STRING.displayName) == 1
+    }
+
+    waitAndAssert<AssetListView>(explorerView) { it != null && pickerDialog.resourceName == "@drawable/png" }
+  }
+
+  @Test
+  fun openWithPreferredResourceType() {
+    pickerDialog = createResourcePickerDialog(false, null, setOf(ResourceType.STRING, ResourceType.DRAWABLE), ResourceType.STRING)
+    Disposer.register(projectRule.project, pickerDialog.disposable)
+    val explorerView = UIUtil.findComponentOfType(pickerDialog.resourceExplorerPanel, ResourceExplorerView::class.java)!!
+
+    // Selected tab should be String from the given preferred ResourceType.
+    waitAndAssert<OverflowingTabbedPaneWrapper>(explorerView) {
+      it != null && (it.tabbedPane.selectedIndex == it.tabbedPane.indexOfTab(ResourceType.STRING.displayName))
+    }
+    // First tab should be Drawable instead of String, to match the Resource Manager tab order.
+    waitAndAssert<OverflowingTabbedPaneWrapper>(explorerView) {
+      it != null && it.tabbedPane.indexOfTab(ResourceType.STRING.displayName) == 1
+    }
+
+    waitAndAssert<AssetListView>(explorerView) { it != null && pickerDialog.resourceName == null }
+  }
+
+  private fun createResourcePickerDialog(showSampleData: Boolean,
+                                         initialResourceUrl: String? = null,
+                                         supportedTypes: Set<ResourceType> = setOf(ResourceType.DRAWABLE),
+                                         preferredType: ResourceType = ResourceType.DRAWABLE
+  ): ResourceExplorerDialog {
     var explorerDialog: ResourceExplorerDialog? = null
     runInEdtAndWait {
       explorerDialog = ResourceExplorerDialog(facet = AndroidFacet.getInstance(projectRule.module)!!,
-                                              initialResourceUrl = null,
-                                              supportedTypes = setOf(ResourceType.DRAWABLE),
+                                              initialResourceUrl = initialResourceUrl,
+                                              supportedTypes = supportedTypes,
+                                              preferredType = preferredType,
                                               showSampleData = showSampleData,
                                               currentFile = null)
     }
     assertThat(explorerDialog).isNotNull()
     explorerDialog?.let { view ->
       val explorerView = UIUtil.findComponentOfType(view.resourceExplorerPanel, ResourceExplorerView::class.java)!!
-      waitAndAssertListView(explorerView) { it != null }
+      waitAndAssert<AssetListView>(explorerView) { it != null }
     }
     return explorerDialog!!
   }
-
-  private fun simulateMouseClick(component: JComponent, point: Point, clickCount: Int) {
-    runInEdtAndWait {
-      // A click is done through a mouse pressed & released event, followed by the actual mouse clicked event.
-      component.dispatchEvent(MouseEvent(
-        component, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
-      component.dispatchEvent(MouseEvent(
-        component, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
-      component.dispatchEvent(MouseEvent(
-        component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, clickCount, false))
-    }
-  }
-}
-
-private fun waitAndAssertListView(view: ResourceExplorerView, condition: (list: AssetListView?) -> Boolean) {
-  val waitForAssetListView = object : WaitFor(WAIT_TIMEOUT) {
-    public override fun condition() = condition(UIUtil.findComponentOfType(view, AssetListView::class.java))
-  }
-  assertThat(waitForAssetListView.isConditionRealized).isTrue()
 }

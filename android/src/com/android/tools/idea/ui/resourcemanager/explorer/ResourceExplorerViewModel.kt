@@ -55,16 +55,16 @@ import kotlin.properties.Delegates
  * @param defaultFacet Initial [AndroidFacet]
  * @param contextFileForConfiguration A [VirtualFile] that holds a [Configuration], if given, it'll be used to get the [ResourceResolver].
  * @param supportedResourceTypes The given [ResourceType]s that will be listed in the Resource Explorer tabs.
- * @param filterParams The initial params for the [FilterOptions]. Used to show more resources (E.g: Resources form external libraries).
+ * @param modelState Some initial params of this view model that affect the state of the ui. E.g: Selected Resource Tab.
  * @param selectAssetAction If not null, this action will be called when double-clicking or pressing Enter on a resource.
  * @param updateResourceCallback If not null, this will be invoked whenever the selection changes, if there's more than one configuration,
  * it'll be given the highest density version.
  */
-class ResourceExplorerViewModel(
+class ResourceExplorerViewModel private constructor(
   defaultFacet: AndroidFacet,
   private var contextFileForConfiguration: VirtualFile?,
   var supportedResourceTypes: Array<ResourceType>,
-  private val filterParams: FilterOptionsParams,
+  private val modelState: ViewModelState,
   private val selectAssetAction: ((asset: Asset) -> Unit)? = null,
   private val updateResourceCallback: ((resourceItem: ResourceItem) -> Unit)? = null
 ) : Disposable {
@@ -83,7 +83,7 @@ class ResourceExplorerViewModel(
   val filterOptions = FilterOptions.create(
     { refreshListModel() },
     { updateListModelSpeedSearch(it) },
-    filterParams
+    modelState.filterParams
   )
 
   private val listViewImageCache = ImageCache.createLargeImageCache(
@@ -142,7 +142,7 @@ class ResourceExplorerViewModel(
     }
   }
 
-  var resourceTypeIndex: Int = 0
+  var resourceTypeIndex: Int = supportedResourceTypes.indexOf(modelState.selectedResourceType)
     set(value) {
       if (value != field && supportedResourceTypes.indices.contains(value)) {
         field = value
@@ -275,12 +275,15 @@ class ResourceExplorerViewModel(
         facet,
         null,
         MANAGER_SUPPORTED_RESOURCES,
-        FilterOptionsParams(
-          moduleDependenciesInitialValue = false,
-          librariesInitialValue = false,
-          showSampleData = false,
-          androidResourcesInitialValue = false,
-          themeAttributesInitialValue = false
+        ViewModelState(
+          FilterOptionsParams(
+            moduleDependenciesInitialValue = false,
+            librariesInitialValue = false,
+            showSampleData = false,
+            androidResourcesInitialValue = false,
+            themeAttributesInitialValue = false
+          ),
+          MANAGER_SUPPORTED_RESOURCES[0]
         ),
         null,
         null
@@ -288,6 +291,7 @@ class ResourceExplorerViewModel(
 
     fun createResPickerViewModel(facet: AndroidFacet,
                                  configurationContextFile: VirtualFile?,
+                                 preferredResourceTab: ResourceType,
                                  supportedResourceTypes: Array<ResourceType>,
                                  showSampleData: Boolean,
                                  selectAssetAction: ((asset: Asset) -> Unit)?,
@@ -297,18 +301,31 @@ class ResourceExplorerViewModel(
         facet,
         configurationContextFile,
         supportedResourceTypes,
-        FilterOptionsParams(
-          moduleDependenciesInitialValue = true,
-          librariesInitialValue = true,
-          showSampleData = showSampleData,
-          androidResourcesInitialValue = true,
-          themeAttributesInitialValue = true
+        ViewModelState(
+          FilterOptionsParams(
+            moduleDependenciesInitialValue = true,
+            librariesInitialValue = true,
+            showSampleData = showSampleData,
+            androidResourcesInitialValue = true,
+            themeAttributesInitialValue = true
+          ),
+          preferredResourceTab
         ),
         selectAssetAction,
         updateResourceCallback
       )
   }
 }
+
+/**
+ * Class that holds the initial state of [ResourceExplorerViewModel].
+ *
+ * TODO: Update the fields of this class as they change, then add support to save and load the last state of the Resource Manager.
+ */
+private data class ViewModelState (
+  var filterParams: FilterOptionsParams,
+  var selectedResourceType: ResourceType
+)
 
 /**
  * Gets a [Configuration] in a background thread for the given facet. If the given file has its own configuration, that'll be used instead.
