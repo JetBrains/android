@@ -110,6 +110,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
     {AnchorTarget.Type.LEFT, AnchorTarget.Type.RIGHT, AnchorTarget.Type.TOP, AnchorTarget.Type.BOTTOM}; // order matches
   private final static boolean[] isLeftRight = {true, true, false, false}; // order matches
   private final static int[] ourOppositeDirection = {1, 0, 3, 2}; // order matches
+  float[] mPathBuffer = new float[200];
 
   private static void convert(@NotNull SceneContext sceneContext, Rectangle rect) {
     rect.x = sceneContext.getSwingXDip(rect.x);
@@ -233,7 +234,8 @@ public class MotionLayoutDecorator extends SceneDecorator {
           }
         }
       }
-    } else {
+    }
+    else {
       for (int i = 0; i < attributes.length; i++) {
         id = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, attributes[i]);
         type = DIR_TABLE[i];
@@ -288,6 +290,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
                                    @NotNull SceneContext sceneContext,
                                    @NotNull SceneComponent component) {
     List<SceneComponent> children = component.getChildren();
+    addPatList(component, list);
     if (!children.isEmpty()) {
       // Cache connections between children
       for (SceneComponent child : component.getChildren()) {
@@ -310,6 +313,20 @@ public class MotionLayoutDecorator extends SceneDecorator {
         }
       }
       list.popClip();
+    }
+  }
+
+  private void addPatList(@NotNull SceneComponent component, @NotNull DisplayList list) {
+    MotionLayoutComponentHelper helper = new MotionLayoutComponentHelper(component.getNlComponent());
+    if (helper.isInTransition()) {
+      List<SceneComponent> children = component.getChildren();
+      int size = mPathBuffer.length / 2;
+      for (SceneComponent child : children) {
+        int len = helper.getPath(child.getNlComponent(), mPathBuffer, size);
+        if (len > 0) {
+          DrawMotionPath.buildDisplayList(list, mPathBuffer, size * 2);
+        }
+      }
     }
   }
 

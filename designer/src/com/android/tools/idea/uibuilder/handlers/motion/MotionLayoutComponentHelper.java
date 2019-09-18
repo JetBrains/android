@@ -28,11 +28,10 @@ import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.utils.Pair;
-import java.util.HashMap;
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import org.jetbrains.annotations.NotNull;
 
 public class MotionLayoutComponentHelper {
 
@@ -51,6 +50,7 @@ public class MotionLayoutComponentHelper {
   private Method myGetKeyframeAtLocationMethod;
   private Method myCallIsInTransition;
   private Method myUpdateLiveAttributesMethod;
+  private Method myGetAnimationPathMethod;
 
   public static final int PATH_PERCENT = 0;
   public static final int PATH_PERPENDICULAR = 1;
@@ -99,6 +99,47 @@ public class MotionLayoutComponentHelper {
     myDesignTool = designInstance;
   }
 
+  public int getPath(NlComponent nlComponent, final float[] path, int size) {
+
+    if (myDesignTool == null) {
+      return -1;
+    }
+    if (myGetAnimationPathMethod == null) {
+      try {
+
+        Method[] methods = myDesignTool.getClass().getMethods();
+        myGetAnimationPathMethod = myDesignTool.getClass().getMethod("getAnimationPath",
+                                                                     Object.class, float[].class, int.class);
+      }
+      catch (NoSuchMethodException e) {
+        e.printStackTrace();
+      }
+    }
+
+    if (myGetAnimationPathMethod != null) {
+      try {
+
+        return (Integer)RenderService.runRenderAction(() -> {
+          try {
+            ViewInfo info = NlComponentHelperKt.getViewInfo(nlComponent);
+            return myGetAnimationPathMethod.invoke(myDesignTool, info.getViewObject(), path, size);
+          }
+          catch (Exception e) {
+
+            myGetAnimationPathMethod = null;
+            e.printStackTrace();
+          }
+          return -1;
+        });
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+    return 0;
+  }
+
   public Object getKeyframeAtLocation(Object view, float x, float y) {
     if (myDesignTool == null) {
       return null;
@@ -106,7 +147,7 @@ public class MotionLayoutComponentHelper {
     if (myGetKeyframeAtLocationMethod == null) {
       try {
         myGetKeyframeAtLocationMethod = myDesignTool.getClass().getMethod("getKeyframeAtLocation",
-                                                                      Object.class, float.class, float.class);
+                                                                          Object.class, float.class, float.class);
       }
       catch (NoSuchMethodException e) {
         if (DEBUG) {
@@ -147,8 +188,8 @@ public class MotionLayoutComponentHelper {
     if (myGetPositionKeyframeMethod == null) {
       try {
         myGetPositionKeyframeMethod = myDesignTool.getClass().getMethod("getPositionKeyframe",
-                                                            Object.class, Object.class, float.class, float.class,
-                                                            String[].class, float[].class);
+                                                                        Object.class, Object.class, float.class, float.class,
+                                                                        String[].class, float[].class);
       }
       catch (NoSuchMethodException e) {
         if (DEBUG) {
@@ -189,7 +230,7 @@ public class MotionLayoutComponentHelper {
     if (myGetKeyframeMethod == null) {
       try {
         myGetKeyframeMethod = myDesignTool.getClass().getMethod("getKeyframe",
-                                                              int.class, int.class, int.class);
+                                                                int.class, int.class, int.class);
       }
       catch (NoSuchMethodException e) {
         if (DEBUG) {
@@ -230,7 +271,7 @@ public class MotionLayoutComponentHelper {
     if (mySetKeyframeMethod == null) {
       try {
         mySetKeyframeMethod = myDesignTool.getClass().getMethod("setKeyframe",
-                                                            Object.class, String.class, Object.class);
+                                                                Object.class, String.class, Object.class);
       }
       catch (NoSuchMethodException e) {
         if (DEBUG) {
@@ -268,7 +309,7 @@ public class MotionLayoutComponentHelper {
     if (mySetAttributesMethod == null) {
       try {
         mySetAttributesMethod = myDesignTool.getClass().getMethod("setAttributes",
-                                                             int.class, String.class, Object.class, Object.class);
+                                                                  int.class, String.class, Object.class, Object.class);
       }
       catch (NoSuchMethodException e) {
         if (DEBUG) {
@@ -305,7 +346,7 @@ public class MotionLayoutComponentHelper {
     if (mySetKeyframePositionMethod == null) {
       try {
         mySetKeyframePositionMethod = myDesignTool.getClass().getMethod("setKeyFramePosition",
-                                                                    Object.class, int.class, int.class, float.class, float.class);
+                                                                        Object.class, int.class, int.class, float.class, float.class);
       }
       catch (NoSuchMethodException e) {
         if (DEBUG) {
@@ -543,7 +584,7 @@ public class MotionLayoutComponentHelper {
       try {
         progress = RenderService.runRenderAction(() -> {
           try {
-            return (Float) myCallGetProgress.invoke(myDesignTool);
+            return (Float)myCallGetProgress.invoke(myDesignTool);
           }
           catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
             myCallGetProgress = null;
@@ -584,7 +625,7 @@ public class MotionLayoutComponentHelper {
       try {
         isInTransition = RenderService.runRenderAction(() -> {
           try {
-            return (Boolean) myCallIsInTransition.invoke(myDesignTool);
+            return (Boolean)myCallIsInTransition.invoke(myDesignTool);
           }
           catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
             myCallIsInTransition = null;
@@ -650,8 +691,9 @@ public class MotionLayoutComponentHelper {
     }
     if (motionLayoutAccess == null) {
       try {
-        motionLayoutAccess = myDesignTool.getClass().getMethod("designAccess", int.class, String.class, Object.class, float[].class, int.class,
-                                                           float[].class, int.class);
+        motionLayoutAccess =
+          myDesignTool.getClass().getMethod("designAccess", int.class, String.class, Object.class, float[].class, int.class,
+                                            float[].class, int.class);
       }
       catch (NoSuchMethodException e) {
         if (DEBUG) {
@@ -674,6 +716,7 @@ public class MotionLayoutComponentHelper {
 
   /**
    * Make sure we have usable Ids, even if only temporary
+   *
    * @param component
    */
   private void updateIds(@NotNull NlComponent component) {
@@ -701,7 +744,7 @@ public class MotionLayoutComponentHelper {
       if (resolved != null) {
         ViewInfo view = NlComponentHelperKt.getViewInfo(component);
         if (view != null && view.getViewObject() != null) {
-          android.view.View androidView = (android.view.View) view.getViewObject();
+          android.view.View androidView = (android.view.View)view.getViewObject();
           androidView.setId(resolved.intValue());
         }
       }
@@ -718,11 +761,9 @@ public class MotionLayoutComponentHelper {
       return;
     }
 
-//    System.out.println("\nupdate live attributes");
     HashMap<String, String> attributes = new HashMap<>();
     for (Pair<String, String> key : modification.getAttributes().keySet()) {
       String value = modification.getAttributes().get(key);
-//      System.out.println("update live <" + key + "> => " + value);
       if (value != null) {
         if (value.startsWith("@id/") || value.startsWith("@+id/")) {
           value = value.substring(value.indexOf('/') + 1);
@@ -734,7 +775,8 @@ public class MotionLayoutComponentHelper {
           if (resolved != null) {
             value = resolved.toString();
           }
-        } else if (value.equalsIgnoreCase("parent")) {
+        }
+        else if (value.equalsIgnoreCase("parent")) {
           value = "0";
         }
       }
