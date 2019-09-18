@@ -79,4 +79,8 @@ class NlAnalyticsManager(surface: DesignSurface) : DesignerAnalyticsManager(surf
   fun trackToggleAutoConnect(selected: Boolean) =
     if (selected) track(LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT)
     else track(LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT)
+
+  fun trackVisualizationToolWindow(visible: Boolean) =
+    if (visible) track(LayoutEditorEvent.LayoutEditorEventType.SHOW_LAYOUT_VISUALIZATION_TOOL)
+    else track(LayoutEditorEvent.LayoutEditorEventType.HIDE_LAYOUT_VISUALIZATION_TOOL)
 }
