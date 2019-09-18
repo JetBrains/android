@@ -169,10 +169,11 @@ public class GradleSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import project (Gradle, Eclipse ADT, etc.)"));
     replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
-    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
-               "WelcomeScreen.QuickStart", new Constraints(AFTER, "WelcomeScreen.GetFromVcs"));
-
     ActionManager actionManager = ActionManager.getInstance();
+
+    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
+               "WelcomeScreen.QuickStart", new Constraints(AFTER, "WelcomeScreen.GetFromVcs"), actionManager);
+
     AnAction getFromVcsAction = actionManager.getAction("WelcomeScreen.GetFromVcs");
     if (getFromVcsAction != null) {
       getFromVcsAction.getTemplatePresentation().setText("Check out project from Version Control");
