@@ -109,6 +109,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -191,6 +192,12 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   private boolean myTooManyExceptionsPromptShown = false;
   private static long ourCurrentSessionStudioExceptionCount = 0;
 
+  // If GC cleared more than MEMORY_FREED_THRESHOLD_FOR_HEAP_REPORT of unreachable/weak/soft references, then ignore the notification.
+  public static final long MEMORY_FREED_THRESHOLD_FOR_HEAP_REPORT = 100_000_000;
+
+  // If there is more free memory than FREE_MEMORY_THRESHOLD_FOR_HEAP_REPORT, ignore the notification.
+  public static final long FREE_MEMORY_THRESHOLD_FOR_HEAP_REPORT = 300_000_000;
+
   private static AndroidStudioSystemHealthMonitor ourInstance;
 
   public AndroidStudioSystemHealthMonitor(@NotNull PropertiesComponent properties) {
@@ -218,9 +225,77 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     return ourInstance;
   }
 
-  public void lowMemoryDetected(MemoryReportReason reason) {
-    addHistogramToDatabase(reason, "LowMemoryWatcher");
-    ApplicationManager.getApplication().invokeLater(new HeapDumpSnapshotRunnable(reason, HeapDumpSnapshotRunnable.AnalysisOption.SCHEDULE_ON_NEXT_START));
+  private static long freeUpMemory() {
+    long usedMemoryBefore = getUsedMemory();
+
+    // Following code should trigger clearing of all weak/soft references. Quite often free memory + soft/weak referenced memory will be
+    // less than Integer.MAX_VALUE, therefore the loop will not allocate anything and will fail quite fast.
+    ArrayList<byte[]> list = new ArrayList<>();
+    try {
+      //noinspection InfiniteLoopStatement
+      while (true) {
+        // Maximum size of the array that can be allocated is Int.MAX_VALUE - 2.
+        list.add(new byte[Integer.MAX_VALUE - 2]);
+      }
+    } catch (OutOfMemoryError ignored) {
+      // ignore
+    } finally {
+      list.clear();
+      // Help GC collect the list object earlier
+      list = null;
+      // Try to force reclaiming just allocated objects
+      System.gc();
+    }
+    long usedMemoryAfter = getUsedMemory();
+
+    return (usedMemoryAfter > usedMemoryBefore) ? 0 : usedMemoryAfter - usedMemoryBefore;
+  }
+
+  private static long getUsedMemory() {
+    return Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+  }
+
+  private static long getFreeMemory() {
+    return Runtime.getRuntime().maxMemory() - getUsedMemory();
+  }
+
+  private final Lock lowMemoryDetectedLock = new ReentrantLock();
+  private boolean memoryReportCreated = false;
+
+  public boolean lowMemoryDetected(MemoryReportReason reason) {
+    // Ignore concurrent calls to the method.
+    if (!lowMemoryDetectedLock.tryLock()) {
+      return false;
+    }
+    try {
+      if (reason != MemoryReportReason.OutOfMemory) {
+        // Don't clear weak/soft references if there is still plenty of free memory
+        long freeMemory = getFreeMemory();
+        if (freeMemory >= FREE_MEMORY_THRESHOLD_FOR_HEAP_REPORT) {
+          return false;
+        }
+
+        // Free up some memory by clearing weak/soft references
+        long memoryFreed = freeUpMemory();
+        LOG.warn("Forced clear of soft/weak references. Reason: " + reason + ", freed memory: " + (memoryFreed / 1_000_000) + "MB");
+        if (memoryFreed >= MEMORY_FREED_THRESHOLD_FOR_HEAP_REPORT) {
+          // Enough memory was freed, so there is no reason to send the report.
+          return false;
+        }
+      }
+
+      // Create only one report per session
+      if (!memoryReportCreated) {
+        memoryReportCreated = true;
+        addHistogramToDatabase(reason, "LowMemoryWatcher");
+        ApplicationManager.getApplication()
+          .invokeLater(new HeapDumpSnapshotRunnable(reason, HeapDumpSnapshotRunnable.AnalysisOption.SCHEDULE_ON_NEXT_START));
+      }
+
+      return true;
+    } finally {
+      lowMemoryDetectedLock.unlock();
+    }
   }
 
   public void addHistogramToDatabase(MemoryReportReason reason, @Nullable String description) {
