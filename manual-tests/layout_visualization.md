@@ -1,5 +1,7 @@
 ## Layout Visaulization Drag and Drop Test
 
+### Note: This feature is disabled in Android Studio 3.6 & 3.6 beta. Do not test it in 3.6 & 3.6 beta ###
+
 1. Create a new empty project with empty activity.
 2. Copy (./res/layout-visualization/visualization_layout.xml) and (./res/layout-visualization/another_layout) to app/res/layout folder in the Studio project.
 3. Open app/res/visualization_layout.xml file
