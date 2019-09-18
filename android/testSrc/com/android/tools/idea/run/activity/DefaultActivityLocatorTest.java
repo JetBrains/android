@@ -41,6 +41,15 @@ import static org.mockito.Mockito.when;
 public class DefaultActivityLocatorTest extends AndroidTestCase {
 
   @Override
+  public void tearDown() throws Exception {
+    try {
+      StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.clearOverride();
+    } finally {
+      super.tearDown();
+    }
+  }
+
+  @Override
   protected boolean providesCustomManifest() {
     return true;
   }
@@ -117,13 +126,11 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ENABLED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-/* b/141246584
     assertEquals("LaunchActivity", computeDefaultActivity(myFacet, null));
 
     // make sure that the dom based approach to getting values works as well
     final Manifest manifest = Manifest.getMainManifest(myFacet);
     assertEquals("LaunchActivity", DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest));
-b/141246584 */
   }
 
   public void testLauncherActivityIntent() throws Exception {
