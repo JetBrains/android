@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.hprof.util
 
+import com.android.tools.idea.diagnostics.hprof.classstore.ThreadInfo
+import com.android.tools.idea.diagnostics.hprof.navigator.RootReason
 import com.android.tools.idea.diagnostics.hprof.parser.ConstantPoolEntry
 import com.android.tools.idea.diagnostics.hprof.parser.HeapDumpRecordType
 import com.android.tools.idea.diagnostics.hprof.parser.InstanceFieldEntry
@@ -93,6 +95,15 @@ class HprofWriter(
     with(subtagsStream) {
       writeHeapDumpRecordHeader(HeapDumpRecordType.RootUnknown)
       writeId(id)
+    }
+  }
+
+  fun writeRootJavaFrame(objectId: Long, threadSerialNumber: Int, frameNumber: Int) {
+    with(subtagsStream) {
+      writeHeapDumpRecordHeader(HeapDumpRecordType.RootJavaFrame)
+      writeId(objectId)
+      writeInt(threadSerialNumber)
+      writeInt(frameNumber)
     }
   }
 
@@ -247,6 +258,39 @@ class HprofWriter(
         8 -> writeLong(value)
         else -> assert(false)
       }
+    }
+  }
+
+  fun writeStackTrace(stackTraceSerialNumber: Int, threadSerialNumber: Long, stackFrameIds: LongArray) {
+    with (dos) {
+      val length = 3 * 4 + idSize * stackFrameIds.size
+      writeRecordHeader(RecordType.StackTrace, length)
+      writeInt(stackTraceSerialNumber)
+      writeInt(threadSerialNumber.toInt())
+      writeInt(stackFrameIds.size)
+      for (frameId in stackFrameIds) {
+        writeId(frameId)
+      }
+    }
+  }
+
+
+  fun writeStackFrame(stackFrameId: Long,
+                       methodNameStringId: Long,
+                       methodSignatureStringId: Long,
+                       sourceFilenameStringId: Long,
+                       classSerialNumber: Int,
+                       lineNumber: Int)
+  {
+    with (dos) {
+      val length = (4 * idSize) + (2 * 4)
+      writeRecordHeader(RecordType.StackFrame, length)
+      writeId(stackFrameId)
+      writeId(methodNameStringId)
+      writeId(methodSignatureStringId)
+      writeId(sourceFilenameStringId)
+      writeInt(classSerialNumber)
+      writeInt(lineNumber)
     }
   }
 }
