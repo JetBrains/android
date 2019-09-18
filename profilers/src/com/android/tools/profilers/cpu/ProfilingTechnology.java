@@ -36,7 +36,7 @@ public enum ProfilingTechnology {
 
   ATRACE("System Trace Recording",
          "Traces Java and native code at the Android platform level.",
-         "Available for Android 8.0 (API level 26) and higher.");
+         "Available for Android 7.0 (API level 24) and higher.");
 
   @NotNull private final String myName;
 
