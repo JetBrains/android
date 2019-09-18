@@ -21,24 +21,29 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.IconLoader.findIcon
 import java.io.File
 import javax.swing.Icon
+import java.util.Optional
 
 private val log get() = logger<IconLoader>()
+
 /**
  * Guava [CacheLoader] which can convert a file path to an icon. This is used to help us load standard 256x256 icons out of template files.
+ *
+ * Note: optional [Icon] is used instead of nullable [Icon] because null is a special value in cacheLoader and should not be used.
  */
-internal class IconLoader : CacheLoader<File, Icon?>() {
-  override fun load(iconPath: File): Icon? {
+internal class IconLoader : CacheLoader<File, Optional<Icon>>() {
+  override fun load(iconPath: File): Optional<Icon> {
     if (!iconPath.isFile) {
       log.warn("Image file ${iconPath.absolutePath} was not found")
-      return null
+      return Optional.empty()
     }
     val icon = findIcon(iconPath.toURI().toURL()) ?: run {
       log.warn("File ${iconPath.absolutePath} exists but is not a valid image")
-      return null
+      return Optional.empty()
     }
-    return TemplateIcon(icon).apply {
-      cropBlankWidth()
-      setHeight(256)
-    }
+    return Optional.of(
+      TemplateIcon(icon).apply {
+        cropBlankWidth()
+        setHeight(256)
+      })
   }
 }
