@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
+import com.android.SdkConstants
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
@@ -43,6 +44,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.LambdaUtil
+import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPackage
@@ -158,14 +160,29 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
 
         // If the id is an unqualified java.lang class name (e.g. "String", "Integer"), handle it
         // even if not explicitly imported
-        simpleName
-          .takeUnless { it.contains('.') } // Searching unqualified classes only; no packages!
+        // Searching unqualified classes only; no packages!
+        val langClass = simpleName.takeUnless { name -> name.contains('.') }
           ?.let { name -> javaPsiFacade.findClass(JAVA_LANG + name, GlobalSearchScope.moduleWithLibrariesScope(module)) }
-          ?.let { langClass -> return arrayOf(PsiClassReference(element, langClass)) }
+        if (langClass != null) {
+          return arrayOf(PsiClassReference(element, langClass, true))
+        }
 
-        val aPackage = javaPsiFacade.findPackage(simpleName) ?: return PsiReference.EMPTY_ARRAY
-        return arrayOf(PsiPackageReference(element, aPackage))
+        val psiPackage = javaPsiFacade.findPackage(simpleName)
+        if (psiPackage != null) {
+          return arrayOf(PsiPackageReference(element, psiPackage))
+        }
+
+        // Add a reference to Context class for "context" when no other references can be found.
+        if (simpleName == "context") {
+          val contextClass = LayoutBindingTypeUtil.parsePsiType(SdkConstants.CLASS_CONTEXT, element)
+            ?.let { psiType -> (psiType as? PsiClassType)?.resolve() }
+          if (contextClass != null) {
+            return arrayOf(PsiClassReference(element, contextClass, false))
+          }
+        }
       }
+
+      return PsiReference.EMPTY_ARRAY
     }
 
     private fun getReferencesFromQualRefExpr(refExpr: PsiDbRefExpr, prefixExpr: PsiDbExpr, fieldText: String): Array<PsiReference> {
@@ -216,7 +233,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         val innerClass = JavaPsiFacade.getInstance(refExpr.project).findClass(innerName,
                                                                               module.getModuleWithDependenciesAndLibrariesScope(false))
         if (innerClass != null) {
-          return arrayOf(PsiClassReference(refExpr, innerClass))
+          return arrayOf(PsiClassReference(refExpr, innerClass, true))
         }
       }
 
@@ -260,7 +277,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
           val classes = aPackage.findClassByShortName(fieldText, scope)
           if (classes.isNotEmpty()) {
             return classes
-              .map { aClass -> PsiClassReference(refExpr, aClass) }
+              .map { aClass -> PsiClassReference(refExpr, aClass, true) }
               .toTypedArray()
           }
         }
