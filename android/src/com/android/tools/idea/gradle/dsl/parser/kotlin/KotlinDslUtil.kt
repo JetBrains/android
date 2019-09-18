@@ -455,7 +455,8 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
 
   val psiFactory = KtPsiFactory(parentPsiElement.project)
   val expressionRightValue =
-    if (expressionValue is KtConstantExpression) expressionValue.text else StringUtil.unquoteString(expressionValue.text).addQuotes(true)
+    if (expressionValue is KtConstantExpression || expressionValue is KtNameReferenceExpression) expressionValue.text
+    else StringUtil.unquoteString(expressionValue.text).addQuotes(true)
   val argumentStringExpression =
     "${expression.name.addQuotes(true)} to $expressionRightValue"
   val mapArgument = psiFactory.createExpression(argumentStringExpression)

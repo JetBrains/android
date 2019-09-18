@@ -77,7 +77,6 @@ import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 import org.jetbrains.kotlin.resolve.constants.evaluate.parseBoolean
 import org.jetbrains.kotlin.resolve.constants.evaluate.parseNumericLiteral
 import java.math.BigDecimal
-import java.util.Locale
 
 /**
  * Parser for .gradle.kt files. This method produces a [GradleDslElement] tree.
@@ -330,7 +329,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
     val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
     propertyElement.setUseAssignment(true)
-    propertyElement.setElementType(REGULAR)
+    propertyElement.elementType = REGULAR
 
     parentBlock.setParsedElement(propertyElement)
   }
