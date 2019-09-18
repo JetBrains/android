@@ -574,6 +574,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @InputEventMask int modifiers) {
       ViewGroupHandler constraintHandler = (ViewGroupHandler) handler;
       constraintHandler.clearAttributes(selectedChildren);
+      getAnalyticsManager(editor).trackRemoveConstraint();
       ensureLayersAreShown(editor, 1000);
     }
 
@@ -1708,12 +1709,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                           @NotNull NlComponent component,
                           @NotNull List<NlComponent> selectedChildren,
                           @InputEventMask int modifiers) {
-        // TODO: getAnalyticsManager(editor).trackConnectConstraint();
         Scout.connect(selectedChildren, myConnectType, mReverse, true);
         ensureLayersAreShown(editor, 1000);
         ComponentModification modification = new ComponentModification(component, "Connect Constraint");
         component.startAttributeTransaction().applyToModification(modification);
         modification.commit();
+        getAnalyticsManager(editor).trackAddConstraint();
       }
 
       @Override
