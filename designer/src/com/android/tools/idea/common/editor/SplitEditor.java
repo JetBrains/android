@@ -263,6 +263,7 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
         surface.getAnalyticsManager().trackSelectEditorMode();
       }
       getComponent().requestFocus();
+      // TODO(b/136174865): hide editor tool windows (e.g. palette) depending on the mode selected.
     }
   }
 

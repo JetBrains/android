@@ -80,7 +80,6 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   private PropertiesComponent myPropertiesComponent;
   private ToolWindowDefinition<String> myDefinition;
   private AttachedToolWindow<String> myToolWindow;
-  private WorkBench<String> myWorkBench;
 
   @Override
   public void setUp() throws Exception {
@@ -102,11 +101,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myModel.getProject()).thenReturn(getProject());
     myPropertiesComponent = PropertiesComponent.getInstance();
     myDefinition = PalettePanelToolContent.getDefinition();
-    myWorkBench = (WorkBench<String>)mock(WorkBench.class);
-    when(myWorkBench.getName()).thenReturn("DESIGNER");
-    when(myWorkBench.getContext()).thenReturn("");
-
-    myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel);
+    myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, "DESIGNER", myModel);
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
   }
 
@@ -186,25 +181,6 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     myToolWindow.setFloating(true);
     assertThat(myToolWindow.isFloating()).isTrue();
     assertThat(myPropertiesComponent.getBoolean(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING")).isTrue();
-  }
-
-  public void testDefinitionContext() {
-    myToolWindow.setMinimized(true);
-    assertThat(myToolWindow.isMinimized()).isTrue();
-    assertThat(myPropertiesComponent.getBoolean(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED")).isTrue();
-
-    when(myWorkBench.getContext()).thenReturn("SPLIT");
-    myToolWindow.setMinimized(true);
-    assertThat(myPropertiesComponent.getBoolean(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT.MINIMIZED")).isTrue();
-    // Changes to the MINIMIZED property in the SPLIT context should only affect this context
-    myToolWindow.setMinimized(false);
-    assertThat(myPropertiesComponent.getBoolean(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.SPLIT.MINIMIZED")).isFalse();
-    assertThat(myToolWindow.isMinimized()).isFalse();
-
-    // MINIMIZED property in the DEFAULT context remains true
-    assertThat(myPropertiesComponent.getBoolean(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.MINIMIZED")).isTrue();
-    when(myWorkBench.getContext()).thenReturn("");
-    assertThat(myToolWindow.isMinimized()).isTrue();
   }
 
   public void testSetPropertyAndUpdateWillNotifyModelAndChangeContent() {
