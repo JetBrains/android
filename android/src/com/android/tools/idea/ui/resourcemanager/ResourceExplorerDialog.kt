@@ -60,6 +60,7 @@ class ResourceExplorerDialog(
         resourceExplorerPanel.selectAsset(value.resourceName!!, value.type!!, newResource = false)
       }
     }
+    ResourceManagerTracking.logDialogOpens()
     init()
     doValidate()
   }
