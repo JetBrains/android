@@ -20,11 +20,11 @@ import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.ui.impl.watch.ValueDescriptorImpl;
 import com.intellij.debugger.ui.tree.render.CompoundReferenceRenderer;
 import com.intellij.xdebugger.frame.XFullValueEvaluator;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 
-public class BitmapRenderer extends CompoundReferenceRenderer implements FullValueEvaluatorProvider {
+final class BitmapRenderer extends CompoundReferenceRenderer implements FullValueEvaluatorProvider {
   private static final String BITMAP_FQCN = "android.graphics.Bitmap";
 
   BitmapRenderer() {
@@ -34,7 +34,7 @@ public class BitmapRenderer extends CompoundReferenceRenderer implements FullVal
     setEnabled(true);
   }
 
-  @Nullable
+  @NotNull
   @Override
   public XFullValueEvaluator getFullValueEvaluator(EvaluationContextImpl evaluationContext, final ValueDescriptorImpl valueDescriptor) {
     return new BitmapPopupEvaluator(evaluationContext) {
