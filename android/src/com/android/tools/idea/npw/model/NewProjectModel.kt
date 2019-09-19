@@ -19,6 +19,7 @@ import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.repository.io.FileOpUtils
+import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
@@ -47,8 +48,10 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -92,18 +95,21 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val isNewProject = true
   override val projectTemplateValues = mutableMapOf<String, Any>()
   override val language = OptionalValueProperty<Language>()
-  override val multiTemplateRenderer = MultiTemplateRenderer(
-    renderRunner = { renderer ->
-      run {
-        assert(project.valueOrNull == null)
-        val projectName = applicationName.get()
-        val projectLocation = projectLocation.get()
-        val newProject = ProjectManager.getInstance().createProject(projectName, projectLocation)!!
-        project.value = newProject
-        renderer(newProject)
+  override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
+    run {
+      assert(project.valueOrNull == null)
+      val projectName = applicationName.get()
+      val projectLocation = projectLocation.get()
+      val newProject = GradleProjectImporter.getInstance().createProject(projectName, File(projectLocation))
+      project.value = newProject
+      AndroidNewProjectInitializationStartupActivity.setProjectInitializer(newProject) {
+        NonProjectFileWritingAccessProvider.disableChecksDuring {
+          renderer(newProject)
+        }
       }
-    },
-    projectSyncInvoker = this.projectSyncInvoker)
+      ProjectManagerEx.getInstanceEx().openProject(newProject)
+    }
+  }
 
   init {
     packageName.addListener {
