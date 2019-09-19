@@ -411,7 +411,7 @@ public class FileResourceElementWrapper implements PsiFile, ResourceElementWrapp
   }
 
   @Override
-  public boolean processChildren(PsiElementProcessor<PsiFileSystemItem> processor) {
+  public boolean processChildren(@NotNull PsiElementProcessor<PsiFileSystemItem> processor) {
     return myWrappedElement.processChildren(processor);
   }
 

@@ -494,6 +494,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       myModuleName = moduleName;
     }
 
+    @NotNull
     @Override
     protected Module createModule() {
       Project project = myFixtureBuilder.getFixture().getProject();
@@ -506,6 +507,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       return ModuleManager.getInstance(project).newModule(moduleFilePath, ModuleTypeId.JAVA_MODULE);
     }
 
+    @NotNull
     @Override
     protected ModuleFixtureImpl instantiateFixture() {
       return new ModuleFixtureImpl(this);
