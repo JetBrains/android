@@ -342,6 +342,9 @@ public class TimeLinePanel extends JPanel {
     mMeModel = model;
     List<TimeLineRowData> list = transitionTag != null ? buildTransitionList() : Collections.emptyList();
     mTimeLine.setListData(list, model);
+    if (transitionTag != null) {
+      mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{transitionTag});
+    }
 
     if (newSelection != null) {
       int index = findKeyFrameInRows(list, newSelection);

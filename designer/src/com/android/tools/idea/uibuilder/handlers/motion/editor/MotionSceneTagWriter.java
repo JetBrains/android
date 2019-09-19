@@ -28,6 +28,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * The Writer form of the WrapMotionScene used when you are modifying the tag.
@@ -35,7 +36,7 @@ import java.util.HashMap;
 public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWriter {
   String mType;
   ArrayList<CommitListener> myListeners = new ArrayList<>();
-  HashMap<String, Attribute> mNewAttrList = new HashMap<>();
+  HashMap<String, Attribute> mNewAttrList = new LinkedHashMap<>();
 
   public MotionSceneTagWriter(MotionSceneTag parent, String type) {
     super(null, parent);

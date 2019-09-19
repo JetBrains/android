@@ -60,6 +60,12 @@ public interface AccessoryPanelInterface {
   @Nullable
   Object getSelectedAccessory();
 
+  /**
+   * Returns the currently selected object type.
+   */
+  @Nullable
+  Object getSelectedAccessoryType();
+
   void addListener(@NotNull AccessorySelectionListener listener);
 
   void removeListener(@NotNull AccessorySelectionListener listener);

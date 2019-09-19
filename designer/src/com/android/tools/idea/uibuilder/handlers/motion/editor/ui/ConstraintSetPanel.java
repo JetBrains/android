@@ -369,6 +369,7 @@ class ConstraintSetPanel extends JPanel {
     mDerived = null;
     if (mConstraintSet != null) {
       mMeModel.setSelected(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{constraintSet});
+      mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{constraintSet});
       String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
       if (derived != null) {
         mDerived = Utils.stripID(derived);

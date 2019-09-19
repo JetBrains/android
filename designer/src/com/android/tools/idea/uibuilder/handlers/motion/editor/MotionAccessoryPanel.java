@@ -84,7 +84,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private NlComponent mySelection;
   private NlComponent myMotionLayout;
   private MotionEditorSelector.Type mLastSelection = MotionEditorSelector.Type.LAYOUT;
-  private MotionSceneTag myLastSelectedTag;
+  private MTag[] myLastSelectedTags;
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
@@ -128,7 +128,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         }
         mSelectedConstraintTag = null;
         mLastSelection = selection;
-        myLastSelectedTag = computeSelectedTagForPropertyPanel(tag);
+        myLastSelectedTags = tag;
         switch (selection) {
           case CONSTRAINT_SET: {
             String id = tag[0].getAttributeValue("id");
@@ -180,6 +180,13 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             break;
         }
         if (!mMotionEditor.isUpdatingModel()) {
+          if (mLastSelection == MotionEditorSelector.Type.LAYOUT || mLastSelection == MotionEditorSelector.Type.LAYOUT_VIEW) {
+            if (myLastSelectedTags != null && myLastSelectedTags.length > 0) {
+              mySelection = ((NlComponentTag)myLastSelectedTags[0]).getComponent();
+            }
+            mLastSelection = null;
+            myLastSelectedTags = null;
+          }
           fireSelectionChanged(Collections.singletonList(mySelection));
         }
       }
@@ -215,7 +222,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     ResourceNotificationManager.getInstance(myProject).addListener(new ResourceNotificationManager.ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
-        myLastSelectedTag = null; // this is from the model that will be replaced below
+        mLastSelection = null;
+        myLastSelectedTags = null;
         myMotionScene = getMotionScene(myMotionLayoutNlComponent);
         mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
         fireSelectionChanged(Collections.singletonList(mySelection));
@@ -248,19 +256,15 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   @Nullable
-  private MotionSceneTag computeSelectedTagForPropertyPanel(MTag[] tag) {
-    MTag firstTag = tag != null && tag.length > 0 ? tag[0] : null;
-    MotionSceneTag sceneTag = firstTag instanceof MotionSceneTag ? (MotionSceneTag)firstTag : null;
-    if (sceneTag == null || !sceneTag.getXmlTag().isValid()) {
-      return null;
-    }
-    return sceneTag;
+  @Override
+  public Object getSelectedAccessory() {
+    return myLastSelectedTags;
   }
 
   @Nullable
   @Override
-  public Object getSelectedAccessory() {
-    return myLastSelectedTag;
+  public Object getSelectedAccessoryType() {
+    return mLastSelection;
   }
 
   private void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {

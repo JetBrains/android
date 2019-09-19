@@ -346,6 +346,9 @@ public class CombinedListPanel extends JPanel {
   }
 
   public void selectTag(MTag tag) {
+    if (tag == null) {
+      return;
+    }
     if (mSplitView) {
       String name = tag.getTagName();
       if (name.endsWith("MotionLayout")) {
@@ -357,7 +360,7 @@ public class CombinedListPanel extends JPanel {
         int size = model.getSize();
         for (int i = 0; i < size; i++) {
           Row row = model.getElementAt(i);
-          if (tag == row.mTag) { // TODO this should be a deep compare
+          if (tagEquals(tag, row.mTag)) { // TODO this should be a deep compare
             mConstraintSetList.setSelectedIndex(i);
             return;
           }
@@ -367,7 +370,7 @@ public class CombinedListPanel extends JPanel {
         int size = model.getSize();
         for (int i = 0; i < size; i++) {
           Row row = model.getElementAt(i);
-          if (tag == row.mTag) { // TODO this should be a deep compare
+          if (tagEquals(tag, row.mTag)) { // TODO this should be a deep compare
             mTransitionList.setSelectedIndex(i);
             return;
           }
@@ -382,13 +385,19 @@ public class CombinedListPanel extends JPanel {
       }
       for (int i = 0; i < size; i++) {
         Row row = model.getElementAt(i);
-        if (tag == row.mTag) { // TODO this should be a deep compare
+        if (tagEquals(tag, row.mTag)) { // TODO this should be a deep compare
           mMainList.setSelectedIndex(i);
           return;
         }
 
       }
     }
+  }
 
+  private static boolean tagEquals(MTag tag1, MTag tag2) {
+    if (tag1 == null || tag2 == null) {
+      return tag1 == tag2;
+    }
+    return tag1.getTreeId().equals(tag2.getTreeId());
   }
 }

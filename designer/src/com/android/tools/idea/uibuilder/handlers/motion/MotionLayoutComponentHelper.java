@@ -61,6 +61,7 @@ public class MotionLayoutComponentHelper {
 
   private final Object myDesignTool;
   private final NlComponent myMotionLayoutComponent;
+  private final boolean DEBUG = false;
 
   public MotionLayoutComponentHelper(@NotNull NlComponent component) {
     ViewInfo info = NlComponentHelperKt.getViewInfo(component);
@@ -83,12 +84,16 @@ public class MotionLayoutComponentHelper {
           designInstance = RenderService.runRenderAction(() -> accessor.invoke(instance));
         }
         catch (Exception e) {
-          e.printStackTrace();
+          if (DEBUG) {
+            e.printStackTrace();
+          }
         }
       }
     }
     catch (NoSuchMethodException e) {
-      e.printStackTrace();
+      if (DEBUG) {
+        e.printStackTrace();
+      }
     }
     myMotionLayoutComponent = component;
     myDesignTool = designInstance;
@@ -104,7 +109,9 @@ public class MotionLayoutComponentHelper {
                                                                       Object.class, float.class, float.class);
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
 
@@ -116,13 +123,17 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             myGetKeyframeAtLocationMethod = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
           return null;
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
 
@@ -140,7 +151,9 @@ public class MotionLayoutComponentHelper {
                                                             String[].class, float[].class);
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
 
@@ -152,13 +165,17 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             myGetPositionKeyframeMethod = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
           return false;
         }) == Boolean.TRUE;
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
 
@@ -175,7 +192,9 @@ public class MotionLayoutComponentHelper {
                                                               int.class, int.class, int.class);
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
 
@@ -187,13 +206,17 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             myGetKeyframeMethod = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
           return null;
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
 
@@ -210,7 +233,9 @@ public class MotionLayoutComponentHelper {
                                                             Object.class, String.class, Object.class);
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
 
@@ -222,12 +247,16 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             mySetKeyframeMethod = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
   }
@@ -242,7 +271,9 @@ public class MotionLayoutComponentHelper {
                                                              int.class, String.class, Object.class, Object.class);
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
     if (mySetAttributesMethod != null) {
@@ -253,12 +284,16 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             mySetAttributesMethod = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
   }
@@ -273,7 +308,9 @@ public class MotionLayoutComponentHelper {
                                                                     Object.class, int.class, int.class, float.class, float.class);
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
     final boolean[] didUpdate = {false};
@@ -288,12 +325,16 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             mySetKeyframePositionMethod = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
     return didUpdate[0];
@@ -308,7 +349,9 @@ public class MotionLayoutComponentHelper {
         myCallSetTransitionPosition = myDesignTool.getClass().getMethod("setToolPosition", float.class);
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
         myCallSetTransitionPosition = null;
         return false;
       }
@@ -321,12 +364,16 @@ public class MotionLayoutComponentHelper {
           }
           catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
             myCallSetTransitionPosition = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
     if (myCallSetTransitionPosition == null) {
@@ -357,7 +404,9 @@ public class MotionLayoutComponentHelper {
         myCallSetTransition = myDesignTool.getClass().getMethod("setTransition", String.class, String.class);
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
         myCallSetTransition = null;
         return;
       }
@@ -370,12 +419,16 @@ public class MotionLayoutComponentHelper {
           }
           catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
             myCallSetTransition = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
     if (myCallSetTransition == null) {
@@ -394,7 +447,9 @@ public class MotionLayoutComponentHelper {
         myCallSetState = myDesignTool.getClass().getMethod("setState", String.class);
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
         myCallSetState = null;
         return;
       }
@@ -407,12 +462,16 @@ public class MotionLayoutComponentHelper {
           }
           catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
             myCallSetState = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
     if (myCallSetState == null) {
@@ -432,7 +491,9 @@ public class MotionLayoutComponentHelper {
         myCallGetState = myDesignTool.getClass().getMethod("getState");
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
         myCallGetState = null;
         return state;
       }
@@ -445,13 +506,17 @@ public class MotionLayoutComponentHelper {
           }
           catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
             myCallSetState = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
           return null;
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
     return state;
@@ -467,7 +532,9 @@ public class MotionLayoutComponentHelper {
         myCallGetProgress = myDesignTool.getClass().getMethod("getProgress");
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
         myCallGetProgress = null;
         return progress;
       }
@@ -480,13 +547,17 @@ public class MotionLayoutComponentHelper {
           }
           catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
             myCallGetProgress = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
           return 0f;
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
     return progress;
@@ -502,7 +573,9 @@ public class MotionLayoutComponentHelper {
         myCallIsInTransition = myDesignTool.getClass().getMethod("isInTransition");
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
         myCallIsInTransition = null;
         return isInTransition;
       }
@@ -515,13 +588,17 @@ public class MotionLayoutComponentHelper {
           }
           catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
             myCallIsInTransition = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
           return false;
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
     return isInTransition;
@@ -536,7 +613,9 @@ public class MotionLayoutComponentHelper {
         myGetMaxTimeMethod = myDesignTool.getClass().getMethod("getTransitionTimeMs");
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
 
@@ -548,14 +627,18 @@ public class MotionLayoutComponentHelper {
           }
           catch (IllegalAccessException | InvocationTargetException e) {
             myGetMaxTimeMethod = null;
-            e.printStackTrace();
+            if (DEBUG) {
+              e.printStackTrace();
+            }
           }
 
           return 0;
         }).longValue();
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
     return 0;
@@ -571,7 +654,9 @@ public class MotionLayoutComponentHelper {
                                                            float[].class, int.class);
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        if (DEBUG) {
+          e.printStackTrace();
+        }
         return -1;
       }
     }
@@ -580,7 +665,9 @@ public class MotionLayoutComponentHelper {
     }
     catch (IllegalAccessException | InvocationTargetException e) {
       myGetMaxTimeMethod = null;
-      e.printStackTrace();
+      if (DEBUG) {
+        e.printStackTrace();
+      }
     }
     return -1;
   }

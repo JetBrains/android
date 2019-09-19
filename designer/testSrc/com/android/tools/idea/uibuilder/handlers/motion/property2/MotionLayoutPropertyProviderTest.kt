@@ -21,12 +21,26 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.junit.Test
+
+fun mapTagNameToType(tagName: String): MotionEditorSelector.Type {
+  when (tagName) {
+    MotionSceneAttrs.Tags.TRANSITION -> return MotionEditorSelector.Type.TRANSITION
+    MotionSceneAttrs.Tags.CONSTRAINT -> return MotionEditorSelector.Type.CONSTRAINT
+    MotionSceneAttrs.Tags.CONSTRAINTSET -> return MotionEditorSelector.Type.CONSTRAINT_SET
+    MotionSceneAttrs.Tags.KEY_POSITION -> return MotionEditorSelector.Type.KEY_FRAME
+    MotionSceneAttrs.Tags.KEY_ATTRIBUTE -> return MotionEditorSelector.Type.KEY_FRAME
+    MotionSceneAttrs.Tags.KEY_CYCLE -> return MotionEditorSelector.Type.KEY_FRAME
+    MotionSceneAttrs.Tags.KEY_TIME_CYCLE -> return MotionEditorSelector.Type.KEY_FRAME
+    else -> error("Mapping missing")
+  }
+}
 
 class MotionLayoutPropertyProviderTest : LayoutTestCase() {
 
@@ -205,9 +219,11 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
     val motionTag = MotionSceneTag(tag, null)
     val nlModel = createNlModel()
     val textView = nlModel.components[0].getChild(0)!!
+    val components = listOf(textView)
     val provider = MotionLayoutPropertyProvider(myFacet)
+    val selection = MotionSelection(mapTagNameToType(tagName), arrayOf(motionTag), components)
     val model = MotionLayoutAttributesModel(testRootDisposable, myFacet)
-    return provider.getAllProperties(model, motionTag, listOf(textView))
+    return provider.getAllProperties(model, selection)
   }
 
   private fun createNlModel(): SyncNlModel {
