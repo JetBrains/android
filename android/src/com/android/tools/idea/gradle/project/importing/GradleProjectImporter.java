@@ -133,8 +133,7 @@ public class GradleProjectImporter {
   }
 
   @NotNull
-  private Project createProject(@NotNull String projectName,
-                                @NotNull File projectFolderPath) {
+  public Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
     Project newProject;
     newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
     GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
