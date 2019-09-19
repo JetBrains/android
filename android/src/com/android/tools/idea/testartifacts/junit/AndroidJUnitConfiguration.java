@@ -58,8 +58,9 @@ public class AndroidJUnitConfiguration extends JUnitConfiguration {
     return testObject != null ? testObject : super.getState(executor, env);
   }
 
+  @NotNull
   @Override
-  public SMTRunnerConsoleProperties createTestConsoleProperties(Executor executor) {
+  public SMTRunnerConsoleProperties createTestConsoleProperties(@NotNull Executor executor) {
     return new AndroidJUnitConsoleProperties(this, executor);
   }
 
