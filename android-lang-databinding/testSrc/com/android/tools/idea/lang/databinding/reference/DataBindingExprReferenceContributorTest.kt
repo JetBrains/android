@@ -1140,4 +1140,34 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val reference = fixture.getReferenceAtCaretPosition()!!
     assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
   }
+
+  @Test
+  fun dbStaticFieldReferencesInstanceMethod() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public static Model staticModel;
+        public Model model;
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.staticModel.mod<caret>el}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val javaStrValue = fixture.findClass("test.langdb.Model").findFieldByName("model", false)!!
+    val xmlStrValue = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlStrValue.isReferenceTo(javaStrValue)).isTrue()
+    assertThat(xmlStrValue.resolve()).isEqualTo(javaStrValue)
+  }
 }
