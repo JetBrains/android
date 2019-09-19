@@ -49,10 +49,14 @@ class NlEditorProviderTest : AndroidTestCase() {
 
   fun testRegisterDrawablesIfSplitEditorIsDisabled() {
     StudioFlags.NELE_SPLIT_EDITOR.override(false)
-    provider = NlEditorProvider()
-    assertTrue(DesignerTypeRegistrar.registeredTypes.contains(ZoomableDrawableFileType))
-    assertTrue(DesignerTypeRegistrar.registeredTypes.contains(FontFileType))
-    StudioFlags.NELE_SPLIT_EDITOR.clearOverride()
+    try {
+      provider = NlEditorProvider()
+      assertTrue(DesignerTypeRegistrar.registeredTypes.contains(ZoomableDrawableFileType))
+      assertTrue(DesignerTypeRegistrar.registeredTypes.contains(FontFileType))
+    }
+    finally {
+      StudioFlags.NELE_SPLIT_EDITOR.clearOverride()
+    }
   }
 
   @Language("XML")
