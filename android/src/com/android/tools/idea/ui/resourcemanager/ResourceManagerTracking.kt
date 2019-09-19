@@ -36,6 +36,11 @@ object ResourceManagerTracking {
   fun logPanelOpens() = log(Kind.TOOL_WINDOW_OPEN)
 
   /**
+   * Called when the Resource Picker Dialog is opened
+   */
+  fun logDialogOpens() = log(Kind.RESOURCE_PICKER_DIALOG_OPEN)
+
+  /**
    * Called when the Resource Manager tool window is closed
    */
   fun logPanelCloses() = Unit // Missing Proto value
@@ -71,9 +76,24 @@ object ResourceManagerTracking {
   fun logSwitchToListMode() = Unit // Missing proto value
 
   /**
-   * Called when user toggle the library filter (off by default)
+   * Called when the user toggles the 'local dependencies' filter
+   */
+  fun logShowLocalDependenciesToggle(state: Boolean) = log(if (state) Kind.DEPENDENT_MODULES_SHOWN else Kind.DEPENDENT_MODULES_HIDDEN)
+
+  /**
+   * Called when the user toggles the 'library' filter
    */
   fun logShowLibrariesToggle(state: Boolean) = log(if (state) Kind.LIBRARIES_SHOWN else Kind.LIBRARIES_HIDDEN)
+
+  /**
+   * Called when the user toggles the 'android resources' filter
+   */
+  fun logShowFrameworkToggle(state: Boolean) = log(if (state) Kind.LIBRARIES_SHOWN else Kind.LIBRARIES_HIDDEN)
+
+  /**
+   * Called when the user toggles the 'theme attributes' filter
+   */
+  fun logShowThemeAttributesToggle(state: Boolean) = log(if (state) Kind.THEME_ATTR_HIDDEN else Kind.THEME_ATTR_SHOWN)
 
   /**
    * Called when users drop or paste a resource from the Resource Manager onto a blank area
@@ -139,11 +159,26 @@ object ResourceManagerTracking {
    * Map a [ResourceType] to an [EventResourceType] which represents a resource in the proto.
    */
   private fun ResourceType?.toEventType() = when (this) {
-    ResourceType.DRAWABLE -> EventResourceType.DRAWABLE
+    ResourceType.DRAWABLE,
+    ResourceType.MIPMAP -> EventResourceType.DRAWABLE
     ResourceType.FONT -> EventResourceType.FONT
     ResourceType.COLOR -> EventResourceType.COLOR
     ResourceType.LAYOUT -> EventResourceType.LAYOUT
     ResourceType.STRING -> EventResourceType.STRING
+    ResourceType.NAVIGATION -> EventResourceType.NAVIGATION
+    ResourceType.MENU -> EventResourceType.MENU
+    ResourceType.STYLE -> EventResourceType.STYLE
+    ResourceType.XML -> EventResourceType.XML
+    ResourceType.ANIM,
+    ResourceType.ANIMATOR,
+    ResourceType.INTERPOLATOR,
+    ResourceType.TRANSITION -> EventResourceType.ANIMATION
+    ResourceType.ARRAY,
+    ResourceType.BOOL,
+    ResourceType.DIMEN,
+    ResourceType.FRACTION,
+    ResourceType.INTEGER,
+    ResourceType.PLURALS -> EventResourceType.VALUE
     else -> EventResourceType.UNKNOWN
   }
 }
