@@ -181,15 +181,20 @@ class HeapAnalysisTest {
       private val a3b = TestClassB(a1string, TestString("TestString3"))
     }
 
-    val scenario: HProfBuilder.() -> Unit = {
-      val a = TestClassA()
-      addRootGlobalJNI(listOf(MyRef(MyRef(MyRef(a))), TestClassA(), WeakReference(TestClassA()), WeakReference(a)))
-      addRootUnknown(TestClassA())
+    ReferenceStore().use { refStore ->
+      val scenario: HProfBuilder.() -> Unit = {
+        val a = TestClassA()
+        addRootGlobalJNI(listOf(MyRef(MyRef(MyRef(a))),
+                                TestClassA(),
+                                refStore.createWeakReference(TestClassA()),
+                                refStore.createWeakReference(a)))
+        addRootUnknown(TestClassA())
+      }
+      runHProfScenario(scenario, "testPathsThroughDifferentFields.txt",
+                       listOf("TestClassB",
+                              "TestClassA",
+                              "TestString"))
     }
-    runHProfScenario(scenario, "testPathsThroughDifferentFields.txt",
-                     listOf("TestClassB",
-                            "TestClassA",
-                            "TestString"))
   }
 
   @Test
@@ -234,5 +239,21 @@ class HeapAnalysisTest {
     }
     runHProfScenario(scenario, "testJavaFrameGCRootPriority.txt",
                      listOf("C1", "C2"))
+  }
+}
+
+/**
+ * Helper class to keep strong references to objects referenced by newly created weak references.
+ */
+private class ReferenceStore : AutoCloseable {
+  private val set = HashSet<Any?>()
+
+  fun <T> createWeakReference(obj: T): WeakReference<T> {
+    set.add(obj)
+    return WeakReference(obj)
+  }
+
+  override fun close() {
+    set.clear()
   }
 }
