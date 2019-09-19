@@ -110,7 +110,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     }
   }
 
-  private static void assertModuleInSettingsFile(Project project, String name) throws IOException {
+  private static void assertModuleInSettingsFile(Project project, String name) {
     GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
     assertNotNull("Missing " + SdkConstants.FN_SETTINGS_GRADLE, settingsFile);
     Iterable<String> modules = settingsFile.getModules();
@@ -120,8 +120,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     }
   }
 
-  private static void assertModuleImported(@NotNull Project project, @NotNull String relativePath, @NotNull VirtualFile moduleRoot)
-    throws IOException {
+  private static void assertModuleImported(@NotNull Project project, @NotNull String relativePath, @NotNull VirtualFile moduleRoot) {
     assertNotNull("Module sources were not copied", project.getBaseDir().findFileByRelativePath(relativePath));
     final VirtualFile[] moduleChildren = moduleRoot.getChildren();
     assertNoFilesAdded(moduleChildren);
