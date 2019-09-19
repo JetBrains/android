@@ -40,8 +40,23 @@ import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class AndroidProfilerToolWindowFactoryTest extends PlatformTestCase {
-  public void testProfilerServiceStartsCorrectlyAfterToolWindowInit() {
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.clearOverride();
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
+  public void testProfilerServiceStartsCorrectlyAfterToolWindowInit() {
     TransportProxy mockProxy = mockTransportProxy();
     ToolWindowManager windowManager = ToolWindowManagerEx.getInstance(myProject);
     ToolWindow toolWindow = windowManager.registerToolWindow(AndroidProfilerToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM);
@@ -54,7 +69,6 @@ public class AndroidProfilerToolWindowFactoryTest extends PlatformTestCase {
   }
 
   public void testProfilerServiceNotStartedWithoutToolWindow() {
-    StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false);
     TransportProxy mockProxy = mockTransportProxy();
 
     ApplicationManager.getApplication().getMessageBus().syncPublisher(TransportDeviceManager.TOPIC).customizeProxyService(mockProxy);

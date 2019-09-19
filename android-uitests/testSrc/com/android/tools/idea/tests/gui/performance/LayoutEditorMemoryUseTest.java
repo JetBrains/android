@@ -170,23 +170,27 @@ public class LayoutEditorMemoryUseTest {
     */
   public void runScenario(IdeFrameFixture fixture) {
     StudioFlags.NELE_SPLIT_EDITOR.override(false);
-    String[] layoutFilePaths = {
-      "app/src/main/res/layout/layout2.xml",
-      "app/src/main/res/layout/widgets.xml",
-      "app/src/main/res/layout/textstyles.xml",
-    };
+    try {
+      String[] layoutFilePaths = {
+        "app/src/main/res/layout/layout2.xml",
+        "app/src/main/res/layout/widgets.xml",
+        "app/src/main/res/layout/textstyles.xml",
+      };
 
-    // First file on design tab
-    fixture.getEditor().open(layoutFilePaths[0], EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true).waitForRenderToFinish();
-    // Second file on design tab, then switch to editor tab
-    fixture.getEditor().open(layoutFilePaths[1], EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true).waitForRenderToFinish();
-    fixture.getEditor().getLayoutPreview(true).waitForRenderToFinish();
-    // Third file on editor tab
-    fixture.getEditor().open(layoutFilePaths[2], EditorFixture.Tab.EDITOR).
-      getLayoutPreview(true).waitForRenderToFinish();
-    StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
+      // First file on design tab
+      fixture.getEditor().open(layoutFilePaths[0], EditorFixture.Tab.DESIGN)
+        .getLayoutEditor(true).waitForRenderToFinish();
+      // Second file on design tab, then switch to editor tab
+      fixture.getEditor().open(layoutFilePaths[1], EditorFixture.Tab.DESIGN)
+        .getLayoutEditor(true).waitForRenderToFinish();
+      fixture.getEditor().getLayoutPreview(true).waitForRenderToFinish();
+      // Third file on editor tab
+      fixture.getEditor().open(layoutFilePaths[2], EditorFixture.Tab.EDITOR).
+        getLayoutPreview(true).waitForRenderToFinish();
+    }
+    finally {
+      StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
+    }
   }
 
   private static class LeakedInstancesTracker {

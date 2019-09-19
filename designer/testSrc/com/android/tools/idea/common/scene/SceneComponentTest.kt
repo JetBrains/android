@@ -60,17 +60,20 @@ open class SceneComponentTest: SceneTest() {
   fun testDoNotCreateCommonDragTargetOnRootComponent() {
     StudioFlags.NELE_DRAG_PLACEHOLDER.override(true)
 
-    val root = myScene.getSceneComponent("parent")!!
-    root.updateTargets()
-    val rootCommonDragTargets = root.targets.filterIsInstance<CommonDragTarget>()
-    assertEmpty(rootCommonDragTargets)
+    try {
+      val root = myScene.getSceneComponent("parent")!!
+      root.updateTargets()
+      val rootCommonDragTargets = root.targets.filterIsInstance<CommonDragTarget>()
+      assertEmpty(rootCommonDragTargets)
 
-    val child = myScene.getSceneComponent("child")!!
-    child.updateTargets()
-    val childCommonDragTargets = child.targets.filterIsInstance<CommonDragTarget>()
-    assertSize(1, childCommonDragTargets)
-
-    StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride()
+      val child = myScene.getSceneComponent("child")!!
+      child.updateTargets()
+      val childCommonDragTargets = child.targets.filterIsInstance<CommonDragTarget>()
+      assertSize(1, childCommonDragTargets)
+    }
+    finally {
+      StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride()
+    }
   }
 
   override fun createModel(): ModelBuilder {
