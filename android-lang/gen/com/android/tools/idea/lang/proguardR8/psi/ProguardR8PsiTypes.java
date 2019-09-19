@@ -45,6 +45,7 @@ public interface ProguardR8PsiTypes {
   IElementType METHOD_MODIFIER = new ProguardR8AstNodeType("METHOD_MODIFIER");
   IElementType METHOD_NAME = new ProguardR8AstNodeType("METHOD_NAME");
   IElementType METHOD_SPECIFICATION = new ProguardR8AstNodeType("METHOD_SPECIFICATION");
+  IElementType PARAMETERS = new ProguardR8AstNodeType("PARAMETERS");
   IElementType QUALIFIED_NAME = new ProguardR8AstNodeType("QUALIFIED_NAME");
   IElementType RULE = new ProguardR8AstNodeType("RULE");
   IElementType RULE_WITH_CLASS_SPECIFICATION = new ProguardR8AstNodeType("RULE_WITH_CLASS_SPECIFICATION");
@@ -176,6 +177,9 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == METHOD_SPECIFICATION) {
         return new ProguardR8MethodSpecificationImpl(node);
+      }
+      else if (type == PARAMETERS) {
+        return new ProguardR8ParametersImpl(node);
       }
       else if (type == QUALIFIED_NAME) {
         return new ProguardR8QualifiedNameImpl(node);

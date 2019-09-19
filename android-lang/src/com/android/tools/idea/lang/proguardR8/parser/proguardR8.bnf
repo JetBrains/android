@@ -93,7 +93,8 @@ any_primitive_type ::=ANY_PRIMITIVE_TYPE_
 type ::= any_type|any_primitive_type|((qualifiedName|java_primitive) "[]"?) {
   methods=[matchesPsiType isArray]
 }
-type_list ::= type ("," type)* {pin=1 recoverWhile=not_right_paren}
+
+type_list ::= (type ("," type)* ("," ANY_TYPE_AND_NUM_OF_ARGS)?)? {pin(".*")=not_close_brace recoverWhile=not_right_paren}
 
 private java ::= (java_rule SEMICOLON)* {pin(".*")=1 recoverWhile=not_close_brace}
 java_rule ::= !(<<eof>>|CLOSE_BRACE|WHITE_SPACE) (method_specification|fields_specification) {pin=1 recoverWhile=not_semicolon}
@@ -109,10 +110,10 @@ fields_specification ::= annotation_name? fields_modifier* (<fields>|(type field
 fields_modifier ::= ("!"?(public|private|protected|static|volatile|transient|final))
 
 any_field_or_method ::= ASTERISK
-private type_list_ ::= LPAREN (ANY_TYPE_AND_NUM_OF_ARGS|type_list)? RPAREN {pin=1}
-private init_description ::= (<init>|<clinit>) type_list_
-private class_description ::= class_name type_list_
-private method_description ::= type method_name type_list_ (return values)?
+parameters ::= LPAREN (ANY_TYPE_AND_NUM_OF_ARGS|type_list) RPAREN {pin=1}
+private init_description ::= (<init>|<clinit>) parameters
+private class_description ::= class_name parameters
+private method_description ::= type method_name parameters (return values)?
 method_modifier ::= ("!"?(public|private|protected|static|synchronized|native|abstract|strictfp|final))
 
 method_specification ::= annotation_name? method_modifier* (<methods> | init_description | method_description| class_description |any_field_or_method)

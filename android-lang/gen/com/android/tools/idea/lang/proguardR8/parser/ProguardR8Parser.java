@@ -109,13 +109,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // class_name type_list_
+  // class_name parameters
   static boolean class_description(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_description")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
     result = class_name(builder, level + 1);
-    result = result && type_list_(builder, level + 1);
+    result = result && parameters(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
   }
@@ -513,14 +513,14 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // (<init>|<clinit>) type_list_
+  // (<init>|<clinit>) parameters
   static boolean init_description(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "init_description")) return false;
     if (!nextTokenIs(builder, "", _CLINIT_, _INIT_)) return false;
     boolean result;
     Marker marker = enter_section_(builder);
     result = init_description_0(builder, level + 1);
-    result = result && type_list_(builder, level + 1);
+    result = result && parameters(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
   }
@@ -650,14 +650,14 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // type method_name type_list_ (return values)?
+  // type method_name parameters (return values)?
   static boolean method_description(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "method_description")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
     result = type(builder, level + 1);
     result = result && method_name(builder, level + 1);
-    result = result && type_list_(builder, level + 1);
+    result = result && parameters(builder, level + 1);
     result = result && method_description_3(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
@@ -830,6 +830,32 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     Marker marker = enter_section_(builder, level, _NOT_);
     result = !consumeToken(builder, SEMICOLON);
     exit_section_(builder, level, marker, result, false, null);
+    return result;
+  }
+
+  /* ********************************************************** */
+  // LPAREN (ANY_TYPE_AND_NUM_OF_ARGS|type_list) RPAREN
+  public static boolean parameters(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "parameters")) return false;
+    if (!nextTokenIs(builder, LPAREN)) return false;
+    boolean result, pinned;
+    Marker marker = enter_section_(builder, level, _NONE_, PARAMETERS, null);
+    result = consumeToken(builder, LPAREN);
+    pinned = result; // pin = 1
+    result = result && report_error_(builder, parameters_1(builder, level + 1));
+    result = pinned && consumeToken(builder, RPAREN) && result;
+    exit_section_(builder, level, marker, result, pinned, null);
+    return result || pinned;
+  }
+
+  // ANY_TYPE_AND_NUM_OF_ARGS|type_list
+  private static boolean parameters_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "parameters_1")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, ANY_TYPE_AND_NUM_OF_ARGS);
+    if (!result) result = type_list(builder, level + 1);
+    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -1045,32 +1071,41 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // type ("," type)*
+  // (type ("," type)* ("," ANY_TYPE_AND_NUM_OF_ARGS)?)?
   public static boolean type_list(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "type_list")) return false;
-    boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, TYPE_LIST, "<type list>");
+    type_list_0(builder, level + 1);
+    exit_section_(builder, level, marker, true, false, ProguardR8Parser::not_right_paren);
+    return true;
+  }
+
+  // type ("," type)* ("," ANY_TYPE_AND_NUM_OF_ARGS)?
+  private static boolean type_list_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "type_list_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
     result = type(builder, level + 1);
-    pinned = result; // pin = 1
-    result = result && type_list_1(builder, level + 1);
-    exit_section_(builder, level, marker, result, pinned, ProguardR8Parser::not_right_paren);
-    return result || pinned;
+    result = result && type_list_0_1(builder, level + 1);
+    result = result && type_list_0_2(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
   }
 
   // ("," type)*
-  private static boolean type_list_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "type_list_1")) return false;
+  private static boolean type_list_0_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "type_list_0_1")) return false;
     while (true) {
       int pos = current_position_(builder);
-      if (!type_list_1_0(builder, level + 1)) break;
-      if (!empty_element_parsed_guard_(builder, "type_list_1", pos)) break;
+      if (!type_list_0_1_0(builder, level + 1)) break;
+      if (!empty_element_parsed_guard_(builder, "type_list_0_1", pos)) break;
     }
     return true;
   }
 
   // "," type
-  private static boolean type_list_1_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "type_list_1_0")) return false;
+  private static boolean type_list_0_1_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "type_list_0_1_0")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
     result = consumeToken(builder, COMMA);
@@ -1079,35 +1114,19 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  /* ********************************************************** */
-  // LPAREN (ANY_TYPE_AND_NUM_OF_ARGS|type_list)? RPAREN
-  static boolean type_list_(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "type_list_")) return false;
-    if (!nextTokenIs(builder, LPAREN)) return false;
-    boolean result, pinned;
-    Marker marker = enter_section_(builder, level, _NONE_);
-    result = consumeToken(builder, LPAREN);
-    pinned = result; // pin = 1
-    result = result && report_error_(builder, type_list__1(builder, level + 1));
-    result = pinned && consumeToken(builder, RPAREN) && result;
-    exit_section_(builder, level, marker, result, pinned, null);
-    return result || pinned;
-  }
-
-  // (ANY_TYPE_AND_NUM_OF_ARGS|type_list)?
-  private static boolean type_list__1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "type_list__1")) return false;
-    type_list__1_0(builder, level + 1);
+  // ("," ANY_TYPE_AND_NUM_OF_ARGS)?
+  private static boolean type_list_0_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "type_list_0_2")) return false;
+    type_list_0_2_0(builder, level + 1);
     return true;
   }
 
-  // ANY_TYPE_AND_NUM_OF_ARGS|type_list
-  private static boolean type_list__1_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "type_list__1_0")) return false;
+  // "," ANY_TYPE_AND_NUM_OF_ARGS
+  private static boolean type_list_0_2_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "type_list_0_2_0")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = consumeToken(builder, ANY_TYPE_AND_NUM_OF_ARGS);
-    if (!result) result = type_list(builder, level + 1);
+    result = consumeTokens(builder, 0, COMMA, ANY_TYPE_AND_NUM_OF_ARGS);
     exit_section_(builder, marker, null, result);
     return result;
   }
