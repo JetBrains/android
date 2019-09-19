@@ -23,6 +23,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiParameterList
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiType
@@ -108,4 +109,40 @@ fun matchesPsiType(type: ProguardR8Type, other: PsiType): Boolean {
     type.anyType != null -> true
     else -> false
   }
+}
+
+/**
+ * Returns true if ProguardR8Parameters doesn't have errors and matches given "other" PsiParameterList otherwise returns false
+ *
+ * In general it checks if every type within ProguardR8Parameters [matchesPsiType] type in PsiParameterList at the same position.
+ * Tricky case is when ProguardR8Parameters ends with '...' (matches any number of arguments of any type). In this case we need to check
+ * that all types at positions before '...' match and after if there are still some types remain at PsiParameterList, we just ignore them.
+ */
+fun matchesPsiParameterList(parameters: ProguardR8Parameters, psiParameterList: PsiParameterList): Boolean {
+  if (PsiTreeUtil.hasErrorElements(parameters)) return false
+  if (parameters.isAcceptAnyParameters) return true
+
+  val proguardTypes = PsiTreeUtil.findChildrenOfType(parameters, ProguardR8Type::class.java).toList()
+  if (proguardTypes.isEmpty() != psiParameterList.isEmpty) return false
+  // endsWithAnyTypAndNumOfArg is true when parameter list looks like (param1, param2, ...).
+  val endsWithAnyTypAndNumOfArg = parameters.typeList!!.lastChild?.node?.elementType == ProguardR8PsiTypes.ANY_TYPE_AND_NUM_OF_ARGS
+  val psiTypes = psiParameterList.parameters.map { it.type }
+
+  // proguardTypes.size can be less psiTypes because we can match tail of psiTypes to ANY_TYPE_AND_NUM_OF_ARGS.
+  if (proguardTypes.size > psiTypes.size) return false
+
+  for (i in psiTypes.indices) {
+    // Returns whether we can match tail of psiTypes to ANY_TYPE_AND_NUM_OF_ARGS or not.
+    if (i > proguardTypes.lastIndex) return endsWithAnyTypAndNumOfArg
+    // Type at the same position in list doesn't much.
+    if (!proguardTypes[i].matchesPsiType(psiTypes[i])) return false
+  }
+
+  return true
+}
+
+fun isAcceptAnyParameters(parameters: ProguardR8Parameters): Boolean {
+  return !PsiTreeUtil.hasErrorElements(parameters) &&
+         PsiTreeUtil.findChildOfType(parameters, ProguardR8TypeList::class.java) == null &&
+         parameters.node.findChildByType(ProguardR8PsiTypes.ANY_TYPE_AND_NUM_OF_ARGS) != null
 }

@@ -110,7 +110,10 @@ fields_specification ::= annotation_name? fields_modifier* (<fields>|(type field
 fields_modifier ::= ("!"?(public|private|protected|static|volatile|transient|final))
 
 any_field_or_method ::= ASTERISK
-parameters ::= LPAREN (ANY_TYPE_AND_NUM_OF_ARGS|type_list) RPAREN {pin=1}
+parameters ::= LPAREN (ANY_TYPE_AND_NUM_OF_ARGS|type_list) RPAREN {
+  pin=1
+  methods=[matchesPsiParameterList isAcceptAnyParameters]
+}
 private init_description ::= (<init>|<clinit>) parameters
 private class_description ::= class_name parameters
 private method_description ::= type method_name parameters (return values)?

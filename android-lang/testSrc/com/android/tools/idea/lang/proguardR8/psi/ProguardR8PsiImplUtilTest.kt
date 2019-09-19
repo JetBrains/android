@@ -18,16 +18,24 @@ package com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8.psi
 import com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8JavaPrimitive
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Parameters
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Type
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiParameterList
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.util.parentOfType
 
 class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
+
+  private fun createParameterList(vararg types: String): PsiParameterList {
+    val psiTypes = types.map { elementFactory.createTypeFromText(it, null) }.toTypedArray()
+    val names = types.indices.map { "param$it" }
+    return elementFactory.createParameterList(names.toTypedArray(), psiTypes)
+  }
 
   fun testResolvePsiClassFromQualifiedName() {
     myFixture.addClass(
@@ -140,5 +148,212 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Type::class)!!
     assertThat(type.matchesPsiType(stringType)).isTrue()
     assertThat(type.matchesPsiType(PsiPrimitiveType.LONG)).isTrue()
+  }
+
+  fun testAcceptAnyParameters() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+        void myMethod(...);
+        void myMethod(int, ...);
+        void myMethod(..., int);
+        void myMethod(int, ..., int);
+        }
+        """
+    )
+
+    myFixture.moveCaret("myMethod(..|.)")
+    var parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    assertThat(parameters.isAcceptAnyParameters).isTrue()
+
+    myFixture.moveCaret("myMethod(int, ..|.)")
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    assertThat(parameters.isAcceptAnyParameters).isFalse()
+
+    myFixture.moveCaret("myMethod(..|., int)")
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    assertThat(parameters.isAcceptAnyParameters).isFalse()
+
+    myFixture.moveCaret("myMethod(int, ..|., int)")
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    assertThat(parameters.isAcceptAnyParameters).isFalse()
+  }
+
+  fun testMatchesParameterList() {
+
+    val stringFQ = String::class.java.canonicalName
+    val intFQ = PsiPrimitiveType.INT.name
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+        void myMethod(int);
+        void myMethod(int, java.lang.String);
+        void myMethod(int[], java.lang.String[]);
+        void myMethod(%, java.lang.String, %);
+        void myMethod(***, java.lang.String);
+        void myMethod(...);
+        void myMethod(int, ...);
+        void myMethod(..., int);
+        void myMethod(wildcard**);
+      }
+      """.trimIndent())
+
+    myFixture.moveCaret("myMethod(i|nt)")
+    var parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    // (int) == (int)
+    var psiParameters = createParameterList(intFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+    // (int) != (int, int)
+    psiParameters = createParameterList(intFQ, intFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+    // (int) != (long)
+    psiParameters = createParameterList(PsiPrimitiveType.LONG.name)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+    // (int) != ()
+    psiParameters = createParameterList()
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+    // (int) != (int[])
+    psiParameters = createParameterList("${intFQ}[]")
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+
+    myFixture.moveCaret("myMethod(i|nt, java.lang.String)")
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    // (int, String) == (int, String)
+    psiParameters = createParameterList(intFQ, stringFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+    // (int, String) != (int, int)
+    psiParameters = createParameterList(intFQ, intFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+    // (int, String) != (int, String, String)
+    psiParameters = createParameterList(
+      intFQ,
+      stringFQ,
+      stringFQ
+    )
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+    // (int, String) != (int[], String[])
+    psiParameters = createParameterList("${intFQ}[]", "${stringFQ}[]")
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+
+    myFixture.moveCaret("myMethod(i|nt[], java.lang.String[])")
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    // (int[], String[]) == (int[], String[])
+    psiParameters = createParameterList("${intFQ}[]", "${stringFQ}[]")
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+    // (int[], String[]) != (int, String)
+    psiParameters = createParameterList(intFQ, stringFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+    // (int[], String[]) != (int[], String)
+    psiParameters = createParameterList("${intFQ}[]", stringFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+
+    myFixture.moveCaret("myMethod(**|*, java.lang.String)")
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    // (***, String) == (String, String)
+    psiParameters = createParameterList(stringFQ, stringFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+    // (***, String) == (int, String)
+    psiParameters = createParameterList(intFQ, stringFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+    // (***, String) == (int[], String)
+    psiParameters = createParameterList("${intFQ}[]", stringFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+    // (***, String) != (int, int)
+    psiParameters = createParameterList(intFQ, intFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+
+    myFixture.moveCaret("myMethod(%, java.lan|g.String, %)")
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    // (%, String, %) == (int, String, boolean)
+    psiParameters = createParameterList(
+      intFQ, stringFQ, PsiPrimitiveType.BOOLEAN.name)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+    // (%, String, %) != (int, String, void)
+    psiParameters = createParameterList(
+      intFQ, stringFQ, PsiPrimitiveType.VOID.name)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+    // (%, String, %) != (int, String, String)
+    psiParameters = createParameterList(
+      intFQ, stringFQ, stringFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+
+    myFixture.moveCaret("myMethod(..|.)")
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    // (...) == (int)
+    psiParameters = createParameterList(intFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+    // (...) == (int, String, long[])
+    psiParameters = createParameterList(
+      intFQ, stringFQ, "${PsiPrimitiveType.LONG.name}[]")
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+    // (...) == ()
+    psiParameters = createParameterList()
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+
+    myFixture.moveCaret("myMethod(int, ..|.)")
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    // (int, ...) == (int)
+    psiParameters = createParameterList(intFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+    // (int, ...) == (int, String, long[])
+    psiParameters = createParameterList(
+      intFQ, stringFQ, "${PsiPrimitiveType.LONG.name}[]")
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
+    // (int, ...) != ()
+    psiParameters = createParameterList()
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+    // (int, ...) != (String, long[])
+    psiParameters = createParameterList(stringFQ, "${PsiPrimitiveType.LONG.name}[]")
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+
+    myFixture.moveCaret("myMethod(..|., int)")
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    // (..., int) != (int)
+    psiParameters = createParameterList(intFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+    // (..., int) != (String, int)
+    psiParameters = createParameterList(stringFQ, intFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+    // (..., int) != ()
+    psiParameters = createParameterList()
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+
+    myFixture.moveCaret("myMethod(wildca|rd**)")
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    // (wildcard**) != (int)
+    psiParameters = createParameterList(intFQ)
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+    // (wildcard**) != ()
+    psiParameters = createParameterList()
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
+  }
+
+  fun testMatchesParameterListKotlin() {
+    myFixture.addFileToProject(
+      "MyType.kt",
+      """
+        package p1.p2
+         
+        class MyType {}
+      """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class * {
+          void myMethod(p1.p2.MyType)
+        }
+      """.trimIndent()
+    )
+
+    myFixture.moveCaret("myMethod(p1.p2.MyTyp|e)")
+    val parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+
+    val psiParameters = createParameterList("p1.p2.MyType")
+    assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
   }
 }

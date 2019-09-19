@@ -21,10 +21,15 @@ package com.android.tools.idea.lang.proguardR8.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiParameterList;
 
 public interface ProguardR8Parameters extends PsiElement {
 
   @Nullable
   ProguardR8TypeList getTypeList();
+
+  boolean matchesPsiParameterList(@NotNull PsiParameterList psiParameterList);
+
+  boolean isAcceptAnyParameters();
 
 }
