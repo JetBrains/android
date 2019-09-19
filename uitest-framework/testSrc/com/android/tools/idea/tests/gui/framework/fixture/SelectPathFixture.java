@@ -29,15 +29,21 @@ public class SelectPathFixture implements ContainerFixture<JDialog> {
   public static SelectPathFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
     JDialog dialog = waitUntilShowing(ideFrameFixture.robot(), MATCHER);
 
-    // After the dialog is shown, it will display a loading icon. Everything typed while loading is lost, when the loading is done.
+    GenericTypeMatcher<JTree> treeLoadedMatcher = new GenericTypeMatcher<JTree>(JTree.class) {
+      @Override
+      protected boolean isMatching(@NotNull JTree tree) {
+        return tree.getRowCount() > 0;
+      }
+    };
+    waitUntilShowing(ideFrameFixture.robot(), dialog, treeLoadedMatcher);
+
+    // After the tree is shown, it will display a loading icon. Everything typed while loading is lost, when the loading is done.
     GenericTypeMatcher<AnimatedIcon> animatedIconMatcher = new GenericTypeMatcher<AnimatedIcon>(AnimatedIcon.class) {
       @Override
       protected boolean isMatching(@NotNull AnimatedIcon component) {
         return component.isRunning();
       }
     };
-
-    waitUntilShowing(ideFrameFixture.robot(), dialog, animatedIconMatcher);
     waitUntilGone(ideFrameFixture.robot(), dialog, animatedIconMatcher, 60);
 
     return new SelectPathFixture(ideFrameFixture, dialog);
@@ -59,12 +65,6 @@ public class SelectPathFixture implements ContainerFixture<JDialog> {
   @Override
   public Robot robot() {
     return myRobot;
-  }
-
-  @NotNull
-  public SelectPathFixture selectPath(@NotNull File path) {
-    new JTextComponentFixture(myRobot, myRobot.finder().findByType(myDialog, JTextField.class, true)).enterText(path.getPath());
-    return this;
   }
 
   @NotNull
