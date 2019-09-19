@@ -25,12 +25,12 @@ import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 import org.jetbrains.android.util.AndroidBundle.message
 
-typealias ProjectRenderRunner = ((Project) -> Unit) -> Unit
+typealias ProjectRenderRunner = (renderRunnable: (project: Project) -> Unit) -> Unit
 /**
  * Sometimes there are several separate classes which want to render templates, in some order, but the whole process should be aborted if
  * any of them fail a validation pass. This class acts as a central way to coordinate such render request.
  */
-class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner, private val projectSyncInvoker: ProjectSyncInvoker) {
+class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
   interface TemplateRendererListener {
     /**
      * Called just before rendering multiple templates. Since rendering typically involves adding quite a lot of files
@@ -127,10 +127,6 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner, priva
             forEach(TemplateRenderer::init)
             if (!all(TemplateRenderer::doDryRun)) return
             forEach(TemplateRenderer::render)
-          }
-
-          if (myProject.isInitialized) {
-            projectSyncInvoker.syncProject(myProject)
           }
         }
 
