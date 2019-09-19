@@ -27,6 +27,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
+import com.intellij.psi.PsiParameterList;
 
 public class ProguardR8ParametersImpl extends ASTWrapperPsiElement implements ProguardR8Parameters {
 
@@ -47,6 +48,16 @@ public class ProguardR8ParametersImpl extends ASTWrapperPsiElement implements Pr
   @Nullable
   public ProguardR8TypeList getTypeList() {
     return findChildByClass(ProguardR8TypeList.class);
+  }
+
+  @Override
+  public boolean matchesPsiParameterList(@NotNull PsiParameterList psiParameterList) {
+    return ProguardR8PsiImplUtil.matchesPsiParameterList(this, psiParameterList);
+  }
+
+  @Override
+  public boolean isAcceptAnyParameters() {
+    return ProguardR8PsiImplUtil.isAcceptAnyParameters(this);
   }
 
 }
