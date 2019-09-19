@@ -480,6 +480,12 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   }
 
   @Override
+  @Nullable
+  public Object getSelectedAccessoryType() {
+    return null;
+  }
+
+  @Override
   public void addListener(@NotNull AccessorySelectionListener listener) {
     myListeners.add(listener);
   }

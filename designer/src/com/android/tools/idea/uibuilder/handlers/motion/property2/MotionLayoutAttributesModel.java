@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider.mapToCustomType;
 
@@ -27,6 +29,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
@@ -46,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import kotlin.jvm.functions.Function0;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -70,16 +72,19 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   }
 
   @Override
-  protected boolean loadProperties(@Nullable Object accessory,
+  protected boolean loadProperties(@Nullable Object accessoryType,
+                                   @Nullable Object accessory,
                                    @NotNull List<? extends NlComponent> components,
                                    @NotNull Function0<Boolean> wantUpdate) {
-    if (accessory == null || !wantUpdate.invoke()) {
+    if (accessoryType == null || accessory == null || !wantUpdate.invoke()) {
       return false;
     }
 
-    MotionSceneTag tag = (MotionSceneTag)accessory;
+    MotionEditorSelector.Type type = (MotionEditorSelector.Type)accessoryType;
+    MTag[] tags = (MTag[])accessory;
+    MotionSelection selection = new MotionSelection(type, tags, components);
     Map<String, PropertiesTable<NelePropertyItem>> newProperties =
-      myMotionLayoutPropertyProvider.getAllProperties(this, tag, components);
+      myMotionLayoutPropertyProvider.getAllProperties(this, selection);
     setLastUpdateCompleted(false);
 
     UIUtil.invokeLaterIfNeeded(() -> {
@@ -103,18 +108,23 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   @Override
   @Nullable
   public String getPropertyValue(@NotNull NelePropertyItem property) {
-    MotionSceneTag motionTag = getMotionTag(property);
-    String section = getConstraintSection(property);
+    MotionSelection selection = getMotionSelection(property);
+    String subTag = getSubTag(property);
+    if (selection == null) {
+      return null;
+    }
+    MotionSceneTag motionTag = selection.getMotionSceneTag();
     if (motionTag == null) {
       return null;
     }
-    if (motionTag.getTagName().equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
-      return motionTag.getAttributeValue(mapToCustomType(property.getType()));
+    if (subTag != null && subTag.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
+      MTag customTag = findCustomTag(motionTag, property.getName());
+      return customTag != null ? customTag.getAttributeValue(mapToCustomType(property.getType())) : null;
     }
-    if (section == null) {
+    if (subTag == null) {
       return motionTag.getAttributeValue(property.getName());
     }
-    MotionSceneTag sectionTag = getConstraintSectionTag(motionTag, section);
+    MotionSceneTag sectionTag = getConstraintSectionTag(motionTag, subTag);
     if (sectionTag == null ){
       return null;
     }
@@ -123,59 +133,56 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
 
   @Override
   public void setPropertyValue(@NotNull NelePropertyItem property, @Nullable String newValue) {
-    MotionSceneTag motionTag = getMotionTag(property);
-    String section = getConstraintSection(property);
-    if (motionTag == null) {
+    String attributeName = property.getName();
+    MotionSelection selection = getMotionSelection(property);
+    String subTag = getSubTag(property);
+    MTag.TagWriter tagWriter = null;
+    if (selection == null) {
       return;
     }
-    if (motionTag.getTagName().equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
-      writeCustomTagAttribute(motionTag, property, newValue);
+    MotionSceneTag motionTag = selection.getMotionSceneTag();
+    if (motionTag == null) {
+      tagWriter = createConstraintTag(selection);
     }
-    else if (section == null) {
-      writeTagAttribute(motionTag, property, newValue);
+    else if (subTag != null && subTag.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
+      MTag customTag = findCustomTag(motionTag, property.getName());
+      if (customTag != null) {
+        tagWriter = MotionSceneUtils.getTagWriter(customTag);
+        attributeName = mapToCustomType(property.getType());
+      }
     }
-    else {
-      MotionSceneTag sectionTag = getConstraintSectionTag(motionTag, section);
-      if (sectionTag != null ){
-        writeTagAttribute(sectionTag, property, newValue);
+    else if (subTag == null) {
+      tagWriter = MotionSceneUtils.getTagWriter(motionTag);
+    }
+    else if (selection.getType() == MotionEditorSelector.Type.CONSTRAINT){
+      MotionSceneTag sectionTag = getConstraintSectionTag(motionTag, subTag);
+      if (sectionTag != null) {
+        tagWriter = MotionSceneUtils.getTagWriter(sectionTag);
       }
       else if (newValue != null) {
-        createConstraintTag(motionTag, section, property, true, newValue);
+        tagWriter = createConstraintSectionTag(selection, motionTag, subTag);
       }
+    }
+    if (tagWriter != null) {
+      tagWriter.setAttribute(property.getNamespace(), attributeName, newValue);
+      tagWriter.commit(String.format("Set %1$s.%2$s to %3$s", tagWriter.getTagName(), property.getName(), String.valueOf(newValue)));
     }
   }
 
-  private static void writeTagAttribute(@NotNull MotionSceneTag tag, @NotNull NelePropertyItem property, @Nullable String newValue) {
-    MTag.TagWriter writer = MotionSceneUtils.getTagWriter(tag);
-    writer.setAttribute(property.getNamespace(), property.getName(), newValue);
-    writer.commit(String.format("Set %1$s.%2$s to %3$s", tag.getTagName(), property.getName(), String.valueOf(newValue)));
-  }
-
-  private static void writeCustomTagAttribute(@NotNull MotionSceneTag tag, @NotNull NelePropertyItem property, @Nullable String newValue) {
-    MTag.TagWriter writer = MotionSceneUtils.getTagWriter(tag);
-    writer.setAttribute(property.getNamespace(), mapToCustomType(property.getType()), newValue);
-    writer.commit(String.format("Set %1$s.%2$s to %3$s", tag.getTagName(), property.getName(), String.valueOf(newValue)));
-  }
-
-  public static void createConstraintTag(@NotNull MotionSceneTag constraintTag,
-                                         @NotNull String section,
-                                         @NotNull NelePropertyItem property,
-                                         boolean setPropertyValue,
-                                         @Nullable String newValue) {
-    MTag.TagWriter writer = MotionSceneUtils.getChildTagWriter(constraintTag, section);
-    MotionAttributes attrs = MotionDefaultPropertyValueProvider.getMotionAttributesForTag(property);
+  public static MTag.TagWriter createConstraintSectionTag(@NotNull MotionSelection selection,
+                                                          @NotNull MotionSceneTag constraintTag,
+                                                          @NotNull String section) {
+    MTag.TagWriter tagWriter = MotionSceneUtils.getChildTagWriter(constraintTag, section);
+    MotionAttributes attrs = selection.getMotionAttributes();
     if (attrs != null) {
       Predicate<MotionAttributes.DefinedAttribute> isApplicable = findIncludePredicate(section);
       for (MotionAttributes.DefinedAttribute attr : attrs.getAttrMap().values()) {
         if (isApplicable.test(attr)) {
-          writer.setAttribute(attr.getNamespace(), attr.getName(), attr.getValue());
+          tagWriter.setAttribute(attr.getNamespace(), attr.getName(), attr.getValue());
         }
       }
     }
-    if (setPropertyValue) {
-      writer.setAttribute(property.getNamespace(), property.getName(), newValue);
-    }
-    writer.commit(String.format("Create %1$s tag", section));
+    return tagWriter;
   }
 
   private static Predicate<MotionAttributes.DefinedAttribute> findIncludePredicate(@NotNull String sectionName) {
@@ -193,26 +200,62 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     }
   }
 
-  public void createCustomXmlTag(@NotNull MotionSceneTag keyFrameOrConstraint,
+  /**
+   * Given the current selection create a new custom tag with the specified attrName, value, and type
+   *
+   * Upon completion perform the specified operation with the created custom tag.
+   * Note that this method may create the constraint tag for the custom tag as well.
+   */
+  public void createCustomXmlTag(@NotNull MotionSelection selection,
                                  @NotNull String attrName,
                                  @NotNull String value,
                                  @NotNull MotionSceneModel.CustomAttributes.Type type,
                                  @NotNull Consumer<MotionSceneTag> operation) {
-    List<MTag> oldTags = Arrays.stream(keyFrameOrConstraint.getChildTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE))
-      .filter(tag -> attrName.equals(tag.getAttributeValue(MotionSceneAttrs.ATTR_CUSTOM_ATTRIBUTE_NAME)))
-      .collect(Collectors.toList());
-
+    String valueAttrName = type.getTagName();
     String newValue = StringUtil.isNotEmpty(value) ? value : type.getDefaultValue();
     String commandName = String.format("Set %1$s.%2$s to %3$s", MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, attrName, newValue);
+    MTag.TagWriter tagWriter = null;
+    MTag oldCustomTag = null;
+
+    MotionSceneTag motionTag = selection.getMotionSceneTag();
+    if (motionTag == null) {
+      tagWriter = createConstraintTag(selection);
+      if (tagWriter == null) {
+        // Should not happen!
+        return;
+      }
+    }
+    else {
+      oldCustomTag = findCustomTag(motionTag, attrName);
+    }
+    MTag.TagWriter constraintWriter = tagWriter;
+
+    if (tagWriter != null) {
+      tagWriter = tagWriter.getChildTagWriter(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
+    }
+    else if (oldCustomTag != null) {
+      tagWriter = oldCustomTag.getTagWriter();
+    }
+    else {
+      tagWriter = motionTag.getChildTagWriter(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
+    }
+    tagWriter.setAttribute(AUTO_URI, MotionSceneAttrs.ATTR_CUSTOM_ATTRIBUTE_NAME, attrName);
+    tagWriter.setAttribute(AUTO_URI, valueAttrName, newValue);
+    if (oldCustomTag != null) {
+      for (String attr : MotionSceneAttrs.ourCustomAttribute) {
+        if (attr != valueAttrName) {
+          tagWriter.setAttribute(AUTO_URI, attr, null);
+        }
+      }
+    }
+    MTag.TagWriter committer = constraintWriter != null ? constraintWriter : tagWriter;
 
     Runnable transaction = () -> {
-      oldTags.forEach(tag -> ((MotionSceneTag)tag).getXmlTag().delete());
-
-      MTag.TagWriter writer = MotionSceneUtils.getChildTagWriter(keyFrameOrConstraint, MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
-      writer.setAttribute(AUTO_URI, MotionSceneAttrs.ATTR_CUSTOM_ATTRIBUTE_NAME, attrName);
-      writer.setAttribute(AUTO_URI, type.getTagName(), newValue);
-      MTag createdMotionTag = writer.commit(commandName);
-      operation.accept((MotionSceneTag)createdMotionTag);
+      MTag createdCustomTag = committer.commit(commandName);
+      if (!createdCustomTag.getTagName().equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
+        createdCustomTag = createdCustomTag.getChildTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)[0];
+      }
+      operation.accept((MotionSceneTag)createdCustomTag);
     };
 
     ApplicationManager.getApplication().assertIsDispatchThread();
@@ -222,7 +265,38 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
         commandName,
         null,
         transaction,
-        keyFrameOrConstraint.getXmlTag().getContainingFile()));
+        selection.getSceneFile()));
+  }
+
+  /**
+   * Create a <Constraint> tag and copy over the inherited attributes.
+   * @return an uncommitted TagWriter on the created tag.
+   */
+  private static MTag.TagWriter createConstraintTag(@NotNull MotionSelection selection) {
+    if (selection.getType() != MotionEditorSelector.Type.CONSTRAINT) {
+      // Should not happen!
+      return null;
+    }
+    MotionAttributes attrs = selection.getMotionAttributes();
+    if (attrs == null) {
+      // Should not happen!
+      return null;
+    }
+    MTag constraintSetTag = attrs.getConstraintSet();
+    if (constraintSetTag == null) {
+      // Should not happen!
+      return null;
+    }
+    MTag.TagWriter tagWriter = constraintSetTag.getChildTagWriter(MotionSceneAttrs.Tags.CONSTRAINT);
+    if (tagWriter == null) {
+      // Should not happen!
+      return null;
+    }
+    tagWriter.setAttribute(ANDROID_URI, ATTR_ID, selection.getComponentId());
+    for (MotionAttributes.DefinedAttribute attr : attrs.getAttrMap().values()) {
+      tagWriter.setAttribute(attr.getNamespace(), attr.getName(), attr.getValue());
+    }
+    return tagWriter;
   }
 
   public void deleteTag(@NotNull XmlTag tag, @NotNull Runnable operation) {
@@ -246,23 +320,38 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   protected boolean wantComponentSelectionUpdate(@Nullable DesignSurface surface,
                                                  @Nullable DesignSurface activeSurface,
                                                  @Nullable AccessoryPanelInterface activePanel) {
-    return false;
+    return wantPanelSelectionUpdate(activePanel, activePanel);
   }
 
   @Override
-  protected boolean wantPanelSelectionUpdate(@NotNull AccessoryPanelInterface panel, @Nullable AccessoryPanelInterface activePanel) {
-    return panel == activePanel && panel.getSelectedAccessory() != null && panel instanceof MotionDesignSurfaceEdits;
+  protected boolean wantPanelSelectionUpdate(@Nullable AccessoryPanelInterface panel, @Nullable AccessoryPanelInterface activePanel) {
+    return panel == activePanel &&
+           panel != null &&
+           panel.getSelectedAccessoryType() != null &&
+           panel instanceof MotionDesignSurfaceEdits;
   }
 
   @Nullable
-  public static MotionSceneTag getMotionTag(@NotNull NelePropertyItem property) {
-    return (MotionSceneTag)property.getOptionalValue1();
+  public static MotionSelection getMotionSelection(@NotNull NelePropertyItem property) {
+    return (MotionSelection)property.getOptionalValue1();
   }
 
   @Nullable
-  public static String getConstraintSection(@NotNull NelePropertyItem property) {
+  public static String getSubTag(@NotNull NelePropertyItem property) {
     return (String)property.getOptionalValue2();
   }
+
+  @Nullable
+  public static MTag findCustomTag(MotionSceneTag motionTag, @Nullable String attrName) {
+    if (attrName == null) {
+      return null;
+    }
+    return Arrays.stream(motionTag.getChildTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE))
+      .filter(child -> attrName.equals(child.getAttributeValue(MotionSceneAttrs.ATTR_CUSTOM_ATTRIBUTE_NAME)))
+      .findFirst()
+      .orElse(null);
+  }
+
 
   @Nullable
   public static MotionSceneTag getConstraintSectionTag(@NotNull MotionSceneTag constraint, @NotNull String sectionTagName) {
@@ -272,14 +361,5 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     }
     // TODO: If there are multiple sub tags (by mistake) should we write to all of them?
     return (MotionSceneTag)tags[0];
-  }
-
-  @Nullable
-  public static XmlTag getTag(@NotNull NelePropertyItem property) {
-    MotionSceneTag motionTag = (MotionSceneTag)property.getOptionalValue1();
-    if (motionTag == null) {
-      return null;
-    }
-    return motionTag.getXmlTag();
   }
 }

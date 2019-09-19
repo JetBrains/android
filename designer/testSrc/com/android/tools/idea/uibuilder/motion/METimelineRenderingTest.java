@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TimeLine
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TimeLineTopLeft;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -72,6 +73,15 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
   public void testTimeLinePanel() {
     DummyPanel dummyPanel = new DummyPanel();
     TimeLinePanel timeLinePanel = new TimeLinePanel( );
+    int[] selectionChanges = new int[]{0};
+    MotionEditorSelector selector = new MotionEditorSelector();
+    selector.addSelectionListener(new MotionEditorSelector.Listener() {
+      @Override
+      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
+        selectionChanges[0]++;
+      }
+    });
+    timeLinePanel.setListeners(selector);
 
     assertTrue(timeLinePanel!=null);
 
@@ -127,8 +137,8 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
       topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.END, 0);
 
       assertTrue(time < 1E9);
-
     }
+    assertEquals(trans.length, selectionChanges[0]);
   }
 
   static interface Test {

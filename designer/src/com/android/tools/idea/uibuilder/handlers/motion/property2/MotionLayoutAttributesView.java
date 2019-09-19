@@ -20,19 +20,19 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory;
 
-import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.AddCustomFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.AddMotionFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.DeleteCustomFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.DeleteMotionFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.action.SubSectionControlAction;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
-import com.android.tools.idea.uibuilder.property2.model.SelectedComponentModel;
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider;
 import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanControlTypeProvider;
 import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel;
-import com.android.tools.idea.uibuilder.property2.ui.SelectedComponentPanel;
 import com.android.tools.property.panel.api.EditorProvider;
 import com.android.tools.property.panel.api.FilteredPTableModel;
 import com.android.tools.property.panel.api.InspectorBuilder;
@@ -43,6 +43,7 @@ import com.android.tools.property.panel.api.PropertiesTable;
 import com.android.tools.property.panel.api.PropertiesView;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.property.panel.api.TableUIProvider;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
@@ -50,15 +51,24 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import com.intellij.xml.XmlElementDescriptor;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link PropertiesView} for motion layout property editor.
  */
 public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem> {
   private static final String MOTION_VIEW_NAME = "Motion";
+  private static final List<String> CONSTRAINT_SECTIONS = ImmutableList.of(
+    MotionSceneAttrs.Tags.LAYOUT,
+    MotionSceneAttrs.Tags.MOTION,
+    MotionSceneAttrs.Tags.PROPERTY_SET,
+    MotionSceneAttrs.Tags.TRANSFORM
+  );
 
   public MotionLayoutAttributesView(@NotNull MotionLayoutAttributesModel model) {
     super(MOTION_VIEW_NAME, model);
@@ -68,30 +78,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NelePropertyItem.class, controlTypeProvider, editorProvider);
     getMain().getBuilders().add(new SelectedTargetBuilder());
     addTab("").getBuilders().add(new MotionInspectorBuilder(model, editorProvider, tableUIProvider));
-  }
-
-  private static class SelectedTargetBuilder implements InspectorBuilder<NelePropertyItem> {
-
-    @Override
-    public void attachToInspector(@NotNull InspectorPanel inspector, @NotNull PropertiesTable<NelePropertyItem> properties) {
-      NelePropertyItem any = properties.getFirst();
-      if (any == null || any.getComponents().isEmpty()) {
-        return;
-      }
-      NelePropertyItem id = properties.getOrNull(ANDROID_URI, ATTR_ID);
-      NlComponent component = any.getComponents().get(0);
-      XmlTag tag = MotionLayoutAttributesModel.getTag(any);
-      if (tag == null) {
-        return;
-      }
-      String label = tag.getLocalName();
-      inspector.addComponent(new SelectedComponentPanel(
-        new SelectedComponentModel(id, Collections.singletonList(component), label)), null);
-    }
-
-    @Override
-    public void resetCache() {
-    }
   }
 
   private static class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
@@ -116,27 +102,24 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       if (any == null) {
         return;
       }
-      XmlTag tag = MotionLayoutAttributesModel.getTag(any);
-      if (tag == null) {
+      MotionSelection selection = (MotionSelection)any.getOptionalValue1();
+      if (selection == null) {
         return;
       }
-      String label = tag.getLocalName();
-      switch (label) {
-        case MotionSceneAttrs.Tags.CONSTRAINT:
+
+      switch (selection.getType()) {
+        case CONSTRAINT:
           NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
-          boolean showDefaultValues = myModel.getProperties().getValues().stream().anyMatch(
-            item -> !item.getNamespace().isEmpty() &&
-                    item != targetId &&
-                    (item.getRawValue() != null));
-          addPropertyTable(inspector, label, myModel, showDefaultValues, false, targetId);
-          addSubTagSections(inspector, tag, myModel);
+          //boolean showDefaultValues = myModel.getProperties().getValues().stream().anyMatch(
+          //  item -> !item.getNamespace().isEmpty() &&
+          //          item != targetId &&
+          //          (item.getRawValue() != null));
+
+          addPropertyTable(inspector, selection, MotionSceneAttrs.Tags.CONSTRAINT, myModel, true, false, targetId);
+          addSubTagSections(inspector, selection, myModel);
           break;
 
-        // These are all some kind of a KeyFrame:
-        case MotionSceneAttrs.Tags.KEY_ATTRIBUTE:
-        case MotionSceneAttrs.Tags.KEY_POSITION:
-        case MotionSceneAttrs.Tags.KEY_CYCLE:
-        case MotionSceneAttrs.Tags.KEY_TIME_CYCLE:
+        case KEY_FRAME:
           NelePropertyItem target = properties.getOrNull(AUTO_URI, MotionSceneAttrs.Key.MOTION_TARGET);
           NelePropertyItem position = properties.getOrNull(AUTO_URI, MotionSceneAttrs.Key.FRAME_POSITION);
           if (target == null || position == null) {
@@ -145,44 +128,42 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
             return;
           }
           inspector.addEditor(myEditorProvider.createEditor(position, false), null);
-          addPropertyTable(inspector, label, myModel, false, false, target, position);
+          addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, target, position);
           break;
 
         default:
-          addPropertyTable(inspector, label, myModel, false, false);
+          addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false);
           break;
       }
-      if (hasCustomAttributes(tag)) {
-        addCustomAttributes(inspector, any, myModel);
-      }
+      addCustomAttributes(inspector, selection, any, myModel);
     }
 
     private void addSubTagSections(@NotNull InspectorPanel inspector,
-                                   @NotNull XmlTag tag,
+                                   @NotNull MotionSelection selection,
                                    @NotNull MotionLayoutAttributesModel model) {
-      XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(tag);
-      if (elementDescriptor == null) {
+      if (!shouldDisplaySection(MotionSceneAttrs.Tags.LAYOUT, selection)) {
         return;
       }
-      for (XmlElementDescriptor childDescriptor : elementDescriptor.getElementsDescriptors(tag)) {
-        String subTagName = childDescriptor.getName();
-        if (!subTagName.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
-          SubTagAttributesModel subModel = new SubTagAttributesModel(model, subTagName);
-          addPropertyTable(inspector, subTagName, subModel, true, true);
-        }
+      for (String subTagName : CONSTRAINT_SECTIONS) {
+        SubTagAttributesModel subModel = new SubTagAttributesModel(model, subTagName);
+        addPropertyTable(inspector, selection, subTagName, subModel, true, true);
       }
     }
 
     private void addCustomAttributes(@NotNull InspectorPanel inspector,
+                                     @NotNull MotionSelection selection,
                                      @NotNull NelePropertyItem any,
                                      @NotNull MotionLayoutAttributesModel model) {
+      if (!shouldDisplaySection(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, selection)) {
+        return;
+      }
       SubTagAttributesModel customModel = new SubTagAttributesModel(model, MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
       Function1<NelePropertyItem, Boolean> filter = (item) -> item.getNamespace().isEmpty() && item.getRawValue() != null;
 
       FilteredPTableModel<NelePropertyItem> tableModel = PTableModelFactory.create(
         customModel, filter, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), false, true);
       AddCustomFieldAction addFieldAction = new AddCustomFieldAction(tableModel, any);
-      DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction(tableModel);
+      DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction();
       InspectorLineModel title = inspector.addExpandableTitle("CustomAttributes", true, addFieldAction, deleteFieldAction);
       TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
       inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
@@ -190,11 +171,15 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     }
 
     private void addPropertyTable(@NotNull InspectorPanel inspector,
-                                  @NotNull String titleName,
+                                  @NotNull MotionSelection selection,
+                                  @Nullable String sectionTagName,
                                   @NotNull PropertiesModel<NelePropertyItem> model,
                                   boolean showDefaultValues,
                                   boolean showSectionControl,
                                   @NotNull NelePropertyItem... excluded) {
+      if (!shouldDisplaySection(sectionTagName, selection)) {
+        return;
+      }
       NelePropertyItem any = model.getProperties().getFirst();
       Function1<NelePropertyItem, Boolean> filter =
         (item) -> !item.getNamespace().isEmpty() &&
@@ -210,7 +195,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       AnAction[] actions = showSectionControl
                            ? new AnAction[]{controlAction, addFieldAction, deleteFieldAction}
                            : new AnAction[]{addFieldAction, deleteFieldAction};
-      InspectorLineModel title = inspector.addExpandableTitle(titleName, true, actions);
+      InspectorLineModel title = inspector.addExpandableTitle(sectionTagName, true, actions);
       TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, title);
       inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
       controlAction.setLineModel(title);
@@ -218,12 +203,62 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       deleteFieldAction.setLineModel(lineModel);
     }
 
-    private boolean hasCustomAttributes(@NotNull XmlTag tag) {
-      XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(tag);
+    private boolean shouldDisplaySection(@Nullable String section, @NotNull MotionSelection selection) {
+      if (section == null) {
+        return false;
+      }
+      MotionSceneTag tag = selection.getMotionSceneTag();
+      switch (section) {
+        case MotionSceneAttrs.Tags.CONSTRAINT:
+          if (selection.getType() != MotionEditorSelector.Type.CONSTRAINT) {
+            return false;
+          }
+          if (tag == null) {
+            // Non existent constraint tag.
+            // Show the inherited constraint attributes.
+            return true;
+          }
+          // If this is not a sectioned constraint then display the tag.
+          // If this it is a sectioned constraint but it has significant attributes then display the tag as well.
+          Set<String> attrs = tag.getAttrList().keySet();
+          return !isSectionedConstraint(tag) || attrs.size() > 1 || !attrs.contains(ATTR_ID);
+
+        case MotionSceneAttrs.Tags.LAYOUT:
+        case MotionSceneAttrs.Tags.PROPERTY_SET:
+        case MotionSceneAttrs.Tags.TRANSFORM:
+        case MotionSceneAttrs.Tags.MOTION:
+          if (selection.getType() != MotionEditorSelector.Type.CONSTRAINT) {
+            return false;
+          }
+          return tag != null && isSectionedConstraint(tag);
+
+        case MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE:
+          if (tag == null && selection.getType() == MotionEditorSelector.Type.CONSTRAINT) {
+            return true;
+          }
+          return tag != null && canHaveCustomAttributes(tag);
+
+        default:
+          return section.equals(selection.getMotionSceneTagName());
+      }
+    }
+
+    private static boolean isSectionedConstraint(@NotNull MotionSceneTag constraintTag) {
+      for (MTag tag : constraintTag.getChildTags()) {
+        if (CONSTRAINT_SECTIONS.contains(tag.getTagName())) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    private boolean canHaveCustomAttributes(@NotNull MotionSceneTag tag) {
+      XmlTag xml = tag.getXmlTag();
+      XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(xml);
       if (elementDescriptor == null) {
         return false;
       }
-      for (XmlElementDescriptor childDescriptor : elementDescriptor.getElementsDescriptors(tag)) {
+      for (XmlElementDescriptor childDescriptor : elementDescriptor.getElementsDescriptors(xml)) {
         if (childDescriptor.getDefaultName().equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
           return true;
         }

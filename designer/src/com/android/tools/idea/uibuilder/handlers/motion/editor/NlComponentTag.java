@@ -40,6 +40,10 @@ public class NlComponentTag implements MTag {
     mParent = parent;
   }
 
+  public NlComponent getComponent() {
+    return mComponent;
+  }
+
   @Override
   public String getTagName() {
     return mComponent.getTagName();

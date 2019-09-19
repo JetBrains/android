@@ -26,6 +26,8 @@ import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.TransitionConstraintSetStart
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionDesignSurfaceEdits
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilEventsProcessed
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
@@ -54,6 +56,7 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     val nlModel = createNlModel()
     val motionPanel = retrieveMotionAccessoryPanel(nlModel)
     model.addListener(listener)
+    model.updateQueue.isPassThrough = true
 
     // test
     model.surface = nlModel.surface
@@ -157,7 +160,8 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
 
   private class MotionAccessoryPanel: AccessoryPanelInterface, MotionDesignSurfaceEdits {
     val listeners = mutableListOf<AccessorySelectionListener>()
-    var tag: MotionSceneTag? = null
+    var type: MotionEditorSelector.Type? = null
+    var tags: Array<MTag>? = null
 
     override fun getPanel(): JPanel {
       throw Error("should not be called")
@@ -208,15 +212,24 @@ class MotionLayoutAttributesModelTest: LayoutTestCase() {
     }
 
     fun select(tagPointer: SmartPsiElementPointer<XmlTag>?, component: NlComponent?) {
-      tag = null
+      type = null
+      tags = null
       val xmlTag = tagPointer?.element ?: return
-      this.tag = MotionSceneTag(xmlTag, null)
+      val motionTag = MotionSceneTag(xmlTag, null)
+
+      type = mapTagNameToType(motionTag.tagName)
+      tags = arrayOf(motionTag)
+
       val list = if (component != null) listOf(component) else emptyList()
       listeners.forEach { it.selectionChanged(this, list) }
     }
 
+    override fun getSelectedAccessoryType(): Any? {
+      return type
+    }
+
     override fun getSelectedAccessory(): Any? {
-      return tag
+      return tags
     }
 
     val listenerCount: Int

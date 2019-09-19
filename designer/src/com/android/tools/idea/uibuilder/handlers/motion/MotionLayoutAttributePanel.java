@@ -155,6 +155,12 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
     return null;
   }
 
+  @Nullable
+  @Override
+  public Object getSelectedAccessoryType() {
+    return null;
+  }
+
   @Override
   public void addListener(@NotNull AccessorySelectionListener listener) {
   }

@@ -15,21 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
+import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel.getMotionSelection;
 
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.NlComponentTag;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.property2.DefaultPropertyValueProvider;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
-import com.intellij.psi.xml.XmlTag;
 import java.util.HashMap;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +35,11 @@ public class MotionDefaultPropertyValueProvider implements DefaultPropertyValueP
   @Nullable
   @Override
   public String provideDefaultValue(@NotNull NelePropertyItem property) {
-    MotionAttributes attrs = getMotionAttributesForTag(property);
+    MotionSelection selection = getMotionSelection(property);
+    if (selection == null) {
+      return null;
+    }
+    MotionAttributes attrs = selection.getMotionAttributes();
     if (attrs == null) {
       return null;
     }
@@ -54,36 +49,6 @@ public class MotionDefaultPropertyValueProvider implements DefaultPropertyValueP
       return null;
     }
     return attr.getValue();
-  }
-
-  @Nullable
-  public static MotionAttributes getMotionAttributesForTag(@NotNull NelePropertyItem property) {
-    Object optional1 = property.getOptionalValue1();
-    if (!(optional1 instanceof MotionSceneTag)) {
-      return null;
-    }
-    MotionSceneTag motionTag = (MotionSceneTag)optional1;
-    if (!motionTag.getTagName().equals(MotionSceneAttrs.Tags.CONSTRAINT)) {
-      return null;
-    }
-    XmlTag tag = motionTag.getXmlTag();
-    if (tag == null) {
-      return null;
-    }
-    String constraintId = Utils.stripID(tag.getAttributeValue(ATTR_ID, ANDROID_URI));
-    if (constraintId.isEmpty()) {
-      return null;
-    }
-    List<NlComponent> components = property.getComponents();
-    if (components.isEmpty()) {
-      return null;
-    }
-    NlComponent motionLayout = components.get(0);
-    NlComponent component = motionLayout.getChildren().stream().filter(view -> constraintId.equals(view.getId())).findFirst().orElse(null);
-    if (component == null) {
-      return null;
-    }
-    return (MotionAttributes)component.getClientProperty(MotionSceneUtils.MOTION_LAYOUT_PROPERTIES);
   }
 
   @Override

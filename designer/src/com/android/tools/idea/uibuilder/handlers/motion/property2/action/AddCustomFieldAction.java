@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
-import com.android.tools.property.panel.api.FilteredPTableModel;
 import com.android.tools.idea.uibuilder.handlers.motion.attributeEditor.NewCustomAttributePanel;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider;
+import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.property.panel.api.FilteredPTableModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlTag;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,20 +55,16 @@ public class AddCustomFieldAction extends AnAction {
     if (StringUtil.isEmpty(attributeName)) {
       return;
     }
-    MotionSceneTag motionTag = MotionLayoutAttributesModel.getMotionTag(myProperty);
-    if (motionTag == null) {
-      return;
-    }
-    XmlTag tag = motionTag.getXmlTag();
-    if (tag == null) {
+    MotionSelection selection = MotionLayoutAttributesModel.getMotionSelection(myProperty);
+    if (selection == null) {
       return;
     }
     Consumer<MotionSceneTag> applyToModel = newCustomTag -> {
       NelePropertyItem newProperty = MotionLayoutPropertyProvider.createCustomProperty(
-        attributeName, type.getTagName(), newCustomTag, myProperty.getModel(), myProperty.getComponents());
+        attributeName, type.getTagName(), selection, myProperty.getModel());
       myTableModel.addNewItem(newProperty);
     };
 
-    myModel.createCustomXmlTag(motionTag, attributeName, value, type, applyToModel);
+    myModel.createCustomXmlTag(selection, attributeName, value, type, applyToModel);
   }
 }
