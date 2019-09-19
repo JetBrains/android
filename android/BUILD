@@ -202,6 +202,7 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/data-binding:data_binding_runtime.zip",
         "//tools/external/gradle:gradle-distrib-2.6",
+        "//tools/external/gradle:gradle-distrib-4.5",
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
