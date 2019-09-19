@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.assistant.datamodel;
 
+import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -37,4 +38,10 @@ public interface StepData {
    */
   @NotNull
   String getLabel();
+
+  /**
+   * Gets the border for the step, can be used to create separators
+   */
+  @NotNull
+  Border getBorder();
 }

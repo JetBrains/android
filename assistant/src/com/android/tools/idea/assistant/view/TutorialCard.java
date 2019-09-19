@@ -166,18 +166,20 @@ public class TutorialCard extends CardViewPanel {
     contents.add(title, c);
     c.gridy++;
 
-    TutorialDescription description = new TutorialDescription();
-    StringBuilder sb = new StringBuilder();
-    sb.append("<p class=\"description\">").append(myTutorial.getDescription());
-    if (myTutorial.getRemoteLink() != null && myTutorial.getRemoteLinkLabel() != null) {
-      sb.append("<br><br><a href=\"").append(myTutorial.getRemoteLink()).append("\" target=\"_blank\">")
-        .append(myTutorial.getRemoteLinkLabel()).append("</a>");
-    }
-    sb.append("</p>");
-    UIUtils.setHtml(description, sb.toString(), ".description { margin: 10px;}");
+    if (myTutorial.getDescription() != null && !myTutorial.getDescription().isEmpty()) {
+      TutorialDescription description = new TutorialDescription();
+      StringBuilder sb = new StringBuilder();
+      sb.append("<p class=\"description\">").append(myTutorial.getDescription());
+      if (myTutorial.getRemoteLink() != null && myTutorial.getRemoteLinkLabel() != null) {
+        sb.append("<br><br><a href=\"").append(myTutorial.getRemoteLink()).append("\" target=\"_blank\">")
+          .append(myTutorial.getRemoteLinkLabel()).append("</a>");
+      }
+      sb.append("</p>");
+      UIUtils.setHtml(description, sb.toString(), ".description { margin: 10px;}");
 
-    contents.add(description, c);
-    c.gridy++;
+      contents.add(description, c);
+      c.gridy++;
+    }
 
     // Add extra padding for tutorial steps.
     c.insets = JBUI.insets(0, 5, 0, 5);
