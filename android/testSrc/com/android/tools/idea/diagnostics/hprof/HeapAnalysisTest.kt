@@ -33,9 +33,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.DataOutputStream
 import java.io.File
-import java.io.FileOutputStream
 import java.lang.ref.WeakReference
 import java.nio.channels.FileChannel
 import java.nio.charset.StandardCharsets
@@ -161,17 +159,14 @@ class HeapAnalysisTest {
                             StandardOpenOption.DELETE_ON_CLOSE)
   }
 
-  private fun runHProfScenario(scenario: HProfBuilder.() -> Unit, baselineFileName: String, nominatedClassNames: List<String>? = null) {
+  private fun runHProfScenario(scenario: HProfBuilder.() -> Unit,
+                               baselineFileName: String,
+                               nominatedClassNames: List<String>? = null,
+                               classNameMapping: ((Class<*>) -> String)? = null) {
     val hprofFile = tmpFolder.newFile()
-    FileOutputStream(hprofFile).use { fos ->
-
-      // Simplify inner class names
-      val regex = Regex(".*HeapAnalysisTest\\\$.*\\\$")
-      val classNameMapping: (Class<*>) -> String = { c ->
-        c.name.replace(regex, "")
-      }
-      HProfBuilder(DataOutputStream(fos), classNameMapping).apply(scenario).create()
-    }
+    HProfTestUtils.createHProfOnFile(hprofFile,
+                                     scenario,
+                                     classNameMapping)
     compareReportToBaseline(hprofFile, baselineFileName, nominatedClassNames)
   }
 
@@ -195,5 +190,30 @@ class HeapAnalysisTest {
                      listOf("TestClassB",
                             "TestClassA",
                             "TestString"))
+  }
+
+  @Test
+  fun testClassNameClash() {
+    class MyTestClass1
+    class MyTestClass2
+
+    val scenario: HProfBuilder.() -> Unit = {
+      addRootUnknown(MyTestClass1())
+      addRootGlobalJNI(MyTestClass2())
+
+    }
+    val classNameMapping: (Class<*>) -> String = { c ->
+      if (c == MyTestClass1::class.java ||
+          c == MyTestClass2::class.java) {
+        "MyTestClass"
+      } else {
+        c.name
+      }
+    }
+
+    runHProfScenario(scenario, "testClassNameClash.txt",
+                     listOf("MyTestClass!1",
+                            "MyTestClass!2"),
+                            classNameMapping)
   }
 }
