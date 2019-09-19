@@ -25,10 +25,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
-import com.android.tools.idea.lang.proguardR8.psi.AbstractProguardR8ClassMember;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
 
-public class ProguardR8MethodNameImpl extends AbstractProguardR8ClassMember implements ProguardR8MethodName {
+public class ProguardR8MethodNameImpl extends ASTWrapperPsiElement implements ProguardR8MethodName {
 
   public ProguardR8MethodNameImpl(@NotNull ASTNode node) {
     super(node);

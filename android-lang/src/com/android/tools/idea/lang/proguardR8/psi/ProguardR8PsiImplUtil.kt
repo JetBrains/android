@@ -31,7 +31,6 @@ import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassRe
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReferenceSet
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.parentOfType
 
 private class ProguardR8JavaClassReferenceProvider(val scope: GlobalSearchScope) : JavaClassReferenceProvider() {
 
@@ -63,10 +62,6 @@ fun resolveToPsiClass(className: ProguardR8QualifiedName): PsiClass? {
   // We take last reference because it corresponds to PsiClass (or not), previous are for packages
   val lastElement = className.references.lastOrNull()?.resolve()
   return lastElement as? PsiClass
-}
-
-fun resolvePsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHeader): List<PsiClass> {
-  return classSpecificationHeader.classNameList.mapNotNull { it.qualifiedName.resolveToPsiClass() }
 }
 
 fun getPsiPrimitive(proguardR8JavaPrimitive: ProguardR8JavaPrimitive): PsiPrimitiveType? {
@@ -114,9 +109,3 @@ fun matchesPsiType(type: ProguardR8Type, other: PsiType): Boolean {
     else -> false
   }
 }
-
-fun getType(field: ProguardR8FieldName): ProguardR8Type? {
-  return field.parentOfType(ProguardR8FieldsSpecification::class)?.type
-}
-
-fun getReference(field: ProguardR8FieldName) = if (field.containsWildcards) null else ProguardR8FieldReference(field)

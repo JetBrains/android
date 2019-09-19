@@ -21,7 +21,6 @@ package com.android.tools.idea.lang.proguardR8.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiClass;
 
 public interface ProguardR8ClassSpecificationHeader extends PsiElement {
 
@@ -36,8 +35,5 @@ public interface ProguardR8ClassSpecificationHeader extends PsiElement {
 
   @NotNull
   ProguardR8ClassType getClassType();
-
-  @NotNull
-  List<PsiClass> resolvePsiClasses();
 
 }

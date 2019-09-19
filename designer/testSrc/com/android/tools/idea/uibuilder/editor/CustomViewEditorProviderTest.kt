@@ -29,7 +29,7 @@ class CustomViewEditorProviderTest : AndroidTestCase() {
 
   override fun tearDown() {
     // return to default
-    StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.clearOverride()
+    StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.override(false)
     super.tearDown()
   }
 
