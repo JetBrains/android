@@ -220,7 +220,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
         enableShrinkRendering()
       }
     }
-    .setEditable(true)
+    .setEditable(false)
     .build()
     .apply {
       setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true)
