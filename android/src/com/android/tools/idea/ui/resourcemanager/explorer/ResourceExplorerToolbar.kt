@@ -183,7 +183,7 @@ private class ShowModuleDependenciesAction internal constructor(val viewModel: R
   override fun isSelected(e: AnActionEvent) = viewModel.isShowModuleDependencies
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowModuleDependencies = state
-    // TODO: Add logging
+    ResourceManagerTracking.logShowLocalDependenciesToggle(state)
   }
 }
 
@@ -201,7 +201,7 @@ private class ShowFrameworkAction internal constructor(val viewModel: ResourceEx
   override fun isSelected(e: AnActionEvent) = viewModel.isShowFrameworkResources
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowFrameworkResources = state
-    // TODO: Add logging
+    ResourceManagerTracking.logShowFrameworkToggle(state)
   }
 }
 
@@ -210,7 +210,7 @@ private class ShowThemeAttributesAction internal constructor(val viewModel: Reso
   override fun isSelected(e: AnActionEvent) = viewModel.isShowThemeAttributes
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowThemeAttributes = state
-    // TODO: Add logging
+    ResourceManagerTracking.logShowThemeAttributesToggle(state)
   }
 }
 
