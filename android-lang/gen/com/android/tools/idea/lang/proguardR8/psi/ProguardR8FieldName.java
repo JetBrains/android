@@ -22,18 +22,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ProguardR8FieldName extends ProguardR8ClassMember {
+public interface ProguardR8FieldName extends PsiElement {
 
   @Nullable
   PsiElement getJavaIdentifier();
 
   @Nullable
   PsiElement getJavaIdentifierWithWildcards();
-
-  @Nullable
-  ProguardR8FieldReference getReference();
-
-  @Nullable
-  ProguardR8Type getType();
 
 }

@@ -22,8 +22,6 @@ import com.intellij.lang.PsiBuilderFactory
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.AbstractElementManipulator
 import com.intellij.psi.impl.source.DummyHolderFactory
-import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.intellij.util.IncorrectOperationException
 
 class ProguardR8QualifiedNameManipulator : AbstractElementManipulator<ProguardR8QualifiedName>() {
 
@@ -44,21 +42,5 @@ class ProguardR8QualifiedNameManipulator : AbstractElementManipulator<ProguardR8
     val newElement = createQualifiedNameFromText(newQualifiedName, element)
 
     return if (newElement != null) element.replace(newElement) as ProguardR8QualifiedName else element
-  }
-}
-
-
-class ProguardR8ClassMemberManipulator : AbstractElementManipulator<ProguardR8ClassMember>() {
-
-  override fun handleContentChange(element: ProguardR8ClassMember, range: TextRange, newContent: String): ProguardR8ClassMember {
-    // It blocks refactoring for class member names that we don't support yet, e.g. "my-method" for Kotlin code.
-    // It blocks it just in case class member is used in proguard files.
-    if (!ProguardR8Lexer.isJavaIdentifier(newContent)) {
-      throw IncorrectOperationException("\"$newContent\" is not an identifier for Proguard/R8 files.")
-    }
-
-    val identifier = element.node.findChildByType(ProguardR8PsiTypes.JAVA_IDENTIFIER) as? LeafPsiElement
-    identifier?.replaceWithText(newContent)
-    return element
   }
 }

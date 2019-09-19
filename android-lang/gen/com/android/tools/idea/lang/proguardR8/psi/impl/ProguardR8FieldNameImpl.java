@@ -25,10 +25,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
-import com.android.tools.idea.lang.proguardR8.psi.AbstractProguardR8ClassMember;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
 
-public class ProguardR8FieldNameImpl extends AbstractProguardR8ClassMember implements ProguardR8FieldName {
+public class ProguardR8FieldNameImpl extends ASTWrapperPsiElement implements ProguardR8FieldName {
 
   public ProguardR8FieldNameImpl(@NotNull ASTNode node) {
     super(node);
@@ -53,18 +53,6 @@ public class ProguardR8FieldNameImpl extends AbstractProguardR8ClassMember imple
   @Nullable
   public PsiElement getJavaIdentifierWithWildcards() {
     return findChildByType(JAVA_IDENTIFIER_WITH_WILDCARDS);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8FieldReference getReference() {
-    return ProguardR8PsiImplUtil.getReference(this);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8Type getType() {
-    return ProguardR8PsiImplUtil.getType(this);
   }
 
 }
