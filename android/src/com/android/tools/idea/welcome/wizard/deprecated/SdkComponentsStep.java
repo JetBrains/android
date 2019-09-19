@@ -51,6 +51,7 @@ import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.accessibility.AccessibleContext;
@@ -259,9 +260,14 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
   }
 
   @Override
-  public void deriveValues(Set<ScopedStateStore.Key> modified) {
+  public void deriveValues(Set<? extends ScopedStateStore.Key> modified) {
     super.deriveValues(modified);
-    if (modified.contains(mySdkDownloadPathKey) || myRootNode.componentStateChanged(modified)) {
+    // TODO(qumeric) remove it. This is a hack for Kotlin-Java generics interop.
+    Set<ScopedStateStore.Key<?>> m = new HashSet<>();
+    for (ScopedStateStore.Key v: modified) {
+      m.add(v);
+    }
+    if (modified.contains(mySdkDownloadPathKey) || myRootNode.componentStateChanged(m)) {
       String path = myState.get(mySdkDownloadPathKey);
       myAvailableSpace.setText(getDiskSpace(path));
       long selected = getComponentsSize();
@@ -390,7 +396,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
       int indent = 0;
       if (pair != null) {
         ComponentTreeNode node = pair.getFirst();
-        myCheckBox.setEnabled(node.isOptional());
+        myCheckBox.setEnabled(node.isEnabled());
         myCheckBox.setText(node.getLabel());
         myCheckBox.setSelected(node.isChecked());
         indent = pair.getSecond();
@@ -539,7 +545,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-      return columnIndex == 0 && getInstallableComponent(rowIndex).isOptional();
+      return columnIndex == 0 && getInstallableComponent(rowIndex).isEnabled();
     }
 
     @Override

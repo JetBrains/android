@@ -92,7 +92,7 @@ public class ComponentCategory extends ComponentTreeNode {
   }
 
   @Override
-  public boolean componentStateChanged(@NotNull Set<ScopedStateStore.Key> modified) {
+  public boolean componentStateChanged(@NotNull Set<? extends ScopedStateStore.Key<?>> modified) {
     for (ComponentTreeNode component : myComponents) {
       if (component.componentStateChanged(modified)) {
         return true;
@@ -107,9 +107,9 @@ public class ComponentCategory extends ComponentTreeNode {
   }
 
   @Override
-  public boolean isOptional() {
+  public boolean isEnabled() {
     for (ComponentTreeNode component : myComponents) {
-      if (component.isOptional()) {
+      if (component.isEnabled()) {
         return true;
       }
     }

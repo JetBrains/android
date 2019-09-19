@@ -49,7 +49,7 @@ public final class AndroidSdk extends InstallableComponent {
   @Nullable
   private String getLatestCompatibleBuildToolsPath() {
     ProgressIndicator progress = new ProgressIndicatorAdapter() {};
-    RemotePackage latest = mySdkHandler.getLatestRemotePackageForPrefix(SdkConstants.FD_BUILD_TOOLS, false, progress);
+    RemotePackage latest = sdkHandler.getLatestRemotePackageForPrefix(SdkConstants.FD_BUILD_TOOLS, false, progress);
     return latest != null ? latest.getPath() : null;
   }
 
