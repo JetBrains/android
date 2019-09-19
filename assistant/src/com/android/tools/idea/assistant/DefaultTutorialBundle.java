@@ -22,6 +22,7 @@ import com.android.tools.idea.assistant.datamodel.StepElementData;
 import com.android.tools.idea.assistant.datamodel.StepElementType;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
+import com.android.tools.idea.assistant.view.UIUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
@@ -35,7 +36,9 @@ import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.border.Border;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -373,7 +376,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     protected String myResourceRoot;
 
     @XmlElements({
-      @XmlElement(name = "step", type = Step.class)
+      @XmlElement(name = "step", type = Step.class),
+      @XmlElement(name = "headerStep", type = HeaderStep.class),
+      @XmlElement(name = "footerStep", type = FooterStep.class)
     })
     private List<Step> mySteps = Lists.newArrayList();
 
@@ -448,14 +453,14 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     }
   }
 
-  public static final class Step implements StepData {
+  public static class Step implements StepData {
     @XmlElements({
       @XmlElement(name = "stepElement", type = StepElement.class)
     })
     private List<StepElement> myStepElements = Lists.newArrayList();
 
     @XmlAttribute(name = "label")
-    private String myLabel;
+    String myLabel;
 
     @Override
     @NotNull
@@ -470,10 +475,43 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     }
 
     @Override
+    @NotNull
+    public Border getBorder() {
+      return BorderFactory.createMatteBorder(0, 0, 0, 0, UIUtils.getSeparatorColor());
+    }
+
+    @Override
+    @NotNull
     public String toString() {
-      return "Step{" +
-             "myLabel='" + myLabel + "'" +
-             '}';
+      return "Step{myLabel='" + myLabel + "'}";
+    }
+  }
+
+  public static final class HeaderStep extends Step {
+    @Override
+    @NotNull
+    public Border getBorder() {
+      return BorderFactory.createMatteBorder(0, 0, 1, 0, UIUtils.getSeparatorColor());
+    }
+
+    @Override
+    @NotNull
+    public String toString() {
+      return "HeaderStep{myLabel='" + myLabel + "'}";
+    }
+  }
+
+  public static final class FooterStep extends Step {
+    @Override
+    @NotNull
+    public Border getBorder() {
+      return BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor());
+    }
+
+    @Override
+    @NotNull
+    public String toString() {
+      return "FooterStep{myLabel='" + myLabel + "'}";
     }
   }
 
