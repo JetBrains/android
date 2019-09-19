@@ -549,6 +549,11 @@ class PTableImpl(
         return
       }
 
+      // Ignore a toggle if the cell is editable. Allow the TableUI to start editing instead:
+      if (tableModel.isCellEditable(item(row), PTableColumn.NAME)) {
+        return
+      }
+
       val rectLeftColumn = getCellRect(row, convertColumnIndexToView(0), false)
       if (rectLeftColumn.contains(event.x, event.y)) {
         toggleTreeNode(row)
