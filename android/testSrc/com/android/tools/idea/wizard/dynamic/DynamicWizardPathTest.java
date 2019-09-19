@@ -159,7 +159,7 @@ public class DynamicWizardPathTest extends AndroidTestBase {
     }
 
     @Override
-    public void deriveValues(Set<ScopedStateStore.Key> modified) {
+    public void deriveValues(Set<? extends ScopedStateStore.Key> modified) {
       myState.put(DERIVED_KEY, "derived!");
     }
 

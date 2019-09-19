@@ -135,7 +135,7 @@ public class Platform extends InstallableComponent {
 
   @Override
   public boolean isOptionalForSdkLocation() {
-    List<AndroidVersion> locals = getInstalledPlatformVersions(mySdkHandler);
+    List<AndroidVersion> locals = getInstalledPlatformVersions(sdkHandler);
     if (locals.isEmpty()) {
       return !myIsDefaultPlatform;
     }
