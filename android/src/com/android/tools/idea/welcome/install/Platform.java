@@ -28,6 +28,7 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -97,7 +98,7 @@ public class Platform extends InstallableComponent {
     ComponentTreeNode latestPlatform = getLatestPlatform(store, remotePackages, installUpdates);
     if (latestPlatform != null) {
       return new ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms",
-                                   latestPlatform);
+                                   ImmutableList.of(latestPlatform));
     }
     return null;
   }
