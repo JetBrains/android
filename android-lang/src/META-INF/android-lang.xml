@@ -49,6 +49,13 @@
                              implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedNameManipulator"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMemberName"
                              implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMemberNameManipulator"/>
+    <localInspection groupPath="Android"
+                     groupName="Proguard"
+                     language="PROGUARD_R8"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8ClassMemberInspection"
+                     displayName="Unresolved reference in ProguardR8"/>
     <lang.syntaxHighlighterFactory language="PROGUARD"
                                    implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory"/>
     <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter"/>
