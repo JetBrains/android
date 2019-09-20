@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
 import java.awt.Component;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import javax.swing.Action;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
@@ -30,28 +33,49 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class SelectDeploymentTargetsDialog extends DialogWrapper {
+  private static final String SELECTED_DEVICES = "SelectDeploymentTargetsDialog.selectedDevices";
+
+  @NotNull
+  private final Project myProject;
+
   @Nullable
   private SelectDeploymentTargetsDialogTable myTable;
 
+  @Nullable
+  private Collection<Device> mySelectedDevices;
+
   SelectDeploymentTargetsDialog(@NotNull Project project) {
     super(project);
+    myProject = project;
 
-    initTable(project);
+    initTable();
     init();
     setTitle("Select Deployment Targets");
   }
 
-  private void initTable(@NotNull Project project) {
+  private void initTable() {
     myTable = new SelectDeploymentTargetsDialogTable();
-    myTable.setModel(new SelectDeploymentTargetsDialogTableModel(project, myTable));
 
+    myTable.setModel(new SelectDeploymentTargetsDialogTableModel(myProject, myTable));
     myTable.getSelectionModel().addListSelectionListener(event -> getOKAction().setEnabled(myTable.getSelectedRowCount() != 0));
+
+    String[] array = PropertiesComponent.getInstance(myProject).getValues(SELECTED_DEVICES);
+
+    if (array == null) {
+      return;
+    }
+
+    Collection<Key> collection = Arrays.stream(array)
+      .map(Key::new)
+      .collect(Collectors.toSet());
+
+    myTable.setSelectedDevices(collection);
   }
 
   @NotNull
   Collection<Device> getSelectedDevices() {
-    assert myTable != null;
-    return myTable.getSelectedDevices();
+    assert mySelectedDevices != null;
+    return mySelectedDevices;
   }
 
   @NotNull
@@ -84,5 +108,20 @@ final class SelectDeploymentTargetsDialog extends DialogWrapper {
 
     myOKAction.setEnabled(false);
     myOKAction.putValue(Action.NAME, "Run");
+  }
+
+  @Override
+  protected void doOKAction() {
+    super.doOKAction();
+
+    assert myTable != null;
+    mySelectedDevices = myTable.getSelectedDevices();
+
+    String[] keys = mySelectedDevices.stream()
+      .map(Device::getKey)
+      .map(Key::toString)
+      .toArray(String[]::new);
+
+    PropertiesComponent.getInstance(myProject).setValues(SELECTED_DEVICES, keys);
   }
 }
