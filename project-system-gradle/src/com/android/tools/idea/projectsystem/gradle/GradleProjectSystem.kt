@@ -17,7 +17,6 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.apk.analyzer.AaptInvoker
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -31,7 +30,6 @@ import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.GradleFilePsiMerger
-import com.android.tools.idea.templates.GradleFileSimpleMerger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -74,15 +72,8 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     GradleProjectBuilder.getInstance(project).compileJava()
   }
 
-  override fun mergeBuildFiles(dependencies: String,
-                               destinationContents: String,
-                               supportLibVersionFilter: String?): String {
-    return if (project.isInitialized) {
-      GradleFilePsiMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter)
-    }
-    else {
-      GradleFileSimpleMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter)
-    }
+  override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
+    return GradleFilePsiMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter)
   }
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
