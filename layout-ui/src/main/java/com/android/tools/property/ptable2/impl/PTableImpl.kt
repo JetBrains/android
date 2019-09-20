@@ -465,7 +465,7 @@ class PTableImpl(
 
     val item = item(row)
     when {
-      model.isGroupItem(item) -> toggleAndSelect(row)
+      model.isGroupItem(item) && !tableModel.isCellEditable(item(row), PTableColumn.NAME) -> toggleAndSelect(row)
       toggleOnly -> quickEdit(row, 1)
       else -> {
         if (!startEditing(row, 0) {}) {

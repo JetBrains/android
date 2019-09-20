@@ -82,6 +82,9 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
     textField.registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
     textField.registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape")
+    textField.registerActionKey({ tab() }, KeyStrokes.TAB, "tab")
+    textField.registerActionKey({ backtab() }, KeyStrokes.BACKTAB, "backtab")
+    textField.focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
     textField.background = secondaryPanelBackground
     textField.putClientProperty(UndoRedoAction.IGNORE_SWING_UNDO_MANAGER, true)
 
@@ -128,6 +131,16 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     if (!textField.escapeInLookup()) {
       model.escapeKeyPressed()
     }
+  }
+
+  private fun tab() {
+    enter()
+    transferFocus()
+  }
+
+  private fun backtab() {
+    enter()
+    transferFocusBackward()
   }
 
   override fun updateFromModel() {

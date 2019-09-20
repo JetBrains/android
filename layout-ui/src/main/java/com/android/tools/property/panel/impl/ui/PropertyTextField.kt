@@ -76,6 +76,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
   }
 
   private fun tab() {
+    enterInLookup()
     if (commit()) {
       transferFocus()
     }
@@ -83,6 +84,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
   }
 
   private fun backTab() {
+    enterInLookup()
     if (commit()) {
       transferFocusBackward()
     }
