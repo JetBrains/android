@@ -47,16 +47,6 @@ public class SdkReplacer {
         }
         return new File(sdkLocation);
       }
-
-      @Override
-      public boolean isInstantAppSdkEnabled() {
-        return activate;
-      }
-
-      @Override
-      public long getCompatApiMinVersion() {
-        return 1;
-      }
     });
   }
 
