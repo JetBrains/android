@@ -43,6 +43,16 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
       .collect(Collectors.toList());
   }
 
+  void setSelectedDevices(@NotNull Collection<Key> keys) {
+    SelectDeploymentTargetsDialogTableModel model = (SelectDeploymentTargetsDialogTableModel)getModel();
+
+    IntStream.range(0, getRowCount()).forEach(viewRowIndex -> {
+      if (keys.contains(model.getDeviceAt(convertRowIndexToModel(viewRowIndex)).getKey())) {
+        addRowSelectionInterval(viewRowIndex, viewRowIndex);
+      }
+    });
+  }
+
   @Override
   public void setModel(@NotNull TableModel model) {
     super.setModel(model);
