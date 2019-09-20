@@ -597,13 +597,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_COMPLETION_ICONS = Flag.create(
-    EDITOR, "compose.completion.icons",
-    "Custom icons in completion for Compose",
-    "If enabled, code completion for composable functions uses different icons.",
-    false
-  );
-
   public static final Flag<Boolean> TRANSITIVE_R_CLASSES = Flag.create(
     EDITOR, "transitive.r.classes",
     "Transitive R classes",
@@ -716,6 +709,64 @@ public final class StudioFlags {
     COMPOSE, "preview.enabled", "Enable the Compose preview",
     "If enabled, a visual preview will be available for Compose.",
     false);
+
+  public static final Flag<Boolean> COMPOSE_COMPLETION_ICONS = Flag.create(
+    COMPOSE, "completion.icons",
+    "Custom icons in completion for Compose",
+    "If enabled, code completion for composable functions uses different icons on the left.",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_COMPLETION_HIDE_RETURN_TYPES = Flag.create(
+    COMPOSE, "completion.hide.return.types",
+    "Hide return types in completion for Compose",
+    "If enabled, code completion for composable functions that return Unit doesn't show return types.",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_COMPLETION_LAYOUT_ICON = Flag.create(
+    COMPOSE, "completion.hide.layout.icon",
+    "Use a icon for Compose layouts on the right.",
+    "If enabled, code completion for composable functions uses a different icon on the right for layouts.",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_COMPLETION_BANNER = Flag.create(
+    COMPOSE, "completion.banner",
+    "Custom banner in completion for Compose",
+    "If enabled, code completion for composable functions uses a special banner (below all the suggestions). This seems to " +
+    "work only for explicitly invoked (using ctrl+space) completion for now.",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_COMPLETION_HIDE_SPECIAL_LOOKUP_ELEMENTS = Flag.create(
+    COMPOSE, "completion.hide.special",
+    "Hide special LookupElements for composable functions",
+    "If enabled, code completion for composable functions doesn't include duplicate suggestions for inserting lambdas.",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_COMPLETION_REQUIRED_ONLY = Flag.create(
+    COMPOSE, "completion.required.only",
+    "Show only required parameters in completion",
+    "If enabled, code completion for composable functions shows only required parameters.",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_COMPLETION_DOTS_FOR_OPTIONAL = Flag.create(
+    COMPOSE, "completion.dots",
+    "Show three dots when optional parameters are skipped in completion",
+    "If enabled, code completion for composable functions will show three dots after required parameters if there are optional " +
+    "parameters as well.",
+    false
+  );
+  public static final Flag<Boolean> COMPOSE_COMPLETION_TRAILING_LAMBDA = Flag.create(
+    COMPOSE, "completion.lambda",
+    "Show trailing function parameter as lambda",
+    "If enabled, code completion for composable functions will use lambda syntax for trailing functional parameters.",
+    false
+  );
+
   //endregion
 
   //region Binding
