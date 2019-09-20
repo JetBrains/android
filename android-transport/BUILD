@@ -59,5 +59,6 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:transport-proto",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/idea/.idea/libraries:jsr305[test]",
     ],
 )
