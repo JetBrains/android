@@ -25,8 +25,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.*;
@@ -67,18 +65,6 @@ public class InstantApps {
     return findBaseFeature(AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_FEATURE));
   }
 
-  /**
-   * This method will find and return the monolithic app, if one exists, in the given project.
-   *
-   * @param project the {@link Project} whose Monolithic module you want to find.
-   * @return The Monolithic {@link Module} name or {@code null} if none is found.
-   */
-  @Nullable
-  public static String findMonolithicModuleName(@NotNull Project project) {
-    List<Module> moduleList = AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_APP);
-    return moduleList.isEmpty() ? null : moduleList.get(0).getName();
-  }
-
   @Nullable
   private static Module findBaseFeature(@NotNull List<Module> featureModules) {
     Module baseFeature = null;
@@ -111,21 +97,6 @@ public class InstantApps {
       }
     }
     return defaultUrl;
-  }
-
-  public static boolean isInstantAppSdkEnabled() {
-    return InstantAppSdks.getInstance().isInstantAppSdkEnabled();
-  }
-
-  @NotNull
-  public static File getInstantAppSdk() throws FileNotFoundException {
-    File sdk = InstantAppSdks.getInstance().getOrInstallInstantAppSdk();
-
-    return sdk;
-  }
-
-  public static long getCompatApiMinVersion() {
-    return InstantAppSdks.getInstance().getCompatApiMinVersion();
   }
 
   public static boolean isInstantAppApplicationModule(@NotNull Module module) {

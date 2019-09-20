@@ -116,8 +116,6 @@ public class RunInstantAppTask implements LaunchTask {
 
     try {
       ExtendedSdk aiaSdk = mySdk.loadLibrary();
-      // If null, this entire task will not be called
-      assert aiaSdk != null;
 
       ApkInfo apkInfo = myPackages.iterator().next();
       List<ApkFileUnit> artifactFiles = apkInfo.getFiles();
