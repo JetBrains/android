@@ -16,12 +16,14 @@
 package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.npw.PathValidationResult;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
@@ -53,11 +55,10 @@ public class SdkPaths {
   @NotNull
   public static ValidationResult validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage) {
     if (ndkPath != null) {
-      PathValidationResult wizardValidationResult =
-        PathValidationResult
-          .validateLocation(ndkPath.getAbsolutePath(), "Android NDK location", false, PathValidationResult.WritableCheckMode.DO_NOT_CHECK);
-      if (!wizardValidationResult.isOk()) {
-        return ValidationResult.error(wizardValidationResult.getFormattedMessage());
+      Validator.Result result = PathValidator.forAndroidNdkLocation().validate(ndkPath);
+      Validator.Severity severity  = result.getSeverity();
+      if (severity == ERROR) {
+        return ValidationResult.error(result.getMessage());
       }
     }
     ValidationResult validationResult = validatedSdkPath(ndkPath, "NDK", false, includePathInMessage);

@@ -59,10 +59,6 @@ public final class PathValidationResult {
     return new PathValidationResult(Status.ERROR, message, field, params);
   }
 
-  /**
-   * Will return {@link PathValidationResult#OK} if projectLocation is valid or
-   * a {@link PathValidationResult} with error/warning information if not.
-   */
   @NotNull
   public static PathValidationResult validateLocation(@Nullable String projectLocation) {
     return validateLocation(projectLocation, "project location", true);
