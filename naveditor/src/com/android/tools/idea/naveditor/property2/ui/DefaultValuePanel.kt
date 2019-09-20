@@ -16,18 +16,17 @@
 package com.android.tools.idea.naveditor.property2.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.property.inspector.NAV_ACTION_ARGUMENTS_COMPONENT_NAME
 import com.android.tools.idea.naveditor.property.inspector.NAV_ARGUMENTS_ROW_HEIGHT
+import com.android.tools.property.ptable2.PFormTable
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.table.JBTable
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.BorderFactory
 import javax.swing.table.TableCellRenderer
 
 class DefaultValuePanel(model: DefaultValueTableModel) : AdtSecondaryPanel(BorderLayout()) {
-  val table = JBTable(model)
+  val table = PFormTable(model)
 
   init {
     table.name = NAV_ACTION_ARGUMENTS_COMPONENT_NAME
