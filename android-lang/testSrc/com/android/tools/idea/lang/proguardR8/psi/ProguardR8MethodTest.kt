@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.proguardR8.psi
 
+import com.android.tools.idea.lang.proguardR8.ProguardR8ClassMemberInspection
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
@@ -28,6 +29,11 @@ import com.intellij.util.IncorrectOperationException
 import org.junit.Assert
 
 class ProguardR8MethodTest : ProguardR8TestCase() {
+
+  override fun setUp() {
+    super.setUp()
+    myFixture.enableInspections(ProguardR8ClassMemberInspection::class.java)
+  }
 
   private fun getMethodsAtCaret(): List<PsiMethod> {
     val proguardMethod = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)
@@ -499,6 +505,50 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
         int myMethod();
       }
     """.trimIndent())
+  }
+
+  fun testInspectUnresolvedMethod() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      class MyClass {
+        boolean myBoolean();
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+        long <error descr="The rule matches no class members">myBoolean</error>();
+      }
+      """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    // don't highlight if class is unknown
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.My* {
+        long myBoolean();
+      }
+      """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    // don't highlight if method is with wildcards
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+        long m*();
+      }
+      """.trimIndent())
+
+    myFixture.checkHighlighting()
   }
 
   fun testCodeCompletionForIncompleteMethod() {
