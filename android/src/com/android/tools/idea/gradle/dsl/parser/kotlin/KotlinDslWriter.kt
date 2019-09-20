@@ -209,7 +209,7 @@ class KotlinDslWriter : GradleDslWriter {
         }
         else {
           addedElement = parentPsiElement.addAfter(statement, anchor)
-          if (element.parent is ExtDslElement && !isWhiteSpaceOrNls(addedElement.nextSibling)) {
+          if (!isWhiteSpaceOrNls(addedElement.nextSibling)) {
             parentPsiElement.addAfter(lineTerminator, addedElement)
           }
         }
@@ -366,16 +366,16 @@ class KotlinDslWriter : GradleDslWriter {
         "Can't create expression from \"$statementText\"")  // Maybe we can change the behaviour to just return null in such case.
 
     val addedElement :PsiElement
-    if (parentPsiElement is KtBlockExpression && anchorAfter == null) {
-      addedElement = parentPsiElement.addBefore(expression, anchor)
+    /*if (parentPsiElement is KtBlockExpression) {
+      addedElement = parentPsiElement.addAfter(expression, anchor)
       // We need to add empty lines if we're adding expressions to a block because IDEA doesn't handle formatting
       // in kotlin the same way as GROOVY.
       if (anchor != null && !hasNewLineBetween(addedElement, anchor)) {
         val lineTerminator = psiFactory.createNewLine()
         parentPsiElement.addAfter(lineTerminator, addedElement)
       }
-    }
-    else if (parentPsiElement is KtValueArgumentList) {
+    }*/
+    if (parentPsiElement is KtValueArgumentList) {
       val valueArgument = psiFactory.createArgument(expression)
       val addedArgument = parentPsiElement.addArgumentAfter(valueArgument, anchor as? KtValueArgument)
       addedElement = addedArgument.getArgumentExpression() ?: throw Exception("ValueArgument was not created properly.")
@@ -384,8 +384,9 @@ class KotlinDslWriter : GradleDslWriter {
       addedElement = parentPsiElement.addAfter(expression, anchor)
       // We need to add empty lines if we're adding expressions to a file because IDEA doesn't handle formatting
       // in kotlin the same way as GROOVY.
+      val lineTerminator = psiFactory.createNewLine()
+      parentPsiElement.addAfter(lineTerminator, addedElement)
       if (anchor != null && !hasNewLineBetween(anchor, addedElement)) {
-        val lineTerminator = psiFactory.createNewLine()
         parentPsiElement.addBefore(lineTerminator, addedElement)
       }
     }

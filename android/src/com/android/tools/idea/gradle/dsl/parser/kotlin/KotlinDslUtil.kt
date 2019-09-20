@@ -102,7 +102,7 @@ internal fun getParentPsi(dslElement : GradleDslElement) : PsiElement? {
 internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslElement?) : PsiElement? {
   var anchorAfter = if (dslAnchor == null) null else findLastPsiElementIn(dslAnchor)
   if (anchorAfter == null && parent is KtBlockExpression) {
-    return adjustForKtBlockExpression(parent)
+    return adjustForKtBlockExpression(parent)?.prevSibling
   }
   else {
     while (anchorAfter != null && anchorAfter !is PsiFile && anchorAfter.parent != parent) {
@@ -111,7 +111,7 @@ internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslEl
     return when (anchorAfter) {
       is PsiFile -> {
         if (parent is KtBlockExpression) {
-          adjustForKtBlockExpression(parent)
+          adjustForKtBlockExpression(parent)?.prevSibling
         }
         else {
           null

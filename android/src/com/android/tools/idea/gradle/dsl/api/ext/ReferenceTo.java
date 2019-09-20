@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.groovy.GroovyLanguage;
 
 /**
  * Represents a reference to another property or variable.
@@ -32,10 +33,12 @@ public final class ReferenceTo extends RawText {
     super(model.getFullyQualifiedName());
   }
 
-  public ReferenceTo(@NotNull SigningConfigModel model) { super(SIGNING_CONFIGS + "." + model.name());
+  public ReferenceTo(@NotNull SigningConfigModel model, boolean isGroovy) {
+    super(SIGNING_CONFIGS + "." + (isGroovy ? model.name() : "getByName(\"" + model.name() + "\")"));
   }
 
-  public static ReferenceTo createForSigningConfig(@NotNull String signingConfigName) {
-    return new ReferenceTo(SIGNING_CONFIGS + "." + signingConfigName);
+  public static ReferenceTo createForSigningConfig(@NotNull String signingConfigName, boolean isGroovy) {
+    String signingConfigRefValue = SIGNING_CONFIGS + "." + (isGroovy ? signingConfigName : "getByName(\"" + signingConfigName + "\")");
+    return new ReferenceTo(signingConfigRefValue);
   }
 }

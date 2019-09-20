@@ -97,7 +97,7 @@ public interface FlavorTypeModel extends GradleDslModel {
 
   /**
    * You most likely want to set this property as a reference to a signing config,
-   * to do this please use {@link ReferenceTo#ReferenceTo(SigningConfigModel)}.
+   * to do this please use {@link ReferenceTo#ReferenceTo(SigningConfigModel, boolean)}.
    *
    * You can obtain a list of signing configs from {@link AndroidModel#signingConfigs()}
    */
