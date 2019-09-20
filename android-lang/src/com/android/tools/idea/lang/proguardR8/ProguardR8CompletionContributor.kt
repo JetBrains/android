@@ -30,7 +30,6 @@ import com.intellij.codeInsight.completion.JavaClassNameCompletionContributor
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.StandardPatterns.and
-import com.intellij.patterns.StandardPatterns.not
 import com.intellij.patterns.StandardPatterns.or
 import com.intellij.patterns.StandardPatterns.string
 import com.intellij.psi.impl.source.tree.CompositeElement
@@ -179,8 +178,6 @@ class ProguardR8CompletionContributor : CompletionContributor() {
 
     private val insideClassSpecification = psiElement().inside(psiElement(ProguardR8PsiTypes.CLASS_SPECIFICATION_BODY))
 
-    private val insideTypeList = anyProguardElement.inside(psiElement(ProguardR8PsiTypes.TYPE_LIST))
-
     private val startOfNewJavaRule = and(
       insideClassSpecification,
       psiElement().afterLeaf(or(psiElement(ProguardR8PsiTypes.SEMICOLON), psiElement(ProguardR8PsiTypes.OPEN_BRACE)))
@@ -206,11 +203,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
     // Add autocompletion for keywords like <methods> <fields> <init>.
     extend(
       CompletionType.BASIC,
-      and(
-        insideClassSpecification,
-        not(insideTypeList),
-        anyProguardElement.afterLeaf(psiElement().withText("<"))
-      ),
+      or(startOfNewJavaRule, afterFieldOrMethodModifier),
       fieldsAndMethodsWildcardsCompletionProvider
     )
 
