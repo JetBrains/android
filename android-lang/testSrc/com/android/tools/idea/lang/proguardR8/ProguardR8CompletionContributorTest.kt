@@ -87,26 +87,56 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
 
   fun testFieldMethodWildcardsCompletion() {
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
-        <$caret
-    """.trimIndent())
+    // Don't appear outside class specification body.
+    myFixture.configureByText(ProguardR8FileType.INSTANCE, "${caret}")
 
     var keys = myFixture.completeBasic()
 
-    // Don't appear outside class specification body.
     assertThat(keys).isEmpty()
-    assertThat(myFixture.editor.document.text).isEqualTo("<")
+    assertThat(myFixture.editor.document.text).isEqualTo("")
 
+    // At start of new rule.
     myFixture.configureByText(ProguardR8FileType.INSTANCE, """
         -keep class * {
-          <$caret
-        }
+          $caret
     """.trimIndent())
 
     keys = myFixture.completeBasic()
 
     assertThat(keys).isNotEmpty()
-    assertThat(keys.map { it.lookupString }.toList()).containsExactly("<fields>", "<init>", "<methods>", "<clinit>")
+    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("<fields>", "<init>", "<methods>", "<clinit>")
+
+    // After modifier.
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class * {
+          private $caret
+      """.trimIndent()
+    )
+
+    keys = myFixture.completeBasic()
+
+    assertThat(keys).isNotEmpty()
+    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("<fields>", "<init>", "<methods>", "<clinit>")
+
+    // Don't suggest after type.
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class * {
+          int $caret
+      """.trimIndent()
+    )
+
+    keys = myFixture.completeBasic()
+
+    assertThat(keys).isEmpty()
+    assertThat(myFixture.editor.document.text).isEqualTo(
+      """
+        -keep class * {
+          int 
+      """.trimIndent())
   }
 
   fun testFieldMethodModifiersCompletion() {
