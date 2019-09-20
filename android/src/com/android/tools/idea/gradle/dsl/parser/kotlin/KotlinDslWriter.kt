@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
+import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -110,6 +112,13 @@ class KotlinDslWriter : GradleDslWriter {
 
     // The text should be quoted if not followed by anything else,  otherwise it will create a reference expression.
     var statementText = maybeTrimForParent(element.nameElement, element.parent)
+
+    if (element is AbstractFlavorTypeDslElement) {
+      statementText = if (element.methodName != null) "${element.methodName}(\"${statementText}\")" else "create(\"${statementText}\")"
+    }
+    else if (element is SigningConfigDslElement) {
+      statementText = if (element.methodName != null) "${element.methodName}(\"${statementText}\")" else "create(\"${statementText}\")"
+    }
     if (element.isBlockElement) {
       statementText += " {\n}"  // Can't create expression with another new line after.
     }
