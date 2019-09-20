@@ -20,13 +20,12 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.tools.idea.project.AndroidNotificationStub;
 import com.android.tools.idea.project.AndroidNotificationStub.NotificationMessage;
-import com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep.InstallSdkToolsHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import org.mockito.Mock;
@@ -34,6 +33,7 @@ import org.mockito.Mock;
 import java.io.File;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep.*;
 import static com.android.tools.idea.sdk.VersionCheck.MIN_TOOLS_REV;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.notification.NotificationType.INFORMATION;
@@ -43,7 +43,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SdkToolsVersionSetupStep}.
  */
-public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
+public class SdkToolsVersionSetupStepTest extends JavaProjectTestCase {
   @Mock private IdeSdks myIdeSdks;
 
   private File sdkDir;
@@ -70,7 +70,7 @@ public class SdkToolsVersionSetupStepTest extends IdeaTestCase {
 
     sdkDir = getTempDir().createTempDir();
 
-    myNotification = AndroidNotificationStub.replaceSyncMessagesService(getProject());
+    myNotification = AndroidNotificationStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     mySetupStep = new SdkToolsVersionSetupStep(myIdeSdks, () -> myRepoManager, () -> myExecutorService);
 
     myRepoPackages = new RepositoryPackages();

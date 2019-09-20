@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.AndroidTextUtils;
@@ -45,6 +31,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Consumer;
 import com.intellij.util.FilteredQuery;
 import com.intellij.util.IncorrectOperationException;
@@ -84,8 +71,8 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
    */
   public static class Builder {
     private boolean myUseManifestBasePackage;
-    private String[] myExtendClassesNames = ArrayUtil.EMPTY_STRING_ARRAY;
-    private String[] myExtraBasePackages = ArrayUtil.EMPTY_STRING_ARRAY;
+    private String[] myExtendClassesNames = ArrayUtilRt.EMPTY_STRING_ARRAY;
+    private String[] myExtraBasePackages = ArrayUtilRt.EMPTY_STRING_ARRAY;
     private boolean myCompleteLibraryClasses;
 
     /**
@@ -148,11 +135,11 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
   }
 
   public PackageClassConverter(String... extendClassesNames) {
-    this(false, ArrayUtil.EMPTY_STRING_ARRAY, false, extendClassesNames);
+    this(false, ArrayUtilRt.EMPTY_STRING_ARRAY, false, extendClassesNames);
   }
 
   public PackageClassConverter() {
-    this(false, ArrayUtil.EMPTY_STRING_ARRAY, false, ArrayUtil.EMPTY_STRING_ARRAY);
+    this(false, ArrayUtilRt.EMPTY_STRING_ARRAY, false, ArrayUtilRt.EMPTY_STRING_ARRAY);
   }
 
   @Nullable
@@ -531,13 +518,8 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
         assert newName != null;
 
-        final ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myElement);
         final TextRange range = new TextRange(myStart, getRangeInElement().getEndOffset());
-
-        if (manipulator != null) {
-          return manipulator.handleContentChange(myElement, range, newName);
-        }
-        return element;
+        return ElementManipulators.handleContentChange(myElement, range, newName);
       }
       LOG.error("PackageClassConverter resolved to " + element.getClass());
       return super.bindToElement(element);

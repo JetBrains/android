@@ -25,12 +25,13 @@ import com.intellij.openapi.externalSystem.ExternalSystemManager;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.apk.ImportApkAction.LAST_IMPORTED_LOCATION;
@@ -44,7 +45,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ImportApkAction}.
  */
-public class ImportApkActionTest extends IdeaTestCase {
+public class ImportApkActionTest extends JavaProjectTestCase {
   @Mock private ImportApkAction.FileChooserDialogFactory myFileChooserDialogFactory;
   @Mock private FileChooserDialog myFileChooserDialog;
   @Mock private ExternalSystemManager<?, ?, ?, ?, ?> myExternalSystemManager;
@@ -120,7 +121,8 @@ public class ImportApkActionTest extends IdeaTestCase {
     @Override
     public boolean importFileAsProject(@NotNull VirtualFile file) {
       importedApkFile = file;
-      myRecentProjectsManager.setLastProjectCreationLocation(""); // Change it to verify the original value is restored.
+      // Change it to verify the original value is restored.
+      myRecentProjectsManager.setLastProjectCreationLocation((Path)null);
       return true;
     }
   }
@@ -148,11 +150,6 @@ public class ImportApkActionTest extends IdeaTestCase {
     }
 
     @Override
-    public String getLastProjectPath() {
-      return null;
-    }
-
-    @Override
     public void removePath(@Nullable String path) {
     }
 
@@ -160,6 +157,15 @@ public class ImportApkActionTest extends IdeaTestCase {
     @Override
     public AnAction[] getRecentProjectsActions(boolean addClearListItem) {
       return AnAction.EMPTY_ARRAY;
+    }
+
+    @Override
+    public boolean willReopenProjectOnStart() {
+      return false;
+    }
+
+    @Override
+    public void reopenLastProjectsOnStart() {
     }
   }
 }

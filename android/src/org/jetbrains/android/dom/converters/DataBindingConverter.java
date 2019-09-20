@@ -45,7 +45,7 @@ import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.CustomReferenceConverter;
@@ -310,7 +310,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     @Override
     @NotNull
     public Object[] getVariants() {
-      return ArrayUtil.EMPTY_OBJECT_ARRAY;
+      return ArrayUtilRt.EMPTY_OBJECT_ARRAY;
     }
 
     @Override
@@ -324,10 +324,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
       if (element instanceof PsiClass) {
         PsiClass psiClass = (PsiClass)element;
         String newName = psiClass.getQualifiedName();
-        ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myElement);
-        if (manipulator != null) {
-          return manipulator.handleContentChange(myElement, newName);
-        }
+        return ElementManipulators.handleContentChange(myElement, newName);
       }
       return super.bindToElement(element);
     }

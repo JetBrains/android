@@ -14,7 +14,6 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.gradle.model.toSubmodule
-import com.android.projectmodel.toConfigPath
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_MODEL_MULTIFLAVOR
 import com.google.common.truth.Truth.assertThat

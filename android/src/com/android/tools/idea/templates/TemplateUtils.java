@@ -29,12 +29,12 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -214,7 +214,7 @@ public class TemplateUtils {
           max = Math.max(max, apiLevel);
           if (apiLevel > SdkVersionInfo.HIGHEST_KNOWN_API) {
             if (apiTargets == null) {
-              apiTargets = new SparseArray<IAndroidTarget>();
+              apiTargets = new SparseArray<>();
             }
             apiTargets.put(apiLevel, target);
           }
@@ -256,7 +256,7 @@ public class TemplateUtils {
     NodeList children = element.getChildNodes();
     // An iterator would have been more natural (to directly drive the child list
     // iteration) but iterators can't be used in enhanced for loops...
-    List<Element> result = new ArrayList<Element>(children.getLength());
+    List<Element> result = new ArrayList<>(children.getLength());
     for (int i = 0, n = children.getLength(); i < n; i++) {
       Node node = children.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -343,7 +343,7 @@ public class TemplateUtils {
       // The textRange of psiElement in the file can change after reformatting
       textRange = psiElement == null ? psiFile.getTextRange() : psiElement.getTextRange();
       psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
-      ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(textRange));
+      ArrangementEngine.getInstance().arrange(psiFile, Collections.singleton(textRange));
 
       if (keepDocumentLocked) {
         psiDocumentManager.commitDocument(document);
@@ -394,7 +394,7 @@ public class TemplateUtils {
    */
   public static boolean openEditor(@NotNull Project project, @NotNull VirtualFile vFile) {
     OpenFileDescriptor descriptor;
-    if (vFile.getFileType() == StdFileTypes.XML && AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
+    if (FileTypeRegistry.getInstance().isFileOfType(vFile, StdFileTypes.XML) && AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
       descriptor = new OpenFileDescriptor(project, vFile, 0);
     }
     else {

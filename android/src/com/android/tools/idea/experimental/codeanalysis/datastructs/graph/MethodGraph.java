@@ -16,8 +16,6 @@
 package com.android.tools.idea.experimental.codeanalysis.datastructs.graph;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGMethod;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Param;
-import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.NotNull;
 
 /**

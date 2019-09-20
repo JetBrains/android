@@ -1,6 +1,14 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="/META-INF/JavaIdePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <module value="com.intellij.modules.androidstudio"/>
+  <module value="com.intellij.modules.java-capable"/>
+  <module value="com.intellij.modules.android-capable"/>
+  <module value="com.intellij.modules.python-core-capable"/>
+
+  <xi:include href="/META-INF/JavaIdePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+<!-- FIXME-ank:  <xi:include href="/META-INF/assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+<!-- FIXME-ank:  <xi:include href="/META-INF/connection-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+<!-- FIXME-ank:  <xi:include href="/META-INF/whats-new-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+
   <application-components>
     <component>
       <implementation-class>com.android.tools.idea.AndroidInitialConfigurator</implementation-class>
@@ -17,5 +25,6 @@
     <applicationService serviceInterface="com.intellij.openapi.updateSettings.UpdateStrategyCustomization"
                         serviceImplementation="com.android.tools.idea.AndroidStudioUpdateStrategyCustomization"
                         overrides="true"/>
+    <feedbackDescriptionProvider implementation="com.android.tools.idea.actions.AndroidFeedbackDescriptionProvider"/>
   </extensions>
 </idea-plugin>

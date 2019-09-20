@@ -18,8 +18,8 @@ package com.android.tools.adtui.treegrid;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.util.ArrayUtil;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ui.ImageUtil;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +54,7 @@ public class TreeGridTest extends PlatformTestCase {
     myGrid.setFixedCellWidth(40);
     myGrid.setFixedCellHeight(40);
     myGrid.doLayout();
-    BufferedImage image = UIUtil.createImage(1000, 1000, TYPE_INT_ARGB);
+    BufferedImage image = ImageUtil.createImage(1000, 1000, TYPE_INT_ARGB);
     myGrid.paint(image.getGraphics());
 
     List<JList<String>> lists = myGrid.getLists();
@@ -441,7 +441,7 @@ public class TreeGridTest extends PlatformTestCase {
           case "g3":
             return new Object[]{"a3", "b3", "c3", "d3"};
           default:
-            return ArrayUtil.EMPTY_OBJECT_ARRAY;
+            return ArrayUtilRt.EMPTY_OBJECT_ARRAY;
         }
       }
 

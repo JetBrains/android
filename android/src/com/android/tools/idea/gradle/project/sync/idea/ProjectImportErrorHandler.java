@@ -24,8 +24,10 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 
 import java.util.regex.Matcher;
@@ -46,7 +48,8 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
   private static final Pattern ERROR_LOCATION_PATTERN = Pattern.compile(".* file '(.*)'( line: ([\\d]+))?");
   @Override
   @Nullable
-  public ExternalSystemException getUserFriendlyError(@NotNull Throwable error,
+  public ExternalSystemException getUserFriendlyError(@Nullable BuildEnvironment buildEnvironment,
+                                                      @NotNull Throwable error,
                                                       @NotNull String projectPath,
                                                       @Nullable String buildFilePath) {
     if (error instanceof ExternalSystemException) {
@@ -55,7 +58,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       return (ExternalSystemException)error;
     }
 
-    Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
+    Pair<Throwable, String> rootCauseAndLocation = GradleExecutionErrorHandler.getRootCauseAndLocation(error);
     Throwable rootCause = rootCauseAndLocation.getFirst();
 
     // Create ExternalSystemException or LocationAwareExternalSystemException, so that it goes to SyncErrorHandlers directly.
@@ -99,25 +102,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       errMessage = "Cause: " + errMessage;
     }
     return errMessage;
-  }
-
-  // The default implementation in IDEA only retrieves the location in build.gradle files. This implementation also handle location in
-  // settings.gradle file.
-  @Override
-  @Nullable
-  public String getLocationFrom(@NotNull Throwable error) {
-    String errorToString = error.toString();
-    if (errorToString.contains("LocationAwareException")) {
-      // LocationAwareException is never passed, but converted into a PlaceholderException that has the toString value of the original
-      // LocationAwareException.
-      String location = error.getMessage();
-      if (location != null && (location.startsWith("Build file '") || location.startsWith("Settings file '"))) {
-        // Only the first line contains the location of the error. Discard the rest.
-        String[] lines = splitByLines(location);
-        return lines.length > 0 ? lines[0] : null;
-      }
-    }
-    return null;
   }
 
   @Override

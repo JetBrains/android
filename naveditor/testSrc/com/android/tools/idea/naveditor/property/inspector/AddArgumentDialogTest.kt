@@ -29,6 +29,7 @@ import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.ClassUtil
+import com.intellij.testFramework.replaceService
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 
@@ -209,7 +210,7 @@ class AddArgumentDialogTest : NavTestCase() {
     val classChooserFactory = mock(TreeClassChooserFactory::class.java)
     val classChooser = mock(TreeClassChooser::class.java)
     `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull(), any())).thenReturn(classChooser)
-    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+    project.replaceService(TreeClassChooserFactory::class.java, classChooserFactory, testRootDisposable)
 
     testParcelable(model, classChooser, "mytest.navtest.Containing")
     testParcelable(model, classChooser, "mytest.navtest.Containing\$Inner")
@@ -241,7 +242,7 @@ class AddArgumentDialogTest : NavTestCase() {
     val customEnum = mock(PsiClass::class.java)
     `when`(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
     `when`(classChooser.selected).thenReturn(customEnum)
-    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+    project.replaceService(TreeClassChooserFactory::class.java, classChooserFactory, testRootDisposable)
 
     val fragment1 = model.find("fragment1")!!
 
@@ -268,7 +269,7 @@ class AddArgumentDialogTest : NavTestCase() {
     `when`(innerClass.containingClass).thenReturn(containingClass)
     `when`(innerClass.name).thenReturn("Align")
     `when`(classChooser.selected).thenReturn(innerClass)
-    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+    project.replaceService(TreeClassChooserFactory::class.java, classChooserFactory, testRootDisposable)
 
     val fragment1 = model.find("fragment1")!!
 
@@ -290,7 +291,7 @@ class AddArgumentDialogTest : NavTestCase() {
     val classChooser = mock(TreeClassChooser::class.java)
     `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull(), any())).thenReturn(classChooser)
     `when`(classChooser.selected).thenReturn(null)
-    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+    project.replaceService(TreeClassChooserFactory::class.java, classChooserFactory, testRootDisposable)
 
     val fragment1 = model.find("fragment1")!!
 

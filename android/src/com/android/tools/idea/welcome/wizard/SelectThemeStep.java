@@ -20,7 +20,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.customize.CustomizeUIThemeStepPanel;
 import com.intellij.ide.ui.laf.darcula.DarculaInstaller;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +45,7 @@ public class SelectThemeStep extends ModelWizardStep.WithoutModel {
   protected void onProceeding() {
     // This code is duplicated from LafManager.initComponent(). But our Welcome Wizard is started
     // AFTER that call so we repeat it here.
-    if (UIUtil.isUnderDarcula()) {
+    if (StartupUiUtil.isUnderDarcula()) {
       DarculaInstaller.install();
     }
     else {

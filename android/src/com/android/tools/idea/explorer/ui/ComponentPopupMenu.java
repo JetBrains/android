@@ -69,7 +69,6 @@ public class ComponentPopupMenu {
     AnAction action = new AnAction(null, null, popupMenuItem.getIcon()) {
       @Override
       public void update(@NotNull AnActionEvent e) {
-        super.update(e);
 
         Presentation presentation = e.getPresentation();
         presentation.setText(popupMenuItem.getText());

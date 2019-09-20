@@ -18,12 +18,12 @@ package com.android.tools.idea.gradle.project.library;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.JavadocOrderRootType;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryEditor;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -33,9 +33,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 
-public class LibraryPropertiesDialogTest extends IdeaTestCase {
+public class LibraryPropertiesDialogTest extends JavaProjectTestCase {
   private Library createLibrary(@NotNull String name) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProject);
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myProject);
     LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
     Library library = libraryTableModel.createLibrary(name);
     ApplicationManager.getApplication().runWriteAction(libraryTableModel::commit);

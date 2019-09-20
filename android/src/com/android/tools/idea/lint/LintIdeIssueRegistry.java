@@ -46,7 +46,7 @@ public class LintIdeIssueRegistry extends BuiltinIssueRegistry {
   public List<Issue> getIssues() {
     if (ourFilteredIssues == null) {
       List<Issue> sIssues = super.getIssues();
-      List<Issue> result = new ArrayList<Issue>(sIssues.size());
+      List<Issue> result = new ArrayList<>(sIssues.size());
       for (Issue issue : sIssues) {
         Implementation implementation = issue.getImplementation();
         Class<? extends Detector> detectorClass = implementation.getDetectorClass();

@@ -25,6 +25,7 @@ import com.intellij.openapi.keymap.MacKeymapUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -120,7 +121,7 @@ public final class AdtUiUtils {
    * Does the reverse of {@link JBUI#scale(int) }
    */
   public static int unscale(int i) {
-    return Math.round(i / JBUI.scale(1.0f));
+    return Math.round(i / JBUIScale.scale(1.0f));
   }
 
   /**

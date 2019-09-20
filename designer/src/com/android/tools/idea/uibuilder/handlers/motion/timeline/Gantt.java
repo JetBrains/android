@@ -25,6 +25,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
@@ -72,7 +73,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class Gantt extends JPanel implements GanttCommands {
   private static final boolean DEBUG = false;
-  public static final int HEADER_HEIGHT = JBUI.scale(30);
+  public static final int HEADER_HEIGHT = JBUIScale.scale(30);
   private static final JBDimension SLIDER_DIMENSION = JBUI.size(140, 16);
 
   GanttController myGanttController = new GanttController();

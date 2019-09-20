@@ -22,14 +22,14 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 
-abstract class RoomLightTestCase : LightCodeInsightFixtureTestCase() {
+abstract class RoomLightTestCase : LightJavaCodeInsightFixtureTestCase() {
   override fun setUp() {
     super.setUp()
 
     // A misconfigured SDK manifests itself in strange ways, let's fail early if there's something wrong.
-    assertThat(ModuleRootManager.getInstance(myModule).sdk).named("module SDK").isNotNull()
+    assertThat(ModuleRootManager.getInstance(module).sdk).named("module SDK").isNotNull()
 
     myFixture.addClass(
       """

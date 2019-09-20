@@ -10,9 +10,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
-    <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
     <orderEntry type="module" module-name="intellij.platform.images" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
@@ -20,21 +18,33 @@
     <orderEntry type="module" module-name="intellij.java.psi.impl" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.java.psi" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib" />
-    <orderEntry type="module" module-name="intellij.android.resources-aar" />
+    <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="library" name="javax.activation" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="jaxb-runtime" level="project" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="com.android.tools.lint:lint-api" level="project" />
+    <orderEntry type="library" name="com.android.tools:common" level="project" />
+    <orderEntry type="library" name="com.android.tools:annotations" level="project" />
+    <orderEntry type="library" name="com.android.tools:sdk-common" level="project" />
+    <orderEntry type="library" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
+    <orderEntry type="library" name="com.android.tools:sdklib" level="project" />
+    <orderEntry type="library" name="com.android.tools.ddms:ddmlib" level="project" />
+    <orderEntry type="library" name="com.android.tools.lint:lint-checks" level="project" />
+    <orderEntry type="library" name="com.android.tools.pixelprobe:pixelprobe" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:shared" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:protos" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:tracker" level="project" />
     <orderEntry type="module" module-name="intellij.android.property-editor" />
+    <orderEntry type="module" module-name="intellij.android.resources-aar" />
+    <orderEntry type="library" name="layoutlib" level="project" />
   </component>
 </module>

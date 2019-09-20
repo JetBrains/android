@@ -22,9 +22,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
-import com.intellij.ui.Gray;
-import com.intellij.ui.JBColor;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;

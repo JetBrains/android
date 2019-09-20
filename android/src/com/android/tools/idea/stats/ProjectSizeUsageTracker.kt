@@ -36,7 +36,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.util.Processor
 
-class ProjectSizeUsageTracker(val project: Project) : ProjectComponent {
+class ProjectSizeUsageTracker(private val project: Project) : ProjectComponent {
   override fun projectOpened() {
     val connection = project.messageBus.connect(project)
     connection.subscribe<ProjectSystemSyncManager.SyncResultListener>(

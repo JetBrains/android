@@ -36,38 +36,23 @@ import static com.android.tools.idea.gradle.util.BuildMode.*;
 /**
  * Builds a project, regardless of the compiler strategy being used (JPS or "direct Gradle invocation.")
  */
-public class GradleProjectBuilder {
+public final class GradleProjectBuilder {
   @NotNull private final Project myProject;
-  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
-  @NotNull private final GradleProjectInfo myGradleProjectInfo;
-  @NotNull private final BuildSettings myBuildSettings;
-  @NotNull private final GradleBuildInvoker myBuildInvoker;
-  @NotNull private final CompilerManager myCompilerManager;
 
   @NotNull
   public static GradleProjectBuilder getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleProjectBuilder.class);
   }
 
-  public GradleProjectBuilder(@NotNull Project project,
-                              @NotNull AndroidProjectInfo androidProjectInfo,
-                              @NotNull GradleProjectInfo gradleProjectInfo,
-                              @NotNull BuildSettings buildSettings,
-                              @NotNull GradleBuildInvoker buildInvoker,
-                              @NotNull CompilerManager compilerManager) {
+  public GradleProjectBuilder(@NotNull Project project) {
     myProject = project;
-    myAndroidProjectInfo = androidProjectInfo;
-    myGradleProjectInfo = gradleProjectInfo;
-    myBuildSettings = buildSettings;
-    myBuildInvoker = buildInvoker;
-    myCompilerManager = compilerManager;
   }
 
   public void compileJava() {
-    if (myAndroidProjectInfo.requiresAndroidModel()) {
-      if (myGradleProjectInfo.isDirectGradleBuildEnabled()) {
+    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
+      if (GradleProjectInfo.getInstance(myProject).isDirectGradleBuildEnabled()) {
         Module[] modules = ModuleManager.getInstance(myProject).getModules();
-        myBuildInvoker.compileJava(modules, TestCompileType.ALL);
+        GradleBuildInvoker.getInstance(myProject).compileJava(modules, TestCompileType.ALL);
         return;
       }
       buildProjectWithJps(COMPILE_JAVA);
@@ -75,9 +60,9 @@ public class GradleProjectBuilder {
   }
 
   public void clean() {
-    if (myAndroidProjectInfo.requiresAndroidModel()) {
-      if (myGradleProjectInfo.isDirectGradleBuildEnabled()) {
-        myBuildInvoker.cleanProject();
+    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
+      if (GradleProjectInfo.getInstance(myProject).isDirectGradleBuildEnabled()) {
+        GradleBuildInvoker.getInstance(myProject).cleanProject();
         return;
       }
       buildProjectWithJps(CLEAN);
@@ -96,13 +81,13 @@ public class GradleProjectBuilder {
     if (!isSourceGenerationEnabled()) {
       return;
     }
-    if (myAndroidProjectInfo.requiresAndroidModel()) {
-      if (myGradleProjectInfo.isDirectGradleBuildEnabled()) {
+    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
+      if (GradleProjectInfo.getInstance(myProject).isDirectGradleBuildEnabled()) {
         if (cleanProject) {
-          myBuildInvoker.cleanAndGenerateSources();
+          GradleBuildInvoker.getInstance(myProject).cleanAndGenerateSources();
           return;
         }
-        myBuildInvoker.generateSources();
+        GradleBuildInvoker.getInstance(myProject).generateSources();
         return;
       }
       buildProjectWithJps(SOURCE_GEN);
@@ -110,7 +95,7 @@ public class GradleProjectBuilder {
   }
 
   public boolean isSourceGenerationEnabled() {
-    if (myAndroidProjectInfo.requiresAndroidModel()) {
+    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
       int moduleCount = ModuleManager.getInstance(myProject).getModules().length;
       GradleExperimentalSettings settings = GradleExperimentalSettings.getInstance();
       return isSourceGenerationEnabled(settings, moduleCount);
@@ -125,7 +110,7 @@ public class GradleProjectBuilder {
   }
 
   private void buildProjectWithJps(@NotNull BuildMode buildMode) {
-    myBuildSettings.setBuildMode(buildMode);
-    myCompilerManager.make(null);
+    BuildSettings.getInstance(myProject).setBuildMode(buildMode);
+    CompilerManager.getInstance(myProject).make(null);
   }
 }

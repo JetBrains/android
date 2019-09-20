@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.uipreview;
 
 import com.android.io.IAbstractFile;
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Eugene.Kudelevsky
@@ -32,7 +34,7 @@ public class VirtualFileWrapper implements IAbstractFile {
   @Override
   public InputStream getContents() throws StreamException {
     final String content = getFileContent();
-    return new ByteArrayInputStream(content.getBytes());
+    return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
   }
 
   @NotNull

@@ -26,7 +26,6 @@ import java.io.IOException;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 
 public abstract class ProjectFolder {
   public abstract void createTopLevelBuildFile() throws IOException;

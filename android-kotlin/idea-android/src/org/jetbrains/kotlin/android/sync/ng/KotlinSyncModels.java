@@ -71,7 +71,7 @@ import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
 import org.jetbrains.kotlin.config.CoroutineSupport;
 import org.jetbrains.kotlin.config.KotlinFacetSettings;
 import org.jetbrains.kotlin.config.LanguageFeature;
-import org.jetbrains.kotlin.gradle.model.AllOpen;
+import org.jetbrains.kotlin.gradle.model.AllOpen; // FIXME-ank: /community/android/android/lib/kotlin-gradle-plugin-model-1.3.0.jar
 import org.jetbrains.kotlin.gradle.model.CompilerArguments;
 import org.jetbrains.kotlin.gradle.model.KotlinAndroidExtension;
 import org.jetbrains.kotlin.gradle.model.KotlinProject;

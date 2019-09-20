@@ -23,7 +23,7 @@ import com.intellij.openapi.ui.InputValidatorEx;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorTextField;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -78,12 +78,8 @@ public class NewStringKeyDialog extends DialogWrapper {
     myResourceFolderComboBox = new ComboBox<>(ResourceFolderManager.getInstance(myFacet).getFolders().toArray(VirtualFile.EMPTY_ARRAY));
     myResourceFolderComboBox.setName("resourceFolderComboBox");
 
-    myResourceFolderComboBox.setRenderer(new ListCellRendererWrapper<VirtualFile>() {
-      @Override
-      public void customize(@NotNull JList list, @NotNull VirtualFile folder, int index, boolean selected, boolean focused) {
-        setText(VirtualFiles.toString(folder, myFacet.getModule().getProject()));
-      }
-    });
+    myResourceFolderComboBox.setRenderer(SimpleListCellRenderer.create(
+      "", folder -> VirtualFiles.toString(folder, myFacet.getModule().getProject())));
   }
 
   @Nullable

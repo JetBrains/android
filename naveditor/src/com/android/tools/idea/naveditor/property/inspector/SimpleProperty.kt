@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
-
 /**
  * Basic property with simple implementations for some methods.
  */

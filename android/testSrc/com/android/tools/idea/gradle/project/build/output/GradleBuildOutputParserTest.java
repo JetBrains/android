@@ -50,7 +50,7 @@ public class GradleBuildOutputParserTest {
   public void parseWithError() {
     String line =
       "AGPBI: {\"kind\":\"error\",\"text\":\"Error message.\",\"sources\":[{\"file\":\"/app/src/main/res/layout/activity_main.xml\",\"position\":{\"startLine\":10,\"startColumn\":31,\"startOffset\":456,\"endColumn\":44,\"endOffset\":469}}],\"tool\":\"AAPT\"}";
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
 
     ArgumentCaptor<MessageEvent> messageCaptor = ArgumentCaptor.forClass(MessageEvent.class);
     String detailLine = "This is a detail line";
@@ -72,7 +72,7 @@ public class GradleBuildOutputParserTest {
   @Test
   public void parseWithWarningNoSource() {
     String line = "AGPBI: {\"kind\":\"warning\",\"text\":\"Warning message.\",\"sources\":[{}],\"tool\":\"D8\"}";
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
 
     ArgumentCaptor<MessageEvent> messageCaptor = ArgumentCaptor.forClass(MessageEvent.class);
     String detailLine = "This is a detail line";
@@ -102,7 +102,7 @@ public class GradleBuildOutputParserTest {
     String line =
       "AGPBI: {\"kind\":\"error\",\"text\":\"Error message.\",\"sources\":[{}],\"original\":\"Error line 1\\nError line 2\\nError line 3\",\"tool\":\"Dex\"}";
 
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
 
     ArgumentCaptor<MessageEvent> messageCaptor = ArgumentCaptor.forClass(MessageEvent.class);
     String[] detailLines = new String[5];
@@ -137,7 +137,7 @@ public class GradleBuildOutputParserTest {
     String line =
       "AGPBI: {\"kind\":\"error\",\"text\":\"Error message.\",\"sources\":[{}],\"original\":\"Error line 1\\nError line 2\\nError line 3\",\"tool\":\"Dex\"}";
 
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK_1");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK_1");
 
     String[] detailLines = new String[4];
     detailLines[0] = "Error line 1";
@@ -147,13 +147,13 @@ public class GradleBuildOutputParserTest {
 
     assertTrue(myParser.parse(line, myReader, myConsumer));
 
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK_2");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK_2");
     assertFalse(myParser.parse(detailLines[0], myReader, myConsumer));
 
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK_3");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK_3");
     assertFalse(myParser.parse(detailLines[1], myReader, myConsumer));
 
-    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK_1");
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK_1");
     assertTrue(myParser.parse(detailLines[2], myReader, myConsumer));
 
     assertFalse(myParser.parse(detailLines[3], myReader, myConsumer));

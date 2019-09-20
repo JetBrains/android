@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2011 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.tools;
 
 import com.intellij.execution.ExecutionException;
@@ -23,7 +9,7 @@ import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
-import com.intellij.util.containers.HashMap;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.android.util.ExecutionStatus;
 import org.jetbrains.android.util.StringBuildingOutputProcessor;
@@ -34,10 +20,7 @@ import org.jetbrains.idea.maven.execution.MavenRunnerParameters;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -59,8 +42,8 @@ public class AndroidMavenExecutor {
                                 Collections.singletonList("process-resources"),
                                 projectsManager.getExplicitProfiles());
 
-    final Map<CompilerMessageCategory, List<String>> result = new HashMap<CompilerMessageCategory, List<String>>();
-    result.put(CompilerMessageCategory.ERROR, new ArrayList<String>());
+    final Map<CompilerMessageCategory, List<String>> result = new HashMap<>();
+    result.put(CompilerMessageCategory.ERROR, new ArrayList<>());
 
     try {
       JavaParameters javaParams = ApplicationManager.getApplication().runReadAction(new Computable<JavaParameters>() {
@@ -88,7 +71,7 @@ public class AndroidMavenExecutor {
       String message = processor.getMessage();
       if (!success) {
         LOG.info(message);
-        String lcmessage = message.toLowerCase();
+        String lcmessage = StringUtil.toLowerCase(message);
         int buildErrorIndex = lcmessage.indexOf(BUILD_ERROR_INDICATOR);
         if (buildErrorIndex >= 0) {
           result.get(CompilerMessageCategory.ERROR).add(message.substring(buildErrorIndex));

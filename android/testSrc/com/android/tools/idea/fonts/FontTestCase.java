@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +31,8 @@ public abstract class FontTestCase extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     DownloadableFontCacheServiceImpl service = new FontCache();
-    registerApplicationComponent(DownloadableFontCacheService.class, service);
+    ServiceContainerUtil
+      .replaceService(ApplicationManager.getApplication(), DownloadableFontCacheService.class, service, getTestRootDisposable());
     myFontPath = service.getFontPath();
   }
 

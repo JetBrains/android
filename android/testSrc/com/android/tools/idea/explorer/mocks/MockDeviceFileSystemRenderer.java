@@ -17,25 +17,16 @@ package com.android.tools.idea.explorer.mocks;
 
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
-import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.SimpleListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public class MockDeviceFileSystemRenderer implements DeviceFileSystemRenderer {
-  private final ColoredListCellRenderer<DeviceFileSystem> myRenderer;
+  private final ListCellRenderer<DeviceFileSystem> myRenderer;
 
   public MockDeviceFileSystemRenderer() {
-    myRenderer = new ColoredListCellRenderer<DeviceFileSystem>() {
-      @Override
-      protected void customizeCellRenderer(@NotNull JList list, DeviceFileSystem value, int index, boolean selected, boolean hasFocus) {
-        if (value == null) {
-          append("<No device>");
-        } else {
-          append(value.getName());
-        }
-      }
-    };
+    myRenderer = SimpleListCellRenderer.create("<No device>", DeviceFileSystem::getName);
   }
 
   @NotNull

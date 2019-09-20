@@ -24,9 +24,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromDirectory;
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.*;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 

@@ -21,15 +21,12 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
-import com.android.tools.idea.rendering.imagepool.ImagePool
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetScopedService
 import org.jetbrains.ide.PooledThreadExecutor
-import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.util.HashMap
 import java.util.concurrent.CompletableFuture

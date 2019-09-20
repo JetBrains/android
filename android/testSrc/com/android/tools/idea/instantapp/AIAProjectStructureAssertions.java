@@ -19,7 +19,6 @@ import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.ImmutableList;
-import com.google.common.truth.Truth;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,9 +29,6 @@ import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Helper methods for checking modules in an AIA-enabled project are created correctly by a project sync.

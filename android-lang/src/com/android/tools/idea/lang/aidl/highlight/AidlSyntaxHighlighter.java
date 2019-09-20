@@ -32,7 +32,7 @@ import java.util.Map;
  * Basic syntax highlighter that highlights the keywords and comments.
  */
 public class AidlSyntaxHighlighter extends JavaFileHighlighter {
-  private static final Map<IElementType, TextAttributesKey> ATTRIBUTES = new HashMap<IElementType, TextAttributesKey>();
+  private static final Map<IElementType, TextAttributesKey> ATTRIBUTES = new HashMap<>();
 
   static {
     fillMap(ATTRIBUTES, AidlTokenTypeSets.KEY_WORDS, DefaultLanguageHighlighterColors.KEYWORD);

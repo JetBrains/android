@@ -69,7 +69,6 @@ import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.IdeFrame;
-import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import java.util.List;
@@ -77,7 +76,7 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GradleSyncInvoker {
+public final class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final PreSyncProjectCleanUp myPreSyncProjectCleanUp;
@@ -88,8 +87,8 @@ public class GradleSyncInvoker {
     return ServiceManager.getService(GradleSyncInvoker.class);
   }
 
-  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager, @NotNull IdeInfo ideInfo) {
-    this(fileDocumentManager, ideInfo, new PreSyncProjectCleanUp(), new PreSyncChecks());
+  public GradleSyncInvoker() {
+    this(FileDocumentManager.getInstance(), IdeInfo.getInstance(), new PreSyncProjectCleanUp(), new PreSyncChecks());
   }
 
   private GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
@@ -166,7 +165,7 @@ public class GradleSyncInvoker {
   }
 
   private static boolean isBuildInProgress(@NotNull Project project) {
-    IdeFrame frame = ((WindowManagerEx)WindowManager.getInstance()).findFrameFor(project);
+    IdeFrame frame = WindowManagerEx.getInstanceEx().findFrameFor(project);
     StatusBarEx statusBar = frame == null ? null : (StatusBarEx)frame.getStatusBar();
     if (statusBar == null) {
       return false;

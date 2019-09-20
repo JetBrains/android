@@ -17,7 +17,7 @@ package com.android.tools.idea.actions.annotations;
 
 import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.codeInsight.CodeInsightTestCase;
+import com.intellij.codeInsight.JavaCodeInsightTestCase;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.text.StringUtil;
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 
-public class InferSupportAnnotationsTest extends CodeInsightTestCase {
+public class InferSupportAnnotationsTest extends JavaCodeInsightTestCase {
   private static final String INFER_PATH = "/infer/";
 
   @NotNull

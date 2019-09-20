@@ -16,15 +16,10 @@
 package com.android.tools.idea.model;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
-
-import static com.android.SdkConstants.DOT_CLASS;
 
 /**
  * Build-system abstraction for finding external library jar files.

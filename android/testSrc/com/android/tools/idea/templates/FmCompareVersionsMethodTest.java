@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.templates;
 
+import com.intellij.util.containers.ContainerUtil;
 import freemarker.template.SimpleNumber;
 import freemarker.template.SimpleScalar;
 import junit.framework.TestCase;
 
 import java.util.List;
-
-import static com.intellij.util.containers.ContainerUtil.newArrayList;
 
 /**
  * Tests for {@link FmCompareVersionsMethod}.
@@ -30,7 +29,7 @@ public class FmCompareVersionsMethodTest extends TestCase {
   @SuppressWarnings("rawtypes")
   private void check(String lhs, String rhs, int expected) throws Exception {
     FmCompareVersionsMethod method = new FmCompareVersionsMethod();
-    List list = newArrayList(new SimpleScalar(lhs), new SimpleScalar(rhs));
+    List list = ContainerUtil.newArrayList(new SimpleScalar(lhs), new SimpleScalar(rhs));
     Number result = ((SimpleNumber)method.exec(list)).getAsNumber();
     assertEquals(expected, Integer.signum(result.intValue()));
   }

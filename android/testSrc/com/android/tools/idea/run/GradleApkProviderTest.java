@@ -26,7 +26,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.facet.AndroidFacet;

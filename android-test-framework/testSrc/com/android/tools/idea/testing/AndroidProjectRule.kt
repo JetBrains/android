@@ -29,6 +29,8 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.*
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
+import com.intellij.testFramework.registerExtension
+import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
@@ -42,7 +44,7 @@ import org.junit.runner.Description
  *
  * The defaults settings are using a [LightTempDirTestFixtureImpl] which means
  * that it does not create any file on disk,
- * but instead relly on  a [com.intellij.openapi.vfs.ex.temp.TempFileSystem]].
+ * but instead rely on  a [com.intellij.openapi.vfs.ex.temp.TempFileSystem]].
  *
  * For tests that rely on file on disk, use the [AndroidProjectRule.Factory.onDisk()]
  * factory method to use a full on disk fixture with a single module, otherwise use
@@ -80,7 +82,6 @@ class AndroidProjectRule private constructor(
 
   val project: Project get() = fixture.project
 
-  private lateinit var mocks: IdeComponents
   private val facets = ArrayList<Facet<*>>()
 
   /**
@@ -89,7 +90,7 @@ class AndroidProjectRule private constructor(
   companion object {
     /**
      * Returns an [AndroidProjectRule] that uses a fixture which create the
-     * project in an in memeroy TempFileSystem
+     * project in an in memory TempFileSystem
      *
      * @see IdeaTestFixtureFactory.createLightFixtureBuilder()
      */
@@ -121,18 +122,16 @@ class AndroidProjectRule private constructor(
     return this
   }
 
-  fun <T> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) =
-      mocks.replaceProjectService(serviceType, newServiceInstance)
+  fun <T : Any> replaceService(serviceType: Class<T>, newServiceInstance: T) {
+    ApplicationManager.getApplication().replaceService(serviceType, newServiceInstance, fixture.projectDisposable)
+  }
 
-  fun <T> replaceService(serviceType: Class<T>, newServiceInstance: T) =
-      mocks.replaceApplicationService(serviceType, newServiceInstance)
+  fun <T> mockProjectService(serviceType: Class<T>): T {
+    return IdeComponents.mockProjectService(fixture.project, serviceType, fixture.projectDisposable)
+  }
 
-  fun <T> mockService(serviceType: Class<T>): T = mocks.mockApplicationService(serviceType)
-
-  fun <T> mockProjectService(serviceType: Class<T>): T = mocks.mockProjectService(serviceType)
-
-  fun <T> registerExtension(epName: ExtensionPointName<T>, extension: T) =
-    PlatformTestUtil.registerExtension<T>(Extensions.getArea(project), epName, extension, fixture.projectDisposable)
+  fun <T: Any> registerExtension(epName: ExtensionPointName<T>, extension: T) =
+          project.registerExtension(epName, extension, fixture.projectDisposable)
 
   fun <T: CodeInsightTestFixture> getFixture(type: Class<T>): T? {
     return if (type.isInstance(fixture)) fixture as T else null
@@ -151,7 +150,6 @@ class AndroidProjectRule private constructor(
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
-    mocks = IdeComponents(fixture)
 
     // Apply Android Studio code style settings (tests running as the Android plugin in IDEA should behave the same)
     val settings = CodeStyle.getSettings(project).clone()
@@ -162,7 +160,7 @@ class AndroidProjectRule private constructor(
   private fun createLightFixture(): CodeInsightTestFixture {
     // This is a very abstract way to initialize a new Project and a single Module.
     val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createLightFixtureBuilder(LightCodeInsightFixtureTestCase.JAVA_8)
+    val projectBuilder = factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureTestCase.JAVA_8)
     return factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
   }
 

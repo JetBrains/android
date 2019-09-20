@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.tools.idea.actions.SendFeedbackAction;
+//import com.android.tools.idea.actions.SendFeedbackAction; // FIXME-ank (they decoupled, we coupled back)
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.intellij.ide.actions.SendFeedbackAction;  // FIXME-ank (they decoupled, we coupled back)
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 

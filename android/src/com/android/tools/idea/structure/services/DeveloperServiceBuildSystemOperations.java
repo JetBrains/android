@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 public interface DeveloperServiceBuildSystemOperations {
   ExtensionPointName<DeveloperServiceBuildSystemOperations> EP_NAME =
-    new ExtensionPointName<DeveloperServiceBuildSystemOperations>("com.android.ide.developerServiceBuildSystemOperations");
+    new ExtensionPointName<>("com.android.ide.developerServiceBuildSystemOperations");
 
   boolean canHandle(@NotNull Project project);
 

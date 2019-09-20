@@ -65,7 +65,6 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;

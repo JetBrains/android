@@ -37,6 +37,7 @@ import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ExceptionUtil;
 import com.intellij.util.ExceptionUtilRt;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -942,7 +943,7 @@ public class LauncherIconGenerator extends IconGenerator {
       }
     }
     catch (ExecutionException e) {
-      ExceptionUtilRt.rethrow(e.getCause());
+      ExceptionUtil.rethrow(e.getCause());
     }
     catch (InterruptedException ignore) {
     }

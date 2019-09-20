@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android.exportSignedPackage;
 
@@ -27,8 +13,8 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ArrayUtil;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -44,8 +30,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -95,7 +81,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
       }
     });
 
-    myContentPanel.setPreferredSize(new Dimension(myContentPanel.getPreferredSize().width, JBUI.scale(250)));
+    myContentPanel.setPreferredSize(new Dimension(myContentPanel.getPreferredSize().width, JBUIScale.scale(250)));
   }
 
   @Override
@@ -143,7 +129,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
         myProGuardConfigFilesPanel.setUrls(facet.getProperties().myProGuardCfgFiles);
       }
       else {
-        final List<String> urls = new ArrayList<String>();
+        final List<String> urls = new ArrayList<>();
         urls.add(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
         final Pair<VirtualFile, Boolean> pair = AndroidCompileUtil.getDefaultProguardConfigFile(facet);
 
@@ -160,16 +146,16 @@ class ApkStep extends ExportSignedPackageWizardStep {
   @NotNull
   private static String[] parseAndCheckProguardCfgPaths(@NotNull String pathsStr) {
     if (pathsStr.isEmpty()) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
+      return ArrayUtilRt.EMPTY_STRING_ARRAY;
     }
     final String[] paths = pathsStr.split(File.pathSeparator);
 
     if (paths.length == 0) {
-      return ArrayUtil.EMPTY_STRING_ARRAY;
+      return ArrayUtilRt.EMPTY_STRING_ARRAY;
     }
     for (String path : paths) {
       if (LocalFileSystem.getInstance().refreshAndFindFileByPath(path) == null) {
-        return ArrayUtil.EMPTY_STRING_ARRAY;
+        return ArrayUtilRt.EMPTY_STRING_ARRAY;
       }
     }
     return paths;

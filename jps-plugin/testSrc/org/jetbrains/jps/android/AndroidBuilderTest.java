@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
@@ -7,7 +8,6 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.io.TestFileSystemBuilder;
 import com.intellij.util.io.TestFileSystemItem;
@@ -44,6 +44,7 @@ import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -73,7 +74,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
   public void test1() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
-    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtilRt.EMPTY_STRING_ARRAY, executor, null).getFirst();
     rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
@@ -474,7 +475,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     addPathPatterns(executor, androidSdk);
 
     final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
-    final JpsModule libModule = addAndroidModule("lib", ArrayUtil.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", ArrayUtilRt.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
 
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
@@ -538,7 +539,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final MyExecutor executor = new MyExecutor("com.example.simple") {
       @NotNull
       @Override
-      protected Process doCreateProcess(@NotNull String[] args, @NotNull Map<? extends String, ? extends String> environment)
+      protected Process doCreateProcess(@NotNull String[] args, @NotNull Map<String, String> environment)
         throws Exception {
         if (args[0].endsWith(SdkConstants.FN_AAPT) && "crunch".equals(args[1])) {
           final String outputDir = args[args.length - 1];
@@ -548,7 +549,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
         return super.doCreateProcess(args, environment);
       }
     };
-    setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    setUpSimpleAndroidStructure(ArrayUtilRt.EMPTY_STRING_ARRAY, executor, null).getFirst();
     rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
@@ -721,7 +722,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
   public void testResOverlay() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
-    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtilRt.EMPTY_STRING_ARRAY, executor, null).getFirst();
     final JpsAndroidModuleProperties props = ((JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module)).getProperties();
     props.RES_OVERLAY_FOLDERS = Arrays.asList("/res-overlay");
     rebuildAndroidProject();
@@ -911,6 +912,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     for (BuildMessage message : warnMessages) {
       if (message.getMessageText().endsWith("was forcibly excluded by the IDE, so custom generated files won't be compiled")) {
         containsForciblyExcludedRootWarn = true;
+        break;
       }
     }
     assertTrue(containsForciblyExcludedRootWarn);
@@ -922,7 +924,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     addPathPatterns(executor, androidSdk);
 
     final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
-    final JpsModule libModule = addAndroidModule("lib", ArrayUtil.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", ArrayUtilRt.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
 
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
@@ -1337,7 +1339,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final String outputPath = getAbsolutePath("out/production/" + moduleName);
     final String testOutputPath = getAbsolutePath("out/test/" + moduleName);
 
-    final JpsModule module = addModule(moduleName, ArrayUtil.EMPTY_STRING_ARRAY,
+    final JpsModule module = addModule(moduleName, ArrayUtilRt.EMPTY_STRING_ARRAY,
                                        outputPath, testOutputPath, androidSdk);
     module.getContentRootsList().addUrl(JpsPathUtil.pathToUrl(root));
 
@@ -1449,7 +1451,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     @NotNull
     @Override
-    protected Process doCreateProcess(@NotNull String[] args, @NotNull Map<? extends String, ? extends String> environment)
+    protected Process doCreateProcess(@NotNull String[] args, @NotNull Map<String, String> environment)
       throws Exception {
       final int idx = ArrayUtilRt.find(args, "org.jetbrains.android.compiler.tools.AndroidDxRunner");
 
@@ -1478,7 +1480,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
             final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outputPath)));
 
             try {
-              appendEntry(zos, "res_apk_entry", "res_apk_entry_content".getBytes());
+              appendEntry(zos, "res_apk_entry", "res_apk_entry_content".getBytes(StandardCharsets.UTF_8));
             }
             finally {
               zos.close();

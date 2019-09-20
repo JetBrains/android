@@ -128,12 +128,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final GradleTaskRunnerFactory myTaskRunnerFactory;
 
-  public MakeBeforeRunTaskProvider(@NotNull Project project,
-                                   @NotNull AndroidProjectInfo androidProjectInfo,
-                                   @NotNull GradleProjectInfo gradleProjectInfo) {
+  public MakeBeforeRunTaskProvider(@NotNull Project project) {
     myProject = project;
-    myAndroidProjectInfo = androidProjectInfo;
-    myGradleProjectInfo = gradleProjectInfo;
+    myAndroidProjectInfo = AndroidProjectInfo.getInstance(project);
+    myGradleProjectInfo = GradleProjectInfo.getInstance(project);
     myTaskRunnerFactory = new GradleTaskRunnerFactory(myProject, GradleVersions.getInstance());
   }
 

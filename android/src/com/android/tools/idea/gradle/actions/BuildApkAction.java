@@ -42,8 +42,7 @@ public class BuildApkAction extends DumbAwareAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    e.getPresentation().setEnabledAndVisible(project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle());
+    e.getPresentation().setEnabledAndVisible(AndroidStudioGradleAction.isAndroidGradleProject(e));
   }
 
   @Override

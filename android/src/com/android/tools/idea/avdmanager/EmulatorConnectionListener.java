@@ -19,7 +19,6 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.run.util.LaunchUtils;
-import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;

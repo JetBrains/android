@@ -17,8 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.ui.messages.SheetController;
-import com.intellij.util.JdomKt;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
@@ -168,7 +168,7 @@ public class MessagesFixture {
   @Nullable
   private static String getHtmlBody(@NotNull String html) {
     try {
-      String sheetTitle = JdomKt.loadElement(html).getChild("body").getText();
+      String sheetTitle = JDOMUtil.load(html).getChild("body").getText();
       return sheetTitle.replace("\n", "").trim();
     }
     catch (Throwable e) {

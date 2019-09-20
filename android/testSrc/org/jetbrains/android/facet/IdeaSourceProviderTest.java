@@ -28,6 +28,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.PathUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +90,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
    */
   public void testGetCurrentSourceProviders() throws Exception {
     StringBuilder sb = new StringBuilder();
-    VirtualFile baseDir = getProject().getBaseDir();
+    VirtualFile baseDir = PlatformTestUtil.getOrCreateProjectTestBaseDir(getProject());
     for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(myAppFacet)) {
       sb.append(getStringRepresentation(provider, baseDir));
     }

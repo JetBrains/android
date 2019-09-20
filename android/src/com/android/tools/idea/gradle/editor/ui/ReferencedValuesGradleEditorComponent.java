@@ -45,6 +45,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.text.CharArrayUtil;
 import com.intellij.util.ui.GridBag;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -167,7 +168,7 @@ public class ReferencedValuesGradleEditorComponent extends JBPanel {
         if (project == null) {
           return;
         }
-        final Ref<Balloon> balloonRef = new Ref<Balloon>();
+        final Ref<Balloon> balloonRef = new Ref<>();
         Content content = new Content(project, new Runnable() {
           @Override
           public void run() {
@@ -188,7 +189,7 @@ public class ReferencedValuesGradleEditorComponent extends JBPanel {
   }
 
   public void bind(@NotNull Project project, @NotNull List<GradleEditorSourceBinding> sourceBindings) {
-    myProjectRef = new WeakReference<Project>(project);
+    myProjectRef = new WeakReference<>(project);
     ImmutableListMultimap<VirtualFile, GradleEditorSourceBinding> byFile = Multimaps.index(sourceBindings, GROUPER);
     List<VirtualFile> orderedFiles = Lists.newArrayList(byFile.keySet());
     ContainerUtil.sort(orderedFiles, FILES_COMPARATOR);
@@ -285,7 +286,7 @@ public class ReferencedValuesGradleEditorComponent extends JBPanel {
 
     // Ask the editor to render target text.
     JScrollPane scrollPane = UIUtil.findComponentOfType(editor.getComponent(), JScrollPane.class);
-    BufferedImage image = UIUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    BufferedImage image = ImageUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB);
     if (scrollPane != null) {
       Component editorComponent = scrollPane.getViewport().getView();
       editorComponent.setSize(Integer.MAX_VALUE, Integer.MAX_VALUE);

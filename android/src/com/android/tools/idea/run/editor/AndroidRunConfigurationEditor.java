@@ -29,6 +29,7 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PanelWithAnchor;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import java.awt.Container;

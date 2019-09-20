@@ -22,22 +22,20 @@ import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPlugi
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link PluginVersionUpgrade}.
  */
-public class PluginVersionUpgradeTest extends IdeaTestCase {
+public class PluginVersionUpgradeTest extends JavaProjectTestCase {
   @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep1;
   @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep2;
   @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep3;

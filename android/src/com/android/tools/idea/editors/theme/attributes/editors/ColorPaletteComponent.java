@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.tools.adtui.util.GraphicsUtil;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -25,8 +25,8 @@ import java.awt.*;
 import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
 
 public class ColorPaletteComponent implements Icon {
-  private static final int ICON_SIZE = JBUI.scale(20);
-  private static final int PADDING = JBUI.scale(2);
+  private static final int ICON_SIZE = JBUIScale.scale(20);
+  private static final int PADDING = JBUIScale.scale(2);
 
   private Color myPrimaryColor = null;
   private Color myPrimaryDarkColor = null;

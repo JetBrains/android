@@ -34,8 +34,6 @@ import java.util.Set;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.tools.idea.uibuilder.handlers.ViewTagHandler.SUITABLE_LAYOUT_CLASS;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 /**

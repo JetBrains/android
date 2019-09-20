@@ -19,17 +19,18 @@ import com.android.SdkConstants;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.databinding.finders.BindingComponentClassFinder;
 import com.android.tools.idea.databinding.psiclass.LightBindingComponentClass;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
 /**
  * Cache that stores the DataBindingComponent instances associated with each module.
  *
@@ -39,43 +40,40 @@ import org.jetbrains.annotations.NotNull;
  *  hardcoded references to it from the Kotlin plugin.
  *  Move back to: cache.BindingComponentShortNamesCache
  */
-public class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
-  private DataBindingProjectComponent myComponent;
+final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
+  private final DataBindingProjectComponent myComponent;
   private static final String[] ourClassNames = new String[]{SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT};
-  private BindingComponentClassFinder myClassFinder;
-  public DataBindingComponentShortNamesCache(DataBindingProjectComponent component, BindingComponentClassFinder componentClassFinder) {
-    myComponent = component;
-    myClassFinder = componentClassFinder;
+
+  DataBindingComponentShortNamesCache(@NotNull Project project) {
+    myComponent = project.getComponent(DataBindingProjectComponent.class);
   }
 
   @NotNull
   @Override
   public PsiClass[] getClassesByName(@NotNull @NonNls String name, @NotNull GlobalSearchScope scope) {
-    if (!check(name, scope)) {
+    Project project = scope.getProject();
+    if (project == null || !check(name, scope)) {
       return PsiClass.EMPTY_ARRAY;
     }
+
+    BindingComponentClassFinder classFinder = PsiElementFinder.EP.findExtensionOrFail(BindingComponentClassFinder.class, project);
     // we need to search for both old and new. Class finder knows which one to generate.
     final AndroidxName componentClass = SdkConstants.CLASS_DATA_BINDING_COMPONENT;
-    final PsiClass[] support = myClassFinder.findClasses(componentClass.oldName(), scope);
-    final PsiClass[] androidX = myClassFinder.findClasses(componentClass.newName(), scope);
+    final PsiClass[] support = classFinder.findClasses(componentClass.oldName(), scope);
+    final PsiClass[] androidX = classFinder.findClasses(componentClass.newName(), scope);
     return ArrayUtil.mergeArrays(support, androidX);
   }
 
   private boolean check(String name, GlobalSearchScope scope) {
     return SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT.equals(name)
-           && scope.getProject() != null
-           && myComponent.getProject().equals(scope.getProject());
+            && scope.getProject() != null
+            && myComponent.getProject().equals(scope.getProject());
   }
 
   @NotNull
   @Override
   public String[] getAllClassNames() {
     return ourClassNames;
-  }
-
-  @Override
-  public void getAllClassNames(@NotNull HashSet<String> dest) {
-    dest.add(SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT);
   }
 
   @NotNull
@@ -98,20 +96,15 @@ public class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
 
   @Override
   public boolean processMethodsWithName(@NonNls @NotNull String name,
-                                        @NotNull GlobalSearchScope scope,
-                                        @NotNull Processor<PsiMethod> processor) {
+          @NotNull GlobalSearchScope scope,
+          @NotNull Processor<PsiMethod> processor) {
     return true;
   }
 
   @NotNull
   @Override
   public String[] getAllMethodNames() {
-    return ArrayUtil.EMPTY_STRING_ARRAY;
-  }
-
-  @Override
-  public void getAllMethodNames(@NotNull HashSet<String> set) {
-
+    return ArrayUtilRt.EMPTY_STRING_ARRAY;
   }
 
   @NotNull
@@ -123,11 +116,6 @@ public class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllFieldNames() {
-    return ArrayUtil.EMPTY_STRING_ARRAY;
-  }
-
-  @Override
-  public void getAllFieldNames(@NotNull HashSet<String> set) {
-
+    return ArrayUtilRt.EMPTY_STRING_ARRAY;
   }
 }

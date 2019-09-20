@@ -113,7 +113,7 @@ public final class DataBindingUtil {
    */
   @Nullable
   public static PsiType parsePsiType(@NotNull String typeStr, @NotNull Project project, @Nullable PsiElement context) {
-    PsiElementFactory instance = PsiElementFactory.SERVICE.getInstance(project);
+    PsiElementFactory instance = PsiElementFactory.getInstance(project);
     try {
       PsiType type = instance.createTypeFromText(typeStr, context);
       if ((type instanceof PsiClassReferenceType) && ((PsiClassReferenceType)type).getClassName() == null) {

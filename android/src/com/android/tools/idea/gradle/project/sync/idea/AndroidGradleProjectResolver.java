@@ -68,12 +68,7 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
-import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
-import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
-import com.android.tools.idea.gradle.project.sync.ng.SelectedVariantCollector;
-import com.android.tools.idea.gradle.project.sync.ng.SelectedVariants;
-import com.android.tools.idea.gradle.project.sync.ng.SyncActionOptions;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -94,6 +89,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathsList;
 import java.io.File;
 import java.io.IOException;
@@ -105,6 +101,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.ProjectModel;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -112,10 +110,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
+import org.jetbrains.plugins.gradle.model.Build;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
-import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
-import org.jetbrains.plugins.gradle.model.ProjectImportExtraModelProvider;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -143,6 +140,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @VisibleForTesting
+  @NonInjectable
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
                                @NotNull ProjectImportErrorHandler errorHandler,
                                @NotNull ProjectFinder projectFinder,
@@ -311,16 +309,17 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   private boolean hasArtifacts(@NotNull IdeaModule gradleModule) {
-    ModuleExtendedModel javaModel = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    return javaModel != null && !javaModel.getArtifacts().isEmpty();
+    ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
+    return externalProject != null && !externalProject.getArtifacts().isEmpty();
   }
 
   private void createJavaProject(@NotNull IdeaModule gradleModule,
                                  @NotNull DataNode<ModuleData> ideModule,
                                  @NotNull Collection<SyncIssue> syncIssues,
                                  boolean androidProjectWithoutVariants) {
-    ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, model, syncIssues, androidProjectWithoutVariants);
+    ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
+    JavaModuleModel javaModuleModel =
+      myIdeaJavaModuleModelFactory.create(gradleModule, externalProject, syncIssues, androidProjectWithoutVariants);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 
@@ -355,7 +354,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
     populateModuleBuildDirs(gradleProject);
-    populateGlobalLibraryMap(gradleProject);
+    populateGlobalLibraryMap();
     if (isAndroidGradleProject()) {
       projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     }
@@ -398,7 +397,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // Set build folder for root and included projects.
     List<IdeaProject> ideaProjects = new ArrayList<>();
     ideaProjects.add(rootIdeaProject);
-    ideaProjects.addAll(resolverCtx.getModels().getIncludedBuilds());
+    List<Build> includedBuilds = resolverCtx.getModels().getIncludedBuilds();
+    for (Build includedBuild : includedBuilds) {
+      IdeaProject ideaProject = resolverCtx.getModels().getModel(includedBuild, IdeaProject.class);
+      assert ideaProject != null;
+      ideaProjects.add(ideaProject);
+    }
+
     for (IdeaProject ideaProject : ideaProjects) {
       for (IdeaModule ideaModule : ideaProject.getChildren()) {
         GradleProject gradleProject = ideaModule.getGradleProject();
@@ -419,22 +424,23 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   /**
    * Find and set global library map.
    */
-  private void populateGlobalLibraryMap(@NotNull IdeaProject rootIdeaProject) {
+  private void populateGlobalLibraryMap() {
     List<GlobalLibraryMap> globalLibraryMaps = new ArrayList<>();
 
     // Request GlobalLibraryMap for root and included projects.
-    List<IdeaProject> ideaProjects = new ArrayList<>();
-    ideaProjects.add(rootIdeaProject);
-    ideaProjects.addAll(resolverCtx.getModels().getIncludedBuilds());
+    Build mainBuild = resolverCtx.getModels().getMainBuild();
+    List<Build> includedBuilds = resolverCtx.getModels().getIncludedBuilds();
+    List<Build> builds = new ArrayList<>(includedBuilds.size() + 1);
+    builds.add(mainBuild);
+    builds.addAll(includedBuilds);
 
-    for (IdeaProject ideaProject : ideaProjects) {
+    for (Build build : builds) {
       GlobalLibraryMap mapOfCurrentBuild = null;
       // Since GlobalLibraryMap is requested on each module, we need to find the map that was
       // requested at the last, which is the one that contains the most of items.
-      for (IdeaModule ideaModule : ideaProject.getChildren()) {
-        GlobalLibraryMap moduleMap = resolverCtx.getExtraProject(ideaModule, GlobalLibraryMap.class);
-        if (mapOfCurrentBuild == null ||
-            (moduleMap != null && moduleMap.getLibraries().size() > mapOfCurrentBuild.getLibraries().size())) {
+      for (ProjectModel projectModel : build.getProjects()) {
+        GlobalLibraryMap moduleMap = resolverCtx.getModels().getModel(projectModel, GlobalLibraryMap.class);
+        if (mapOfCurrentBuild == null || (moduleMap != null && moduleMap.getLibraries().size() > mapOfCurrentBuild.getLibraries().size())) {
           mapOfCurrentBuild = moduleMap;
         }
       }
@@ -455,13 +461,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     modelClasses.add(NativeAndroidProject.class);
     modelClasses.add(GlobalLibraryMap.class);
     return modelClasses;
-  }
-
-  @NotNull
-  @Override
-  public ProjectImportExtraModelProvider getExtraModelProvider() {
-    // TODO: Change to configureAndGetExtraModelProvider() to ensure SVS in old sync.
-    return super.getExtraModelProvider();
   }
 
   @Override
@@ -511,7 +510,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull
   @Override
-  public ExternalSystemException getUserFriendlyError(@NotNull Throwable error,
+  public ExternalSystemException getUserFriendlyError(@Nullable BuildEnvironment buildEnvironment,
+                                                      @NotNull Throwable error,
                                                       @NotNull String projectPath,
                                                       @Nullable String buildFilePath) {
     String msg = error.getMessage();
@@ -539,7 +539,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         }
       }
     }
-    ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
+    ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(buildEnvironment, error, projectPath, buildFilePath);
     assert userFriendlyError != null;
     return userFriendlyError;
   }
@@ -568,31 +568,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       builder.append(". ").append(recommendedVersion);
     }
     return builder.toString();
-  }
-
-  @NotNull
-  private AndroidExtraModelProvider configureAndGetExtraModelProvider() {
-    // Here we set up the options for the sync and pass them to the AndroidExtraModelProvider which will decide which will use them
-    // to decide which models t request from Gradle.
-    Project project = myProjectFinder.findProject(resolverCtx);
-    SelectedVariants selectedVariants = null;
-    boolean isSingleVariantSync = false;
-    boolean shouldGenerateSources = false;
-
-    if (project != null) {
-      isSingleVariantSync = NewGradleSync.isSingleVariantSync(project);
-      shouldGenerateSources = NewGradleSync.isCompoundSync(project);
-      if (isSingleVariantSync) {
-        SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
-        selectedVariants = variantCollector.collectSelectedVariants();
-      }
-    }
-
-    SyncActionOptions options = new SyncActionOptions();
-    options.setSingleVariantSyncEnabled(isSingleVariantSync);
-    options.setShouldGenerateSources(shouldGenerateSources);
-    options.setSelectedVariants(selectedVariants);
-    return new AndroidExtraModelProvider(options);
   }
 
   @Override

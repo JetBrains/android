@@ -26,13 +26,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.List;
 
-import static com.intellij.util.ui.UIUtil.getLabelFont;
-
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidUiUtil {
-  private static final Logger LOG = Logger.getInstance("org.jetbrains.android.util.AndroidUiUtil");
+  private static final Logger LOG = Logger.getInstance(AndroidUiUtil.class);
 
   private AndroidUiUtil() {
   }

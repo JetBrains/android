@@ -17,10 +17,7 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.LegendConfig;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.intellij.ui.JBColor;
-import java.util.HashSet;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

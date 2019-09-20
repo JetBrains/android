@@ -31,7 +31,7 @@ public class CaptureTypeNode extends SimpleNode {
 
   public CaptureTypeNode(CaptureType type) {
     myType = type;
-    myCaptureNodes = new SortedList<CaptureNode>(new Comparator<CaptureNode>() {
+    myCaptureNodes = new SortedList<>(new Comparator<CaptureNode>() {
       @Override
       public int compare(CaptureNode a, CaptureNode b) {
         return a.getName().compareToIgnoreCase(b.getName());

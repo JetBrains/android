@@ -61,6 +61,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtilities;
 import java.awt.BorderLayout;
@@ -99,7 +100,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
 
     myConnectionDetails = new ConnectionDetailsView(this);
-    myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
+    myConnectionDetails.setMinimumSize(new Dimension(JBUIScale.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
     myConnectionsView = new ConnectionsView(this);
     ThreadsView threadsView = new ThreadsView(this);
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -38,7 +39,7 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   @Override
   public final void update(@NotNull AnActionEvent e) {
-    if (!isGradleProject(e)) {
+    if (!isAndroidGradleProject(e)) {
       e.getPresentation().setEnabledAndVisible(false);
       return;
     }
@@ -55,7 +56,7 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   @Override
   public final void actionPerformed(@NotNull AnActionEvent e) {
-    if (!isGradleProject(e)) {
+    if (!isAndroidGradleProject(e)) {
       return;
     }
     Project project = e.getProject();
@@ -65,8 +66,12 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   protected abstract void doPerform(@NotNull AnActionEvent e, @NotNull Project project);
 
-  private static boolean isGradleProject(@NotNull AnActionEvent e) {
+  public static boolean isAndroidGradleProject(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    return project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle();
+    if (project == null) {
+      return false;
+    }
+    GradleProjectInfo info = GradleProjectInfo.getInstance(project);
+    return info.isBuildWithGradle() && (!info.getAndroidModules().isEmpty() || IdeInfo.getInstance().isAndroidStudio());
   }
 }

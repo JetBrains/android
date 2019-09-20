@@ -35,7 +35,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.xml.XmlFile
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.StartupUiUtil
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.BasicStroke
@@ -149,7 +149,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
         val image = refinableImage.terminalImage
 
         if (image != null) {
-          UIUtil.drawImage(graphics, image, Rectangle(THUMBNAIL_BORDER_THICKNESS.toInt(), THUMBNAIL_BORDER_THICKNESS.toInt(), image.width,
+          StartupUiUtil.drawImage(graphics, image, Rectangle(THUMBNAIL_BORDER_THICKNESS.toInt(), THUMBNAIL_BORDER_THICKNESS.toInt(), image.width,
                                                       image.height), null)
         }
       }

@@ -1,12 +1,13 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.compiler.tools.AndroidApkBuilder;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.android.util.AndroidNativeLibData;
@@ -136,7 +137,7 @@ public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescr
       return false;
     }
 
-    final Set<String> externalJarsSet = new HashSet<String>();
+    final Set<String> externalJarsSet = new HashSet<>();
 
     for (String jarPath : AndroidJpsUtil.getExternalLibraries(context, module, platform)) {
       if (new File(jarPath).exists()) {
@@ -160,7 +161,7 @@ public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescr
     final String resPackagePath = resPackage.getPath();
 
     final String classesDexFilePath = classesDexFile.getPath();
-    final String[] externalJars = ArrayUtil.toStringArray(externalJarsSet);
+    final String[] externalJars = ArrayUtilRt.toStringArray(externalJarsSet);
     Arrays.sort(externalJars);
 
     final List<AndroidNativeLibData> additionalNativeLibs = extension.getAdditionalNativeLibs();
@@ -186,7 +187,7 @@ public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescr
                customKeyStorePath, new MyExcludedSourcesFilter(context.getProjectDescriptor().getProject()));
 
     if (messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()) {
-      final List<String> srcFiles = new ArrayList<String>();
+      final List<String> srcFiles = new ArrayList<>();
       srcFiles.add(resPackagePath);
       srcFiles.add(classesDexFilePath);
 

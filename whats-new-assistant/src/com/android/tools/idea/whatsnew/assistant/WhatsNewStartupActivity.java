@@ -45,10 +45,12 @@ import org.apache.http.concurrent.FutureCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
+
 /**
  * Show the "What's New" assistant the first time the app starts up with a new major.minor version.
  */
-public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
+public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
   @Override
   public void runActivity(@NotNull Project project) {
     if (!(WhatsNewAssistantBundleCreator.shouldShowWhatsNew() && StudioFlags.WHATS_NEW_ASSISTANT_AUTO_SHOW.get())) {

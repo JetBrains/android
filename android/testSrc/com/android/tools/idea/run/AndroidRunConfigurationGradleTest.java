@@ -17,12 +17,13 @@ package com.android.tools.idea.run;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ExtensionTestUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -48,7 +49,9 @@ public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
     myRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
 
     // We override the default extension point to prevent the "Gradle Update" UI to show during the test
-    PlatformTestUtil.maskExtensions(RecommendedPluginVersionUpgradeStep.EXTENSION_POINT_NAME, Collections.singletonList(new MyPluginVersionUpgradeStep()), getTestRootDisposable());
+    ExtensionTestUtil.maskExtensions(RecommendedPluginVersionUpgradeStep.EXTENSION_POINT_NAME,
+                                     Collections.singletonList(new MyPluginVersionUpgradeStep()),
+                                     getTestRootDisposable());
   }
 
   @Override

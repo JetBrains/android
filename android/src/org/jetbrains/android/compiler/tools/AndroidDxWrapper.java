@@ -1,24 +1,12 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.tools;
 
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.*;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.configurations.JavaParameters;
+import com.intellij.execution.configurations.ParametersList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -26,17 +14,13 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.PathUtil;
 import com.intellij.util.PathsList;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -62,10 +46,10 @@ public class AndroidDxWrapper {
 
     String outFile = outputDir + File.separatorChar + AndroidCommonUtils.CLASSES_FILE_NAME;
 
-    final Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<AndroidCompilerMessageKind, List<String>>(2);
-    messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<String>());
-    messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<String>());
-    messages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<String>());
+    final Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<>(2);
+    messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<>());
+    messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<>());
+    messages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<>());
 
     String dxJarPath = buildToolInfo.getPath(BuildToolInfo.PathId.DX_JAR);
     File dxJar = new File(dxJarPath);

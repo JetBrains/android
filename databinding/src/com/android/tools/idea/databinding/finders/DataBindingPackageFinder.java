@@ -23,6 +23,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiPackage;
@@ -55,9 +56,9 @@ public class DataBindingPackageFinder extends PsiElementFinder {
   private final DataBindingProjectComponent myComponent;
   private final CachedValue<Map<String, PsiPackage>> myPackageCache;
 
-  public DataBindingPackageFinder(final DataBindingProjectComponent component) {
-    myComponent = component;
-    myPackageCache = CachedValuesManager.getManager(myComponent.getProject()).createCachedValue(
+  public DataBindingPackageFinder(@NotNull Project project) {
+    myComponent = project.getComponent(DataBindingProjectComponent.class);
+    myPackageCache = CachedValuesManager.getManager(project).createCachedValue(
       new ProjectResourceCachedValueProvider<Map<String, PsiPackage>, Set<String>>(myComponent) {
 
         @NotNull

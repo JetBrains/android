@@ -1,26 +1,12 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.maven;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.ui.CustomNotificationListener;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.ui.CustomNotificationListener;
 import com.intellij.facet.FacetType;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,8 +30,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PathUtil;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import com.intellij.util.io.ZipUtil;
 import org.jdom.Element;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
@@ -874,7 +859,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                        String moduleName,
                                        AndroidExternalApklibDependenciesManager adm,
                                        ResolveContext context) throws MavenProcessCanceledException {
-    final File depArtifacetFile = new File(FileUtil.getNameWithoutExtension(artifact.getPath()) + ".pom");
+    final File depArtifacetFile = new File(FileUtilRt.getNameWithoutExtension(artifact.getPath()) + ".pom");
     if (!depArtifacetFile.exists()) {
       AndroidUtils.reportImportErrorToEventLog("Cannot find file " + depArtifacetFile.getPath(), moduleName, project);
       return;
@@ -1276,7 +1261,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       if (myDirectory) {
         // we're looking for for resource directory
 
-        if (outputPath.toLowerCase().startsWith(myResourceOutputPath.toLowerCase())) {
+        if (StringUtil.toLowerCase(outputPath).startsWith(StringUtil.toLowerCase(myResourceOutputPath))) {
           final String parentPath = outputPath.substring(0, myResourceOutputPath.length());
           if (FileUtil.pathsEqual(parentPath, myResourceOutputPath)) {
 

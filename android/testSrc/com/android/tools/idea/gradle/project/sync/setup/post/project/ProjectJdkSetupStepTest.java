@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -60,7 +60,7 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
     initMocks(this);
     mySetupStep = new ProjectJdkSetupStep(myIdeSdks, myJdks, myIdeInfo);
     myIndicator = new EmptyProgressIndicator();
-    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myComponentStack = new ComponentStack(getProject());
     myComponentStack.registerComponentImplementation(ProjectRootManager.class, myProjectRootManager);
     when(myProjectRootManager.getProjectSdk()).thenReturn(myProjectSdk);

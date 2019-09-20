@@ -43,7 +43,7 @@ public final class ServicePanelBuilder {
 
   @NotNull private final JPanel myRootPanel;
   @NotNull private final BindingsManager myBindings = new BindingsManager();
-  @NotNull private final Stack<UiGrid> myGrids = new Stack<UiGrid>();
+  @NotNull private final Stack<UiGrid> myGrids = new Stack<>();
 
   public ServicePanelBuilder() {
     myRootPanel = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, false));

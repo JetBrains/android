@@ -72,6 +72,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -382,7 +383,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   public void updateDetails(@Nullable ManifestTreeNode node) {
     HtmlBuilder sb = new HtmlBuilder();
-    Font font = UIUtil.getLabelFont();
+    Font font = StartupUiUtil.getLabelFont();
     sb.addHtml("<html><body style=\"font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt;\">");
     sb.beginUnderline().beginBold();
     sb.add("Manifest Sources");
@@ -460,7 +461,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           sb.newline();
           continue;
         }
-        sb.add(StringUtil.capitalize(String.valueOf(actionType).toLowerCase(Locale.US)));
+        sb.add(StringUtil.capitalize(StringUtil.toLowerCase(String.valueOf(actionType))));
         sb.add(" from the ");
         sb.addHtml(getHtml(myFacet, location));
 
@@ -881,7 +882,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   @NotNull
   static String getHtml(@NotNull MergingReport.Record.Severity severity) {
-    String severityString = StringUtil.capitalize(severity.toString().toLowerCase(Locale.US));
+    String severityString = StringUtil.capitalize(StringUtil.toLowerCase(severity.toString()));
     if (severity == MergingReport.Record.Severity.ERROR) {
       return new HtmlBuilder().addHtml("<font color=\"#" + ColorUtil.toHex(JBColor.RED) + "\">")
         .addBold(severityString).addHtml("</font>:").getHtml();

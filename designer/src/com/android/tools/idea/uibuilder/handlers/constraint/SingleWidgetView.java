@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnch
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;

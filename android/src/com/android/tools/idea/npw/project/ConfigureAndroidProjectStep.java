@@ -207,6 +207,18 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
         myUseAndroidxCheck.setEnabled(true);
       }
     });
+    myListeners.listenAndFire(androidSdkInfo, sender -> {
+      AndroidVersionsInfo.VersionItem androidVersion = androidSdkInfo.getValueOrNull();
+      boolean isAndroidxOnly = androidVersion != null && androidVersion.getTargetApiLevel() >= 29;
+      if (isAndroidxOnly) {
+        // No more app-compat after Q. Force androidx checkbox selection and disable it from change.
+        myUseAndroidxCheck.setSelected(true);
+        myUseAndroidxCheck.setEnabled(false);
+      }
+      else {
+        myUseAndroidxCheck.setEnabled(true);
+      }
+    });
   }
 
   @Override

@@ -30,10 +30,14 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StudioReportDatabase {
   private final Object myDbLock = new Object();

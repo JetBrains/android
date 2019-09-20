@@ -22,6 +22,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +54,7 @@ public class AttributesPanel {
   private JComboBox myAttrGroupCombo;
   private ColorPalette myPalette;
   private JBScrollPane myPaletteScrollPane;
-  private JComboBox myModuleCombo;
+  private JComboBox<Module> myModuleCombo;
   private JBLabel myThemeLabel;
   private JBLabel myModuleLabel;
   private HyperlinkLabel myThemeWarning;
@@ -98,8 +99,8 @@ public class AttributesPanel {
     myPalette.setShowCheckeredBackground(true);
 
     // Stop the combo box long items from blocking the right panel from being able to be made small.
-    myThemeCombo.setMinimumSize(new Dimension(JBUI.scale(10), myThemeCombo.getMinimumSize().height));
-    myThemeCombo.setPreferredSize(new Dimension(JBUI.scale(10), myThemeCombo.getPreferredSize().height));
+    myThemeCombo.setMinimumSize(new Dimension(JBUIScale.scale(10), myThemeCombo.getMinimumSize().height));
+    myThemeCombo.setPreferredSize(new Dimension(JBUIScale.scale(10), myThemeCombo.getPreferredSize().height));
 
     myThemeCombo.setMaximumRowCount(MAX_SIZE_THEME_SELECTOR);
 
@@ -114,12 +115,7 @@ public class AttributesPanel {
     myThemeCombo.setName(THEME_SELECTOR_NAME);
     myModuleCombo.setName(MODULE_SELECTOR_NAME);
 
-    myModuleCombo.setRenderer(new ListCellRendererWrapper<Module>() {
-      @Override
-      public void customize(JList list, Module value, int index, boolean selected, boolean hasFocus) {
-        setText(value.getName());
-      }
-    });
+    myModuleCombo.setRenderer(SimpleListCellRenderer.create("", Module::getName));
 
     myAttributesScrollPane = new JBScrollPane(myRightPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 

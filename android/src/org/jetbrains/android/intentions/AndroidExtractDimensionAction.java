@@ -16,50 +16,13 @@
 package org.jetbrains.android.intentions;
 
 import com.android.resources.ResourceType;
-import com.intellij.CommonBundle;
-import com.intellij.codeInsight.intention.AbstractIntentionAction;
-import com.intellij.codeInsight.intention.HighPriorityAction;
-import com.intellij.codeInsight.lookup.LookupElement;
-import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.codeInsight.template.*;
-import com.intellij.codeInsight.template.impl.*;
-import com.intellij.codeInsight.template.macro.VariableOfTypeMacro;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.undo.UndoUtil;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.fileTypes.StdFileTypes;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
-import com.intellij.psi.codeStyle.JavaCodeStyleManager;
-import com.intellij.psi.util.InheritanceUtil;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.refactoring.util.RefactoringUtil;
-import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.xml.Converter;
-import com.intellij.util.xml.DomManager;
-import com.intellij.util.xml.GenericAttributeValue;
-import org.jetbrains.android.actions.CreateXmlResourceDialog;
-import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 public class AndroidExtractDimensionAction extends AndroidAddStringResourceAction {
   @Override

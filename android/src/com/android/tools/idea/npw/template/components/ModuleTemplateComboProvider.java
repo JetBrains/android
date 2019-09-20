@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.npw.template.components;
 
-import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.SimpleListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,13 +48,8 @@ public final class ModuleTemplateComboProvider extends ComponentProvider<JComboB
       comboBoxModel.addElement(template);
     }
 
-    JComboBox moduleTemplateCombo = new JComboBox(comboBoxModel);
-    moduleTemplateCombo.setRenderer(new ListCellRendererWrapper() {
-      @Override
-      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        setText(((NamedModuleTemplate)value).getName());
-      }
-    });
+    JComboBox<NamedModuleTemplate> moduleTemplateCombo = new ComboBox<>(comboBoxModel);
+    moduleTemplateCombo.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
     moduleTemplateCombo.setToolTipText("<html>The source set within which to generate new project files.<br>" +
                                   "If you specify a source set that does not yet exist on disk, a folder will be created for it.</html>");
     return moduleTemplateCombo;

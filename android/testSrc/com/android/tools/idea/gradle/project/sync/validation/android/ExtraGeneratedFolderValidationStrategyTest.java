@@ -98,7 +98,7 @@ public class ExtraGeneratedFolderValidationStrategyTest extends AndroidGradleTes
     paths.add(new File("z"));
     paths.add(new File("a"));
 
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     myStrategy.fixAndReportFoundIssues();
 
@@ -120,7 +120,7 @@ public class ExtraGeneratedFolderValidationStrategyTest extends AndroidGradleTes
   public void testFixAndReportFoundIssuesWithoutExtraFolders() {
     myStrategy.getExtraGeneratedSourceFolderPaths().clear();
 
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     myStrategy.fixAndReportFoundIssues();
 

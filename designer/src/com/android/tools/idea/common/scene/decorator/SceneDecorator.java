@@ -25,6 +25,7 @@ import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The generic Scene Decorator

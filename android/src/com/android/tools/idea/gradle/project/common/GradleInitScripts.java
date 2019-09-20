@@ -31,6 +31,7 @@ import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ import org.jetbrains.kotlin.kapt.idea.KaptModelBuilderService;
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService;
 import org.jetbrains.plugins.gradle.tooling.builder.ModelBuildScriptClasspathBuilderImpl;
 
-public class GradleInitScripts {
+public final class GradleInitScripts {
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final ContentCreator myContentCreator;
 
@@ -56,11 +57,12 @@ public class GradleInitScripts {
     return ServiceManager.getService(GradleInitScripts.class);
   }
 
-  public GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths) {
-    this(embeddedDistributionPaths, new ContentCreator());
+  public GradleInitScripts() {
+    this(EmbeddedDistributionPaths.getInstance(), new ContentCreator());
   }
 
   @VisibleForTesting
+  @NonInjectable
   GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths, @NotNull ContentCreator contentCreator) {
     myEmbeddedDistributionPaths = embeddedDistributionPaths;
     myContentCreator = contentCreator;

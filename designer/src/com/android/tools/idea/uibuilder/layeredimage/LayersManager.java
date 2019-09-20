@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.uibuilder.layeredimage;
 
 import com.android.annotations.NonNull;
@@ -24,7 +23,6 @@ import com.intellij.designer.LightToolWindow;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
@@ -35,8 +33,8 @@ import org.jetbrains.annotations.Nullable;
 public class LayersManager extends NlAbstractWindowManager {
   private LayersPanel myLayersPanel;
 
-  public LayersManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
-    super(project, fileEditorManager);
+  public LayersManager(@NotNull Project project) {
+    super(project);
   }
 
   @NotNull
@@ -89,15 +87,15 @@ public class LayersManager extends NlAbstractWindowManager {
     LayersPanel layersPanel = new LayersPanel();
     layersPanel.setImage(getImage(designer));
 
-    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
     // When LightToolWindowManager#getEditorMode() is public (or a constructor which lets
     // me not specify it) is available and upstreamed, replace the following with just
     // anchor = getEditorMode() :
-    String value = propertiesComponent.getValue(myEditorModeKey);
+    String value = PropertiesComponent.getInstance(myProject).getValue(myEditorModeKey);
     ToolWindowAnchor anchor;
     if (value == null) {
       anchor = getAnchor();
-    } else {
+    }
+    else {
       anchor = value.equals("ToolWindow") ? null : ToolWindowAnchor.fromText(value);
     }
 
@@ -109,7 +107,7 @@ public class LayersManager extends NlAbstractWindowManager {
     }
     return new LightToolWindow(layersPanel, "Image Layers", AllIcons.Toolwindows.ToolWindowPalette,
                                layersPanel, layersPanel, contentSplitter, anchor, this,
-                               myProject, propertiesComponent, getVisibilityKeyName(designer), 200, null);
+                               myProject, getVisibilityKeyName(designer), 200, null);
   }
 
   @NotNull
