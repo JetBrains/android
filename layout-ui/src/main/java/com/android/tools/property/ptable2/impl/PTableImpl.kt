@@ -34,27 +34,19 @@ import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableCell
 import com.intellij.ui.TableExpandableItemsHandler
 import com.intellij.ui.TableUtil
-import com.intellij.ui.table.JBTable
-import com.intellij.util.IJSwingUtilities
 import com.intellij.util.ui.JBUI
-import sun.awt.CausedFocusEvent
 import java.awt.Color
 import java.awt.Component
-import java.awt.Container
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.Graphics
-import java.awt.KeyboardFocusManager
 import java.awt.Rectangle
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.EventObject
 import javax.swing.JComponent
-import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ListSelectionModel
 import javax.swing.RowFilter
 import javax.swing.event.ChangeEvent
@@ -72,6 +64,7 @@ private const val LEFT_FRACTION = 0.40
 private const val MAX_LABEL_WIDTH = 240
 private const val EXPANSION_RIGHT_PADDING = 4
 private const val NOOP = "noop"
+private const val COLUMN_COUNT = 2
 
 /**
  * Implementation of a [PTable].
@@ -86,7 +79,7 @@ class PTableImpl(
   private val editorProvider: PTableCellEditorProvider,
   private val customToolTipHook: (MouseEvent) -> String? = { null },
   private val updatingUI: () -> Unit = {}
-) : JBTable(PTableModelImpl(tableModel)), PTable {
+) : PFormTableImpl(PTableModelImpl(tableModel)), PTable {
 
   private val nameRowSorter = TableRowSorter<TableModel>()
   private val nameRowFilter = NameRowFilter(model)
@@ -94,6 +87,7 @@ class PTableImpl(
   private val tableCellEditor = PTableCellEditorWrapper()
   private val expandableNameHandler = PTableExpandableItemsHandler(this)
   private var initialized = false
+  private var scaledMaxLabelWidth = JBUI.scale(MAX_LABEL_WIDTH)
   override val backgroundColor: Color
     get() = super.getBackground()
   override val foregroundColor: Color
@@ -122,23 +116,6 @@ class PTableImpl(
     super.addMouseListener(MouseTableListener())
     super.addKeyListener(PTableKeyListener())
 
-    super.resetDefaultFocusTraversalKeys()
-    super.setFocusTraversalPolicyProvider(true)
-    super.setFocusTraversalPolicy(PTableFocusTraversalPolicy())
-
-    super.addFocusListener(object : FocusAdapter() {
-      override fun focusGained(event: FocusEvent) {
-        // If this table gains focus from focus traversal,
-        // and there are editable cells: delegate to the next focus candidate.
-        when {
-          event !is CausedFocusEvent -> return
-          !model.isEditable -> return
-          event.cause == CausedFocusEvent.Cause.TRAVERSAL_FORWARD -> transferFocus()
-          event.cause == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD -> transferFocusBackward()
-        }
-      }
-    })
-
     // We want expansion for the property names but not of the editors. This disables expansion for both columns.
     // TODO: Provide expansion of the left column only.
     super.setExpandableItemsEnabled(false)
@@ -152,7 +129,7 @@ class PTableImpl(
   override fun doLayout() {
     val nameColumn = getColumnModel().getColumn(0)
     val valueColumn = getColumnModel().getColumn(1)
-    nameColumn.width = min((width * LEFT_FRACTION).roundToInt(), SCALED_MAX_LABEL_WIDTH)
+    nameColumn.width = min((width * LEFT_FRACTION).roundToInt(), scaledMaxLabelWidth)
     valueColumn.width = width - nameColumn.width
   }
 
@@ -190,14 +167,6 @@ class PTableImpl(
     return expandableNameHandler.expandedItems.find { it.row == row && it.column == column } != null
   }
 
-  // When an editor is present, do not accept focus on the table itself.
-  // This fixes a problem when navigating backwards.
-  // The LayoutFocusTraversalPolicy for the container of the table would include
-  // the table as the last possible focus component when navigating backwards.
-  override fun isFocusable(): Boolean {
-    return super.isFocusable() && !isEditing && rowCount > 0
-  }
-
   override fun startEditing(row: Int) {
     if (row < 0) {
       removeEditor()
@@ -208,7 +177,7 @@ class PTableImpl(
   }
 
   override fun startNextEditor(): Boolean {
-    val pos = TablePosition(0, 0, itemCount, wrap)
+    val pos = PTablePosition(0, 0, itemCount, COLUMN_COUNT)
     var exists = true
     if (isEditing) {
       pos.row = editingRow
@@ -216,10 +185,10 @@ class PTableImpl(
       removeEditor()
       exists = pos.next(true)
     }
-    while (exists && pos.wrapped == 0 && !tableModel.isCellEditable(item(pos.row), pos.tableColumn)) {
+    while (exists && !tableModel.isCellEditable(item(pos.row), PTableColumn.fromColumn(pos.column))) {
       exists = pos.next(true)
     }
-    if (!exists || pos.wrapped > 0) {
+    if (!exists) {
       // User navigated to the next editor after the last row of this table:
       return false
     }
@@ -241,6 +210,7 @@ class PTableImpl(
     super.updateUI()
     customizeKeyMaps()
     if (initialized) {  // This method is called but JTable.init
+      scaledMaxLabelWidth = JBUI.scale(MAX_LABEL_WIDTH)
       updatingUI()
       rendererProvider.updateUI()
       editorProvider.updateUI()
@@ -442,19 +412,9 @@ class PTableImpl(
 
   override fun removeEditor() {
     tableModel.editedItem = null
-
-    // b/37132037 Remove focus from the editor before hiding the editor.
-    // When we are transferring focus to another cell we will have to remove the current
-    // editor. The auto focus transfer in Container.removeNotify will cause another undesired
-    // focus event. This is an attempt to avoid that.
-    // The auto focus transfer is a common problem for applications see this open bug: JDK-6210779.
-    val editor = editorComponent
-    if (editor != null && IJSwingUtilities.hasFocus(editor)) {
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().clearFocusOwner()
-    }
+    repaintOtherCellInRow()
 
     // Now remove the editor
-    repaintOtherCellInRow()
     super.removeEditor()
 
     // Give the cell editor a change to reset it's state
@@ -638,102 +598,6 @@ class PTableImpl(
       }
     }
   }
-
-  // ========== Focus Traversal Policy =========================================
-
-  /**
-   * FocusTraversalPolicy for [PTableImpl].
-   *
-   * Setup focus traversal keys such that tab takes focus out of the table if the user is not editing.
-   * When the user is editing the focus traversal keys will move to the next editable cell.
-   */
-  private inner class PTableFocusTraversalPolicy : LayoutFocusTraversalPolicy() {
-
-    override fun getComponentAfter(aContainer: Container, aComponent: Component): Component? {
-      val after = super.getComponentAfter(aContainer, aComponent)
-      if (after != null && after != this@PTableImpl) {
-        return after
-      }
-      return editNextEditableCell(true)
-    }
-
-    override fun getComponentBefore(aContainer: Container, aComponent: Component): Component? {
-      val before = super.getComponentBefore(aContainer, aComponent)
-      if (before != null && before != this@PTableImpl) {
-        return before
-      }
-      return editNextEditableCell(false)
-    }
-
-    private fun editNextEditableCell(forwards: Boolean): Component? {
-      if (!isVisible) {
-        // If the table isn't visible: do not try to start cell editing
-        return null
-      }
-      val table = this@PTableImpl
-      val rows = table.rowCount
-      val pos = when {
-        table.isEditing -> TablePosition(table.editingRow, table.editingColumn, rows, wrap)
-        forwards -> TablePosition(-1, 1, rows, wrap)
-        else -> TablePosition(rows, 0, rows, wrap)
-      }
-
-      // Make sure we don't loop forever
-      while (pos.rowIterations <= rows) {
-        if (!pos.next(forwards)) {
-          break
-        }
-        if (table.isCellEditable(pos.row, pos.column)) {
-          table.setRowSelectionInterval(pos.row, pos.row)
-          if (table.editCellAt(pos.row, pos.column)) {
-            val component = getFocusCandidateFromNewlyCreatedEditor(forwards)
-            if (component != null) {
-              return component
-            }
-          }
-        }
-      }
-      // We can't find an editable cell.
-      // Delegate focus out of the table.
-      return null
-    }
-
-    // Note: When an editor was just created, the label and the new editor are the only children of the table.
-    // The editor created may be composed of multiple focusable components.
-    // Use LayoutFocusTraversalPolicy to identify the next focus candidate.
-    private fun getFocusCandidateFromNewlyCreatedEditor(forwards: Boolean): Component? {
-      val table = this@PTableImpl
-      if (forwards) {
-        return super.getFirstComponent(table)
-      }
-      else {
-        return super.getLastComponent(table)
-      }
-    }
-
-    override fun getFirstComponent(aContainer: Container): Component? {
-      return editNextEditableCell(true)
-    }
-
-    override fun getLastComponent(aContainer: Container): Component? {
-      return editNextEditableCell(false)
-    }
-
-    override fun getDefaultComponent(aContainer: Container): Component? {
-      return getFirstComponent(aContainer)
-    }
-
-    override fun accept(aComponent: Component?): Boolean {
-      if (aComponent == this@PTableImpl) {
-        return false
-      }
-      return super.accept(aComponent)
-    }
-  }
-
-  companion object {
-    private val SCALED_MAX_LABEL_WIDTH = JBUI.scale(MAX_LABEL_WIDTH)
-  }
 }
 
 private class NameRowFilter(private val model: PTableModelImpl) : RowFilter<TableModel, Int>() {
@@ -765,72 +629,6 @@ private class NameRowFilter(private val model: PTableModelImpl) : RowFilter<Tabl
 
   private fun isMatch(text: String): Boolean {
     return comparator.matchingFragments(pattern, text) != null
-  }
-}
-
-private class TablePosition(var row: Int, var column: Int, val rows: Int, val withWrapping: Boolean) {
-
-  val tableColumn: PTableColumn
-    get() = PTableColumn.fromColumn(column)
-
-  var rowIterations: Int = 0
-    private set
-
-  // Use [wrapped] to count how many times we wrapped from end to start or vice versa
-  var wrapped: Int = 0
-    private set
-
-  fun next(forward: Boolean): Boolean {
-    if (forward) {
-      return forwards()
-    }
-    else {
-      return backwards()
-    }
-  }
-
-  private fun forwards(): Boolean {
-    when (column) {
-      0 -> { column = 1 }
-      1 -> { column = 0; return nextRow() }
-    }
-    return true
-  }
-
-  private fun backwards(): Boolean {
-    when (column) {
-      0 -> { column = 1; return previousRow() }
-      1 -> { column = 0 }
-    }
-    return true
-  }
-
-  private fun nextRow(): Boolean {
-    row++
-    rowIterations++
-    column = 0
-    if (row >= rows) {
-      if (!withWrapping) {
-        return false
-      }
-      row = 0
-      wrapped++
-    }
-    return true
-  }
-
-  private fun previousRow(): Boolean {
-    row--
-    rowIterations++
-    column = 1
-    if (row < 0) {
-      if (!withWrapping) {
-        return false
-      }
-      wrapped++
-      row = rows - 1
-    }
-    return true
   }
 }
 
