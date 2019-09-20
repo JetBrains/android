@@ -19,8 +19,23 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class SigningConfigDslElement extends GradleDslBlockElement {
+  // Stores the method name of the block used in the KTS file. Ex: for the block with the name getByName("myConfig"), methodName will be
+  // getByName.
+  @Nullable
+  private String methodName;
+
+  public void setMethodName(String methodName) {
+    this.methodName = methodName;
+  }
+
+  @Nullable
+  public String getMethodName() {
+    return  methodName;
+  }
+
   public SigningConfigDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }

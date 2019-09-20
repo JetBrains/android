@@ -1,20 +1,20 @@
 android {
   buildTypes {
     create("xyz") {
-      applicationIdSuffix("mySuffix")
-      debuggable(true)
-      embedMicroApp(false)
-      jniDebuggable(true)
-      minifyEnabled(false)
-      multiDexEnabled(true)
-      pseudoLocalesEnabled(false)
-      renderscriptDebuggable(true)
-      renderscriptOptimLevel(1)
-      shrinkResources(false)
-      testCoverageEnabled(true)
-      useJack(false)
-      versionNameSuffix("abc")
-      zipAlignEnabled(true)
+      applicationIdSuffix = "mySuffix" 
+      isDebuggable = true
+      isEmbedMicroApp = false
+      isJniDebuggable = true
+      isMinifyEnabled = false
+      multiDexEnabled = true
+      isPseudoLocalesEnabled = false
+      isRenderscriptDebuggable = true
+      renderscriptOptimLevel = 1
+      isShrinkResources = false
+      isTestCoverageEnabled = true
+      useJack = false
+      versionNameSuffix = "abc"
+      isZipAlignEnabled = true
     }
   }
 }

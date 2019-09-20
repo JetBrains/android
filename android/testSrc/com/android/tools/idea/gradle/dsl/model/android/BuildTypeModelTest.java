@@ -134,6 +134,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeApplicationStatements() throws Exception {
+    // TOD(karimai) : enable this test once binaryexpression assignment is supported.
+    assumeTrue(isGroovy());
     writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_APPLICATION_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
@@ -690,23 +692,23 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  buildType.consumerProguardFiles());
-    assertEquals("debuggable", Boolean.TRUE, buildType.debuggable());
-    assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
-    assertEquals("jniDebuggable", Boolean.TRUE, buildType.jniDebuggable());
+    assertEquals(isGroovy()?"debuggable":"isDebuggable", Boolean.TRUE, buildType.debuggable());
+    assertEquals(isGroovy()?"embedMicroApp":"isEmbedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
+    assertEquals(isGroovy()?"jniDebuggable":"isJniDebuggable", Boolean.TRUE, buildType.jniDebuggable());
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
                  buildType.manifestPlaceholders());
-    assertEquals("minifyEnabled", Boolean.TRUE, buildType.minifyEnabled());
+    assertEquals(isGroovy()?"minifyEnabled":"isMinifyEnabled", Boolean.TRUE, buildType.minifyEnabled());
     assertEquals("multiDexEnabled", Boolean.TRUE, buildType.multiDexEnabled());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
-    assertEquals("pseudoLocalesEnabled", Boolean.TRUE, buildType.pseudoLocalesEnabled());
-    assertEquals("renderscriptDebuggable", Boolean.TRUE, buildType.renderscriptDebuggable());
+    assertEquals(isGroovy()?"pseudoLocalesEnabled":"isPseudoLocalesEnabled", Boolean.TRUE, buildType.pseudoLocalesEnabled());
+    assertEquals(isGroovy()?"renderscriptDebuggable":"isRenderscriptDebuggable", Boolean.TRUE, buildType.renderscriptDebuggable());
     assertEquals("renderscriptOptimLevel", Integer.valueOf(1), buildType.renderscriptOptimLevel());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
-    assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
-    assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
+    assertEquals(isGroovy()?"shrinkResources":"isShrinkResources", Boolean.TRUE, buildType.shrinkResources());
+    assertEquals(isGroovy()?"testCoverageEnabled":"isTestCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
-    assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+    assertEquals(isGroovy()?"zipAlignEnabled":"isZipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
 
     // Remove all the properties except the applicationIdSuffix.
     buildType.removeAllBuildConfigFields();
@@ -1166,6 +1168,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveFromAndApplyListElementsWithSingleElement() throws Exception {
+    // This test is groovy specific as it sets proguardFiles to a list which we cannot do in kotlin as it only accepts files parameters.
+    assumeTrue(isGroovy());
     writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
