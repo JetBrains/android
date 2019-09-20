@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8.psi
+package com.android.tools.idea.lang.proguardR8.psi
 
-import com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
-import com.android.tools.idea.lang.proguardR8.psi.ProguardR8JavaPrimitive
-import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Parameters
-import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
-import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Type
+import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat

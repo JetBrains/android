@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.JavaPsiClassReferenceElement
