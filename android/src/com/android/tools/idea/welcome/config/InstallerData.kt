@@ -17,8 +17,8 @@ package com.android.tools.idea.welcome.config
 
 import com.google.common.annotations.VisibleForTesting
 import com.android.prefs.AndroidLocation
-import com.android.tools.idea.npw.PathValidationResult
-import com.android.tools.idea.welcome.wizard.deprecated.SdkComponentsStep
+import com.android.tools.adtui.validation.Validator
+import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.google.common.base.Charsets
 import com.google.common.base.MoreObjects
 import com.google.common.io.Files
@@ -55,10 +55,9 @@ class InstallerData(
     .toString()
 
   fun hasValidSdkLocation(): Boolean {
-    val location = androidDest ?: return false
-    val path = location.absolutePath
-    val validationResult = PathValidationResult.validateLocation(path, SdkComponentsStep.FIELD_SDK_LOCATION, false)
-    return !validationResult.isError
+    androidDest ?: return false
+    val severity = PathValidator.forAndroidSdkLocation().validate(androidDest).severity
+    return severity != Validator.Severity.ERROR
   }
 
   // TODO(qumeric): turn this object into a static field
