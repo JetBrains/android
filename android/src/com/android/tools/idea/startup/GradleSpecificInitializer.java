@@ -335,6 +335,7 @@ b/137334921 */
 
     if (androidHome != null) {
       String androidHomePath = androidHome.getAbsolutePath();
+
       PathValidationResult result = validateLocation(androidHomePath, "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
       if (result.isError()) {
         notifyInvalidSdk();
