@@ -101,12 +101,8 @@ class PathValidator
     /**
      * Useful for creating a [PathValidator] with most rules enforced.
      */
-    @JvmOverloads
-    fun withCommonRules(checkWritable: Boolean = false): Builder {
+    fun withCommonRules(): Builder {
       withCommonTestRules()
-      if (checkWritable) {
-        withWarning(PATH_NOT_WRITABLE)
-      }
       if (SystemInfo.isWindows) {
         withError(WINDOWS_PATH_TOO_LONG)
       }
@@ -153,6 +149,9 @@ class PathValidator
      */
     @JvmStatic
     fun createDefault(pathName: String): PathValidator = Builder().withAllRules().build(pathName)
+
+    @JvmStatic
+    fun forAndroidSdkLocation(): PathValidator = Builder().withCommonRules().build("Android SDK location")
   }
 }
 

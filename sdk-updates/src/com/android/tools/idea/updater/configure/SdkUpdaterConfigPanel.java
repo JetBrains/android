@@ -636,8 +636,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     File nullableSdkLocation = myConfigurable.getRepoManager().getLocalPath();
     @NotNull File sdkLocation = nullableSdkLocation == null ? new File("") : nullableSdkLocation;
 
-    Validator<File> validator = new PathValidator.Builder().withCommonRules(true).build("Android SDK location");
-    Validator.Result result = validator.validate(sdkLocation);
+    Validator.Result result = PathValidator.forAndroidSdkLocation().validate(sdkLocation);
     Validator.Severity severity = result.getSeverity();
 
     if (severity == OK) {
