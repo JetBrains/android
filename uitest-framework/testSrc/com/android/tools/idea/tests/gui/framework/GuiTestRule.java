@@ -493,8 +493,8 @@ public class GuiTestRule implements TestRule {
   }
 
   public GuiTestRule withTimeout(long timeout, @NotNull TimeUnit timeUnits) {
-    myInnerTimeout = new Timeout(timeout, timeUnits);
-    myOuterTimeout = new Timeout(timeUnits.toSeconds(timeout) + 120, TimeUnit.SECONDS);
+    myInnerTimeout = new DebugFriendlyTimeout(timeout, timeUnits).withThreadDumpOnTimeout();
+    myOuterTimeout = new DebugFriendlyTimeout(timeUnits.toSeconds(timeout) + 120, TimeUnit.SECONDS);
     return this;
   }
 }
