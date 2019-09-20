@@ -649,12 +649,9 @@ public class SdkUpdaterConfigPanel implements Disposable {
       mySdkErrorLabel.setVisible(true);
     }
 
-    boolean enabled = severity == ERROR;
+    boolean enabled = severity != ERROR;
     myPlatformComponentsPanel.setEnabled(enabled);
     myTabPane.setEnabled(enabled);
-
-    mySdkErrorLabel.setVisible(severity != OK);
-    myPlatformComponentsPanel.setEnabled(severity != ERROR);
   }
 
 
