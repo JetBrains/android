@@ -43,7 +43,7 @@ public abstract class GradleFileMergerTestCase extends AndroidGradleTestCase {
   /**
    * This method is implemented in the 2 actual tests: {@link GradleFilePsiMergerTest} and {@link GradleFileSimpleMergerTest}.
    */
-  public abstract String mergeGradleFile(@NotNull String source, @NotNull String dest, @Nullable Project project,
+  public abstract String mergeGradleFile(@NotNull String source, @NotNull String dest, @NotNull Project project,
                                          @Nullable final String supportLibVersionFilter);
 
   public void testProjectDisposal() throws Exception {

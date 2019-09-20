@@ -23,7 +23,7 @@ public class GradleFilePsiMergerTest extends GradleFileMergerTestCase {
   @Override
   public String mergeGradleFile(@NotNull String source,
                                 @NotNull String dest,
-                                @Nullable Project project,
+                                @NotNull Project project,
                                 @Nullable String supportLibVersionFilter) {
     return GradleFilePsiMerger.mergeGradleFiles(source, dest, project, supportLibVersionFilter);
   }

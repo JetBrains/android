@@ -76,43 +76,31 @@ public class GradleFilePsiMerger {
    * compileSdkVersions and support libraries from different versions, which is not supported.
    */
   public static String mergeGradleFiles(
-    @NotNull String source, @NotNull String dest, @Nullable Project project, @Nullable final String supportLibVersionFilter
+    @NotNull String source, @NotNull String dest, @NotNull Project project, @Nullable final String supportLibVersionFilter
   ) {
     source = source.replace("\r", "");
     dest = dest.replace("\r", "");
     final Project project2;
-    boolean projectNeedsCleanup = false;
-    if (project != null && !project.isDefault()) {
-      project2 = project;
-    }
-    else {
-      project2 = ProjectManagerEx.getInstanceEx().newProject("MergingOnly", "", false, true);
-      assert project2 != null;
-      ((StartupManagerImpl)StartupManager.getInstance(project2)).runStartupActivities();
-      projectNeedsCleanup = true;
+    if (project.isDefault()) {
+      throw new UnsupportedOperationException();
     }
 
     source = source.trim();
     dest = dest.trim();
 
-    final GroovyFile templateBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(
+    final GroovyFile templateBuildFile = (GroovyFile)PsiFileFactory.getInstance(project).createFileFromText(
       SdkConstants.FN_BUILD_GRADLE, GroovyFileType.GROOVY_FILE_TYPE, source);
-    final GroovyFile existingBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(
+    final GroovyFile existingBuildFile = (GroovyFile)PsiFileFactory.getInstance(project).createFileFromText(
       SdkConstants.FN_BUILD_GRADLE, GroovyFileType.GROOVY_FILE_TYPE, dest);
 
-    String result = WriteCommandAction.writeCommandAction(project2, existingBuildFile).withName("Merged Gradle Files").compute(() -> {
+    return WriteCommandAction.writeCommandAction(project, existingBuildFile).withName("Merged Gradle Files").compute(() -> {
       // Make sure that the file we are merging in to has a trailing new line. This ensures that any added elements
       // appear at the bottom of the file, it also keeps consistency with how projects created with the Wizards look.
       addTrailingNewLine(existingBuildFile);
-      mergePsi(templateBuildFile, existingBuildFile, project2, supportLibVersionFilter);
-      PsiElement formatted = CodeStyleManager.getInstance(project2).reformat(existingBuildFile);
+      mergePsi(templateBuildFile, existingBuildFile, project, supportLibVersionFilter);
+      PsiElement formatted = CodeStyleManager.getInstance(project).reformat(existingBuildFile);
       return formatted.getText();
     });
-
-    if (projectNeedsCleanup) {
-      ApplicationManager.getApplication().runWriteAction(() -> Disposer.dispose(project2));
-    }
-    return result;
   }
 
   private static void mergePsi(@NotNull PsiElement fromRoot,
