@@ -16,7 +16,6 @@
 package com.android.tools.idea.startup;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.moveAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
@@ -28,6 +27,7 @@ import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.actions.AndroidActionGroupRemover;
 import com.android.tools.idea.actions.AndroidImportModuleAction;
 import com.android.tools.idea.actions.AndroidImportProjectAction;
@@ -39,12 +39,11 @@ import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
 import com.android.tools.idea.deploy.DeployActionsInitializer;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
-import com.android.tools.idea.npw.PathValidationResult;
-import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.GuiTestingService;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
@@ -251,7 +250,7 @@ b/137334921 */
     ActionManager actionManager = ActionManager.getInstance();
     AnAction getFromVcsAction = actionManager.getAction("WelcomeScreen.GetFromVcs");
     if (getFromVcsAction != null) {
-      getFromVcsAction.getTemplatePresentation().setText("Check out project from Version Control");
+      getFromVcsAction.getTemplatePresentation().setText("Check out Project from Version Control");
     }
   }
 
@@ -334,10 +333,10 @@ b/137334921 */
     File androidHome = ideSdks.getAndroidSdkPath();
 
     if (androidHome != null) {
-      String androidHomePath = androidHome.getAbsolutePath();
+      Validator.Result result = PathValidator.forAndroidSdkLocation().validate(androidHome);
+      Validator.Severity severity = result.getSeverity();
 
-      PathValidationResult result = validateLocation(androidHomePath, "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
-      if (result.isError()) {
+      if (severity == Validator.Severity.ERROR) {
         notifyInvalidSdk();
       }
 
