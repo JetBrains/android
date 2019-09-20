@@ -24,6 +24,8 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.OTHER;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
@@ -259,7 +261,8 @@ public class NavigationSchema implements Disposable {
     }
 
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(myModule.getProject());
-    PsiClass result = javaPsiFacade.findClass(className, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(myModule, true));
+    GlobalSearchScope scope = ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN);
+    PsiClass result = javaPsiFacade.findClass(className, scope);
     if (result != null) {
       myTypeCache.put(className, new TypeRef(result));
     }
@@ -446,7 +449,7 @@ public class NavigationSchema implements Disposable {
     // Get the root Navigator class
     Project project = myModule.getProject();
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-    GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(myModule);
+    GlobalSearchScope scope =  ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN);
     PsiClass navigatorRoot = javaPsiFacade.findClass(NAVIGATOR_CLASS_NAME, scope);
     if (navigatorRoot == null) {
       Logger.getInstance(getClass()).warn("Navigator class not found.");
