@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.ColorUtils;
@@ -29,14 +29,13 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Class that implements a {@link javax.swing.JTable} renderer and editor for color attributes.
@@ -81,7 +80,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   protected EnumSet<ResourceType> getAllowedResourceTypes() {
     AttributeDefinition attrDefinition = ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), myItem.getSelectedValue());
 
-    String attributeName = myItem.getAttrName().toLowerCase(Locale.ENGLISH);
+    String attributeName = StringUtil.toLowerCase(myItem.getAttrName());
     if (attributeName.contains("color") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.REFERENCE)) {
       return COLORS_ONLY;
     }

@@ -18,12 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.configurations;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class ConfigurationsDslElement extends GradleDslBlockElement {
   @NonNls public static final String CONFIGURATIONS_BLOCK_NAME = "configurations";

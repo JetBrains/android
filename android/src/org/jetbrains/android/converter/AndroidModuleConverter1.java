@@ -23,7 +23,6 @@ import com.intellij.conversion.ModuleSettings;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.impl.OrderEntryFactory;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -32,6 +31,7 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.model.serialization.module.JpsModuleRootModelSerializer;
 
 /**
  * @author Eugene.Kudelevsky
@@ -93,7 +93,7 @@ public class AndroidModuleConverter1 extends ConversionProcessor<ModuleSettings>
   private static void addNewDependency(ModuleSettings moduleSettings, @NotNull String jdkName) {
     Element moduleManagerElement = moduleSettings.getComponentElement(ModuleSettings.MODULE_ROOT_MANAGER_COMPONENT);
     if (moduleManagerElement != null) {
-      Element newEntryElement = new Element(OrderEntryFactory.ORDER_ENTRY_ELEMENT_NAME);
+      Element newEntryElement = new Element(JpsModuleRootModelSerializer.ORDER_ENTRY_TAG);
       newEntryElement.setAttribute("type", "jdk");
       newEntryElement.setAttribute("jdkName", jdkName);
       newEntryElement.setAttribute("jdkType", AndroidSdkType.SDK_NAME);
@@ -104,7 +104,7 @@ public class AndroidModuleConverter1 extends ConversionProcessor<ModuleSettings>
   private static void removeOldDependencies(ModuleSettings moduleSettings, @NotNull String libName) {
     Element moduleManagerElement = moduleSettings.getComponentElement(ModuleSettings.MODULE_ROOT_MANAGER_COMPONENT);
     if (moduleManagerElement != null) {
-      for (Element entryElement : moduleManagerElement.getChildren(OrderEntryFactory.ORDER_ENTRY_ELEMENT_NAME)) {
+      for (Element entryElement : moduleManagerElement.getChildren(JpsModuleRootModelSerializer.ORDER_ENTRY_TAG)) {
 
         if (libName.equals(entryElement.getAttributeValue("name")) &&
             "library".equals(entryElement.getAttributeValue("type")) &&

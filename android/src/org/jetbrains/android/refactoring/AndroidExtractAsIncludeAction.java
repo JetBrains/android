@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
 
@@ -21,7 +21,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.actions.CreateResourceFileAction;
@@ -186,7 +186,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
                      (wrapWithMerge ? "<merge>\n" + textToExtract + "\n</merge>" : textToExtract));
     documentManager.commitDocument(document);
 
-    final Set<String> unknownPrefixes = new HashSet<String>();
+    final Set<String> unknownPrefixes = new HashSet<>();
 
     newFile.accept(new XmlRecursiveElementVisitor() {
       @Override
@@ -245,7 +245,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
 
   @NotNull
   private static List<XmlTag> collectAllTags(PsiElement from, PsiElement to) {
-    final List<XmlTag> result = new ArrayList<XmlTag>();
+    final List<XmlTag> result = new ArrayList<>();
     PsiElement e = from;
 
     while (e != null) {

@@ -140,7 +140,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
 
   @NotNull
   private List<AvdUiAction> getActions() {
-    List<AvdUiAction> actionList = new ArrayList<AvdUiAction>();
+    List<AvdUiAction> actionList = new ArrayList<>();
 
     actionList.add(new RunAvdAction(this));
     actionList.add(new EditAvdAction(this));

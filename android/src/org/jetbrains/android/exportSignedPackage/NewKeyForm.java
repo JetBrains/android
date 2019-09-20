@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.exportSignedPackage;
 
 import com.android.jarutils.DebugKeyProvider;
@@ -6,6 +7,7 @@ import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -101,9 +103,9 @@ public abstract class NewKeyForm {
     if (aliasList == null) {
       return prefix + '0';
     }
-    Set<String> aliasSet = new HashSet<String>();
+    Set<String> aliasSet = new HashSet<>();
     for (String alias : aliasList) {
-      aliasSet.add(alias.toLowerCase());
+      aliasSet.add(StringUtil.toLowerCase(alias));
     }
     for (int i = 0; ; i++) {
       String alias = prefix + i;

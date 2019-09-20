@@ -45,6 +45,7 @@ import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightMethodBuilder
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightParameter;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightVariable;
 import org.jetbrains.plugins.groovy.lang.psi.util.GroovyPropertyUtils;
+import org.jetbrains.plugins.groovy.lang.resolve.ResolveUtilKt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -210,14 +211,14 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
                                                  String closureTypeFqcn,
                                                  PsiScopeProcessor processor,
                                                  ResolveState state) {
-    if (place.getParent() instanceof GrMethodCallExpression) {
+    if (place.getParent() instanceof GrMethodCallExpression && ResolveUtilKt.shouldProcessMethods(processor)) {
       GrLightMethodBuilder methodWithClosure =
         GradleResolverUtil.createMethodWithClosure(place.getText(), closureTypeFqcn, null, place);
       if (methodWithClosure != null) {
         processor.execute(methodWithClosure, state);
         methodWithClosure.setNavigationElement(resolveToElement);
       }
-    } else if (place.getParent() instanceof GrReferenceExpression) {
+    } else if (place.getParent() instanceof GrReferenceExpression && ResolveUtilKt.shouldProcessLocals(processor)) {
       GrLightVariable variable = new GrLightVariable(place.getManager(), place.getText(), closureTypeFqcn, place);
       processor.execute(variable, state);
     }
@@ -246,15 +247,17 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
       }
       resolveToMethodWithClosure(place, method, clz, processor, state);
     } else {
-      GrLightMethodBuilder builder = new GrLightMethodBuilder(place.getManager(), method.getName());
-      PsiElementFactory factory = JavaPsiFacade.getElementFactory(place.getManager().getProject());
-      PsiType type = new PsiArrayType(factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, place.getResolveScope()));
-      builder.addParameter(new GrLightParameter("param", type, builder));
-      PsiClassType retType = factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, place.getResolveScope());
-      builder.setReturnType(retType);
-      processor.execute(builder, state);
+      if (ResolveUtilKt.shouldProcessMethods(processor)) {
+        GrLightMethodBuilder builder = new GrLightMethodBuilder(place.getManager(), method.getName());
+        PsiElementFactory factory = JavaPsiFacade.getElementFactory(place.getManager().getProject());
+        PsiType type = new PsiArrayType(factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, place.getResolveScope()));
+        builder.addParameter(new GrLightParameter("param", type, builder));
+        PsiClassType retType = factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, place.getResolveScope());
+        builder.setReturnType(retType);
+        processor.execute(builder, state);
 
-      builder.setNavigationElement(method);
+        builder.setNavigationElement(method);
+      }
     }
 
     return method;

@@ -61,7 +61,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -267,7 +267,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
           return DEFAULT_OUTPUT_NAME;
         }
 
-        String name = FileUtil.getNameWithoutExtension(file).toLowerCase(Locale.getDefault());
+          String name = FileUtilRt.getNameWithoutExtension(file.getName()).toLowerCase(Locale.getDefault());
         if (!name.startsWith(ICON_PREFIX)) {
           name = ICON_PREFIX + AndroidResourceUtil.getValidResourceFileName(name);
         }

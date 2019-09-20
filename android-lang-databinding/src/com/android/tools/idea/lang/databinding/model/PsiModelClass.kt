@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.lang.databinding.model
 
-import android.databinding.tool.util.StringUtils
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.DataBindingUtil
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.MethodSignatureUtil
 import java.util.ArrayList
-import java.util.Arrays
 
 /**
  * PSI wrapper around class types that additionally expose information particularly useful in data binding expressions.
@@ -269,7 +268,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       // TODO b/129771951 implement length with Observable
       return null
     }
-    val capitalized = StringUtils.capitalize(name)!!
+    val capitalized = StringUtil.capitalize(name)
     val methodNames = arrayOf("get" + capitalized, "is$capitalized", name)
     for (methodName in methodNames) {
       val methods = getMethods(methodName, ArrayList(), staticOnly, allowProtected = false, unwrapObservableFields = false)

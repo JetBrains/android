@@ -34,7 +34,9 @@ public class CompilerSettingsSetup {
       return;
     }
     compilerSettings.inheritCompilerOutputPath(false);
-    compilerSettings.setCompilerOutputPath(pathToIdeaUrl(mainOutputPath));
+    if (!mainOutputPath.getPath().isEmpty()) {
+      compilerSettings.setCompilerOutputPath(pathToIdeaUrl(mainOutputPath));
+    }
     if (testOutputPath != null) {
       compilerSettings.setCompilerOutputPathForTests(pathToIdeaUrl(testOutputPath));
     }

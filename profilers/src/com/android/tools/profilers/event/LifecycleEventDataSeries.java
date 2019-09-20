@@ -27,6 +27,7 @@ import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profiler.proto.Interaction;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.StudioProfilers;
+import com.intellij.openapi.util.text.StringUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -194,7 +195,7 @@ public class LifecycleEventDataSeries implements DataSeries<EventAction<Lifecycl
             if (i != data.getStateChangesCount() - 1) {
               break;
             }
-            displayString = String.format("%s - %s", displayString, state.getState().toString().toLowerCase());
+            displayString = String.format("%s - %s", displayString, StringUtil.toLowerCase(state.getState().toString()));
             // Falls-through to REMOVED
           case REMOVED:
             // Remove is also a fallthrough as this is the event that gets set when we terminate a fragment.
@@ -217,7 +218,7 @@ public class LifecycleEventDataSeries implements DataSeries<EventAction<Lifecycl
             break;
           }
           else {
-            displayString = String.format("%s - %s", displayString, state.getState().toString().toLowerCase());
+            displayString = String.format("%s - %s", displayString, StringUtil.toLowerCase(state.getState().toString()));
           }
         }
 

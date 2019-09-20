@@ -48,7 +48,7 @@ public class AndroidBuildTestingManager {
 
   public interface MyCommandExecutor {
     @NotNull
-    Process createProcess(@NotNull String[] args, @NotNull Map<? extends String, ? extends String> environment);
+    Process createProcess(@NotNull String[] args, @NotNull Map<String, String> environment);
 
     void log(@NotNull String s);
 

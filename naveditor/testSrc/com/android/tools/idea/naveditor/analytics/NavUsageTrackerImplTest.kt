@@ -21,6 +21,8 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.BareTestFixtureTestCase
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock

@@ -44,7 +44,7 @@ import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -61,8 +61,8 @@ import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
@@ -408,7 +408,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
   @NotNull
   private static String getDeviceState(@NotNull IDevice device) {
     IDevice.DeviceState state = device.getState();
-    return state != null ? capitalize(state.name().toLowerCase()) : "";
+    return state != null ? capitalize(StringUtil.toLowerCase(state.name())) : "";
   }
 
   private void fireSelectedDevicesChanged() {

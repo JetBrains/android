@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
-
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -39,24 +36,21 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Image;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.tree.DefaultTreeModel;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
@@ -91,12 +85,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     for (NamedModuleTemplate template : templates) {
       moduleTemplatesModel.addElement(template);
     }
-    myPathsComboBox.setRenderer(new ListCellRendererWrapper<NamedModuleTemplate>() {
-      @Override
-      public void customize(JList list, NamedModuleTemplate template, int index, boolean selected, boolean hasFocus) {
-        setText(template.getName());
-      }
-    });
+    myPathsComboBox.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
     myPathsComboBox.setModel(moduleTemplatesModel);
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);

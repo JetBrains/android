@@ -44,7 +44,7 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     super.setUp();
 
     // Enable instant Apps (We can remove this later, when the SDK is made public)
-    when(new IdeComponents(getProject()).mockApplicationService(InstantAppSdks.class).isInstantAppSdkEnabled()).thenReturn(true);
+    when(IdeComponents.mockApplicationService(InstantAppSdks.class, getTestRootDisposable()).isInstantAppSdkEnabled()).thenReturn(true);
   }
 
   @Override

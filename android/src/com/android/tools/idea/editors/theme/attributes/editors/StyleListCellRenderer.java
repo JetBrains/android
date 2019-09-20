@@ -40,7 +40,6 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
   private final ThemeEditorContext myContext;
 
   public StyleListCellRenderer(@NotNull ThemeEditorContext context, @Nullable JComboBox comboBox) {
-    super(comboBox);
     myContext = context;
   }
 

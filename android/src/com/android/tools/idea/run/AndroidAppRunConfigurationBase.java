@@ -197,7 +197,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     Project project = getProject();
     AndroidRunConfigurationEditor<AndroidAppRunConfigurationBase> editor =
-      new AndroidRunConfigurationEditor<>(project, Predicates.<AndroidFacet>alwaysFalse(), this);
+      new AndroidRunConfigurationEditor<>(project, Predicates.alwaysFalse(), this);
     editor.setConfigurationSpecificEditor(new ApplicationRunParameters(project, editor.getModuleSelector()));
     return editor;
   }

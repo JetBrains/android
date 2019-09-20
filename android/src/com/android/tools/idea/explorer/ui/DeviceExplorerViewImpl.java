@@ -230,7 +230,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     myPanel.getComponent().setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
     myLoadingPanel.add(myPanel.getComponent(), BorderLayout.CENTER);
 
-    //noinspection GtkPreferredJComboBoxRenderer
     myPanel.getDeviceCombo().setRenderer(myDeviceRenderer.getDeviceNameListRenderer());
 
     myPanel.getDeviceCombo().addActionListener(actionEvent -> {

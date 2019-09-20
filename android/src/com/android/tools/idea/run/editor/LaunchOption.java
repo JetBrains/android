@@ -16,10 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.ColoredListCellRenderer;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public abstract class LaunchOption<S extends LaunchOptionState> {
   @NotNull
@@ -34,11 +31,4 @@ public abstract class LaunchOption<S extends LaunchOptionState> {
   @NotNull
   public abstract LaunchOptionConfigurable<S> createConfigurable(@NotNull Project project,
                                                                  @NotNull LaunchOptionConfigurableContext context);
-
-  public static class Renderer extends ColoredListCellRenderer<LaunchOption> {
-    @Override
-    protected void customizeCellRenderer(@NotNull JList list, LaunchOption value, int index, boolean selected, boolean hasFocus) {
-      append(value.getDisplayName());
-    }
-  }
 }

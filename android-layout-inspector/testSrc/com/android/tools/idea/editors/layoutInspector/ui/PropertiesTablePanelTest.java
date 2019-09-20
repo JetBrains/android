@@ -34,6 +34,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import javax.swing.RowSorter;
 import org.junit.After;
 import org.junit.Before;
@@ -68,7 +69,7 @@ public class PropertiesTablePanelTest {
       "  node2@222 noun:eg=10,alpha beta mID=11,maybe-a-god \n" +
       "    node3@3333 mID=11,another-god cat:foo=19,this is a long text \n" +
       "DONE.\n";
-    return text.getBytes();
+    return text.getBytes(StandardCharsets.UTF_8);
   }
 
   @After

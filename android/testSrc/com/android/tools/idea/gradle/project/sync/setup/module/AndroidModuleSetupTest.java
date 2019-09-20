@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueRegister;
 import com.google.common.collect.ImmutableList;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -31,7 +31,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidModuleSetup}.
  */
-public class AndroidModuleSetupTest extends IdeaTestCase {
+public class AndroidModuleSetupTest extends JavaProjectTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private AndroidModuleSetupStep mySetupStep1;
   @Mock private AndroidModuleSetupStep mySetupStep2;

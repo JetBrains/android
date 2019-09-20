@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android;
 
-import com.intellij.openapi.application.DeleteOldDirectoriesHelper;
 import com.intellij.testFramework.UsefulTestCase;
 
 public class DeleteOldDirectoriesTest extends UsefulTestCase {
@@ -24,29 +23,5 @@ public class DeleteOldDirectoriesTest extends UsefulTestCase {
     return AndroidTestBase.getTestDataPath();
   }
 
-  public void testGetDirectorySearchPrefixForAndroidStudio() {
-    assertEquals(".AndroidStudio", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("AndroidStudio3.0", false));
-    assertEquals("AndroidStudio", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("AndroidStudio3.0", true));
-    assertEquals(".AndroidStudio", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("AndroidStudioPreview3.0", false));
-    assertEquals("AndroidStudio", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("AndroidStudioPreview3.0", true));
-
-    assertEquals(".AndroidStudio", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("AndroidStudio", false));
-    assertEquals(".AndroidStudio", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("AndroidStudioPreview", false));
-  }
-
-  public void testGetDirectorySearchPrefixForSomeIde() {
-    assertEquals(".SomeIde", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("SomeIde", false));
-    assertEquals(".SomeIde", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("SomeIde10.100.11", false));
-  }
-
-  public void testGetDirectorySearchPrefixForInvalidInput() {
-    assertEquals("", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("3", false));
-    assertEquals("", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("3.0", false));
-    assertEquals("", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("Invalid/..", false));
-    assertEquals("", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("Invalid.3", false));
-    assertEquals("", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("Invalid.3.0", false));
-    assertEquals("", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("Invalid3.0.", false));
-    assertEquals("", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("Invalid3..0", false));
-    assertEquals("", DeleteOldDirectoriesHelper.getDirectorySearchPrefix("Invalid.com3.0", false));
-  }
+  // FIXME-ank: test was deleted
 }

@@ -44,7 +44,7 @@ public final class FreemarkerUtils {
   @NotNull
   public static Map<String, Object> createParameterMap(@NotNull Map<String, Object> args) {
     // Create the data model.
-    final Map<String, Object> paramMap = new HashMap<String, Object>();
+    final Map<String, Object> paramMap = new HashMap<>();
 
     // Builtin conversion methods
     paramMap.put("activityToLayout", new FmActivityToLayoutMethod());

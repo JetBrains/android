@@ -16,7 +16,6 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.analytics.AnalyticsSettings;
-import com.android.utils.NullLogger;
 import com.google.wireless.android.sdk.stats.LintAction.LintFeedback;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;

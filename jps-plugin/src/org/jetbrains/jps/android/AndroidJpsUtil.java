@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
@@ -9,9 +10,9 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import com.intellij.util.containers.OrderedSet;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
 import org.jetbrains.android.util.AndroidCommonUtils;
@@ -156,7 +157,7 @@ public class AndroidJpsUtil {
       return Collections.emptyList();
     }
 
-    final List<String> result = new ArrayList<String>(files.size());
+    final List<String> result = new ArrayList<>(files.size());
     for (File file : files) {
       result.add(file.getPath());
     }
@@ -221,7 +222,7 @@ public class AndroidJpsUtil {
                                                  boolean resolveJars,
                                                  boolean withAarDeps,
                                                  boolean withPackagedAarDepsJar) {
-    final Set<String> result = new HashSet<String>();
+    final Set<String> result = new HashSet<>();
     final AndroidDependencyProcessor processor = new AndroidDependencyProcessor() {
       @Override
       public void processExternalLibrary(@NotNull File file) {
@@ -247,7 +248,7 @@ public class AndroidJpsUtil {
   @NotNull
   public static Set<String> getProvidedLibraries(@NotNull BuildDataPaths paths,
                                                  @NotNull JpsModule module) {
-    final Set<String> result = new HashSet<String>();
+    final Set<String> result = new HashSet<>();
     processClasspath(paths, module, new AndroidDependencyProcessor() {
       @Override
       public void processProvidedLibrary(@NotNull File file) {
@@ -276,7 +277,7 @@ public class AndroidJpsUtil {
                                       boolean resolveJars,
                                       boolean withAarDeps) {
     final boolean recursive = shouldProcessDependenciesRecursively(module);
-    processClasspath(paths, module, processor, new HashSet<String>(), false, recursive, resolveJars, withAarDeps);
+    processClasspath(paths, module, processor, new HashSet<>(), false, recursive, resolveJars, withAarDeps);
   }
 
   private static void processClasspath(@NotNull BuildDataPaths paths,
@@ -502,13 +503,13 @@ public class AndroidJpsUtil {
                                                            boolean withCacheDirs,
                                                            @NotNull BuildDataPaths dataPaths,
                                                            boolean checkExistence) {
-    final Collection<String> result = new OrderedSet<String>();
+    final Collection<String> result = new OrderedSet<>();
     addCompilableResourceDirsForModule(extension, withCacheDirs, dataPaths, result, checkExistence);
 
     for (JpsAndroidModuleExtension depExtension : getAllAndroidDependencies(extension.getModule(), true)) {
       addCompilableResourceDirsForModule(depExtension, withCacheDirs, dataPaths, result, checkExistence);
     }
-    return ArrayUtil.toStringArray(result);
+    return ArrayUtilRt.toStringArray(result);
   }
 
   private static void addCompilableResourceDirsForModule(JpsAndroidModuleExtension extension,
@@ -583,7 +584,7 @@ public class AndroidJpsUtil {
   @NotNull
   public static List<JpsArtifact> getAndroidArtifactsToBuild(@NotNull CompileContext context) {
     final List<JpsArtifact> artifacts = JpsArtifactService.getInstance().getArtifacts(context.getProjectDescriptor().getProject());
-    final List<JpsArtifact> result = new ArrayList<JpsArtifact>();
+    final List<JpsArtifact> result = new ArrayList<>();
 
     for (JpsArtifact artifact : artifacts) {
       if (artifact.getArtifactType() instanceof AndroidApplicationArtifactType &&
@@ -602,7 +603,7 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static File[] getSourceRootsForModuleAndDependencies(@NotNull JpsModule rootModule) {
-    final Set<File> result = new HashSet<File>();
+    final Set<File> result = new HashSet<>();
 
     for (JpsModule module : getRuntimeModuleDeps(rootModule)) {
       final JpsAndroidModuleExtension extension = getExtension(module);
@@ -629,7 +630,7 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static File[] getJavaOutputRootsForModuleAndDependencies(@NotNull JpsModule rootModule) {
-    final Set<File> result = new HashSet<File>();
+    final Set<File> result = new HashSet<>();
 
     for (JpsModule module : getRuntimeModuleDeps(rootModule)) {
       final JpsAndroidModuleExtension extension = getExtension(module);
@@ -773,7 +774,7 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static Set<String> getGenDirs(@NotNull JpsAndroidModuleExtension extension) throws IOException {
-    final Set<String> result = new HashSet<String>();
+    final Set<String> result = new HashSet<>();
     File dir = extension.getAaptGenDir();
 
     if (dir != null) {
@@ -795,7 +796,7 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static List<JpsAndroidModuleExtension> getAllPackagedFacets(JpsArtifact artifact) {
-    final List<JpsAndroidModuleExtension> extensions = new ArrayList<JpsAndroidModuleExtension>();
+    final List<JpsAndroidModuleExtension> extensions = new ArrayList<>();
 
     JpsArtifactUtil.processPackagingElements(artifact.getRootElement(), new Processor<JpsPackagingElement>() {
       @Override
@@ -867,7 +868,7 @@ public class AndroidJpsUtil {
     if (urls.isEmpty()) {
       return Collections.emptyList();
     }
-    final List<File> result = new ArrayList<File>();
+    final List<File> result = new ArrayList<>();
 
     for (String path : urls) {
       result.add(JpsPathUtil.urlToFile(path));
@@ -910,7 +911,7 @@ public class AndroidJpsUtil {
   }
 
   public static void collectRTextFilesFromAarDeps(@NotNull JpsModule module, @NotNull Collection<Pair<String, String>> result) {
-    final ArrayList<String> resDirs = new ArrayList<String>();
+    final ArrayList<String> resDirs = new ArrayList<>();
     collectResDirectoriesFromAarDeps(module, resDirs);
 
     for (String dir : resDirs) {
@@ -962,7 +963,7 @@ public class AndroidJpsUtil {
     else if (files.size() >= 2) {
       File resDir = null;
       File classesJar = null;
-      List<File> allJars = new ArrayList<File>();
+      List<File> allJars = new ArrayList<>();
 
       for (File file : files) {
         if (file.isDirectory()) {
@@ -996,7 +997,7 @@ public class AndroidJpsUtil {
   public static String parsePackageNameFromManifestFile(@NotNull File manifestFile) throws IOException {
     final InputStream inputStream = new BufferedInputStream(new FileInputStream(manifestFile));
     try {
-      final Ref<String> packageName = new Ref<String>(null);
+      final Ref<String> packageName = new Ref<>(null);
       FormsParsing.parse(inputStream, new FormsParsing.IXMLBuilderAdapter() {
         boolean processingManifestTagAttrs = false;
 

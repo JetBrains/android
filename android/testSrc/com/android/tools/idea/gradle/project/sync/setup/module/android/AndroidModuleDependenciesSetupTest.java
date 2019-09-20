@@ -43,7 +43,8 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTableImpl;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
+import com.intellij.testFramework.JavaProjectTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link AndroidModuleDependenciesSetup}.
  */
-public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
+public class AndroidModuleDependenciesSetupTest extends JavaProjectTestCase {
   @Mock private LibraryFilePaths myLibraryFilePaths;
 
   private AndroidModuleDependenciesSetup myDependenciesSetup;
@@ -121,7 +122,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
 
   @NotNull
   private Library createLibrary(@NotNull File binaryPath, @NotNull File sourcePath, @NotNull File javadocPath) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(getProject());
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(getProject());
     LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
     Library library = libraryTableModel.createLibrary("Gradle: " + binaryPath.getName());
 

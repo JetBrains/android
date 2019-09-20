@@ -43,7 +43,6 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.intellij.execution.BeforeRunTask;
@@ -57,9 +56,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestCase;
 import java.util.LinkedList;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -69,7 +68,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link PostSyncProjectSetup}.
  */
-public class PostSyncProjectSetupTest extends IdeaTestCase {
+public class PostSyncProjectSetupTest extends JavaProjectTestCase {
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleSyncInvoker mySyncInvoker;
@@ -105,7 +104,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     myProjectStructure = new ProjectStructureStub(project);
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
                                        myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
-                                       myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory, myRunManager);
+                                       myVersionCompatibilityChecker, myProjectBuilder, myModuleValidatorFactory);
   }
 
   @Override
@@ -134,8 +133,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     RunConfiguration runConfiguration = junitRunConfigurations.get(0);
     List<BeforeRunTask> tasks = new LinkedList<>(myRunManager.getBeforeRunTasks(runConfiguration));
 
-    MakeBeforeRunTaskProvider taskProvider = new MakeBeforeRunTaskProvider(project, AndroidProjectInfo.getInstance(project),
-                                                                           GradleProjectInfo.getInstance(project));
+    MakeBeforeRunTaskProvider taskProvider = new MakeBeforeRunTaskProvider(project);
     BeforeRunTask newTask = taskProvider.createTask(runConfiguration);
     newTask.setEnabled(true);
     tasks.add(newTask);

@@ -48,6 +48,7 @@ import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.List;
 import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
@@ -191,7 +192,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }), true);
-    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
+    //myGradleFiles.maybeProcessSyncStarted(getProject()).get(100, TimeUnit.SECONDS); // FIXME-ank :-(
     myGradleFiles.getSyncListener().syncSucceeded(getProject());
     runFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
@@ -205,7 +206,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }, true);
-    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
+    //myGradleFiles.maybeProcessSyncStarted(getProject()).get(100, TimeUnit.SECONDS); // FIXME-ank :-(
     myGradleFiles.getSyncListener().syncSucceeded(getProject());
     assertFalse(myGradleFiles.areGradleFilesModified());
   }
@@ -227,7 +228,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
     }), true);
-    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
+    //myGradleFiles.maybeProcessSyncStarted(getProject()).get(100, TimeUnit.SECONDS); // FIXME-ank :-(
     runFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
@@ -281,7 +282,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     boolean deleted = path.delete();
     assertTrue(deleted);
     assertTrue(getAppBuildFile().exists());
-    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
+    //myGradleFiles.maybeProcessSyncStarted(getProject()).get(100, TimeUnit.SECONDS); // FIXME-ank :-(
     // syncStarted adds a transaction to update the file hashes, ensure this is run before verifying
     UIUtil.dispatchAllInvocationEvents();
     assertFalse(myGradleFiles.areGradleFilesModified());

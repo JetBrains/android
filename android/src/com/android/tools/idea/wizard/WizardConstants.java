@@ -21,6 +21,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -44,7 +45,7 @@ public class WizardConstants {
   /**
    * @deprecated Obsoleted by {@link StudioWizardLayout}
    */
-  public static final int STUDIO_WIZARD_INSET_SIZE = JBUI.scale(12);
+  public static final int STUDIO_WIZARD_INSET_SIZE = JBUIScale.scale(12);
   /**
    * @deprecated Obsoleted by {@link StudioWizardLayout}
    */

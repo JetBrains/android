@@ -16,9 +16,7 @@
 package com.android.tools.idea.editors.layoutInspector.ptable
 
 import com.android.tools.idea.editors.layoutInspector.ui.PropertiesTablePanel
-import com.intellij.openapi.roots.libraries.LibraryTable
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.UIUtil
@@ -52,7 +50,7 @@ class LIEditableItemCellRenderer : TableCellRenderer {
     val bg: Color
     if (isSelected) {
       fg = UIUtil.getTableSelectionForeground()
-      bg = UIUtil.getTableSelectionBackground()
+      bg = UIUtil.getTableSelectionBackground(true)
     } else {
       fg = UIUtil.getTableForeground()
       bg = PropertiesTablePanel.ITEM_BACKGROUND_COLOR
@@ -63,7 +61,7 @@ class LIEditableItemCellRenderer : TableCellRenderer {
       it.foreground = fg
       it.background = bg
     }
-    
+
     with(value as LITableItem) {
       val text = this.value.orEmpty()
       myTextField.foreground = if (this.isDefaultValue(text)) fg else JBColor.BLUE

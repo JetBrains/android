@@ -16,17 +16,17 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
-    <orderEntry type="module" module-name="android.sdktools.perflib" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
+    <orderEntry type="library" name="com.android.tools:common" level="project" />
+    <orderEntry type="library" name="org.jetbrains.intellij.deps.android.tools:perflib" level="project" />
     <orderEntry type="library" name="Java Compatibility" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
-    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:perf-logger-tests" level="project" />
   </component>
 </module>

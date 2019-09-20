@@ -28,7 +28,7 @@ import com.intellij.ui.AnActionButton;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ToolbarDecorator;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +44,7 @@ public class CreateXmlResourceSubdirPanel {
   private JPanel myDirectoriesPanel;
   private final CheckBoxList myDirectoriesList;
   private Map<String, JCheckBox> myCheckBoxes = Collections.emptyMap();
-  private String[] myDirNames = ArrayUtil.EMPTY_STRING_ARRAY;
+  private String[] myDirNames = ArrayUtilRt.EMPTY_STRING_ARRAY;
 
   public interface Parent {
     VirtualFile getResourceDirectory();

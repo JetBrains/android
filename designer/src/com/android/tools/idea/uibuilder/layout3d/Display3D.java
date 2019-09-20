@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.layout3d;
 
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -130,7 +130,7 @@ public class Display3D extends JPanel {
   }
 
   public BufferedImage save(int w, int h) {
-    myImage = UIUtil.createImage(w, h, BufferedImage.TYPE_INT_RGB);
+    myImage = ImageUtil.createImage(w, h, BufferedImage.TYPE_INT_RGB);
     myZBuffer = new float[w * h];
     isImageInvalid = true;
     myViewMatrix.setScreenDim(w, h);
@@ -194,7 +194,7 @@ public class Display3D extends JPanel {
       h *= 2;
     }
     if (myImage == null || myImage.getWidth() != w || myImage.getHeight() != h) {
-      myImage = UIUtil.createImage(w, h, BufferedImage.TYPE_INT_RGB);
+      myImage = ImageUtil.createImage(w, h, BufferedImage.TYPE_INT_RGB);
       myZBuffer = new float[w * h];
       isImageInvalid = true;
       myViewMatrix.setScreenDim(w, h);

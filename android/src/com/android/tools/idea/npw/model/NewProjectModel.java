@@ -66,7 +66,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -329,9 +328,9 @@ public class NewProjectModel extends WizardModel {
   @NotNull
   public static String toPackagePart(@NotNull String s) {
     s = s.replace('-', '_');
-    String name = DISALLOWED_IN_DOMAIN.matcher(s).replaceAll("").toLowerCase(Locale.US);
+    String name = StringUtil.toLowerCase(DISALLOWED_IN_DOMAIN.matcher(s).replaceAll(""));
     if (!name.isEmpty() && AndroidUtils.isReservedKeyword(name) != null) {
-      name = StringUtil.fixVariableNameDerivedFromPropertyName(name).toLowerCase(Locale.US);
+      name = StringUtil.toLowerCase(StringUtil.fixVariableNameDerivedFromPropertyName(name));
     }
     return name;
   }

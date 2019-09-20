@@ -41,7 +41,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
 
-class NavPropertyEditors : PropertyEditors() {
+class NavPropertyEditors(project: Project) : PropertyEditors(project.messageBus) {
 
   override fun resetCachedEditors() {}
 

@@ -44,7 +44,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.reference.SoftReference;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
@@ -591,7 +592,7 @@ public class CanvasResizeInteraction extends Interaction {
         int x0 = myScreenView.getX();
         int y0 = myScreenView.getY();
         int maxDim = Math.max(width, height);
-        image = UIUtil.createImage(maxDim, maxDim, BufferedImage.TYPE_INT_ARGB);
+        image = ImageUtil.createImage(maxDim, maxDim, BufferedImage.TYPE_INT_ARGB);
 
         constructPolygon(myOrientationPolygon, null, maxDim, !isDevicePortrait);
         myOrientationPolygon.translate(x0, y0);
@@ -633,7 +634,7 @@ public class CanvasResizeInteraction extends Interaction {
         graphics.dispose();
         myOrientationImage = image;
       }
-      UIUtil.drawImage(g2d, image, null, 0, 0);
+      StartupUiUtil.drawImage(g2d, image, null, 0, 0);
     }
 
     public synchronized void reset() {
@@ -681,7 +682,7 @@ public class CanvasResizeInteraction extends Interaction {
       SoftReference<BufferedImage> bucketRef = buckets.get(screenSizeBucket);
       BufferedImage bucket = bucketRef != null ? bucketRef.get() : null;
       if (bucket == null) {
-        bucket = UIUtil.createImage(myTotalWidth, myTotalHeight, BufferedImage.TYPE_INT_ARGB);
+        bucket = ImageUtil.createImage(myTotalWidth, myTotalHeight, BufferedImage.TYPE_INT_ARGB);
         constructPolygon(myClip, null, Math.max(myTotalHeight, myTotalWidth), isDevicePortrait);
         myClip.translate(myScreenView.getX(), myScreenView.getY());
 
@@ -714,7 +715,7 @@ public class CanvasResizeInteraction extends Interaction {
         graphics.dispose();
         buckets.put(screenSizeBucket, new SoftReference<>(bucket));
       }
-      UIUtil.drawImage(g2d, bucket, null, 0, 0);
+      StartupUiUtil.drawImage(g2d, bucket, null, 0, 0);
     }
 
     @NotNull

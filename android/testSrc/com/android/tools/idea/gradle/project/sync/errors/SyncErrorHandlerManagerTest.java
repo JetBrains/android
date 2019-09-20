@@ -16,23 +16,26 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -40,7 +43,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SyncErrorHandlerManager}.
  */
-public class SyncErrorHandlerManagerTest extends IdeaTestCase {
+public class SyncErrorHandlerManagerTest extends JavaProjectTestCase {
   @Mock private NotificationData myNotificationData;
   @Mock private SyncErrorHandler myErrorHandler1;
   @Mock private SyncErrorHandler myErrorHandler2;
@@ -48,7 +51,6 @@ public class SyncErrorHandlerManagerTest extends IdeaTestCase {
   @Mock private GradleSyncMessages mySyncMessages;
 
   private SyncErrorHandlerManager myErrorHandlerManager;
-  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
@@ -58,7 +60,6 @@ public class SyncErrorHandlerManagerTest extends IdeaTestCase {
     Project project = getProject();
     myErrorHandlerManager = new SyncErrorHandlerManager(project, mySyncMessages, myCauseAndLocationFactory, myErrorHandler1,
                                                         myErrorHandler2);
-    myIdeComponents = new IdeComponents(project);
   }
 
   public void testHandleError() {
@@ -75,7 +76,7 @@ public class SyncErrorHandlerManagerTest extends IdeaTestCase {
     Project project = getProject();
     when(myErrorHandler1.handleError(errorToReport, myNotificationData, project)).thenReturn(true);
 
-    myErrorHandlerManager.handleError(error);
+    myErrorHandlerManager.handleError(ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, project), error);
 
     // Verify that the second error handler was not invoked because the first one already handled the error.
     verify(myErrorHandler1, times(1)).handleError(errorToReport, myNotificationData, project);
@@ -92,10 +93,10 @@ public class SyncErrorHandlerManagerTest extends IdeaTestCase {
         // Do nothing here to make sure that runWhenProjectIsInitialized() is the only path the handlers are invoked.
       }
     };
-    myIdeComponents.replaceProjectService(StartupManager.class, startupManager);
+    ServiceContainerUtil.replaceService(getProject(), StartupManager.class, startupManager, getTestRootDisposable());
 
     Throwable error = new Throwable("Test");
-    myErrorHandlerManager.handleError(error);
+    myErrorHandlerManager.handleError(ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, myProject), error);
 
     // Verify that the the handlers were not invoked.
     verify(myErrorHandler1, never()).handleError(any(), any(), any());
@@ -130,7 +131,7 @@ public class SyncErrorHandlerManagerTest extends IdeaTestCase {
     allExtensions.toArray(asArray);
 
     SyncErrorHandlerManager realErrorHandler = new SyncErrorHandlerManager(project, mySyncMessages, myCauseAndLocationFactory, asArray);
-    realErrorHandler.handleError(error);
+    realErrorHandler.handleError(ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, project), error);
 
     // Verify that only the first mock handler handled the error.
     verify(myErrorHandler1, times(1)).handleError(errorToReport, myNotificationData, project);

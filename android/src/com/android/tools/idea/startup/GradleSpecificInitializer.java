@@ -118,7 +118,9 @@ public class GradleSpecificInitializer implements Runnable {
     // "Configure Plugins..." Not sure why it's called StartupWizard.
     AnAction pluginAction = actionManager.getAction("StartupWizard");
     // Never applicable in the context of android studio, so just set to invisible.
-    pluginAction.getTemplatePresentation().setVisible(false);
+    if (pluginAction != null) {
+      pluginAction.getTemplatePresentation().setVisible(false);
+    }
 
     if (AndroidSdkUtils.isAndroidSdkManagerEnabled()) {
       ApplicationManager.getApplication().executeOnPooledThread(GradleSpecificInitializer::setupSdk);
@@ -246,10 +248,11 @@ public class GradleSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
-    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
-               "WelcomeScreen.QuickStart", new Constraints(AFTER, "WelcomeScreen.GetFromVcs"));
-
     ActionManager actionManager = ActionManager.getInstance();
+
+    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
+               "WelcomeScreen.QuickStart", new Constraints(AFTER, "WelcomeScreen.GetFromVcs"), actionManager);
+
     AnAction getFromVcsAction = actionManager.getAction("WelcomeScreen.GetFromVcs");
     if (getFromVcsAction != null) {
       getFromVcsAction.getTemplatePresentation().setText("Check out project from Version Control");

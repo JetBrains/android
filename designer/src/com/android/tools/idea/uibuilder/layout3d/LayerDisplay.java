@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.uibuilder.layout3d;
 
 import com.android.ddmlib.*;
@@ -6,6 +7,7 @@ import com.android.tools.pixelprobe.Layer;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -64,7 +66,7 @@ public class LayerDisplay {
   static class DeviceBridge {
     private static AndroidDebugBridge bridge;
 
-    private static final HashMap<IDevice, Integer> devicePortMap = new HashMap<IDevice, Integer>();
+    private static final HashMap<IDevice, Integer> devicePortMap = new HashMap<>();
     private static int nextLocalPort = Configuration.DEFAULT_SERVER_PORT;
 
     public static void initDebugBridge() {
@@ -103,8 +105,8 @@ public class LayerDisplay {
           socket = new Socket();
           socket.connect(new InetSocketAddress("127.0.0.1",
                                                DeviceBridge.getDeviceLocalPort(device)));
-          out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-          in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+          out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
+          in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
           out.write(command);
           out.newLine();
           out.flush();

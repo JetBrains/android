@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.actions;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
@@ -41,16 +40,15 @@ public class BuildBundleAction extends DumbAwareAction {
 
   @Override
   public void update(AnActionEvent e) {
-    Project project = e.getProject();
     boolean enabled = StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get() &&
-                      isProjectBuildWithGradle(project);
+                      AndroidStudioGradleAction.isAndroidGradleProject(e);
     e.getPresentation().setEnabledAndVisible(enabled);
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    if (isProjectBuildWithGradle(project)) {
+    if (AndroidStudioGradleAction.isAndroidGradleProject(e)) {
       List<Module> appModules = DynamicAppUtils.getModulesSupportingBundleTask(project);
       if (!appModules.isEmpty()) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
@@ -74,10 +72,5 @@ public class BuildBundleAction extends DumbAwareAction {
       }
     }
     return gradlePaths;
-  }
-
-  private static boolean isProjectBuildWithGradle(@Nullable Project project) {
-    return project != null &&
-           GradleProjectInfo.getInstance(project).isBuildWithGradle();
   }
 }

@@ -19,7 +19,6 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenProjectStructureHyperlink;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 

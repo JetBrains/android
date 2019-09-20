@@ -11,7 +11,6 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.property-editor" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.java" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
@@ -34,5 +33,13 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.xml.dom.impl" scope="TEST" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:protos" level="project" />
+    <orderEntry type="library" name="com.android.tools:common" level="project" />
+    <orderEntry type="library" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
+    <orderEntry type="library" name="KotlinPlugin" level="project" />
+    <orderEntry type="library" name="com.android.tools:sdk-common" level="project" />
+    <orderEntry type="library" name="com.android.tools:sdklib" level="project" />
+    <orderEntry type="library" name="com.android.tools:annotations" level="project" />
   </component>
 </module>

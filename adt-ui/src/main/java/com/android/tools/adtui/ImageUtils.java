@@ -24,15 +24,15 @@ import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
 import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
 
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -122,7 +122,7 @@ public class ImageUtils {
   }
 
   public static BufferedImage createDipImage(int width, int height, int type) {
-    return UIUtil.createImage(width, height, type);
+    return ImageUtil.createImage(width, height, type);
   }
 
   public static boolean supportsRetina() {
@@ -141,14 +141,14 @@ public class ImageUtils {
    * If ctx is null, get the scale from the system.
    */
   @Nullable
-  public static BufferedImage convertToRetina(@NotNull BufferedImage image, @Nullable JBUI.ScaleContext ctx) {
+  public static BufferedImage convertToRetina(@NotNull BufferedImage image, @Nullable ScaleContext ctx) {
     if (image.getWidth() < RETINA_SCALE || image.getHeight() < RETINA_SCALE) {
       // Can't convert to Retina; see issue 65676
       return null;
     }
 
     try {
-      Image retina = RetinaImage.createFrom(image, JBUI.sysScale(ctx), null);
+      Image retina = RetinaImage.createFrom(image, JBUIScale.sysScale(ctx), null);
 
       if (!(retina instanceof BufferedImage)) {
         // Don't try this again

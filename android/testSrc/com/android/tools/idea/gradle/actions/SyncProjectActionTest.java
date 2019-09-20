@@ -24,11 +24,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 
 /**
@@ -56,7 +56,7 @@ public class SyncProjectActionTest extends IdeaTestCase {
   public void testDoPerform() {
     Project project = getProject();
     BuildVariantView buildVariantView = mock(BuildVariantView.class);
-    new IdeComponents(project).replaceProjectService(BuildVariantView.class, buildVariantView);
+    ServiceContainerUtil.replaceService(project, BuildVariantView.class, buildVariantView, getTestRootDisposable());
 
     myAction.doPerform(myEvent, project);
 
@@ -67,7 +67,7 @@ public class SyncProjectActionTest extends IdeaTestCase {
 
   public void testDoUpdateWithSyncInProgress() {
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
+    ServiceContainerUtil.replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
     when(mySyncState.isSyncInProgress()).thenReturn(true);
 
     myAction.doUpdate(myEvent, project);
@@ -77,7 +77,7 @@ public class SyncProjectActionTest extends IdeaTestCase {
 
   public void testDoUpdateWithSyncNotInProgress() {
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
+    ServiceContainerUtil.replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
     when(mySyncState.isSyncInProgress()).thenReturn(false);
 
     myAction.doUpdate(myEvent, project);

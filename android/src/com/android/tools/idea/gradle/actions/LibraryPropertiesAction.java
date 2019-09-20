@@ -23,9 +23,9 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +65,7 @@ public class LibraryPropertiesAction extends AnAction {
         if (node != null) {
           String libraryName = node.getName();
           if (isNotEmpty(libraryName)) {
-            LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+            LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
             return libraryTable.getLibraryByName(libraryName);
           }
         }

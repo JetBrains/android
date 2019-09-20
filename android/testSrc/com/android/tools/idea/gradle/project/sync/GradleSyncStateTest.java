@@ -31,7 +31,7 @@ import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import org.mockito.Mock;
@@ -39,7 +39,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link GradleSyncState}.
  */
-public class GradleSyncStateTest extends IdeaTestCase {
+public class GradleSyncStateTest extends JavaProjectTestCase {
   @Mock private GradleSyncListener myGradleSyncListener;
   @Mock private GradleSyncState.StateChangeNotification myChangeNotification;
   @Mock private GradleSyncSummary mySummary;
@@ -56,9 +56,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     MessageBus messageBus = mock(MessageBus.class);
 
-    new IdeComponents(myProject).replaceProjectService(GradleFiles.class, myGradleFiles);
-    mySyncState = new GradleSyncState(myProject, AndroidProjectInfo.getInstance(myProject), GradleProjectInfo.getInstance(myProject),
-                                      messageBus, myProjectStructure, myChangeNotification, mySummary);
+    mySyncState = new GradleSyncState(myProject, myGradleFiles, messageBus, myProjectStructure, myChangeNotification, mySummary);
 
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
   }

@@ -37,9 +37,9 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +61,8 @@ public class CommandLineArgsTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
+    ServiceContainerUtil
+      .replaceService(getProject(), GradleProjectInfo.class, myGradleProjectInfo, getTestRootDisposable());
 
     myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, myIdeSettings, false /* do not apply Java library plugin */);
   }

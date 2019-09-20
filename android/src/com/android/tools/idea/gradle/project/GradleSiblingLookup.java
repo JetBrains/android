@@ -79,7 +79,7 @@ public class GradleSiblingLookup implements Function<String, VirtualFile> {
   @Override
   public VirtualFile apply(String input) {
     if (mySiblingsMap == null) {
-      mySiblingsMap = findSiblings(myImportSource, myDestination, Sets.<VirtualFile>newHashSet());
+      mySiblingsMap = findSiblings(myImportSource, myDestination, Sets.newHashSet());
     }
     return mySiblingsMap.get(input);
   }

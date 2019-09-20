@@ -27,6 +27,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -36,6 +37,7 @@ import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.indexing.UnindexedFilesUpdater;
 import com.intellij.util.io.ZipUtil;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
@@ -199,7 +201,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(
       getProject(), () -> {
         try {
-          psiClass.getContainingFile().getVirtualFile().setBinaryContent(newContent.getBytes());
+          psiClass.getContainingFile().getVirtualFile().setBinaryContent(newContent.getBytes(StandardCharsets.UTF_8));
         }
         catch (Exception e) {
           fail(e.getMessage());

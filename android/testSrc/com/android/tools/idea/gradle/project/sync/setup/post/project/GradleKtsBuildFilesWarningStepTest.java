@@ -22,6 +22,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.project.AndroidKtsSupportNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -37,7 +38,7 @@ public class GradleKtsBuildFilesWarningStepTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    new IdeComponents(myProject).replaceProjectService(AndroidKtsSupportNotification.class, myNotification);
+    ServiceContainerUtil.replaceService(myProject, AndroidKtsSupportNotification.class, myNotification, getTestRootDisposable());
   }
 
   /**

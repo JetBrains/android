@@ -42,6 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectAttachProcessor;
+import java.util.EnumSet;
 import java.util.List;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -128,7 +129,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
           return;
         }
         if (ProjectAttachProcessor.canAttachToProject()) {
-          Project openedProject = PlatformProjectOpenProcessor.doOpenProject(file, project, false, -1, null, false);
+          Project openedProject = PlatformProjectOpenProcessor.doOpenProject(file, project, -1, null, EnumSet.noneOf(PlatformProjectOpenProcessor.Option.class));
           setLastOpenedFile(openedProject, file);
         }
         else {

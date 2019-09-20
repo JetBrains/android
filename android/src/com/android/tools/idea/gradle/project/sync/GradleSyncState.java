@@ -80,6 +80,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
@@ -95,7 +96,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GradleSyncState {
+public final class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
   private static final NotificationGroup SYNC_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("Gradle sync");
   public static final NotificationGroup
@@ -105,8 +106,6 @@ public class GradleSyncState {
   static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
 
   @NotNull private final Project myProject;
-  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
-  @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final MessageBus myMessageBus;
   @NotNull private final StateChangeNotification myChangeNotification;
   @NotNull private final GradleSyncSummary mySummary;
@@ -154,26 +153,20 @@ public class GradleSyncState {
     return ServiceManager.getService(project, GradleSyncState.class);
   }
 
-  public GradleSyncState(@NotNull Project project,
-                         @NotNull AndroidProjectInfo androidProjectInfo,
-                         @NotNull GradleProjectInfo gradleProjectInfo,
-                         @NotNull MessageBus messageBus,
-                         @NotNull ProjectStructure projectStructure) {
-    this(project, androidProjectInfo, gradleProjectInfo, messageBus, projectStructure, new StateChangeNotification(project),
+  public GradleSyncState(@NotNull Project project) {
+    this(project, GradleFiles.getInstance(project), project.getMessageBus(), ProjectStructure.getInstance(project), new StateChangeNotification(project),
          new GradleSyncSummary(project));
   }
 
   @VisibleForTesting
+  @NonInjectable
   GradleSyncState(@NotNull Project project,
-                  @NotNull AndroidProjectInfo androidProjectInfo,
-                  @NotNull GradleProjectInfo gradleProjectInfo,
+                  @NotNull GradleFiles gradleFiles,
                   @NotNull MessageBus messageBus,
                   @NotNull ProjectStructure projectStructure,
                   @NotNull StateChangeNotification changeNotification,
                   @NotNull GradleSyncSummary summary) {
     myProject = project;
-    myAndroidProjectInfo = androidProjectInfo;
-    myGradleProjectInfo = gradleProjectInfo;
     myMessageBus = messageBus;
     myChangeNotification = changeNotification;
     mySummary = summary;
@@ -511,8 +504,8 @@ public class GradleSyncState {
    */
   public boolean lastSyncFailed() {
     return !isSyncInProgress() &&
-           myGradleProjectInfo.isBuildWithGradle() &&
-           (myAndroidProjectInfo.requiredAndroidModelMissing() || mySummary.hasSyncErrors());
+           (!myProject.isDefault() && GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) &&
+           (AndroidProjectInfo.getInstance(myProject).requiredAndroidModelMissing() || mySummary.hasSyncErrors());
   }
 
   public boolean isSyncInProgress() {

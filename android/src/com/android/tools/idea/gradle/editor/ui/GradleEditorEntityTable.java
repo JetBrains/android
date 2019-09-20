@@ -38,8 +38,8 @@ import java.awt.event.MouseEvent;
 
 public class GradleEditorEntityTable extends JBTable implements DataProvider {
 
-  private final IntObjectMap<GradleEditorCellComponent> myRendererComponents = new IntObjectMap<GradleEditorCellComponent>();
-  private final IntObjectMap<GradleEditorCellComponent> myEditorComponents = new IntObjectMap<GradleEditorCellComponent>();
+  private final IntObjectMap<GradleEditorCellComponent> myRendererComponents = new IntObjectMap<>();
+  private final IntObjectMap<GradleEditorCellComponent> myEditorComponents = new IntObjectMap<>();
 
   @NotNull private final Project myProject;
 

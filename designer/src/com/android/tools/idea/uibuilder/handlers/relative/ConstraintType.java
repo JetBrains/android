@@ -139,7 +139,7 @@ enum ConstraintType {
     if (ourSNameToType == null) {
       ConstraintType[] types = ConstraintType
         .values();
-      Map<String, ConstraintType> map = new HashMap<String, ConstraintType>(types.length);
+      Map<String, ConstraintType> map = new HashMap<>(types.length);
       for (ConstraintType type : types) {
         map.put(type.name, type);
       }

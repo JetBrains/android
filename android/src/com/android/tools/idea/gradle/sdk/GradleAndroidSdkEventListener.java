@@ -33,7 +33,7 @@ import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleAndroidSdkEventListener implements IdeSdks.AndroidSdkEventListener {
-  private static Logger LOG = Logger.getInstance(GradleAndroidSdkEventListener.class);
+  private static final Logger LOG = Logger.getInstance(GradleAndroidSdkEventListener.class);
 
   /**
    * Updates the path of the SDK manager in the project's local.properties file, only if the new path and the path in the file are

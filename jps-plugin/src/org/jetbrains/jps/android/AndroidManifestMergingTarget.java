@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import org.jetbrains.android.util.AndroidCommonUtils;
@@ -48,7 +49,7 @@ public class AndroidManifestMergingTarget extends ModuleBasedTarget<AndroidManif
       TargetTypeRegistry.getInstance().getTargetType("maven-resources-production");
 
     if (mavenResourcesProductionType != null) {
-      return new ArrayList<BuildTarget<?>>(targetRegistry.getAllTargets(mavenResourcesProductionType));
+      return new ArrayList<>(targetRegistry.getAllTargets(mavenResourcesProductionType));
     }
     return Collections.emptyList();
   }
@@ -65,7 +66,7 @@ public class AndroidManifestMergingTarget extends ModuleBasedTarget<AndroidManif
                                                           BuildDataPaths dataPaths) {
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
     assert extension != null;
-    final List<MyRootDescriptor> result = new ArrayList<MyRootDescriptor>();
+    final List<MyRootDescriptor> result = new ArrayList<>();
 
     final File manifestFile = AndroidJpsUtil.getManifestFileForCompilationPath(extension);
 
@@ -125,7 +126,7 @@ public class AndroidManifestMergingTarget extends ModuleBasedTarget<AndroidManif
       if (!AndroidJpsUtil.isAndroidProjectWithoutGradleFacet(model.getProject())) {
         return Collections.emptyList();
       }
-      final List<AndroidManifestMergingTarget> targets = new ArrayList<AndroidManifestMergingTarget>();
+      final List<AndroidManifestMergingTarget> targets = new ArrayList<>();
 
       for (JpsModule module : model.getProject().getModules()) {
         final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
@@ -140,7 +141,7 @@ public class AndroidManifestMergingTarget extends ModuleBasedTarget<AndroidManif
     @NotNull
     @Override
     public BuildTargetLoader<AndroidManifestMergingTarget> createLoader(@NotNull JpsModel model) {
-      final Map<String, AndroidManifestMergingTarget> targetMap = new HashMap<String, AndroidManifestMergingTarget>();
+      final Map<String, AndroidManifestMergingTarget> targetMap = new HashMap<>();
 
       for (AndroidManifestMergingTarget target : computeAllTargets(model)) {
         targetMap.put(target.getId(), target);

@@ -22,7 +22,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -42,13 +42,13 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link LibraryNode}.
  */
-public class LibraryNodeTest extends IdeaTestCase {
+public class LibraryNodeTest extends JavaProjectTestCase {
   private IdeSdks myIdeSdks;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myIdeSdks = new IdeComponents(getProject()).mockApplicationService(IdeSdks.class);
+    myIdeSdks = IdeComponents.mockApplicationService(IdeSdks.class, getTestRootDisposable());
   }
 
   public void testGetChildren() throws IOException {

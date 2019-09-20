@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.ng.SelectedVariantCollector.SelectedVariant;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link SelectedVariantCollector}.
  */
-public class SelectedVariantCollectorTest extends IdeaTestCase {
+public class SelectedVariantCollectorTest extends JavaProjectTestCase {
   private SelectedVariantCollector myCollector;
 
   @Override

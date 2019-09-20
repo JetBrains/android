@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipView;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -42,12 +42,12 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
     // TODO(b/109661512): Move vgap scale into TabularLayout
-    myContent = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
+    myContent = new JPanel(new TabularLayout("*").setVGap(JBUIScale.scale(8)));
     myLabel = createTooltipLabel();
     myState = createTooltipLabel();
     myDuration = createTooltipLabel();
     // TODO(b/109661512): Move vgap scale into TabularLayout
-    myUnavailableDetails = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(1)));
+    myUnavailableDetails = new JPanel(new TabularLayout("*").setVGap(JBUIScale.scale(1)));
     tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::stateChanged);
   }
 

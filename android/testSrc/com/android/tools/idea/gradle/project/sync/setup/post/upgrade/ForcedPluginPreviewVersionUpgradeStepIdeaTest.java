@@ -27,7 +27,8 @@ import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -39,9 +40,9 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tets for {@link ForcedPluginVersionUpgradeStep}.
+ * Test for {@link ForcedPluginVersionUpgradeStep}.
  */
-public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase {
+public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends JavaProjectTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private LatestKnownPluginVersionProvider myLatestKnownPluginVersionProvider;
   @Mock private AndroidPluginVersionUpdater myVersionUpdater;
@@ -58,9 +59,9 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     initMocks(this);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
-    new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
-    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    ServiceContainerUtil.replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(project, AndroidPluginVersionUpdater.class, myVersionUpdater, getTestRootDisposable());
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     myVersionUpgrade = new ForcedPluginVersionUpgradeStep();
   }
@@ -71,6 +72,9 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
       if (myOriginalTestDialog != null) {
         ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(myOriginalTestDialog);
       }
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();

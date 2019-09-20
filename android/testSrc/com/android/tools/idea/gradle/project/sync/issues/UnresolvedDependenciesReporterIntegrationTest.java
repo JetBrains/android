@@ -54,7 +54,6 @@ import java.util.stream.Collectors;
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
 public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradleTestCase {
-  private IdeComponents myIdeComponents;
   private SyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnresolvedDependenciesReporter myReporter;
@@ -66,8 +65,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     mySyncIssue = mock(SyncIssue.class);
     // getMessage() is NotNull but message is unused for dependencies.
     when(mySyncIssue.getMessage()).thenReturn("");
-    myIdeComponents = new IdeComponents(getProject());
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myReporter = new UnresolvedDependenciesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
   }
@@ -75,7 +73,6 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   @Override
   protected void tearDown() throws Exception {
     try {
-      myIdeComponents = null;
       mySyncMessagesStub = null;
     }
     finally {
@@ -122,7 +119,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   }
 
   public void testReportWithConstraintLayout() throws Exception {
-    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
+    IdeInfo ideInfo = IdeComponents.mockApplicationService(IdeInfo.class, getTestRootDisposable());
     when(ideInfo.isAndroidStudio()).thenReturn(true);
 
     loadSimpleApplication();
@@ -436,19 +433,22 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     assertSize(1, messages);
 
     List<NotificationHyperlink> links = mySyncMessagesStub.getNotificationUpdate().getFixes();
-    assertSize(2, links);
+    boolean studio = IdeInfo.getInstance().isAndroidStudio();
+    assertSize(studio ? 2 : 1, links);
     assertThat(links.get(0)).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
-    assertThat(links.get(1)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
+    if (studio) {
+      assertThat(links.get(1)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
 
-    assertEquals(
-      ImmutableList.of(
-        GradleSyncIssue
-          .newBuilder()
-          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
-          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK)
-          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
-          .build()),
-      myUsageReporter.getCollectedIssue());
+      assertEquals(
+        ImmutableList.of(
+          GradleSyncIssue
+            .newBuilder()
+            .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
+            .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK)
+            .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
+            .build()),
+        myUsageReporter.getCollectedIssue());
+    }
   }
 
   private static GradleSyncIssue.Builder maybeAddShowDependencyInProjectStructureHyperLink(GradleSyncIssue.Builder builder) {

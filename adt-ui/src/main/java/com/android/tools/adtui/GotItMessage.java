@@ -23,8 +23,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,9 +49,9 @@ public class GotItMessage {
     myTitle = title;
     myMessage =
       "<html><body><div style='font-family: " +
-      UIUtil.getLabelFont().getFontName() +
+      StartupUiUtil.getLabelFont().getFontName() +
       "; font-size: " +
-      JBUI.scale(12) +
+      JBUIScale.scale(12) +
       "pt; color: " +
       GotItPanel.TEXT_COLOR +
       ";'>" +
@@ -97,7 +97,7 @@ public class GotItMessage {
     panel.myRoot.setBackground(GotItPanel.BACKGROUND);
     panel.myMessagePanel.setOpaque(false);
     panel.myButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    panel.myButtonLabel.setText(panel.myButtonLabel.getText().toUpperCase());
+    panel.myButtonLabel.setText(StringUtil.toUpperCase(panel.myButtonLabel.getText()));
     final BalloonBuilder builder = JBPopupFactory.getInstance().createBalloonBuilder(panel.myRoot);
     if (myDisposable != null) {
       builder.setDisposable(myDisposable);

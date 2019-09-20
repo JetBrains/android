@@ -85,6 +85,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.ui.popup.list.GroupedItemsListRenderer;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ThreeState;
@@ -700,7 +701,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
     @Override
     public Dimension getMinimumSize() {
       Dimension original = super.getMinimumSize();
-      return new Dimension(Math.max(original.width, JBUI.scale(100)), original.height);
+      return new Dimension(Math.max(original.width, JBUIScale.scale(100)), original.height);
     }
 
     @Nullable

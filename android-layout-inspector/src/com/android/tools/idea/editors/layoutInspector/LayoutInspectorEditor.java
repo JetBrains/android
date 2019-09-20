@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.layoutInspector;
 
 import com.android.ddmlib.Client;
 import com.android.layoutinspector.model.ClientWindow;
-import com.android.layoutinspector.model.LayoutFileData;
 import com.android.layoutinspector.parser.LayoutFileDataParser;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;

@@ -27,7 +27,7 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 
 import static com.android.SdkConstants.*;
 
@@ -71,7 +71,7 @@ class ConstraintReferenceManagement {
         }
         NlModel model = constraints.getModel();
         NlComponent c = model.createComponent(childTag);
-        model.addTags(Arrays.asList(c), constraints, null, InsertType.CREATE);
+        model.addTags(Collections.singletonList(c), constraints, null, InsertType.CREATE);
       }
     );
   }

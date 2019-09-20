@@ -17,18 +17,14 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.platform.lang" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.pixelprobe" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.layoutinspector" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
@@ -39,10 +35,23 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.property-editor" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.pixelprobe:pixelprobe" level="project" />
+    <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:layoutInspector" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:common" level="project" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
+    <orderEntry type="library" scope="TEST" name="KotlinPlugin" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:sdk-common" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:sdklib" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:annotations" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.lint:lint-api" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:protos" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:testing" level="project" />
   </component>
 </module>

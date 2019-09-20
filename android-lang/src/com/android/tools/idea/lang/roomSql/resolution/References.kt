@@ -33,7 +33,7 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY
+import com.intellij.util.ArrayUtilRt
 import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.getParentOfType
@@ -194,7 +194,7 @@ class RoomParameterReference(parameter: RoomBindParameter) : PsiReferenceBase<Ro
              ?.uastParameters
              ?.mapNotNull { (it.sourcePsi as? PsiNamedElement)?.let(LookupElementBuilder::create) }
              ?.toTypedArray<Any>()
-           ?: EMPTY_OBJECT_ARRAY
+            ?: ArrayUtilRt.EMPTY_OBJECT_ARRAY
   }
 
   private fun findQueryMethod(): UMethod? {

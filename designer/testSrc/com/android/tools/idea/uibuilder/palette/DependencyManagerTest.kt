@@ -45,6 +45,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.registerExtension
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
@@ -64,8 +65,7 @@ class DependencyManagerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     val testProjectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS)
-    PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME, testProjectSystem,
-                                                                     testRootDisposable)
+    project.registerExtension<AndroidProjectSystemProvider>(EP_NAME, testProjectSystem, testRootDisposable)
     panel = mock(PalettePanel::class.java)
     palette = NlPaletteModel.get(myFacet).getPalette(LayoutFileType)
     disposable = Disposer.newDisposable()

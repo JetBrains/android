@@ -45,6 +45,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import icons.StudioIcons;
 import java.awt.Rectangle;
@@ -307,7 +308,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
    */
   @Nullable
   private static ResourceType getDefaultResourceType(@NotNull String propertyName) {
-    String lowerCaseProperty = propertyName.toLowerCase(Locale.ENGLISH);
+    String lowerCaseProperty = StringUtil.toLowerCase(propertyName);
     if (lowerCaseProperty.contains("color")
         || lowerCaseProperty.contains("tint")) {
       return ResourceType.COLOR;
@@ -329,20 +330,17 @@ public class BrowsePanel extends AdtSecondaryPanel {
           case MISSING_DESIGN_PROPERTY:
             presentation.setIcon(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE);
             presentation.setText("Specify Design Property");
-            presentation.setVisible(true);
-            presentation.setEnabled(true);
+            presentation.setEnabledAndVisible(true);
             break;
           case IS_REMOVABLE_DESIGN_PROPERTY:
             presentation.setIcon(AllIcons.Actions.Delete);
             presentation.setText("Remove this Design Property");
-            presentation.setVisible(true);
-            presentation.setEnabled(true);
+            presentation.setEnabledAndVisible(true);
             break;
           default:
             presentation.setIcon(null);
             presentation.setText(null);
-            presentation.setVisible(false);
-            presentation.setEnabled(false);
+            presentation.setEnabledAndVisible(false);
             break;
         }
       }

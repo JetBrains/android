@@ -20,12 +20,12 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.java.JavaModuleCleanupStep;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 
 import java.util.Collection;
@@ -38,7 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link JavaModuleModelDataService}.
  */
-public class JavaModuleModelDataServiceTest extends IdeaTestCase {
+public class JavaModuleModelDataServiceTest extends JavaProjectTestCase {
   @Mock private JavaModuleSetup myModuleSetup;
   @Mock private JavaModuleCleanupStep myCleanupStep;
   @Mock private GradleSyncState mySyncState;
@@ -53,7 +53,8 @@ public class JavaModuleModelDataServiceTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, mySyncState);
+    ServiceContainerUtil
+      .replaceService(getProject(), GradleSyncState.class, mySyncState, getTestRootDisposable());
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     myService = new JavaModuleModelDataService(myModuleSetupContextFactory, myModuleSetup, myCleanupStep);
   }

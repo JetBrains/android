@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import org.jetbrains.android.util.AndroidCommonUtils;
@@ -36,7 +37,7 @@ public class AndroidLibraryPackagingTarget extends AndroidBuildTarget {
     final File moduleOutputDir = ProjectPaths.getModuleOutputDir(myModule, false);
 
     if (moduleOutputDir != null) {
-      return Collections.<BuildRootDescriptor>singletonList(
+      return Collections.singletonList(
         new AndroidClassesDirBuildRootDescriptor(this, moduleOutputDir));
     }
     else {

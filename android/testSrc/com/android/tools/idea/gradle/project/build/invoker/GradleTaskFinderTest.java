@@ -26,13 +26,13 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.nio.file.Paths;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -60,7 +60,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleTaskFinder}.
  */
-public class GradleTaskFinderTest extends IdeaTestCase {
+public class GradleTaskFinderTest extends JavaProjectTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private IdeAndroidProject myIdeAndroidProject;
   @Mock private IdeVariant myIdeVariant;
@@ -94,7 +94,8 @@ public class GradleTaskFinderTest extends IdeaTestCase {
 
   public void testFindTasksToExecuteWhenLastSyncFailed() {
     GradleSyncState syncState = mock(GradleSyncState.class);
-    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
+    ServiceContainerUtil
+      .replaceService(getProject(), GradleSyncState.class, syncState, getTestRootDisposable());
     when(syncState.lastSyncFailed()).thenReturn(true);
 
     File projectPath = getBaseDirPath(getProject());

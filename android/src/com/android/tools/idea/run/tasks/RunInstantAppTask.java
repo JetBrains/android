@@ -30,6 +30,7 @@ import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
@@ -177,7 +178,7 @@ public class RunInstantAppTask implements LaunchTask {
   }
 
   private static boolean isSingleZipFile(List<ApkFileUnit> artifactFiles) {
-    return artifactFiles.size() == 1 && artifactFiles.get(0).getApkFile().getName().toLowerCase().endsWith(".zip");
+    return artifactFiles.size() == 1 && StringUtil.toLowerCase(artifactFiles.get(0).getApkFile().getName()).endsWith(".zip");
   }
 
   private static class NullProgressIndicator implements ProgressIndicator {

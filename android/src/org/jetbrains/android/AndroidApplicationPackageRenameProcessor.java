@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.intellij.facet.ProjectFacetManager;
@@ -17,7 +18,6 @@ import com.intellij.refactoring.rename.RenameXmlAttributeProcessor;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
@@ -27,6 +27,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -46,7 +47,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
   public void renameElement(@NotNull PsiElement element, @NotNull String newName, @NotNull UsageInfo[] usages, @Nullable RefactoringElementListener listener)
     throws IncorrectOperationException {
     if (element instanceof PsiPackage) {
-      final Map<GenericAttributeValue, String> newAttrValues = new HashMap<GenericAttributeValue, String>();
+      final Map<GenericAttributeValue, String> newAttrValues = new HashMap<>();
 
       final Project project = element.getProject();
       final String oldPackageQName = ((PsiPackage)element).getQualifiedName();
@@ -115,7 +116,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
 
   @NotNull
   private static Map<GenericAttributeValue, PsiClass> buildAttr2ClassMap(@NotNull XmlFile file) {
-    final Map<GenericAttributeValue, PsiClass> map = new HashMap<GenericAttributeValue, PsiClass>();
+    final Map<GenericAttributeValue, PsiClass> map = new HashMap<>();
 
     processAllClassAttrValues(file, new Processor<Pair<GenericAttributeValue, PsiClass>>() {
       @Override

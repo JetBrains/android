@@ -1,9 +1,9 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.formatter;
 
+import com.intellij.configurationStore.XmlSerializer;
 import com.intellij.formatting.FormattingDocumentModel;
-import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizable;
-import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
@@ -11,16 +11,12 @@ import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
 import com.intellij.psi.formatter.xml.XmlPolicy;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomManager;
-import com.intellij.util.xmlb.SkipDefaultValuesSerializationFilters;
-import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.android.dom.resources.Style;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidXmlCodeStyleSettings extends CustomCodeStyleSettings {
   public boolean USE_CUSTOM_SETTINGS = false;
 
@@ -39,17 +35,12 @@ public class AndroidXmlCodeStyleSettings extends CustomCodeStyleSettings {
 
   @Override
   public Object clone() {
-    try {
-      final AndroidXmlCodeStyleSettings cloned = (AndroidXmlCodeStyleSettings)super.clone();
-      cloned.LAYOUT_SETTINGS = (LayoutSettings)LAYOUT_SETTINGS.clone();
-      cloned.MANIFEST_SETTINGS = (ManifestSettings)MANIFEST_SETTINGS.clone();
-      cloned.VALUE_RESOURCE_FILE_SETTINGS = (ValueResourceFileSettings)VALUE_RESOURCE_FILE_SETTINGS.clone();
-      cloned.OTHER_SETTINGS = (OtherSettings)OTHER_SETTINGS.clone();
-      return cloned;
-    }
-    catch (CloneNotSupportedException e) {
-      throw new RuntimeException(e);
-    }
+    final AndroidXmlCodeStyleSettings cloned = (AndroidXmlCodeStyleSettings)super.clone();
+    cloned.LAYOUT_SETTINGS = (LayoutSettings)LAYOUT_SETTINGS.clone();
+    cloned.MANIFEST_SETTINGS = (ManifestSettings)MANIFEST_SETTINGS.clone();
+    cloned.VALUE_RESOURCE_FILE_SETTINGS = (ValueResourceFileSettings)VALUE_RESOURCE_FILE_SETTINGS.clone();
+    cloned.OTHER_SETTINGS = (OtherSettings)OTHER_SETTINGS.clone();
+    return cloned;
   }
 
   public static class MySettings implements JDOMExternalizable, Cloneable {
@@ -59,13 +50,13 @@ public class AndroidXmlCodeStyleSettings extends CustomCodeStyleSettings {
     public boolean INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE;
 
     @Override
-    public void readExternal(Element element) throws InvalidDataException {
-      XmlSerializer.deserializeInto(this, element);
+    public void readExternal(@NotNull Element element) {
+      XmlSerializer.deserializeInto(element, this);
     }
 
     @Override
-    public void writeExternal(Element element) throws WriteExternalException {
-      XmlSerializer.serializeInto(this, element, new SkipDefaultValuesSerializationFilters());
+    public void writeExternal(@NotNull Element element) {
+      XmlSerializer.serializeObjectInto(this, element);
     }
 
     public XmlPolicy createXmlPolicy(CodeStyleSettings settings, FormattingDocumentModel documentModel) {
@@ -73,7 +64,7 @@ public class AndroidXmlCodeStyleSettings extends CustomCodeStyleSettings {
     }
 
     @Override
-    protected MySettings clone() throws CloneNotSupportedException {
+    protected MySettings clone() {
       try {
         return (MySettings)super.clone();
       }

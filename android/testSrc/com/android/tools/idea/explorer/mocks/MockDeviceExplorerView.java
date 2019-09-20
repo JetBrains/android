@@ -17,7 +17,6 @@ package com.android.tools.idea.explorer.mocks;
 
 import com.android.tools.idea.explorer.*;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
-import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
 import com.intellij.openapi.actionSystem.ActionGroup;

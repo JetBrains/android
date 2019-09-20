@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
@@ -11,10 +11,10 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -47,7 +47,7 @@ import java.util.*;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidPropertyFilesUpdater implements BaseComponent {
+public final class AndroidPropertyFilesUpdater implements Disposable {
   private static final NotificationGroup PROPERTY_FILES_UPDATING_NOTIFICATION =
     NotificationGroup.balloonGroup("Android Property Files Updating");
   private static final Key<List<Object>> ANDROID_PROPERTIES_STATE_KEY = Key.create("ANDROID_PROPERTIES_STATE");
@@ -55,13 +55,10 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
   private final SingleAlarm myAlarm;
   private final Project myProject;
 
-  protected AndroidPropertyFilesUpdater(Project project) {
-    myAlarm = new SingleAlarm(() -> TransactionGuard.submitTransaction(project, this::updatePropertyFilesIfNecessary), 50, project);
+  private AndroidPropertyFilesUpdater(Project project) {
+    myAlarm = new SingleAlarm(() -> TransactionGuard.submitTransaction(project, this::updatePropertyFilesIfNecessary), 50, this);
     myProject = project;
-  }
 
-  @Override
-  public void initComponent() {
     if (!ApplicationManager.getApplication().isUnitTestMode() &&
         !ApplicationManager.getApplication().isHeadlessEnvironment()) {
       addProjectPropertiesUpdatingListener();
@@ -69,7 +66,7 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
   }
 
   @Override
-  public void disposeComponent() {
+  public void dispose() {
     if (myNotification != null && !myNotification.isExpired()) {
       myNotification.expire();
     }
@@ -274,7 +271,7 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
 
           for (int i = 0; i < newDepValues.size(); i++) {
             final String value = newDepValues.get(i);
-            projectProperties.addProperty(AndroidUtils.ANDROID_LIBRARY_REFERENCE_PROPERTY_PREFIX + Integer.toString(i + 1), value);
+            projectProperties.addProperty(AndroidUtils.ANDROID_LIBRARY_REFERENCE_PROPERTY_PREFIX + (i + 1), value);
           }
         }
       });
@@ -317,14 +314,12 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
       else {
         if (!Comparing.equal(property.getValue(), targetPropertyValue)) {
           final PsiElement element = property.getPsiElement();
-          if (element != null) {
-            changes.add(new Runnable() {
-              @Override
-              public void run() {
-                element.replace(createProperty(project, targetPropertyValue).getPsiElement());
-              }
-            });
-          }
+          changes.add(new Runnable() {
+            @Override
+            public void run() {
+              element.replace(createProperty(project, targetPropertyValue).getPsiElement());
+            }
+          });
         }
       }
     }

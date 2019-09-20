@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.DependencySelection;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ResolvedDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;

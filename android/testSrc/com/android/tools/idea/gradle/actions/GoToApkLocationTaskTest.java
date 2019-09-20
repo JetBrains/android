@@ -25,9 +25,12 @@ import com.android.tools.idea.gradle.actions.GoToApkLocationTask.OpenFolderNotif
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,7 +49,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * Tests for {@link GoToApkLocationTask}.
  */
-public class GoToApkLocationTaskTest extends IdeaTestCase {
+public class GoToApkLocationTaskTest extends JavaProjectTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
   private boolean isShowFilePathActionSupported;
   @Mock private AndroidNotification myMockNotification;
@@ -66,8 +69,8 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
     modulesToPaths = new TreeMap<>();
     modulesToPaths.put(getModule().getName(), myApkPath);
     modules.add(getModule());
-    IdeComponents ideComponents = new IdeComponents(getProject());
-    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
+    IdeComponents ideComponents = new IdeComponents(getProject(), getTestRootDisposable());
+    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(myProject, BuildsToPathsMapper.class, getTestRootDisposable());
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), any())).thenReturn(modulesToPaths);
     myTask = new GoToApkLocationTask(getProject(), modules, NOTIFICATION_TITLE) {
       @Override
@@ -75,7 +78,8 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
         return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
       }
     };
-    ideComponents.replaceProjectService(AndroidNotification.class, myMockNotification);
+    ServiceContainerUtil
+      .replaceService(myProject, AndroidNotification.class, myMockNotification, getTestRootDisposable());
   }
 
   public void testExecuteWithCancelledBuild() {
@@ -97,7 +101,7 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
     String message = getExpectedModuleNotificationMessage(moduleName, null);
     Map<String, File> apkPathsPerModule = Collections.singletonMap(moduleName, myApkPath);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                           new OpenFolderNotificationListener(apkPathsPerModule, myProject));
+            new OpenFolderNotificationListener(apkPathsPerModule, myProject));
   }
 
   public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
@@ -105,7 +109,7 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
     myTask.execute(createBuildResult(null /* build successful - no errors */));
     String message = getExpectedModuleNotificationMessageNoShowFilePathAction();
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                           new GoToApkLocationTask.OpenEventLogHyperlink());
+            new GoToApkLocationTask.OpenEventLogHyperlink());
   }
 
   public void testExecuteWithSuccessfulBuildOfDynamicApp() throws IOException {
@@ -123,7 +127,7 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
     apkPathsPerModule.put(featureModuleName, featureApkPath);
     String message = getExpectedModuleNotificationMessage(featureModuleName, moduleName);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                           new OpenFolderNotificationListener(apkPathsPerModule, myProject));
+            new OpenFolderNotificationListener(apkPathsPerModule, myProject));
   }
 
   @NotNull
@@ -133,21 +137,21 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
     }
     else {
       return "APK(s) generated successfully for 2 modules:" + getExpectedModuleLineNotificationMessage(moduleName) +
-             getExpectedModuleLineNotificationMessage(module2Name);
+              getExpectedModuleLineNotificationMessage(module2Name);
     }
   }
 
   @NotNull
   private static String getExpectedModuleLineNotificationMessage(@NotNull String moduleName) {
     return "<br/>Module '" +
-           moduleName +
-           "': <a href=\"" +
-           GoToApkLocationTask.MODULE +
-           moduleName +
-           "\">locate</a> or <a href=\"" +
-           GoToApkLocationTask.ANALYZE +
-           moduleName +
-           "\">analyze</a> the APK.";
+            moduleName +
+            "': <a href=\"" +
+            GoToApkLocationTask.MODULE +
+            moduleName +
+            "\">locate</a> or <a href=\"" +
+            GoToApkLocationTask.ANALYZE +
+            moduleName +
+            "\">analyze</a> the APK.";
   }
 
   @NotNull

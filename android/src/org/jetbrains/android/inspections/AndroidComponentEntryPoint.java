@@ -1,21 +1,16 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections;
 
 import com.intellij.codeInspection.reference.EntryPoint;
 import com.intellij.codeInspection.reference.RefElement;
-import com.intellij.openapi.util.InvalidDataException;
-import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.configurationStore.XmlSerializer;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.xmlb.SkipDefaultValuesSerializationFilters;
-import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidComponentEntryPoint extends EntryPoint {
   public boolean ADD_ANDROID_COMPONENTS_TO_ENTRIES = true;
 
@@ -48,12 +43,12 @@ public class AndroidComponentEntryPoint extends EntryPoint {
   }
 
   @Override
-  public void readExternal(Element element) throws InvalidDataException {
-    XmlSerializer.deserializeInto(this, element);
+  public void readExternal(@NotNull Element element) {
+    XmlSerializer.deserializeInto(element, this);
   }
 
   @Override
-  public void writeExternal(Element element) throws WriteExternalException {
-    XmlSerializer.serializeInto(this, element, new SkipDefaultValuesSerializationFilters());
+  public void writeExternal(@NotNull Element element) {
+    XmlSerializer.serializeObjectInto(this, element);
   }
 }

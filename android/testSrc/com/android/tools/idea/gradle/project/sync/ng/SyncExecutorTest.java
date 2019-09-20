@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SyncExecutor}.
  */
-public class SyncExecutorTest extends IdeaTestCase {
+public class SyncExecutorTest extends JavaProjectTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private SyncErrorHandlerManager mySyncErrorHandlerManager;
   @Mock private SelectedVariantCollector mySelectedVariantCollector;

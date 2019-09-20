@@ -20,11 +20,9 @@ import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.ui.ColorUtil;
-import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;

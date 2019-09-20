@@ -91,7 +91,7 @@ public abstract class DownloadService {
     myCachePath = targetCachePath;
     myFallbackUrl = fallbackResourceUrl;
     myFilename = filename;
-    myFilePattern = FileUtil.getNameWithoutExtension(filename) + "(_[0-9]+)?\\." + FileUtilRt.getExtension(filename);
+    myFilePattern = FileUtilRt.getNameWithoutExtension(filename) + "(_[0-9]+)?\\." + FileUtilRt.getExtension(filename);
     myLock = new Object();
   }
 

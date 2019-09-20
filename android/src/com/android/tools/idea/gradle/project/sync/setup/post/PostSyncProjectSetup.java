@@ -88,6 +88,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.Key;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.SystemProperties;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -102,7 +103,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
 
-public class PostSyncProjectSetup {
+public final class PostSyncProjectSetup {
   @NotNull private final Project myProject;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final ProjectStructure myProjectStructure;
@@ -116,7 +117,6 @@ public class PostSyncProjectSetup {
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
-  @NotNull private final RunManagerEx myRunManager;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -124,23 +124,13 @@ public class PostSyncProjectSetup {
   }
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public PostSyncProjectSetup(@NotNull Project project,
-                              @NotNull IdeInfo ideInfo,
-                              @NotNull ProjectStructure projectStructure,
-                              @NotNull GradleProjectInfo gradleProjectInfo,
-                              @NotNull GradleSyncInvoker syncInvoker,
-                              @NotNull GradleSyncState syncState,
-                              @NotNull GradleSyncMessages syncMessages,
-                              @NotNull DependencySetupIssues dependencySetupIssues,
-                              @NotNull PluginVersionUpgrade pluginVersionUpgrade,
-                              @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
-                              @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
-         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerEx.getInstanceEx(project));
+  public PostSyncProjectSetup(@NotNull Project project) {
+    this(project, IdeInfo.getInstance(), ProjectStructure.getInstance(project), GradleProjectInfo.getInstance(project), GradleSyncInvoker.getInstance(), GradleSyncState.getInstance(project), DependencySetupIssues.getInstance(project), new ProjectSetup(project),
+         new ModuleSetup(project), PluginVersionUpgrade.getInstance(project), VersionCompatibilityChecker.getInstance(), GradleProjectBuilder.getInstance(project), new CommonModuleValidator.Factory());
   }
 
   @VisibleForTesting
+  @NonInjectable
   PostSyncProjectSetup(@NotNull Project project,
                        @NotNull IdeInfo ideInfo,
                        @NotNull ProjectStructure projectStructure,
@@ -153,8 +143,7 @@ public class PostSyncProjectSetup {
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
-                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
-                       @NotNull RunManagerEx runManager) {
+                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory) {
     myProject = project;
     myIdeInfo = ideInfo;
     myProjectStructure = projectStructure;
@@ -168,7 +157,6 @@ public class PostSyncProjectSetup {
     myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
-    myRunManager = runManager;
   }
 
   /**
@@ -322,7 +310,6 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    String message = "synced successfully";
     // Even if the sync was successful it may have warnings or non error messages, need to put in the correct kind of result
     EventResult result;
     GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
@@ -332,25 +319,24 @@ public class PostSyncProjectSetup {
       result = new SuccessResultImpl();
     }
     else {
-      result = new FailureResultImpl(failures);
+      result = new FailureResultImpl();
     }
 
-    FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, result);
+    FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), "successful", result);
     ApplicationManager.getApplication().invokeLater(() -> {
       if (!myProject.isDisposed()) {
-        ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
+        ServiceManager.getService(myProject, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
       }
     });
   }
 
   public static void finishFailedSync(@Nullable ExternalSystemTaskId taskId, @NotNull Project project) {
     if (taskId != null) {
-      String message = "sync failed";
       GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
-      List<Failure> failures = messages.showEvents(taskId);
-      FailureResultImpl failureResult = new FailureResultImpl(failures);
-      FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, failureResult);
-      ServiceManager.getService(project, SyncViewManager.class).onEvent(finishBuildEvent);
+      messages.showEvents(taskId);
+      FailureResultImpl failureResult = new FailureResultImpl();
+      FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), "failed", failureResult);
+      ServiceManager.getService(project, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
     }
   }
 
@@ -436,13 +422,13 @@ public class PostSyncProjectSetup {
     if (targetProvider != null) {
       // Store current before run tasks in each configuration to reset them after modifying the template, since modifying
       Map<RunConfiguration, List<BeforeRunTask>> currentTasks = new HashMap<>();
-      for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
+      for (RunConfiguration runConfiguration : RunManagerEx.getInstanceEx(myProject).getConfigurationsList(junitConfigurationType)) {
         currentTasks.put(runConfiguration, new ArrayList<>(runManager.getBeforeRunTasks(runConfiguration)));
       }
 
       // Fix the "JUnit Run Configuration" templates.
       for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
-        RunnerAndConfigurationSettings template = myRunManager.getConfigurationTemplate(configurationFactory);
+        RunnerAndConfigurationSettings template = RunManagerEx.getInstanceEx(myProject).getConfigurationTemplate(configurationFactory);
         AndroidJUnitConfiguration runConfiguration = (AndroidJUnitConfiguration)template.getConfiguration();
         // Set the correct "Make step" in the "JUnit Run Configuration" template.
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
@@ -450,7 +436,7 @@ public class PostSyncProjectSetup {
       }
 
       // Fix existing JUnit Configurations.
-      for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
+      for (RunConfiguration runConfiguration : RunManagerEx.getInstanceEx(myProject).getConfigurationsList(junitConfigurationType)) {
         // Keep the previous configurations in existing run configurations
         runManager.setBeforeRunTasks(runConfiguration, currentTasks.get(runConfiguration), false);
       }
@@ -509,7 +495,7 @@ public class PostSyncProjectSetup {
     String workingDir = toCanonicalPath(getBaseDirPath(project).getPath());
     DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Project setup", workingDir, currentTimeMillis());
     SyncViewManager syncManager = ServiceManager.getService(project, SyncViewManager.class);
-    syncManager.onEvent(new StartBuildEventImpl(buildDescriptor, "reading from cache...").withContentDescriptorSupplier(
+    syncManager.onEvent(taskId, new StartBuildEventImpl(buildDescriptor, "reading from cache...").withContentDescriptorSupplier(
       () -> {
         AndroidGradleSyncTextConsoleView consoleView = new AndroidGradleSyncTextConsoleView(project);
         return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");

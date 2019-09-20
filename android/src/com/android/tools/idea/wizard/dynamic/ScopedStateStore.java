@@ -89,7 +89,7 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
    * Adds a listener that gets notified when stored values change.
    */
   public final void addListener(@NotNull ScopedStoreListener listener) {
-    myListeners.add(new WeakReference<ScopedStoreListener>(listener));
+    myListeners.add(new WeakReference<>(listener));
   }
 
   /**
@@ -261,7 +261,7 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
    * Typesafe copy operation for copying key value between stores.
    */
   private <T> void copyValue(@NotNull ScopedStateStore store, @NotNull Key<T> key) {
-    Key newKey = new Key<T>(key.name, Scope.WIZARD, key.expectedClass);
+    Key newKey = new Key<>(key.name, Scope.WIZARD, key.expectedClass);
     put(newKey, store.get(key));
   }
 
@@ -342,7 +342,7 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
    * Get a key to allow storage in the state store.
    */
   public static <T> Key<T> createKey(@NotNull String name, @NotNull Scope scope, @NotNull Class<T> clazz) {
-    return new Key<T>(name, scope, clazz);
+    return new Key<>(name, scope, clazz);
   }
 
   /**

@@ -27,8 +27,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.project.AndroidKtsSupportNotification.DisableAndroidKtsNotificationHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.List;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -43,7 +43,7 @@ public class AndroidKtsSupportNotificationTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    new IdeComponents(myProject).replaceProjectService(AndroidNotification.class, myAndroidNotification);
+    ServiceContainerUtil.replaceService(myProject, AndroidNotification.class, myAndroidNotification, getTestRootDisposable());
   }
 
   /**

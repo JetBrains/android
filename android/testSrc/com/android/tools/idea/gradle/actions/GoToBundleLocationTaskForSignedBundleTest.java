@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,8 +69,8 @@ public class GoToBundleLocationTaskForSignedBundleTest extends IdeaTestCase {
     buildsToPaths = new TreeMap<>();
     buildsToPaths.put(buildVariant1, myBundleFilePath1);
     buildsToPaths.put(buildVariant2, myBundleFilePath2);
-    IdeComponents ideComponents = new IdeComponents(getProject());
-    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
+    IdeComponents ideComponents = new IdeComponents(getProject(), getTestRootDisposable());
+    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(getProject(), BuildsToPathsMapper.class, getTestRootDisposable());
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), anyString())).thenReturn(buildsToPaths);
     myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants, null, "") {
       @Override
@@ -77,7 +78,7 @@ public class GoToBundleLocationTaskForSignedBundleTest extends IdeaTestCase {
         return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
       }
     };
-    ideComponents.replaceProjectService(AndroidNotification.class, myMockNotification);
+    ServiceContainerUtil.replaceService(getProject(), AndroidNotification.class, myMockNotification, getTestRootDisposable());
   }
 
   public void testExecuteWithCancelledBuild() {

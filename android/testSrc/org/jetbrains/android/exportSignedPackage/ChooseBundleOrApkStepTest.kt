@@ -15,18 +15,10 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
-import com.android.tools.idea.testing.IdeComponents
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.JavaProjectTestCase
 import org.mockito.Mockito
 
-class ChooseBundleOrApkStepTest : IdeaTestCase() {
-  private lateinit var ideComponents: IdeComponents
-
-  override fun setUp() {
-    super.setUp()
-    ideComponents = IdeComponents(myProject)
-  }
-
+class ChooseBundleOrApkStepTest : JavaProjectTestCase() {
   fun testSetup() {
     val wizard = Mockito.mock(ExportSignedPackageWizard::class.java)
     Mockito.`when`(wizard.project).thenReturn(myProject)

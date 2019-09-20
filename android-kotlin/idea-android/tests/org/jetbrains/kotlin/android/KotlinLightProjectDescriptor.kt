@@ -29,6 +29,7 @@ import com.intellij.testFramework.LightProjectDescriptor
 import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
 import java.io.File
 
+// FIXME-ank: intellij.android.kotlin.tests.iml
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
 open class KotlinLightProjectDescriptor : LightProjectDescriptor() {
 

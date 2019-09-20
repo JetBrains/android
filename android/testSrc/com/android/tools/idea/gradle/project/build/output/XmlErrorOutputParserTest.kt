@@ -51,7 +51,7 @@ class XmlErrorOutputParserTest {
     parser = XmlErrorOutputParser()
     sourceFile = temporaryFolder.newFile()
 
-    `when`(reader.buildId).thenReturn("testId")
+    `when`(reader.parentEventId).thenReturn("testId")
   }
 
   private fun verifyFileMessageEvent(buildEvent: BuildEvent,

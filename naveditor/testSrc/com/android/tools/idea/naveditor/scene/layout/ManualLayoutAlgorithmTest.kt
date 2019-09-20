@@ -151,7 +151,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     PlatformTestUtil.saveProject(project)
 
     // Tests always use file-based storage, not directory-based
-    assertTrue(project.projectFile!!.contentsToByteArray().toString(UTF_8).contains("fragment1"))
+    assertTrue(project.projectFile!!.contentsToByteArray().toString(Charsets.UTF_8).contains("fragment1"))
 
     // Now create everything anew and verify the old position is restored
     model = model("nav.xml") {

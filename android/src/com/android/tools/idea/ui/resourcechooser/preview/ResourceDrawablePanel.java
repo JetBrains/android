@@ -31,9 +31,11 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ArrayUtil;
+import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -44,7 +46,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -88,7 +89,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
     myItem = item;
     List<String> qualifiers = item.getQualifiers();
     //noinspection unchecked
-    myQualifierCombo.setModel(new DefaultComboBoxModel(ArrayUtil.toStringArray(qualifiers)));
+    myQualifierCombo.setModel(new DefaultComboBoxModel(ArrayUtilRt.toStringArray(qualifiers)));
 
     // Select the current item's qualifiers!
     //noinspection UnnecessaryLocalVariable
@@ -161,10 +162,10 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
 
     Icon icon = null;
     if (path != null) {
-      icon = myIconFactory.createIconFromPath(height, JBUI.scale(8), false, path);
+      icon = myIconFactory.createIconFromPath(height, JBUIScale.scale(8), false, path);
     }
     if (icon == null) {
-      icon = myIconFactory.createAsyncIconFromResourceValue(height, JBUI.scale(8), false,
+      icon = myIconFactory.createAsyncIconFromResourceValue(height, JBUIScale.scale(8), false,
                                                             item.getResourceValue(),
                                                             EmptyIcon.create(height), iconCallback);
     }
@@ -175,14 +176,14 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
   @NotNull
   private static String getItemTypeLabel(@NotNull ResourceChooserItem item) {
     if (item.getType() == ResourceType.MIPMAP) { // don't show file type of just one of the images
-      return ResourceType.MIPMAP.getDisplayName().toUpperCase(Locale.US); // uppercase for symmetry with other file types
+      return StringUtil.toUpperCase(ResourceType.MIPMAP.getDisplayName()); // uppercase for symmetry with other file types
     }
 
     PathString file = item.getFile();
     if (file != null && item.getType() != ResourceType.COLOR) {
       String extension = Files.getFileExtension(file.getFileName());
       if (!extension.isEmpty()) {
-        return extension.toUpperCase(Locale.US);
+        return StringUtil.toUpperCase(extension);
       }
     }
 
@@ -248,7 +249,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
       .map(text -> "\u21D2 " + text)
       .map(text -> new JBLabel(text))
       .forEach(label -> {
-        label.setBorder(JBUI.Borders.emptyLeft(JBUI.scale(indentCount.incrementAndGet() * 12)));
+        label.setBorder(JBUI.Borders.emptyLeft(JBUIScale.scale(indentCount.incrementAndGet() * 12)));
         resolvedPanel.add(label);
       });
   }

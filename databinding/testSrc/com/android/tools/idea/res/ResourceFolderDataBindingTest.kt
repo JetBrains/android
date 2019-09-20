@@ -102,16 +102,16 @@ class ResourceFolderDataBindingTest {
   fun testAddVariable() {
     setupTestWithDataBinding()
     insertXml(
-      offset = getVariableTag("variable1").textOffset,
-      xml = """
+            offset = getVariableTag("variable1").textOffset,
+            xml = """
         <variable
           name="added"
           type="Integer"
         />
         """.trimIndent())
     assertVariables(
-      "variable1" to "String",
-      "added" to "Integer"
+            "variable1" to "String",
+            "added" to "Integer"
     )
   }
 
@@ -119,10 +119,10 @@ class ResourceFolderDataBindingTest {
   fun testRenameVariable() {
     setupTestWithDataBinding()
     updateXml(
-      range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange,
-      xml = "newName")
+            range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange,
+            xml = "newName")
     assertVariables(
-      "newName" to "String"
+            "newName" to "String"
     )
   }
 
@@ -130,10 +130,10 @@ class ResourceFolderDataBindingTest {
   fun testRenameVariable_prefix() {
     setupTestWithDataBinding()
     insertXml(
-      offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.textOffset,
-      xml = "prefix_")
+            offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.textOffset,
+            xml = "prefix_")
     assertVariables(
-      "prefix_variable1" to "String"
+            "prefix_variable1" to "String"
     )
   }
 
@@ -141,10 +141,10 @@ class ResourceFolderDataBindingTest {
   fun testRenameVariable_suffix() {
     setupTestWithDataBinding()
     insertXml(
-      offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange.endOffset,
-      xml = "_suffix")
+            offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange.endOffset,
+            xml = "_suffix")
     assertVariables(
-      "variable1_suffix" to "String"
+            "variable1_suffix" to "String"
     )
   }
 
@@ -161,8 +161,8 @@ class ResourceFolderDataBindingTest {
     setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
     insertXml(
-      offset = variableTag.textRange.endOffset,
-      xml = """
+            offset = variableTag.textRange.endOffset,
+            xml = """
         <variable
           name="added"
           type="Integer"
@@ -171,7 +171,7 @@ class ResourceFolderDataBindingTest {
     )
     deleteXml(variableTag.textRange)
     assertVariables(
-      "added" to "Integer"
+            "added" to "Integer"
     )
   }
 
@@ -180,8 +180,8 @@ class ResourceFolderDataBindingTest {
     setupTestWithDataBinding()
     val variableTag = getVariableTag("variable1")
     insertXml(
-      offset = variableTag.textRange.endOffset,
-      xml = """
+            offset = variableTag.textRange.endOffset,
+            xml = """
         <variable
           name="added"
           type="Integer"
@@ -190,7 +190,7 @@ class ResourceFolderDataBindingTest {
     )
     deleteXml(getVariableTag("added").textRange)
     assertVariables(
-      "variable1" to "String"
+            "variable1" to "String"
     )
   }
 
@@ -198,18 +198,18 @@ class ResourceFolderDataBindingTest {
   fun testUpdateType() {
     setupTestWithDataBinding()
     updateXml(
-      range = getVariableTag("variable1").getAttribute("type")!!.valueElement!!.valueTextRange,
-      xml = "Float"
+            range = getVariableTag("variable1").getAttribute("type")!!.valueElement!!.valueTextRange,
+            xml = "Float"
     )
     assertVariables(
-      "variable1" to "Float"
+            "variable1" to "Float"
     )
   }
 
   @Test
   fun testAddIdToView() {
     setupWithLayoutFile(
-      """
+            """
         <layout xmlns:android="http://schemas.android.com/apk/res/android">
           <LinearLayout
             android:orientation="vertical"
@@ -225,18 +225,18 @@ class ResourceFolderDataBindingTest {
     }
     assertNotNull(orientation)
     insertXml(
-      offset = orientation!!.textOffset,
-      xml = """android:id="@+id/root_view" """
+            offset = orientation!!.textOffset,
+            xml = """android:id="@+id/root_view" """
     )
     assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
+            "rootView" to "android.widget.LinearLayout"
     )
   }
 
   @Test
   fun testRemoveIdFromView() {
     setupWithLayoutFile(
-      """
+            """
         <layout xmlns:android="http://schemas.android.com/apk/res/android">
           <LinearLayout
             android:id="@+id/root_view"
@@ -248,7 +248,7 @@ class ResourceFolderDataBindingTest {
       """.trimIndent()
     )
     assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
+            "rootView" to "android.widget.LinearLayout"
     )
     val idAttr = findChild {
       (it is XmlAttribute) && it.localName == "id"
@@ -261,7 +261,7 @@ class ResourceFolderDataBindingTest {
   @Test
   fun testChangeId() {
     setupWithLayoutFile(
-      """
+            """
         <layout xmlns:android="http://schemas.android.com/apk/res/android">
           <LinearLayout
             android:id="@+id/root_view"
@@ -273,25 +273,25 @@ class ResourceFolderDataBindingTest {
       """.trimIndent()
     )
     assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
+            "rootView" to "android.widget.LinearLayout"
     )
     val idAttr = findChild {
       (it is XmlAttribute) && it.localName == "id"
     }
     assertNotNull(idAttr)
     updateXml(
-      range = (idAttr as XmlAttribute).valueElement!!.valueTextRange,
-      xml = "@+id/new_id"
+            range = (idAttr as XmlAttribute).valueElement!!.valueTextRange,
+            xml = "@+id/new_id"
     )
     assertViewsWithIds(
-      "newId" to "android.widget.LinearLayout"
+            "newId" to "android.widget.LinearLayout"
     )
   }
 
   @Test
   fun testChangeViewType() {
     setupWithLayoutFile(
-      """
+            """
         <layout xmlns:android="http://schemas.android.com/apk/res/android">
           <LinearLayout
             android:id="@+id/root_view"
@@ -306,18 +306,18 @@ class ResourceFolderDataBindingTest {
     } as? XmlTag
     assertNotNull(linearLayout)
     updateXml(
-      range = TextRange(linearLayout!!.startOffsetInParent, linearLayout.startOffsetInParent + "<LinearLayout".length),
-      xml = "<TextView"
+            range = TextRange(linearLayout!!.startOffsetInParent, linearLayout.startOffsetInParent + "<LinearLayout".length),
+            xml = "<TextView"
     )
     assertViewsWithIds(
-      "rootView" to "android.widget.TextView"
+            "rootView" to "android.widget.TextView"
     )
   }
 
   @Test
   fun testAddViewWithId() {
     setupWithLayoutFile(
-      """
+            """
         <layout xmlns:android="http://schemas.android.com/apk/res/android">
           <LinearLayout
             android:id="@+id/root_view"
@@ -329,7 +329,7 @@ class ResourceFolderDataBindingTest {
       """.trimIndent()
     )
     assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
+            "rootView" to "android.widget.LinearLayout"
     )
     val linearLayout = findChild {
       (it is XmlTag) && it.localName == "LinearLayout"
@@ -337,8 +337,8 @@ class ResourceFolderDataBindingTest {
     assertNotNull(linearLayout)
 
     insertXml(
-      offset = linearLayout!!.textRange.endOffset,
-      xml = """
+            offset = linearLayout!!.textRange.endOffset,
+            xml = """
         <TextView
             android:id="@+id/view2"
             android:layout_width="fill_parent"
@@ -347,15 +347,15 @@ class ResourceFolderDataBindingTest {
         """.trimIndent()
     )
     assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout",
-      "view2" to "android.widget.TextView"
+            "rootView" to "android.widget.LinearLayout",
+            "view2" to "android.widget.TextView"
     )
   }
 
   @Test
   fun testUnrelatedChange_attr() {
     setupWithLayoutFile(
-      """
+            """
         <layout xmlns:android="http://schemas.android.com/apk/res/android">
           <LinearLayout
             android:id="@+id/root_view"
@@ -367,7 +367,7 @@ class ResourceFolderDataBindingTest {
       """.trimIndent()
     )
     assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
+            "rootView" to "android.widget.LinearLayout"
     )
     val startModificationCnt = getInfo().modificationCount
     val orientationAttr = findChild {
@@ -375,12 +375,12 @@ class ResourceFolderDataBindingTest {
     }
     assertNotNull(orientationAttr)
     updateXml(
-      range = (orientationAttr as XmlAttribute).valueElement!!.valueTextRange,
-      xml = "horizontal"
+            range = (orientationAttr as XmlAttribute).valueElement!!.valueTextRange,
+            xml = "horizontal"
     )
     val endModificationCnt = getInfo().modificationCount
     assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
+            "rootView" to "android.widget.LinearLayout"
     )
     assertEquals(startModificationCnt, endModificationCnt)
   }
@@ -388,7 +388,7 @@ class ResourceFolderDataBindingTest {
   @Test
   fun testUnrelatedChange_addView() {
     setupWithLayoutFile(
-      """
+            """
         <layout xmlns:android="http://schemas.android.com/apk/res/android">
           <LinearLayout
             android:id="@+id/root_view"
@@ -400,7 +400,7 @@ class ResourceFolderDataBindingTest {
       """.trimIndent()
     )
     assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
+            "rootView" to "android.widget.LinearLayout"
     )
     val startModificationCnt = getInfo().modificationCount
     val linearLayout = findChild {
@@ -409,8 +409,8 @@ class ResourceFolderDataBindingTest {
     assertNotNull(linearLayout)
 
     insertXml(
-      offset = linearLayout!!.textRange.endOffset,
-      xml = """
+            offset = linearLayout!!.textRange.endOffset,
+            xml = """
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
@@ -419,7 +419,7 @@ class ResourceFolderDataBindingTest {
     )
     val endModificationCnt = getInfo().modificationCount
     assertViewsWithIds(
-      "rootView" to "android.widget.LinearLayout"
+            "rootView" to "android.widget.LinearLayout"
     )
     assertEquals(startModificationCnt, endModificationCnt)
   }
@@ -458,19 +458,19 @@ class ResourceFolderDataBindingTest {
   fun testInitialParsing() {
     setupTestWithDataBinding()
     assertVariables(
-      "variable1" to "String"
+            "variable1" to "String"
     )
     assertImports(
-      "p1.p2.import1" to null,
-      "p1.p2.import2" to "i2"
+            "p1.p2.import1" to null,
+            "p1.p2.import2" to "i2"
     )
     assertViewsWithIds(
-      "magicView" to "foo.bar.Magic",
-      "normalViewTag" to "android.view.View",
-      "surfaceView1" to "android.view.SurfaceView",
-      "textView1" to "android.widget.TextView",
-      "viewTag" to "android.view.ViewGroup",
-      "webView1" to "android.webkit.WebView"
+            "magicView" to "foo.bar.Magic",
+            "normalViewTag" to "android.view.View",
+            "surfaceView1" to "android.view.SurfaceView",
+            "textView1" to "android.widget.TextView",
+            "viewTag" to "android.view.ViewGroup",
+            "webView1" to "android.webkit.WebView"
     )
   }
 
@@ -492,11 +492,11 @@ class ResourceFolderDataBindingTest {
    */
   private fun assertVariables(vararg expected: Pair<String, String>) {
     val variablesInInfo = getInfo()
-      .getItems(DataBindingResourceType.VARIABLE)
-      .values
-      .map {
-        Pair(it.name, it.getExtra(SdkConstants.ATTR_TYPE))
-      }.toSet()
+            .getItems(DataBindingResourceType.VARIABLE)
+            .values
+            .map {
+              Pair(it.name, it.getExtra(SdkConstants.ATTR_TYPE))
+            }.toSet()
     assertEquals(expected.toSet(), variablesInInfo)
   }
 
@@ -506,12 +506,12 @@ class ResourceFolderDataBindingTest {
    */
   private fun assertImports(vararg expected: Pair<String, String?>) {
     val importsInInfo = getInfo()
-      .getItems(DataBindingResourceType.IMPORT)
-      .values
-      .map {
-        Pair(it.getExtra(SdkConstants.ATTR_TYPE), it.getExtra(SdkConstants.ATTR_ALIAS))
-      }
-      .toSet()
+            .getItems(DataBindingResourceType.IMPORT)
+            .values
+            .map {
+              Pair(it.getExtra(SdkConstants.ATTR_TYPE), it.getExtra(SdkConstants.ATTR_ALIAS))
+            }
+            .toSet()
     assertEquals(expected.toSet(), importsInInfo)
   }
 
@@ -521,11 +521,11 @@ class ResourceFolderDataBindingTest {
    */
   private fun assertViewsWithIds(vararg expected: Pair<String, String>) {
     val viewsInInfo = getInfo()
-      .viewsWithIds
-      .map {
-        Pair(it.name, DataBindingUtil.resolveViewPsiType(it, facet)!!.canonicalText)
-      }
-      .toSet()
+            .viewsWithIds
+            .map {
+              Pair(it.name, DataBindingUtil.resolveViewPsiType(it, facet)!!.canonicalText)
+            }
+            .toSet()
     assertEquals(expected.toSet(), viewsInInfo)
   }
 
@@ -536,11 +536,11 @@ class ResourceFolderDataBindingTest {
 
   private fun getVariableTag(name: String): XmlTag {
     val variable = getInfo()
-      .getItems(DataBindingResourceType.VARIABLE)
-      .values
-      .firstOrNull {
-        it.name == name
-      }
+            .getItems(DataBindingResourceType.VARIABLE)
+            .values
+            .firstOrNull {
+              it.name == name
+            }
     assertNotNull("cannot find variable with name $name", variable)
     return variable!!.xmlTag
   }
@@ -562,7 +562,7 @@ class ResourceFolderDataBindingTest {
       // Use a file cache that has per-test root directories instead of sharing the system directory.
       // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
       val oldCache = applicationContainer.getComponentInstance(
-        ResourceFolderRepositoryFileCache::class.java.name) as ResourceFolderRepositoryFileCache
+              ResourceFolderRepositoryFileCache::class.java.name) as ResourceFolderRepositoryFileCache
       applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache::class.java.name)
       applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache::class.java.name, newCache)
       return oldCache

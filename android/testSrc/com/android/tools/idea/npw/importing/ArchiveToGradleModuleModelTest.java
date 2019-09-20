@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
@@ -202,7 +203,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
                                               @NotNull File archiveToImport) throws IOException {
     Project project = getProject();
 
-    File defaultSubprojectLocation = getModuleDefaultPath(project.getBaseDir(), newModuleGradlePath);
+    File defaultSubprojectLocation = getModuleDefaultPath(Paths.get(project.getBasePath()), newModuleGradlePath).toFile();
     File importedArchive = new File(defaultSubprojectLocation, archiveToImport.getName());
     assertAbout(file()).that(importedArchive).isFile();
 

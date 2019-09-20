@@ -41,7 +41,7 @@ public class InstalledApkCache implements Disposable {
   private String myDiagnosticOutput;
 
   public InstalledApkCache() {
-    myCache = new DeviceStateCache<CacheData>(this);
+    myCache = new DeviceStateCache<>(this);
   }
 
   @Override

@@ -17,11 +17,10 @@ package com.android.tools.idea.templates;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
-
-import java.util.Locale;
 
 /**
  * Helper code for Template Globals (defined in globals.xml)
@@ -40,13 +39,13 @@ public class TypedVariable {
         return STRING;
       }
       try {
-        return valueOf(name.toUpperCase(Locale.US));
+        return valueOf(StringUtil.toUpperCase(name));
       } catch (IllegalArgumentException e) {
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
           StringBuilder stringBuilder = new StringBuilder();
           stringBuilder.append("Unexpected global type '" + name + "'. Expected one of: \n");
           for (Type s : Type.values()) {
-            stringBuilder.append("   " + s.name().toLowerCase(Locale.US) + "\n");
+            stringBuilder.append("   " + StringUtil.toLowerCase(s.name()) + "\n");
           }
           LOG.error(stringBuilder.toString());
         }

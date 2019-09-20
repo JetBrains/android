@@ -30,7 +30,7 @@ import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.ColorUtil;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +48,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
    * Minimum size in pixels for the drawable preview render. This doesn't need to be exact as the actual icon
    * will be scaled to match the swatch size.
    */
-  private static final int MIN_DRAWABLE_PREVIEW_SIZE = JBUI.scale(25);
+  private static final int MIN_DRAWABLE_PREVIEW_SIZE = JBUIScale.scale(25);
 
   private @Nullable RenderTask myRenderTask;
 

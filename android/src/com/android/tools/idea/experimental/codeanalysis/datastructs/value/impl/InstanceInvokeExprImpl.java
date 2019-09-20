@@ -19,7 +19,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGMethod
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.InstanceInvokeExpr;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiType;
 
 public class InstanceInvokeExprImpl extends InvokeExprImpl implements InstanceInvokeExpr {

@@ -18,14 +18,13 @@ package com.android.tools.idea.gradle.project.build.invoker.messages;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.errorTreeView.*;
 import com.intellij.ui.MultilineTreeCellRenderer;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.EmptyIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-
-import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 
 /**
 * Renders elements in the "Messages" window. This renderer does not add the message type as a prefix (e.g. "Information:");
@@ -38,7 +37,7 @@ class MessageTreeRenderer extends MultilineTreeCellRenderer {
     if (element != null) {
       String[] text = element.getText();
       if (text == null) {
-        text = EMPTY_STRING_ARRAY;
+        text = ArrayUtilRt.EMPTY_STRING_ARRAY;
       }
       if (text.length > 0 && text[0] == null) {
         text[0] = "";

@@ -30,7 +30,7 @@ import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -60,7 +60,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
   int[] myXPoints = new int[10]; // so that the memory is not allocated on paint
   int[] myYPoints = new int[10]; // so that the memory is not allocated on paint
   ArrayList<ViewRow> myViewRows = new ArrayList<>();
-  public static int ourDiamondSize = JBUI.scale(10);
+  public static int ourDiamondSize = JBUIScale.scale(10);
   private boolean myInStateChange;
   private boolean myDisplayInstructions = true;
   static int ourBaseSelected = (Chart.ourMySelectedLineColor.getRGB() & 0xFFFFFF) | 0x77000000;
@@ -874,7 +874,7 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
       if (myChart != null) {
         int width = getWidth() - myChart.myChartLeftInset - myChart.myChartRightInset;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        int xp = JBUI.scale(10);
+        int xp = JBUIScale.scale(10);
         int yp = pos + ourDiamondSize;
         myLayoutsSelectionTable.add(xp, yp, myViewElement.myName);
         boolean viewSelected = (myChart.mySelection == Chart.Selection.VIEW && myViewElement.myName.equals(myChart.mySelectedKeyView));

@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.intellij.ui.ColoredListCellRenderer;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public enum InstallOption {
   DEFAULT_APK("Default APK"),
@@ -30,12 +27,5 @@ public enum InstallOption {
 
   InstallOption(@NotNull String displayName) {
     this.displayName = displayName;
-  }
-
-  public static class Renderer extends ColoredListCellRenderer<InstallOption> {
-    @Override
-    protected void customizeCellRenderer(@NotNull JList list, InstallOption option, int index, boolean selected, boolean hasFocus) {
-      append(option.displayName);
-    }
   }
 }
