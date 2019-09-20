@@ -152,6 +152,9 @@ class PathValidator
 
     @JvmStatic
     fun forAndroidSdkLocation(): PathValidator = Builder().withCommonRules().build("Android SDK location")
+
+    @JvmStatic
+    fun forAndroidNdkLocation(): PathValidator = Builder().withCommonRules().build("Android NDK location")
   }
 }
 
@@ -208,7 +211,7 @@ private val RESERVED_WINDOWS_FILENAMES: Set<String> = setOf(
  */
 private const val WINDOWS_PATH_LENGTH_LIMIT = 240
 
-private val ILLEGAL_CHARACTER_MATCHER: CharMatcher = CharMatcher.anyOf("[/\\\\?%*:|\"<>!;]")
+private val ILLEGAL_CHARACTER_MATCHER: CharMatcher = CharMatcher.anyOf("[/\\?%*:|\"<>!;]")
 
 val IS_EMPTY = createSimpleRule(
   { _, file -> file.name.isEmpty() },
