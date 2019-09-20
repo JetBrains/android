@@ -225,6 +225,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // TODO(xof): this way of keeping track of how we got hold of the block (which method name) only works once
       blockElement.setMethodName(expression.name())
     }
+    if (blockElement is SigningConfigDslElement) {
+      blockElement.methodName = expression.name()
+    }
     return blockElement
   }
 

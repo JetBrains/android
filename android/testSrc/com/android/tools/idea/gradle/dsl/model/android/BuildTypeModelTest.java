@@ -1268,7 +1268,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
-    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
+               isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
     SigningConfigModel signingConfigModel = buildType.signingConfig().toSigningConfig();
     assertThat(signingConfigModel.name(), equalTo("myConfig"));
   }
@@ -1280,7 +1281,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
-    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
+               isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
     SigningConfigPropertyModel signingConfigModel = buildType.signingConfig();
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myConfig"));
     // Set the value to be equal to a different config.
@@ -1288,10 +1290,11 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs.size(), equalTo(2));
     assertThat(signingConfigs.get(0).name(), equalTo("myConfig"));
     assertThat(signingConfigs.get(1).name(), equalTo("myBetterConfig"));
-    signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(1)));
+    signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(1), isGroovy()));
 
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myBetterConfig", CUSTOM, REGULAR, 1);
-    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myBetterConfig"));
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
+               isGroovy()?equalTo("signingConfigs.myBetterConfig"):equalTo("signingConfigs.getByName(\"myBetterConfig\")"));
     signingConfigModel = buildType.signingConfig();
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myBetterConfig"));
 
@@ -1299,23 +1302,26 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     buildType = getXyzBuildType(buildModel);
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myBetterConfig", CUSTOM, REGULAR, 1);
-    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myBetterConfig"));
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
+               isGroovy()?equalTo("signingConfigs.myBetterConfig"):equalTo("signingConfigs.getByName(\"myBetterConfig\")"));
     signingConfigModel = buildType.signingConfig();
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myBetterConfig"));
 
-    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig"));
+    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig", isGroovy()));
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
-    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
+               isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
     signingConfigModel = buildType.signingConfig();
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myConfig"));
 
     applyChangesAndReparse(buildModel);
 
-    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig"));
+    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig", isGroovy()));
 
     buildType = getXyzBuildType(buildModel);
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
-    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
+               isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
     signingConfigModel = buildType.signingConfig();
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myConfig"));
   }
@@ -1330,11 +1336,12 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     SigningConfigModel signingConfig = android.signingConfigs().get(0);
     assertMissingProperty(buildTypeModel.signingConfig());
-    buildTypeModel.signingConfig().setValue(new ReferenceTo(signingConfig));
+    buildTypeModel.signingConfig().setValue(new ReferenceTo(signingConfig, isGroovy()));
 
     SigningConfigPropertyModel signingConfigPropertyModel = buildTypeModel.signingConfig();
     verifyPropertyModel(signingConfigPropertyModel, STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
-    assertThat(signingConfigPropertyModel.getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    assertThat(signingConfigPropertyModel.getRawValue(STRING_TYPE),
+               isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
     assertThat(signingConfigPropertyModel.toSigningConfig().name(), equalTo("myConfig"));
 
     applyChangesAndReparse(buildModel);
@@ -1344,7 +1351,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     signingConfigPropertyModel = buildTypeModel.signingConfig();
     verifyPropertyModel(signingConfigPropertyModel, STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
-    assertThat(signingConfigPropertyModel.getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    assertThat(signingConfigPropertyModel.getRawValue(STRING_TYPE), 
+               isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
     assertThat(signingConfigPropertyModel.toSigningConfig().name(), equalTo("myConfig"));
   }
 
