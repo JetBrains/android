@@ -21,6 +21,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getSdk;
+import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -35,7 +36,6 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -80,10 +80,11 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -92,6 +93,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -250,7 +252,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
+        HeavyPlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
       }
       myAndroidFacet = null;
       myModules = null;
@@ -353,8 +355,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
     }
 
-    Project project = myFixture.getProject();
-    File projectRoot = virtualToIoFile(project.getBaseDir());
+    File projectRoot = new File(myFixture.getProject().getBasePath());
 
     List<String> buildNames = new ArrayList<>(Arrays.asList(includedBuilds));
     if (includedBuilds.length == 0) {
@@ -404,7 +405,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     updateVersionAndDependencies(projectRoot);
 
     // Refresh project dir to have files under of the project.getBaseDir() visible to VFS
-    synchronizeTempDirVfs(getProject().getBaseDir());
+    synchronizeTempDirVfs(Paths.get(getProject().getBasePath()));
     return projectRoot;
   }
 
@@ -464,9 +465,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
   }
 
-  protected void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
+  public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
+    if (path == null) {
+      path = getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip");
+    }
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
   }
@@ -532,7 +536,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @NotNull
   protected String getTextForFile(@NotNull String relativePath) {
     Project project = getProject();
-    VirtualFile file = project.getBaseDir().findFileByRelativePath(relativePath);
+    VirtualFile file = VfsUtil.findFile(Paths.get(project.getBasePath(), relativePath), false);
     if (file != null) {
       PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
       if (psiFile != null) {
@@ -608,8 +612,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected Module createModule(@NotNull String name, @NotNull ModuleType type) {
-    VirtualFile projectRootFolder = getProject().getBaseDir();
-    File moduleFile = new File(virtualToIoFile(projectRootFolder), name + ModuleFileType.DOT_DEFAULT_EXTENSION);
+    File moduleFile = new File(getProject().getBasePath(), name + ModuleFileType.DOT_DEFAULT_EXTENSION);
     createIfDoesntExist(moduleFile);
 
     VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);

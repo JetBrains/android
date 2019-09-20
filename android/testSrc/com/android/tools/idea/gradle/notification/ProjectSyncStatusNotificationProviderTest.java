@@ -20,37 +20,35 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.IndexingSensitiveNotificationPanel;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link ProjectSyncStatusNotificationProvider}.
  */
-public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
+public class ProjectSyncStatusNotificationProviderTest extends JavaProjectTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleSyncSummary mySyncSummary;
 
   private ProjectSyncStatusNotificationProvider myNotificationProvider;
   private VirtualFile myFile;
-  @SuppressWarnings("FieldCanBeLocal")
-  private IdeComponents myIdeComponents;
   @SuppressWarnings("FieldCanBeLocal")
   private PropertiesComponent myPropertiesComponent;
 
@@ -68,8 +66,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     myFile = VfsUtil.findFileByIoFile(createTempFile("build.gradle", "whatever"), true);
 
     myPropertiesComponent = new PropertiesComponentMock();
-    myIdeComponents = new IdeComponents(myProject);
-    myIdeComponents.replaceApplicationService(PropertiesComponent.class, myPropertiesComponent);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), PropertiesComponent.class, myPropertiesComponent, getTestRootDisposable());
   }
 
   public void testNotificationPanelTypeWithProjectNotBuiltWithGradle() {

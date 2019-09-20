@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
 import java.awt.*;

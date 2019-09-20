@@ -24,11 +24,10 @@ import com.android.tools.property.ptable.PTableCellEditorProvider;
 import com.android.tools.property.ptable.PTableItem;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class NlXmlEditors implements PTableCellEditorProvider, ProjectComponent, LafManagerListener {
+public final class NlXmlEditors implements PTableCellEditorProvider, LafManagerListener {
   private final Project myProject;
   private NlTableCellEditor myPropertyEditor;
   private NlTableCellEditor myAddPropertyEditor;
@@ -41,6 +40,8 @@ public class NlXmlEditors implements PTableCellEditorProvider, ProjectComponent,
 
   private NlXmlEditors(@NotNull Project project) {
     myProject = project;
+
+    project.getMessageBus().connect().subscribe(LafManagerListener.TOPIC, this);
   }
 
   @Nullable
@@ -88,29 +89,5 @@ public class NlXmlEditors implements PTableCellEditorProvider, ProjectComponent,
   @Override
   public void lookAndFeelChanged(@NotNull LafManager source) {
     resetCachedEditors();
-  }
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-    LafManager.getInstance().addLafManagerListener(this);
-  }
-
-  @Override
-  public void disposeComponent() {
-    LafManager.getInstance().removeLafManagerListener(this);
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return NlXmlEditors.class.getSimpleName();
   }
 }

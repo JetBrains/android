@@ -22,7 +22,7 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.util.AndroidBundle;

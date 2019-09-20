@@ -557,7 +557,7 @@ public class AvdManagerConnection {
     }
 
     // Extract the proxy information
-    List<String> proxyParameters = new ArrayList<String>();
+    List<String> proxyParameters = new ArrayList<>();
 
     List<Pair<String, String>> myPropList = httpInstance.getJvmProperties(false, null);
     for (Pair<String, String> kv : myPropList) {
@@ -805,7 +805,7 @@ public class AvdManagerConnection {
     }
     if (orientation == ScreenOrientation.LANDSCAPE) {
       hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
-                             ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase(Locale.ROOT));
+                             StringUtil.toLowerCase(ScreenOrientation.LANDSCAPE.getShortDisplayValue()));
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);

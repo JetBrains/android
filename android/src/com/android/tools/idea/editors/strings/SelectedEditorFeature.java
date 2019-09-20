@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
 
 /**
  * this class handles the fact that {@link FileEditor#selectNotify} is called sometimes several times,

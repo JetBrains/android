@@ -29,6 +29,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,6 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
 
 public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
@@ -137,7 +137,7 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
     }
 
     // Gradle API doesn't provide library name at the moment.
-    String name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(binaryPath.getPath());
+    String name = binaryPath.isFile() ? FileUtilRt.getNameWithoutExtension(binaryPath.getName()) : sanitizeFileName(binaryPath.getPath());
 
     myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, binaryPath, dependency.getSourcePath(),
                                                dependency.getJavadocPath(), getExported());

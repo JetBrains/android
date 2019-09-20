@@ -24,7 +24,6 @@ import com.intellij.designer.LightToolWindowManager;
 import com.intellij.designer.ToggleEditorModeAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -40,14 +39,13 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public abstract class NlAbstractWindowManager extends LightToolWindowManager {
-
   private ToolWindowType myPreviousWindowType;
   private ToolWindowAnchor myPreviousWindowAnchor;
   /** The design surface the tool window is attached to, if any */
   private DesignSurface myDesignSurface;
 
-  public NlAbstractWindowManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
-    super(project, fileEditorManager);
+  public NlAbstractWindowManager(@NotNull Project project) {
+    super(project);
   }
 
   protected void initToolWindow(final @NotNull String id, @NotNull Icon icon) {

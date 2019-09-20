@@ -74,7 +74,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    _gradleDependencyManager = IdeComponents(project).mockProjectService(GradleDependencyManager::class.java)
+    _gradleDependencyManager = IdeComponents.mockProjectService(project, GradleDependencyManager::class.java, testRootDisposable)
     _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project), mavenRepository)
     assertThat(gradleModuleSystem.getResolvedDependentLibraries()).isEmpty()
   }
@@ -99,7 +99,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   }
 
   fun testNoAndroidModuleModel() {
-    // The AndroidModuleModel shouldn't be created when running from an IdeaTestCase.
+    // The AndroidModuleModel shouldn't be created when running from an JavaProjectTestCase.
     assertThat(AndroidModuleModel.get(myModule)).isNull()
     assertThat(gradleModuleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))).isNull()
   }

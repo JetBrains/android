@@ -79,7 +79,7 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
       .setSkipNoopApkInstallations(true)
       .setForceStopRunningApp(true)
 
-    instantAppSdks = IdeComponents(null, testRootDisposable).mockApplicationService(InstantAppSdks::class.java)
+    instantAppSdks = IdeComponents.mockApplicationService(InstantAppSdks::class.java, testRootDisposable)
   }
 
   fun testDeployInstantAppAsInstantAPK() {

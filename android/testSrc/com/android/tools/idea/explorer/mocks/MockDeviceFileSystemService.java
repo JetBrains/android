@@ -20,7 +20,6 @@ import com.android.tools.idea.util.FutureUtils;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener;
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;

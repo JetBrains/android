@@ -19,7 +19,6 @@ import static com.android.fakeadbserver.DeviceState.DeviceStatus.ONLINE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
@@ -30,7 +29,6 @@ import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
-import com.android.testutils.TestUtils;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.PrintWriter;

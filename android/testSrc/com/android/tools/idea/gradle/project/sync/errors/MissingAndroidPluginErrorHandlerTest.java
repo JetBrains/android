@@ -25,9 +25,10 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.application.ApplicationManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -52,15 +53,13 @@ import static org.mockito.Mockito.when;
 public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
   private TestSyncIssueUsageReporter myUsageReporter;
-  private IdeComponents myIdeComponents;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project);
-    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
-    myIdeComponents = new IdeComponents(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   public void testWithGradle4dot0() throws Exception {
@@ -68,7 +67,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     loadProject(SIMPLE_APPLICATION);
     Project project = getProject();
     GradleVersions spyVersions = spy(GradleVersions.getInstance());
-    myIdeComponents.replaceApplicationService(GradleVersions.class, spyVersions);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleVersions.class, spyVersions, getTestRootDisposable());
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(4,0));
 
     // Make sure no repository is listed
@@ -94,7 +93,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     loadProject(SIMPLE_APPLICATION);
     Project project = getProject();
     GradleVersions spyVersions = spy(GradleVersions.getInstance());
-    myIdeComponents.replaceApplicationService(GradleVersions.class, spyVersions);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleVersions.class, spyVersions, getTestRootDisposable());
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(2,2, 1));
 
     // Make sure no repository is listed

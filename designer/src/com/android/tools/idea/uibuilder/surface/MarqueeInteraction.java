@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.draw.DrawLassoUtil;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -83,7 +84,7 @@ public class MarqueeInteraction extends Interaction {
   public List<Layer> createOverlays() {
     ColorSet colorSet = mySceneView.getColorSet();
     myOverlay = new MarqueeLayer(colorSet);
-    return Collections.<Layer>singletonList(myOverlay);
+    return Collections.singletonList(myOverlay);
   }
 
   /**

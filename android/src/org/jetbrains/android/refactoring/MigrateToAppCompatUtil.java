@@ -39,7 +39,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -124,7 +124,7 @@ class MigrateToAppCompatUtil {
       List<PsiReference> refs = new ArrayList<>();
       for (PsiMethod method : methods) {
         RenamePsiElementProcessor processor = RenamePsiElementProcessor.forElement(method);
-        refs.addAll(processor.findReferences(methods[0], false));
+        refs.addAll(processor.findReferences(methods[0], GlobalSearchScope.projectScope(project), false));
       }
       return refs;
     }
@@ -160,7 +160,7 @@ class MigrateToAppCompatUtil {
       List<ProblemData> problemDataList = entry.getValue();
 
       for (ProblemData problemData : problemDataList) {
-        Integer start = problemData.getTextRange().getStartOffset();
+        int start = problemData.getTextRange().getStartOffset();
         LintFix fix = problemData.getQuickfixData();
         if (!(fix instanceof LintFix.ReplaceString)) continue;
         LintFix.ReplaceString replaceFix = (LintFix.ReplaceString)fix;
@@ -348,7 +348,7 @@ class MigrateToAppCompatUtil {
 
   static boolean isKotlinSimpleNameReference(PsiReference reference) {
     PluginId kotlinPluginId = PluginId.findId("org.jetbrains.kotlin");
-    IdeaPluginDescriptor kotlinPlugin = ObjectUtils.notNull(PluginManager.getPlugin(kotlinPluginId));
+    IdeaPluginDescriptor kotlinPlugin = ObjectUtils.notNull(PluginManagerCore.getPlugin(kotlinPluginId));
     ClassLoader pluginClassLoader = kotlinPlugin.getPluginClassLoader();
     try {
       Class<?> simpleNameReferenceClass =

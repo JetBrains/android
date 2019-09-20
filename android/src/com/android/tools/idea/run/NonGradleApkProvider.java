@@ -24,7 +24,6 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactManager;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -58,11 +57,11 @@ public class NonGradleApkProvider implements ApkProvider {
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
     String packageName = myApplicationIdProvider.getPackageName();
     // Gather up all the dependency APKs to install, and check that none conflict.
-    HashMap<AndroidFacet, String> depFacet2PackageName = new HashMap<AndroidFacet, String>();
+    HashMap<AndroidFacet, String> depFacet2PackageName = new HashMap<>();
     fillRuntimeAndTestDependencies(myFacet.getModule(), depFacet2PackageName);
     checkPackageNames(depFacet2PackageName, myFacet, packageName);
 
-    List<ApkInfo> apkList = new ArrayList<ApkInfo>();
+    List<ApkInfo> apkList = new ArrayList<>();
     addApk(apkList, packageName, myFacet);
 
     for (AndroidFacet depFacet : depFacet2PackageName.keySet()) {
@@ -128,9 +127,9 @@ public class NonGradleApkProvider implements ApkProvider {
   private static void checkPackageNames(@NotNull Map<AndroidFacet, String> additionalFacet2PackageName,
                                            @NotNull AndroidFacet facet,
                                            @NotNull String mainPackageName) throws ApkProvisionException {
-    final Map<String, List<String>> packageName2ModuleNames = new HashMap<String, List<String>>();
+    final Map<String, List<String>> packageName2ModuleNames = new HashMap<>();
     packageName2ModuleNames.put(
-      mainPackageName, new ArrayList<String>(Arrays.asList(facet.getModule().getName())));
+      mainPackageName, new ArrayList<>(Collections.singletonList(facet.getModule().getName())));
 
     for (Map.Entry<AndroidFacet, String> entry : additionalFacet2PackageName.entrySet()) {
       final String moduleName = entry.getKey().getModule().getName();
@@ -138,7 +137,7 @@ public class NonGradleApkProvider implements ApkProvider {
       List<String> list = packageName2ModuleNames.get(packageName);
 
       if (list == null) {
-        list = new ArrayList<String>();
+        list = new ArrayList<>();
         packageName2ModuleNames.put(packageName, list);
       }
       list.add(moduleName);

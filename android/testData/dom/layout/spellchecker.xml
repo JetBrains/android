@@ -13,7 +13,7 @@
   <TextView
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
-      android:text="@string/my<TYPO>Msisdn</TYPO>AlphaTag" />
+      android:text="@string/my<TYPO>Msisidn</TYPO>AlphaTag" />
 
     <TextView
         android:layout_width="fill_parent"

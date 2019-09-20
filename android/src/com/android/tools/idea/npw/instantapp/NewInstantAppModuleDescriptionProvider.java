@@ -36,6 +36,7 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +46,7 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
   public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
     if(StudioFlags.UAB_HIDE_INSTANT_MODULES_FOR_NON_FEATURE_PLUGIN_PROJECTS.get() &&
        !AndroidGradleModuleUtils.projectContainsFeatureModule(project)) {
-      return Arrays.asList();
+      return Collections.emptyList();
     }
     return Arrays.asList(
       new FeatureTemplateGalleryEntry(),

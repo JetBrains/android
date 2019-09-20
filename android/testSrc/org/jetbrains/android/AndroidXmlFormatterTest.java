@@ -1,10 +1,10 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.intellij.codeInsight.actions.RearrangeCodeProcessor;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -254,7 +254,7 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
   private void doTestArrangement(String dst) {
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", dst);
     myFixture.configureFromExistingVirtualFile(f);
-    final ArrangementEngine engine = ServiceManager.getService(getProject(), ArrangementEngine.class);
+    final ArrangementEngine engine = ArrangementEngine.getInstance();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {

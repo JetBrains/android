@@ -22,12 +22,11 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.JEditorPane;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
-import java.awt.Dimension;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,8 +52,8 @@ public class NavigationComponent<T extends NavigationComponent.Item> extends JEd
     void itemSelected(@NotNull T item);
   }
 
-  private final ArrayList<ItemListener<T>> myItemListeners = new ArrayList<ItemListener<T>>();
-  private final LinkedList<T> myItemStack = new LinkedList<T>();
+  private final ArrayList<ItemListener<T>> myItemListeners = new ArrayList<>();
+  private final LinkedList<T> myItemStack = new LinkedList<>();
   private boolean hasRootItem = false;
 
   public NavigationComponent() {

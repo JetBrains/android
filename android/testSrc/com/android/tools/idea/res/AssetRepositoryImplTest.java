@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -73,25 +74,25 @@ public class AssetRepositoryImplTest extends AndroidGradleTestCase {
     final String rawContentInLibModule = "I locate in lib module";
 
     // test opening app.asset.txt, should find the asset
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("app.asset.txt", 0)))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("app.asset.txt", 0), StandardCharsets.UTF_8))) {
       String assetContent = br.readLine();
       assertEquals(appContentInAppModule, assetContent);
     }
 
     // test opening lib.asset.txt in app module, should find the asset.
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("lib.asset.txt", 0)))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("lib.asset.txt", 0), StandardCharsets.UTF_8))) {
       String assetContent = br.readLine();
       assertEquals(libContentInLibModule, assetContent);
     }
 
     // test opening raw.asset.txt, the content should be the same as the one of app module
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("raw.asset.txt", 0)))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(myAppRepo.openAsset("raw.asset.txt", 0), StandardCharsets.UTF_8))) {
       String assetContent = br.readLine();
       assertEquals(rawContentInAppModule, assetContent);
     }
 
     // test opening raw.asset.txt in lib, the content should be the same as in the lib module
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(myLibRepo.openAsset("raw.asset.txt", 0)))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(myLibRepo.openAsset("raw.asset.txt", 0), StandardCharsets.UTF_8))) {
       String assetContent = br.readLine();
       assertEquals(rawContentInLibModule, assetContent);
     }

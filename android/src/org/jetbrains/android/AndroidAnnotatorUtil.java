@@ -349,7 +349,7 @@ public class AndroidAnnotatorUtil {
       return new AnAction() {
         @Override
         public void actionPerformed(@NotNull AnActionEvent e) {
-          Editor editor = CommonDataKeys.EDITOR.getData(e.getDataContext());
+          Editor editor = e.getData(CommonDataKeys.EDITOR);
           if (editor != null) {
             if (StudioFlags.NELE_NEW_COLOR_PICKER.get()) {
               openNewColorPicker(getCurrentColor());

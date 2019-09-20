@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.io.FileUtil

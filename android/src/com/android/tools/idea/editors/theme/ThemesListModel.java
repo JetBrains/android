@@ -38,7 +38,7 @@ public class ThemesListModel extends AbstractListModel implements ComboBoxModel 
 
   private SeparatedList myAllItems;
   private String mySelectedObject;
-  private final List<String> myEditOptions = new ArrayList<String>();
+  private final List<String> myEditOptions = new ArrayList<>();
   private ImmutableList<String> myAvailableProjectThemes;
 
   public ThemesListModel(@NotNull ThemeEditorContext context, @NotNull List<String> defaultThemeNames, @Nullable String defaultThemeName) {

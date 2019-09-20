@@ -32,7 +32,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.ArrayUtil
 import com.intellij.util.Processor
-import com.intellij.util.containers.HashSet
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -111,10 +110,6 @@ class DataBindingShortNamesCache(private val component: DataBindingProjectCompon
     return allClassNamesCache.value
   }
 
-  override fun getAllClassNames(dest: HashSet<String>) {
-    dest.addAll(allClassNames)
-  }
-
   override fun getMethodsByName(name: String, scope: GlobalSearchScope): Array<PsiMethod> {
     val methods = methodsByNameCache.value[name] ?: return PsiMethod.EMPTY_ARRAY
     return methods.filter { isInScope(it, scope) }.toTypedArray()
@@ -139,10 +134,6 @@ class DataBindingShortNamesCache(private val component: DataBindingProjectCompon
     return allMethodNamesCache.value
   }
 
-  override fun getAllMethodNames(set: HashSet<String>) {
-    set.addAll(allClassNames)
-  }
-
   override fun getFieldsByName(name: String, scope: GlobalSearchScope): Array<PsiField> {
     val fields = fieldsByNameCache.value[name] ?: return PsiField.EMPTY_ARRAY
     return fields.filter { field -> isInScope(field, scope) }.toTypedArray()
@@ -154,10 +145,6 @@ class DataBindingShortNamesCache(private val component: DataBindingProjectCompon
 
   override fun getAllFieldNames(): Array<String> {
     return allFieldNamesCache.value
-  }
-
-  override fun getAllFieldNames(set: HashSet<String>) {
-    set.addAll(allFieldNames)
   }
 
   private fun isInScope(element: PsiElement, scope: GlobalSearchScope) =

@@ -18,8 +18,6 @@ package com.android.tools.idea.run.activity;
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ApkProviderUtil;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -28,7 +26,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;

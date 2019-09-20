@@ -35,22 +35,22 @@ import com.android.sdklib.internal.avd.EmulatedProperties;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -99,6 +99,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -118,9 +119,10 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import org.gradle.internal.impldep.org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
+
 
 /**
  * Options panel for configuring various AVD options. Has an "advanced" mode and a "simple" mode.
@@ -846,7 +848,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
      */
     private void readEmulatorSnapshotSelection(@NotNull File fileToRead) {
       try (final FileInputStream inputStream = new FileInputStream(fileToRead);
-           final InputStreamReader streamReader = new InputStreamReader(inputStream);
+           final InputStreamReader streamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
            final BufferedReader reader = new BufferedReader(streamReader)
       ) {
         final String keyString = "selectedSnapshotFile=";
@@ -1236,8 +1238,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private void registerAdvancedOptionsVisibility() {
     myAdvancedOptionsComponents =
-      Lists.<JComponent>newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
-                                     myAvdIdRow);
+      Lists.newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
+                         myAvdIdRow);
   }
 
   @Override

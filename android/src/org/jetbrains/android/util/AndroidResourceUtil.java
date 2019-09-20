@@ -93,6 +93,7 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -497,7 +498,7 @@ public class AndroidResourceUtil {
    */
   @NotNull
   public static String getValidResourceFileName(@NotNull String base) {
-    return base.replace('-', '_').replace(' ', '_').toLowerCase(Locale.US);
+    return StringUtil.toLowerCase(base.replace('-', '_').replace(' ', '_'));
   }
 
   @Nullable
@@ -1059,8 +1060,8 @@ public class AndroidResourceUtil {
       return 0;
     }
     else if (file1 != null && file2 != null) {
-      boolean xml1 = file1.getFileType() == StdFileTypes.XML;
-      boolean xml2 = file2.getFileType() == StdFileTypes.XML;
+      boolean xml1 = FileTypeRegistry.getInstance().isFileOfType(file1, StdFileTypes.XML);
+      boolean xml2 = FileTypeRegistry.getInstance().isFileOfType(file2, StdFileTypes.XML);
       if (xml1 != xml2) {
         return xml1 ? -1 : 1;
       }

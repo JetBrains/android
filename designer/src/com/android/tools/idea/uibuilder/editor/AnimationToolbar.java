@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.idea.npw.assetstudio.wizard.WrappedFlowLayout;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -133,12 +134,12 @@ public class AnimationToolbar extends Box implements Disposable {
       myTimeSliderModel.addChangeListener(myTimeSliderChangeModel);
       timeSlider.setModel(myTimeSliderModel);
       add(timeSlider);
-      add(Box.createVerticalStrut(JBUI.scale(10)));
+      add(Box.createVerticalStrut(JBUIScale.scale(10)));
     }
 
     myFrameControl = new JSlider(-5, 5, 0);
     myFrameControl.setSnapToTicks(true);
-    controlBar.add(Box.createHorizontalStrut(JBUI.scale(50)));
+    controlBar.add(Box.createHorizontalStrut(JBUIScale.scale(50)));
     controlBar.add(myFrameControl);
     add(controlBar);
     add(Box.createHorizontalGlue());

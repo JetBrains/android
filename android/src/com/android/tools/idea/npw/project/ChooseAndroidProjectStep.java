@@ -43,7 +43,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Streams;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.util.BackgroundTaskUtil;

@@ -28,6 +28,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -92,7 +93,8 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   }
 
   @Override
-  public void uiFreezeFinished(int lengthInSeconds) {
+  public void uiFreezeFinished(long durationMs, @Nullable File reportDir) {
+    int lengthInSeconds = (int)(durationMs / 1000);
     LOG.info(String.format(Locale.US, "uiFreezeFinished: duration = %d seconds", lengthInSeconds));
     DiagnosticReportBuilder localBuilder = myBuilder;
     if (localBuilder == null) {
@@ -110,7 +112,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
       if (localReportPath != null) {
         if (Files.exists(localReportPath)) {
           try {
-            Files.write(localReportPath, ("UI freeze lasted " + lengthInSeconds + " seconds.\n").getBytes(), StandardOpenOption.APPEND);
+            Files.write(localReportPath, ("UI freeze lasted " + lengthInSeconds + " seconds.\n").getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
           }
           catch (IOException e) {
             // Non fatal exception

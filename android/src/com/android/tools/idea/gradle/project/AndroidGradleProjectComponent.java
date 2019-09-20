@@ -26,8 +26,6 @@ import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
@@ -45,6 +43,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.serviceContainer.NonInjectable;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -53,16 +52,17 @@ import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConf
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
 
-public class AndroidGradleProjectComponent implements ProjectComponent {
-  @NotNull private final Project myProject;
-  @NotNull private final GradleProjectInfo myGradleProjectInfo;
-  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
-  @NotNull private final GradleSyncInvoker myGradleSyncInvoker;
-  @NotNull private final SupportedModuleChecker mySupportedModuleChecker;
-  @NotNull private final IdeInfo myIdeInfo;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
+
+public final class AndroidGradleProjectComponent implements ProjectComponent {
   @NotNull private final LegacyAndroidProjects myLegacyAndroidProjects;
 
   @Nullable private Disposable myDisposable;
+
+  private final Project myProject;
 
   @NotNull
   public static AndroidGradleProjectComponent getInstance(@NotNull Project project) {
@@ -72,40 +72,20 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
   }
 
   @SuppressWarnings("unused") // Invoked by IDEA
-  public AndroidGradleProjectComponent(@NotNull Project project,
-                                       @NotNull GradleProjectInfo gradleProjectInfo,
-                                       @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleSyncInvoker gradleSyncInvoker,
-                                       @NotNull GradleBuildInvoker gradleBuildInvoker,
-                                       @NotNull CompilerManager compilerManager,
-                                       @NotNull SupportedModuleChecker supportedModuleChecker,
-                                       @NotNull IdeInfo ideInfo) {
-    this(project, gradleProjectInfo, androidProjectInfo, gradleSyncInvoker, gradleBuildInvoker, compilerManager,
-         supportedModuleChecker, ideInfo, new LegacyAndroidProjects(project));
+  public AndroidGradleProjectComponent(@NotNull Project project) {
+    this(project, new LegacyAndroidProjects(project));
   }
 
   @VisibleForTesting
-  public AndroidGradleProjectComponent(@NotNull Project project,
-                                       @NotNull GradleProjectInfo gradleProjectInfo,
-                                       @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleSyncInvoker gradleSyncInvoker,
-                                       @NotNull GradleBuildInvoker gradleBuildInvoker,
-                                       @NotNull CompilerManager compilerManager,
-                                       @NotNull SupportedModuleChecker supportedModuleChecker,
-                                       @NotNull IdeInfo ideInfo,
-                                       @NotNull LegacyAndroidProjects legacyAndroidProjects) {
+  @NonInjectable
+  public AndroidGradleProjectComponent(@NotNull Project project, @NotNull LegacyAndroidProjects legacyAndroidProjects) {
     myProject = project;
-    myGradleProjectInfo = gradleProjectInfo;
-    myAndroidProjectInfo = androidProjectInfo;
-    myGradleSyncInvoker = gradleSyncInvoker;
-    mySupportedModuleChecker = supportedModuleChecker;
-    myIdeInfo = ideInfo;
     myLegacyAndroidProjects = legacyAndroidProjects;
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
-    compilerManager.addAfterTask(context -> {
-      if (myGradleProjectInfo.isBuildWithGradle()) {
-        PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(context);
+    CompilerManager.getInstance(myProject).addAfterTask(context -> {
+      if (GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
+        PostProjectBuildTasksExecutor.getInstance(myProject).onBuildCompletion(context);
 
         JpsBuildContext newContext = new JpsBuildContext(context);
         AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
@@ -114,7 +94,7 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
     });
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via direct Gradle invocation.
-    gradleBuildInvoker.add(result -> {
+    GradleBuildInvoker.getInstance(myProject).add(result -> {
       if (myProject.isDisposed()) return;
       PostProjectBuildTasksExecutor.getInstance(myProject).onBuildCompletion(result);
       GradleBuildContext newContext = new GradleBuildContext(result);
@@ -150,43 +130,13 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
    */
   @Override
   public void projectOpened() {
-    boolean checkSupported = true;
-    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
-    if (syncState.isSyncInProgress()) {
-      // when opening a new project, the UI was not updated when sync started. Updating UI ("Build Variants" tool window, "Sync" toolbar
-      // button and editor notifications.
-      syncState.notifyStateChanged();
-    }
-
-    if (myIdeInfo.isAndroidStudio() && myAndroidProjectInfo.isLegacyIdeaAndroidProject() && !myAndroidProjectInfo.isApkProject()) {
+    if (IdeInfo.getInstance().isAndroidStudio() && AndroidProjectInfo.getInstance(myProject).isLegacyIdeaAndroidProject() && !AndroidProjectInfo.getInstance(myProject)
+      .isApkProject()) {
       myLegacyAndroidProjects.trackProject();
-      if (!myGradleProjectInfo.isBuildWithGradle()) {
+      if (!GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
         myLegacyAndroidProjects.showMigrateToGradleWarning();
-        return;
       }
-    }
-
-    GradleSyncStats.Trigger trigger = myGradleProjectInfo.isNewProject() ? TRIGGER_PROJECT_NEW : TRIGGER_PROJECT_REOPEN;
-    if (myGradleProjectInfo.isBuildWithGradle()) {
-      configureGradleProject();
-      if (myAndroidProjectInfo.isLegacyIdeaAndroidProject() || !myGradleProjectInfo.hasGradleFacets()) {
-        // Request sync since it was not done when importing
-        myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, trigger);
-        // If sync is requested at this stage there is no need to request it one more time later.
-        myGradleProjectInfo.setSkipStartupActivity(true);
-        checkSupported = false;
-      }
-    }
-    else if (myIdeInfo.isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
-      myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, trigger);
-      // If sync is requested at this stage there is no need to request it one more time later.
-      myGradleProjectInfo.setSkipStartupActivity(true);
-      checkSupported = false;
-    }
-    // Do not check for supported modules if sync was requested, this will be done once sync is successful
-    if (checkSupported) {
-      mySupportedModuleChecker.checkForSupportedModules(myProject);
     }
   }
 
@@ -207,7 +157,7 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
     runConfigurationProducerTypes.add(TestMethodGradleConfigurationProducer.class);
 
     RunConfigurationProducerService runConfigurationProducerManager = RunConfigurationProducerService.getInstance(myProject);
-    if (myIdeInfo.isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       // Make sure the gradle test configurations are ignored in this project. This will modify .idea/runConfigurations.xml
       for (Class<? extends RunConfigurationProducer<?>> type : runConfigurationProducerTypes) {
         runConfigurationProducerManager.getState().ignoredProducers.add(type.getName());

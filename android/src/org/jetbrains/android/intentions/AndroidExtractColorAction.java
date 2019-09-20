@@ -23,7 +23,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidExtractColorAction extends AndroidAddStringResourceAction {

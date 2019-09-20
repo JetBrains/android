@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import static com.android.SdkConstants.DOT_JAR;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
 
@@ -26,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.io.FileUtilRt;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +52,7 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
             continue;
           }
           File buildFolderPath = javaModuleModel.getBuildFolderPath();
-          String artifactName = getNameWithoutExtension(artifact);
+          String artifactName = FileUtilRt.getNameWithoutExtension(artifact.getName());
 
           if (buildFolderPath != null &&
               buildFolderPath.isDirectory() &&

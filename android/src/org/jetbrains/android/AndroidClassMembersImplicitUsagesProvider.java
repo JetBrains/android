@@ -18,7 +18,7 @@ import static com.android.SdkConstants.*;
  */
 public class AndroidClassMembersImplicitUsagesProvider implements ImplicitUsageProvider {
   @Override
-  public boolean isImplicitUsage(PsiElement element) {
+  public boolean isImplicitUsage(@NotNull PsiElement element) {
     if (element instanceof PsiField) {
       return isImplicitFieldUsage((PsiField)element);
     }
@@ -75,12 +75,12 @@ public class AndroidClassMembersImplicitUsagesProvider implements ImplicitUsageP
   }
 
   @Override
-  public boolean isImplicitRead(PsiElement element) {
+  public boolean isImplicitRead(@NotNull PsiElement element) {
     return false;
   }
 
   @Override
-  public boolean isImplicitWrite(PsiElement element) {
+  public boolean isImplicitWrite(@NotNull PsiElement element) {
     if (!(element instanceof PsiField)) {
       return false;
     }

@@ -1,4 +1,4 @@
-<idea-plugin url="https://www.jetbrains.com/idea">
+<idea-plugin>
   <extensions defaultExtensionNs="org.jetbrains.idea.maven">
     <importer implementation="org.jetbrains.android.maven.AndroidFacetImporter1"/>
     <importer implementation="org.jetbrains.android.maven.AndroidFacetImporter2"/>

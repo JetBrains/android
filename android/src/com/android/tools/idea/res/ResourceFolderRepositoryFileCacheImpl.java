@@ -43,6 +43,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -66,11 +67,11 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
   private final File myRootDir;
 
-  public ResourceFolderRepositoryFileCacheImpl() {
+  ResourceFolderRepositoryFileCacheImpl() {
     myRootDir = new File(PathManager.getSystemPath(), CACHE_DIRECTORY);
   }
 
-  public ResourceFolderRepositoryFileCacheImpl(File rootDirParent) {
+  ResourceFolderRepositoryFileCacheImpl(File rootDirParent) {
     myRootDir = new File(rootDirParent, CACHE_DIRECTORY);
   }
 
@@ -250,7 +251,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     private static final int MAX_PROJECT_CACHES = 12;
 
-    public ManageLruProjectFilesTask(@NotNull Project project) {
+    ManageLruProjectFilesTask(@NotNull Project project) {
       myProject = project;
     }
 
@@ -292,7 +293,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     static List<File> loadListOfProjectCaches(@NotNull File cacheRootDir) throws IOException {
       File lruFile = new File(cacheRootDir, LRU_FILE);
       if (!lruFile.exists()) {
-        return ContainerUtil.newArrayList();
+        return new ArrayList<>();
       }
       FileInputStream fin = null;
       try {
@@ -337,7 +338,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     @VisibleForTesting
     static List<File> updateLRUList(Project currentProject, List<File> projectsList, int maxProjectCaches) {
-      List<File> projectsToRemove = ContainerUtil.newArrayList();
+      List<File> projectsToRemove = new ArrayList<>();
       Path currentProjectPath = ResourceFolderRepositoryFileCacheService.get().getProjectDir(currentProject);
       if (currentProjectPath == null) {
         return projectsToRemove;
@@ -378,7 +379,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   static class PruneTask extends DumbModeTask {
     @NotNull private final Project myProject;
 
-    public PruneTask(@NotNull Project project) {
+    PruneTask(@NotNull Project project) {
       myProject = project;
     }
 

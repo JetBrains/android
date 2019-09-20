@@ -155,7 +155,7 @@ class AppKotlinUnitTest {
 
         val stream = javaClass.classLoader.getResourceAsStream("app_test_resource_file.txt")
         assertNotNull(stream)
-        val s = String(stream.readBytes(), StandardCharsets.UTF_8).trim()
+        val s = String(stream.readBytes(), Charsets.UTF_8).trim()
         assertEquals("app test", s)
     }
 
@@ -166,7 +166,7 @@ class AppKotlinUnitTest {
 
         val stream = javaClass.classLoader.getResourceAsStream("app_resource_file.txt")
         assertNotNull(stream)
-        val s = String(stream.readBytes(), StandardCharsets.UTF_8).trim()
+        val s = String(stream.readBytes(), Charsets.UTF_8).trim()
         assertEquals("app", s)
     }
 
@@ -177,7 +177,7 @@ class AppKotlinUnitTest {
 
         val stream = javaClass.classLoader.getResourceAsStream("util_resource_file.txt")
         assertNotNull(stream)
-        val s = String(stream.readBytes(), StandardCharsets.UTF_8).trim()
+        val s = String(stream.readBytes(), Charsets.UTF_8).trim()
         assertEquals("util", s)
     }
 
@@ -188,7 +188,7 @@ class AppKotlinUnitTest {
 
         val stream = javaClass.classLoader.getResourceAsStream("javalib_resource_file.txt")
         assertNotNull(stream)
-        val s = String(stream.readBytes(), StandardCharsets.UTF_8).trim()
+        val s = String(stream.readBytes(), Charsets.UTF_8).trim()
         assertEquals("javalib", s)
     }
 

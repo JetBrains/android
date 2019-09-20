@@ -27,6 +27,8 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.KeyEvent
 
+// FIXME-ank: intellij.android.guiTestFramework.iml
+
 /**
  * Wrapper class around a [Robot]. This class implements some logic
  * specific to Android Studio.

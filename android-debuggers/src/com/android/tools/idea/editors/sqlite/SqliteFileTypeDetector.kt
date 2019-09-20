@@ -20,10 +20,8 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.util.io.ByteSequence
 import com.intellij.openapi.vfs.VirtualFile
 
-import java.nio.charset.StandardCharsets
-
 class SqliteFileTypeDetector : FileTypeRegistry.FileTypeDetector {
-  private val SQLITE3_FORMAT_HEADER = "SQLite format 3\u0000".toByteArray(StandardCharsets.UTF_8)
+  private val SQLITE3_FORMAT_HEADER = "SQLite format 3\u0000".toByteArray(Charsets.UTF_8)
 
   override fun detect(file: VirtualFile, firstBytes: ByteSequence, firstCharsIfText: CharSequence?): FileType? {
     if (!SqliteViewer.isFeatureEnabled) {
@@ -44,5 +42,13 @@ class SqliteFileTypeDetector : FileTypeRegistry.FileTypeDetector {
     return SqliteFileType
   }
 
+  override fun getDesiredContentPrefixLength(): Int {
+    return SQLITE3_FORMAT_HEADER.size
+  }
+
   override fun getVersion(): Int = 1
+
+  override fun getDetectedFileTypes(): Collection<FileType> {
+    return listOf(SqliteFileType)
+  }
 }

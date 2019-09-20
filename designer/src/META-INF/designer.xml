@@ -38,12 +38,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.common.model.NlDependencyManager"/>
   </extensions>
 
-  <application-components>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.util.JavaDocViewer</implementation-class>
-    </component>
-  </application-components>
-
   <project-components>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>

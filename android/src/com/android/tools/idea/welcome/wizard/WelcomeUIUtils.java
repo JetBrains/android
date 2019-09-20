@@ -16,19 +16,10 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.android.sdklib.devices.Storage;
-import com.google.common.collect.ImmutableMap;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.JBColor;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.font.TextAttribute;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 

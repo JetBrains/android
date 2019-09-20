@@ -27,11 +27,11 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.testing.Facets;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -42,14 +42,13 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEAT
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static java.util.Collections.emptyList;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link BuildApkAction}.
  */
-public class BuildApkActionTest extends IdeaTestCase {
+public class BuildApkActionTest extends JavaProjectTestCase {
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private ProjectStructure myProjectStructure;
@@ -64,9 +63,9 @@ public class BuildApkActionTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    new IdeComponents(myProject).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
-    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
-    new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
+    ServiceContainerUtil.replaceService(myProject, GradleBuildInvoker.class, myBuildInvoker, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myGradleProjectInfo, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(myProject, ProjectStructure.class, myProjectStructure, getTestRootDisposable());
     myAction = new BuildApkAction();
   }
 

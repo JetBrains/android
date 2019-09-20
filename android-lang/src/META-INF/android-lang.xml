@@ -20,24 +20,24 @@
   <extensions defaultExtensionNs="com.intellij">
     <!-- Android IDL support -->
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
-    <lang.syntaxHighlighterFactory language="AIDL"
-                                   implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighter language="AIDL"
+                                   implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighter"/>
     <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
 
     <!-- Proguard support -->
     <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition"/>
-    <lang.syntaxHighlighterFactory language="PROGUARD"
-                                   implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighter language="PROGUARD"
+                                   implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighter"/>
     <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter"/>
     <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor"/>
 
     <!-- Renderscript -->
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
-    <lang.syntaxHighlighterFactory language="Renderscript"
-                                   implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighter language="Renderscript"
+                                   implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighter"/>
 
     <!-- Room SQL support -->
     <fileTypeFactory implementation="com.android.tools.idea.lang.roomSql.RoomSqlFileTypeFactory"/>

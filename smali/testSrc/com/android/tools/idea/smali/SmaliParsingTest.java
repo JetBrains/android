@@ -47,7 +47,7 @@ public class SmaliParsingTest extends LightPlatformTestCase {
   }
 
   @NotNull
-  private static SmaliFile parse(@NotNull String text) {
+  private SmaliFile parse(@NotNull String text) {
     PsiFile psiFile = PsiFileFactory.getInstance(getProject()).createFileFromText(SmaliLanguage.getInstance(), text);
     assertThat(psiFile).isInstanceOf(SmaliFile.class);
     return (SmaliFile)psiFile;

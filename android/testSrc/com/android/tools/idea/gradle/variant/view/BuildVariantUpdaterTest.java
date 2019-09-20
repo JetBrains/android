@@ -22,6 +22,7 @@ import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.flags.StudioFlags;
@@ -44,7 +45,8 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.HashSet;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -66,7 +68,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link BuildVariantUpdater}.
  */
-public class BuildVariantUpdaterTest extends IdeaTestCase {
+public class BuildVariantUpdaterTest extends JavaProjectTestCase {
   @Mock private IdeModifiableModelsProvider myModifiableModelsProvider;
   @Mock private IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @Mock private AndroidModuleSetupStep mySetupStepToInvoke;
@@ -112,10 +114,9 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     when(myAndroidProject.getDynamicFeatures()).thenReturn(Collections.emptyList());
     when(myIdeDependencies.getModuleDependencies()).thenReturn(myModuleDependencies);
 
-    IdeComponents ideComponents = new IdeComponents(project);
-    ideComponents.replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
+    ServiceContainerUtil.replaceService(project, PostSyncProjectSetup.class, myPostSyncProjectSetup, getTestRootDisposable());
     // Replace the GradleFiles service so no hashes are updated as this can cause a NPE since the mocked models don't return anything
-    ideComponents.replaceProjectService(GradleFiles.class, myGradleFiles);
+    ServiceContainerUtil.replaceService(project, GradleFiles.class, myGradleFiles, getTestRootDisposable());
 
     myVariantUpdater = new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory,
                                                new AndroidVariantChangeModuleSetup(mySetupStepToInvoke, mySetupStepToIgnore),
@@ -274,10 +275,10 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
   public void testUpdateSelectedVariantWithChangedBuildFiles() {
     // Simulate build files have changed since last sync.
     GradleSyncState syncState = mock(GradleSyncState.class);
-    new IdeComponents(myProject).replaceProjectService(GradleSyncState.class, syncState);
+    ServiceContainerUtil
+      .replaceService(myProject, GradleSyncState.class, syncState, getTestRootDisposable());
     when(syncState.isSyncNeeded()).thenReturn(YES);
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    GradleSyncInvoker syncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker.class);
+    GradleSyncInvoker syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
     doAnswer(new Answer() {
       @Override
       public Object answer(InvocationOnMock invocation) {
@@ -313,7 +314,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
-      GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
+      GradleSyncInvoker syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
 
       GradleFacet gradleFacet = createAndAddGradleFacet(getModule());
       GradleModuleModel gradleModel = mock(GradleModuleModel.class);
@@ -346,7 +347,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     try {
       StudioFlags.COMPOUND_SYNC_ENABLED.override(false);
 
-      GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
+      GradleSyncInvoker syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
 
       GradleFacet gradleFacet = createAndAddGradleFacet(getModule());
       GradleModuleModel gradleModel = mock(GradleModuleModel.class);

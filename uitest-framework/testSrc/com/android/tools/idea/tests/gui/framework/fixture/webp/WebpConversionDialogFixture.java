@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.webp;
 import com.android.tools.idea.rendering.webp.WebpConversionDialog;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.ui.components.JBCheckBox;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;

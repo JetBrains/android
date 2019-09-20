@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.android.SdkConstants;
@@ -53,11 +54,11 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
 
     final String[] resourceDirs = AndroidJpsUtil.collectResourceDirsForCompilation(extension, true, dataPaths, false);
 
-    final List<String> assertDirs = new ArrayList<String>();
+    final List<String> assertDirs = new ArrayList<>();
     collectAssetDirs(extension, assertDirs, false);
 
     final File manifestFile = AndroidJpsUtil.getPreprocessedManifestFile(extension, dataPaths);
-    final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
+    final List<BuildRootDescriptor> result = new ArrayList<>();
 
     for (String resourceDir : resourceDirs) {
       result.add(new BuildRootDescriptorImpl(this, new File(resourceDir)));
@@ -110,7 +111,7 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
   }
 
   private static void collectAssetDirsFromAarDeps(@NotNull JpsModule module, @NotNull Collection<String> result) {
-    final List<String> resDirsFromAarDeps = new ArrayList<String>();
+    final List<String> resDirsFromAarDeps = new ArrayList<>();
     AndroidJpsUtil.collectResDirectoriesFromAarDeps(module, resDirsFromAarDeps);
 
     if (resDirsFromAarDeps.isEmpty()) {

@@ -20,23 +20,20 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link RecommendedPluginVersionUpgradeStep}.
  */
-public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTestCase {
+public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProjectTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private LatestKnownPluginVersionProvider myLatestKnownPluginVersionProvider;
   @Mock private RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
@@ -53,7 +50,8 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
 
     Project project = getProject();
     myVersionUpdater = spy(AndroidPluginVersionUpdater.getInstance(project));
-    new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
+    ServiceContainerUtil
+      .replaceService(project, AndroidPluginVersionUpdater.class, myVersionUpdater, getTestRootDisposable());
 
     when(myUpgradeDialogFactory.create(same(project), any(), any())).thenReturn(myUpgradeDialog);
 

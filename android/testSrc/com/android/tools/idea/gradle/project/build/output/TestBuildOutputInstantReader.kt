@@ -30,7 +30,7 @@ class TestBuildOutputInstantReader(private val myLines: List<String>) : BuildOut
   var currentIndex: Int = -1
     private set
 
-  override fun getBuildId(): Any {
+  override fun getParentEventId(): Any {
     return "Dummy Id"
   }
 

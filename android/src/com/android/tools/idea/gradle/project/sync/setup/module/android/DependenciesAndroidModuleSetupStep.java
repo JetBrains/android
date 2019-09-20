@@ -20,7 +20,6 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
@@ -39,6 +38,7 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -55,7 +55,8 @@ import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -211,7 +212,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
       if (isNotEmpty(library) && !currentIdeSdkFilePaths.contains(library)) {
         // Library is not in the SDK IDE definition. Add it as library and make the module depend on it.
         File binaryPath = new File(library);
-        String name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(library);
+        String name = binaryPath.isFile() ? FileUtilRt.getNameWithoutExtension(binaryPath.getName()) : sanitizeFileName(library);
         // Include compile target as part of the name, to ensure the library name is unique to this Android platform.
 
         name = name + "-" + suffix; // e.g. maps-android-23, effects-android-23 (it follows the library naming convention: library-version

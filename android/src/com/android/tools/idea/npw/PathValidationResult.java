@@ -24,12 +24,12 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -94,7 +94,7 @@ public final class PathValidationResult {
         char illegalChar = filename.charAt(ILLEGAL_CHARACTER_MATCHER.indexIn(filename));
         return error(PathValidationResult.Message.ILLEGAL_CHARACTER, fieldName, illegalChar, filename);
       }
-      if (INVALID_WINDOWS_FILENAMES.contains(filename.toLowerCase(Locale.US))) {
+      if (INVALID_WINDOWS_FILENAMES.contains(StringUtil.toLowerCase(filename))) {
         PathValidationResult.Status status = SystemInfo.isWindows ? PathValidationResult.Status.ERROR : PathValidationResult.Status.WARN;
         return new PathValidationResult(status, PathValidationResult.Message.ILLEGAL_FILENAME, fieldName, filename);
       }

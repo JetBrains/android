@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import static com.android.tools.idea.res.ResourcesTestsUtil.addAarDependency;
@@ -190,8 +191,9 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
   private List<LineMarkerInfo> doGetRelatedLineMarkers() {
     myFixture.doHighlighting();
 
-    List<LineMarkerInfo> markers = DaemonCodeAnalyzerImpl.getLineMarkers(myFixture.getEditor().getDocument(), myFixture.getProject());
-    List<LineMarkerInfo> relatedMarkers = new ArrayList<>();
+    final List<LineMarkerInfo<?>> markers = DaemonCodeAnalyzerImpl.getLineMarkers(
+      myFixture.getEditor().getDocument(), myFixture.getProject());
+    final List<LineMarkerInfo> relatedMarkers = new ArrayList<>();
 
     for (LineMarkerInfo marker : markers) {
       if (marker.getNavigationHandler() instanceof AndroidLineMarkerProvider.MyNavigationHandler) {

@@ -16,7 +16,7 @@
 package org.jetbrains.android;
 
 import com.intellij.openapi.components.ComponentManager;
-import com.intellij.openapi.components.impl.ComponentManagerImpl;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.picocontainer.MutablePicoContainer;
@@ -24,13 +24,13 @@ import org.picocontainer.MutablePicoContainer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public class ComponentStack {
-  private final ComponentManagerImpl myComponentManager;
+public final class ComponentStack {
+  private final ComponentManager myComponentManager;
   private final MutablePicoContainer myContainer;
   private final Deque<ComponentItem> myComponents;
 
   public ComponentStack(@NotNull ComponentManager manager) {
-    myComponentManager = (ComponentManagerImpl)manager;
+    myComponentManager = manager;
     myContainer = (MutablePicoContainer)manager.getPicoContainer();
     myComponents = new ArrayDeque<>();
   }
@@ -46,7 +46,7 @@ public class ComponentStack {
   public <T> void registerComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
     Object old = myComponentManager.getComponent(key);
     myComponents.push(new ComponentItem(key, old));
-    myComponentManager.registerComponentInstance(key, instance);
+    ServiceContainerUtil.registerComponentInstance(myComponentManager, key, instance);
   }
 
   public void restoreComponents() {
@@ -54,7 +54,7 @@ public class ComponentStack {
       ComponentItem component = myComponents.pop();
       if (component.key instanceof Class) {
         //noinspection unchecked
-        myComponentManager.registerComponentInstance((Class)component.key, component.instance);
+        ServiceContainerUtil.registerComponentInstance(myComponentManager, (Class)component.key, component.instance);
       }
       else {
         myContainer.unregisterComponent(component.key.toString());

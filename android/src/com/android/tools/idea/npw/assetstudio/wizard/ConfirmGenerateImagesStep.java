@@ -57,7 +57,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.GuiUtils;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.treeStructure.Tree;
@@ -81,7 +81,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -157,12 +156,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     for (NamedModuleTemplate template : templates) {
       moduleTemplatesModel.addElement(template);
     }
-    myPathsComboBox.setRenderer(new ListCellRendererWrapper<NamedModuleTemplate>() {
-      @Override
-      public void customize(JList list, NamedModuleTemplate template, int index, boolean selected, boolean hasFocus) {
-        setText(template.getName());
-      }
-    });
+    myPathsComboBox.setRenderer(SimpleListCellRenderer.create("", NamedModuleTemplate::getName));
     myPathsComboBox.setModel(moduleTemplatesModel);
 
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
@@ -210,8 +204,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         myPreviewIcon.setIcon(icon);
         myPreviewIcon.setVisible(true);
 
-        //noinspection StringToUpperCaseOrToLowerCaseWithoutLocale  // file names are not locale sensitive
-        String extension = FileUtilRt.getExtension(node.getFile().getName()).toUpperCase();
+        String extension = StringUtil.toUpperCase(FileUtilRt.getExtension(node.getFile().getName()));
         if (StringUtil.isEmpty(extension)) {
           myFileTypeTextField.setText("N/A");
         }

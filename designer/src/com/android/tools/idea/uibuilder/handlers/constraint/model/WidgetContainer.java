@@ -166,7 +166,7 @@ public class WidgetContainer extends ConstraintWidget {
      * @return an array containing the widgets inside the selection area
      */
     public ArrayList<ConstraintWidget> findWidgets(int x, int y, int width, int height) {
-        ArrayList<ConstraintWidget> found = new ArrayList<ConstraintWidget>();
+        ArrayList<ConstraintWidget> found = new ArrayList<>();
         Rectangle area = new Rectangle();
         area.setBounds(x, y, width, height);
         for (int i = 0, mChildrenSize = mChildren.size(); i < mChildrenSize; i++) {

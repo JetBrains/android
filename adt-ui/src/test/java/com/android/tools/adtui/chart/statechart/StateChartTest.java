@@ -24,7 +24,6 @@ import java.awt.*;
 import java.util.EnumMap;
 import java.util.HashMap;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class StateChartTest {

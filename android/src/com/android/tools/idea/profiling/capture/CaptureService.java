@@ -74,8 +74,8 @@ public class CaptureService {
   public CaptureService(@NotNull Project project) {
     myProject = project;
     myCaptures = LinkedListMultimap.create();
-    myListeners = new LinkedList<CaptureListener>();
-    myOpenCaptureHandles = new HashSet<CaptureHandle>();
+    myListeners = new LinkedList<>();
+    myOpenCaptureHandles = new HashSet<>();
 
     update();
   }
@@ -86,7 +86,7 @@ public class CaptureService {
   }
 
   private static Set<VirtualFile> findCaptureFiles(@NotNull VirtualFile[] files, @NotNull CaptureType type) {
-    Set<VirtualFile> set = new HashSet<VirtualFile>();
+    Set<VirtualFile> set = new HashSet<>();
     for (VirtualFile file : files) {
       if (type.isValidCapture(file)) {
         set.add(file);

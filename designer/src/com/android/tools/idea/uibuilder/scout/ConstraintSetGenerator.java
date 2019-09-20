@@ -128,7 +128,7 @@ public class ConstraintSetGenerator {
    * @return best constraint set
    */
   public ConstraintSet findConstraintSet() {
-    this.myConnectionList = new ArrayList<WidgetPossibleConnections>();
+    this.myConnectionList = new ArrayList<>();
     for (int i = 1; i < this.myWidgetRecs.length; i++) {
       WidgetPossibleConnections possibleConnections = new WidgetPossibleConnections(this.myWidgetRecs[i]);
       this.myConnectionList.add(possibleConnections);
@@ -137,7 +137,7 @@ public class ConstraintSetGenerator {
       }
     }
 
-    this.myValidWidgets = new ArrayList<ArrayList<ConstrainedWidget>>();
+    this.myValidWidgets = new ArrayList<>();
     ArrayList<ConstrainedWidget> tempValid;
     for (WidgetPossibleConnections widget : this.myConnectionList) {
       tempValid = getValidConnectionCombinations(widget);
@@ -167,7 +167,7 @@ public class ConstraintSetGenerator {
    * that don't generate loops. Returns the one with the smallest margin sum.
    */
   void generateConstraintSets() {
-    myConstraintSets = new ArrayList<ConstraintSet>();
+    myConstraintSets = new ArrayList<>();
 
     int[] minValid = new int[myNumberOfWidgets];
     double totalCombinations = 1;

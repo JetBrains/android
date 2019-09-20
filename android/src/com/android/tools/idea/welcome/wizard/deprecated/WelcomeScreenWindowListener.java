@@ -129,7 +129,7 @@ public final class WelcomeScreenWindowListener {
 
     public DirectListener(@NotNull FirstRunWizardHost host) {
       // Let the instance leave
-      myHostReference = new WeakReference<FirstRunWizardHost>(host);
+      myHostReference = new WeakReference<>(host);
     }
 
     @Nullable

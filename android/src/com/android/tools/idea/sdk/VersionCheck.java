@@ -23,10 +23,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,7 +84,7 @@ public final class VersionCheck {
     try {
       File sourceProperties = new File(toolsDir, SdkConstants.FN_SOURCE_PROP);
       //noinspection IOResourceOpenedButNotSafelyClosed
-      reader = new BufferedReader(new FileReader(sourceProperties));
+      reader = new BufferedReader(new InputStreamReader(new FileInputStream(sourceProperties), StandardCharsets.UTF_8));
       String line;
       while ((line = reader.readLine()) != null) {
         Matcher m = SOURCE_PROPERTY_PATTERN.matcher(line);

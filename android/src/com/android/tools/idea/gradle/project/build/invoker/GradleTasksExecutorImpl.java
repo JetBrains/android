@@ -77,6 +77,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.ContentManagerAdapter;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import java.io.File;
@@ -95,6 +96,7 @@ import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -289,10 +291,10 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
 
         if (isRunBuildAction) {
-          ((BuildActionExecuter)operation).forTasks(toStringArray(gradleTasks));
+          ((BuildActionExecuter)operation).forTasks(ArrayUtilRt.toStringArray(gradleTasks));
         }
         else {
-          ((BuildLauncher)operation).forTasks(toStringArray(gradleTasks));
+          ((BuildLauncher)operation).forTasks(ArrayUtilRt.toStringArray(gradleTasks));
         }
 
         operation.withCancellationToken(cancellationTokenSource.token());
@@ -322,9 +324,11 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           }
           else {
             buildState.buildFinished(FAILED);
+            BuildEnvironment buildEnvironment =
+              GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationTokenSource);
             GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain(executionSettings);
             ExternalSystemException userFriendlyError =
-              projectResolverChain.getUserFriendlyError(buildError, myRequest.getBuildFilePath().getPath(), null);
+                projectResolverChain.getUserFriendlyError(buildEnvironment, buildError, myRequest.getBuildFilePath().getPath(), null);
             taskListener.onFailure(id, userFriendlyError);
           }
         }
@@ -369,7 +373,8 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     }
 
     try {
-      myHelper.execute(myRequest.getBuildFilePath().getPath(), executionSettings, executeTasksFunction);
+      myHelper.execute(myRequest.getBuildFilePath().getPath(), executionSettings,
+                       myRequest.getTaskId(), myRequest.getTaskListener(), null, executeTasksFunction);
     }
     catch (ExternalSystemException e) {
       if (e.getOriginalReason().startsWith("com.intellij.openapi.progress.ProcessCanceledException")) {

@@ -25,7 +25,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
@@ -178,7 +178,8 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
 
   @VisibleForTesting
   boolean isShowFilePathActionSupported() {
-    return ShowFilePathAction.isSupported();
+    // FIXME-ank: rename method!
+    return RevealFileAction.isSupported();
   }
 
   private static Logger getLog() {
@@ -276,10 +277,10 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
 
     private static void showFileOrDirectory(@NotNull File file) {
       if (file.isFile()) {
-        ShowFilePathAction.openFile(file);
+        RevealFileAction.openFile(file);
       }
       else {
-        ShowFilePathAction.openDirectory(file.getParentFile());
+        RevealFileAction.openDirectory(file.getParentFile());
       }
     }
   }

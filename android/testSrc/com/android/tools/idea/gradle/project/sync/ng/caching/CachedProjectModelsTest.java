@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.ng.caching;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -34,7 +34,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 /**
  * Tests for {@link CachedProjectModels}.
  */
-public class CachedProjectModelsTest extends IdeaTestCase {
+public class CachedProjectModelsTest extends JavaProjectTestCase {
   private CachedProjectModels myCache;
 
   @Override

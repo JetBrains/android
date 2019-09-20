@@ -30,9 +30,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.ArrayUtil;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A class for handling actions related to the java to kotlin conversion.
@@ -42,14 +44,10 @@ public class JavaToKotlinHandler {
   private JavaToKotlinHandler() {
   }
 
-  @NotNull
+  @Nullable
   public static ConvertJavaToKotlinProvider getJavaToKotlinConversionProvider() {
     ConvertJavaToKotlinProvider[] providers = ConvertJavaToKotlinProvider.EP_NAME.getExtensions();
-    if (providers.length == 0)
-      throw new RuntimeException(
-        "Could not find a ConvertJavaToKotlinProvider, even though the Kotlin plugin is bundled with Studio.\n" +
-        "Is the Kotlin plugin disabled?");
-    return providers[0];
+    return ArrayUtil.getFirstElement(providers);
   }
 
   static void convertJavaFilesToKotlin(@NotNull Project project,

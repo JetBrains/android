@@ -59,7 +59,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.InputEvent;
@@ -79,6 +79,14 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+import java.awt.event.InputEvent;
+import java.util.List;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static com.android.SdkConstants.*;
+
 /**
  * A Scene contains a hierarchy of SceneComponent representing the bounds
  * of the widgets being layed out. Multiple NlModel can be used to populate
@@ -90,7 +98,7 @@ import org.jetbrains.annotations.Nullable;
 public class Scene implements SelectionListener, Disposable {
 
   @SwingCoordinate
-  private static final int DRAG_THRESHOLD = JBUI.scale(10);
+  private static final int DRAG_THRESHOLD = JBUIScale.scale(10);
 
   private final DesignSurface myDesignSurface;
   private final SceneManager mySceneManager;

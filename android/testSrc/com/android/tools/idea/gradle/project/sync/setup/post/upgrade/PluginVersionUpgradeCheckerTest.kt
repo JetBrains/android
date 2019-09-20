@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrad
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.notification.NotificationsManager
 import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.replaceService
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations.initMocks
@@ -90,7 +91,6 @@ class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
     @Suppress("UsePropertyAccessSyntax")
     Mockito.`when`<Boolean>(upgrade.isRecommendedUpgradable()).thenReturn(upgradable)
 
-    val ideComponents = IdeComponents(myProject)
-    ideComponents.replaceProjectService(PluginVersionUpgrade::class.java, upgrade)
+    myProject.replaceService(PluginVersionUpgrade::class.java, upgrade, testRootDisposable)
   }
 }

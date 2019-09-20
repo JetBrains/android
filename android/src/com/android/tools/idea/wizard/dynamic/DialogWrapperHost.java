@@ -29,8 +29,8 @@ import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.panels.OpaquePanel;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +53,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
 
   private DynamicWizard myWizard;
   private TallImageComponent myIcon = new TallImageComponent(null);
-  private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = new AtomicReference<ProgressIndicator>();
+  private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = new AtomicReference<>();
 
   private JPanel myCenterPanel;
 
@@ -298,7 +298,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
       if (myIcon == null) {
         return;
       }
-      final BufferedImage image = UIUtil.createImage(myIcon.getIconWidth(), myIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+      final BufferedImage image = ImageUtil.createImage(myIcon.getIconWidth(), myIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
       final Graphics2D gg = image.createGraphics();
       myIcon.paintIcon(this, gg, 0, 0);
 

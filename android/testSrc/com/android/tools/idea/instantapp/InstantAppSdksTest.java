@@ -15,29 +15,31 @@
  */
 package com.android.tools.idea.instantapp;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
-
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.AnalyticsSettingsData;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.TelemetryManager.OptInStatus;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.BuildNumber;
-import com.intellij.testFramework.IdeaTestCase;
-import java.io.File;
-import java.nio.file.Files;
-import org.jetbrains.android.AndroidTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
+import org.jetbrains.android.AndroidTestBase;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-public class InstantAppSdksTest extends IdeaTestCase {
+import java.io.File;
+import java.nio.file.Files;
+
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
+
+public class InstantAppSdksTest extends JavaProjectTestCase {
   private @Spy InstantAppSdks myInstantAppSdks;
   private @Mock ExtendedSdk myMockLibSdk;
   private @Mock ApplicationInfo myApplicationInfo;
@@ -51,7 +53,7 @@ public class InstantAppSdksTest extends IdeaTestCase {
     MockitoAnnotations.initMocks(this);
     when(myApplicationInfo.getBuild()).thenReturn(BuildNumber.fromString("123.4567.89.0"));
     when(myApplicationInfo.getFullVersion()).thenReturn("testVersion");
-    new IdeComponents(getProject()).replaceApplicationService(ApplicationInfo.class, myApplicationInfo);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ApplicationInfo.class, myApplicationInfo, getTestRootDisposable());
     AnalyticsSettingsData analyticsSettings = new AnalyticsSettingsData();
     AnalyticsSettings.setInstanceForTest(analyticsSettings);
     myUsageTracker = new TestUsageTracker(myVirtualTimeScheduler);
@@ -120,12 +122,12 @@ public class InstantAppSdksTest extends IdeaTestCase {
 
   /** Points the SDK loader at a stub JAR implemeting only the old {@code Sdk} SPI. */
   private void installLegacyFakeLib() {
-    doReturn(new File(AndroidTestCase.getTestDataPath() + "/instantapps/fake_1.3_sdk")).when(myInstantAppSdks).getOrInstallInstantAppSdk();
+    doReturn(new File(AndroidTestBase.getTestDataPath() + "/instantapps/fake_1.3_sdk")).when(myInstantAppSdks).getOrInstallInstantAppSdk();
   }
 
   /** Points the SDK loader at a stub JAR implementing the {@code ExtendedSdk} SPI. */
   private void installExtendedFakeLib() {
-    doReturn(new File(AndroidTestCase.getTestDataPath() + "/instantapps/fake_extended_sdk")).when(myInstantAppSdks)
+    doReturn(new File(AndroidTestBase.getTestDataPath() + "/instantapps/fake_extended_sdk")).when(myInstantAppSdks)
                                                                                             .getOrInstallInstantAppSdk();
   }
 }

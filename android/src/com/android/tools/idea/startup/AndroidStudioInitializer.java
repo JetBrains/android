@@ -51,7 +51,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.XmlHighlighterColors;
@@ -107,7 +106,7 @@ public class AndroidStudioInitializer implements Runnable {
    * sets up collection of Android Studio specific analytics.
    */
   private static void setupAnalytics() {
-    UsageStatisticsPersistenceComponent.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
+//    UsageStatisticsPersistenceComponent.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
 
     // If the user hasn't opted in, we will ask IJ to check if the user has
     // provided a decision on the statistics consent. If the user hasn't made a
@@ -121,7 +120,7 @@ public class AndroidStudioInitializer implements Runnable {
       // and no metrics are ever sent.
       if (!application.isUnitTestMode() && !application.isHeadlessEnvironment() &&
         !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
-        AppUIUtil.showConsentsAgreementIfNeed();
+        AppUIUtil.showConsentsAgreementIfNeeded(getLog());
       }
     }
 
@@ -132,7 +131,7 @@ public class AndroidStudioInitializer implements Runnable {
       UsageTracker.setIdeaIsInternal(true);
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
-    new GcPauseWatcher();
+    new GcPauseWatcher(); // FIXME-ank: delete?
   }
 
   private static AndroidStudioEvent.IdeBrand getIdeBrand() {
@@ -170,7 +169,7 @@ public class AndroidStudioInitializer implements Runnable {
       String title = "Corrupt Installation";
       int option = Messages.showDialog(msg, title, new String[]{"Quit", "Proceed Anyway"}, 0, Messages.getErrorIcon());
       if (option == 0) {
-        ApplicationManagerEx.getApplicationEx().exit();
+        ApplicationManager.getApplication().exit();
       }
     }
   }
@@ -231,7 +230,6 @@ public class AndroidStudioInitializer implements Runnable {
 
     // Update the text for the file creation templates.
     FileTemplateManager fileTemplateManager = FileTemplateManager.getDefaultInstance();
-    fileTemplateManager.getTemplate("Singleton").setText(fileTemplateManager.getJ2eeTemplate("Singleton").getText());
     for (String templateName : new String[]{"Class", "Interface", "Enum", "AnnotationType"}) {
       FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
       template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());

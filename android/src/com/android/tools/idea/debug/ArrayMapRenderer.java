@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.debug;
 
-import org.jetbrains.annotations.NotNull;
-
 public class ArrayMapRenderer extends ArrayMapRendererBase {
   public ArrayMapRenderer() {
     super("android.util.ArrayMap");

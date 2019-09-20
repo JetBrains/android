@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

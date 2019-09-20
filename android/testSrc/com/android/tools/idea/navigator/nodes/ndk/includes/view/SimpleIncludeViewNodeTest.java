@@ -19,7 +19,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.tests.LeakCheckerRule;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.junit.ClassRule;
 
 import java.io.File;
@@ -31,7 +31,7 @@ import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeVi
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
-public class SimpleIncludeViewNodeTest extends IdeaTestCase {
+public class SimpleIncludeViewNodeTest extends JavaProjectTestCase {
   @ClassRule
   public static LeakCheckerRule checker = new LeakCheckerRule();
 
@@ -42,8 +42,7 @@ public class SimpleIncludeViewNodeTest extends IdeaTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "ndk-bundle/sources/android/native_app_glue")
       .addRemoteArtifactIncludePaths("my-artifact", "ndk-bundle/sources/android/ndk_helper")
       .addArtifact("my-artifact", "bar.cpp");
-    IdeComponents ideComponents = new IdeComponents(getProject());
-    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    IdeSdks mockIdeSdks = IdeComponents.mockApplicationService(IdeSdks.class, getTestRootDisposable());
     assertSame(mockIdeSdks, IdeSdks.getInstance());
     File ndkRootFolder = new File(layout.getRemoteRoot(), "ndk-bundle");
     when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
@@ -73,8 +72,7 @@ public class SimpleIncludeViewNodeTest extends IdeaTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "ndk-bundle/sources/android/native_app_glue")
       .addRemoteArtifactIncludePaths("my-artifact", "ndk-bundle/sources/android/ndk_helper")
       .addArtifact("my-artifact", "bar.cpp");
-    IdeComponents ideComponents = new IdeComponents(getProject());
-    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    IdeSdks mockIdeSdks = IdeComponents.mockApplicationService(IdeSdks.class, getTestRootDisposable());
     assertSame(mockIdeSdks, IdeSdks.getInstance());
     File ndkRootFolder = new File(layout.getRemoteRoot(), "ndk-bundle");
     when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
@@ -105,8 +103,7 @@ public class SimpleIncludeViewNodeTest extends IdeaTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "ndk-bundle/sources/android/ndk_helper")
       .addLocalHeaders("baz.h")
       .addArtifact("my-artifact", "bar.cpp");
-    IdeComponents ideComponents = new IdeComponents(getProject());
-    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    IdeSdks mockIdeSdks = IdeComponents.mockApplicationService(IdeSdks.class, getTestRootDisposable());
     assertSame(mockIdeSdks, IdeSdks.getInstance());
     File ndkRootFolder = new File(layout.getRemoteRoot(), "ndk-bundle");
     when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
@@ -132,8 +129,7 @@ public class SimpleIncludeViewNodeTest extends IdeaTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "ndk-bundle/sources/android/ndk_helper")
       .addLocalHeaders("baz.h")
       .addArtifact("my-artifact", "bar.cpp");
-    IdeComponents ideComponents = new IdeComponents(getProject());
-    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    IdeSdks mockIdeSdks = IdeComponents.mockApplicationService(IdeSdks.class, getTestRootDisposable());
     assertSame(mockIdeSdks, IdeSdks.getInstance());
     File ndkRootFolder = new File(layout.getRemoteRoot(), "ndk-bundle");
     when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);

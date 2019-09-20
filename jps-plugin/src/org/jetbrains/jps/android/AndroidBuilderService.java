@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import org.jetbrains.annotations.NotNull;
@@ -8,6 +9,7 @@ import org.jetbrains.jps.incremental.ModuleLevelBuilder;
 import org.jetbrains.jps.incremental.TargetBuilder;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,7 +33,7 @@ public class AndroidBuilderService extends BuilderService {
   @NotNull
   @Override
   public List<? extends ModuleLevelBuilder> createModuleLevelBuilders() {
-    return Arrays.asList(new AndroidSourceGeneratingBuilder());
+    return Collections.singletonList(new AndroidSourceGeneratingBuilder());
   }
 
   @NotNull

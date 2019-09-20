@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.lang.reflect.Member;
 import java.net.InetAddress;
 import java.security.Permission;
-import java.util.Arrays;
 import java.util.PropertyPermission;
 
 import static com.android.SdkConstants.*;

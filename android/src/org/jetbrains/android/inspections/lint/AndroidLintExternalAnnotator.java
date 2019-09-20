@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections.lint;
 
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
@@ -66,7 +67,7 @@ import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.xml.util.XmlStringUtil;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -352,7 +353,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
     String link = " <a "
         +"href=\"#lint/" + issue.getId() + "\""
-        + (UIUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
+        + (StartupUiUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
         +">" + DaemonBundle.message("inspection.extended.description")
         +"</a> " + getShowMoreShortCut();
     String tooltip = XmlStringUtil.wrapInHtml(RAW.convertTo(message, HTML) + link);

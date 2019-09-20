@@ -42,7 +42,7 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import java.awt.Point;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;

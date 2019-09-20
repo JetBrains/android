@@ -137,7 +137,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   @Override
   @NotNull
   public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
-    return new DropDownActionButton(this, presentation, ActionPlaces.TOOLBAR);
+    return new DropDownActionButton(this, presentation, place);
   }
 
   @NotNull

@@ -1,6 +1,7 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.android.compiler.tools.AndroidApkBuilder;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
 
   @NotNull
   public static String[] collectNativeLibsFolders(@NotNull JpsAndroidModuleExtension extension, boolean checkExistence) {
-    final List<String> result = new ArrayList<String>();
+    final List<String> result = new ArrayList<>();
     final File libsDir = extension.getNativeLibsDir();
 
     if (libsDir != null && (!checkExistence || libsDir.exists())) {
@@ -49,7 +50,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
         result.add(depLibsDir.getPath());
       }
     }
-    return ArrayUtil.toStringArray(result);
+    return ArrayUtilRt.toStringArray(result);
   }
 
   @NotNull
@@ -61,7 +62,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
     final File resPackage = AndroidResourcePackagingBuildTarget.getOutputFile(dataPaths, myModule);
     final File classesDexFile = AndroidDexBuildTarget.getOutputFile(dataPaths, myModule);
 
-    final List<BuildRootDescriptor> roots = new ArrayList<BuildRootDescriptor>();
+    final List<BuildRootDescriptor> roots = new ArrayList<>();
 
     roots.add(new BuildRootDescriptorImpl(this, resPackage));
     roots.add(new BuildRootDescriptorImpl(this, classesDexFile));

@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.artifact;
 
 import com.intellij.facet.pointers.FacetPointersManager;
@@ -43,9 +44,9 @@ public class AndroidSourceItemsProvider extends FacetBasedPackagingSourceItemsPr
     if (parent instanceof ModuleSourceItemGroup && !AndroidArtifactUtil.containsAndroidPackage(editorContext, artifact)) {
       final Module module = ((ModuleSourceItemGroup)parent).getModule();
       final Set<AndroidFacet> facets =
-        new HashSet<AndroidFacet>(editorContext.getFacetsProvider().getFacetsByType(module, AndroidFacet.ID));
+        new HashSet<>(editorContext.getFacetsProvider().getFacetsByType(module, AndroidFacet.ID));
       if (!facets.isEmpty()) {
-        return Collections.singletonList(new FacetBasedSourceItem<AndroidFacet>(this, facets.iterator().next()));
+        return Collections.singletonList(new FacetBasedSourceItem<>(this, facets.iterator().next()));
       }
     }
     return Collections.emptyList();

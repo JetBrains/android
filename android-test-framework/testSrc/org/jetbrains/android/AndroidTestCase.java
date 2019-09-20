@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android;
 
@@ -8,7 +8,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
@@ -46,6 +45,7 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.InspectionsKt;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -56,7 +56,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.io.IOException;
@@ -85,7 +85,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   private boolean myUseCustomSettings;
   private ComponentStack myApplicationComponentStack;
   private ComponentStack myProjectComponentStack;
-  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
@@ -94,6 +93,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     IdeaTestFixtureFactory.getFixtureFactory().registerFixtureBuilder(
       AndroidModuleFixtureBuilder.class, AndroidModuleFixtureBuilderImpl.class);
     TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
+
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
     AndroidModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(AndroidModuleFixtureBuilder.class);
     initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, myFixture.getTempDirPath());
@@ -102,6 +102,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     configureAdditionalModules(projectBuilder, modules);
 
     myFixture.setUp();
+    PlatformTestUtil.getOrCreateProjectTestBaseDir(projectBuilder.getFixture().getProject());
+
     myFixture.setTestDataPath(getTestDataPath());
     myModule = moduleFixtureBuilder.getFixture().getModule();
 
@@ -163,7 +165,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
     myProjectComponentStack = new ComponentStack(getProject());
-    myIdeComponents = new IdeComponents(myFixture);
 
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
@@ -293,7 +294,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     List<String> newRoots = new ArrayList<>(roots);
     newRoots.removeAll(myAllowedRoots);
 
-    String[] newRootsArray = ArrayUtil.toStringArray(newRoots);
+    String[] newRootsArray = ArrayUtilRt.toStringArray(newRoots);
     VfsRootAccess.allowRootAccess(disposable, newRootsArray);
     myAllowedRoots.addAll(newRoots);
 
@@ -445,17 +446,17 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    myIdeComponents.replaceProjectService(serviceType, newServiceInstance);
+    ServiceContainerUtil.replaceService(getProject(), serviceType, newServiceInstance, getTestRootDisposable());
   }
 
   protected final static class MyAdditionalModuleData {
-    final AndroidModuleFixtureBuilder myModuleFixtureBuilder;
+    final AndroidModuleFixtureBuilder<?> myModuleFixtureBuilder;
     final String myDirName;
     final int myProjectType;
     final boolean myIsMainModuleDependency;
 
     private MyAdditionalModuleData(
-      @NotNull AndroidModuleFixtureBuilder moduleFixtureBuilder, @NotNull String dirName, int projectType, boolean isMainModuleDependency) {
+      @NotNull AndroidModuleFixtureBuilder<?> moduleFixtureBuilder, @NotNull String dirName, int projectType, boolean isMainModuleDependency) {
       myModuleFixtureBuilder = moduleFixtureBuilder;
       myDirName = dirName;
       myProjectType = projectType;
@@ -493,6 +494,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       myModuleName = moduleName;
     }
 
+    @NotNull
     @Override
     protected Module createModule() {
       Project project = myFixtureBuilder.getFixture().getProject();
@@ -505,13 +507,14 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       return ModuleManager.getInstance(project).newModule(moduleFilePath, ModuleTypeId.JAVA_MODULE);
     }
 
+    @NotNull
     @Override
     protected ModuleFixtureImpl instantiateFixture() {
       return new ModuleFixtureImpl(this);
     }
   }
 
-  public static void removeFacetOn(@NotNull Disposable disposable, @NotNull Facet facet) {
+  public static void removeFacetOn(@NotNull Disposable disposable, @NotNull Facet<?> facet) {
     Disposer.register(disposable, () -> WriteAction.run(() -> {
       Module module = facet.getModule();
       if (!module.isDisposed()) {

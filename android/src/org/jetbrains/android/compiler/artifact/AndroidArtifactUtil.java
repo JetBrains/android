@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.artifact;
 
 import com.intellij.CommonBundle;
@@ -12,12 +13,12 @@ import com.intellij.packaging.elements.PackagingElementResolvingContext;
 import com.intellij.packaging.impl.artifacts.ArtifactUtil;
 import com.intellij.packaging.ui.ArtifactEditorContext;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -65,14 +66,14 @@ public class AndroidArtifactUtil {
   @Nullable
   public static AndroidFacet chooseAndroidApplicationModule(@NotNull Project project,
                                                             @NotNull List<AndroidFacet> facets) {
-    final Map<Module, AndroidFacet> map = new HashMap<Module, AndroidFacet>();
+    final Map<Module, AndroidFacet> map = new HashMap<>();
 
     for (AndroidFacet facet : facets) {
       map.put(facet.getModule(), facet);
     }
     String message = "Selected Android application module will be included in the created artifact with all dependencies";
 
-    final ChooseModulesDialog dialog = new ChooseModulesDialog(project, new ArrayList<Module>(map.keySet()), "Select Module", message);
+    final ChooseModulesDialog dialog = new ChooseModulesDialog(project, new ArrayList<>(map.keySet()), "Select Module", message);
     dialog.setSingleSelectionMode();
     dialog.show();
     final List<Module> selected = dialog.getChosenElements();
