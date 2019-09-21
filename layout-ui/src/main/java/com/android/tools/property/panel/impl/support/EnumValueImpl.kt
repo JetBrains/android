@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.impl.support
 
+import com.android.tools.property.panel.api.ActionEnumValue
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
 import com.intellij.openapi.actionSystem.ActionManager
@@ -72,7 +73,7 @@ internal data class GenericEnumValue(override val value: String?, override val d
   override fun toString() = value ?: ""
 }
 
-sealed class BaseActionEnumValue(val action: AnAction) : EnumValue {
+sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValue {
   override val value = ""
 
   override val display
@@ -114,7 +115,7 @@ sealed class BaseActionEnumValue(val action: AnAction) : EnumValue {
   }
 }
 
-class ActionEnumValue(action: AnAction) : BaseActionEnumValue(action)
+class AnActionEnumValue(action: AnAction) : BaseActionEnumValue(action)
 
 internal class GenericActionEnumValue(action: AnAction, override val header: String,
                                       override val indented: Boolean, override val separator: Boolean) : BaseActionEnumValue(action)

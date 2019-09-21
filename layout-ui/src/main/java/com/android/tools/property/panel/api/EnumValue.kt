@@ -110,8 +110,19 @@ interface EnumValue {
     fun item(value: String, display: String): EnumValue = ItemWithDisplayEnumValue(value, display)
     fun indented(value: String): EnumValue = IndentedItemEnumValue(value)
     fun indented(value: String, display: String): EnumValue = IndentedItemWithDisplayEnumValue(value, display)
-    fun action(action: AnAction): BaseActionEnumValue = ActionEnumValue(action)
+    fun action(action: AnAction): BaseActionEnumValue = AnActionEnumValue(action)
     val DEFAULT_RENDERER: ListCellRenderer<EnumValue> = EnumValueListCellRenderer()
     val EMPTY: EnumValue = ItemEnumValue(null)
   }
+}
+
+/**
+ * Representation of an enum value an action value.
+ */
+interface ActionEnumValue : EnumValue {
+
+  /**
+   * The action represented with this enum value.
+   */
+  val action: AnAction
 }
