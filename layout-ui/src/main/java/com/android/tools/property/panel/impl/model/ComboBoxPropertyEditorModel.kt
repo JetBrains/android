@@ -17,8 +17,10 @@ package com.android.tools.property.panel.impl.model
 
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.EditingSupport
-import com.android.tools.property.panel.api.*
-import com.android.tools.property.panel.impl.support.ActionEnumValue
+import com.android.tools.property.panel.api.ActionEnumValue
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.PropertyItem
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 import kotlin.properties.Delegates
@@ -54,12 +56,23 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
    * generated from [focusLost].
    */
   private var pendingValueChange = false
+  private var pendingValue: String? = null
 
-  override var text by Delegates.observable(property.value.orEmpty()) { _, _, _ -> pendingValueChange = false }
+  override var text by Delegates.observable(property.value.orEmpty()) { _, _, _ -> resetPendingValue() }
+
+  private fun setPendingValue(newValue: String?) {
+    pendingValueChange = true
+    pendingValue = newValue
+  }
+
+  private fun resetPendingValue() {
+    pendingValueChange = false
+    pendingValue = null
+  }
 
   override fun updateValueFromProperty() {
     text = value
-    pendingValueChange = false
+    resetPendingValue()
   }
 
   override fun focusLost() {
@@ -91,15 +104,19 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   /**
    * Commit the current changed text.
    *
-   * Return true if the change was successfully updated.
+   * Return true if the change was successfully updated,
+   * false if the value is same as before or a pending update is expected.
    */
   private fun commitChange(): Boolean {
-    if (pendingValueChange || text == value) {
-      return !pendingValueChange
+    if (pendingValueChange && text == pendingValue) {
+      return false
+    }
+    resetPendingValue()
+    if (value == text) {
+      return false
     }
     value = text
-    pendingValueChange = value != text
-    return !pendingValueChange
+    return true
   }
 
   override fun cancelEditing(): Boolean {
@@ -121,14 +138,13 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   fun popupMenuWillBecomeInvisible(ignoreChanges: Boolean) {
     val newValue = selectedValue
     if (!ignoreChanges && newValue != null) {
-      pendingValueChange = true
 
       // Be aware that we may loose focus on the next line,
       // if the EnumValue is an action that displays a dialog.
       // This is why we set text=value just before calling select.
       if (newValue.select(property)) {
         text = newValue.value ?: ""
-        pendingValueChange = false
+        setPendingValue(newValue.value)
       }
       fireValueChanged()
     }
