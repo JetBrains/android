@@ -31,7 +31,9 @@ public class DrawMotionPath implements DrawCommand {
   private float[] mValues;
   private GeneralPath ourPath = new GeneralPath();
   private AffineTransform at = new AffineTransform();
-  private static BasicStroke ourBasicStroke = new BasicStroke(0);
+  private static BasicStroke ourBasicStroke = new BasicStroke(1f);
+  private static BasicStroke ourShadowStroke = new BasicStroke(1f);
+
 
   DrawMotionPath(float[] values, int size) {
     mValues = Arrays.copyOf(values, values.length);
@@ -50,7 +52,7 @@ public class DrawMotionPath implements DrawCommand {
 
   @Override
   public int getLevel() {
-    return 0;
+    return CONNECTION_LEVEL;
   }
 
   @Override
@@ -63,20 +65,27 @@ public class DrawMotionPath implements DrawCommand {
     at.translate(dx, dy);
     at.scale(scale, scale);
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g2.setStroke(ourBasicStroke);
+    float lineWidth = (2f/(float) scale);
     g2.transform(at);
+
+    if (Math.abs(ourShadowStroke.getLineWidth() - lineWidth) > 0.01) {
+      ourShadowStroke = new BasicStroke(lineWidth);
+      System.out.println("update line width = " + lineWidth);
+      ourBasicStroke = new BasicStroke(lineWidth/2);
+    }
+    g2.setStroke(ourShadowStroke);
+    g2.setColor(Color.BLACK);
+    g2.draw(ourPath);
+
+    g2.setStroke(ourBasicStroke);
     g2.setColor(Color.white);
     g2.draw(ourPath);
+
   }
 
   @Override
   public String serialize() {
     return null;
-  }
-
-  @Override
-  public int compareTo(@NotNull Object o) {
-    return 0;
   }
 
 

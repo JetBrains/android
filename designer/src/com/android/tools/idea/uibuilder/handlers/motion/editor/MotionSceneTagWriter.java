@@ -35,8 +35,13 @@ import java.util.LinkedHashMap;
  */
 public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWriter {
   String mType;
-  ArrayList<CommitListener> myListeners = new ArrayList<>();
-  HashMap<String, Attribute> mNewAttrList = new LinkedHashMap<>();
+  private ArrayList<CommitListener> myListeners = new ArrayList<>();
+  private HashMap<String, Attribute> mNewAttrList = new LinkedHashMap<>();
+  private DeleteTag deleteRun;
+
+  interface DeleteTag {
+    void delete(String command);
+  }
 
   public MotionSceneTagWriter(MotionSceneTag parent, String type) {
     super(null, parent);
@@ -75,6 +80,11 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
 
   @Override
   public MTag commit(@Nullable String commandName) {
+    if (deleteRun != null) {
+      deleteRun.delete(commandName);
+      deleteRun = null;
+      return null;
+    }
     MotionSceneTag.Root root = getRoot(this);
     if (root == null) {
       return null;
@@ -158,17 +168,29 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     return createdTag;
   }
 
-  public void deleteTag(@NotNull String command) {
+  @Override
+  public TagWriter deleteTag() {
+    if (deleteRun != null) {
+      return this;
+    }
     MotionSceneTag.Root root = getRoot(this);
+    if (root == null) {
+      throw new RuntimeException("no root tag");
+    }
+    if (myXmlTag == null) {
+      throw new RuntimeException("myXmlTag is null");
+    }
 
-    Runnable operation = () -> {
-      myXmlTag.delete();
-    };
     XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(root.mProject, root.mVirtualFile);
-
-    WriteCommandAction.runWriteCommandAction(root.mProject, command, null, operation, xmlFile);
-
-    mParent.myChildren.remove(this);
+    deleteRun = new DeleteTag() {
+      @Override
+      public void delete(String cmd) {
+        WriteCommandAction.<XmlTag>runWriteCommandAction(root.mProject, cmd, null, () -> {
+          myXmlTag.delete();
+        }, xmlFile );
+      }
+    };
+    return this;
   }
 
   /**

@@ -30,8 +30,6 @@ public interface MTag {
 
   public String getTagName();
 
-  void deleteTag();
-
   void setClientData(String type, Object motionAttributes);
 
   public Object getClientData(String type);
@@ -92,6 +90,7 @@ public interface MTag {
 
   interface TagWriter extends MTag {
     void setAttribute(String type, String attribute, String value);
+    TagWriter deleteTag();
 
     /**
      * Commit is responsible for saving the tag writer
