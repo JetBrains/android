@@ -19,6 +19,7 @@ import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.M
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END;
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START;
 
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
@@ -27,6 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
@@ -299,9 +301,14 @@ public class MotionSceneTag implements MTag {
     return mParent;
   }
 
-  @Override
-  public void deleteTag() {
-    // TODO WE NEED THE ABILITY TO DELETE TAGS
+  private static MotionSceneTag.Root getRoot(MotionSceneTag tag) {
+    while (!(tag instanceof MotionSceneTag.Root)) {
+      tag = tag.mParent;
+      if (tag == null) {
+        return null;
+      }
+    }
+    return (MotionSceneTag.Root)tag;
   }
 
   @Override

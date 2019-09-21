@@ -79,6 +79,7 @@ public class TimeLinePanel extends JPanel {
   private MTag mTransitionTag;
   private float mMotionProgress; // from 0 .. 1;
   private Timer myTimer;
+  private Timer myPlayLimiter;
   private int myYoyo = 0;
   private float myProgressPerFrame = 0.01f;
   private int mCurrentSpeed = 0;
@@ -242,6 +243,12 @@ public class TimeLinePanel extends JPanel {
       });
       myTimer.setRepeats(true);
     }
+    if (myPlayLimiter == null) {
+      myPlayLimiter = new Timer(60000, e -> {
+        myPlayLimiterStop();
+      });
+      myPlayLimiter.setRepeats(false);
+    }
   }
 
   private void destroyTimer() {
@@ -252,6 +259,7 @@ public class TimeLinePanel extends JPanel {
   }
 
   private void performCommand(TimelineCommands e, int mode) {
+    myPlayLimiter.restart();
     switch (e) {
       case PLAY:
         myTimer.setRepeats(true);
@@ -274,6 +282,7 @@ public class TimeLinePanel extends JPanel {
       case END:
         mIsPlaying = false;
         myTimer.stop();
+        myPlayLimiter.stop();
         notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
         mMotionProgress = 1;
         break;
@@ -284,6 +293,13 @@ public class TimeLinePanel extends JPanel {
         mMotionProgress = 0;
         break;
     }
+  }
+
+  private void myPlayLimiterStop() {
+    if (!mIsPlaying) {
+      return;
+    }
+    destroyTimer();
   }
 
   private void progress() {

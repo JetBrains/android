@@ -55,11 +55,6 @@ public class NlComponentTag implements MTag {
   }
 
   @Override
-  public void deleteTag() {
-    // TODO WE NEED THE ABILITY TO DELETE TAGS
-  }
-
-  @Override
   public void setClientData(String type, Object motionAttributes) {
     if (DEBUG) {
       Debug.log("setClientData MOTION_LAYOUT_PROPERTIES setting " + motionAttributes );

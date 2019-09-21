@@ -59,11 +59,6 @@ public class MTagImp implements MTag {
   }
 
   @Override
-  public void deleteTag() {
-
-  }
-
-  @Override
   public void setClientData(String type, Object clientData) {
     this.clientData = clientData;
   }
@@ -411,6 +406,11 @@ public class MTagImp implements MTag {
       attribute.mValue = value;
       mAttrList.put(nameSpace + ":" + attributeName, attribute);
       newTags.put(nameSpace + ":" + attributeName, attribute);
+    }
+
+    @Override
+    public TagWriter deleteTag() {
+      return null;
     }
 
     @Override

@@ -290,7 +290,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
                                    @NotNull SceneContext sceneContext,
                                    @NotNull SceneComponent component) {
     List<SceneComponent> children = component.getChildren();
-    addPatList(component, list);
+    buildListPaths(component, list);
     if (!children.isEmpty()) {
       // Cache connections between children
       for (SceneComponent child : component.getChildren()) {
@@ -316,7 +316,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
     }
   }
 
-  private void addPatList(@NotNull SceneComponent component, @NotNull DisplayList list) {
+  private void buildListPaths(@NotNull SceneComponent component, @NotNull DisplayList list) {
     MotionLayoutComponentHelper helper = new MotionLayoutComponentHelper(component.getNlComponent());
     if (helper.isInTransition()) {
       List<SceneComponent> children = component.getChildren();
