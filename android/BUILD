@@ -695,6 +695,8 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar",
         "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.6.5:jar",
         "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.6.5:jar",
+        "//prebuilts/tools/common/m2/repository/org/apache/httpcomponents/httpclient/4.5.3:jar",
+        "//prebuilts/tools/common/m2/repository/org/apache/httpcomponents/httpcore/4.4.6:jar",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-integration/1.3:jar",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-library/1.3:jar",
