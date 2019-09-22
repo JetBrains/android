@@ -351,7 +351,7 @@ public class LauncherIconGenerator extends IconGenerator {
       iconOptions.density = Density.ANYDPI;
       iconOptions.generatePlayStoreIcon = false;
       iconOptions.iconFolderKind = IconFolderKind.MIPMAP;
-      iconOptions.apiVersion = 26; // TODO: Remove since http://b/79676805 is fixed.
+      iconOptions.apiVersion = 26; // Adaptive icons were introduced in API 26.
 
       tasks.add(() -> {
         String xmlAdaptiveIcon = getAdaptiveIconXml(iconOptions);
