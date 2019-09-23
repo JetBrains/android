@@ -30,6 +30,8 @@ import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.collect.ImmutableMap;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -218,15 +220,22 @@ public class CaptureModelTest {
   }
 
   @Test
-  public void detailsFeatureTrackingIgnoresEventWithTheSameType() {
+  public void detailsFeatureTrackingIgnoresEventWithTheSameType() throws IOException, ExecutionException, InterruptedException {
     FakeFeatureTracker tracker = (FakeFeatureTracker)myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
-
-    myModel.setDetails(CaptureDetails.Type.CALL_CHART);
-    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureDetails.Type.CALL_CHART);
-
+    myModel.setCapture(CpuProfilerTestUtils.getValidCapture());
+    // Using BOTTOM_UP because CALL_CHART is the default
+    myModel.setDetails(CaptureDetails.Type.BOTTOM_UP);
+    assertThat(tracker.getLastCaptureDetailsType()).isEqualTo(CaptureDetails.Type.BOTTOM_UP);
     tracker.resetLastCaptureDetailsType();
-    myModel.setDetails(CaptureDetails.Type.CALL_CHART);
+    myModel.setDetails(CaptureDetails.Type.BOTTOM_UP);
     assertThat(tracker.getLastCaptureDetailsType()).isNull();
+  }
+
+  @Test
+  public void detailsSetWithoutACaptureReturnsNullDetails() {
+    myModel.setCapture(null);
+    myModel.setDetails(CaptureDetails.Type.CALL_CHART);
+    assertThat(myModel.getDetails()).isNull();
   }
 
   private static void checkChildrenFilterType(CaptureNode node, CaptureNode.FilterType... filterTypes) {

@@ -28,11 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An interface that represents a capture details, e.g it can be {@link TopDown}, {@link BottomUp},
+ * An abstract class that represents a capture details, e.g it can be {@link TopDown}, {@link BottomUp},
  * {@link CallChart} or {@link FlameChart}.
  */
-public interface CaptureDetails {
-  enum Type {
+public abstract class CaptureDetails {
+  public enum Type {
     TOP_DOWN(TopDown::new),
     BOTTOM_UP(BottomUp::new),
     CALL_CHART(CallChart::new),
@@ -46,26 +46,43 @@ public interface CaptureDetails {
       myBuilder = builder;
     }
 
-    public CaptureDetails build(Range range, CaptureNode node, CpuCapture cpuCapture) {
+    public CaptureDetails build(@NotNull Range range, @Nullable CaptureNode node, @NotNull CpuCapture cpuCapture) {
       return myBuilder.build(range, node, cpuCapture);
     }
   }
 
-  Type getType();
+  @NotNull
+  private final CpuCapture myCapture;
+
+  protected CaptureDetails(@NotNull CpuCapture cpuCapture) {
+    myCapture = cpuCapture;
+  }
+
+  @NotNull
+  public CpuCapture getCapture() {
+    return myCapture;
+  }
+
+  @NotNull
+  public abstract Type getType();
 
   interface CaptureDetailsBuilder {
     CaptureDetails build(Range range, CaptureNode captureNode, CpuCapture cpuCapture);
   }
 
-  interface ChartDetails extends CaptureDetails {
+  static abstract class ChartDetails extends CaptureDetails {
+    protected ChartDetails(@NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
+    }
     @Nullable
-    CaptureNode getNode();
+    abstract CaptureNode getNode();
   }
 
-  class TopDown implements CaptureDetails {
+  public static class TopDown extends CaptureDetails {
     @Nullable private final TopDownTreeModel myModel;
 
-    public TopDown(@NotNull Range range, @Nullable CaptureNode node, @Nullable CpuCapture cpuCapture) {
+    TopDown(@NotNull Range range, @Nullable CaptureNode node, @NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
       myModel = node == null ? null : new TopDownTreeModel(range, new TopDownNode(node));
     }
 
@@ -75,15 +92,17 @@ public interface CaptureDetails {
     }
 
     @Override
+    @NotNull
     public Type getType() {
       return Type.TOP_DOWN;
     }
   }
 
-  class BottomUp implements CaptureDetails {
+  public static class BottomUp extends CaptureDetails {
     @Nullable private BottomUpTreeModel myModel;
 
-    public BottomUp(@NotNull Range range, @Nullable CaptureNode node, @Nullable CpuCapture cpuCapture) {
+    BottomUp(@NotNull Range range, @Nullable CaptureNode node, @NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
       myModel = node == null ? null : new BottomUpTreeModel(range, new BottomUpNode(node));
     }
 
@@ -93,16 +112,18 @@ public interface CaptureDetails {
     }
 
     @Override
+    @NotNull
     public Type getType() {
       return Type.BOTTOM_UP;
     }
   }
 
-  class CallChart implements ChartDetails {
+  public static class CallChart extends ChartDetails {
     @NotNull private final Range myRange;
     @Nullable private CaptureNode myNode;
 
-    public CallChart(@NotNull Range range, @Nullable CaptureNode node, @Nullable CpuCapture cpuCapture) {
+    public CallChart(@NotNull Range range, @Nullable CaptureNode node, @NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
       myRange = range;
       myNode = node;
     }
@@ -119,12 +140,13 @@ public interface CaptureDetails {
     }
 
     @Override
+    @NotNull
     public Type getType() {
       return Type.CALL_CHART;
     }
   }
 
-  class FlameChart implements ChartDetails {
+  static class FlameChart extends ChartDetails {
     public enum Aspect {
       /**
        * When the root changes.
@@ -139,7 +161,8 @@ public interface CaptureDetails {
     @NotNull private final Range mySelectionRange;
     @NotNull private final AspectModel<Aspect> myAspectModel;
 
-    public FlameChart(@NotNull Range selectionRange, @Nullable CaptureNode captureNode, @Nullable CpuCapture cpuCapture) {
+    FlameChart(@NotNull Range selectionRange, @Nullable CaptureNode captureNode, @NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
       mySelectionRange = selectionRange;
       myFlameRange = new Range();
       myAspectModel = new AspectModel<>();
@@ -187,6 +210,7 @@ public interface CaptureDetails {
     }
 
     @Override
+    @NotNull
     public Type getType() {
       return Type.FLAME_CHART;
     }
@@ -234,17 +258,19 @@ public interface CaptureDetails {
     }
   }
 
-  class RenderAuditCaptureDetails implements CaptureDetails {
+  public static class RenderAuditCaptureDetails extends CaptureDetails {
 
     private final RenderAuditModel myRenderAuditModel;
 
-    public RenderAuditCaptureDetails(@NotNull Range range, @Nullable CaptureNode node, @NotNull CpuCapture cpuCapture) {
+    RenderAuditCaptureDetails(@NotNull Range range, @Nullable CaptureNode node, @NotNull CpuCapture cpuCapture) {
+      super(cpuCapture);
       // The Render Audit tab is only added in the CapturePane is the capture is an AtraceCpuCapture
       assert cpuCapture instanceof AtraceCpuCapture;
       myRenderAuditModel = new RenderAuditModel((AtraceCpuCapture)cpuCapture);
     }
 
     @Override
+    @NotNull
     public Type getType() {
       return Type.RENDER_AUDIT;
     }

@@ -250,11 +250,13 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(details).isInstanceOf(CaptureDetails.CallChart.class);
     assertThat(((CaptureDetails.CallChart)details).getNode()).isNotNull();
 
-    // null
+    // Default value
     myCaptureDetailsCalled = false;
     myStage.setCaptureDetails(null);
     assertThat(myCaptureDetailsCalled).isTrue();
-    assertThat(myStage.getCaptureDetails()).isNull();
+    details = myStage.getCaptureDetails();
+    assertThat(details).isInstanceOf(CaptureDetails.CallChart.class);
+    assertThat(((CaptureDetails.CallChart)details).getNode()).isNotNull();
 
     // CaptureNode is null, as a result the model is null as well
     myStage.setSelectedThread(-1);
@@ -272,6 +274,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(newDetails).isNotEqualTo(details);
     assertThat(newDetails).isInstanceOf(CaptureDetails.BottomUp.class);
     assertThat(((CaptureDetails.BottomUp)newDetails).getModel()).isNotNull();
+
+    // No capture sets details to null
+    myStage.setCapture(null);
+    assertThat(myStage.getCaptureDetails()).isNull();
   }
 
   @Test
