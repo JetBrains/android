@@ -25,11 +25,11 @@ MODULE: app
                 ./app/src/main/shaders
         main (IDEA)
             Manifest:
-                ./app/src/main/AndroidManifest.xml
+                file://./app/src/main/AndroidManifest.xml
             JavaDirectories:
-                ./app/src/main/java
+                file://./app/src/main/java
             ResDirectories:
-                ./app/src/main/res
+                file://./app/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -266,15 +266,15 @@ MODULE: app
                     ./app/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./app/src/main/AndroidManifest.xml
+            file://./app/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./app/src/main/AndroidManifest.xml
+                    file://./app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./app/src/main/java
+                    file://./app/src/main/java
                 ResDirectories:
-                    ./app/src/main/res
+                    file://./app/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -352,11 +352,11 @@ MODULE: app
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./app/src/main/AndroidManifest.xml
+                    file://./app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./app/src/main/java
+                    file://./app/src/main/java
                 ResDirectories:
-                    ./app/src/main/res
+                    file://./app/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
@@ -395,9 +395,9 @@ MODULE: lib1
                 ./lib1/src/main/shaders
         main (IDEA)
             Manifest:
-                ./lib1/src/main/AndroidManifest.xml
+                file://./lib1/src/main/AndroidManifest.xml
             ResDirectories:
-                ./lib1/src/main/res
+                file://./lib1/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -634,13 +634,13 @@ MODULE: lib1
                     ./lib1/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./lib1/src/main/AndroidManifest.xml
+            file://./lib1/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./lib1/src/main/AndroidManifest.xml
+                    file://./lib1/src/main/AndroidManifest.xml
                 ResDirectories:
-                    ./lib1/src/main/res
+                    file://./lib1/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -718,9 +718,9 @@ MODULE: lib1
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./lib1/src/main/AndroidManifest.xml
+                    file://./lib1/src/main/AndroidManifest.xml
                 ResDirectories:
-                    ./lib1/src/main/res
+                    file://./lib1/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
@@ -759,9 +759,9 @@ MODULE: lib2
                 ./lib2/src/main/shaders
         main (IDEA)
             Manifest:
-                ./lib2/src/main/AndroidManifest.xml
+                file://./lib2/src/main/AndroidManifest.xml
             ResDirectories:
-                ./lib2/src/main/res
+                file://./lib2/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -998,13 +998,13 @@ MODULE: lib2
                     ./lib2/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./lib2/src/main/AndroidManifest.xml
+            file://./lib2/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./lib2/src/main/AndroidManifest.xml
+                    file://./lib2/src/main/AndroidManifest.xml
                 ResDirectories:
-                    ./lib2/src/main/res
+                    file://./lib2/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -1082,9 +1082,9 @@ MODULE: lib2
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./lib2/src/main/AndroidManifest.xml
+                    file://./lib2/src/main/AndroidManifest.xml
                 ResDirectories:
-                    ./lib2/src/main/res
+                    file://./lib2/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
@@ -1123,9 +1123,9 @@ MODULE: lib3
                 ./lib3/src/main/shaders
         main (IDEA)
             Manifest:
-                ./lib3/src/main/AndroidManifest.xml
+                file://./lib3/src/main/AndroidManifest.xml
             ResDirectories:
-                ./lib3/src/main/res
+                file://./lib3/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -1362,13 +1362,13 @@ MODULE: lib3
                     ./lib3/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./lib3/src/main/AndroidManifest.xml
+            file://./lib3/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./lib3/src/main/AndroidManifest.xml
+                    file://./lib3/src/main/AndroidManifest.xml
                 ResDirectories:
-                    ./lib3/src/main/res
+                    file://./lib3/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -1446,9 +1446,9 @@ MODULE: lib3
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./lib3/src/main/AndroidManifest.xml
+                    file://./lib3/src/main/AndroidManifest.xml
                 ResDirectories:
-                    ./lib3/src/main/res
+                    file://./lib3/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:

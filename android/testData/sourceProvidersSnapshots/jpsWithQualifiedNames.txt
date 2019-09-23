@@ -6,31 +6,31 @@ MODULE: MyApplication
             AssetsDirectories:
                 ./assets
             JavaDirectories:
-                ./
+                .
             ResDirectories:
                 ./res
          (IDEA)
             Manifest:
-                ./AndroidManifest.xml
+                file://./AndroidManifest.xml
             AssetsDirectories:
-                ./assets
+                file://./assets
             JavaDirectories:
-                ./
+                file://.
             ResDirectories:
-                ./res
+                file://./res
     by IdeaSourceProviders:
         Manifests:
-            ./AndroidManifest.xml
+            file://./AndroidManifest.xml
         AllIdeaSourceProviders:
              (IDEA)
                 Manifest:
-                    ./AndroidManifest.xml
+                    file://./AndroidManifest.xml
                 AssetsDirectories:
-                    ./assets
+                    file://./assets
                 JavaDirectories:
-                    ./
+                    file://.
                 ResDirectories:
-                    ./res
+                    file://./res
         AllSourceProviders:
             main
                 Manifest:
@@ -38,19 +38,19 @@ MODULE: MyApplication
                 AssetsDirectories:
                     ./assets
                 JavaDirectories:
-                    ./
+                    .
                 ResDirectories:
                     ./res
         CurrentSourceProviders:
              (IDEA)
                 Manifest:
-                    ./AndroidManifest.xml
+                    file://./AndroidManifest.xml
                 AssetsDirectories:
-                    ./assets
+                    file://./assets
                 JavaDirectories:
-                    ./
+                    file://.
                 ResDirectories:
-                    ./res
+                    file://./res
         CurrentTestSourceProviders:
 MODULE: justLib
 MODULE: justLib.sub1

@@ -25,11 +25,11 @@ MODULE: app
                 ./app/src/main/shaders
         main (IDEA)
             Manifest:
-                ./app/src/main/AndroidManifest.xml
+                file://./app/src/main/AndroidManifest.xml
             JavaDirectories:
-                ./app/src/main/java
+                file://./app/src/main/java
             ResDirectories:
-                ./app/src/main/res
+                file://./app/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -266,15 +266,15 @@ MODULE: app
                     ./app/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./app/src/main/AndroidManifest.xml
+            file://./app/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./app/src/main/AndroidManifest.xml
+                    file://./app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./app/src/main/java
+                    file://./app/src/main/java
                 ResDirectories:
-                    ./app/src/main/res
+                    file://./app/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -352,22 +352,22 @@ MODULE: app
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./app/src/main/AndroidManifest.xml
+                    file://./app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./app/src/main/java
+                    file://./app/src/main/java
                 ResDirectories:
-                    ./app/src/main/res
+                    file://./app/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
             androidTest (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./app/src/androidTest/java
+                    file://./app/src/androidTest/java
             test (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./app/src/test/java
+                    file://./app/src/test/java
             androidTestDebug (IDEA)
                 Manifest:
             testDebug (IDEA)

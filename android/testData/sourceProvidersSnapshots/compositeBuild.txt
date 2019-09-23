@@ -26,11 +26,11 @@ MODULE: TestCompositeLib1-app
                 ./TestCompositeLib1/app/src/main/shaders
         main (IDEA)
             Manifest:
-                ./TestCompositeLib1/app/src/main/AndroidManifest.xml
+                file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
             JavaDirectories:
-                ./TestCompositeLib1/app/src/main/java
+                file://./TestCompositeLib1/app/src/main/java
             ResDirectories:
-                ./TestCompositeLib1/app/src/main/res
+                file://./TestCompositeLib1/app/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -267,15 +267,15 @@ MODULE: TestCompositeLib1-app
                     ./TestCompositeLib1/app/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./TestCompositeLib1/app/src/main/AndroidManifest.xml
+            file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./TestCompositeLib1/app/src/main/AndroidManifest.xml
+                    file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./TestCompositeLib1/app/src/main/java
+                    file://./TestCompositeLib1/app/src/main/java
                 ResDirectories:
-                    ./TestCompositeLib1/app/src/main/res
+                    file://./TestCompositeLib1/app/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -353,22 +353,22 @@ MODULE: TestCompositeLib1-app
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./TestCompositeLib1/app/src/main/AndroidManifest.xml
+                    file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./TestCompositeLib1/app/src/main/java
+                    file://./TestCompositeLib1/app/src/main/java
                 ResDirectories:
-                    ./TestCompositeLib1/app/src/main/res
+                    file://./TestCompositeLib1/app/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
             androidTest (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/java
+                    file://./TestCompositeLib1/app/src/androidTest/java
             test (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./TestCompositeLib1/app/src/test/java
+                    file://./TestCompositeLib1/app/src/test/java
             androidTestDebug (IDEA)
                 Manifest:
             testDebug (IDEA)
@@ -400,11 +400,11 @@ MODULE: TestCompositeLib1-lib
                 ./TestCompositeLib1/lib/src/main/shaders
         main (IDEA)
             Manifest:
-                ./TestCompositeLib1/lib/src/main/AndroidManifest.xml
+                file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
             JavaDirectories:
-                ./TestCompositeLib1/lib/src/main/java
+                file://./TestCompositeLib1/lib/src/main/java
             ResDirectories:
-                ./TestCompositeLib1/lib/src/main/res
+                file://./TestCompositeLib1/lib/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -641,15 +641,15 @@ MODULE: TestCompositeLib1-lib
                     ./TestCompositeLib1/lib/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./TestCompositeLib1/lib/src/main/AndroidManifest.xml
+            file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./TestCompositeLib1/lib/src/main/AndroidManifest.xml
+                    file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./TestCompositeLib1/lib/src/main/java
+                    file://./TestCompositeLib1/lib/src/main/java
                 ResDirectories:
-                    ./TestCompositeLib1/lib/src/main/res
+                    file://./TestCompositeLib1/lib/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -727,22 +727,22 @@ MODULE: TestCompositeLib1-lib
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./TestCompositeLib1/lib/src/main/AndroidManifest.xml
+                    file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./TestCompositeLib1/lib/src/main/java
+                    file://./TestCompositeLib1/lib/src/main/java
                 ResDirectories:
-                    ./TestCompositeLib1/lib/src/main/res
+                    file://./TestCompositeLib1/lib/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
             androidTest (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/java
+                    file://./TestCompositeLib1/lib/src/androidTest/java
             test (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./TestCompositeLib1/lib/src/test/java
+                    file://./TestCompositeLib1/lib/src/test/java
             androidTestDebug (IDEA)
                 Manifest:
             testDebug (IDEA)
@@ -775,11 +775,11 @@ MODULE: TestCompositeLib3-app
                 ./TestCompositeLib3/app/src/main/shaders
         main (IDEA)
             Manifest:
-                ./TestCompositeLib3/app/src/main/AndroidManifest.xml
+                file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
             JavaDirectories:
-                ./TestCompositeLib3/app/src/main/java
+                file://./TestCompositeLib3/app/src/main/java
             ResDirectories:
-                ./TestCompositeLib3/app/src/main/res
+                file://./TestCompositeLib3/app/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -1016,15 +1016,15 @@ MODULE: TestCompositeLib3-app
                     ./TestCompositeLib3/app/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./TestCompositeLib3/app/src/main/AndroidManifest.xml
+            file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./TestCompositeLib3/app/src/main/AndroidManifest.xml
+                    file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./TestCompositeLib3/app/src/main/java
+                    file://./TestCompositeLib3/app/src/main/java
                 ResDirectories:
-                    ./TestCompositeLib3/app/src/main/res
+                    file://./TestCompositeLib3/app/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -1102,22 +1102,22 @@ MODULE: TestCompositeLib3-app
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./TestCompositeLib3/app/src/main/AndroidManifest.xml
+                    file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./TestCompositeLib3/app/src/main/java
+                    file://./TestCompositeLib3/app/src/main/java
                 ResDirectories:
-                    ./TestCompositeLib3/app/src/main/res
+                    file://./TestCompositeLib3/app/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
             androidTest (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/java
+                    file://./TestCompositeLib3/app/src/androidTest/java
             test (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./TestCompositeLib3/app/src/test/java
+                    file://./TestCompositeLib3/app/src/test/java
             androidTestDebug (IDEA)
                 Manifest:
             testDebug (IDEA)
@@ -1149,11 +1149,11 @@ MODULE: TestCompositeLib3-lib
                 ./TestCompositeLib3/lib/src/main/shaders
         main (IDEA)
             Manifest:
-                ./TestCompositeLib3/lib/src/main/AndroidManifest.xml
+                file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
             JavaDirectories:
-                ./TestCompositeLib3/lib/src/main/java
+                file://./TestCompositeLib3/lib/src/main/java
             ResDirectories:
-                ./TestCompositeLib3/lib/src/main/res
+                file://./TestCompositeLib3/lib/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -1390,15 +1390,15 @@ MODULE: TestCompositeLib3-lib
                     ./TestCompositeLib3/lib/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./TestCompositeLib3/lib/src/main/AndroidManifest.xml
+            file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./TestCompositeLib3/lib/src/main/AndroidManifest.xml
+                    file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./TestCompositeLib3/lib/src/main/java
+                    file://./TestCompositeLib3/lib/src/main/java
                 ResDirectories:
-                    ./TestCompositeLib3/lib/src/main/res
+                    file://./TestCompositeLib3/lib/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -1476,22 +1476,22 @@ MODULE: TestCompositeLib3-lib
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./TestCompositeLib3/lib/src/main/AndroidManifest.xml
+                    file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./TestCompositeLib3/lib/src/main/java
+                    file://./TestCompositeLib3/lib/src/main/java
                 ResDirectories:
-                    ./TestCompositeLib3/lib/src/main/res
+                    file://./TestCompositeLib3/lib/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
             androidTest (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/java
+                    file://./TestCompositeLib3/lib/src/androidTest/java
             test (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./TestCompositeLib3/lib/src/test/java
+                    file://./TestCompositeLib3/lib/src/test/java
             androidTestDebug (IDEA)
                 Manifest:
             testDebug (IDEA)
@@ -1526,11 +1526,11 @@ MODULE: testCompositeBuild-app
                 ./app/src/main/shaders
         main (IDEA)
             Manifest:
-                ./app/src/main/AndroidManifest.xml
+                file://./app/src/main/AndroidManifest.xml
             JavaDirectories:
-                ./app/src/main/java
+                file://./app/src/main/java
             ResDirectories:
-                ./app/src/main/res
+                file://./app/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -1767,15 +1767,15 @@ MODULE: testCompositeBuild-app
                     ./app/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./app/src/main/AndroidManifest.xml
+            file://./app/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./app/src/main/AndroidManifest.xml
+                    file://./app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./app/src/main/java
+                    file://./app/src/main/java
                 ResDirectories:
-                    ./app/src/main/res
+                    file://./app/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -1853,22 +1853,22 @@ MODULE: testCompositeBuild-app
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./app/src/main/AndroidManifest.xml
+                    file://./app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./app/src/main/java
+                    file://./app/src/main/java
                 ResDirectories:
-                    ./app/src/main/res
+                    file://./app/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
             androidTest (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./app/src/androidTest/java
+                    file://./app/src/androidTest/java
             test (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./app/src/test/java
+                    file://./app/src/test/java
             androidTestDebug (IDEA)
                 Manifest:
             testDebug (IDEA)
@@ -1900,11 +1900,11 @@ MODULE: testCompositeBuild-lib
                 ./lib/src/main/shaders
         main (IDEA)
             Manifest:
-                ./lib/src/main/AndroidManifest.xml
+                file://./lib/src/main/AndroidManifest.xml
             JavaDirectories:
-                ./lib/src/main/java
+                file://./lib/src/main/java
             ResDirectories:
-                ./lib/src/main/res
+                file://./lib/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -2141,15 +2141,15 @@ MODULE: testCompositeBuild-lib
                     ./lib/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./lib/src/main/AndroidManifest.xml
+            file://./lib/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./lib/src/main/AndroidManifest.xml
+                    file://./lib/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./lib/src/main/java
+                    file://./lib/src/main/java
                 ResDirectories:
-                    ./lib/src/main/res
+                    file://./lib/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -2227,22 +2227,22 @@ MODULE: testCompositeBuild-lib
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./lib/src/main/AndroidManifest.xml
+                    file://./lib/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./lib/src/main/java
+                    file://./lib/src/main/java
                 ResDirectories:
-                    ./lib/src/main/res
+                    file://./lib/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
             androidTest (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./lib/src/androidTest/java
+                    file://./lib/src/androidTest/java
             test (IDEA)
                 Manifest:
                 JavaDirectories:
-                    ./lib/src/test/java
+                    file://./lib/src/test/java
             androidTestDebug (IDEA)
                 Manifest:
             testDebug (IDEA)
