@@ -50,7 +50,7 @@ public final class TabularLayoutTest {
 
 
   @Test
-  public void fitPreferredWidthUsesComponentPrefferedSizeNotMinimumnSize() {
+  public void fitPreferredWidthUsesComponentPrefferedSizeNotMinimumSize() {
     final JPanel panel = new JPanel(new TabularLayout("Fit"));
 
     Component col0 = Box.createHorizontalStrut(20);
