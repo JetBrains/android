@@ -249,6 +249,8 @@ object TypeResolver {
 
       SdkConstants.ATTR_MOTION_TARGET -> NelePropertyType.ID_OR_STRING
 
+      SdkConstants.ATTR_MOTION_WAVE_OFFSET -> NelePropertyType.DIMENSION_UNIT_LESS
+
       else -> null
     }
 
