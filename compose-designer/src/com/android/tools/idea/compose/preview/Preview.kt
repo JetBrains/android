@@ -540,7 +540,7 @@ fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = (this as? Co
  */
 class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
   private val LOG = Logger.getInstance(ComposeFileEditorProvider::class.java)
-  private val previewElementProvider = MultiPreviewElementFinder(listOf(AnnotationPreviewElementFinder, MethodPreviewElementFinder))
+  private val previewElementProvider = AnnotationPreviewElementFinder
 
   init {
     if (StudioFlags.COMPOSE_PREVIEW.get()) {
