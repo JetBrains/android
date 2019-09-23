@@ -53,8 +53,8 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_LIST
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_FOR_KTS_ARRAY_EXPRESSION_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_TO_EMPTY_MAP
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_TO_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION
@@ -79,8 +79,8 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_IN_S
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT_SUB
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_LIST_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAPS_IN_MAP
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_FOR_KTS_ARRAY_EXPRESSION_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAP_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAP_ORDER
@@ -172,6 +172,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.UsefulTestCase
@@ -2896,9 +2897,9 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     verifyPropertyModel(extProperties[1], STRING_TYPE, "value", STRING, VARIABLE, 0, "var")
     verifyPropertyModel(androidProperties[0], STRING_TYPE, "Spooky", STRING, VARIABLE, 0, "outerVar")
     verifyPropertyModel(androidProperties[1], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "var")
-    verifyPropertyModel(androidProperties[2], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "minifyEnabled")
+    verifyPropertyModel(androidProperties[2], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, BuildTypeModelImpl.MINIFY_ENABLED)
     verifyPropertyModel(debugProperties[0], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "var")
-    verifyPropertyModel(debugProperties[1], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "minifyEnabled")
+    verifyPropertyModel(debugProperties[1], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, BuildTypeModelImpl.MINIFY_ENABLED)
   }
 
   @Test

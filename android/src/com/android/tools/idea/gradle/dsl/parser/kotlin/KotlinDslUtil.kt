@@ -251,8 +251,10 @@ fun gradleNameFor(expression: KtExpression): String? {
     override fun visitReferenceExpression(expression: KtReferenceExpression) {
       when (expression) {
         is KtSimpleNameExpression -> {
-          lastExtra = (expression.text == "extra")
-          sb.append(if (lastExtra) "ext" else expression.text)
+          when (val text = expression.text) {
+            "extra" -> { lastExtra = true; sb.append("ext") }
+            else -> sb.append(text)
+          }
         }
         else -> super.visitReferenceExpression(expression)
       }
