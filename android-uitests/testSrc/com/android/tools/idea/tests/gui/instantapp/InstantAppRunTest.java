@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
+import static com.android.tools.idea.tests.gui.instantapp.InstantAppRunTestHelpersKt.isActivityWindowOnTop;
+import static com.android.tools.idea.tests.gui.instantapp.InstantAppRunTestHelpersKt.prepareAdbInstall;
+import static com.android.tools.idea.tests.gui.instantapp.InstantAppRunTestHelpersKt.prepareAdbInstantAppLaunchIntent;
+import static com.android.tools.idea.tests.gui.instantapp.InstantAppRunTestHelpersKt.waitForAppInstalled;
+
 import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities;
-import com.android.tools.idea.explorer.adbimpl.AdbFileOperations;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -36,16 +38,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSyste
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -164,176 +160,5 @@ public class InstantAppRunTest {
           devices[0],
           expectedAppId + "/.activity.SignInActivity")
       );
-  }
-
-  @NotNull
-  private ProcessBuilder prepareAdbInstall(@NotNull File adb, @NotNull File... apkFiles) {
-    List<String> cmdLine = new ArrayList<>();
-    cmdLine.add(adb.getAbsolutePath());
-    cmdLine.add("install-multiple");
-    cmdLine.add("-t");
-    cmdLine.add("-r");
-    cmdLine.add("--ephemeral");
-    for (File apk : apkFiles) {
-      cmdLine.add(apk.getAbsolutePath());
-    }
-    return new ProcessBuilder(cmdLine);
-  }
-
-  private void waitForAppInstalled(@NotNull IDevice device, @NotNull String appId) {
-    ExecutorService exec = Executors.newSingleThreadExecutor();
-    AdbFileOperations adbOps = new AdbFileOperations(
-      device,
-      new AdbDeviceCapabilities(device),
-      exec);
-    try {
-      Wait.seconds(10)
-        .expecting("instant app to be listed from `pm packages list`")
-        .until(() -> {
-
-          List<String> packages = null;
-          try {
-            packages = adbOps.listPackages().get(10, TimeUnit.SECONDS);
-          }
-          catch (InterruptedException interrupt) {
-            Thread.currentThread().interrupt();
-            // Do nothing else. Let packages remain null.
-          }
-          catch (Exception otherExceptions) {
-            // Do nothing. Let packages remain null.
-          }
-
-          if (packages == null) {
-            return false;
-          }
-
-          for (String pkg : packages) {
-            if (appId.equals(pkg)) {
-              return true;
-            }
-          }
-
-          return false;
-        });
-    } finally {
-      exec.shutdown();
-    }
-  }
-
-  @NotNull
-  private ProcessBuilder prepareAdbInstantAppLaunchIntent(@NotNull File adb) {
-    List<String> cmdLine = new ArrayList<>();
-    cmdLine.add(adb.getAbsolutePath());
-    cmdLine.add("shell");
-    cmdLine.add("am");
-    cmdLine.add("start");
-    // Intent.FLAG_ACTIVITY_MATCH_EXTERNAL is required to launch in P+; ignored in pre-O.
-    cmdLine.add("-f");
-    cmdLine.add("0x00000800");
-    cmdLine.add("-n");
-    cmdLine.add("com.google.samples.apps.topeka/.activity.SignInActivity");
-    return new ProcessBuilder(cmdLine);
-  }
-
-  private boolean isActivityWindowOnTop(@NotNull IDevice dev, @NotNull String activityComponentName) {
-    Component expectedComp = Component.getComponentFromString(activityComponentName);
-
-    CollectingOutputReceiver receiver = new CollectingOutputReceiver();
-    try {
-      dev.executeShellCommand("dumpsys activity activities", receiver, 30, TimeUnit.SECONDS);
-    } catch (Exception cmdFailed) {
-      return false;
-    }
-
-    String output = receiver.getOutput();
-    String[] lines = output.split("\n");
-
-    // The line containing "mResumedActivity" has information on the top activity
-    Pattern resumedActivityMatcher = Pattern.compile("^mResumedActivity");
-    for(String line : lines) {
-      String trimmedLine = line.trim();
-      Matcher m = resumedActivityMatcher.matcher(trimmedLine);
-      if (m.find() && m.end() < trimmedLine.length()) {
-        // Slice the string apart to extract the application ID and activity's full name
-        String componentNameStr = parseComponentNameFromResumedActivityLine(trimmedLine);
-        Component parsedComp = Component.getComponentFromString(componentNameStr);
-
-        if (expectedComp.equals(parsedComp)) {
-          return true;
-        }
-      }
-    }
-
-    // Scanned through all of the output without finding what we wanted
-    return false;
-  }
-
-  /**
-   * The output from dumpsys looks like
-   *
-   * <p>mResumedActivity: ActivityRecord{285ebc u0 com.android.settings/.CryptKeeper t1}
-   *
-   * <p>Given the above example, we want to parse the line and return "com.android.settings/.CryptKeeper"
-   */
-  @NotNull
-  private String parseComponentNameFromResumedActivityLine(@NotNull String line) {
-    String processedLine = line.trim();
-    String[] lineTokens = processedLine.split("\\s+");
-    if (lineTokens.length != 5) {
-      throw new IllegalArgumentException("line does not split into 5 tokens. line = " + line);
-    }
-
-    return lineTokens[3];
-  }
-
-  private static class Component {
-    @NotNull
-    public static Component getComponentFromString(@NotNull String componentName) {
-      String[] componentNameTokens = componentName.split("/");
-
-      // Need exactly 2 tokens. Activity component names are of the form
-      // {application ID}/{Activity class name}
-      if (componentNameTokens.length != 2) {
-        throw new IllegalArgumentException("Component names must be composed of two tokens separated by 1 '/'");
-      }
-
-      String appId = componentNameTokens[0];
-      String activityClassName = componentNameTokens[1];
-
-      // Expand the class name if the name is in the shortened version:
-      if(activityClassName.startsWith(".")) {
-        activityClassName = appId + activityClassName;
-      }
-
-      return new Component(appId, activityClassName);
-    }
-
-    private final String applicationId;
-    private final String componentClassName;
-
-    private Component(@NotNull String applicationId, @NotNull String componentClassName) {
-      this.applicationId = applicationId;
-      this.componentClassName = componentClassName;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      if (!(other instanceof Component)) {
-        return false;
-      }
-
-      if(other == null) {
-        return false;
-      }
-
-      Component that = (Component) other;
-
-      return applicationId.equals(that.applicationId) && componentClassName.equals(that.componentClassName);
-    }
-
-    @Override
-    public int hashCode() {
-      return applicationId.hashCode() + componentClassName.hashCode();
-    }
   }
 }
