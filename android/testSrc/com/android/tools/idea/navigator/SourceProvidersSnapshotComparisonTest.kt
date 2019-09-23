@@ -118,7 +118,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
 
       fun String.toPrintablePath(): String = this.replace(projectRootPath.absolutePath.toSystemIndependent(), ".", false)
 
-      fun <T, F> T.dumpPaths(name: String, getter: (T) -> Collection<F>, mapper: (F) -> String?) {
+      fun <T, F> T.dumpPathsCore(name: String, getter: (T) -> Collection<F>, mapper: (F) -> String?) {
         val entries = getter(this)
         if (entries.isEmpty()) return
         out("$name:")
@@ -132,10 +132,13 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
       }
 
       fun SourceProvider.dumpPaths(name: String, getter: (SourceProvider) -> Collection<File>) =
-        dumpPaths(name, getter) { it.path.toSystemIndependent() }
+        dumpPathsCore(name, getter) { it.path.toSystemIndependent() }
+
+      fun IdeaSourceProvider.dumpUrls(name: String, getter: (IdeaSourceProvider) -> Collection<String>) =
+        dumpPathsCore(name, getter) { it }
 
       fun IdeaSourceProvider.dumpPaths(name: String, getter: (IdeaSourceProvider) -> Collection<VirtualFile?>) =
-        dumpPaths(name, getter) { it?.url }
+        dumpPathsCore(name, getter) { it?.url }
 
       fun SourceProvider.dump() {
         out(name)
@@ -157,14 +160,23 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
       fun IdeaSourceProvider.dump() {
         out("$name (IDEA)")
         nest {
-          dumpPaths("Manifest") { listOf(manifestFile) }
+          dumpUrls("ManifestUrl") { listOf(manifestFileUrl) }
+          dumpPaths("Manifest") { listOfNotNull(manifestFile) }
+          dumpUrls("AidlDirectoryUrls") { it.aidlDirectoryUrls }
           dumpPaths("AidlDirectories") { it.aidlDirectories }
+          dumpUrls("AssetsDirectoryUrls") { it.assetsDirectoryUrls }
           dumpPaths("AssetsDirectories") { it.assetsDirectories }
+          dumpUrls("JavaDirectoryUrls") { it.javaDirectoryUrls }
           dumpPaths("JavaDirectories") { it.javaDirectories }
+          dumpUrls("JniLibsDirectoryUrls") { it.jniLibsDirectoryUrls }
           dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
+          dumpUrls("RenderscriptDirectoryUrls") { it.renderscriptDirectoryUrls }
           dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
+          dumpUrls("ResDirectoryUrls") { it.resDirectoryUrls }
           dumpPaths("ResDirectories") { it.resDirectories }
+          dumpUrls("ResourcesDirectoryUrls") { it.resourcesDirectoryUrls }
           dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
+          dumpUrls("ShadersDirectoryUrls") { it.shadersDirectoryUrls }
           dumpPaths("ShadersDirectories") { it.shadersDirectories }
         }
       }
@@ -193,7 +205,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
                 }
               }
               nest("by IdeaSourceProviders:") {
-                dumpPaths("Manifests", { IdeaSourceProvider.getManifestFiles(androidFacet) }, { it.url })
+                dumpPathsCore("Manifests", { IdeaSourceProvider.getManifestFiles(androidFacet) }, { it.url })
                 nest("AllIdeaSourceProviders:") { IdeaSourceProvider.getAllIdeaSourceProviders(androidFacet).forEach { it.dump() } }
                 nest("AllSourceProviders:") { IdeaSourceProvider.getAllSourceProviders(androidFacet).forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { IdeaSourceProvider.getCurrentSourceProviders(androidFacet).forEach { it.dump() } }

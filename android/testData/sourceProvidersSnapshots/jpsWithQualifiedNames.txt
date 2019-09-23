@@ -10,12 +10,24 @@ MODULE: MyApplication
             ResDirectories:
                 ./res
          (IDEA)
+            ManifestUrl:
+                file://./AndroidManifest.xml
             Manifest:
                 file://./AndroidManifest.xml
+            AidlDirectoryUrls:
+                file://./gen
+            AssetsDirectoryUrls:
+                file://./assets
             AssetsDirectories:
                 file://./assets
+            JavaDirectoryUrls:
+                file://.
             JavaDirectories:
                 file://.
+            RenderscriptDirectoryUrls:
+                file://./gen
+            ResDirectoryUrls:
+                file://./res
             ResDirectories:
                 file://./res
     by IdeaSourceProviders:
@@ -23,12 +35,24 @@ MODULE: MyApplication
             file://./AndroidManifest.xml
         AllIdeaSourceProviders:
              (IDEA)
+                ManifestUrl:
+                    file://./AndroidManifest.xml
                 Manifest:
                     file://./AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./gen
+                AssetsDirectoryUrls:
+                    file://./assets
                 AssetsDirectories:
                     file://./assets
+                JavaDirectoryUrls:
+                    file://.
                 JavaDirectories:
                     file://.
+                RenderscriptDirectoryUrls:
+                    file://./gen
+                ResDirectoryUrls:
+                    file://./res
                 ResDirectories:
                     file://./res
         AllSourceProviders:
@@ -43,12 +67,24 @@ MODULE: MyApplication
                     ./res
         CurrentSourceProviders:
              (IDEA)
+                ManifestUrl:
+                    file://./AndroidManifest.xml
                 Manifest:
                     file://./AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./gen
+                AssetsDirectoryUrls:
+                    file://./assets
                 AssetsDirectories:
                     file://./assets
+                JavaDirectoryUrls:
+                    file://.
                 JavaDirectories:
                     file://.
+                RenderscriptDirectoryUrls:
+                    file://./gen
+                ResDirectoryUrls:
+                    file://./res
                 ResDirectories:
                     file://./res
         CurrentTestSourceProviders:

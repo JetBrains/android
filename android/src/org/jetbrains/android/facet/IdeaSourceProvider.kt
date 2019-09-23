@@ -24,14 +24,17 @@ import com.google.common.collect.Lists
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.io.FileUtil.filesEqual
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.openapi.vfs.VfsUtilCore.isAncestor
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.ContainerUtil.flatten
 import org.jetbrains.android.facet.AndroidRootUtil.getAidlGenDir
+import org.jetbrains.android.facet.AndroidRootUtil.getAidlGenSourceRootPath
 import org.jetbrains.android.facet.AndroidRootUtil.getAssetsDir
 import org.jetbrains.android.facet.AndroidRootUtil.getFileByRelativeModulePath
 import org.jetbrains.android.facet.AndroidRootUtil.getRenderscriptGenDir
+import org.jetbrains.android.facet.AndroidRootUtil.getRenderscriptGenSourceRootPath
 import java.io.File
 import java.util.function.Function
 
@@ -39,22 +42,46 @@ typealias SourceTypeAccessor = Function<IdeaSourceProvider, List<VirtualFile>>
 
 /**
  * Like [SourceProvider], but for IntelliJ, which means it provides
- * [VirtualFile] references rather than [File] references.
+ * [VirtualFile] and IDEA's url references rather than [File] references.
  *
+ * Note: VirtualFile versions may return fewer items or a null manifest where the url versions return a non-empty url(s) if the
+         file referred to does not exist in the VFS.
+ *
+ * @see VirtualFile.getUrl
  * @see AndroidSourceType
  */
 interface IdeaSourceProvider {
 
   val name: String
+
+  val manifestFileUrl: String
   val manifestFile: VirtualFile?
+
+  val javaDirectoryUrls: Collection<String>
   val javaDirectories: Collection<VirtualFile>
+
+  val resourcesDirectoryUrls: Collection<String>
   val resourcesDirectories: Collection<VirtualFile>
+
+  val aidlDirectoryUrls: Collection<String>
   val aidlDirectories: Collection<VirtualFile>
+
+  val renderscriptDirectoryUrls: Collection<String>
   val renderscriptDirectories: Collection<VirtualFile>
+
+  val jniDirectoryUrls: Collection<String>
   val jniDirectories: Collection<VirtualFile>
+
+  val jniLibsDirectoryUrls: Collection<String>
   val jniLibsDirectories: Collection<VirtualFile>
+
+  val resDirectoryUrls: Collection<String>
   val resDirectories: Collection<VirtualFile>
+
+  val assetsDirectoryUrls: Collection<String>
   val assetsDirectories: Collection<VirtualFile>
+
+  val shadersDirectoryUrls: Collection<String>
   val shadersDirectories: Collection<VirtualFile>
 
   /**
@@ -413,6 +440,8 @@ private class Delegate constructor(private val provider: SourceProvider) : IdeaS
 
   override val name: String get() = provider.name
 
+  override val manifestFileUrl: String get() = VfsUtil.fileToUrl(provider.manifestFile)
+
   override val manifestFile: VirtualFile?
     get() {
       val manifestFile = provider.manifestFile
@@ -424,26 +453,35 @@ private class Delegate constructor(private val provider: SourceProvider) : IdeaS
       return myManifestFile
     }
 
+  override val javaDirectoryUrls: Collection<String> get() = convertToUrlSet(provider.javaDirectories)
   override val javaDirectories: Collection<VirtualFile> get() = convertFileSet(provider.javaDirectories)
 
+  override val resourcesDirectoryUrls: Collection<String> get() = convertToUrlSet(provider.resourcesDirectories)
   override val resourcesDirectories: Collection<VirtualFile> get() = convertFileSet(provider.resourcesDirectories)
 
+  override val aidlDirectoryUrls: Collection<String> get() = convertToUrlSet(provider.aidlDirectories)
   override val aidlDirectories: Collection<VirtualFile> get() = convertFileSet(provider.aidlDirectories)
 
+  override val renderscriptDirectoryUrls: Collection<String> get() = convertToUrlSet(provider.renderscriptDirectories)
   override val renderscriptDirectories: Collection<VirtualFile> get() = convertFileSet(provider.renderscriptDirectories)
 
+  override val jniDirectoryUrls: Collection<String> get() = convertToUrlSet(provider.cDirectories + provider.cppDirectories).toSet()
   override val jniDirectories: Collection<VirtualFile>
     // Even though the model has separate methods to get the C and Cpp directories,
     // they both return the same set of folders. So we combine them here.
     get() = convertFileSet(provider.cDirectories + provider.cppDirectories).toSet()
 
+  override val jniLibsDirectoryUrls: Collection<String> get() = convertToUrlSet(provider.jniLibsDirectories)
   override val jniLibsDirectories: Collection<VirtualFile> get() = convertFileSet(provider.jniLibsDirectories)
 
   // TODO: Perform some caching; this method gets called a lot!
+  override val resDirectoryUrls: Collection<String> get() = convertToUrlSet(provider.resDirectories)
   override val resDirectories: Collection<VirtualFile> get() = convertFileSet(provider.resDirectories)
 
+  override val assetsDirectoryUrls: Collection<String> get() = convertToUrlSet(provider.assetsDirectories)
   override val assetsDirectories: Collection<VirtualFile> get() = convertFileSet(provider.assetsDirectories)
 
+  override val shadersDirectoryUrls: Collection<String> get() = convertToUrlSet(provider.shadersDirectories)
   override val shadersDirectories: Collection<VirtualFile> get() = convertFileSet(provider.shadersDirectories)
 
   /** Convert a set of IO files into a set of equivalent virtual files  */
@@ -451,6 +489,10 @@ private class Delegate constructor(private val provider: SourceProvider) : IdeaS
     val fileSystem = LocalFileSystem.getInstance()
     return fileSet.mapNotNullTo(Lists.newArrayListWithCapacity(fileSet.size)) { fileSystem.findFileByIoFile(it) }
   }
+
+  /** Convert a set of IO files into a set of equivalent virtual files  */
+  private fun convertToUrlSet(fileSet: Collection<File>): Collection<String> =
+    fileSet.mapTo(Lists.newArrayListWithCapacity(fileSet.size)) { VfsUtil.fileToUrl(it) }
 
   /**
    * Compares another source provider delegate with this for equality. Returns true if the specified object is also a
@@ -482,6 +524,15 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
 
   override val name: String = ""
 
+  override val manifestFileUrl: String get() = manifestFile?.url ?: let {
+    val contentRoots = ModuleRootManager.getInstance(facet.module).contentRoots
+    return if (contentRoots.isNotEmpty()) {
+      contentRoots[0].url + "/" + ANDROID_MANIFEST_XML
+    } else {
+      throw IllegalStateException("Content root is required to determine manifestFileUrl")
+    }
+  }
+
   override val manifestFile: VirtualFile?
     // Not calling AndroidRootUtil.getMainContentRoot(myFacet) because that method can
     // recurse into this same method if it can't find a content root. (This scenario
@@ -500,30 +551,39 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
       return null
     }
 
+  override val javaDirectoryUrls: Collection<String> get() = ModuleRootManager.getInstance(facet.module).contentRootUrls.toSet()
   override val javaDirectories: Collection<VirtualFile> get() = ModuleRootManager.getInstance(facet.module).contentRoots.toSet()
 
+  override val resourcesDirectoryUrls: Collection<String> get() = emptySet()
   override val resourcesDirectories: Collection<VirtualFile> get() = emptySet()
 
+  override val aidlDirectoryUrls: Collection<String> get() = listOfNotNull(getAidlGenSourceRootPath(facet)?.convertToUrl())
   override val aidlDirectories: Collection<VirtualFile> get() = listOfNotNull(getAidlGenDir(facet))
 
+  override val renderscriptDirectoryUrls: Collection<String> get() = listOfNotNull(getRenderscriptGenSourceRootPath(facet)?.convertToUrl())
   override val renderscriptDirectories: Collection<VirtualFile> get() = listOfNotNull(getRenderscriptGenDir(facet))
 
+  override val jniDirectoryUrls: Collection<String> get() = emptySet()
   override val jniDirectories: Collection<VirtualFile> get() = emptySet()
 
+  override val jniLibsDirectoryUrls: Collection<String> get() = emptySet()
   override val jniLibsDirectories: Collection<VirtualFile> get() = emptySet()
 
+  override val resDirectoryUrls: Collection<String> get() = resDirectories.map { it.url }
   override val resDirectories: Collection<VirtualFile>
     get() {
       val resRelPath = facet.properties.RES_FOLDER_RELATIVE_PATH
       return listOfNotNull(getFileByRelativeModulePath(facet.run { module }, resRelPath, true))
     }
 
+  override val assetsDirectoryUrls: Collection<String> get() = assetsDirectories.map { it.url }
   override val assetsDirectories: Collection<VirtualFile>
     get() {
       val dir = getAssetsDir(facet)
       return listOfNotNull(dir)
     }
 
+  override val shadersDirectoryUrls: Collection<String> get() = emptySet()
   override val shadersDirectories: Collection<VirtualFile> get() = emptySet()
 
   override fun equals(other: Any?): Boolean {
@@ -559,3 +619,5 @@ private val IdeaSourceProvider.allSourceFolders: Collection<VirtualFile>
   get() =
     flatten(arrayOf(javaDirectories, resDirectories, aidlDirectories, renderscriptDirectories, assetsDirectories, jniDirectories,
                     jniLibsDirectories))
+
+private fun String.convertToUrl() = VfsUtil.pathToUrl(this)
