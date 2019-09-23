@@ -16,8 +16,11 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.ide.common.util.AssetUtil;
-
-import java.awt.*;
+import com.intellij.ui.JBColor;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
@@ -73,13 +76,11 @@ public class TextRenderUtil {
         BufferedImage image = AssetUtil.newArgbBufferedImage(Math.max(1, (int)bounds.getWidth()),
                                                              Math.max(1, (int)bounds.getHeight()));
         Graphics2D g = (Graphics2D) image.getGraphics();
-        g.setColor(new Color(options.foregroundColor, true));
+        g.setColor(new JBColor(new Color(options.foregroundColor, true), new Color(options.backgroundColor, true)));
         g.setFont(font);
 
-        g.setRenderingHint(
-                RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setRenderingHint(
-                RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         g.drawString(text, (float) -bounds.getX(), (float) -bounds.getY());
 
@@ -101,6 +102,9 @@ public class TextRenderUtil {
         /** Foreground color to render text with, as an AARRGGBB packed integer */
         public int foregroundColor = 0xFFFFFFFF;
 
+        /** Background color to render text on, as an AARRGGBB packed integer */
+        public int backgroundColor = 0xFF000000;
+
         /**
          * The optional {@link Font} to use. If null, a {@link Font} object will be generated using
          * the other options.
@@ -119,7 +123,7 @@ public class TextRenderUtil {
          *
          * @see Font#Font(String, int, int)
          */
-        public int fontStyle = 0;
+        public int fontStyle = Font.PLAIN;
 
         /**
          * The optional font size, in points. Defaults to a very large font size, to prevent
