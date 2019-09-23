@@ -45,7 +45,7 @@ import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -86,7 +86,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -107,7 +106,7 @@ import org.jetbrains.annotations.Nullable;
 public final class GenerateImageAssetPanel extends JPanel implements Disposable, PersistentStateComponent<PersistentState> {
   private static final String OUTPUT_ICON_TYPE_PROPERTY = "outputIconType";
 
-  @NotNull private final AndroidModuleTemplate myDefaultPaths;
+  @NotNull private final AndroidModulePaths myDefaultPaths;
   private final ValidatorPanel myValidatorPanel;
 
   @NotNull private final BindingsManager myBindings = new BindingsManager();
@@ -143,7 +142,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   private AbstractProperty<Density> myPreviewDensityProperty;
   private JBLoadingPanel myLoadingPanel;
 
-  @NotNull private AndroidModuleTemplate myPaths;
+  @NotNull private AndroidModulePaths myPaths;
   @NotNull private final IconGenerationProcessor myIconGenerationProcessor = new IconGenerationProcessor();
   @NotNull private final StringProperty myPreviewRenderingError = new StringValueProperty();
 
@@ -153,7 +152,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
    * supported types are passed in, then all types will be supported by default.
    */
   public GenerateImageAssetPanel(@NotNull Disposable disposableParent, @NotNull AndroidFacet facet,
-                                 @NotNull AndroidModuleTemplate defaultPaths, @NotNull AndroidIconType... supportedTypes) {
+                                 @NotNull AndroidModulePaths defaultPaths, @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
 
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), panel -> new LoadingDecorator(panel, this, -1) {
@@ -357,7 +356,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
    * this panel will attempt to use reasonable defaults for the project.
    */
   @SuppressWarnings("unused") // Will be used when template wizard is updated to use this new class
-  public void setProjectPaths(@Nullable AndroidModuleTemplate projectPaths) {
+  public void setProjectPaths(@Nullable AndroidModulePaths projectPaths) {
     myPaths = projectPaths != null ? projectPaths : myDefaultPaths;
   }
 

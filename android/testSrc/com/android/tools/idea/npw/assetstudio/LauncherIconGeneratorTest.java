@@ -21,7 +21,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -54,7 +54,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
   private final List<String> myWarnings = new ArrayList<>();
   private LauncherIconGenerator myIconGenerator;
 
-  private final AndroidModuleTemplate myProjectPaths = new AndroidModuleTemplate() {
+  private final AndroidModulePaths myProjectPaths = new AndroidModulePaths() {
     @Override
     @Nullable
     public File getModuleRoot() {

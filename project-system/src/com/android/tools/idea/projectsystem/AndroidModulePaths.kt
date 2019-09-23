@@ -22,7 +22,7 @@ import java.io.File
  * files given the root of the module. This is used when creating new files:
  * E.g., New Activity, Fragment, Module, Project.
  */
-interface AndroidModuleTemplate {
+interface AndroidModulePaths {
   val moduleRoot: File?
 
   /**
@@ -35,7 +35,7 @@ interface AndroidModuleTemplate {
   fun getSrcDirectory(packageName: String?): File?
 
   /**
-   * Similar to [AndroidModuleTemplate.getSrcDirectory], except for new tests.
+   * Similar to [AndroidModulePaths.getSrcDirectory], except for new tests.
    */
   fun getTestDirectory(packageName: String?): File?
 
@@ -46,7 +46,7 @@ interface AndroidModuleTemplate {
   val resDirectories: List<File>
 
   /**
-   * Similar to [AndroidModuleTemplate.getSrcDirectory], except for new aidl files.
+   * Similar to [AndroidModulePaths.getSrcDirectory], except for new aidl files.
    */
   fun getAidlDirectory(packageName: String?): File?
 

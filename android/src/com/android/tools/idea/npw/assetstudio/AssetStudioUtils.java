@@ -22,7 +22,7 @@ import com.android.ide.common.util.AssetUtil;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ImageUtils;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.CaseFormat;
@@ -157,7 +157,7 @@ public final class AssetStudioUtils {
    * Returns true if a resource with the same name is already found at a location implied by the
    * input parameters.
    */
-  public static boolean resourceExists(@NotNull AndroidModuleTemplate paths, @NotNull ResourceFolderType resourceType,
+  public static boolean resourceExists(@NotNull AndroidModulePaths paths, @NotNull ResourceFolderType resourceType,
                                        @NotNull String name) {
     File resDir = Iterables.getFirst(paths.getResDirectories(), null);
     if (resDir == null) {
@@ -197,7 +197,7 @@ public final class AssetStudioUtils {
   }
 
   /**
-   * Like {@link #resourceExists(AndroidModuleTemplate, ResourceFolderType, String)} but a useful
+   * Like {@link #resourceExists(AndroidModulePaths, ResourceFolderType, String)} but a useful
    * fallback if information about the current paths is not known.
    */
   public static boolean resourceExists(@NotNull AndroidFacet facet, @NotNull ResourceType resourceType, @NotNull String name) {

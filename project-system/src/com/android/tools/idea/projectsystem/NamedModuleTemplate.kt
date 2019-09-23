@@ -16,6 +16,6 @@
 package com.android.tools.idea.projectsystem
 
 /**
- * An [AndroidModuleTemplate] instance with a name.
+ * An [AndroidModulePaths] instance with a name.
  */
-data class NamedModuleTemplate(val name: String, val paths: AndroidModuleTemplate)
+data class NamedModuleTemplate(val name: String, val paths: AndroidModulePaths)

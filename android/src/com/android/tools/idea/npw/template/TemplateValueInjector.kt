@@ -37,7 +37,7 @@ import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.observable.core.ObjectProperty
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate
+import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
@@ -236,7 +236,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    * @param paths       Project paths
    * @param packageName Package Name for the module
    */
-  fun setModuleRoots(paths: AndroidModuleTemplate, projectPath: String,
+  fun setModuleRoots(paths: AndroidModulePaths, projectPath: String,
                      moduleName: String, packageName: String): TemplateValueInjector {
     val moduleRoot = paths.moduleRoot!!
 

@@ -39,7 +39,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -81,7 +81,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -402,14 +401,14 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time.
     myListeners.listenAndFire(mySelectedTemplate, (NamedModuleTemplate namedTemplate) -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
-      AndroidModuleTemplate template = namedTemplate.getPaths();
-      File resDirectory = getResDirectory(template);
+      AndroidModulePaths paths = namedTemplate.getPaths();
+      File resDirectory = getResDirectory(paths);
       if (iconGenerator == null || resDirectory == null || resDirectory.getParentFile() == null) {
         return;
       }
 
       myFilesAlreadyExist.set(false);
-      myPathToPreviewImage = iconGenerator.generateIntoIconMap(template);
+      myPathToPreviewImage = iconGenerator.generateIntoIconMap(paths);
 
       // Collect all directory names from all generated file names for sorting purposes.
       // We use this map instead of looking at the file system when sorting, since

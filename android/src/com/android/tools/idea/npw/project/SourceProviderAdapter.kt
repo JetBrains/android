@@ -20,9 +20,9 @@ import com.android.builder.model.SourceProvider
 import java.io.File
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate
+import com.android.tools.idea.projectsystem.AndroidModulePaths
 
-class SourceProviderAdapter(private val name: String, private val paths: AndroidModuleTemplate) : SourceProvider {
+class SourceProviderAdapter(private val name: String, private val paths: AndroidModulePaths) : SourceProvider {
 
   override fun getName(): String {
     return name

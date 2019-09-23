@@ -24,7 +24,7 @@ import static com.android.SdkConstants.FD_TEST;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.module.ModuleModelKt;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -63,7 +63,7 @@ import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
  *      `-com/google/foo/bar/... (test directory of package com.google.foo.bar)
  * </pre>
  */
-public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
+public class GradleAndroidModuleTemplate implements AndroidModulePaths {
   @Nullable private File myModuleRoot;
   @Nullable private File mySrcRoot;
   @Nullable private File myTestRoot;
