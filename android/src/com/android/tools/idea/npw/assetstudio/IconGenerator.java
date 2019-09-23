@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.assetstudio;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleDimension;
 
 import com.android.SdkConstants;
-import com.android.ide.common.internal.WaitableExecutor;
 import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
@@ -38,6 +37,7 @@ import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.application.options.CodeStyle;
 import com.intellij.openapi.Disposable;
@@ -65,6 +65,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
@@ -347,20 +349,32 @@ public abstract class IconGenerator implements Disposable {
   @NotNull
   public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
     List<Callable<GeneratedIcon>> tasks = createIconGenerationTasks(context, options, name);
+    List<Future<GeneratedIcon>> futures = Lists.newArrayListWithExpectedSize(tasks.size());
+    List<GeneratedIcon> icons = Lists.newArrayListWithExpectedSize(futures.size());
+
+    Disposable taskCanceler = () -> {
+      for (Future<GeneratedIcon> f : futures) {
+        f.cancel(true);
+      }
+    };
+
+    Disposer.register(this, taskCanceler);
 
     // Execute tasks in parallel and wait for results.
-    WaitableExecutor executor = WaitableExecutor.useGlobalSharedThreadPool();
-    Disposable taskCanceler = () -> executor.cancelAllTasks();
-    Disposer.register(this, taskCanceler);
-    tasks.forEach(executor::execute);
-
-    try {
-      return executor.waitForTasksWithQuickFail(true);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    } finally {
-      Disposer.dispose(taskCanceler);
+    for (Callable<GeneratedIcon> task: tasks) {
+      futures.add(ApplicationManager.getApplication().executeOnPooledThread(task));
     }
+
+    for(Future<GeneratedIcon> future: futures) {
+      try {
+        icons.add(future.get());
+      }
+      catch (InterruptedException | ExecutionException e) {
+        taskCanceler.dispose();
+      }
+    }
+
+    return icons;
   }
 
   /**
