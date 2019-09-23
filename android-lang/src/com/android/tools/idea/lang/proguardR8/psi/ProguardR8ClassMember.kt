@@ -13,30 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.idea.lang.proguardR8.psi
 
-// ATTENTION: This file has been automatically generated from proguardR8.bnf. Do not edit it manually.
+import com.intellij.psi.PsiElement
 
-package com.android.tools.idea.lang.proguardR8.psi;
-
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
-
-public interface ProguardR8Field extends ProguardR8ClassMember {
-
-  @Nullable
-  ProguardR8AnnotationName getAnnotationName();
-
-  @NotNull
-  ProguardR8ClassMemberName getClassMemberName();
-
-  @NotNull
-  List<ProguardR8FieldsModifier> getFieldsModifierList();
-
-  @Nullable
-  ProguardR8Type getType();
-
-  @Nullable
-  ProguardR8Parameters getParameters();
-
+interface ProguardR8ClassMember : PsiElement {
+  val type: ProguardR8Type?
+  val parameters: ProguardR8Parameters?
 }

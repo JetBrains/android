@@ -153,3 +153,5 @@ fun isAcceptAnyParameters(parameters: ProguardR8Parameters): Boolean {
          PsiTreeUtil.findChildOfType(parameters, ProguardR8TypeList::class.java) == null &&
          parameters.node.findChildByType(ProguardR8PsiTypes.ANY_TYPE_AND_NUM_OF_ARGS) != null
 }
+
+fun getParameters(field: ProguardR8Field): ProguardR8Parameters? = null

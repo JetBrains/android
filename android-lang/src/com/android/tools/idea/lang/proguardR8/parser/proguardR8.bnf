@@ -60,6 +60,8 @@
   ]
 
   generate=[names='long' java='8']
+
+  implements("method|field")="com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMember"
 }
 
 root ::= (rule_with_class_specification | rule )*
@@ -109,7 +111,9 @@ class_specification_header ::= annotation_name? class_modifier* class_type class
   methods=[resolvePsiClasses]
 }
 
-field ::= annotation_name? fields_modifier* type? class_member_name
+field ::= annotation_name? fields_modifier* type? class_member_name {
+    methods=[getParameters]
+}
 method ::= annotation_name? method_modifier* type? class_member_name parameters (return values)?
 
 fields_specification ::= field | (annotation_name? fields_modifier* (<fields>|any_field_or_method))
