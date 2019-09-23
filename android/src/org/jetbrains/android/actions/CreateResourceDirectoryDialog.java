@@ -162,7 +162,7 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
     if (context != null) {
       Module module = LangDataKeys.MODULE.getData(context);
       assert module != null;
-      return CreateResourceDialogUtils.getResourceDirectory(CreateResourceDialogUtils.getSourceProvider(mySourceSetCombo), module, true);
+      return CreateResourceDialogUtils.getResourceDirectory(CreateResourceDialogUtils.getSourceProvider(mySourceSetCombo), module);
     }
 
     return null;

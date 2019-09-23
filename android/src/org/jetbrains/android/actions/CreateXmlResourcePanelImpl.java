@@ -380,7 +380,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (module == null) {
       return null;
     }
-    PsiDirectory resDirectory = CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module, true);
+    PsiDirectory resDirectory = CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module);
     return resDirectory != null ? resDirectory.getVirtualFile() : null;
   }
 
