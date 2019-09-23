@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public interface BuildTypeModel extends FlavorTypeModel {

@@ -16,12 +16,16 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_APPLY_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_APPLY_MAP_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_RESET_LIST_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_RESET_MAP_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ALL_BUILD_TYPES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_APPLICATION_STATEMENTS;
@@ -32,21 +36,30 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BU
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_OVERRIDE_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_MAP_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_READ_SIGNING_CONFIG;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_RESET_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_RESET_MAP_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_AND_APPLY_MAP_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_AND_APPLY_MAP_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_AND_RESET_MAP_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_FROM_EMPTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_FROM_EMPTY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE;
@@ -177,23 +190,19 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     assertEquals("renderscriptOptimLevel", Integer.valueOf(1), buildType.renderscriptOptimLevel());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
-    // TODO(xof): enable the rest of this test when translation between Kotlin DSL boolean properties (e.g. isDebuggable) and our model
-    //  properties (debuggable) is implemented
+    assertEquals("debuggable", Boolean.TRUE, buildType.debuggable());
+    assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
+    assertEquals("jniDebuggable", Boolean.TRUE, buildType.jniDebuggable());
+    assertEquals("minifyEnabled", Boolean.TRUE, buildType.minifyEnabled());
+    assertEquals("pseudoLocalesEnabled", Boolean.TRUE, buildType.pseudoLocalesEnabled());
+    assertEquals("renderscriptDebuggable", Boolean.TRUE, buildType.renderscriptDebuggable());
+    assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
+    assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
     if (isGroovy()) {
-      assertEquals("debuggable", Boolean.TRUE, buildType.debuggable());
-      assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
-      assertEquals("jniDebuggable", Boolean.TRUE, buildType.jniDebuggable());
-      assertEquals("minifyEnabled", Boolean.TRUE, buildType.minifyEnabled());
-      assertEquals("pseudoLocalesEnabled", Boolean.TRUE, buildType.pseudoLocalesEnabled());
-      assertEquals("renderscriptDebuggable", Boolean.TRUE, buildType.renderscriptDebuggable());
-      assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
-      assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
-      if (isGroovy()) {
-        // versions of AGP recent enough to have a Kotlin DSL have also removed the (deprecated in 3.0) Jack configuration
-        assertEquals("useJack", Boolean.TRUE, buildType.useJack());
-      }
-      assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
+      // versions of AGP recent enough to have a Kotlin DSL have also removed the (deprecated in 3.0) Jack configuration
+      assertEquals("useJack", Boolean.TRUE, buildType.useJack());
     }
+    assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
   }
 
   @Test
@@ -207,29 +216,26 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("multiDexEnabled", Boolean.FALSE, buildType.multiDexEnabled());
     assertEquals("renderscriptOptimLevel", Integer.valueOf(2), buildType.renderscriptOptimLevel());
     assertEquals("versionNameSuffix", "abc-1", buildType.versionNameSuffix());
-    // TODO(xof): enable these tests once translation between Kotlin isDebuggable to model debuggable (and similar) is implemented
-    if(isGroovy()) {
-      assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
-      assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
-      assertEquals("jniDebuggable", Boolean.FALSE, buildType.jniDebuggable());
-      assertEquals("minifyEnabled", Boolean.TRUE, buildType.minifyEnabled());
-      // TODO(xof): this (and the test below) come from overriding the proguardFiles for a build type, which is straightforward to parse
-      //  in Groovy (simple assignment) but not straightforward in Kotlin (requires parsing and data flow analysis of .clear() or
-      //  .setProguardFiles()).
-      if (isGroovy()) {
-        assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"),
-                     buildType.consumerProguardFiles());
-        assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"), buildType.proguardFiles());
-      }
-      assertEquals("pseudoLocalesEnabled", Boolean.TRUE, buildType.pseudoLocalesEnabled());
-      assertEquals("renderscriptDebuggable", Boolean.FALSE, buildType.renderscriptDebuggable());
-      assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
-      assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
-      if (isGroovy()) {
-        assertEquals("useJack", Boolean.TRUE, buildType.useJack());
-      }
-      assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
+    assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
+    assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
+    assertEquals("jniDebuggable", Boolean.FALSE, buildType.jniDebuggable());
+    assertEquals("minifyEnabled", Boolean.TRUE, buildType.minifyEnabled());
+    // TODO(xof): this (and the test below) come from overriding the proguardFiles for a build type, which is straightforward to parse
+    //  in Groovy (simple assignment) but not straightforward in Kotlin (requires parsing and data flow analysis of .clear() or
+    //  .setProguardFiles()).
+    if (isGroovy()) {
+      assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"),
+                   buildType.consumerProguardFiles());
+      assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"), buildType.proguardFiles());
     }
+    assertEquals("pseudoLocalesEnabled", Boolean.TRUE, buildType.pseudoLocalesEnabled());
+    assertEquals("renderscriptDebuggable", Boolean.FALSE, buildType.renderscriptDebuggable());
+    assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
+    assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
+    if (isGroovy()) {
+      assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    }
+    assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
   }
 
   @Test
@@ -754,6 +760,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_AND_APPLY_ELEMENTS_EXPECTED);
+
     assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
     assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
@@ -817,6 +825,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     assertThat(android, instanceOf(AndroidModelImpl.class));
     assertFalse(((AndroidModelImpl)android).hasValidPsiElement());
     assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
@@ -882,6 +892,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED);
+
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
     assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
@@ -972,6 +984,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED);
+
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
     assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
@@ -1028,6 +1042,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "efgh", "ijkl")), buildType.resValues());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED);
+
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "mnop", "qrst")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
                  buildType.consumerProguardFiles());
@@ -1064,6 +1080,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
     applyChanges(buildModel);
+    // TODO(b/142061285): spurious new line in Kotlin version of this file
+    // TODO(xof): difference in syntax between consumerProguardFiles (assignment) and proguardFiles (method call) is suspicious
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED);
+
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), buildType.proguardFiles());
@@ -1105,6 +1125,9 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                      buildType.resValues());
 
     applyChanges(buildModel);
+    // TODO(b/142061285): multiple spurious new lines in Kotlin version
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED);
+
     verifyFlavorType("buildConfigFields",
                      ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
                      buildType.buildConfigFields());
@@ -1153,6 +1176,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED);
+
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("cdef", "ghij", "klmn")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), buildType.proguardFiles());
@@ -1168,7 +1193,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveFromAndApplyListElementsWithSingleElement() throws Exception {
-    // This test is groovy specific as it sets proguardFiles to a list which we cannot do in kotlin as it only accepts files parameters.
+    // TODO(b/XXX): implementing setProguardFiles would allow us to do this test in Kotlin
+    //  This test is groovy specific as it sets proguardFiles to a list which we cannot do in kotlin as it only accepts files parameters.
     assumeTrue(isGroovy());
     writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT);
 
@@ -1183,6 +1209,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertTrue(buildType.proguardFiles().getValue(LIST_TYPE).isEmpty());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT_EXPECTED);
+
     assertTrue(buildType.consumerProguardFiles().getValue(LIST_TYPE).isEmpty());
     assertTrue(buildType.proguardFiles().getValue(LIST_TYPE).isEmpty());
 
@@ -1206,6 +1234,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                  buildType.manifestPlaceholders());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_SET_AND_APPLY_MAP_ELEMENTS_EXPECTED);
+
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", 12345, "key2", "value2", "key3", true),
                  buildType.manifestPlaceholders());
 
@@ -1229,6 +1259,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                  buildType.manifestPlaceholders());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED);
+
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
                  buildType.manifestPlaceholders());
 
@@ -1252,6 +1284,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                  buildType.manifestPlaceholders());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED);
+
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel2", "defaultName2"),
                  buildType.manifestPlaceholders());
 
@@ -1299,6 +1333,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myBetterConfig"));
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_EXPECTED);
 
     buildType = getXyzBuildType(buildModel);
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myBetterConfig", CUSTOM, REGULAR, 1);
@@ -1315,6 +1350,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myConfig"));
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_SET_SIGNING_CONFIG);
 
     signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig", isGroovy()));
 
@@ -1345,6 +1381,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigPropertyModel.toSigningConfig().name(), equalTo("myConfig"));
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_FROM_EMPTY_EXPECTED);
 
     android = buildModel.android();
     buildTypeModel = android.addBuildType("xyz");
