@@ -352,4 +352,45 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     val psiParameters = createParameterList("p1.p2.MyType")
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
   }
+
+    fun testResolvePsiClasses() {
+        val superClass = myFixture.addClass("""
+      package p1.p2
+      
+      class MySuperClass {}
+    """.trimIndent())
+
+        val myClass = myFixture.addClass("""
+      package p1.p2
+      
+      class MyClass extends MySuperClass {}
+    """.trimIndent())
+
+        myFixture.configureByText(
+          ProguardR8FileType.INSTANCE,
+          """
+          -keep class $caret p1.p2.MyClass
+      """.trimIndent())
+
+        var header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
+        assertThat(header.resolvePsiClasses()).containsExactly(myClass)
+
+        myFixture.configureByText(
+          ProguardR8FileType.INSTANCE,
+          """
+          -keep class $caret * implements p1.p2.MyClass
+      """.trimIndent()
+        )
+        header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
+        assertThat(header.resolvePsiClasses()).containsExactly(myClass)
+
+        myFixture.configureByText(
+          ProguardR8FileType.INSTANCE,
+          """
+          -keep class $caret p1.p2.MyClass extends p1.p2.MySuperClass
+      """.trimIndent()
+        )
+        header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
+        assertThat(header.resolvePsiClasses()).containsExactly(myClass, superClass)
+    }
 }

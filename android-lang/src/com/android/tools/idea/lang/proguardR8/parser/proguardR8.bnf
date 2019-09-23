@@ -103,8 +103,11 @@ class_specification_body ::= OPEN_BRACE java CLOSE_BRACE {pin=1}
 class_modifier ::= ("!"?(public|final|abstract))
 class_type ::= "!"?(interface|class|enum)
 
-class_specification_header ::= annotation_name? class_modifier* class_type class_name ((extends|implements) annotation_name? class_name)?
-{pin=class_type recoverWhile=not_open_brace_or_new_flag}
+class_specification_header ::= annotation_name? class_modifier* class_type class_name ((extends|implements) annotation_name? class_name)? {
+  pin=class_type
+  recoverWhile=not_open_brace_or_new_flag
+  methods=[resolvePsiClasses]
+}
 
 field ::= annotation_name? fields_modifier* type? class_member_name
 method ::= annotation_name? method_modifier* type? class_member_name parameters (return values)?
