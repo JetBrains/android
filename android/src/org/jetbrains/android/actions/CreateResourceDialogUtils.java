@@ -44,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.List;
 
 /**
  * Functions for create resource dialogs, where the dialogs depend on using source sets, and modules
@@ -65,12 +64,12 @@ public class CreateResourceDialogUtils {
   }
 
   @Nullable
-  public static PsiDirectory getResourceDirectory(@Nullable SourceProvider sourceProvider, @NotNull Module module, boolean create) {
+  public static PsiDirectory getResourceDirectory(@Nullable SourceProvider sourceProvider, @NotNull Module module) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     if (sourceProvider != null) {
       final PsiManager manager = PsiManager.getInstance(module.getProject());
       for (final File file : sourceProvider.getResDirectories()) {
-        if (create && !file.exists()) {
+        if (!file.exists()) {
           PsiDirectory dir = ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>() {
             @Override
             public PsiDirectory compute() {

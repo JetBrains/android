@@ -278,7 +278,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
       return myResDirectory;
     }
     Module module = getSelectedModule();
-    return CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module, true);
+    return CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module);
   }
 
   @NotNull
