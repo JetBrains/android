@@ -35,6 +35,7 @@ enum class NelePropertyType {
   COLOR,
   COLOR_STATE_LIST,
   DIMENSION,
+  DIMENSION_UNIT_LESS,  // Dimension or unit less float (motion layout)
   DESTINATION,
   DRAWABLE,
   ENUM,
@@ -45,7 +46,7 @@ enum class NelePropertyType {
   FRACTION,
   FRAGMENT,
   ID,
-  ID_OR_STRING,
+  ID_OR_STRING,        // id or string (motion layout)
   INTEGER,
   INTERPOLATOR,
   LAYOUT,
@@ -113,6 +114,7 @@ enum class NelePropertyType {
       ENUM -> "Invalid value: '$literal'"
       FONT_SIZE,
       DIMENSION -> error(DimensionConverter.INSTANCE.fromString(literal, null) == null) { getDimensionError(literal) }
+      DIMENSION_UNIT_LESS -> checkUnitLessDimension(literal)
       FLOAT -> error(PsiLiteralUtil.parseDouble(literal) == null) { "Invalid float: '$literal'" }
       FRACTION -> error(parseFraction(literal) == null) { "Invalid fraction: '$literal'"}
       INTEGER -> error(PsiLiteralUtil.parseInteger(literal) == null) { "Invalid integer: '$literal'"}
@@ -128,6 +130,11 @@ enum class NelePropertyType {
   private fun getDimensionError(literal: String): String {
     val unit = DimensionConverter.getUnitFromValue(literal)
     return if (unit == null) "Cannot resolve: '$literal'" else "Unknown units '$unit'"
+  }
+
+  private fun checkUnitLessDimension(literal: String): String? {
+    val hasLetters = literal.indexOfFirst { Character.isLetter(it) } >= 0
+    return if (hasLetters) DIMENSION.validateLiteral(literal) else FLOAT.validateLiteral(literal)
   }
 
   private fun parseFraction(literal: String): Double? {

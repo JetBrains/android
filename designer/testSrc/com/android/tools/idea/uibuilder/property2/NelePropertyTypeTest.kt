@@ -57,6 +57,21 @@ class NelePropertyTypeTest {
   }
 
   @Test
+  fun testValidateDimensionUnitLess() {
+    assertThat(NelePropertyType.DIMENSION_UNIT_LESS.validateLiteral("")).isNull()
+    assertThat(NelePropertyType.DIMENSION_UNIT_LESS.validateLiteral("20dp")).isNull()
+    assertThat(NelePropertyType.DIMENSION_UNIT_LESS.validateLiteral("15dip")).isNull()
+    assertThat(NelePropertyType.DIMENSION_UNIT_LESS.validateLiteral("12sp"))
+    assertThat(NelePropertyType.DIMENSION_UNIT_LESS.validateLiteral("200px"))
+    assertThat(NelePropertyType.DIMENSION_UNIT_LESS.validateLiteral("200pixels"))
+    assertThat(NelePropertyType.DIMENSION_UNIT_LESS.validateLiteral("1.25")).isNull()
+    assertThat(NelePropertyType.DIMENSION_UNIT_LESS.validateLiteral(".875")).isNull()
+    assertThat(NelePropertyType.DIMENSION_UNIT_LESS.validateLiteral("78")).isNull()
+    assertThat(NelePropertyType.DIMENSION_UNIT_LESS.validateLiteral("wednesday")).isEqualTo("Cannot resolve: 'wednesday'")
+    assertThat(NelePropertyType.DIMENSION_UNIT_LESS.validateLiteral("any")).isEqualTo("Cannot resolve: 'any'")
+  }
+
+  @Test
   fun testValidateFontSize() {
     assertThat(NelePropertyType.FONT_SIZE.validateLiteral("")).isNull()
     assertThat(NelePropertyType.FONT_SIZE.validateLiteral("20dp")).isNull()
