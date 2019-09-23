@@ -28,14 +28,14 @@ import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
 
-public class ProguardR8MethodNameImpl extends ASTWrapperPsiElement implements ProguardR8MethodName {
+public class ProguardR8MethodImpl extends ASTWrapperPsiElement implements ProguardR8Method {
 
-  public ProguardR8MethodNameImpl(@NotNull ASTNode node) {
+  public ProguardR8MethodImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ProguardR8Visitor visitor) {
-    visitor.visitMethodName(this);
+    visitor.visitMethod(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -45,14 +45,32 @@ public class ProguardR8MethodNameImpl extends ASTWrapperPsiElement implements Pr
 
   @Override
   @Nullable
-  public PsiElement getJavaIdentifier() {
-    return findChildByType(JAVA_IDENTIFIER);
+  public ProguardR8AnnotationName getAnnotationName() {
+    return findChildByClass(ProguardR8AnnotationName.class);
+  }
+
+  @Override
+  @NotNull
+  public ProguardR8ClassMemberName getClassMemberName() {
+    return findNotNullChildByClass(ProguardR8ClassMemberName.class);
+  }
+
+  @Override
+  @NotNull
+  public List<ProguardR8MethodModifier> getMethodModifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8MethodModifier.class);
+  }
+
+  @Override
+  @NotNull
+  public ProguardR8Parameters getParameters() {
+    return findNotNullChildByClass(ProguardR8Parameters.class);
   }
 
   @Override
   @Nullable
-  public PsiElement getJavaIdentifierWithWildcards() {
-    return findChildByType(JAVA_IDENTIFIER_WITH_WILDCARDS);
+  public ProguardR8Type getType() {
+    return findChildByClass(ProguardR8Type.class);
   }
 
 }

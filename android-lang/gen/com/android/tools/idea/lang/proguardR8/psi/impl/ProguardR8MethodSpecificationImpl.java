@@ -62,6 +62,12 @@ public class ProguardR8MethodSpecificationImpl extends ASTWrapperPsiElement impl
   }
 
   @Override
+  @Nullable
+  public ProguardR8Method getMethod() {
+    return findChildByClass(ProguardR8Method.class);
+  }
+
+  @Override
   @NotNull
   public List<ProguardR8MethodModifier> getMethodModifierList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8MethodModifier.class);
@@ -69,20 +75,8 @@ public class ProguardR8MethodSpecificationImpl extends ASTWrapperPsiElement impl
 
   @Override
   @Nullable
-  public ProguardR8MethodName getMethodName() {
-    return findChildByClass(ProguardR8MethodName.class);
-  }
-
-  @Override
-  @Nullable
   public ProguardR8Parameters getParameters() {
     return findChildByClass(ProguardR8Parameters.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8Type getType() {
-    return findChildByClass(ProguardR8Type.class);
   }
 
 }

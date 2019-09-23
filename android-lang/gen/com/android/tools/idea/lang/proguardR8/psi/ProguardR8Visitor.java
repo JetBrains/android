@@ -40,6 +40,10 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitClassMemberName(@NotNull ProguardR8ClassMemberName o) {
+    visitPsiElement(o);
+  }
+
   public void visitClassModifier(@NotNull ProguardR8ClassModifier o) {
     visitPsiElement(o);
   }
@@ -60,7 +64,7 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitFieldName(@NotNull ProguardR8FieldName o) {
+  public void visitField(@NotNull ProguardR8Field o) {
     visitPsiElement(o);
   }
 
@@ -92,11 +96,11 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitMethodModifier(@NotNull ProguardR8MethodModifier o) {
+  public void visitMethod(@NotNull ProguardR8Method o) {
     visitPsiElement(o);
   }
 
-  public void visitMethodName(@NotNull ProguardR8MethodName o) {
+  public void visitMethodModifier(@NotNull ProguardR8MethodModifier o) {
     visitPsiElement(o);
   }
 

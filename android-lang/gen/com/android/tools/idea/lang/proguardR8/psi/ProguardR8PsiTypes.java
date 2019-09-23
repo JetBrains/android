@@ -29,21 +29,22 @@ public interface ProguardR8PsiTypes {
   IElementType ANY_FIELD_OR_METHOD = new ProguardR8AstNodeType("ANY_FIELD_OR_METHOD");
   IElementType ANY_PRIMITIVE_TYPE = new ProguardR8AstNodeType("ANY_PRIMITIVE_TYPE");
   IElementType ANY_TYPE = new ProguardR8AstNodeType("ANY_TYPE");
+  IElementType CLASS_MEMBER_NAME = new ProguardR8AstNodeType("CLASS_MEMBER_NAME");
   IElementType CLASS_MODIFIER = new ProguardR8AstNodeType("CLASS_MODIFIER");
   IElementType CLASS_NAME = new ProguardR8AstNodeType("CLASS_NAME");
   IElementType CLASS_SPECIFICATION_BODY = new ProguardR8AstNodeType("CLASS_SPECIFICATION_BODY");
   IElementType CLASS_SPECIFICATION_HEADER = new ProguardR8AstNodeType("CLASS_SPECIFICATION_HEADER");
   IElementType CLASS_TYPE = new ProguardR8AstNodeType("CLASS_TYPE");
+  IElementType FIELD = new ProguardR8AstNodeType("FIELD");
   IElementType FIELDS_MODIFIER = new ProguardR8AstNodeType("FIELDS_MODIFIER");
   IElementType FIELDS_SPECIFICATION = new ProguardR8AstNodeType("FIELDS_SPECIFICATION");
-  IElementType FIELD_NAME = new ProguardR8AstNodeType("FIELD_NAME");
   IElementType FILE_FILTER = new ProguardR8AstNodeType("FILE_FILTER");
   IElementType FLAG_ARGUMENT = new ProguardR8AstNodeType("FLAG_ARGUMENT");
   IElementType JAVA_PRIMITIVE = new ProguardR8AstNodeType("JAVA_PRIMITIVE");
   IElementType JAVA_RULE = new ProguardR8AstNodeType("JAVA_RULE");
   IElementType KEEP_OPTION_MODIFIER = new ProguardR8AstNodeType("KEEP_OPTION_MODIFIER");
+  IElementType METHOD = new ProguardR8AstNodeType("METHOD");
   IElementType METHOD_MODIFIER = new ProguardR8AstNodeType("METHOD_MODIFIER");
-  IElementType METHOD_NAME = new ProguardR8AstNodeType("METHOD_NAME");
   IElementType METHOD_SPECIFICATION = new ProguardR8AstNodeType("METHOD_SPECIFICATION");
   IElementType PARAMETERS = new ProguardR8AstNodeType("PARAMETERS");
   IElementType QUALIFIED_NAME = new ProguardR8AstNodeType("QUALIFIED_NAME");
@@ -130,6 +131,9 @@ public interface ProguardR8PsiTypes {
       else if (type == ANY_TYPE) {
         return new ProguardR8AnyTypeImpl(node);
       }
+      else if (type == CLASS_MEMBER_NAME) {
+        return new ProguardR8ClassMemberNameImpl(node);
+      }
       else if (type == CLASS_MODIFIER) {
         return new ProguardR8ClassModifierImpl(node);
       }
@@ -145,14 +149,14 @@ public interface ProguardR8PsiTypes {
       else if (type == CLASS_TYPE) {
         return new ProguardR8ClassTypeImpl(node);
       }
+      else if (type == FIELD) {
+        return new ProguardR8FieldImpl(node);
+      }
       else if (type == FIELDS_MODIFIER) {
         return new ProguardR8FieldsModifierImpl(node);
       }
       else if (type == FIELDS_SPECIFICATION) {
         return new ProguardR8FieldsSpecificationImpl(node);
-      }
-      else if (type == FIELD_NAME) {
-        return new ProguardR8FieldNameImpl(node);
       }
       else if (type == FILE_FILTER) {
         return new ProguardR8FileFilterImpl(node);
@@ -169,11 +173,11 @@ public interface ProguardR8PsiTypes {
       else if (type == KEEP_OPTION_MODIFIER) {
         return new ProguardR8KeepOptionModifierImpl(node);
       }
+      else if (type == METHOD) {
+        return new ProguardR8MethodImpl(node);
+      }
       else if (type == METHOD_MODIFIER) {
         return new ProguardR8MethodModifierImpl(node);
-      }
-      else if (type == METHOD_NAME) {
-        return new ProguardR8MethodNameImpl(node);
       }
       else if (type == METHOD_SPECIFICATION) {
         return new ProguardR8MethodSpecificationImpl(node);

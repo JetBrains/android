@@ -33,16 +33,13 @@ public interface ProguardR8MethodSpecification extends PsiElement {
   @Nullable
   ProguardR8ClassName getClassName();
 
+  @Nullable
+  ProguardR8Method getMethod();
+
   @NotNull
   List<ProguardR8MethodModifier> getMethodModifierList();
 
   @Nullable
-  ProguardR8MethodName getMethodName();
-
-  @Nullable
   ProguardR8Parameters getParameters();
-
-  @Nullable
-  ProguardR8Type getType();
 
 }
