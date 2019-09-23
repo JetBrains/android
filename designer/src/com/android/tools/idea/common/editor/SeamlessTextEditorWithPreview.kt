@@ -54,10 +54,14 @@ open class SeamlessTextEditorWithPreview(textEditor: TextEditor, designEditor: F
 
   override fun setState(state: FileEditorState) {
     super.setState(state)
-    saveTrueVisibility()
+
     // super.setState could change the visibility, restore it if we are in a pure text editor mode
     if (isPureTextEditor) {
       setPureTextEditorVisibility()
+    }
+    else {
+      // Save true visibility only if we're not in pure text editor mode, otherwise we'd override the visibility to be text-only
+      saveTrueVisibility()
     }
   }
 
