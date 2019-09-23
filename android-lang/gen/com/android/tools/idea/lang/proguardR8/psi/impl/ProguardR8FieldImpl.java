@@ -28,14 +28,14 @@ import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
 
-public class ProguardR8FieldsSpecificationImpl extends ASTWrapperPsiElement implements ProguardR8FieldsSpecification {
+public class ProguardR8FieldImpl extends ASTWrapperPsiElement implements ProguardR8Field {
 
-  public ProguardR8FieldsSpecificationImpl(@NotNull ASTNode node) {
+  public ProguardR8FieldImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ProguardR8Visitor visitor) {
-    visitor.visitFieldsSpecification(this);
+    visitor.visitField(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -50,21 +50,21 @@ public class ProguardR8FieldsSpecificationImpl extends ASTWrapperPsiElement impl
   }
 
   @Override
-  @Nullable
-  public ProguardR8AnyFieldOrMethod getAnyFieldOrMethod() {
-    return findChildByClass(ProguardR8AnyFieldOrMethod.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8Field getField() {
-    return findChildByClass(ProguardR8Field.class);
+  @NotNull
+  public ProguardR8ClassMemberName getClassMemberName() {
+    return findNotNullChildByClass(ProguardR8ClassMemberName.class);
   }
 
   @Override
   @NotNull
   public List<ProguardR8FieldsModifier> getFieldsModifierList() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8FieldsModifier.class);
+  }
+
+  @Override
+  @Nullable
+  public ProguardR8Type getType() {
+    return findChildByClass(ProguardR8Type.class);
   }
 
 }
