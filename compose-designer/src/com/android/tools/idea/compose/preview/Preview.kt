@@ -316,8 +316,6 @@ private class PreviewEditor(private val psiFile: PsiFile,
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    */
   fun doRefresh(filePreviewElements: List<PreviewElement>) {
-    val filePreviewElements = previewProvider()
-
     if (filePreviewElements == previewElements) {
       clearCacheAndRefreshSurface(surface)
       updateSurfaceVisibility()
