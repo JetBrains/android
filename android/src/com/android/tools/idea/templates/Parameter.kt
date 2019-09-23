@@ -20,8 +20,19 @@ import com.android.builder.model.SourceProvider
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
-import com.android.tools.idea.npw.assetstudio.AssetStudioUtils
-import com.android.tools.idea.res.*
+import com.android.tools.idea.npw.assetstudio.resourceExists
+import com.android.tools.idea.res.IdeResourceNameValidator
+import com.android.tools.idea.res.ResourceFolderRegistry
+import com.android.tools.idea.templates.Template.ATTR_CONSTRAINTS
+import com.android.tools.idea.templates.Template.ATTR_DEFAULT
+import com.android.tools.idea.templates.Template.ATTR_ENABLED
+import com.android.tools.idea.templates.Template.ATTR_HELP
+import com.android.tools.idea.templates.Template.ATTR_ID
+import com.android.tools.idea.templates.Template.ATTR_NAME
+import com.android.tools.idea.templates.Template.ATTR_SUGGEST
+import com.android.tools.idea.templates.Template.ATTR_TYPE
+import com.android.tools.idea.templates.Template.ATTR_VISIBILITY
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -33,14 +44,11 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.util.AndroidUtils
-import org.w3c.dom.Element
-
-import java.io.File
-import java.util.*
-
-import com.android.tools.idea.templates.Template.*
-import com.google.common.annotations.VisibleForTesting
 import org.jetbrains.annotations.SystemIndependent
+import org.w3c.dom.Element
+import java.io.File
+import java.util.EnumSet
+import java.util.Locale
 
 /**
  * Parameter represents an external input to a template. It consists of an ID used to refer to it within the template, human-readable
@@ -322,7 +330,7 @@ class Parameter(
         return false
       }
       val facet = AndroidFacet.getInstance(module) ?: return false
-      return AssetStudioUtils.resourceExists(facet, resourceType, name)
+      return resourceExists(facet, resourceType, name)
     }
 
     fun existsResourceFile(sourceProvider: SourceProvider?, module: Module?,
