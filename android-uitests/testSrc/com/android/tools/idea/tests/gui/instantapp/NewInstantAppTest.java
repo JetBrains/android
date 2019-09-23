@@ -42,16 +42,6 @@ import org.junit.runner.RunWith;
 public class NewInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Before
-  public void before() {
-    SdkReplacer.replaceSdkLocationAndActivate("TestValue", true);
-  }
-
-  @After
-  public void after() {
-    SdkReplacer.putBack();
-  }
-
   //Not putting this in before() as I plan to add some tests that work on non-default projects.
   private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String activityName) {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
