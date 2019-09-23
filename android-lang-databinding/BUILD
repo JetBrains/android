@@ -92,7 +92,7 @@ iml_module(
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
     ],
     test_srcs = ["testSrc"],
-    test_timeout = "long",
+    test_timeout = "eternal",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
