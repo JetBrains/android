@@ -42,7 +42,6 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.util.TerminalUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
@@ -65,6 +64,7 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.io.IOException;
@@ -730,7 +730,7 @@ public class IdeSdks {
   @Nullable
   public static String getJdkFromJavaHome() {
     // Try terminal environment first
-    String terminalValue = doGetJdkFromPathOrParent(TerminalUtil.getJavaHomeFromTerminal());
+    String terminalValue = doGetJdkFromPathOrParent(EnvironmentUtil.getValue("JAVA_HOME"));
     if (!isNullOrEmpty(terminalValue)) {
       return terminalValue;
     }
