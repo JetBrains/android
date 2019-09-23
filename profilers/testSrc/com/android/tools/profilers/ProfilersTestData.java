@@ -211,9 +211,23 @@ public final class ProfilersTestData {
   }
 
   @NotNull
-  public static Common.Event.Builder generateMemoryGcData(long timestampUs, Memory.MemoryGcData gcData) {
+  public static Common.Event.Builder generateMemoryGcData(int pid, long timestampUs, Memory.MemoryGcData gcData) {
     long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
-    return Common.Event.newBuilder().setTimestamp(timestampNs).setKind(Common.Event.Kind.MEMORY_GC).setMemoryGc(gcData);
+    return Common.Event.newBuilder().setPid(pid).setTimestamp(timestampNs).setKind(Common.Event.Kind.MEMORY_GC).setMemoryGc(gcData);
+  }
+
+  @NotNull
+  public static Common.Event.Builder generateMemoryAllocStatsData(int pid, long timestampUs, int alloCount) {
+    long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
+    return Common.Event.newBuilder().setPid(pid).setTimestamp(timestampNs).setKind(Common.Event.Kind.MEMORY_ALLOC_STATS)
+      .setMemoryAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(alloCount));
+  }
+
+  @NotNull
+  public static Common.Event.Builder generateMemoryAllocSamplingData(int pid, long timestampUs, int samplingRate) {
+    long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
+    return Common.Event.newBuilder().setPid(pid).setTimestamp(timestampNs).setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+      .setMemoryAllocSampling(Memory.MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(samplingRate));
   }
 
   @NotNull

@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
@@ -37,11 +38,22 @@ import static org.junit.Assert.assertEquals;
 
 public class HeapDumpSampleDataSeriesTest {
 
+  private static final HeapDumpInfo INFO1 = HeapDumpInfo.newBuilder()
+    .setStartTime(TimeUnit.MICROSECONDS.toNanos(2))
+    .setEndTime(TimeUnit.MICROSECONDS.toNanos(7))
+    .build();
+  private static final HeapDumpInfo INFO2 = HeapDumpInfo.newBuilder()
+    .setStartTime(TimeUnit.MICROSECONDS.toNanos(17))
+    .setEndTime(Long.MAX_VALUE)
+    .build();
+
+  private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   private final FakeMemoryService myService = new FakeMemoryService();
 
   @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpSampleDataSeriesTest", myService);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpSampleDataSeriesTest", myTransportService, myService);
 
   private MemoryProfilerStage myStage;
 
@@ -54,16 +66,44 @@ public class HeapDumpSampleDataSeriesTest {
 
   @Test
   public void testGetDataForXRange() {
-    HeapDumpInfo dumpInfo1 = HeapDumpInfo.newBuilder()
-      .setStartTime(TimeUnit.MICROSECONDS.toNanos(2))
-      .setEndTime(TimeUnit.MICROSECONDS.toNanos(7))
-      .build();
-    HeapDumpInfo dumpInfo2 = HeapDumpInfo.newBuilder()
-      .setStartTime(TimeUnit.MICROSECONDS.toNanos(17))
-      .setEndTime(Long.MAX_VALUE)
-      .build();
-    myService.addExplicitHeapDumpInfo(dumpInfo1);
-    myService.addExplicitHeapDumpInfo(dumpInfo2);
+    myIdeProfilerServices.enableEventsPipeline(true);
+
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                        ProfilersTestData.generateMemoryHeapDumpData(INFO1.getStartTime(), INFO1.getStartTime(), INFO1)
+                                          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+                                          .build());
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                        ProfilersTestData.generateMemoryHeapDumpData(INFO2.getStartTime(), INFO2.getStartTime(), INFO2)
+                                          .setPid(ProfilersTestData.SESSION_DATA.getPid())
+                                          .build());
+
+    HeapDumpSampleDataSeries series =
+      new HeapDumpSampleDataSeries(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA,
+                                   myIdeProfilerServices.getFeatureTracker(), myStage);
+    List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
+
+    assertEquals(2, dataList.size());
+    SeriesData<CaptureDurationData<CaptureObject>> data1 = dataList.get(0);
+    assertEquals(2, data1.x);
+    assertEquals(5, data1.value.getDurationUs());
+    CaptureObject capture1 = data1.value.getCaptureEntry().getCaptureObject();
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(2), capture1.getStartTimeNs());
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(7), capture1.getEndTimeNs());
+
+    SeriesData<CaptureDurationData<CaptureObject>> data2 = dataList.get(1);
+    assertEquals(17, data2.x);
+    assertEquals(Long.MAX_VALUE, data2.value.getDurationUs());
+    CaptureObject capture2 = data2.value.getCaptureEntry().getCaptureObject();
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(17), capture2.getStartTimeNs());
+    assertEquals(Long.MAX_VALUE, capture2.getEndTimeNs());
+  }
+
+  @Test
+  public void testLegacyGetDataForXRange() {
+    myIdeProfilerServices.enableEventsPipeline(false);
+
+    myService.addExplicitHeapDumpInfo(INFO1);
+    myService.addExplicitHeapDumpInfo(INFO2);
 
     HeapDumpSampleDataSeries series =
       new HeapDumpSampleDataSeries(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA,
