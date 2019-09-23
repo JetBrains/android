@@ -15,14 +15,16 @@
  */
 package com.android.tools.adtui;
 
-import com.intellij.util.ui.JBUI;
-import org.junit.Test;
-
-import javax.swing.*;
-import java.awt.*;
-
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
+
+import com.intellij.ui.scale.JBUIScale;
+import java.awt.Component;
+import java.awt.Dimension;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JPanel;
+import org.junit.Test;
 
 public final class TabularLayoutTest {
   @Test
@@ -491,9 +493,9 @@ public final class TabularLayoutTest {
 
   @Test
   public void fixedSizeConsidersScaleFactor() {
-    float originalFactor = JBUI.scale(1.0f);
+    float originalFactor = JBUIScale.scale(1.0f);
     float scaleFactor = 2f;
-    JBUI.setUserScaleFactor(scaleFactor);
+    JBUIScale.setUserScaleFactor(scaleFactor);
 
     TabularLayout layout = new TabularLayout("50px");
     layout.setRowSizing(0, "100px");
@@ -514,7 +516,7 @@ public final class TabularLayoutTest {
     assertThat(row0.getWidth()).isEqualTo((int)scaleFactor * 50);
     assertThat(row1.getWidth()).isEqualTo((int)scaleFactor * 50);
 
-    JBUI.setUserScaleFactor(originalFactor);
+    JBUIScale.setUserScaleFactor(originalFactor);
   }
 
   @Test
