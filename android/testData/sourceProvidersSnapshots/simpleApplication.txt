@@ -24,12 +24,30 @@ MODULE: app
             ShadersDirectories:
                 ./app/src/main/shaders
         main (IDEA)
+            ManifestUrl:
+                file://./app/src/main/AndroidManifest.xml
             Manifest:
                 file://./app/src/main/AndroidManifest.xml
+            AidlDirectoryUrls:
+                file://./app/src/main/aidl
+            AssetsDirectoryUrls:
+                file://./app/src/main/assets
+            JavaDirectoryUrls:
+                file://./app/src/main/java
             JavaDirectories:
                 file://./app/src/main/java
+            JniLibsDirectoryUrls:
+                file://./app/src/main/jniLibs
+            RenderscriptDirectoryUrls:
+                file://./app/src/main/rs
+            ResDirectoryUrls:
+                file://./app/src/main/res
             ResDirectories:
                 file://./app/src/main/res
+            ResourcesDirectoryUrls:
+                file://./app/src/main/resources
+            ShadersDirectoryUrls:
+                file://./app/src/main/shaders
     by AndroidModel:
         main
             Manifest:
@@ -269,16 +287,68 @@ MODULE: app
             file://./app/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
+                ManifestUrl:
+                    file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/main/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/main/assets
+                JavaDirectoryUrls:
+                    file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/main/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/main/rs
+                ResDirectoryUrls:
+                    file://./app/src/main/res
                 ResDirectories:
                     file://./app/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/main/shaders
             debug (IDEA)
-                Manifest:
+                ManifestUrl:
+                    file://./app/src/debug/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/debug/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/debug/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/debug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/debug/rs
+                ResDirectoryUrls:
+                    file://./app/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/debug/shaders
             release (IDEA)
-                Manifest:
+                ManifestUrl:
+                    file://./app/src/release/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/release/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/release/assets
+                JavaDirectoryUrls:
+                    file://./app/src/release/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/release/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/release/rs
+                ResDirectoryUrls:
+                    file://./app/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/release/shaders
         AllSourceProviders:
             main
                 Manifest:
@@ -351,25 +421,128 @@ MODULE: app
                     ./app/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
+                ManifestUrl:
+                    file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/main/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/main/assets
+                JavaDirectoryUrls:
+                    file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/main/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/main/rs
+                ResDirectoryUrls:
+                    file://./app/src/main/res
                 ResDirectories:
                     file://./app/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/main/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/main/shaders
             debug (IDEA)
-                Manifest:
+                ManifestUrl:
+                    file://./app/src/debug/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/debug/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/debug/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/debug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/debug/rs
+                ResDirectoryUrls:
+                    file://./app/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/debug/shaders
         CurrentTestSourceProviders:
             androidTest (IDEA)
-                Manifest:
+                ManifestUrl:
+                    file://./app/src/androidTest/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/androidTest/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTest/java
                 JavaDirectories:
                     file://./app/src/androidTest/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTest/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/androidTest/rs
+                ResDirectoryUrls:
+                    file://./app/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTest/shaders
             test (IDEA)
-                Manifest:
+                ManifestUrl:
+                    file://./app/src/test/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/test/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/test/assets
+                JavaDirectoryUrls:
+                    file://./app/src/test/java
                 JavaDirectories:
                     file://./app/src/test/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/test/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/test/rs
+                ResDirectoryUrls:
+                    file://./app/src/test/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/test/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/test/shaders
             androidTestDebug (IDEA)
-                Manifest:
+                ManifestUrl:
+                    file://./app/src/androidTestDebug/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestDebug/shaders
             testDebug (IDEA)
-                Manifest:
+                ManifestUrl:
+                    file://./app/src/testDebug/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/testDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/testDebug/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/testDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/testDebug/rs
+                ResDirectoryUrls:
+                    file://./app/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/testDebug/shaders
 MODULE: testSimpleApplication
