@@ -480,4 +480,29 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     myFixture.moveCaret("myM|ethod3")
     assertThat(getParameters()).isNotNull()
   }
+
+    fun testContainsWildcards() {
+        myFixture.configureByText(
+          ProguardR8FileType.INSTANCE,
+          """
+      -keep class myClass {
+        int NoWildcards;
+        int *;
+        int **wildcard;
+      }
+      """.trimIndent()
+        )
+
+        myFixture.moveCaret("No|Wildcard")
+        var classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
+        assertThat(classMemberName.containsWildcards()).isFalse()
+
+        myFixture.moveCaret("|*")
+        classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
+        assertThat(classMemberName.containsWildcards()).isTrue()
+
+        myFixture.moveCaret("**w|ildcard")
+        classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
+        assertThat(classMemberName.containsWildcards()).isTrue()
+    }
 }

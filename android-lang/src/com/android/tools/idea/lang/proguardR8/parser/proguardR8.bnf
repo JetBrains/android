@@ -85,7 +85,9 @@ qualifiedName ::= java_identifier_ ("." java_identifier_)* ("$" java_identifier_
 
 annotation_name ::= AT qualifiedName
 class_name ::= qualifiedName
-class_member_name ::= java_identifier_
+class_member_name ::= java_identifier_ {
+  methods=[containsWildcards]
+}
 
 java_primitive ::= boolean|byte|char|short|int|long|float|double|void {
   methods=[getPsiPrimitive]

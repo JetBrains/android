@@ -55,4 +55,9 @@ public class ProguardR8ClassMemberNameImpl extends ASTWrapperPsiElement implemen
     return findChildByType(JAVA_IDENTIFIER_WITH_WILDCARDS);
   }
 
+  @Override
+  public boolean containsWildcards() {
+    return ProguardR8PsiImplUtil.containsWildcards(this);
+  }
+
 }

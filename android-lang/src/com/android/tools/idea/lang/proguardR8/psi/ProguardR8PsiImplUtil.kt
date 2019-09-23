@@ -18,6 +18,7 @@
 
 package com.android.tools.idea.lang.proguardR8.psi
 
+import com.android.tools.idea.lang.proguardR8.parser.ProguardR8Lexer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiArrayType
@@ -155,3 +156,7 @@ fun isAcceptAnyParameters(parameters: ProguardR8Parameters): Boolean {
 }
 
 fun getParameters(field: ProguardR8Field): ProguardR8Parameters? = null
+
+fun containsWildcards(member: ProguardR8ClassMemberName): Boolean {
+  return member.node.findChildByType(ProguardR8Lexer.wildcardsTokenSet) != null
+}
