@@ -56,6 +56,12 @@ public class ProguardR8ClassMemberNameImpl extends ASTWrapperPsiElement implemen
   }
 
   @Override
+  @Nullable
+  public ProguardR8ClassMemberNameReference getReference() {
+    return ProguardR8PsiImplUtil.getReference(this);
+  }
+
+  @Override
   public boolean containsWildcards() {
     return ProguardR8PsiImplUtil.containsWildcards(this);
   }

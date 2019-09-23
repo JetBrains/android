@@ -160,3 +160,5 @@ fun getParameters(field: ProguardR8Field): ProguardR8Parameters? = null
 fun containsWildcards(member: ProguardR8ClassMemberName): Boolean {
   return member.node.findChildByType(ProguardR8Lexer.wildcardsTokenSet) != null
 }
+
+fun getReference(member: ProguardR8ClassMemberName) = if (member.containsWildcards()) null else ProguardR8ClassMemberNameReference(member)

@@ -30,6 +30,9 @@ public interface ProguardR8ClassMemberName extends PsiElement {
   @Nullable
   PsiElement getJavaIdentifierWithWildcards();
 
+  @Nullable
+  ProguardR8ClassMemberNameReference getReference();
+
   boolean containsWildcards();
 
 }
