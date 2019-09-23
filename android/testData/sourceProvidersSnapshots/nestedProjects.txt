@@ -25,11 +25,11 @@ MODULE: app
                 ./app/src/main/shaders
         main (IDEA)
             Manifest:
-                ./app/src/main/AndroidManifest.xml
+                file://./app/src/main/AndroidManifest.xml
             JavaDirectories:
-                ./app/src/main/java
+                file://./app/src/main/java
             ResDirectories:
-                ./app/src/main/res
+                file://./app/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -611,26 +611,26 @@ MODULE: app
                     ./app/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./app/src/main/AndroidManifest.xml
+            file://./app/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./app/src/main/AndroidManifest.xml
+                    file://./app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./app/src/main/java
+                    file://./app/src/main/java
                 ResDirectories:
-                    ./app/src/main/res
+                    file://./app/src/main/res
             bar (IDEA)
                 Manifest:
             otherBar (IDEA)
                 Manifest:
             paid (IDEA)
                 Manifest:
-                    ./app/src/paid/AndroidManifest.xml
+                    file://./app/src/paid/AndroidManifest.xml
                 JavaDirectories:
-                    ./app/src/paid/java
+                    file://./app/src/paid/java
                 ResDirectories:
-                    ./app/src/paid/res
+                    file://./app/src/paid/res
             basic (IDEA)
                 Manifest:
             basicBar (IDEA)
@@ -877,11 +877,11 @@ MODULE: app
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./app/src/main/AndroidManifest.xml
+                    file://./app/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./app/src/main/java
+                    file://./app/src/main/java
                 ResDirectories:
-                    ./app/src/main/res
+                    file://./app/src/main/res
             basic (IDEA)
                 Manifest:
             bar (IDEA)
@@ -936,7 +936,7 @@ MODULE: deep2
                 ./nested2/trans/deep2/src/main/shaders
         main (IDEA)
             Manifest:
-                ./nested2/trans/deep2/src/main/AndroidManifest.xml
+                file://./nested2/trans/deep2/src/main/AndroidManifest.xml
     by AndroidModel:
         main
             Manifest:
@@ -1173,11 +1173,11 @@ MODULE: deep2
                     ./nested2/trans/deep2/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./nested2/trans/deep2/src/main/AndroidManifest.xml
+            file://./nested2/trans/deep2/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./nested2/trans/deep2/src/main/AndroidManifest.xml
+                    file://./nested2/trans/deep2/src/main/AndroidManifest.xml
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -1255,7 +1255,7 @@ MODULE: deep2
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./nested2/trans/deep2/src/main/AndroidManifest.xml
+                    file://./nested2/trans/deep2/src/main/AndroidManifest.xml
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
@@ -1294,7 +1294,7 @@ MODULE: dyn_feature
                 ./dyn_feature/src/main/shaders
         main (IDEA)
             Manifest:
-                ./dyn_feature/src/main/AndroidManifest.xml
+                file://./dyn_feature/src/main/AndroidManifest.xml
     by AndroidModel:
         main
             Manifest:
@@ -1531,11 +1531,11 @@ MODULE: dyn_feature
                     ./dyn_feature/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./dyn_feature/src/main/AndroidManifest.xml
+            file://./dyn_feature/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./dyn_feature/src/main/AndroidManifest.xml
+                    file://./dyn_feature/src/main/AndroidManifest.xml
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -1613,7 +1613,7 @@ MODULE: dyn_feature
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./dyn_feature/src/main/AndroidManifest.xml
+                    file://./dyn_feature/src/main/AndroidManifest.xml
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
@@ -1653,11 +1653,11 @@ MODULE: lib
                 ./lib/src/main/shaders
         main (IDEA)
             Manifest:
-                ./lib/src/main/AndroidManifest.xml
+                file://./lib/src/main/AndroidManifest.xml
             JavaDirectories:
-                ./lib/src/main/java
+                file://./lib/src/main/java
             ResDirectories:
-                ./lib/src/main/res
+                file://./lib/src/main/res
     by AndroidModel:
         main
             Manifest:
@@ -1894,15 +1894,15 @@ MODULE: lib
                     ./lib/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./lib/src/main/AndroidManifest.xml
+            file://./lib/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./lib/src/main/AndroidManifest.xml
+                    file://./lib/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./lib/src/main/java
+                    file://./lib/src/main/java
                 ResDirectories:
-                    ./lib/src/main/res
+                    file://./lib/src/main/res
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -1980,11 +1980,11 @@ MODULE: lib
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./lib/src/main/AndroidManifest.xml
+                    file://./lib/src/main/AndroidManifest.xml
                 JavaDirectories:
-                    ./lib/src/main/java
+                    file://./lib/src/main/java
                 ResDirectories:
-                    ./lib/src/main/res
+                    file://./lib/src/main/res
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
@@ -2023,7 +2023,7 @@ MODULE: nested1
                 ./nested1/src/main/shaders
         main (IDEA)
             Manifest:
-                ./nested1/src/main/AndroidManifest.xml
+                file://./nested1/src/main/AndroidManifest.xml
     by AndroidModel:
         main
             Manifest:
@@ -2260,11 +2260,11 @@ MODULE: nested1
                     ./nested1/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./nested1/src/main/AndroidManifest.xml
+            file://./nested1/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./nested1/src/main/AndroidManifest.xml
+                    file://./nested1/src/main/AndroidManifest.xml
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -2342,7 +2342,7 @@ MODULE: nested1
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./nested1/src/main/AndroidManifest.xml
+                    file://./nested1/src/main/AndroidManifest.xml
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
@@ -2381,7 +2381,7 @@ MODULE: nested1-deep
                 ./nested1/deep/src/main/shaders
         main (IDEA)
             Manifest:
-                ./nested1/deep/src/main/AndroidManifest.xml
+                file://./nested1/deep/src/main/AndroidManifest.xml
     by AndroidModel:
         main
             Manifest:
@@ -2618,11 +2618,11 @@ MODULE: nested1-deep
                     ./nested1/deep/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./nested1/deep/src/main/AndroidManifest.xml
+            file://./nested1/deep/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./nested1/deep/src/main/AndroidManifest.xml
+                    file://./nested1/deep/src/main/AndroidManifest.xml
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -2700,7 +2700,7 @@ MODULE: nested1-deep
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./nested1/deep/src/main/AndroidManifest.xml
+                    file://./nested1/deep/src/main/AndroidManifest.xml
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:
@@ -2739,7 +2739,7 @@ MODULE: nested2
                 ./nested2/src/main/shaders
         main (IDEA)
             Manifest:
-                ./nested2/src/main/AndroidManifest.xml
+                file://./nested2/src/main/AndroidManifest.xml
     by AndroidModel:
         main
             Manifest:
@@ -3137,11 +3137,11 @@ MODULE: nested2
                     ./nested2/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./nested2/src/main/AndroidManifest.xml
+            file://./nested2/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./nested2/src/main/AndroidManifest.xml
+                    file://./nested2/src/main/AndroidManifest.xml
             paid (IDEA)
                 Manifest:
             basic (IDEA)
@@ -3294,7 +3294,7 @@ MODULE: nested2
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./nested2/src/main/AndroidManifest.xml
+                    file://./nested2/src/main/AndroidManifest.xml
             basic (IDEA)
                 Manifest:
             debug (IDEA)
@@ -3341,7 +3341,7 @@ MODULE: nested2-deep
                 ./nested2/deep/src/main/shaders
         main (IDEA)
             Manifest:
-                ./nested2/deep/src/main/AndroidManifest.xml
+                file://./nested2/deep/src/main/AndroidManifest.xml
     by AndroidModel:
         main
             Manifest:
@@ -3578,11 +3578,11 @@ MODULE: nested2-deep
                     ./nested2/deep/src/testDebug/shaders
     by IdeaSourceProviders:
         Manifests:
-            ./nested2/deep/src/main/AndroidManifest.xml
+            file://./nested2/deep/src/main/AndroidManifest.xml
         AllIdeaSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./nested2/deep/src/main/AndroidManifest.xml
+                    file://./nested2/deep/src/main/AndroidManifest.xml
             debug (IDEA)
                 Manifest:
             release (IDEA)
@@ -3660,7 +3660,7 @@ MODULE: nested2-deep
         CurrentSourceProviders:
             main (IDEA)
                 Manifest:
-                    ./nested2/deep/src/main/AndroidManifest.xml
+                    file://./nested2/deep/src/main/AndroidManifest.xml
             debug (IDEA)
                 Manifest:
         CurrentTestSourceProviders:

@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.util.toIoFile
+import com.android.utils.FileUtils
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -115,12 +116,9 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
         return result
       }
 
-      fun File.toPrintablePath(): String {
-        val relativePath = absoluteFile.relativeTo(projectRootPath)
-        return if (!relativePath.isAbsolute) "./${relativePath.path}" else relativePath.path
-      }
+      fun String.toPrintablePath(): String = this.replace(projectRootPath.absolutePath.toSystemIndependent(), ".", false)
 
-      fun <T, F> T.dumpPaths(name: String, getter: (T) -> Collection<F>, mapper: (F) -> File?) {
+      fun <T, F> T.dumpPaths(name: String, getter: (T) -> Collection<F>, mapper: (F) -> String?) {
         val entries = getter(this)
         if (entries.isEmpty()) return
         out("$name:")
@@ -134,10 +132,10 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
       }
 
       fun SourceProvider.dumpPaths(name: String, getter: (SourceProvider) -> Collection<File>) =
-        dumpPaths(name, getter) { it }
+        dumpPaths(name, getter) { it.path.toSystemIndependent() }
 
       fun IdeaSourceProvider.dumpPaths(name: String, getter: (IdeaSourceProvider) -> Collection<VirtualFile?>) =
-        dumpPaths(name, getter) { it?.toIoFile() }
+        dumpPaths(name, getter) { it?.url }
 
       fun SourceProvider.dump() {
         out(name)
@@ -176,7 +174,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
         .modules
         .sortedBy { it.name }
         .forEach { module ->
-          out("MODULE: ${module.name}");
+          out("MODULE: ${module.name}")
           val androidFacet = AndroidFacet.getInstance(module)
           if (androidFacet != null) {
             nest {
@@ -195,7 +193,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
                 }
               }
               nest("by IdeaSourceProviders:") {
-                dumpPaths("Manifests", { IdeaSourceProvider.getManifestFiles(androidFacet) }, { it.toIoFile() })
+                dumpPaths("Manifests", { IdeaSourceProvider.getManifestFiles(androidFacet) }, { it.url })
                 nest("AllIdeaSourceProviders:") { IdeaSourceProvider.getAllIdeaSourceProviders(androidFacet).forEach { it.dump() } }
                 nest("AllSourceProviders:") { IdeaSourceProvider.getAllSourceProviders(androidFacet).forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { IdeaSourceProvider.getCurrentSourceProviders(androidFacet).forEach { it.dump() } }
@@ -209,3 +207,4 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
   }
 }
 
+private fun String.toSystemIndependent() = FileUtils.toSystemIndependentPath(this)
