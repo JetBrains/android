@@ -31,7 +31,7 @@ import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate
+import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APPLICATION_PACKAGE
@@ -174,7 +174,7 @@ class RenderTemplateModel private constructor(
 
     private fun renderTemplate(dryRun: Boolean,
                                project: Project,
-                               paths: AndroidModuleTemplate,
+                               paths: AndroidModulePaths,
                                filesToOpen: MutableList<File>?,
                                filesToReformat: MutableList<File>?): Boolean {
       paths.moduleRoot ?: return false

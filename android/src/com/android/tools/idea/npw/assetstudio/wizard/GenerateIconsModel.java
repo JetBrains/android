@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class GenerateIconsModel extends WizardModel {
   @Nullable private IconGenerator myIconGenerator;
-  @NotNull private AndroidModuleTemplate myPaths;
+  @NotNull private AndroidModulePaths myPaths;
   @NotNull private final StateStorage myStateStorage;
   @NotNull private final String myWizardId;
 
@@ -45,10 +45,10 @@ public final class GenerateIconsModel extends WizardModel {
    *
    * @param androidFacet the Android facet
    * @param wizardId the id of the wizard owning the model. Used as a key for storing wizard state.
-   * @param template the template determining the output directories
+   * @param paths the output directories
    */
-  public GenerateIconsModel(@NotNull AndroidFacet androidFacet, @NotNull String wizardId, @NotNull AndroidModuleTemplate template) {
-    myPaths = template;
+  public GenerateIconsModel(@NotNull AndroidFacet androidFacet, @NotNull String wizardId, @NotNull AndroidModulePaths paths) {
+    myPaths = paths;
     Project project = androidFacet.getModule().getProject();
     myStateStorage = ServiceManager.getService(project, StateStorage.class);
     assert myStateStorage != null;
@@ -64,12 +64,12 @@ public final class GenerateIconsModel extends WizardModel {
     return myIconGenerator;
   }
 
-  public void setPaths(@NotNull AndroidModuleTemplate paths) {
+  public void setPaths(@NotNull AndroidModulePaths paths) {
     myPaths = paths;
   }
 
   @NotNull
-  public AndroidModuleTemplate getPaths() {
+  public AndroidModulePaths getPaths() {
     return myPaths;
   }
 

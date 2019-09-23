@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
@@ -37,7 +37,7 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
     loadProject(PROJECT_WITH_APPAND_LIB);
 
     File javaSrcDir = new File(getModuleDirPath(myAndroidFacet.getModule()), "src/main/java");
-    AndroidModuleTemplate androidModuleTemplate = Mockito.mock(AndroidModuleTemplate.class);
+    AndroidModulePaths androidModuleTemplate = Mockito.mock(AndroidModulePaths.class);
     Mockito.when(androidModuleTemplate.getSrcDirectory(null)).thenReturn(javaSrcDir);
 
     NamedModuleTemplate moduleTemplate = new NamedModuleTemplate("main", androidModuleTemplate);

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
@@ -57,15 +57,15 @@ public abstract class AndroidAssetStudioAction extends AnAction {
            view.getDirectories().length > 0 &&
            AndroidFacet.getInstance(module) != null &&
            ProjectSystemUtil.getProjectSystem(module.getProject()).allowsFileCreation() &&
-           getModuleTemplate(module, location) != null;
+           getModulePaths(module, location) != null;
   }
 
   @Nullable
-  private static AndroidModuleTemplate getModuleTemplate(@NotNull Module module, @NotNull VirtualFile location) {
+  private static AndroidModulePaths getModulePaths(@NotNull Module module, @NotNull VirtualFile location) {
     for (NamedModuleTemplate namedTemplate : ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(location)) {
-      AndroidModuleTemplate template = namedTemplate.getPaths();
-      if (!template.getResDirectories().isEmpty()) {
-        return template;
+      AndroidModulePaths paths = namedTemplate.getPaths();
+      if (!paths.getResDirectories().isEmpty()) {
+        return paths;
       }
     }
     return null;
@@ -100,12 +100,12 @@ public abstract class AndroidAssetStudioAction extends AnAction {
       return;
     }
 
-    AndroidModuleTemplate template = getModuleTemplate(module, location);
-    if (template == null) {
+    AndroidModulePaths paths = getModulePaths(module, location);
+    if (paths == null) {
       return;
     }
 
-    ModelWizard wizard = createWizard(facet, template);
+    ModelWizard wizard = createWizard(facet, paths);
     if (wizard != null) {
       StudioWizardDialogBuilder dialogBuilder = new StudioWizardDialogBuilder(wizard, "Asset Studio");
       dialogBuilder.setProject(facet.getModule().getProject())
@@ -122,7 +122,7 @@ public abstract class AndroidAssetStudioAction extends AnAction {
    * such as an error dialog.
    */
   @Nullable
-  protected abstract ModelWizard createWizard(@NotNull AndroidFacet facet, @NotNull AndroidModuleTemplate template);
+  protected abstract ModelWizard createWizard(@NotNull AndroidFacet facet, @NotNull AndroidModulePaths paths);
 
   @NotNull
   protected abstract Dimension getWizardMinimumSize();
