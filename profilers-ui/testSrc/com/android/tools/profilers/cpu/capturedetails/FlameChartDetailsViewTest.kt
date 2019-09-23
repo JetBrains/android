@@ -21,6 +21,7 @@ import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
@@ -60,8 +61,10 @@ class FlameChartDetailsViewTest {
                                     FakeTransportService(timer), FakeProfilerService(timer),
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
+  private lateinit var profilersView: StudioProfilersView
   private lateinit var stageView: CpuProfilerStageView
   private lateinit var stage: CpuProfilerStage
+  private val capture = CpuProfilerUITestUtils.validCapture()
 
   @Before
   fun setUp() {
@@ -71,20 +74,25 @@ class FlameChartDetailsViewTest {
 
     stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage
+    stage.capture = capture
     stage.enter()
 
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     stageView = CpuProfilerStageView(profilersView, stage)
   }
 
   @Test
-  fun showsNoDataForThreadMessageWhenNodeIsNull() {
+  fun flameChartModelIsNullOnEmptyThreadData() {
     stage.setCaptureDetails(CaptureDetails.Type.FLAME_CHART)
 
     val flameChart = stage.captureDetails as CaptureDetails.FlameChart
     assertThat(flameChart.node).isNull()
+  }
 
-    val flameChartView = ChartDetailsView.FlameChartDetailsView(stageView, flameChart)
+  @Test
+  fun showsNoDataForThreadMessageWhenNodeIsNull() {
+    val flameChart = CaptureDetails.Type.FLAME_CHART.build(Range(), capture.getCaptureNode(1), capture) as CaptureDetails.FlameChart
+    val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 
     val noDataInstructions = TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {
       val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
@@ -96,34 +104,26 @@ class FlameChartDetailsViewTest {
 
   @Test
   fun flameChartHasCpuTraceEventTooltipView() {
-    stage.apply {
-      val parser = CpuCaptureParser(FakeIdeProfilerServices())
-      val capture = parser.parse(ProfilersTestData.SESSION_DATA.toBuilder().setPid(1).build(),
-                                 FakeCpuService.FAKE_TRACE_ID,
-                                 CpuProfilerTestUtils.traceFileToByteString(
-                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH)),
-                                 Cpu.CpuTraceType.ATRACE)!!.get()
-      setAndSelectCapture(capture)
-      selectedThread = capture.mainThreadId
-      setCaptureDetails(CaptureDetails.Type.FLAME_CHART)
-    }
-    val flameChart = stage.captureDetails as CaptureDetails.FlameChart
-    val flameChartView = ChartDetailsView.FlameChartDetailsView(stageView, flameChart)
+    val parser = CpuCaptureParser(FakeIdeProfilerServices())
+    val atraceCapture = parser.parse(ProfilersTestData.SESSION_DATA.toBuilder().setPid(1).build(),
+                                     FakeCpuService.FAKE_TRACE_ID,
+                                     CpuProfilerTestUtils.traceFileToByteString(
+                                       TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH)),
+                                     Cpu.CpuTraceType.ATRACE)!!.get()
+    val flameChart = CaptureDetails.Type.FLAME_CHART.build(Range(Double.MIN_VALUE, Double.MAX_VALUE),
+                                                           atraceCapture.getCaptureNode(atraceCapture.mainThreadId),
+                                                           atraceCapture) as CaptureDetails.FlameChart
+    val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
     val treeChart = TreeWalker(flameChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
     assertThat(treeChart.mouseMotionListeners[2]).isInstanceOf(CpuTraceEventTooltipView::class.java)
   }
 
   @Test
   fun showsContentWhenNodeIsNotNull() {
-    stage.apply {
-      val capture = CpuProfilerUITestUtils.validCapture()
-      setAndSelectCapture(capture)
-      selectedThread = capture.mainThreadId
-      setCaptureDetails(CaptureDetails.Type.FLAME_CHART)
-    }
-
-    val flameChart = stage.captureDetails as CaptureDetails.FlameChart
-    val flameChartView = ChartDetailsView.FlameChartDetailsView(stageView, flameChart)
+    val flameChart = CaptureDetails.Type.FLAME_CHART.build(Range(Double.MIN_VALUE, Double.MAX_VALUE),
+                                                           capture.getCaptureNode(capture.mainThreadId),
+                                                           capture) as CaptureDetails.FlameChart
+    val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 
     val noDataInstructionsList = TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
       val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
@@ -139,18 +139,11 @@ class FlameChartDetailsViewTest {
   @Test
   @Ignore("b/110883498")
   fun showsNoDataForRangeMessage() {
-    stage.apply {
-      val capture = CpuProfilerUITestUtils.validCapture()
-      setAndSelectCapture(capture)
-      selectedThread = capture.mainThreadId
-      setCaptureDetails(CaptureDetails.Type.FLAME_CHART)
-    }
-
     // Select a range where we don't have trace data
-    stage.studioProfilers.timeline.selectionRange.set(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-
-    val flameChart = stage.captureDetails as CaptureDetails.FlameChart
-    val flameChartView = ChartDetailsView.FlameChartDetailsView(stageView, flameChart)
+    val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
+    val flameChart = CaptureDetails.Type.FLAME_CHART.build(range, capture.getCaptureNode(capture.mainThreadId),
+                                                           capture) as CaptureDetails.FlameChart
+    val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 
     val noDataInstructions = TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {
       val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction

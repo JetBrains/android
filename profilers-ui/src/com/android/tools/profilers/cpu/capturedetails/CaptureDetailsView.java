@@ -19,6 +19,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.StudioProfilersView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtilities;
@@ -38,6 +39,12 @@ public abstract class CaptureDetailsView {
   static final String NO_DATA_FOR_THREAD_MESSAGE = "No data available for the selected thread.";
   @VisibleForTesting
   static final String NO_DATA_FOR_RANGE_MESSAGE = "No data available for the selected time frame.";
+
+  @NotNull protected final StudioProfilersView myProfilersView;
+
+  public CaptureDetailsView(@NotNull StudioProfilersView profilersView) {
+    myProfilersView = profilersView;
+  }
 
   @NotNull
   abstract JComponent getComponent();

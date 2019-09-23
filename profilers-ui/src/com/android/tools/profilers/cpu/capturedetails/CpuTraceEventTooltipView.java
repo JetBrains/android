@@ -45,10 +45,10 @@ class CpuTraceEventTooltipView extends CpuChartTooltipViewBase {
   @NotNull private final Color myIdleColor;
 
   protected CpuTraceEventTooltipView(@NotNull HTreeChart<CaptureNode> chart,
-                                     @NotNull CpuProfilerStageView stageView,
+                                     @NotNull JLayeredPane tooltipRoot,
                                      @NotNull Color runningColor,
                                      @NotNull Color idleColor) {
-    super(chart, stageView);
+    super(chart, tooltipRoot);
     myLegends = new TraceEventTooltipLegends();
     myRunningColor = runningColor;
     myIdleColor = idleColor;
@@ -85,7 +85,7 @@ class CpuTraceEventTooltipView extends CpuChartTooltipViewBase {
     @NotNull private final EventLegend<DefaultDurationData> myRunningDurationLegend;
     @NotNull private final EventLegend<DefaultDurationData> myIdleDurationLegend;
 
-    public TraceEventTooltipLegends() {
+    TraceEventTooltipLegends() {
       super();
       myRunningDurationLegend = new EventLegend<>("Running", e -> TimeFormatter.getSingleUnitDurationString(e.getDurationUs()));
       myIdleDurationLegend = new EventLegend<>("Idle", e -> TimeFormatter.getSingleUnitDurationString(e.getDurationUs()));
