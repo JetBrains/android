@@ -124,7 +124,15 @@ public class GutterIconFactory {
         Configuration configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file);
         DrawableRenderer renderer = new DrawableRenderer(facet, configuration);
         Dimension size = new Dimension(maxWidth * RENDERING_SCALING_FACTOR, maxHeight * RENDERING_SCALING_FACTOR);
-        image = renderer.renderDrawable(xml, size).get();
+        try {
+          image = renderer.renderDrawable(xml, size).get();
+        } catch (Throwable e) {
+          // If an invalid drawable is passed, renderDrawable might throw an exception. We can not fully control the input passed to this
+          // rendering call since the user might be referencing an invalid drawable so we are just less verbose about it. The user will
+          // not see the preview next to the code when referencing invalid drawables.
+          LOG.debug(String.format("Could not read/render icon image %1$s", file.getPresentableUrl()), e);
+          image = null;
+        }
         if (image == null) {
           return null;
         }
