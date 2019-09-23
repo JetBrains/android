@@ -67,4 +67,10 @@ public class ProguardR8FieldImpl extends ASTWrapperPsiElement implements Proguar
     return findChildByClass(ProguardR8Type.class);
   }
 
+  @Override
+  @Nullable
+  public ProguardR8Parameters getParameters() {
+    return ProguardR8PsiImplUtil.getParameters(this);
+  }
+
 }

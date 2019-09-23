@@ -33,6 +33,9 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     return elementFactory.createParameterList(names.toTypedArray(), psiTypes)
   }
 
+  private fun getTypeUnderCaret() =
+    myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!.type
+
   fun testResolvePsiClassFromQualifiedName() {
     myFixture.addClass(
       //language=JAVA
@@ -393,4 +396,88 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
         header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
         assertThat(header.resolvePsiClasses()).containsExactly(myClass, superClass)
     }
+
+  fun testGetTypeForMethod() {
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class test.MyClass {
+          int myMethod();
+          % myMethod();
+          *** myMethod();
+          java.lang.String myMethod();
+        }
+      """.trimIndent()
+    )
+
+    myFixture.moveCaret("int myM|ethod()")
+    assertThat(getTypeUnderCaret()?.javaPrimitive).isNotNull()
+    assertThat(getTypeUnderCaret()?.javaPrimitive!!.node.findChildByType(ProguardR8PsiTypes.INT)).isNotNull()
+
+    myFixture.moveCaret("% myM|ethod()")
+    assertThat(getTypeUnderCaret()?.anyPrimitiveType).isNotNull()
+
+    myFixture.moveCaret("*** myM|ethod()")
+    assertThat(getTypeUnderCaret()?.anyType).isNotNull()
+
+    myFixture.moveCaret("java.lang.String myM|ethod()")
+    assertThat(getTypeUnderCaret()?.qualifiedName).isNotNull()
+    assertThat(getTypeUnderCaret()?.qualifiedName!!.text).isEqualTo("java.lang.String")
+    assertThat(getTypeUnderCaret()?.matchesPsiType(elementFactory.createTypeFromText("java.lang.String", null))).isTrue()
+  }
+
+  fun testGetTypeForField() {
+    
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class test.MyClass {
+          int myField;
+          % myField;
+          *** myField;
+          java.lang.String myField;
+        }
+      """.trimIndent()
+    )
+
+    myFixture.moveCaret("int myF|ield")
+    assertThat(getTypeUnderCaret()?.javaPrimitive).isNotNull()
+    assertThat(getTypeUnderCaret()?.javaPrimitive!!.node.findChildByType(ProguardR8PsiTypes.INT)).isNotNull()
+
+    myFixture.moveCaret("% myF|ield")
+    assertThat(getTypeUnderCaret()?.anyPrimitiveType).isNotNull()
+
+    myFixture.moveCaret("*** myF|ield")
+    assertThat(getTypeUnderCaret()?.anyType).isNotNull()
+
+    myFixture.moveCaret("java.lang.String myF|ield")
+    assertThat(getTypeUnderCaret()?.qualifiedName).isNotNull()
+    assertThat(getTypeUnderCaret()?.qualifiedName!!.text).isEqualTo("java.lang.String")
+    assertThat(getTypeUnderCaret()?.matchesPsiType(elementFactory.createTypeFromText("java.lang.String", null))).isTrue()
+  }
+
+  fun testGetParameters() {
+    fun getParameters() = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!.parameters
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+        void myMethod1(int);
+        void myMethod2 (int);
+        void myMethod3
+            (int);
+      }
+      """.trimIndent())
+
+    myFixture.moveCaret("myM|ethod1")
+    assertThat(getParameters()).isNotNull()
+
+    myFixture.moveCaret("myM|ethod2")
+    assertThat(getParameters()).isNotNull()
+
+    myFixture.moveCaret("myM|ethod3")
+    assertThat(getParameters()).isNotNull()
+  }
 }
