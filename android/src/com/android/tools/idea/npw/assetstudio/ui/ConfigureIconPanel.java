@@ -72,7 +72,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
@@ -161,7 +160,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private JPanel myTextAssetRowPanel;
   private ImageAssetBrowser myImageAssetBrowser;
   private ClipartIconButton myClipartAssetButton;
-  private TextAssetEditor myTextAssetEditor;
+  private MultiLineTextAssetEditor myTextAssetEditor;
   private JBLabel myOutputNameLabel;
   private JLabel myAssetTypeLabel;
   private JBLabel myImagePathLabel;

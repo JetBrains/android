@@ -217,7 +217,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     checkGeneratedIcons(expectedFilenames);
   }
 
-  public void testText() throws Exception {
+  public void testSingleLineText() throws Exception {
     String[] expectedFilenames = {
         "resources/mipmap-anydpi-v26/ic_launcher.xml",
         "resources/drawable/ic_launcher_foreground.xml",
@@ -230,6 +230,28 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
         "manifests/ic_launcher-playstore.png"};
     TextAsset textAsset = new TextAsset();
     textAsset.text().set("AL");
+    textAsset.color().setValue(new Color(0x0000FF));
+    myIconGenerator.sourceAsset().setValue(textAsset);
+    myIconGenerator.backgroundImageAsset().setNullableValue(null);
+    myIconGenerator.backgroundColor().set(new Color(0xFFFFFF));
+    myIconGenerator.generateRoundIcon().set(false);
+    // Don't compare context of ic_launcher_foreground.xml because it is slightly platform dependent.
+    checkGeneratedIcons(expectedFilenames, 1.5, "resources/drawable/ic_launcher_foreground.xml");
+  }
+
+  public void testMultiLineText() throws Exception {
+    String[] expectedFilenames = {
+      "resources/mipmap-anydpi-v26/ic_launcher.xml",
+      "resources/drawable/ic_launcher_foreground.xml",
+      "resources/mipmap-xxxhdpi/ic_launcher.png",
+      "resources/mipmap-xxhdpi/ic_launcher.png",
+      "resources/mipmap-xhdpi/ic_launcher.png",
+      "resources/mipmap-hdpi/ic_launcher.png",
+      "resources/mipmap-mdpi/ic_launcher.png",
+      "resources/values/ic_launcher_background.xml",
+      "manifests/ic_launcher-playstore.png"};
+    TextAsset textAsset = new TextAsset();
+    textAsset.text().set("A\nW");
     textAsset.color().setValue(new Color(0x0000FF));
     myIconGenerator.sourceAsset().setValue(textAsset);
     myIconGenerator.backgroundImageAsset().setNullableValue(null);

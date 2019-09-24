@@ -80,7 +80,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
@@ -155,7 +154,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   private JPanel myForegroundTextAssetRowPanel;
   private ImageAssetBrowser myForegroundImageAssetBrowser;
   private ClipartIconButton myForegroundClipartAssetButton;
-  private TextAssetEditor myForegroundTextAssetEditor;
+  private MultiLineTextAssetEditor myForegroundTextAssetEditor;
   private JBLabel myForegroundLayerNameLabel;
   private JLabel myForegroundAssetTypeLabel;
   private JBLabel myForegroundImagePathLabel;
@@ -460,6 +459,10 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(state.get(BACKGROUND_IMAGE_PROPERTY, DEFAULT_BACKGROUND_IMAGE));
     PersistentStateUtil.load(myForegroundClipartAssetButton, state.getChild(FOREGROUND_CLIPART_ASSET_PROPERTY));
     PersistentStateUtil.load(myForegroundTextAssetEditor, state.getChild(FOREGROUND_TEXT_ASSET_PROPERTY));
+  }
+
+  private void createUIComponents() {
+    // TODO: place custom component creation code here
   }
 
   /**
