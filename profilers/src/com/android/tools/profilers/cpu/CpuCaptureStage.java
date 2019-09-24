@@ -34,6 +34,7 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.AtraceFrameFilterConfig;
+import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.UserEventDataSeries;
 import com.google.common.annotations.VisibleForTesting;
@@ -135,7 +136,7 @@ public class CpuCaptureStage extends Stage {
       return null;
     }
     String captureProcessNameHint = CpuProfiler.getTraceInfoFromId(profilers, traceId).getConfiguration().getAppName();
-    return new CpuCaptureStage(profilers, configurationName, captureFile, captureProcessNameHint);
+    return new CpuCaptureStage(profilers, configurationName, captureFile, captureProcessNameHint, profilers.getSession().getPid());
   }
 
   /**
@@ -143,7 +144,7 @@ public class CpuCaptureStage extends Stage {
    */
   @NotNull
   public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull String configurationName, @NotNull File captureFile) {
-    return new CpuCaptureStage(profilers, configurationName, captureFile, null);
+    return new CpuCaptureStage(profilers, configurationName, captureFile, null, 0);
   }
 
   /**
@@ -153,10 +154,11 @@ public class CpuCaptureStage extends Stage {
   CpuCaptureStage(@NotNull StudioProfilers profilers,
                   @NotNull String configurationName,
                   @NotNull File captureFile,
-                  @Nullable String captureProcessNameHint) {
+                  @Nullable String captureProcessNameHint,
+                  int captureProcessIdHint) {
     super(profilers);
-
-    myCpuCaptureHandler = new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configurationName, captureProcessNameHint);
+    myCpuCaptureHandler =
+      new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configurationName, captureProcessNameHint, captureProcessIdHint);
     myMinimapModel = new CpuCaptureMinimapModel(profilers);
   }
 
@@ -214,7 +216,8 @@ public class CpuCaptureStage extends Stage {
           onCaptureParsed(capture);
           setState(State.ANALYZING);
         }
-      } catch (Exception ex) {
+      }
+      catch (Exception ex) {
         // Logging if an exception happens since setState may trigger various callbacks.
         Logger.getInstance(CpuCaptureStage.class).error(ex);
       }

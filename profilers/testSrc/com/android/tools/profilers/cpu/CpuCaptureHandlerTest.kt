@@ -22,7 +22,7 @@ import org.junit.Test
 class CpuCaptureHandlerTest {
   @Test
   fun updateUpdatesRange() {
-    val model = CpuCaptureHandler(FakeIdeProfilerServices(), CpuProfilerTestUtils.getTraceFile("simpleperf.trace"), "Test", null)
+    val model = CpuCaptureHandler(FakeIdeProfilerServices(), CpuProfilerTestUtils.getTraceFile("simpleperf.trace"), "Test", null, 0)
     assertThat(model.range.isEmpty).isTrue()
     model.update(1234L)
     assertThat(model.range.isEmpty).isTrue()
@@ -36,7 +36,7 @@ class CpuCaptureHandlerTest {
   @Test
   fun failureToParseShowsNotification() {
     val services = FakeIdeProfilerServices()
-    val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), "Test", null)
+    val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), "Test", null, 0)
     model.parse {
       assertThat(it).isNull()
     }

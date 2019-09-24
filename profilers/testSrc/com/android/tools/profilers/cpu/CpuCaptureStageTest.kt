@@ -187,11 +187,23 @@ class CpuCaptureStageTest {
   }
 
   @Test
-  fun captureHintSelectsProperProcess() {
+  fun captureHintSelectsProperProcessStringName() {
     services.setListBoxOptionsIndex(-1)
     services.enableAtrace(true)
     services.enablePerfetto(true)
-    val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), "surfaceflinger")
+    val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), "surfaceflinger", 0)
+    profilers.stage = stage
+    assertThat(stage.capture).isNotNull()
+    val mainThread = stage.capture.threads.find { it.isMainThread }
+    assertThat(mainThread!!.name).isEqualTo("surfaceflinger")
+  }
+
+  @Test
+  fun captureHintSelectsProperProcessPID() {
+    services.setListBoxOptionsIndex(-1)
+    services.enableAtrace(true)
+    services.enablePerfetto(true)
+    val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), null, 709)
     profilers.stage = stage
     assertThat(stage.capture).isNotNull()
     val mainThread = stage.capture.threads.find { it.isMainThread }
@@ -203,7 +215,7 @@ class CpuCaptureStageTest {
     services.setListBoxOptionsIndex(1)
     services.enableAtrace(true)
     services.enablePerfetto(true)
-    val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), null)
+    val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), null, 0)
     profilers.stage = stage
     assertThat(stage.capture).isNotNull()
     val mainThread = stage.capture.threads.find { it.isMainThread }
