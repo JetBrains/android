@@ -148,8 +148,8 @@ class ViewTreeCellRendererTest {
 
   @Test
   fun testFragmentsWithLessThanOptimalSpaceAndRowExpanded() {
-    focusOwner = tree
     (tree?.expandableItemsHandler as TestTreeExpansionHandler).expandedRow = TEST_ROW
+    tree?.overrideHasApplicationFocus = { true }
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     val component = renderAndCheckFragments(item, Fragment("text", bold), Fragment(" - \"Hello\"", grey))
     val size = component.preferredSize
