@@ -72,9 +72,7 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
   /**
    * Returns the [RoomSchema] visible from the given [PsiFile] or null if Room is not used in the project.
    *
-   * The schema is cached in the file and recomputed after a change to java structure.
-   *
-   * @see PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT
+   * The schema is cached in the file and recomputed after a change to PSI.
    */
   fun getSchema(psiFile: PsiFile): RoomSchema? {
     var vFile = psiFile.originalFile.virtualFile ?: return null
