@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import static com.intellij.rt.execution.testFrameworks.ProcessBuilder.isWindows;
+
 import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.EmulatorConsole;
@@ -22,21 +24,19 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import org.fest.swing.exception.WaitTimedOutError;
-import org.fest.swing.timing.Wait;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.intellij.rt.execution.testFrameworks.ProcessBuilder.isWindows;
+import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
 
 public class MockAvdManagerConnection extends AvdManagerConnection {
 
@@ -48,7 +48,7 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   @NotNull private final AndroidSdkHandler mySdkHandler;
 
   public MockAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
-    super(handler);
+    super(handler, MoreExecutors.newDirectExecutorService());
     mySdkHandler = handler;
   }
 
