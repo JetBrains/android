@@ -89,15 +89,11 @@ public class GradleBuildInvokerTest extends PlatformTestCase {
 
   public void testCleanUp() {
     // Invoke method to test.
-    List<String> tasks = setUpTasksForSourceGeneration();
     myBuildInvoker.cleanProject();
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    List<String> expectedTasks = new ArrayList<>(tasks);
-    expectedTasks.add(0, "clean");
-    // Verify task list includes source generation tasks and clean.
-    assertThat(request.getGradleTasks()).containsExactly(expectedTasks.toArray());
-    assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
-
+    // Verify task list includes clean.
+    assertThat(request.getGradleTasks()).containsExactly("clean");
+    assertThat(request.getCommandLineArguments()).isEmpty();
     verifyInteractionWithMocks(CLEAN);
   }
 
