@@ -27,6 +27,7 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.invokeAndWaitIfNeed
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ThrowableRunnable
 import junit.framework.TestCase.assertFalse
@@ -198,5 +199,30 @@ class SyncUtilTest {
     }
     latch2.await(1, TimeUnit.SECONDS)
     assertEquals(2, callCount.get())
+  }
+
+  @Test
+  fun alreadyDisposed() {
+    val callCount = AtomicInteger(0)
+    val syncManager = TestSyncManager(project)
+
+    stopDumbMode() // Not in dumb mode so callbacks should be immediately called
+    project.runWhenSmartAndSynced(
+      callback = Consumer {
+        callCount.incrementAndGet()
+      },
+      syncManager = syncManager)
+    assertEquals(callCount.get(), 1)
+
+    val disposedDisposable = Disposer.newDisposable()
+    Disposer.dispose(disposedDisposable)
+    assertTrue(Disposer.isDisposed(disposedDisposable))
+    project.runWhenSmartAndSynced(
+      parentDisposable = disposedDisposable,
+      callback = Consumer {
+        callCount.incrementAndGet()
+      },
+      syncManager = syncManager)
+    assertEquals(callCount.get(), 1)
   }
 }
