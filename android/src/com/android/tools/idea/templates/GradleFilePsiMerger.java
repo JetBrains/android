@@ -26,13 +26,8 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.intellij.ide.startup.impl.StartupManagerImpl;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiWhiteSpace;
@@ -80,7 +75,6 @@ public class GradleFilePsiMerger {
   ) {
     source = source.replace("\r", "");
     dest = dest.replace("\r", "");
-    final Project project2;
     if (project.isDefault()) {
       throw new UnsupportedOperationException();
     }
