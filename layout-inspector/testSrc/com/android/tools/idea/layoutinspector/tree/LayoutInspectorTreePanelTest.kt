@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.properties
+package com.android.tools.idea.layoutinspector.tree
 
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_BACKGROUND
-import com.android.SdkConstants.ATTR_TEXT_SIZE
-import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.InspectorBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.google.common.truth.Truth
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.ComponentStack
 import org.junit.After
 import org.junit.Before
@@ -38,9 +33,10 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import javax.swing.JTree
 
 @RunsInEdt
-class InspectorPropertyItemTest {
+class LayoutInspectorTreePanelTest {
   private var componentStack: ComponentStack? = null
 
   @JvmField
@@ -66,44 +62,24 @@ class InspectorPropertyItemTest {
   }
 
   @Test
-  fun testBrowseBackgroundInLayout() {
-    val model = createModel()
-    val descriptor = browseProperty(ATTR_BACKGROUND, Type.DRAWABLE, null, model)
-    Truth.assertThat(descriptor.file.name).isEqualTo("demo.xml")
-    Truth.assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset))
-      .isEqualTo("framework:background=\"@drawable/battery\"")
-  }
+  fun testGotoDeclaration() {
+    val tree = LayoutInspectorTreePanel()
+    val inspector = InspectorBuilder.createLayoutInspectorForDemo(projectRule)
+    tree.setToolContext(inspector)
+    tree.componentTreeSelectionModel.selection = listOf(InspectorBuilder.findViewNode(inspector, "title")!!)
+    val treeComponent = UIUtil.findComponentOfType(tree.component, JTree::class.java)
 
-  @Test
-  fun testBrowseTextSizeFromTextAppearance() {
-    val model = createModel()
-    val textAppearance = ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")
-    val descriptor = browseProperty(ATTR_TEXT_SIZE, Type.INT32, textAppearance, model)
-    Truth.assertThat(descriptor.file.name).isEqualTo("styles_material.xml")
-    Truth.assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset))
-      .isEqualTo("<item name=\"textSize\">@dimen/text_size_body_1_material</item>")
-  }
-
-  private fun browseProperty(attrName: String,
-                             type: Type,
-                             source: ResourceReference?,
-                             model: InspectorPropertiesModel): OpenFileDescriptor {
-    val textViewId = "title"
-    val node = InspectorBuilder.findViewNode(model.layoutInspector!!, textViewId)!!
-    val property = InspectorPropertyItem(ANDROID_URI, attrName, attrName, type, null, true, source ?: node.layout, node, model)
     val fileManager = FileEditorManager.getInstance(projectRule.project)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
 
-    property.helpSupport.browse()
+    val action = treeComponent!!.actionMap[GOTO_DEFINITION_ACTION_KEY]
+    action.actionPerformed(null)
     Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
-    return file.value
-  }
+    val descriptor = file.value
 
-  private fun createModel(): InspectorPropertiesModel {
-    val model = InspectorPropertiesModel()
-    model.layoutInspector = InspectorBuilder.createLayoutInspectorForDemo(projectRule)
-    return model
+    Truth.assertThat(descriptor.file.name).isEqualTo("demo.xml")
+    Truth.assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<TextView")
   }
 }
