@@ -19,7 +19,7 @@ import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.index.BindingXmlData
 import com.android.tools.idea.databinding.index.VariableData
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
+import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
@@ -49,7 +49,7 @@ internal class XmlVariableReference(element: PsiElement,
   private fun resolveType(name: String): PsiClassType? {
     val index = name.indexOf('<')
     val simpleName = if (index == -1) name else name.substring(0, index).trim()
-    val qualifiedName = LayoutBindingTypeUtil.toQualifiedName(simpleName)
+    val qualifiedName = if (simpleName.contains('.')) simpleName else JAVA_LANG + simpleName
 
     // Create the string for parameters in the format of "psiType1, psiType2, ... lastPsiType,"
     val parametersString = if (index == -1) "" else name.substring(index + 1, name.lastIndexOf('>')).trim() + ","
