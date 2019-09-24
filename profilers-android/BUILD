@@ -62,7 +62,6 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
-        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/adt/idea/native-symbolizer[module]",
         "//tools/idea/.idea/libraries:protobuf",
