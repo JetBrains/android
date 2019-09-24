@@ -308,7 +308,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     throws InterruptedException {
     assertThat(tasks).named("Gradle tasks").isNotEmpty();
     File projectDir = getBaseDirPath(project);
-    return invokeGradle(project, gradleInvoker -> gradleInvoker.executeTasks(projectDir, Lists.newArrayList(tasks)));
+    // Tests should not need to access the network
+    return invokeGradle(project, gradleInvoker ->
+      gradleInvoker.executeTasks(projectDir, Lists.newArrayList(tasks), Lists.newArrayList("--offline")));
   }
 
   @NotNull
