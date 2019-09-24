@@ -125,16 +125,7 @@ private val NOTIFICATIONS_EP_NAME =
 /** [ShortcutSet] that triggers a build and refreshes the preview */
 internal fun getBuildAndRefreshShortcut(): ShortcutSet = KeymapUtil.getActiveKeymapShortcuts(FORCE_REFRESH_ACTION_ID)
 
-/**
- * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
- * is converted to `wrap_content`. Otherwise, the value is returned concatenated with `dp`.
- */
-private fun dimensionToString(dimension: Int) = if (dimension == UNDEFINED_DIMENSION) {
-  "wrap_content"
-}
-else {
-  "${dimension}dp"
-}
+const val paddingDp = 5
 
 /**
  * Generates the XML string wrapper for one [PreviewElement]
@@ -147,7 +138,7 @@ private fun PreviewElement.toPreviewXmlString() =
       xmlns:android="http://schemas.android.com/apk/res/android"
       android:layout_width="${dimensionToString(configuration.width)}"
       android:layout_height="${dimensionToString(configuration.height)}"
-      android:padding="5dp"
+      android:padding="${paddingDp}dp"
       $COMPOSABLE_NAME_ATTR="$composableMethodFqn" />
   """.trimIndent()
 
@@ -519,7 +510,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
         val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
           project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
-        navigationHandler.addMap(model, navigable, psiFile.virtualFile.name)
+        navigationHandler.addDefaultLocation(model, navigable, psiFile.virtualFile)
 
         previewElement.configuration.applyTo(model.configuration)
 

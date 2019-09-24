@@ -213,14 +213,17 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public interface NavigationHandler extends Disposable {
 
     /**
-     * Returns the list of file names that the handler can navigate.
+     * Returns true if the file name passed is handled by the navigation handler. False otherwise.
      */
-    @NotNull Set<String> getFileNames();
+    @NotNull boolean isFileHandled(String filename);
 
     /**
      * Triggered when preview in the design surface is clicked.
      */
-    void handleNavigate(SceneView view, ImmutableList<NlModel> models, boolean editor);
+    void handleNavigate(SceneView view,
+                        ImmutableList<NlModel> models,
+                        boolean editor,
+                        @Nullable NlComponent component);
   }
 
   @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
@@ -578,12 +581,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return;
     }
 
+    NlComponent component = Coordinates.findComponent(sceneView, x, y);
     if (myNavigationHandler != null) {
-      myNavigationHandler.handleNavigate(sceneView, getModels(), needsFocusEditor);
+      myNavigationHandler.handleNavigate(sceneView, getModels(), needsFocusEditor, component);
       return;
     }
 
-    NlComponent component = Coordinates.findComponent(sceneView, x, y);
     if (component != null) {
       navigateToComponent(component, needsFocusEditor);
     }

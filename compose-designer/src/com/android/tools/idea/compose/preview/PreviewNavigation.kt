@@ -15,15 +15,29 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.SdkConstants
+import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.DefaultModelUpdater
+import com.intellij.psi.xml.XmlTag
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.uibuilder.model.createChild
+import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.idea.uibuilder.model.w
+import com.android.tools.idea.uibuilder.model.x
+import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.collect.ImmutableList
+import com.intellij.ide.util.PsiNavigationSupport
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
-import com.intellij.psi.xml.XmlTag
+import com.intellij.util.ThrowableRunnable
 
 
 /**
@@ -31,23 +45,54 @@ import com.intellij.psi.xml.XmlTag
  */
 class PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
 
-  private val map = HashMap<NlModel, Navigatable>()
-  private val fileNames = HashSet<String>()
+  // Default location to use when components are not found
+  private val defaultNavigationMap = HashMap<NlModel, Navigatable>()
 
-  fun addMap(model: NlModel, navigatable: Navigatable, name: String) {
-    map[model] = navigatable
-    fileNames.add(name)
+  // Component level navigation info
+  private val componentNavigationMap = HashMap<NlComponent, Navigatable>()
+
+  // List of supported files
+  private val files: MutableSet<VirtualFile> = mutableSetOf()
+
+  /**
+   * Add default navigation location for model.
+   */
+  fun addDefaultLocation(model: NlModel, navigatable: Navigatable, file: VirtualFile) {
+    defaultNavigationMap[model] = navigatable
+    files.add(file)
   }
 
-  override fun getFileNames(): Set<String> {
-    return fileNames
+  /**
+   * Add component level navigation location.
+   */
+  fun addComponentLocation(component: NlComponent, navigatable: Navigatable)  {
+    componentNavigationMap[component] = navigatable
   }
 
+  /**
+   * Get virtual file based on the name.
+   */
+  fun getVirtualFile(name: String): VirtualFile? {
+    val file = files.find { it.name == name } ?: return null
+    return if (file.isValid) file else null
+  }
 
-  override fun handleNavigate(sceneView: SceneView, models: ImmutableList<NlModel>, requestFocus: Boolean) {
+  override fun handleNavigate(sceneView: SceneView,
+                              models: ImmutableList<NlModel>,
+                              requestFocus: Boolean,
+                              component: NlComponent?) {
+    val navigateTo = componentNavigationMap[component]
+    navigateTo?.navigate(requestFocus) ?: navigateToDefault(sceneView, models, requestFocus)
+  }
+
+  override fun isFileHandled(filename: String?): Boolean {
+    return filename != null && files.any { it.name == filename }
+  }
+
+  private fun navigateToDefault(sceneView: SceneView, models: ImmutableList<NlModel>, requestFocus: Boolean) {
     for (model in models) {
       if (sceneView.model == model) {
-        val navigatable = map[model] ?: return
+        val navigatable = defaultNavigationMap[model] ?: return
         navigatable.navigate(requestFocus)
         return
       }
@@ -55,8 +100,9 @@ class PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
   }
 
   override fun dispose() {
-    map.clear()
-    fileNames.clear()
+    defaultNavigationMap.clear()
+    componentNavigationMap.clear()
+    files.clear()
   }
 }
 
@@ -77,15 +123,66 @@ class PreviewModelUpdater(val surface: NlDesignSurface) : DefaultModelUpdater() 
         val root = model.components[0]
         val viewInfo = root.viewInfo
         val viewObject = viewInfo!!.viewObject
-        val customViewInfo = parseViewObject(
+        val composeViewInfo = parseViewObject(
           surface.navigationHandler!!, viewObject)
 
-        // TODO: After the render is complete, we inject our own scene hierarchy.
+        if (composeViewInfo == null || composeViewInfo.isEmpty()) {
+          return
+        }
+
+        createSceneGraph(composeViewInfo, root, surface)
+        surface.sceneManager!!.update()
 
       }
     })
 
-    // Delegate to the default updater.
     super.update(model, newRoot, roots)
+  }
+}
+
+private fun createSceneGraph(list: List<ComposeBoundInfo>, parent: NlComponent, surface: NlDesignSurface) {
+
+  if (!ApplicationManager.getApplication().isWriteAccessAllowed) {
+    WriteAction.run(ThrowableRunnable<RuntimeException> {
+      createSceneGraph(list, parent, surface)
+    })
+    return
+  }
+
+  for (viewInfo in list) {
+    // If the file is not found, it'll be goto the default location by handler. Skip.
+    val navigationHandler = surface.navigationHandler as PreviewNavigationHandler
+    val file = navigationHandler.getVirtualFile(viewInfo.fileName) ?: continue
+
+    // TODO1: Apparently ALL views (View, FrameLayout etc) are draggable (resizable too) due to their singleton hnadlers.
+    //        Might need to send custom info to disable adding targets.
+    // TODO2: Sometimes bounds are wrongly placed (stack returned from Compose is matched with the wrong model.
+    val bounds = viewInfo.bounds
+    val child = parent.createChild(
+      "View",
+      false,
+      null,
+      null,
+      surface,
+      null,
+      InsertType.CREATE)!!.apply{
+      val totalVerticalPaddingDp = Coordinates.dpToPx(surface, paddingDp.toFloat())
+      val totalHorizontalPaddingDp = Coordinates.dpToPx(surface, paddingDp.toFloat())
+
+      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH, dimensionToString(bounds.width.toInt()))
+      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT, dimensionToString(bounds.height.toInt()))
+      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, dimensionToString(bounds.top.toInt()))
+      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, dimensionToString(bounds.left.toInt()))
+
+      x = totalHorizontalPaddingDp + bounds.left.toInt()
+      y = totalVerticalPaddingDp + bounds.top.toInt()
+      w = bounds.width.toInt()
+      h = bounds.height.toInt()
+    }
+
+    val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
+      surface.project, file, viewInfo.lineNumber)
+    navigationHandler.addComponentLocation(child, navigable)
+    parent.addChild(child)
   }
 }

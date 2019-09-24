@@ -115,7 +115,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   /** Model name. This can be used when multiple models are displayed at the same time */
   private String myModelDisplayName;
-  private NlComponent myRootComponent;
+  @Nullable private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
   private final Set<Object> myActivations = Collections.newSetFromMap(new WeakHashMap<>());
