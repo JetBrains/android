@@ -22,6 +22,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.intellij.diagnostic.PerformanceWatcher;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.function.Predicate;
 import javax.swing.JDialog;
@@ -33,6 +34,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -70,9 +72,15 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRoot
 
   protected void clickFinish(@NotNull Wait waitForDialogDisappear) {
     findAndClickButton(this, "Finish");
-    waitForDialogDisappear.expecting("dialog to disappear").until(
-      () -> GuiQuery.getNonNull(() -> !target().isShowing())
-    );
+    try {
+      waitForDialogDisappear.expecting("dialog to disappear").until(
+        () -> GuiQuery.getNonNull(() -> !target().isShowing())
+      );
+    }
+    catch (WaitTimedOutError ex) {
+      PerformanceWatcher.getInstance().dumpThreads("finish-timeout", true);
+      throw ex;
+    }
   }
 
   @NotNull
