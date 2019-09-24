@@ -47,8 +47,7 @@ public class RefreshRenderAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    clearCache(mySurface.getConfigurations());
-    mySurface.forceUserRequestedRefresh();
+    clearCacheAndRefreshSurface(mySurface);
   }
 
   @NotNull
@@ -80,8 +79,6 @@ public class RefreshRenderAction extends AnAction {
             .filter(Objects::nonNull)
             .forEach(f -> ResourceRepositoryManager.getInstance(f).resetAllCaches());
         }
-
-        configuration.updated(ConfigurationListener.MASK_RENDERING);
-    });
+      });
   }
 }
