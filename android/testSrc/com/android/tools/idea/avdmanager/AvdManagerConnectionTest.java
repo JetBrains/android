@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_FORCE_COLD_BOOT_MODE;
+
 import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -35,17 +37,16 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.MockLog;
 import com.android.utils.NullLogger;
-
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.configurations.GeneralCommandLine;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.io.File;
 import java.io.OutputStreamWriter;
 import java.util.Map;
-
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_FORCE_COLD_BOOT_MODE;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import org.jetbrains.android.AndroidTestCase;
 
 public class AvdManagerConnectionTest extends AndroidTestCase {
 
@@ -81,7 +82,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     mSystemImage = androidSdkHandler.getSystemImageManager(
       new FakeProgressIndicator()).getImages().iterator().next();
 
-    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler);
+    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, MoreExecutors.newDirectExecutorService());
   }
 
   public void testWipeAvd() throws Exception {
@@ -358,11 +359,11 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       log);
 
     try {
-      mAvdManagerConnection.startAvd(null, skinnyAvd);
-      fail("Expected RuntimeException but no exception was thrown");
+      mAvdManagerConnection.startAvd(null, skinnyAvd).get(4, TimeUnit.SECONDS);
+      fail();
     }
-    catch (RuntimeException runtimeEx) {
-      assertTrue("Expected 'No emulator installed' exception", runtimeEx.getMessage().contains("No emulator installed"));
+    catch (ExecutionException expected) {
+      assertTrue(expected.getCause().getMessage().contains("No emulator installed"));
     }
   }
 
@@ -386,7 +387,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     // previous list of packages
     AndroidSdkHandler androidSdkHandler =
       new AndroidSdkHandler(new File("/sdk"), ANDROID_HOME, mFileOp);
-    AvdManagerConnection managerConnection = new AvdManagerConnection(androidSdkHandler);
+    AvdManagerConnection managerConnection = new AvdManagerConnection(androidSdkHandler, MoreExecutors.newDirectExecutorService());
 
     File bogusEmulatorFile = managerConnection.getEmulatorBinary();
     if (bogusEmulatorFile != null) {
@@ -422,11 +423,11 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       log);
 
     try {
-      mAvdManagerConnection.startAvd(null, skinlessAvd);
-      fail("Expected RuntimeException but no exception was thrown");
+      mAvdManagerConnection.startAvd(null, skinlessAvd).get(4, TimeUnit.SECONDS);
+      fail();
     }
-    catch (RuntimeException runtimeEx) {
-      assertTrue("Expected 'No emulator installed' exception", runtimeEx.getMessage().contains("No emulator installed"));
+    catch (ExecutionException expected) {
+      assertTrue(expected.getCause().getMessage().contains("No emulator installed"));
     }
   }
 
