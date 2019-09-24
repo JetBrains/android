@@ -152,7 +152,7 @@ public class ProjectWithKotlinTestUtil {
     }
 
     try {
-      newProjectWizard.clickFinish(Wait.seconds(20), Wait.seconds(10), Wait.seconds(120));
+      newProjectWizard.clickFinish(Wait.seconds(30), Wait.seconds(120));
     } catch (WaitTimedOutError setupTimeout) {
       // We do not care about timeouts if the IDE is indexing and syncing the project,
       // so we don't actually want to throw an error in case  we get a timeout from
