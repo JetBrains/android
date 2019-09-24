@@ -62,6 +62,7 @@ iml_module(
     name = "intellij.android.databinding.tests",
     iml_files = ["intellij.android.databinding.tests.iml"],
     tags = [
+        "manual",  # b/141498231
         "no_test_mac",
         "no_test_mac_psq",  # b/113099009
         "no_test_windows",
@@ -135,6 +136,33 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
     ],
+)
+
+# TODO(b/141498231): reënable intellij.android.databinding.tests and remove this
+java_test(
+    name = "DataBindingInspectionVerificationTest",
+    timeout = "long",
+    data = [
+        ":testapp_deps.zip",
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/databinding/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/templates",
+        "//tools/data-binding:data_binding_runtime.zip",
+        "//tools/data-binding:integration-test-projects",
+        "//tools/idea:platform-build-info",
+        "//tools/idea/java/jdkAnnotations",
+        "//tools/idea/java/mockJDK-1.7",
+    ],
+    test_class = "com.android.tools.idea.databinding.DataBindingInspectionVerificationTestSuite",
+    runtime_deps = [":intellij.android.databinding.tests_testlib"],
 )
 
 load("//tools/base/bazel:maven.bzl", "maven_repo")
