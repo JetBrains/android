@@ -689,6 +689,8 @@ public class DefaultTutorialBundle implements TutorialBundleData {
 
     @XmlAttribute(name = "editAction") private String myEditAction;
 
+    @XmlAttribute(name = "highlighted") private boolean myHighlighted;
+
     @XmlElement(name = "recipe", type = Recipe.class)
     private Recipe myRecipe;
 
@@ -715,6 +717,11 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     }
 
     @Override
+    public boolean isHighlighted() {
+      return myHighlighted;
+    }
+
+    @Override
     public Recipe getRecipe() {
       return myRecipe;
     }
@@ -727,6 +734,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
              ", myActionArgument='" + myActionArgument + "'" +
              ", mySuccessMessage='" + mySuccessMessage + "'" +
              ", myEditAction='" + myEditAction + "'" +
+             ", myHighlighted='" + myHighlighted + "'" +
              ", myRecipe='" + myRecipe + "'" +
              '}';
     }
