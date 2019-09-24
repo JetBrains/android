@@ -18,6 +18,7 @@ package org.jetbrains.android;
 import static com.intellij.psi.search.GlobalSearchScope.notScope;
 import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
@@ -25,7 +26,6 @@ import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.ProjectTopics;
-import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -35,10 +35,8 @@ import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
-import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
@@ -51,7 +49,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.KotlinLanguage;
 
 class TagToClassMapperImpl implements TagToClassMapper {
   private static final Logger LOG = Logger.getInstance(TagToClassMapper.class);
@@ -82,10 +79,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
     if (value == null) {
       value = CachedValuesManager.getManager(myModule.getProject()).createCachedValue(() -> {
         Map<String, PsiClass> map = computeClassMap(className);
-        return CachedValueProvider.Result.create(
-          map,
-          ((PsiModificationTrackerImpl)PsiManager.getInstance(myModule.getProject()).getModificationTracker()).forLanguages(
-            language -> language.is(JavaLanguage.INSTANCE) || language.is(KotlinLanguage.INSTANCE)));
+        return CachedValueProvider.Result.create(map, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(myModule.getProject()));
       }, false);
       myClassMaps.put(className, value);
     }
