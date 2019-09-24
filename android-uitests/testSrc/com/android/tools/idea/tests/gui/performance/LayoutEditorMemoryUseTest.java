@@ -30,6 +30,7 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.MemoryDumpHelper;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.*;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -68,7 +69,7 @@ public class LayoutEditorMemoryUseTest {
   private static final Logger LOG = Logger.getInstance(LayoutEditorMemoryUseTest.class);
   private static final boolean CAPTURE_HEAP_DUMPS = false;
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   @NotNull
   private static TObjectIntHashMap<String> copyMapWithSizeOnly(THashMap<String, THashSet<Object>> map) {
