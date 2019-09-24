@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates.live;
+package com.android.tools.idea.templates.live
 
-import com.intellij.codeInsight.template.impl.DefaultLiveTemplatesProvider;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.codeInsight.template.impl.DefaultLiveTemplatesProvider
 
 /**
  * Provides available live templates bundled with the plugin.
  */
-public class AndroidLiveTemplatesProvider implements DefaultLiveTemplatesProvider {
-  @Override
-  public String[] getDefaultLiveTemplateFiles() {
-    return new String[] { "liveTemplates/Android", "liveTemplates/AndroidComments",
-      "liveTemplates/AndroidLog", "liveTemplates/AndroidParcelable",
-      "liveTemplates/AndroidTesting", "liveTemplates/AndroidXML"};
-  }
+class AndroidLiveTemplatesProvider : DefaultLiveTemplatesProvider {
+  override fun getDefaultLiveTemplateFiles() = arrayOf(
+    "liveTemplates/Android",
+    "liveTemplates/AndroidComments",
+    "liveTemplates/AndroidLog",
+    "liveTemplates/AndroidParcelable",
+    "liveTemplates/AndroidTesting",
+    "liveTemplates/AndroidXML"
+  )
 
-  @Nullable
-  @Override
-  public String[] getHiddenLiveTemplateFiles() {
-    return null;
-  }
+  override fun getHiddenLiveTemplateFiles(): Array<String>? = null
 }
