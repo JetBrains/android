@@ -207,44 +207,13 @@ public class VectorDrawableTransformer {
       String translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatValue(x) : null;
       String translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatValue(y) : null;
       if (translateX != null || translateY != null) {
-        boolean reuseExistingGroup = false;
         double existingTranslateX = 0;
         double existingTranslateY = 0;
-        // Skip until next tag.
-        while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.START_TAG) {
-          // Just skip.
-        }
-        if (token == XmlPullParser.START_TAG && "group".equals(parser.getName()) && parser.getPrefix() == null &&
-            parser.getAttributeCount() <= 2) {
-          // Found existing group tag. Try to reuse it.
-          reuseExistingGroup = true;
-          for (int i = 0; i < parser.getAttributeCount(); i++) {
-            String prefix = parser.getAttributePrefix(i);
-            String name = parser.getAttributeName(i);
-            if (SdkConstants.ANDROID_NS_NAME.equals(prefix) && "translateX".equals(name)) {
-              existingTranslateX = parseDoubleValue(parser.getAttributeValue(i), "");
-              if (Double.isNaN(existingTranslateX)) {
-                reuseExistingGroup = false;
-              }
-            }
-            else if (SdkConstants.ANDROID_NS_NAME.equals(prefix) && "translateY".equals(name)) {
-              existingTranslateY = parseDoubleValue(parser.getAttributeValue(i), "");
-              if (Double.isNaN(existingTranslateY)) {
-                reuseExistingGroup = false;
-              }
-            }
-            else {
-              reuseExistingGroup = false;
-            }
-          }
-        }
 
-        if (reuseExistingGroup) {
-          x += existingTranslateX;
-          y += existingTranslateY;
-          translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatValue(x) : null;
-          translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatValue(y) : null;
-        }
+        x += existingTranslateX;
+        y += existingTranslateY;
+        translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatValue(x) : null;
+        translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatValue(y) : null;
 
         if (translateX != null || translateY != null) {
           // Wrap the contents of the drawable into a translation group.
@@ -259,14 +228,7 @@ public class VectorDrawableTransformer {
             result.append(String.format("%sandroid:translateY=\"%s\"", delimiter, translateY));
           }
           result.append('>');
-          if (reuseExistingGroup) {
-            startLine = parser.getLineNumber();
-            startColumn = parser.getColumnNumber();
-            copyDepth++;
-          }
-          else {
-            indent = INDENT;
-          }
+          indent = INDENT;
         }
       }
 
@@ -289,15 +251,8 @@ public class VectorDrawableTransformer {
         }
         result.append(String.format("</group>%s", lineSeparator));
       }
-      if (copyDepth > 2) {
-        // Skip the existing </group> tag.
-        while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.END_TAG ||
-               parser.getDepth() >= 2) {
-          startLine = parser.getLineNumber();
-          startColumn = parser.getColumnNumber();
-        }
-      }
-      // Copy the closing </group> tag, if the group is not reused, the </vector> tag and the remainder of the document.
+
+      // Copy the closing </group> tag, the </vector> tag and the remainder of the document.
       for (; token != XmlPullParser.END_DOCUMENT; token = parser.nextToken()) {
         int endLineNumber = parser.getLineNumber();
         int endColumnNumber = parser.getColumnNumber();
