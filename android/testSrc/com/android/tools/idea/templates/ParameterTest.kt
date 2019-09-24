@@ -43,8 +43,8 @@ import javax.imageio.metadata.IIOMetadataNode
  * Tests for parameter checking except for uniqueness/existence. For those, see [UniqueParameterTest]
  */
 class ParameterTest: AndroidTestCase() {
-  private lateinit var myParameter: Parameter
-  private lateinit var myConstraintUnderTest: Constraint
+  private lateinit var parameter: Parameter
+  private lateinit var constraintUnderTest: Constraint
 
   private val mockMetadata = Mockito.mock(TemplateMetadata::class.java)
 
@@ -61,22 +61,21 @@ class ParameterTest: AndroidTestCase() {
   override fun setUp() {
     super.setUp()
 
-    myParameter = Parameter(mockMetadata, elem)
+    parameter = Parameter(mockMetadata, elem)
   }
 
   private fun setConstraint(c: Constraint) {
-    myConstraintUnderTest = c
-    myParameter.constraints.add(c)
+    constraintUnderTest = c
+    parameter.constraints.add(c)
   }
 
-  private fun assertViolates(packageName: String?, value: String?, c: Constraint = myConstraintUnderTest) {
-    assertThat(myParameter.validateStringType(project, myModule, null, packageName, value)).contains(c)
+  private fun assertViolates(packageName: String?, value: String?, c: Constraint = constraintUnderTest) {
+    assertThat(parameter.validateStringType(project, myModule, null, packageName, value)).contains(c)
   }
 
-  private fun assertPasses(packageName: String?, value: String?, c: Constraint = myConstraintUnderTest) {
-    assertThat(myParameter.validateStringType(project, myModule, null, packageName, value)).doesNotContain(c)
+  private fun assertPasses(packageName: String?, value: String?, c: Constraint = constraintUnderTest) {
+    assertThat(parameter.validateStringType(project, myModule, null, packageName, value)).doesNotContain(c)
   }
-
 
   fun testNonEmpty() {
     setConstraint(NONEMPTY)
@@ -145,7 +144,7 @@ class ParameterTest: AndroidTestCase() {
   }
 
   fun testModule() {
-    myParameter.constraints.add(MODULE)
+    parameter.constraints.add(MODULE)
     setConstraint(UNIQUE)
 
     assertViolates(null, myModule.name)
