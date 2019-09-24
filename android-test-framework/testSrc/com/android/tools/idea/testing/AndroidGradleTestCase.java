@@ -24,7 +24,6 @@ import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
@@ -237,17 +236,20 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     loadProject(SIMPLE_APPLICATION);
   }
 
-  protected void loadSimpleApplication_pre3dot0() throws Exception {
-    loadProject(SIMPLE_APPLICATION_PRE30);
-  }
-
   protected void loadProject(@NotNull String relativePath) throws Exception {
     loadProject(relativePath, null);
   }
 
   protected void loadProject(@NotNull String relativePath,
                              @Nullable String chosenModuleName) throws Exception {
-    prepareProjectForImport(relativePath);
+    loadProject(relativePath, chosenModuleName, null, null);
+  }
+
+  protected void loadProject(@NotNull String relativePath,
+                             @Nullable String chosenModuleName,
+                             @Nullable String gradleVersion,
+                             @Nullable String gradlePluginVersion) throws Exception {
+    prepareProjectForImport(relativePath, gradleVersion,  gradlePluginVersion);
     importProject();
 
     prepareProjectForTest(getProject(), chosenModuleName);
@@ -263,18 +265,26 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     myAndroidFacet = AndroidGradleTests.findAndroidFacetForTests(modules, chosenModuleName);
   }
 
-  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
-    defaultPatchPreparedProject(projectRoot);
+  protected void patchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion, @Nullable String gradlePluginVersion)
+    throws IOException {
+    defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion);
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath) throws IOException {
+    return prepareProjectForImport(relativePath, null, null);
+  }
+
+  @NotNull
+  protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @Nullable String gradleVersion,
+                                         @Nullable String gradlePluginVersion) throws IOException {
     File projectSourceRoot = resolveTestDataPath(relativePath);
     File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
 
     AndroidGradleTests.validateGradleProjectSource(projectSourceRoot);
-    AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectRoot, this::patchPreparedProject);
-
+    AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectRoot, file ->
+      patchPreparedProject(file, gradleVersion, gradlePluginVersion)
+    );
     return projectRoot;
   }
 
@@ -287,15 +297,20 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return root;
   }
 
-  protected final void defaultPatchPreparedProject(@NotNull File projectRoot) throws IOException {
+  protected final void defaultPatchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion,
+                                                   @Nullable String gradlePluginVersion) throws IOException {
+    patchPreparedProjectWithGradlePluginVersion(projectRoot, gradleVersion, gradlePluginVersion);
+  }
 
+  protected final void patchPreparedProjectWithGradlePluginVersion(@NotNull File projectRoot, @Nullable String gradleVersion,
+                                                                   @Nullable String gradlePluginVersion) throws IOException {
     // Override settings just for tests (e.g. sdk.dir)
     AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
     // We need the wrapper for import to succeed
-    AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
+    AndroidGradleTests.createGradleWrapper(projectRoot, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
 
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    AndroidGradleTests.updateGradleVersions(projectRoot);
+    AndroidGradleTests.updateGradleVersions(projectRoot, gradlePluginVersion);
   }
 
   protected void generateSources() throws InterruptedException {

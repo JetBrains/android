@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.google.common.io.Files.write;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
@@ -28,21 +35,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.newvfs.persistent.FSRecords;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
-
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.google.common.io.Files.write;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 /**
  * Tests to collect performance data for Gradle Sync
@@ -99,14 +99,15 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   }
 
   @Override
-  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
+  protected void patchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion, @Nullable String gradlePluginVersion)
+    throws IOException {
     // Override settings just for tests (e.g. sdk.dir)
     AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
     // We need the wrapper for import to succeed
-    AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
+    AndroidGradleTests.createGradleWrapper(projectRoot, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
 
     //Update build.gradle in root directory
-    updateBuildFile();
+    updateBuildFile(gradlePluginVersion != null ? gradlePluginVersion : BuildEnvironment.getInstance().getGradlePluginVersion());
 
     //Update dependencies.gradle
     updateDependenciesFile();
@@ -287,13 +288,13 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   }
 
   // Update build.gradle in root directory
-  private void updateBuildFile() throws IOException {
+  private void updateBuildFile(@NotNull String gradlePluginVersion) throws IOException {
     File buildFile = getAbsolutionFilePath("build.gradle");
     String contents = Files.toString(buildFile, Charsets.UTF_8);
     contents = contents.replaceAll("jcenter\\(\\)", AndroidGradleTests.getLocalRepositoriesForGroovy());
     contents = contents.replaceAll("classpath 'com\\.android\\.tools\\.build:gradle:\\d+.\\d+.\\d+'",
                                    "classpath 'com.android.tools.build:gradle:" +
-                                   BuildEnvironment.getInstance().getGradlePluginVersion() +
+                                   gradlePluginVersion +
                                    "'");
     contents = contents.replaceAll("(classpath 'com.uber:okbuck:[^']+')", "// $0");
     contents = contents.replaceAll("(classpath 'com.jakewharton:butterknife-gradle-plugin:8.4.0')", "// $1");

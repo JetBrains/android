@@ -23,7 +23,6 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
@@ -57,7 +56,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
 import java.io.File;
 import java.io.IOException;
@@ -79,13 +77,12 @@ public class AndroidGradleTests {
   private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
   private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
 
-  public static void updateGradleVersions(@NotNull File folderRootPath, @NotNull String gradlePluginVersion)
-    throws IOException {
-    doUpdateGradleVersionsAndRepositories(folderRootPath, null, gradlePluginVersion);
+  public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
+    updateGradleVersions(folderRootPath, null);
   }
 
-  public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
-    doUpdateGradleVersionsAndRepositories(folderRootPath, null, null);
+  public static void updateGradleVersions(@NotNull File folderRootPath, @Nullable String gradlePluginVersion) throws IOException {
+    doUpdateGradleVersionsAndRepositories(folderRootPath, null, gradlePluginVersion);
   }
 
   public static void updateGradleVersionsAndRepositories(@NotNull File path,

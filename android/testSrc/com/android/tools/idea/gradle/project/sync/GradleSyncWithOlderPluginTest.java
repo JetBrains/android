@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -86,12 +87,13 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   @Override
-  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
+  protected void patchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion, @Nullable String gradlePluginVersion)
+    throws IOException {
     // Override settings just for tests (e.g. sdk.dir)
     AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
     // In this overriden version we don't update versions of the Android plugin and use the one specified in the test project.
-    updateVersionAndDependencies(projectRoot, getLocalRepositoriesForGroovy());
-    AndroidGradleTests.createGradleWrapper(projectRoot, myTestSettings.gradleVersion);
+    updateVersionAndDependencies(projectRoot, getLocalRepositoriesForGroovy(), gradlePluginVersion);
+    AndroidGradleTests.createGradleWrapper(projectRoot, gradleVersion != null ? gradleVersion : myTestSettings.gradleVersion);
   }
 
   private static void resetActivityMain(@NotNull File path) throws IOException {
@@ -106,17 +108,19 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     write(contents, path, Charsets.UTF_8);
   }
 
-  private void updateVersionAndDependencies(@NotNull File path, @NotNull String localRepositories) throws IOException {
+  private void updateVersionAndDependencies(@NotNull File path, @NotNull String localRepositories, @Nullable String gradlePluginVersion)
+    throws IOException {
     if (path.isDirectory()) {
       for (File child : notNullize(path.listFiles())) {
-        updateVersionAndDependencies(child, localRepositories);
+        updateVersionAndDependencies(child, localRepositories, gradlePluginVersion);
       }
     }
     else if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
       String contentsOrig = Files.toString(path, Charsets.UTF_8);
       String contents = contentsOrig;
 
-      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]", myTestSettings.pluginVersion);
+      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
+                                   gradlePluginVersion != null ? gradlePluginVersion : myTestSettings.pluginVersion);
       if (myTestSettings.removeConstraintLayout) {
         // Remove constraint-layout, which was not supported by old plugins.
         contents = replaceRegexGroup(contents, "(compile 'com.android.support.constraint:constraint-layout:\\+')", "");
