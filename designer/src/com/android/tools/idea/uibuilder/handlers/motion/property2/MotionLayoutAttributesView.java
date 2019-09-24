@@ -111,11 +111,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       switch (selection.getType()) {
         case CONSTRAINT:
           NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
-          //boolean showDefaultValues = myModel.getProperties().getValues().stream().anyMatch(
-          //  item -> !item.getNamespace().isEmpty() &&
-          //          item != targetId &&
-          //          (item.getRawValue() != null));
-
           addPropertyTable(inspector, selection, MotionSceneAttrs.Tags.CONSTRAINT, myModel, true, false, targetId);
           addSubTagSections(inspector, selection, myModel);
           break;
@@ -209,7 +204,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       InspectorLineModel title = inspector.addExpandableTitle(sectionTagName, true, actions);
       TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, actions, title);
       inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
-      controlAction.setLineModel(title);
+      if (showSectionControl) {
+        controlAction.setLineModel(title);
+      }
       addFieldAction.setLineModel(lineModel);
       deleteFieldAction.setLineModel(lineModel);
     }
