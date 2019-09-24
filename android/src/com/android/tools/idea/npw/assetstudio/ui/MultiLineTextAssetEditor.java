@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,22 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.intellij.openapi.components.PersistentStateComponent;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.border.CustomLineBorder;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Panel which wraps a {@link TextAsset}, allowing the user to enter text value and choose a font
+ * Panel which wraps a {@link TextAsset}, allowing the user to enter multi-line text and choose a font
  * from a pulldown.
  */
-public final class TextAssetEditor extends JPanel implements AssetComponent<TextAsset>, PersistentStateComponent<PersistentState> {
+public final class MultiLineTextAssetEditor extends JPanel implements AssetComponent<TextAsset>, PersistentStateComponent<PersistentState> {
   private static final String TEXT_PROPERTY = "text";
   private static final String FONT_FAMILY_PROPERTY = "fontFamily";
 
@@ -44,18 +47,21 @@ public final class TextAssetEditor extends JPanel implements AssetComponent<Text
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myListeners = new ArrayList<>(1);
 
-  public TextAssetEditor() {
-    super(new TabularLayout("50px,180px"));
+  public MultiLineTextAssetEditor() {
+    super(new TabularLayout("4px,100px,160px"));
 
-    JTextField textField = new JTextField();
+    JPanel spacer = new JPanel();
+    JTextPane textPane = new JTextPane();
+    textPane.setBackground(JBColor.WHITE);
+    textPane.setBorder(new CustomLineBorder(JBColor.border(), 1, 1, 1, 1));
     List<String> fontFamilies = TextAsset.getAllFontFamilies();
-    //noinspection UndesirableClassUsage
-    JComboBox<String> fontCombo = new JComboBox<>(fontFamilies.toArray(new String[0]));
+    ComboBox<String> fontCombo = new ComboBox<>(fontFamilies.toArray(new String[0]));
 
-    add(textField, new TabularLayout.Constraint(0, 0));
-    add(fontCombo, new TabularLayout.Constraint(0, 1));
+    add(spacer, new TabularLayout.Constraint(0, 0));
+    add(textPane, new TabularLayout.Constraint(0, 1));
+    add(fontCombo, new TabularLayout.Constraint(0, 2));
 
-    myBindings.bindTwoWay(new TextProperty(textField), myTextAsset.text());
+    myBindings.bindTwoWay(new TextProperty(textPane), myTextAsset.text());
 
     SelectedItemProperty<String> selectedFont = new SelectedItemProperty<>(fontCombo);
     myBindings.bindTwoWay(ObjectProperty.wrap(selectedFont), myTextAsset.fontFamily());
