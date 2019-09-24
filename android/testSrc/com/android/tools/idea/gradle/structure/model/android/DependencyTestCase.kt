@@ -28,11 +28,11 @@ import org.jetbrains.android.AndroidTestBase
 import java.io.File
 
 abstract class DependencyTestCase : AndroidGradleTestCase() {
-  override fun patchPreparedProject(projectRoot: File) {
+  override fun patchPreparedProject(projectRoot: File, graldeVersion: String?, graldePluginVersion: String?) {
     // Override settings just for tests (e.g. sdk.dir)
     AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath())
     // We need the wrapper for import to succeed
-    createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION)
+    createGradleWrapper(projectRoot, graldeVersion ?: GRADLE_LATEST_VERSION)
 
     val localRepositories = getLocalRepositoriesForGroovy()
     val testRepositoryPath = File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO)).absolutePath!!
@@ -43,7 +43,7 @@ abstract class DependencyTestCase : AndroidGradleTestCase() {
       }
       $localRepositories
       """
-    AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
+    AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, graldePluginVersion)
   }
 }
 

@@ -37,8 +37,8 @@ class PsModuleCollectionTest : DependencyTestCase() {
 
   private var patchProject: ((VirtualFile) -> Unit)? = null
 
-  override fun patchPreparedProject(projectRoot: File) {
-    defaultPatchPreparedProject(projectRoot)
+  override fun patchPreparedProject(projectRoot: File, gradleVersion: String?, graldePluginVersion: String?) {
+    defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion)
     synchronizeTempDirVfs(project.baseDir)
     patchProject?.run {
       ApplicationManager.getApplication().runWriteAction {

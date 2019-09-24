@@ -15,21 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.AndroidGradleTests;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
-
-import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link Gradle4AndPlugin2Dot2ErrorHandler}.
@@ -38,17 +33,8 @@ import static com.google.common.truth.Truth.assertThat;
 @Ignore
 public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
-
-  @Override
-  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
-    // Override settings just for tests (e.g. sdk.dir)
-    AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
-    // Update plugin to 2.2 and expect sync to fail, and the new error handler to provide a better error description than the original
-    // exception message.
-    AndroidGradleTests.updateGradleVersions(getBaseDirPath(getProject()), "2.2.0");
-    // Force test to use Gradle 4.10.1.
-    AndroidGradleTests.createGradleWrapper(projectRoot, "4.10.1");
-  }
+  private static String GRADLE_VERSION = "4.10.1";
+  private static String GRADLE_PLUGIN_VERSION = "2.2.0";
 
   @Override
   public void setUp() throws Exception {
@@ -58,7 +44,7 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
 
 
   public void testHandleError() throws Exception {
-    loadSimpleApplication_pre3dot0();
+    loadProject(SIMPLE_APPLICATION_PRE30, null, GRADLE_VERSION, GRADLE_PLUGIN_VERSION);
 
     requestSyncAndGetExpectedFailure();
 
