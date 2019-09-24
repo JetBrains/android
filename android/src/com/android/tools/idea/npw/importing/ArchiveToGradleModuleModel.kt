@@ -200,13 +200,7 @@ class ArchiveToGradleModuleModel(
 
     // Remove either of these paths if they exist
     for (fileDependency in dependencies.files()) {
-      val dependencyPath = fileDependency.file().toString()
-      // TODO: This needs to be updated once the method has been changed.
-      // Currently GradlePropertyModel#toString can return null, this is not possible in Kotlin.
-      @Suppress("SENSELESS_COMPARISON")
-      if (dependencyPath == null) {
-        continue
-      }
+      val dependencyPath = fileDependency.file().valueAsString() ?: continue
 
       if (dependencyPath == relativePathString || dependencyPath == archivePathString) {
         dependencies.remove(fileDependency)
