@@ -20,6 +20,7 @@
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="transport-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />

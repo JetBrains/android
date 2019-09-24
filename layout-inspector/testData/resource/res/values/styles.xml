@@ -4,7 +4,7 @@
     <item name="android:colorBackgroundFloating">@color/yellowBackground</item>
   </style>
 
-  <style name="MyTextStyle" parent="TextAppearance.Material.Body1">
+  <style name="MyTextStyle" parent="android:TextAppearance.Material.Body1">
     <item name="android:textColor">@color/textBlueIndirect</item>
   </style>
 
