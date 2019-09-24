@@ -28,11 +28,18 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB
 import com.android.tools.idea.wizard.template.Constraint
-import com.android.tools.idea.wizard.template.Constraint.*
+import com.android.tools.idea.wizard.template.Constraint.CLASS
+import com.android.tools.idea.wizard.template.Constraint.DRAWABLE
+import com.android.tools.idea.wizard.template.Constraint.LAYOUT
+import com.android.tools.idea.wizard.template.Constraint.MODULE
+import com.android.tools.idea.wizard.template.Constraint.NAVIGATION
+import com.android.tools.idea.wizard.template.Constraint.PACKAGE
+import com.android.tools.idea.wizard.template.Constraint.UNIQUE
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.mockito.Mockito
 import javax.imageio.metadata.IIOMetadataNode
@@ -42,43 +49,31 @@ import javax.imageio.metadata.IIOMetadataNode
  * since UNIQUE and exists are inverse constraints.
  */
 class UniqueParameterTest : AndroidGradleTestCase() {
-  private var myAppModule: Module? = null
-  private var myAppFacet: AndroidFacet? = null
-  private lateinit var myPaidSourceProvider: SourceProvider
-  private lateinit var myMainSourceProvider: SourceProvider
-  private lateinit var myParameter: Parameter
+  private var appModule: Module? = null
+  private var appFacet: AndroidFacet? = null
+  private lateinit var paidSourceProvider: SourceProvider
+  private lateinit var mainSourceProvider: SourceProvider
+  private lateinit var parameter: Parameter
 
   override fun setUp() {
     super.setUp()
 
     loadProject(PROJECT_WITH_APPAND_LIB)
-    assertNotNull(myAndroidFacet)
-    val androidModel = AndroidModuleModel.get(myAndroidFacet)
-    assertNotNull(androidModel)
+    assertNotNull(AndroidModuleModel.get(myAndroidFacet!!)!!)
 
     // Set up modules
-    myAppModule = ModuleManager.getInstance(project).modules.firstOrNull { it.name == "app" }
+    appModule = ModuleManager.getInstance(project).modules.firstOrNull { it.name == "app" }!!
+    appFacet = AndroidFacet.getInstance(appModule!!)!!
 
-    assertNotNull(myAppModule)
+    Sdks.addLatestAndroidSdk(appFacet!!, appModule!!)
 
-    myAppFacet = AndroidFacet.getInstance(myAppModule!!)
-
-    assertNotNull(myAppFacet)
-
-    Sdks.addLatestAndroidSdk(myAppFacet!!, myAppModule!!)
-
-    assertNotNull(AndroidPlatform.getInstance(myAppModule!!))
-
-    assertNotNull(myAppFacet!!.configuration.model)
+    assertNotNull(AndroidPlatform.getInstance(appModule!!))
+    assertNotNull(appFacet!!.configuration.model)
     // TODO: b/23032990
-    val appAndroidModuleModel = AndroidModuleModel.get(myAppFacet!!)
-    val paidFlavor = appAndroidModuleModel!!.findProductFlavor("paid")
-    assertNotNull(paidFlavor)
-    myPaidSourceProvider = paidFlavor!!.sourceProvider
-    assertNotNull(myPaidSourceProvider)
-
-    myMainSourceProvider = appAndroidModuleModel!!.defaultSourceProvider
-    assertNotNull(myMainSourceProvider)
+    val appModuleModel = AndroidModuleModel.get(appFacet!!)!!
+    val paidFlavor = appModuleModel.findProductFlavor("paid")!!
+    paidSourceProvider = paidFlavor.sourceProvider
+    mainSourceProvider = appModuleModel.defaultSourceProvider
 
     val mockMetadata = Mockito.mock(TemplateMetadata::class.java)
 
@@ -92,62 +87,55 @@ class UniqueParameterTest : AndroidGradleTestCase() {
       setAttribute(ATTR_CONSTRAINTS, "")
     }
 
-    myParameter = Parameter(mockMetadata, elem)
-    myParameter.constraints.add(UNIQUE)
+    parameter = Parameter(mockMetadata, elem).apply {
+      constraints.add(UNIQUE)
+    }
   }
 
-  private fun assertViolates(value: String?,
-                             c: Constraint,
-                             packageName: String? = null,
-                             provider: SourceProvider? = null,
-                             relatedValues: Set<Any> = setOf()) {
-    assertThat(myParameter.validateStringType(project, myAppModule, provider, packageName, value, relatedValues)).contains(c)
-  }
+  private fun assertViolates(
+    value: String?, c: Constraint, packageName: String? = null, provider: SourceProvider? = null, relatedValues: Set<Any> = setOf()
+  ) = assertThat(parameter.validateStringType(project, appModule, provider, packageName, value, relatedValues)).contains(c)
 
-  private fun assertPasses(value: String?,
-                           c: Constraint,
-                           packageName: String? = null,
-                           provider: SourceProvider? = null,
-                           relatedValues: Set<Any> = setOf()) {
-    assertThat(myParameter.validateStringType(project, myAppModule, provider, packageName, value, relatedValues)).doesNotContain(c)
-  }
+  private fun assertPasses(
+    value: String?, c: Constraint, packageName: String? = null, provider: SourceProvider? = null, relatedValues: Set<Any> = setOf()
+  ) = assertThat(parameter.validateStringType(project, appModule, provider, packageName, value, relatedValues)).doesNotContain(c)
 
   fun testUniqueLayout() {
-    myParameter.constraints.add(LAYOUT)
+    parameter.constraints.add(LAYOUT)
 
-    assertViolates("activity_main", UNIQUE, null, myMainSourceProvider)
-    assertViolates("fragment_main", UNIQUE, null, myMainSourceProvider)
+    assertViolates("activity_main", UNIQUE, null, mainSourceProvider)
+    assertViolates("fragment_main", UNIQUE, null, mainSourceProvider)
 
-    assertPasses("activity_main", UNIQUE, null, myPaidSourceProvider)
-    assertPasses("fragment_main", UNIQUE, null, myPaidSourceProvider)
+    assertPasses("activity_main", UNIQUE, null, paidSourceProvider)
+    assertPasses("fragment_main", UNIQUE, null, paidSourceProvider)
 
-    assertPasses("blahblahblah", UNIQUE, null, myMainSourceProvider)
+    assertPasses("blahblahblah", UNIQUE, null, mainSourceProvider)
   }
 
   fun testUniqueDrawable() {
-    myParameter.constraints.add(DRAWABLE)
+    parameter.constraints.add(DRAWABLE)
 
-    assertViolates("drawer_shadow", UNIQUE, null, myMainSourceProvider)
-    assertViolates("ic_launcher", UNIQUE, null, myMainSourceProvider)
+    assertViolates("drawer_shadow", UNIQUE, null, mainSourceProvider)
+    assertViolates("ic_launcher", UNIQUE, null, mainSourceProvider)
 
-    assertPasses("drawer_shadow", UNIQUE, null, myPaidSourceProvider)
-    assertPasses("ic_launcher", UNIQUE, null, myPaidSourceProvider)
+    assertPasses("drawer_shadow", UNIQUE, null, paidSourceProvider)
+    assertPasses("ic_launcher", UNIQUE, null, paidSourceProvider)
 
-    assertPasses("blahblahblah", UNIQUE, null, myMainSourceProvider)
+    assertPasses("blahblahblah", UNIQUE, null, mainSourceProvider)
   }
 
   fun testUniqueNavigation() {
-    myParameter.constraints.add(NAVIGATION)
+    parameter.constraints.add(NAVIGATION)
 
-    assertViolates("nav_graph", UNIQUE, null, myMainSourceProvider)
+    assertViolates("nav_graph", UNIQUE, null, mainSourceProvider)
 
-    assertPasses("nav_graph", UNIQUE, null, myPaidSourceProvider)
+    assertPasses("nav_graph", UNIQUE, null, paidSourceProvider)
 
-    assertPasses("blahblahblah", UNIQUE, null, myMainSourceProvider)
+    assertPasses("blahblahblah", UNIQUE, null, mainSourceProvider)
   }
 
   fun testUniqueModule() {
-    myParameter.constraints.add(MODULE)
+    parameter.constraints.add(MODULE)
 
     assertViolates("app", UNIQUE, null, null)
     assertViolates("lib", UNIQUE, null, null)
@@ -157,48 +145,48 @@ class UniqueParameterTest : AndroidGradleTestCase() {
 
   // Existence check is the same for PACKAGE and APP_PACKAGE
   fun testUniquePackage() {
-    myParameter.constraints.add(PACKAGE)
+    parameter.constraints.add(PACKAGE)
 
     assertViolates("com.example.projectwithappandlib", UNIQUE)
     assertViolates("com.example.projectwithappandlib.app", UNIQUE)
 
     // Ensure distinction between source sets
-    assertViolates("com.example.projectwithappandlib.app.paid", UNIQUE, null, myPaidSourceProvider)
-    assertPasses("com.example.projectwithappandlib.app.paid", UNIQUE, null, myMainSourceProvider)
+    assertViolates("com.example.projectwithappandlib.app.paid", UNIQUE, null, paidSourceProvider)
+    assertPasses("com.example.projectwithappandlib.app.paid", UNIQUE, null, mainSourceProvider)
 
     assertPasses("com.example.foo", UNIQUE)
     assertPasses("org.android.blah", UNIQUE)
   }
 
   fun testUniqueClass() {
-    myParameter.constraints.add(CLASS)
+    parameter.constraints.add(CLASS)
 
-    assertViolates("MainActivity", UNIQUE, "com.example.projectwithappandlib.app", myMainSourceProvider)
-    assertViolates("NavigationDrawerFragment", UNIQUE, "com.example.projectwithappandlib.app", myMainSourceProvider)
+    assertViolates("MainActivity", UNIQUE, "com.example.projectwithappandlib.app", mainSourceProvider)
+    assertViolates("NavigationDrawerFragment", UNIQUE, "com.example.projectwithappandlib.app", mainSourceProvider)
 
-    assertViolates("BlankFragment", UNIQUE, "com.example.projectwithappandlib.app.paid", myPaidSourceProvider)
+    assertViolates("BlankFragment", UNIQUE, "com.example.projectwithappandlib.app.paid", paidSourceProvider)
 
-    assertPasses("MainActivity", UNIQUE, "com.example.foo", myMainSourceProvider)
+    assertPasses("MainActivity", UNIQUE, "com.example.foo", mainSourceProvider)
 
-    assertPasses("MainActivity2", UNIQUE, "com.example.projectwithappandlib.app", myMainSourceProvider)
-    assertPasses("MainActivity", UNIQUE, "com.example.projectwithappandlib.app", myPaidSourceProvider)
+    assertPasses("MainActivity2", UNIQUE, "com.example.projectwithappandlib.app", mainSourceProvider)
+    assertPasses("MainActivity", UNIQUE, "com.example.projectwithappandlib.app", paidSourceProvider)
 
-    assertViolates("dummy", UNIQUE, "com.example.projectwithappandlib.app", myMainSourceProvider)
-    assertPasses("dummy2", UNIQUE, "com.example.projectwithappandlib.app", myMainSourceProvider)
+    assertViolates("dummy", UNIQUE, "com.example.projectwithappandlib.app", mainSourceProvider)
+    assertPasses("dummy2", UNIQUE, "com.example.projectwithappandlib.app", mainSourceProvider)
   }
 
   fun testUniqueLayoutWithLayoutAlias() {
-    myParameter.constraints.add(LAYOUT)
+    parameter.constraints.add(LAYOUT)
 
-    assertViolates("fragment_foo", UNIQUE, null, myMainSourceProvider)
-    assertPasses("fragment_foo", UNIQUE, null, myPaidSourceProvider)
+    assertViolates("fragment_foo", UNIQUE, null, mainSourceProvider)
+    assertPasses("fragment_foo", UNIQUE, null, paidSourceProvider)
   }
 
   fun testRelatedValue() {
-    assertViolates("fragment_foo", UNIQUE, null, myPaidSourceProvider, setOf("bar", "fragment_foo"))
-    assertPasses("fragment_foo", UNIQUE, null, myPaidSourceProvider, setOf("bar", "fragment_bar"))
+    assertViolates("fragment_foo", UNIQUE, null, paidSourceProvider, setOf("bar", "fragment_foo"))
+    assertPasses("fragment_foo", UNIQUE, null, paidSourceProvider, setOf("bar", "fragment_bar"))
 
-    myParameter.constraints.remove(UNIQUE)
-    assertPasses("fragment_foo", UNIQUE, null, myPaidSourceProvider, setOf("bar", "fragment_foo"))
+    parameter.constraints.remove(UNIQUE)
+    assertPasses("fragment_foo", UNIQUE, null, paidSourceProvider, setOf("bar", "fragment_foo"))
   }
 }
