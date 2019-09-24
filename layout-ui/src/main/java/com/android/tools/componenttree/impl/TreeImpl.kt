@@ -17,11 +17,15 @@ package com.android.tools.componenttree.impl
 
 import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ContextPopupHandler
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.wm.ex.WindowManagerEx
 import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.tree.TreeUtil
+import org.jetbrains.annotations.TestOnly
 import java.awt.Component
+import java.awt.Window
 import java.awt.event.ComponentEvent
 import java.awt.event.InputEvent
 import java.awt.event.MouseAdapter
@@ -45,6 +49,7 @@ class TreeImpl(
 ) : Tree(componentTreeModel) {
 
   private var initialized = false
+  private var hasApplicationFocus = { withinApplicationFocus() }
 
   init {
     name = "componentTree"  // For UI tests
@@ -115,7 +120,45 @@ class TreeImpl(
    */
   fun isRowCurrentlyExpanded(row: Int): Boolean {
     val expandableItemsHandler = expandableItemsHandler as? AbstractExpandableItemsHandler<*, *> ?: return false
-    return expandableItemsHandler.expandedItems.contains(row) && hasFocus()
+    return expandableItemsHandler.expandedItems.contains(row) && hasApplicationFocus()
+  }
+
+  /**
+   * Hook for overriding withinApplicationFocus in tests.
+   */
+  var overrideHasApplicationFocus: () -> Boolean
+    @TestOnly
+    get() = hasApplicationFocus
+    @TestOnly
+    set(value) { hasApplicationFocus = value }
+
+  /**
+   * Return true if the current application currently has focus.
+   *
+   * We don't expand the tree items on hover if a different application has focus.
+   */
+  // Hack: copied with the exception of myTipComponent from the private method: AbstractExpandableItemsHandler.noIntersections
+  private fun withinApplicationFocus(): Boolean {
+    val owner = SwingUtilities.getWindowAncestor(this)
+    var focus: Window? = WindowManagerEx.getInstanceEx().mostRecentFocusedWindow
+    if (focus === owner.owner) {
+      focus = null // do not check intersection with parent
+    }
+    var focused = SystemInfo.isWindows || isFocused(owner)
+    for (other in owner.ownedWindows) {
+      if (!focused) {
+        focused = other.isFocused
+      }
+      if (focus === other) {
+        focus = null // already checked
+      }
+    }
+    return focused && (focus === owner || focus == null || !owner.bounds.intersects(focus.bounds))
+  }
+
+  // Hack: copied from the private method: AbstractExpandableItemsHandler.isFocused
+  private fun isFocused(window: Window?): Boolean {
+    return window != null && (window.isFocused || isFocused(window.owner))
   }
 
   private fun mouseClicked(event: MouseEvent) {
