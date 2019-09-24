@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -24,8 +25,10 @@ import com.intellij.openapi.project.ProjectManager;
 import javax.swing.JDialog;
 import javax.swing.JRootPane;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assume;
 
 public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
@@ -57,15 +60,16 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   }
 
   @NotNull
-  public NewProjectWizardFixture clickFinish(@NotNull Wait dialog, @NotNull Wait projectOpen, @NotNull Wait indexing) {
-    super.clickFinish(dialog);
-    projectOpen.expecting("project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
+  public NewProjectWizardFixture clickFinish(@NotNull Wait projectOpen, @NotNull Wait indexing) {
+    super.clickFinish(projectOpen);
+    Assume.assumeTrue("The project should have already been opened by the time the wizard disappears.",
+                      GuiQuery.getNonNull(() -> ProjectManager.getInstance().getOpenProjects().length == 1));
     GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0], indexing);
     return myself();
   }
 
   @NotNull
   public NewProjectWizardFixture clickFinish() {
-    return clickFinish(Wait.seconds(10), Wait.seconds(5), Wait.seconds(120));
+    return clickFinish(Wait.seconds(15), Wait.seconds(120));
   }
 }
