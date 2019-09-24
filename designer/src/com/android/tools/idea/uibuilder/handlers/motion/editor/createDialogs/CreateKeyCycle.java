@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -38,7 +39,7 @@ import java.util.Arrays;
  */
 public class CreateKeyCycle extends BaseCreateKey {
   String mTitle = "CREATE KEY CYCLE";
-  protected String KEY_TAG = "KeyCycle";
+  protected String KEY_TAG = MotionSceneAttrs.Tags.KEY_CYCLE;
   protected MTag mKeyFrameSet;
   protected JTextField mPosition;
   private MTag mSelectedTransition;
@@ -223,6 +224,11 @@ public class CreateKeyCycle extends BaseCreateKey {
     keyPosition.setAttribute(optionsNameSpace[attribute.getSelectedIndex()], (String) attribute.getSelectedItem(), "0");
 
     MTag ret = toCommit.commit("Create KeyCycle");
+    if (KEY_TAG.equals( MotionSceneAttrs.Tags.KEY_TIME_CYCLE)) {
+      Track.createKeyTimeCycle();
+    } else {
+      Track.createKeyCycle();
+    }
     mMotionEditor.dataChanged();
     super.create();
     return ret;

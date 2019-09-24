@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -157,6 +158,7 @@ public class CreateKeyAttribute extends BaseCreateKey {
     keyPosition.setAttribute(optionsNameSpace[comboBox.getSelectedIndex()], (String) comboBox.getSelectedItem(), "0");
 
     MTag ret = toCommit.commit("Create KeyAttribute");
+    Track.createKeyAttribute();
     mMotionEditor.dataChanged();
     super.create();
     return ret;
