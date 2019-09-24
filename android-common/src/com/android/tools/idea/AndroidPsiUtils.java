@@ -22,6 +22,7 @@ import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
 import static kotlin.sequences.SequencesKt.generateSequence;
 
 import com.android.resources.ResourceType;
+import com.intellij.lang.Language;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -404,7 +405,9 @@ public class AndroidPsiUtils {
   /** Returns a modification tracker which tracks changes to all physical PSI *except* XML PSI. */
   @NotNull
   public static ModificationTracker getPsiModificationTrackerIgnoringXml(@NotNull Project project) {
+    // Note: we also ignore the Language.ANY modification count, because that modification count
+    // is incremented unconditionally on every PSI change (see PsiModificationTrackerImpl#incLanguageCounters).
     PsiModificationTrackerImpl psiTracker = (PsiModificationTrackerImpl)PsiManager.getInstance(project).getModificationTracker();
-    return psiTracker.forLanguages(lang -> !lang.is(XMLLanguage.INSTANCE));
+    return psiTracker.forLanguages(lang -> !lang.is(XMLLanguage.INSTANCE) && !lang.is(Language.ANY));
   }
 }
