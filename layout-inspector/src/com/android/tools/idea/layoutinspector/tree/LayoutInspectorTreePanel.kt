@@ -32,6 +32,10 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTre
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.View
 import com.android.tools.profiler.proto.Common
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -44,22 +48,30 @@ import javax.swing.Icon
 import javax.swing.JComponent
 
 private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
+const val GOTO_DEFINITION_ACTION_KEY = "gotoDefinition"
 
 class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
   private var client: InspectorClient? = null
   private val componentTree: JComponent
   private val componentTreeModel: ComponentTreeModel
-  private val componentTreeSelectionModel: ComponentTreeSelectionModel
+
+  @VisibleForTesting
+  val componentTreeSelectionModel: ComponentTreeSelectionModel
 
   private val loadStartTime = AtomicLong(-1)
   private val latestLoadTime = AtomicLong(-1)
 
   init {
-    val (tree, model, selectionModel) = ComponentTreeBuilder()
+    val builder = ComponentTreeBuilder()
       .withNodeType(InspectorViewNodeType())
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
-      .build()
+
+    ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet?.shortcuts
+        ?.filterIsInstance<KeyboardShortcut>()
+        ?.filter { it.secondKeyStroke == null }
+        ?.forEach { builder.withKeyActionKey(GOTO_DEFINITION_ACTION_KEY, it.firstKeyStroke) { gotoDefinition() } }
+    val (tree, model, selectionModel) = builder.build()
     componentTree = tree
     componentTreeModel = model
     componentTreeSelectionModel = selectionModel
@@ -84,6 +96,13 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   override fun getComponent() = componentTree
 
   override fun dispose() {
+  }
+
+  private fun gotoDefinition() {
+    val resourceLookup = layoutInspector?.layoutInspectorModel?.resourceLookup ?: return
+    val node = componentTreeSelectionModel.selection.singleOrNull() as? ViewNode ?: return
+    val location = resourceLookup.findFileLocation(node) ?: return
+    location.navigatable?.navigate(true)
   }
 
   private fun clearComponentTree() {

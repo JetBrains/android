@@ -15,6 +15,7 @@
  */
 package com.android.tools.componenttree.api
 
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.componenttree.impl.ComponentTreeModelImpl
 import com.android.tools.componenttree.impl.ComponentTreeSelectionModelImpl
 import com.android.tools.componenttree.impl.TreeImpl
@@ -22,6 +23,7 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
+import javax.swing.KeyStroke
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
@@ -44,6 +46,7 @@ class ComponentTreeBuilder {
   private val badges = mutableListOf<BadgeItem>()
   private var selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
   private var invokeLater: (Runnable) -> Unit = SwingUtilities::invokeLater
+  private val keyStrokes = mutableMapOf<KeyStroke, Pair<String, () -> Unit>>()
   private var installTreeSearch = true
 
   /**
@@ -60,6 +63,11 @@ class ComponentTreeBuilder {
    * Add a context popup menu on the tree node item.
    */
   fun withContextMenu(treeContextMenu: ContextPopupHandler) = apply { contextPopup = treeContextMenu }
+
+  /**
+   * Add key strokes on the tree.
+   */
+  fun withKeyActionKey(name: String, keyStroke: KeyStroke, action: () -> Unit) = apply { keyStrokes[keyStroke] = Pair(name, action) }
 
   /**
    * Specify specific invokeLater implementation to use.
@@ -88,6 +96,9 @@ class ComponentTreeBuilder {
     }
     selectionModel.selectionMode = selectionMode
     tree.selectionModel = selectionModel
+    keyStrokes.forEach {
+      tree.registerActionKey(it.value.second, it.key, it.value.first, { true }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    }
     val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER)
     scrollPane.border = JBUI.Borders.empty()
     return Triple(scrollPane, model, selectionModel)
