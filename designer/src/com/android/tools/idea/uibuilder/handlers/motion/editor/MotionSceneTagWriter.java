@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotati
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -65,8 +66,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     a.mAttribute = attribute;
     a.mNamespace = type;
     a.mValue = value;
-    // Debug.log(a.mNamespace+"  : "+ a.mAttribute+"  = "+ a.mValue);
-
+    Track.motionEditorEdit();
     mAttrList.put(a.mAttribute, a);
     mNewAttrList.put(a.mAttribute, a);
   }

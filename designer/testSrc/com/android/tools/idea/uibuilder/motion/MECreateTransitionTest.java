@@ -35,20 +35,18 @@ public class MECreateTransitionTest extends BaseMotionEditorTest {
 
   public void testCreateTransitionLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,155,269\n" +
-      "1,JLabel,5,2,145,15\n" +
-      "1,JSeparator,5,20,145,2\n" +
-      "1,JLabel,5,25,145,15\n" +
-      "1,PromptedTextField,5,43,145,19\n" +
-      "1,JLabel,5,65,145,15\n" +
-      "1,MEComboBox,5,83,145,24\n" +
-      "1,JLabel,5,110,145,15\n" +
-      "1,MEComboBox,5,128,145,24\n" +
-      "1,JLabel,5,155,145,15\n" +
-      "1,PromptedTextField,5,173,145,19\n" +
-      "1,JLabel,5,195,145,15\n" +
-      "1,MEComboBox,5,213,145,24\n" +
-      "1,JButton,5,243,145,25\n";
+    String layout = "0,CreatorAccess,0,0,155,229\n" +
+                    "1,JLabel,5,2,145,15\n" +
+                    "1,JSeparator,5,20,145,2\n" +
+                    "1,JLabel,5,25,145,15\n" +
+                    "1,PromptedTextField,5,43,145,19\n" +
+                    "1,JLabel,5,65,145,15\n" +
+                    "1,MEComboBox,5,83,145,24\n" +
+                    "1,JLabel,5,110,145,15\n" +
+                    "1,MEComboBox,5,128,145,24\n" +
+                    "1,JLabel,5,155,145,15\n" +
+                    "1,MEComboBox,5,173,145,24\n" +
+                    "1,JButton,5,203,145,25\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
@@ -63,19 +61,17 @@ public class MECreateTransitionTest extends BaseMotionEditorTest {
     panel.getAction(motionSceneUi, motionSceneUi);
     panel.access_populateDialog();
     String info = "0,CreatorAccess,\n" +
-      "1,JLabel,CREATE TRANSITION\n" +
-      "1,JSeparator,\n" +
-      "1,JLabel,ID\n" +
-      "1,PromptedTextField,Enter Transition's id\n" +
-      "1,JLabel,Start\n" +
-      "1,MEComboBox,base_state,dial,people,half_people\n" +
-      "1,JLabel,End\n" +
-      "1,MEComboBox,base_state,dial,people,half_people\n" +
-      "1,JLabel,Duration\n" +
-      "1,PromptedTextField,Duration in ms\n" +
-      "1,JLabel,Automatically\n" +
-      "1,MEComboBox,Do Nothing,Jump to Start,Jump to End,Animate to Start,Animate to End\n" +
-      "1,JButton,Add\n";
+                  "1,JLabel,CREATE TRANSITION\n" +
+                  "1,JSeparator,\n" +
+                  "1,JLabel,ID\n" +
+                  "1,PromptedTextField,Enter Transition's id\n" +
+                  "1,JLabel,Start\n" +
+                  "1,MEComboBox,base_state,dial,people,half_people\n" +
+                  "1,JLabel,End\n" +
+                  "1,MEComboBox,base_state,dial,people,half_people\n" +
+                  "1,JLabel,Automatically\n" +
+                  "1,MEComboBox,Do Nothing,Jump to Start,Jump to End,Animate to Start,Animate to End\n" +
+                  "1,JButton,Add\n";
     assertEquals(info, componentFieldsString(panel, 0));
     MTag tag = panel.create();
     String created = "\n" +

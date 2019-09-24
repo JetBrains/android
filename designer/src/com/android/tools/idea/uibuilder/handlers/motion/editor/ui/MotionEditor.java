@@ -62,6 +62,9 @@ import javax.swing.table.DefaultTableModel;
  */
 public class MotionEditor extends JPanel {
   public final static boolean DEBUG = false;
+  private final JPanel mMainPanel;
+  private CardLayout mErrorSwitchCard;
+  ErrorPanel myErrorPanel = new ErrorPanel();
   MeModel mMeModel;
   MotionEditorSelector mMotionEditorSelector = new MotionEditorSelector();
   JTabbedPane mTabbedTopPane = new METabbedPane();
@@ -84,11 +87,13 @@ public class MotionEditor extends JPanel {
   JSplitPane mTopPanel;
   boolean mUpdatingModel;
   JPopupMenu myPopupMenu = new JPopupMenu();
-
+  private static final String MAIN_PANEL = "main";
+  private static final String ERROR_PANEL = "error";
   @Override
   public void updateUI() {
     super.updateUI();
     if (mMotionSceneTabb != null) { // any are not null they have been initialized
+      myErrorPanel.updateUI();
       mMotionSceneTabb.updateUI();
       mTransitionPanel.updateUI();
       mConstraintSetPanel.updateUI();
@@ -127,7 +132,13 @@ public class MotionEditor extends JPanel {
   }
 
   public MotionEditor() {
-    super(new BorderLayout());
+    super(new CardLayout());
+    mErrorSwitchCard = (CardLayout) getLayout();
+    mMainPanel = new JPanel(new BorderLayout());
+    add(mMainPanel, MAIN_PANEL);
+    add(myErrorPanel, ERROR_PANEL);
+
+    mErrorSwitchCard.show(this, MAIN_PANEL);
     mOverviewScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
     JPanel ui = new JPanel(new GridLayout(2, 1));
@@ -169,7 +180,7 @@ public class MotionEditor extends JPanel {
       selectTag(e);
     });
 
-    add(ui);
+    mMainPanel.add(ui);
     JPanel toolbarLeft = new JPanel(new FlowLayout(FlowLayout.LEFT));
     JPanel toolbarRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     JPanel toolbar = new JPanel(new BorderLayout());
@@ -204,7 +215,7 @@ public class MotionEditor extends JPanel {
       layoutTop();
     });
 
-    add(toolbar, BorderLayout.NORTH);
+    mMainPanel.add(toolbar, BorderLayout.NORTH);
 
     layoutTop();
   }
@@ -241,6 +252,12 @@ public class MotionEditor extends JPanel {
 
   public void setMTag(@NotNull MTag motionScene, @NotNull MTag layout, @Nullable String layoutFileName,
                       @Nullable String motionSceneFileName) {
+    if (myErrorPanel.validateMotionScene(motionScene)) {
+      mErrorSwitchCard.show(this, MAIN_PANEL);
+    } else {
+      mErrorSwitchCard.show(this, ERROR_PANEL);
+
+    }
     setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
   }
 

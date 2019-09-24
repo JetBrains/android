@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
+import java.awt.CardLayout;
+import java.awt.GridBagConstraints;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -24,9 +26,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
-import java.awt.CardLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
 
 /**
  * Base class of creating of KeyFrame objects
@@ -92,7 +91,8 @@ public class BaseCreateKey extends BaseCreatePanel {
   public String getMotionTarget() {
     if (mUseTag) {
       return mMatchTag.getText();
-    } else {
+    }
+    else {
       return "@+id/" + mViewList.getSelectedItem();
     }
   }

@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionLayoutAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TimeLineTopLeft.TimelineCommands;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
@@ -262,6 +263,7 @@ public class TimeLinePanel extends JPanel {
     myPlayLimiter.restart();
     switch (e) {
       case PLAY:
+        Track.playAnimation();
         myTimer.setRepeats(true);
         notifyTimeLineListeners(TimeLineCmd.MOTION_PLAY, mMotionProgress);
         myTimer.start();

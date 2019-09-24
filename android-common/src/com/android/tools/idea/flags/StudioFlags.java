@@ -222,7 +222,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_MOTION_LAYOUT_EDITOR = Flag.create(
     NELE, "animated.motion.editor", "Show motion editor for MotionLayout",
     "Show the motion editor UI for MotionLayout.",
-    false);
+    true);
   public static final Flag<Boolean> NELE_CONSTRAINT_SELECTOR = Flag.create(
     NELE, "constraint.selection", "Allow selection of Constraints",
     "Allow the selection of constraints.",

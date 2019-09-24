@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 
@@ -112,10 +113,11 @@ public class CreateConstraintSet extends BaseCreatePanel {
     writer.setAttribute(MotionSceneAttrs.ANDROID, MotionSceneAttrs.ConstraintSet.ATTR_ID, addIdPrefix(id));
     if (comboBox.getSelectedIndex() != 0) {
       String derivesFrom = (String) comboBox.getSelectedItem();
-      writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.ConstraintSet.DERIVE_CONSTRAINTS_FROM, derivesFrom);
+      writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.ConstraintSet.DERIVE_CONSTRAINTS_FROM, addIdPrefix(derivesFrom));
     }
 
     MTag ret = writer.commit("Create ConstraintSet");
+    Track.createConstraintSet();
     mMotionEditor.setMTag(model);
     super.create();
     return ret;

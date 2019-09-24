@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -42,7 +43,6 @@ public class CreateTransition extends BaseCreatePanel {
   JComboBox<String> mEndId = MEUI.makeComboBox(new String[]{});
   private final JTextField mTransitionId;
   private final String DURATION_PROMPT = "Duration in ms";
-  private final JTextField mDuration;
 
   String[] options = {"Do Nothing",
     "Jump to Start",
@@ -100,13 +100,6 @@ public class CreateTransition extends BaseCreatePanel {
     gbc.anchor = GridBagConstraints.CENTER;
     add(mEndId, gbc);
 
-    grid(gbc, 0, y++);
-    gbc.weighty = 0;
-    gbc.anchor = GridBagConstraints.CENTER;
-    add(new JLabel("Duration"), gbc);
-    grid(gbc, 0, y++);
-    gbc.anchor = GridBagConstraints.CENTER;
-    add(mDuration = newTextField(DURATION_PROMPT, 15), gbc);
 
     grid(gbc, 0, y++);
     gbc.anchor = GridBagConstraints.CENTER;
@@ -159,7 +152,6 @@ public class CreateTransition extends BaseCreatePanel {
     String tid = mTransitionId.getText().trim();
     String sid = (String) mStartId.getSelectedItem();
     String eid = (String) mEndId.getSelectedItem();
-    String duration = mDuration.getText();
     if (sid.length() == 0 && eid.length() == 0) {
       showErrorDialog("Transition must have a start and end id");
       return null;
@@ -172,35 +164,19 @@ public class CreateTransition extends BaseCreatePanel {
       showErrorDialog("Transition must have an end id");
       return null;
     }
-    if (duration.equals(DURATION_PROMPT)) {
-      duration = "";
-    } else {
-      try {
-
-        int time = Integer.parseInt(duration);
-        if (time < 30) {
-          showErrorDialog("Duration should be more than 30ms");
-          return null;
-        }
-      } catch (NumberFormatException e) {
-        showErrorDialog("unable to understand \"" + duration + "\"");
-        return null;
-      }
-    }
 
     // TODO error checking
     MeModel model = mMotionEditor.getMeModel();
     MTag.TagWriter writer = model.motionScene.getChildTagWriter(MotionSceneAttrs.Tags.TRANSITION);
     writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START, addIdPrefix(sid));
     writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END, addIdPrefix(eid));
-    if (duration.length() > 0) {
-      writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Transition.ATTR_DURATION, duration);
-    }
+
     int index = comboBox.getSelectedIndex();
     if (index > 0) {
       writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Transition.ATTR_AUTO_TRANSITION, ourValues[index]);
     }
     MTag ret = writer.commit("Create Transition");
+    Track.createTransition();
     mMotionEditor.setMTag(model);
     super.create();
     return ret;

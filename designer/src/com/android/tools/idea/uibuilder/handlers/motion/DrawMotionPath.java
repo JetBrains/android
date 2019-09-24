@@ -80,7 +80,6 @@ public class DrawMotionPath implements DrawCommand {
     g2.setStroke(ourBasicStroke);
     g2.setColor(Color.white);
     g2.draw(ourPath);
-
   }
 
   @Override
