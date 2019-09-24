@@ -325,13 +325,12 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
 
   fun setBaseFeature(baseFeature: Module): TemplateValueInjector {
     val androidFacet = AndroidFacet.getInstance(baseFeature)!!
-    val gradleFacet = GradleFacet.getInstance(baseFeature)!!
     val rootFolder = AndroidRootUtil.findModuleRootFolderPath(baseFeature)
     val resDirectories = SourceProviderManager.getInstance(androidFacet).mainSourceProvider.resDirectories
     assert(!resDirectories.isEmpty())
     val baseModuleResourceRoot = resDirectories.iterator().next() // Put the new resources in any of the available res directories
 
-    myTemplateValues[ATTR_BASE_FEATURE_NAME] = gradleFacet.gradleModuleModel?.moduleName.orEmpty()
+    myTemplateValues[ATTR_BASE_FEATURE_NAME] = GradleUtil.getGradlePath(baseFeature).orEmpty()
     myTemplateValues[ATTR_BASE_FEATURE_DIR] = rootFolder?.path.orEmpty()
     myTemplateValues[ATTR_BASE_FEATURE_RES_DIR] = baseModuleResourceRoot.path
     return this
