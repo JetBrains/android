@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding.psiclass;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.google.common.collect.ImmutableSet;
@@ -78,17 +79,19 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC));
     myMode = ModuleDataBinding.getInstance(facet).getDataBindingMode();
     myFacet = facet;
-    myMethodCache =
-      CachedValuesManager.getManager(facet.getModule().getProject()).createCachedValue(
-        () -> {
-          Project project = facet.getModule().getProject();
 
+    Project project = facet.getModule().getProject();
+    ModificationTracker modificationTracker = AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(project);
+
+    myMethodCache =
+      CachedValuesManager.getManager(project).createCachedValue(
+        () -> {
           Map<String, Set<String>> instanceAdapterClasses = Maps.newHashMap();
           JavaPsiFacade facade = JavaPsiFacade.getInstance(myFacet.getModule().getProject());
           PsiClass aClass = facade
             .findClass(myMode.bindingAdapter, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
           if (aClass == null) {
-            return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, myManager.getModificationTracker().getJavaStructureModificationTracker());
+            return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, modificationTracker);
           }
 
           @SuppressWarnings("unchecked")
@@ -114,7 +117,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
             }
           }
           if (methodCount == 0) {
-            return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, myManager.getModificationTracker().getJavaStructureModificationTracker());
+            return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, modificationTracker);
           }
           PsiElementFactory elementFactory = PsiElementFactory.getInstance(project);
           PsiMethod[] result = new PsiMethod[methodCount];
@@ -136,7 +139,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
               }
             }
           }
-          return CachedValueProvider.Result.create(result, myManager.getModificationTracker().getJavaStructureModificationTracker());
+          return CachedValueProvider.Result.create(result, modificationTracker);
         }
       , false);
 
