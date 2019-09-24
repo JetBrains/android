@@ -153,15 +153,13 @@ public class GradleBuildInvoker {
       return;
     }
     setProjectBuildMode(CLEAN);
-    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
-    List<String> commandLineArgs = new ArrayList<>();
-    // Add source generation tasks.
-    Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    tasks.putAll(GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.NONE));
-    tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
-    commandLineArgs.add(createGenerateSourcesOnlyProperty());
-    for (Path rootPath : tasks.keySet()) {
-      executeTasks(rootPath.toFile(), tasks.get(rootPath), commandLineArgs);
+    // Collect the root project path for all modules, there is one root project path per included project.
+    GradleRootPathFinder pathFinder = new GradleRootPathFinder();
+    Set<File> projectRootPaths = Arrays.stream(ModuleManager.getInstance(getProject()).getModules())
+      .map(module -> pathFinder.getProjectRootPath(module).toFile())
+      .collect(Collectors.toSet());
+    for (File projectRootPath : projectRootPaths) {
+      executeTasks(projectRootPath, Collections.singletonList(CLEAN_TASK_NAME));
     }
   }
 
