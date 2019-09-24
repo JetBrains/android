@@ -23,7 +23,9 @@ import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.utils.Pair;
+import com.intellij.lang.Language;
 import com.intellij.lang.documentation.DocumentationProvider;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Key;
@@ -32,6 +34,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.pom.PomTarget;
 import com.intellij.pom.PomTargetPsiElement;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.FakePsiElement;
 import com.intellij.psi.util.CachedValue;
@@ -117,8 +120,8 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
         url = ResourceUrl.create(type, name, isFramework);
       }
       return generateDoc(originalElement, url);
-    } else if (element instanceof MyResourceElement) {
-      return getResourceDocumentation(element, ((MyResourceElement)element).myResource);
+    } else if (element instanceof ResourceReferenceCompletionElement) {
+      return getResourceDocumentation(element.getParent(), ((ResourceReferenceCompletionElement)element).myResource);
     } else if (element instanceof XmlAttributeValue) {
       return getResourceDocumentation(element, ((XmlAttributeValue)element).getValue());
     } else if (element instanceof MyDocElement) {
@@ -476,7 +479,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     Converter converter = domValue.getConverter();
 
     if ((value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) && !DataBindingUtil.isBindingExpression(value)) {
-      return new MyResourceElement(element, value);
+      return new ResourceReferenceCompletionElement(element, value);
     }
 
     if (converter instanceof AttributeValueDocumentationProvider) {
@@ -510,11 +513,17 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
   }
 
-  private static class MyResourceElement extends FakePsiElement {
+  /**
+   * A {@link FakePsiElement} for a Resource Reference found in Xml completion.
+   *
+   * Contains the element from which the completion has been started from, and the a String taken from lookup
+   * element, which is a {@link ResourceUrl}.
+   */
+  public static class ResourceReferenceCompletionElement extends FakePsiElement {
     final PsiElement myParent;
     final String myResource;
 
-    private MyResourceElement(@NotNull PsiElement parent, @NotNull String resource) {
+    private ResourceReferenceCompletionElement(@NotNull PsiElement parent, @NotNull String resource) {
       myParent = parent;
       myResource = resource;
     }
@@ -522,6 +531,21 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     @Override
     public PsiElement getParent() {
       return myParent;
+    }
+
+    public String getResource() {
+      return myResource;
+    }
+
+    @Override
+    public PsiFile getContainingFile() {
+      return null;
+    }
+
+    @NotNull
+    @Override
+    public Language getLanguage() {
+      return XMLLanguage.INSTANCE;
     }
   }
 
