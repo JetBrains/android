@@ -335,7 +335,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       "MyType.kt",
       """
         package p1.p2
-         
+
         class MyType {}
       """.trimIndent()
     )
@@ -356,46 +356,46 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
   }
 
-    fun testResolvePsiClasses() {
-        val superClass = myFixture.addClass("""
+  fun testResolvePsiClasses() {
+    val superClass = myFixture.addClass("""
       package p1.p2
-      
+
       class MySuperClass {}
     """.trimIndent())
 
-        val myClass = myFixture.addClass("""
+    val myClass = myFixture.addClass("""
       package p1.p2
-      
+
       class MyClass extends MySuperClass {}
     """.trimIndent())
 
-        myFixture.configureByText(
-          ProguardR8FileType.INSTANCE,
-          """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
           -keep class $caret p1.p2.MyClass
       """.trimIndent())
 
-        var header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
-        assertThat(header.resolvePsiClasses()).containsExactly(myClass)
+    var header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
+    assertThat(header.resolvePsiClasses()).containsExactly(myClass)
 
-        myFixture.configureByText(
-          ProguardR8FileType.INSTANCE,
-          """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
           -keep class $caret * implements p1.p2.MyClass
       """.trimIndent()
-        )
-        header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
-        assertThat(header.resolvePsiClasses()).containsExactly(myClass)
+    )
+    header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
+    assertThat(header.resolvePsiClasses()).containsExactly(myClass)
 
-        myFixture.configureByText(
-          ProguardR8FileType.INSTANCE,
-          """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
           -keep class $caret p1.p2.MyClass extends p1.p2.MySuperClass
       """.trimIndent()
-        )
-        header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
-        assertThat(header.resolvePsiClasses()).containsExactly(myClass, superClass)
-    }
+    )
+    header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
+    assertThat(header.resolvePsiClasses()).containsExactly(myClass, superClass)
+  }
 
   fun testGetTypeForMethod() {
 
@@ -428,7 +428,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
   }
 
   fun testGetTypeForField() {
-    
+
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
@@ -481,28 +481,28 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(getParameters()).isNotNull()
   }
 
-    fun testContainsWildcards() {
-        myFixture.configureByText(
-          ProguardR8FileType.INSTANCE,
-          """
-      -keep class myClass {
-        int NoWildcards;
-        int *;
-        int **wildcard;
-      }
-      """.trimIndent()
-        )
-
-        myFixture.moveCaret("No|Wildcard")
-        var classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
-        assertThat(classMemberName.containsWildcards()).isFalse()
-
-        myFixture.moveCaret("|*")
-        classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
-        assertThat(classMemberName.containsWildcards()).isTrue()
-
-        myFixture.moveCaret("**w|ildcard")
-        classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
-        assertThat(classMemberName.containsWildcards()).isTrue()
+  fun testContainsWildcards() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+    -keep class myClass {
+      int NoWildcards;
+      int *;
+      int **wildcard;
     }
+    """.trimIndent()
+    )
+
+    myFixture.moveCaret("No|Wildcard")
+    var classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
+    assertThat(classMemberName.containsWildcards()).isFalse()
+
+    myFixture.moveCaret("|*")
+    classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
+    assertThat(classMemberName.containsWildcards()).isTrue()
+
+    myFixture.moveCaret("**w|ildcard")
+    classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
+    assertThat(classMemberName.containsWildcards()).isTrue()
+  }
 }
