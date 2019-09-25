@@ -33,6 +33,8 @@ import com.intellij.openapi.util.SystemInfo.isWindows
 import com.intellij.util.net.NetUtils
 import com.intellij.util.ui.UIUtil
 import io.grpc.ManagedChannel
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import io.grpc.netty.NettyChannelBuilder
 import java.awt.Image
 import java.awt.Point
@@ -50,8 +52,12 @@ import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
+import kotlin.math.max
 
 private const val PARSER_PACKAGE_NAME = "skiaparser"
+private const val INITIAL_DELAY_MILLI_SECONDS = 10L
+private const val MAX_DELAY_MILLI_SECONDS = 1000L
+private const val MAX_TIMES_TO_RETRY = 10
 
 object SkiaParser {
   private val unmarshaller = JAXBContext.newInstance(VersionMap::class.java).createUnmarshaller()
@@ -198,6 +204,7 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   val skpVersionRange: IntRange = IntRange(skpStart, skpEnd ?: Int.MAX_VALUE)
   var client: SkiaParserServiceGrpc.SkiaParserServiceBlockingStub? = null
   var channel: ManagedChannel? = null
+  var handler: OSProcessHandler? = null
   private val serverPath: File? = findPath()
 
   private val progressIndicator = StudioLoggerProgressIndicator(ServerInfo::class.java)
@@ -215,8 +222,15 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     }
   }
 
+  /**
+   * Start the server if it isn't already running.
+   *
+   * If the server is killed by another process we detect it with process.isAlive.
+   * Note that this will be a sub process of Android Studio and will terminate when
+   * Android Studio process is terminated.
+   */
   fun runServer() {
-    if (client != null && channel != null && channel?.isShutdown != true && channel?.isTerminated != true) {
+    if (client != null && channel?.isShutdown != true && channel?.isTerminated != true && handler?.process?.isAlive == true) {
       // already started
       return
     }
@@ -238,7 +252,7 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
       .build()
     client = SkiaParserServiceGrpc.newBlockingStub(channel)
 
-    OSProcessHandler(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
+    handler = OSProcessHandler(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
   }
 
   private fun tryDownload(): Boolean {
@@ -268,8 +282,39 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   }
 
   fun getViewTree(data: ByteArray): SkiaParser.GetViewTreeResponse? {
+    ping()
+    return getViewTreeImpl(data)
+  }
+
+  // TODO: add ping functionality to the server?
+  fun ping() {
+    getViewTreeImpl(ByteArray(1))
+  }
+
+  private fun getViewTreeImpl(data: ByteArray): SkiaParser.GetViewTreeResponse? {
     val request = SkiaParser.GetViewTreeRequest.newBuilder().setSkp(ByteString.copyFrom(data)).build()
-    return client?.getViewTree(request)
+    return getViewTreeWithRetry(request)
+  }
+
+  private fun getViewTreeWithRetry(request: SkiaParser.GetViewTreeRequest): SkiaParser.GetViewTreeResponse? {
+    var tries = 0
+    var delay = INITIAL_DELAY_MILLI_SECONDS
+    var lastException: StatusRuntimeException? = null
+    while (tries < MAX_TIMES_TO_RETRY) {
+      try {
+        return client?.getViewTree(request)
+      }
+      catch (ex: StatusRuntimeException) {
+        if (ex.status.code != Status.Code.UNAVAILABLE) {
+          throw ex
+        }
+        Thread.sleep(delay)
+        tries++
+        delay = max(2 * delay, MAX_DELAY_MILLI_SECONDS)
+        lastException = ex
+      }
+    }
+    throw lastException!!
   }
 }
 
