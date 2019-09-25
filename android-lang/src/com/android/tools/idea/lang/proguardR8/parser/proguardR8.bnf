@@ -101,7 +101,7 @@ type ::= any_type|any_primitive_type|((qualifiedName|java_primitive) "[]"?) {
 type_list ::= (type ("," type)* ("," ANY_TYPE_AND_NUM_OF_ARGS)?)? {pin(".*")=not_close_brace recoverWhile=not_right_paren}
 
 private java ::= (java_rule SEMICOLON)* {pin(".*")=1 recoverWhile=not_close_brace}
-java_rule ::= !(<<eof>>|CLOSE_BRACE|WHITE_SPACE) (method_specification|fields_specification) {pin=1 recoverWhile=not_semicolon}
+java_rule ::= !(<<eof>>|CLOSE_BRACE|WHITE_SPACE) (fields_specification|method_specification) {pin=1 recoverWhile=not_semicolon}
 class_specification_body ::= OPEN_BRACE java CLOSE_BRACE {pin=1}
 
 class_modifier ::= ("!"?(public|final|abstract))
@@ -129,7 +129,7 @@ field ::= annotation_name? fields_modifier* class_member_core {
 }
 method ::= annotation_name? method_modifier* class_member_core parameters (return values)?
 
-fields_specification ::= field | (annotation_name? fields_modifier* (<fields>|any_field_or_method))
+fields_specification ::= (field | (annotation_name? fields_modifier* (<fields>|any_field_or_method))) !parameters
 fields_modifier ::= ("!"?(public|private|protected|static|volatile|transient|final))
 
 any_field_or_method ::= ASTERISK
