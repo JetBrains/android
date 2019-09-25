@@ -138,7 +138,7 @@ iml_module(
     ],
 )
 
-# TODO(b/141498231): reënable intellij.android.databinding.tests and remove this
+# TODO(b/141498231): reenable intellij.android.databinding.tests and remove this
 java_test(
     name = "DataBindingInspectionVerificationTest",
     timeout = "long",
