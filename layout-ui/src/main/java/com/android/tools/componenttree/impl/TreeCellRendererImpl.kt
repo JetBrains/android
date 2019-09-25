@@ -30,6 +30,8 @@ import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.TreeCellRenderer
+import kotlin.math.max
+import kotlin.math.min
 
 val BADGE_ITEM = Key<BadgeItem>("BADGE_ITEM")
 
@@ -58,8 +60,15 @@ class TreeCellRendererImpl(
     val component = renderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus)
     panel.add(component, BorderLayout.CENTER)
     panel.currentRow = row
+    panel.currentDepth = computeDepth(value)
     panel.updateBadges(value, tree?.hasFocus() ?: false && selected)
     return panel
+  }
+
+  // The first time around Tree.getPathForRow(row) may return null.
+  // Compute the depth directly from the node value instead of using getPathForRow().
+  private fun computeDepth(value: Any?): Int {
+    return generateSequence(value) { model.parent(it) }.count()
   }
 
   private class PanelRenderer(
@@ -70,6 +79,7 @@ class TreeCellRendererImpl(
     private val badgePanel = JPanel()
 
     var currentRow: Int = 0
+    var currentDepth: Int = 1
 
     init {
       border = JBUI.Borders.empty()
@@ -108,9 +118,9 @@ class TreeCellRendererImpl(
      * at least the width of the tree. (See setBounds for an explanation).
      */
     override fun getPreferredSize(): Dimension {
-      val leftOffset = getLeftOffset(tree, currentRow)
+      val leftOffset = getLeftOffset(tree)
       val size = super.getPreferredSize()
-      size.width = Math.max(size.width, tree.width - leftOffset)
+      size.width = max(size.width, tree.width - leftOffset)
       return size
     }
 
@@ -127,7 +137,7 @@ class TreeCellRendererImpl(
         super.setBounds(x, y, width, height)
       }
       else {
-        super.setBounds(x, y, Math.min(tree.width - x, width), height)
+        super.setBounds(x, y, min(tree.width - x, width), height)
       }
     }
 
@@ -136,11 +146,9 @@ class TreeCellRendererImpl(
      *
      * Note: This code is based on the internals of the UI for the tree e.g. the method [BasicTreeUI.getRowX].
      */
-    private fun getLeftOffset(tree: JTree, row: Int): Int {
+    private fun getLeftOffset(tree: JTree): Int {
       val ui = tree.ui as BasicTreeUI
-      val path = tree.getPathForRow(row)
-      val depth = path?.pathCount ?: 1
-      return (ui.leftChildIndent + ui.rightChildIndent) * (depth - 1)
+      return (ui.leftChildIndent + ui.rightChildIndent) * (currentDepth - 1)
     }
   }
 }
