@@ -2,6 +2,8 @@ PROJECT             : testWithCentralBuildDirectoryInRootModuleDeleted
     MODULE              : app
         - ModuleGroupPath   : testWithCentralBuildDirectoryInRootModuleDeleted
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testWithCentralBuildDirectoryInRootModuleDeleted
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -120,6 +122,8 @@ PROJECT             : testWithCentralBuildDirectoryInRootModuleDeleted
         ORDER_ENTRY         : <Module source>
     MODULE              : testWithCentralBuildDirectoryInRootModuleDeleted
         - ModuleGroupPath   : testWithCentralBuildDirectoryInRootModuleDeleted
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testWithCentralBuildDirectoryInRootModuleDeleted
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

@@ -2,6 +2,8 @@ PROJECT             : testSwitchingVariants_simpleApplication
     MODULE              : app
         - ModuleGroupPath   : testSwitchingVariants_simpleApplication
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testSwitchingVariants_simpleApplication
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -470,6 +472,8 @@ PROJECT             : testSwitchingVariants_simpleApplication
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
     MODULE              : testSwitchingVariants_simpleApplication
         - ModuleGroupPath   : testSwitchingVariants_simpleApplication
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testSwitchingVariants_simpleApplication
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

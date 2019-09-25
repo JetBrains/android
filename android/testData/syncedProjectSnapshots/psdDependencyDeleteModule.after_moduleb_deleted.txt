@@ -2,6 +2,8 @@ PROJECT             : testPsdDependencyDeleteModule
     MODULE              : app
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -401,6 +403,8 @@ PROJECT             : testPsdDependencyDeleteModule
     MODULE              : jModuleK
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : jModuleK
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleK
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
@@ -476,6 +480,8 @@ PROJECT             : testPsdDependencyDeleteModule
     MODULE              : jModuleL
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : jModuleL
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleL
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
@@ -515,6 +521,8 @@ PROJECT             : testPsdDependencyDeleteModule
     MODULE              : jModuleM
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : jModuleM
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleM
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
@@ -554,6 +562,8 @@ PROJECT             : testPsdDependencyDeleteModule
     MODULE              : jModuleZ
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : jModuleZ
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleZ
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
@@ -645,6 +655,8 @@ PROJECT             : testPsdDependencyDeleteModule
     MODULE              : mainModule
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : mainModule
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :mainModule
         LinkedProjectPath   : <PROJECT>/mainModule
         RootProjectPath     : <PROJECT>
@@ -1073,6 +1085,8 @@ PROJECT             : testPsdDependencyDeleteModule
     MODULE              : moduleA
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : moduleA
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleA
         LinkedProjectPath   : <PROJECT>/moduleA
         RootProjectPath     : <PROJECT>
@@ -1439,6 +1453,8 @@ PROJECT             : testPsdDependencyDeleteModule
     MODULE              : moduleC
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : moduleC
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleC
         LinkedProjectPath   : <PROJECT>/moduleC
         RootProjectPath     : <PROJECT>
@@ -1791,6 +1807,8 @@ PROJECT             : testPsdDependencyDeleteModule
     MODULE              : moduleFlavor
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : moduleFlavor
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleFlavor
         LinkedProjectPath   : <PROJECT>/moduleFlavor
         RootProjectPath     : <PROJECT>
@@ -1946,6 +1964,8 @@ PROJECT             : testPsdDependencyDeleteModule
     MODULE              : modulePlus
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : modulePlus
+        ExternalModuleGroup : testPsdDependencyDeleteModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :modulePlus
         LinkedProjectPath   : <PROJECT>/modulePlus
         RootProjectPath     : <PROJECT>
@@ -2330,6 +2350,8 @@ PROJECT             : testPsdDependencyDeleteModule
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : jModuleZ
         - ModuleGroupPath   : nestedZ
+        ExternalModuleGroup : testPsdDependencyDeleteModule.jModuleZ
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleZ:nestedZ
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
@@ -2361,6 +2383,8 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
     MODULE              : testPsdDependencyDeleteModule
         - ModuleGroupPath   : testPsdDependencyDeleteModule
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

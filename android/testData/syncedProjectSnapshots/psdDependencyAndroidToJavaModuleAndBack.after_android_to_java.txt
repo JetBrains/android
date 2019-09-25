@@ -2,6 +2,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : app
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -401,6 +403,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : jModuleK
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : jModuleK
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleK
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
@@ -476,6 +480,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : jModuleL
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : jModuleL
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleL
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
@@ -515,6 +521,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : jModuleM
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : jModuleM
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleM
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
@@ -554,6 +562,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : jModuleZ
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : jModuleZ
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleZ
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
@@ -645,6 +655,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : mainModule
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : mainModule
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :mainModule
         LinkedProjectPath   : <PROJECT>/mainModule
         RootProjectPath     : <PROJECT>
@@ -1073,6 +1085,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : moduleA
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : moduleA
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleA
         LinkedProjectPath   : <PROJECT>/moduleA
         RootProjectPath     : <PROJECT>
@@ -1439,6 +1453,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : moduleB
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : moduleB
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleB
         LinkedProjectPath   : <PROJECT>/moduleB
         RootProjectPath     : <PROJECT>
@@ -1799,6 +1815,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : moduleC
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : moduleC
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleC
         LinkedProjectPath   : <PROJECT>/moduleC
         RootProjectPath     : <PROJECT>
@@ -1841,6 +1859,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : moduleFlavor
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : moduleFlavor
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleFlavor
         LinkedProjectPath   : <PROJECT>/moduleFlavor
         RootProjectPath     : <PROJECT>
@@ -1996,6 +2016,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     MODULE              : modulePlus
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : modulePlus
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :modulePlus
         LinkedProjectPath   : <PROJECT>/modulePlus
         RootProjectPath     : <PROJECT>
@@ -2380,6 +2402,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : jModuleZ
         - ModuleGroupPath   : nestedZ
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleZ:nestedZ
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
@@ -2411,6 +2435,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
     MODULE              : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

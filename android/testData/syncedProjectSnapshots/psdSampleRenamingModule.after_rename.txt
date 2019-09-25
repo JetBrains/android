@@ -2,6 +2,8 @@ PROJECT             : testPsdSampleRenamingModule
     MODULE              : app
         - ModuleGroupPath   : testPsdSampleRenamingModule
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testPsdSampleRenamingModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -446,6 +448,8 @@ PROJECT             : testPsdSampleRenamingModule
     MODULE              : container1
         - ModuleGroupPath   : testPsdSampleRenamingModule
         - ModuleGroupPath   : container1
+        ExternalModuleGroup : testPsdSampleRenamingModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :container1
         LinkedProjectPath   : <PROJECT>/container1
         RootProjectPath     : <PROJECT>
@@ -556,6 +560,8 @@ PROJECT             : testPsdSampleRenamingModule
         - ModuleGroupPath   : testPsdSampleRenamingModule
         - ModuleGroupPath   : container1
         - ModuleGroupPath   : deep
+        ExternalModuleGroup : testPsdSampleRenamingModule.container1
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :container1:deep
         LinkedProjectPath   : <PROJECT>/container1/deep
         RootProjectPath     : <PROJECT>
@@ -667,6 +673,8 @@ PROJECT             : testPsdSampleRenamingModule
         - ModuleGroupPath   : nested2
         - ModuleGroupPath   : trans
         - ModuleGroupPath   : deep2
+        ExternalModuleGroup : testPsdSampleRenamingModule.nested2.trans
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :nested2:trans:deep2
         LinkedProjectPath   : <PROJECT>/nested2/trans/deep2
         RootProjectPath     : <PROJECT>
@@ -776,6 +784,8 @@ PROJECT             : testPsdSampleRenamingModule
     MODULE              : dyn_feature
         - ModuleGroupPath   : testPsdSampleRenamingModule
         - ModuleGroupPath   : dyn_feature
+        ExternalModuleGroup : testPsdSampleRenamingModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :dyn_feature
         LinkedProjectPath   : <PROJECT>/dyn_feature
         RootProjectPath     : <PROJECT>
@@ -885,6 +895,8 @@ PROJECT             : testPsdSampleRenamingModule
     MODULE              : jav
         - ModuleGroupPath   : testPsdSampleRenamingModule
         - ModuleGroupPath   : jav
+        ExternalModuleGroup : testPsdSampleRenamingModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jav
         LinkedProjectPath   : <PROJECT>/jav
         RootProjectPath     : <PROJECT>
@@ -910,6 +922,8 @@ PROJECT             : testPsdSampleRenamingModule
     MODULE              : lib
         - ModuleGroupPath   : testPsdSampleRenamingModule
         - ModuleGroupPath   : lib
+        ExternalModuleGroup : testPsdSampleRenamingModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
@@ -1262,6 +1276,8 @@ PROJECT             : testPsdSampleRenamingModule
     MODULE              : nested2
         - ModuleGroupPath   : testPsdSampleRenamingModule
         - ModuleGroupPath   : nested2
+        ExternalModuleGroup : testPsdSampleRenamingModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :nested2
         LinkedProjectPath   : <PROJECT>/nested2
         RootProjectPath     : <PROJECT>
@@ -1418,6 +1434,8 @@ PROJECT             : testPsdSampleRenamingModule
         - ModuleGroupPath   : testPsdSampleRenamingModule
         - ModuleGroupPath   : nested2
         - ModuleGroupPath   : deep
+        ExternalModuleGroup : testPsdSampleRenamingModule.nested2
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :nested2:deep
         LinkedProjectPath   : <PROJECT>/nested2/deep
         RootProjectPath     : <PROJECT>
@@ -1526,6 +1544,8 @@ PROJECT             : testPsdSampleRenamingModule
         ORDER_ENTRY         : <Module source>
     MODULE              : testPsdSampleRenamingModule
         - ModuleGroupPath   : testPsdSampleRenamingModule
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testPsdSampleRenamingModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
@@ -1544,6 +1564,8 @@ PROJECT             : testPsdSampleRenamingModule
         - ModuleGroupPath   : testPsdSampleRenamingModule
         - ModuleGroupPath   : nested2
         - ModuleGroupPath   : trans
+        ExternalModuleGroup : testPsdSampleRenamingModule.nested2
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :nested2:trans
         LinkedProjectPath   : <PROJECT>/nested2/trans
         RootProjectPath     : <PROJECT>

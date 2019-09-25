@@ -2,6 +2,8 @@ PROJECT             : testTransitiveDependencies
     MODULE              : app
         - ModuleGroupPath   : testTransitiveDependencies
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testTransitiveDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -414,6 +416,8 @@ PROJECT             : testTransitiveDependencies
     MODULE              : javalib1
         - ModuleGroupPath   : testTransitiveDependencies
         - ModuleGroupPath   : javalib1
+        ExternalModuleGroup : testTransitiveDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :javalib1
         LinkedProjectPath   : <PROJECT>/javalib1
         RootProjectPath     : <PROJECT>
@@ -475,6 +479,8 @@ PROJECT             : testTransitiveDependencies
     MODULE              : javalib2
         - ModuleGroupPath   : testTransitiveDependencies
         - ModuleGroupPath   : javalib2
+        ExternalModuleGroup : testTransitiveDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :javalib2
         LinkedProjectPath   : <PROJECT>/javalib2
         RootProjectPath     : <PROJECT>
@@ -500,6 +506,8 @@ PROJECT             : testTransitiveDependencies
     MODULE              : library1
         - ModuleGroupPath   : testTransitiveDependencies
         - ModuleGroupPath   : library1
+        ExternalModuleGroup : testTransitiveDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :library1
         LinkedProjectPath   : <PROJECT>/library1
         RootProjectPath     : <PROJECT>
@@ -947,6 +955,8 @@ PROJECT             : testTransitiveDependencies
     MODULE              : library2
         - ModuleGroupPath   : testTransitiveDependencies
         - ModuleGroupPath   : library2
+        ExternalModuleGroup : testTransitiveDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :library2
         LinkedProjectPath   : <PROJECT>/library2
         RootProjectPath     : <PROJECT>
@@ -1334,6 +1344,8 @@ PROJECT             : testTransitiveDependencies
         ORDER_ENTRY         : library1
     MODULE              : testTransitiveDependencies
         - ModuleGroupPath   : testTransitiveDependencies
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testTransitiveDependencies
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

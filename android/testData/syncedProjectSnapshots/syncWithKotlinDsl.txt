@@ -2,6 +2,8 @@ PROJECT             : testSyncWithKotlinDsl
     MODULE              : app
         - ModuleGroupPath   : testSyncWithKotlinDsl
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testSyncWithKotlinDsl
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -413,6 +415,8 @@ PROJECT             : testSyncWithKotlinDsl
     MODULE              : lib
         - ModuleGroupPath   : testSyncWithKotlinDsl
         - ModuleGroupPath   : lib
+        ExternalModuleGroup : testSyncWithKotlinDsl
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
@@ -543,6 +547,8 @@ PROJECT             : testSyncWithKotlinDsl
         ORDER_ENTRY         : <Module source>
     MODULE              : testSyncWithKotlinDsl
         - ModuleGroupPath   : testSyncWithKotlinDsl
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testSyncWithKotlinDsl
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

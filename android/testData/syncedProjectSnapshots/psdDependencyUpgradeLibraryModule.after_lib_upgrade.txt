@@ -2,6 +2,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : app
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -401,6 +403,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : jModuleK
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : jModuleK
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleK
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
@@ -476,6 +480,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : jModuleL
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : jModuleL
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleL
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
@@ -515,6 +521,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : jModuleM
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : jModuleM
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleM
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
@@ -554,6 +562,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : jModuleZ
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : jModuleZ
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleZ
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
@@ -645,6 +655,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : mainModule
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : mainModule
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :mainModule
         LinkedProjectPath   : <PROJECT>/mainModule
         RootProjectPath     : <PROJECT>
@@ -1073,6 +1085,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : moduleA
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : moduleA
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleA
         LinkedProjectPath   : <PROJECT>/moduleA
         RootProjectPath     : <PROJECT>
@@ -1439,6 +1453,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : moduleB
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : moduleB
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleB
         LinkedProjectPath   : <PROJECT>/moduleB
         RootProjectPath     : <PROJECT>
@@ -1799,6 +1815,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : moduleC
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : moduleC
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleC
         LinkedProjectPath   : <PROJECT>/moduleC
         RootProjectPath     : <PROJECT>
@@ -2151,6 +2169,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : moduleFlavor
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : moduleFlavor
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleFlavor
         LinkedProjectPath   : <PROJECT>/moduleFlavor
         RootProjectPath     : <PROJECT>
@@ -2306,6 +2326,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
     MODULE              : modulePlus
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : modulePlus
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :modulePlus
         LinkedProjectPath   : <PROJECT>/modulePlus
         RootProjectPath     : <PROJECT>
@@ -2690,6 +2712,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : jModuleZ
         - ModuleGroupPath   : nestedZ
+        ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule.jModuleZ
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleZ:nestedZ
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
@@ -2721,6 +2745,8 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
     MODULE              : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

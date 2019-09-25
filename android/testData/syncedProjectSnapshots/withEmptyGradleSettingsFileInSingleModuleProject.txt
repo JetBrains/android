@@ -1,6 +1,8 @@
 PROJECT             : testWithEmptyGradleSettingsFileInSingleModuleProject
     MODULE              : testWithEmptyGradleSettingsFileInSingleModuleProject
         - ModuleGroupPath   : testWithEmptyGradleSettingsFileInSingleModuleProject
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testWithEmptyGradleSettingsFileInSingleModuleProject
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
