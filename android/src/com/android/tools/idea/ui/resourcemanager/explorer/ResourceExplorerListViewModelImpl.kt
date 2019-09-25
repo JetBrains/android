@@ -49,12 +49,16 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.xml.XmlFileImpl
+import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.plugins.groovy.lang.psi.util.childrenOfType
+import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.CompletableFuture.supplyAsync
@@ -424,25 +428,38 @@ private fun userReadableLibraryName(lib: AarResourceRepository) =
  * Eg: for <animated-vector></animated-vector> returns "Animated vector"
  */
 private fun getResourceDataType(asset: Asset, psiElement: PsiElement): String {
-  var dataTypeName = ""
   val resourceType = asset.type
 
-  if (resourceType == ResourceType.DRAWABLE || resourceType == ResourceType.MIPMAP) {
-    // For drawables and mipmaps, if they are not defined in XML, they are usually referenced as the actual file (jpg, png, svg, etc...)
-    dataTypeName = resourceType.displayName + " File"
-  }
-
-  if (psiElement is XmlFileImpl) {
-    psiElement.rootTag?.let { tag ->
-      dataTypeName = tag.name
-      // Handle package specific types (Eg: androidx.constraint.ConstraintLayout)
-      dataTypeName = dataTypeName.substringAfterLast(".")
-      // Handle compounded types (Eg: animated-vector)
-      dataTypeName = dataTypeName.replace('-', ' ')
-      dataTypeName = dataTypeName.usLocaleCapitalize()
+  return when {
+    psiElement is XmlFileImpl -> {
+      // Check first if it's an XmlFile and get the root tag
+      var prefix = ""
+      var name = ""
+      psiElement.rootTag?.let { tag ->
+        if (tag.name == SdkConstants.TAG_LAYOUT) {
+          // For data binding layouts we look for the non-data tag.
+          prefix = "Data Binding"
+          tag.childrenOfType<XmlTag>().firstOrNull { it.name != SdkConstants.TAG_DATA }?.let { name = it.name }
+        }
+        else {
+          name = tag.name
+        }
+        // Handle package specific types (Eg: androidx.constraint.ConstraintLayout)
+        name = name.substringAfterLast(".")
+        // Handle compounded types (Eg: animated-vector)
+        name = name.replace('-', ' ')
+        name = name.usLocaleCapitalize()
+      }
+      return if (prefix.isNotEmpty()) "$prefix ($name)" else name
     }
+    // If it's not defined in XML, they are usually referenced as the actual file extension (jpg, png, webp, etc...)
+    psiElement is PsiBinaryFile && psiElement.virtualFile.extension != null -> psiElement.virtualFile.extension?.toUpperCase(Locale.US)
+                                                                               ?: ""
+
+    // Fallback for unsupported types in Drawables and Mip Maps
+    resourceType == ResourceType.DRAWABLE || resourceType == ResourceType.MIPMAP -> resourceType.displayName + " File"
+    else -> ""
   }
-  return dataTypeName;
 }
 
 /** Returns only the attributes in a [ResourceRepository] that are explicitly [ResourceVisibility.PUBLIC]. */

@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.SdkConstants
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
@@ -30,6 +31,8 @@ import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
@@ -88,6 +91,41 @@ class ResourceExplorerListViewModelImplTest {
       .getIcon(asset, iconSize, iconSize, { println("CALLBACK") }) as ImageIcon
     val image = icon.image as BufferedImage
     ImageDiffUtil.assertImageSimilar(getPNGFile(), image, 0.05)
+  }
+
+  @Test
+  fun getPngDrawableSummary() {
+    val pngDrawable = projectRule.getPNGResourceItem()
+    val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
+    val asset = Asset.fromResourceItem(pngDrawable)!! as DesignAsset
+    val assetSet = ResourceAssetSet(asset.name, listOf(asset))
+    Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
+
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
+    Truth.assertThat(summary).containsEntry("Name", "png")
+    Truth.assertThat(summary).containsEntry("Reference", "@drawable/png")
+    Truth.assertThat(summary).containsEntry("Type", "PNG")
+    Truth.assertThat(summary).containsEntry("Configuration", "default")
+    Truth.assertThat(summary).containsEntry("Value", "png.png")
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
+  }
+
+  @Test
+  fun getDataBindingLayoutSummary() {
+    projectRule.fixture.copyFileToProject("res/layout/data_binding_layout.xml", "res/layout/data_binding_layout.xml")
+    val layoutResource = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT).values().first()
+    val asset = Asset.fromResourceItem(layoutResource)!! as DesignAsset
+    val assetSet = ResourceAssetSet(asset.name, listOf(asset))
+    Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
+
+    val viewModel = createViewModel(projectRule.module, ResourceType.LAYOUT)
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
+    Truth.assertThat(summary).containsEntry("Name", "data_binding_layout")
+    Truth.assertThat(summary).containsEntry("Reference", "@layout/data_binding_layout")
+    Truth.assertThat(summary).containsEntry("Type", "Data Binding (TextView)")
+    Truth.assertThat(summary).containsEntry("Configuration", "default")
+    Truth.assertThat(summary).containsEntry("Value", "data_binding_layout.xml")
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
   }
 
   @Test
