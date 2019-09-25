@@ -106,6 +106,18 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
     assertThat(keys).isNotEmpty()
     assertThat(keys.map { it.lookupString }.toList()).containsAllOf("<fields>", "<init>", "<methods>", "<clinit>")
 
+    // Suggest only with right prefix
+    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+        -keep class * {
+          <ini$caret
+    """.trimIndent())
+
+    keys = myFixture.completeBasic()
+
+    assertThat(keys).isNotEmpty()
+    assertThat(keys.map { it.lookupString }.toList()).contains("<init>")
+    assertThat(keys.map { it.lookupString }.toList()).doesNotContain("<fields>")
+
     // After modifier.
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,

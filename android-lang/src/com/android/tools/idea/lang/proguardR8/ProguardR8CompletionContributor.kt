@@ -143,9 +143,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
         processingContext: ProcessingContext,
         resultSet: CompletionResultSet
       ) {
-        resultSet
-          .withPrefixMatcher("<")
-          .addAllElements(FIELD_METHOD_WILDCARDS.map { LookupElementBuilder.create(it.key).withTailText(" " + it.value) })
+        resultSet.addAllElements(FIELD_METHOD_WILDCARDS.map { LookupElementBuilder.create(it.key).withTailText(" " + it.value) })
       }
     }
 
@@ -216,7 +214,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
     // Add completion for keywords like <methods> <fields> <init>.
     extend(
       CompletionType.BASIC,
-      or(startOfNewJavaRule, afterFieldOrMethodModifier),
+      or(startOfNewJavaRule, afterFieldOrMethodModifier, psiElement().afterLeaf(psiElement().withText("<"))),
       fieldsAndMethodsWildcardsCompletionProvider
     )
 
