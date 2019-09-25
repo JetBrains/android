@@ -21,11 +21,20 @@ import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
+import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.application.runInAllowSaveMode
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.runInEdtAndWait
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -33,6 +42,20 @@ import org.mockito.Mockito.`when`
 import java.io.File
 
 class AssetDataProviderTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.onDisk()
+
+  @Before
+  fun setup() {
+    runInAllowSaveMode {
+      runInEdtAndWait {
+        projectRule.fixture.testDataPath = getTestDataDirectory()
+        projectRule.fixture.copyDirectoryToProject("res/", "res/")
+        projectRule.project.save()
+      }
+    }
+  }
 
   @Test
   fun testDefaultDataProvider() {
@@ -102,6 +125,89 @@ class AssetDataProviderTest {
 
     val fakeAssetSet = ResourceAssetSet(resName, listOf(fakeDesignAsset))
     val assetSetData = valueDataProvider.getAssetSetData(fakeAssetSet)
+    assertThat(assetSetData.title).isEqualTo(resName)
+    assertThat(assetSetData.subtitle).isEqualTo(resValue)
+    assertThat(assetSetData.metadata).isEqualTo("1 version")
+  }
+
+  @Test
+  fun testPluralsDataProvider() {
+    val resName = "coins_amount"
+    val fileName = "plurals.xml"
+    val resValue = "one: %s coin, other: %s coins"
+    val resTruncatedValue = "one: %s coin, oth..."
+
+    val pluralResource = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
+      ResourceNamespace.RES_AUTO, ResourceType.PLURALS).values().first()
+    val designAsset = Asset.fromResourceItem(pluralResource) as DesignAsset
+
+    val resourceResolver = Mockito.mock(ResourceResolver::class.java)
+    `when`(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(pluralResource.resourceValue)
+
+    val valueDataProvider = ValueAssetDataProvider(resourceResolver)
+
+    val assetData = valueDataProvider.getAssetData(designAsset)
+    assertThat(assetData.title).isEqualTo("default")
+    assertThat(assetData.subtitle).isEqualTo(fileName)
+    assertThat(assetData.metadata).isEqualTo(resTruncatedValue)
+
+    val assetSet = ResourceAssetSet(resName, listOf(designAsset))
+    val assetSetData = valueDataProvider.getAssetSetData(assetSet)
+    assertThat(assetSetData.title).isEqualTo(resName)
+    assertThat(assetSetData.subtitle).isEqualTo(resValue)
+    assertThat(assetSetData.metadata).isEqualTo("1 version")
+  }
+
+  @Test
+  fun testStringArrayDataProvider() {
+    val resName = "string_array"
+    val fileName = "arrays.xml"
+    val resValue = "item 1, item 2, item 3"
+    val resTruncatedValue = "item 1, item 2, i..."
+
+    val stringArray = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
+      ResourceNamespace.RES_AUTO, ResourceType.ARRAY).values().first { it.name == "string_array" }
+    val designAsset = Asset.fromResourceItem(stringArray) as DesignAsset
+
+    val resourceResolver = Mockito.mock(ResourceResolver::class.java)
+    `when`(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(stringArray.resourceValue)
+
+    val valueDataProvider = ValueAssetDataProvider(resourceResolver)
+
+    val assetData = valueDataProvider.getAssetData(designAsset)
+    assertThat(assetData.title).isEqualTo("default")
+    assertThat(assetData.subtitle).isEqualTo(fileName)
+    assertThat(assetData.metadata).isEqualTo(resTruncatedValue)
+
+    val assetSet = ResourceAssetSet(resName, listOf(designAsset))
+    val assetSetData = valueDataProvider.getAssetSetData(assetSet)
+    assertThat(assetSetData.title).isEqualTo(resName)
+    assertThat(assetSetData.subtitle).isEqualTo(resValue)
+    assertThat(assetSetData.metadata).isEqualTo("1 version")
+  }
+
+  @Test
+  fun testIntegerArrayDataProvider() {
+    val resName = "integer_array"
+    val fileName = "arrays.xml"
+    val resValue = "1, 2, 3"
+
+    val stringArray = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
+      ResourceNamespace.RES_AUTO, ResourceType.ARRAY).values().first { it.name == "integer_array" }
+    val designAsset = Asset.fromResourceItem(stringArray) as DesignAsset
+
+    val resourceResolver = Mockito.mock(ResourceResolver::class.java)
+    `when`(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(stringArray.resourceValue)
+
+    val valueDataProvider = ValueAssetDataProvider(resourceResolver)
+
+    val assetData = valueDataProvider.getAssetData(designAsset)
+    assertThat(assetData.title).isEqualTo("default")
+    assertThat(assetData.subtitle).isEqualTo(fileName)
+    assertThat(assetData.metadata).isEqualTo(resValue)
+
+    val assetSet = ResourceAssetSet(resName, listOf(designAsset))
+    val assetSetData = valueDataProvider.getAssetSetData(assetSet)
     assertThat(assetSetData.title).isEqualTo(resName)
     assertThat(assetSetData.subtitle).isEqualTo(resValue)
     assertThat(assetSetData.metadata).isEqualTo("1 version")

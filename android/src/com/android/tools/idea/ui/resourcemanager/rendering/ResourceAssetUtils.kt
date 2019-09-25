@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.ui.resourcemanager.rendering
 
+import com.android.ide.common.rendering.api.ArrayResourceValue
+import com.android.ide.common.rendering.api.PluralsResourceValue
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.ResourceQualifier
@@ -47,15 +49,15 @@ fun ResourceValue.getReadableValue(): String {
   // Some types of resource values require special handling.
   return when (this) {
     // Eg: "one: %s coin, many: %s coins"
-    is BasicPluralsResourceItem -> {
+    is PluralsResourceValue -> {
       val plurals = arrayOfNulls<String>(this.pluralsCount)
-      for (index in 0 until plurals.size) {
+      for (index in plurals.indices) {
         plurals[index] = (this.getQuantity(index) + ": " + this.getValue(index))
       }
       plurals.joinToString(", ").takeIf { it.isNotBlank() }?: NO_VALUE
     }
     // Eg: "Monday, Tuesday, Wednesday"
-    is BasicArrayResourceItem -> this.joinToString(", ").takeIf { it.isNotBlank() }?: NO_VALUE
+    is ArrayResourceValue -> this.joinToString(", ").takeIf { it.isNotBlank() }?: NO_VALUE
     // Eg: "activity_main.xml"
     is BasicFileResourceItem -> this.source.fileName
     else -> this.value?.takeIf { it.isNotBlank() }?: NO_VALUE
