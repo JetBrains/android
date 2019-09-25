@@ -1070,7 +1070,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick2="@{vie<caret>w_id.getText()}"/>
+            android:onClick2="@{vie<caret>wId.getText()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1091,7 +1091,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{view_id.getText().le<caret>ngth()}"/>
+            android:onClick="@{viewId.getText().le<caret>ngth()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
