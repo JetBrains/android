@@ -406,15 +406,19 @@ public class VisualizationManager implements ProjectComponent {
         // User is using preview, don't switch to VisualizationWindow.
         return;
       }
-      VirtualFile newVirtualFile = null;
-      FileEditor editor = event.getNewEditor();
-      if (editor != null) {
-        newVirtualFile = editor.getFile();
+      FileEditor editorForLayout = null;
+      FileEditor newEditor = event.getNewEditor();
+      if (newEditor != null) {
+        VirtualFile newVirtualFile = newEditor.getFile();
+        if (newVirtualFile != null) {
+          PsiFile psiFile = PsiManager.getInstance(myProject).findFile(newVirtualFile);
+          if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.LAYOUT) {
+            // Visualization tool only works for layout files.
+            editorForLayout = newEditor;
+          }
+        }
       }
-      if (newVirtualFile != null) {
-        PsiFile psiFile = PsiManager.getInstance(myProject).findFile(newVirtualFile);
-        processFileEditorChange(ResourceHelper.getFolderType(psiFile) == ResourceFolderType.LAYOUT ? editor : null);
-      }
+      processFileEditorChange(editorForLayout);
     }
   }
 
