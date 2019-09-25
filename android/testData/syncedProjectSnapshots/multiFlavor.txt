@@ -1,6 +1,8 @@
 PROJECT             : testMultiFlavor
     MODULE              : MultiFlavor
         - ModuleGroupPath   : MultiFlavor
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : MultiFlavor
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
@@ -18,6 +20,8 @@ PROJECT             : testMultiFlavor
     MODULE              : app
         - ModuleGroupPath   : MultiFlavor
         - ModuleGroupPath   : app
+        ExternalModuleGroup : MultiFlavor
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>

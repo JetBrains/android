@@ -1,10 +1,12 @@
 PROJECT             : testTwoJarsWithTheSameName
-    MODULE              : My Application
-        - ModuleGroupPath   : My Application
+    MODULE              : My_Application
+        - ModuleGroupPath   : My_Application
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : My Application
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/.idea/modules/My Application.iml
+        ModuleFile          : <PROJECT>/.idea/modules/My_Application.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -125,6 +127,8 @@ PROJECT             : testTwoJarsWithTheSameName
     MODULE              : lib
         - ModuleGroupPath   : My Application
         - ModuleGroupPath   : lib
+        ExternalModuleGroup : My Application
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>

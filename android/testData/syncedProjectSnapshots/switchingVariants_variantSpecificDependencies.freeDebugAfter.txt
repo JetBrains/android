@@ -2,6 +2,8 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
     MODULE              : app
         - ModuleGroupPath   : testSwitchingVariants_variantSpecificDependencies
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testSwitchingVariants_variantSpecificDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -417,6 +419,8 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
     MODULE              : moduleA
         - ModuleGroupPath   : testSwitchingVariants_variantSpecificDependencies
         - ModuleGroupPath   : moduleA
+        ExternalModuleGroup : testSwitchingVariants_variantSpecificDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleA
         LinkedProjectPath   : <PROJECT>/moduleA
         RootProjectPath     : <PROJECT>
@@ -769,6 +773,8 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
     MODULE              : moduleB
         - ModuleGroupPath   : testSwitchingVariants_variantSpecificDependencies
         - ModuleGroupPath   : moduleB
+        ExternalModuleGroup : testSwitchingVariants_variantSpecificDependencies
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleB
         LinkedProjectPath   : <PROJECT>/moduleB
         RootProjectPath     : <PROJECT>
@@ -1120,6 +1126,8 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
     MODULE              : testSwitchingVariants_variantSpecificDependencies
         - ModuleGroupPath   : testSwitchingVariants_variantSpecificDependencies
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testSwitchingVariants_variantSpecificDependencies
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

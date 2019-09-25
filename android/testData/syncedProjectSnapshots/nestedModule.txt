@@ -2,6 +2,8 @@ PROJECT             : testNestedModule
     MODULE              : app
         - ModuleGroupPath   : testNestedModule
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testNestedModule
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -457,6 +459,8 @@ PROJECT             : testNestedModule
         ORDER_ENTRY         : testNestedModule
     MODULE              : testNestedModule
         - ModuleGroupPath   : testNestedModule
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testNestedModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

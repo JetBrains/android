@@ -2,6 +2,8 @@ PROJECT             : testNdkProjectSync
     MODULE              : app
         - ModuleGroupPath   : testNdkProjectSync
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testNdkProjectSync
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -432,6 +434,8 @@ PROJECT             : testNdkProjectSync
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
     MODULE              : testNdkProjectSync
         - ModuleGroupPath   : testNdkProjectSync
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testNdkProjectSync
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>

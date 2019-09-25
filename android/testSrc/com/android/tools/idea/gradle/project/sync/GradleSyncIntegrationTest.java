@@ -827,7 +827,7 @@ b/137231583 */
     requestSyncAndWait();
 
     // Verify that buildSrc modules exists.
-    Module buildSrcModule = getModule("buildSrc");
+    Module buildSrcModule = getModule(getName() + "_buildSrc");
     assertNotNull(buildSrcModule);
     DataNode<ModuleData> moduleData = ExternalSystemApiUtil.findModuleData(buildSrcModule, GradleConstants.SYSTEM_ID);
     assertNotNull(moduleData);

@@ -1,6 +1,8 @@
 PROJECT             : testWithCompositeBuild
     MODULE              : TestCompositeLib1
         - ModuleGroupPath   : TestCompositeLib1
+        ExternalModuleGroup : com.test.composite1
+        ExternalModuleVersion         : 1.0
         LinkedProjectId     : TestCompositeLib1
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1
         RootProjectPath     : <PROJECT>
@@ -18,6 +20,8 @@ PROJECT             : testWithCompositeBuild
     MODULE              : TestCompositeLib1-app
         - ModuleGroupPath   : TestCompositeLib1
         - ModuleGroupPath   : app
+        ExternalModuleGroup : com.test.composite1
+        ExternalModuleVersion         : 1.0
         LinkedProjectId     : TestCompositeLib1:app
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1/app
         RootProjectPath     : <PROJECT>
@@ -470,6 +474,8 @@ PROJECT             : testWithCompositeBuild
     MODULE              : TestCompositeLib1-lib
         - ModuleGroupPath   : TestCompositeLib1
         - ModuleGroupPath   : lib
+        ExternalModuleGroup : com.test.composite1
+        ExternalModuleVersion         : 1.0
         LinkedProjectId     : TestCompositeLib1:lib
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1/lib
         RootProjectPath     : <PROJECT>
@@ -905,6 +911,8 @@ PROJECT             : testWithCompositeBuild
         ORDER_ENTRY         : composite4
     MODULE              : TestCompositeLib3
         - ModuleGroupPath   : TestCompositeLib3
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : TestCompositeLib3
         LinkedProjectPath   : <PROJECT>/TestCompositeLib3
         RootProjectPath     : <PROJECT>
@@ -922,6 +930,8 @@ PROJECT             : testWithCompositeBuild
     MODULE              : TestCompositeLib3-app
         - ModuleGroupPath   : TestCompositeLib3
         - ModuleGroupPath   : app
+        ExternalModuleGroup : TestCompositeLib3
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : TestCompositeLib3:app
         LinkedProjectPath   : <PROJECT>/TestCompositeLib3/app
         RootProjectPath     : <PROJECT>
@@ -1372,6 +1382,8 @@ PROJECT             : testWithCompositeBuild
     MODULE              : TestCompositeLib3-lib
         - ModuleGroupPath   : TestCompositeLib3
         - ModuleGroupPath   : lib
+        ExternalModuleGroup : com.test.composite3
+        ExternalModuleVersion         : 1.0
         LinkedProjectId     : TestCompositeLib3:lib
         LinkedProjectPath   : <PROJECT>/TestCompositeLib3/lib
         RootProjectPath     : <PROJECT>
@@ -1724,10 +1736,12 @@ PROJECT             : testWithCompositeBuild
         ORDER_ENTRY         : composite4
     MODULE              : composite2
         - ModuleGroupPath   : composite2
+        ExternalModuleGroup : com.test.composite2
+        ExternalModuleVersion         : 1.0
         LinkedProjectId     : composite2
         LinkedProjectPath   : <PROJECT>/TestCompositeLib2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/.idea/modules/composite2/composite2.iml
+        ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib2/composite2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -1747,10 +1761,12 @@ PROJECT             : testWithCompositeBuild
         ORDER_ENTRY         : <Module source>
     MODULE              : composite4
         - ModuleGroupPath   : composite4
+        ExternalModuleGroup : com.test.composite4
+        ExternalModuleVersion         : 1.0
         LinkedProjectId     : composite4
         LinkedProjectPath   : <PROJECT>/TestCompositeLib4
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/.idea/modules/composite4/composite4.iml
+        ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib4/composite4.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -1770,6 +1786,8 @@ PROJECT             : testWithCompositeBuild
         ORDER_ENTRY         : <Module source>
     MODULE              : testWithCompositeBuild
         - ModuleGroupPath   : testWithCompositeBuild
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : testWithCompositeBuild
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
@@ -1787,6 +1805,8 @@ PROJECT             : testWithCompositeBuild
     MODULE              : testWithCompositeBuild-app
         - ModuleGroupPath   : testWithCompositeBuild
         - ModuleGroupPath   : app
+        ExternalModuleGroup : testWithCompositeBuild
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
@@ -2240,6 +2260,8 @@ PROJECT             : testWithCompositeBuild
     MODULE              : testWithCompositeBuild-lib
         - ModuleGroupPath   : testWithCompositeBuild
         - ModuleGroupPath   : lib
+        ExternalModuleGroup : com.test.composite
+        ExternalModuleVersion         : 1.0
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
