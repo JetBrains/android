@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.build.compiler;
 
+import static com.android.tools.idea.testing.TestProjectPaths.MULTI_FEATURE;
+import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -23,14 +27,9 @@ import com.intellij.compiler.impl.ProjectCompileScope;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import org.jetbrains.jps.api.CmdlineRemoteProto.Message.ControllerMessage.ParametersMessage.TargetTypeBuildScope;
-
 import java.util.List;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.TestProjectPaths.*;
+import org.jetbrains.jps.api.CmdlineRemoteProto.Message.ControllerMessage.ParametersMessage.TargetTypeBuildScope;
 
 public class AndroidGradleBuildTargetProviderTest extends AndroidGradleTestCase {
 
@@ -68,7 +67,8 @@ public class AndroidGradleBuildTargetProviderTest extends AndroidGradleTestCase 
   }
 
   public void testModuleCompileScope() throws Exception {
-    loadProject(MULTI_FEATURE);
+    // Use a plugin version with feature support
+    loadProject(MULTI_FEATURE, null, null, "3.5.0");
 
     Module[] modules = ModuleManager.getInstance(getProject()).getModules();
     assertSize(6, modules);

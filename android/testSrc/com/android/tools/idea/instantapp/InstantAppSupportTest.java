@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.instantapp;
 
+import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIABaseFeature;
+import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIAInstantApp;
+import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
+import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
+import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
+
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.editor.DeepLinkLaunch;
@@ -27,22 +34,15 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.exceptionCases.AbstractExceptionCase;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
-
-import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIABaseFeature;
-import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIAInstantApp;
-import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
-import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
-import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
+import org.jetbrains.annotations.NotNull;
 
 public class InstantAppSupportTest extends AndroidGradleTestCase {
 
   public void testLoadInstantAppProject() throws Exception {
-    loadProject(INSTANT_APP);
+    // Use a plugin with instant app support
+    loadProject(INSTANT_APP, null, null, "3.5.0");
     generateSources();
 
     assertModuleIsValidAIAInstantApp(getModule("instant-app"), ImmutableList.of(":feature"));
@@ -55,7 +55,8 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
   }
 
   public void testCorrectRunConfigurationsCreated() throws Exception {
-    loadProject(INSTANT_APP, "instant-app");
+    // Use a plugin with instant app support
+    loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
 
     // Create one run configuration
     List<RunConfiguration> configurations =
@@ -74,14 +75,16 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
   }
 
   public void testAndroidRunConfigurationWithoutError() throws Exception {
-    loadProject(INSTANT_APP, "feature");
+    // Use a plugin with instant app support
+    loadProject(INSTANT_APP, "feature", null, "3.5.0");
     AndroidTestRunConfiguration
       runConfiguration = createAndroidTestConfigurationFromClass(getProject(), "com.example.instantapp.ExampleInstrumentedTest");
     runConfiguration.checkConfiguration();
   }
 
   public void testRunConfigurationFailsIfWrongURL() throws Throwable {
-    loadProject(INSTANT_APP, "instant-app");
+    // Use a plugin with instant app support
+    loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
 
     // Create one run configuration
     List<RunConfiguration> configurations =

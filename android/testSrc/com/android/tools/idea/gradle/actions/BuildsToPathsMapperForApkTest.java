@@ -55,7 +55,8 @@ public class BuildsToPathsMapperForApkTest extends AndroidGradleTestCase {
   }
 
   private void initInstantApp() throws Exception {
-    loadProject(INSTANT_APP);
+    // Use a plugin version with instant app support
+    loadProject(INSTANT_APP, null, null, "3.5.0");
     myModule = getModule("instant-app");
     myTask = BuildsToPathsMapper.getInstance(getProject());
   }
@@ -123,7 +124,8 @@ public class BuildsToPathsMapperForApkTest extends AndroidGradleTestCase {
   }
 
   private void initInstantAppForSignedApk() throws Exception {
-    loadProject(INSTANT_APP);
+    // Use a plugin version with instant app support
+    loadProject(INSTANT_APP, null, null, "3.5.0");
     myModule = getModule("instant-app");
     myBuildVariants.add(buildVariant);
     myTask = BuildsToPathsMapper.getInstance(getProject());

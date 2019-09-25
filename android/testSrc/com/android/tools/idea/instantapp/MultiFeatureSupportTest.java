@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.project.Project;
-
-import java.io.File;
-
-import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.*;
+import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIAApp;
+import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIABaseFeature;
+import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIAFeature;
+import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIAInstantApp;
 import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
 import static com.android.tools.idea.testing.TestProjectPaths.MULTI_FEATURE;
 import static com.android.tools.idea.testing.TestProjectPaths.NESTED_MULTI_FEATURE;
 
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.project.Project;
+import java.io.File;
+
 public class MultiFeatureSupportTest extends AndroidGradleTestCase {
 
   public void testLoadMultiAtomProject() throws Exception {
-    loadProject(MULTI_FEATURE);
+    // Use a plugin with feature support
+    loadProject(MULTI_FEATURE, null, null, "3.5.0");
 
     assertModuleIsValidAIAApp(getModule("apk"), ImmutableList.of(":feature1", ":feature2", ":base"));
     assertModuleIsValidAIAFeature(getModule("feature1"), ImmutableList.of(":base"));
@@ -46,7 +49,8 @@ public class MultiFeatureSupportTest extends AndroidGradleTestCase {
   }
 
   public void testLoadNestedMultiAtomProject() throws Exception {
-    loadProject(NESTED_MULTI_FEATURE);
+    // Use a plugin with instant app support
+    loadProject(NESTED_MULTI_FEATURE, null, null, "3.5.0");
 
     assertModuleIsValidAIAApp(getModule("apk"), ImmutableList.of(":feature:feature1", ":feature:feature2", ":feature:base"));
     assertModuleIsValidAIAFeature(getModule("feature1"), ImmutableList.of(":feature:base"));

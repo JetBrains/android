@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
-import org.junit.Before;
-
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static org.mockito.Mockito.when;
+
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import org.junit.Before;
 
 public class InstantAppsTest extends AndroidGradleTestCase {
   @Override
@@ -33,7 +31,8 @@ public class InstantAppsTest extends AndroidGradleTestCase {
   }
 
   public void testFindBaseFeatureWithInstantApp() throws Exception {
-    loadProject(INSTANT_APP, "instant-app");
+    // Use a plugin version that supports instant app
+    loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
     assertEquals(myModules.getModule("feature"), findBaseFeature(myAndroidFacet));
   }
 
@@ -43,7 +42,8 @@ public class InstantAppsTest extends AndroidGradleTestCase {
   }
 
   public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
-    loadProject(INSTANT_APP, "instant-app");
+    // Use a plugin version that supports instant app
+    loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
     assertEquals("http://example.com/example", getDefaultInstantAppUrl(myAndroidFacet));
   }
 

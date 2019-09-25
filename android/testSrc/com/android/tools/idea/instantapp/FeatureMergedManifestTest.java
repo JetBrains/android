@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.tools.idea.model.MergedManifestSnapshot;
+import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_LIBRARY_DEPENDENCY;
+
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 
-import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_LIBRARY_DEPENDENCY;
-
 public class FeatureMergedManifestTest extends AndroidGradleTestCase {
 
   public void testLibraryManifestMergedOnFeature() throws Exception {
-    loadProject(INSTANT_APP_LIBRARY_DEPENDENCY);
+    // Use a plugin version with feature support
+    loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, null, "3.5.0");
     Module featureModule = getModule("feature");
     MergedManifestSnapshot mergedManifestManager = MergedManifestManager.getSnapshot(featureModule);
     assertSize(1, mergedManifestManager.getActivities());
   }
 
   public void testCanFindURL() throws Exception {
-    loadProject(INSTANT_APP_LIBRARY_DEPENDENCY);
+    // Use a plugin version with feature support
+    loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, null, "3.5.0");
     Module bundleModule = getModule("instantapp");
     AndroidFacet facet = AndroidFacet.getInstance(bundleModule);
     assertEquals("https://android.example.com/example", InstantApps.getDefaultInstantAppUrl(facet));
