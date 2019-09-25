@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.tools.property.panel.api.EnumValue
 import com.google.common.truth.Truth
+import kotlin.math.abs
 
 object EnumValueUtil {
   /**
@@ -55,7 +56,7 @@ object EnumValueUtil {
       Truth.assertThat(nextSectionIndex - startIndex).named("Expected Style Count").isEqualTo(expectedCount)
     }
     else {
-      Truth.assertThat(nextSectionIndex - startIndex).named("Expected Style Count").isAtLeast(Math.abs(expectedCount))
+      Truth.assertThat(nextSectionIndex - startIndex).named("Expected Style Count").isAtLeast(abs(expectedCount))
     }
     return if (nextSectionIndex < values.size) nextSectionIndex else -1
   }

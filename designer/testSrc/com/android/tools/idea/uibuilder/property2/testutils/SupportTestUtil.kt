@@ -66,12 +66,13 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
 
   fun makeProperty(namespace: String, name: String, type: NelePropertyType): NelePropertyItem {
     val definition = findDefinition(namespace, name)
-    when {
+    return when {
       definition == null ->
-        return NelePropertyItem(namespace, name, type, null, "", "", model, components)
+        NelePropertyItem(namespace, name, type, null, "", "", model, components)
       definition.formats.contains(AttributeFormat.FLAGS) ->
-        return NeleFlagsPropertyItem(namespace, name, NelePropertyType.ENUM, definition, "", "", model, components)
-      else -> return makeProperty(namespace, definition, type)
+        NeleFlagsPropertyItem(namespace, name, NelePropertyType.ENUM, definition, "", "", model, components)
+      else ->
+        makeProperty(namespace, definition, type)
     }
   }
 

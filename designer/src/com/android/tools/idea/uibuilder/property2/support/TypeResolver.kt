@@ -288,7 +288,7 @@ object TypeResolver {
   private fun split(name: String): Set<String> {
     val parts = mutableSetOf<String>()
     var part = name
-    while (!part.isEmpty()) {
+    while (part.isNotEmpty()) {
       val index = part.indexOfFirst { it.isUpperCase() }
       if (index > 0) {
         parts.add(part.substring(0, index))
