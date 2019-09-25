@@ -26,6 +26,7 @@ import com.google.common.collect.Iterables;
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
+import org.jetbrains.jps.model.java.JpsJavaSdkType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -81,8 +82,7 @@ public class JavaModuleModelFactoryTest {
     assertFalse(javaModuleModel.isAndroidModuleWithoutVariants());
     assertEquals(myBuildFolderPath, javaModuleModel.getBuildFolderPath());
     assertNotNull(javaModuleModel.getJavaLanguageLevel());
-    //noinspection deprecation
-    assertEquals(myJavaLanguageLevel, javaModuleModel.getJavaLanguageLevel().getCompilerComplianceDefaultOption());
+    assertEquals(myJavaLanguageLevel, JpsJavaSdkType.complianceOption(javaModuleModel.getJavaLanguageLevel().toJavaVersion()));
     assertThat(javaModuleModel.getContentRoots()).hasSize(1);
     // Verify that build directory and .gradle are excluded.
     JavaModuleContentRoot contentRoot = javaModuleModel.getContentRoots().iterator().next();
