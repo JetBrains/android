@@ -50,12 +50,14 @@ public class StudioIcons {
     public static final Icon ERROR = load("/studio/icons/common/error.svg"); // 16x16
     public static final Icon EXPORT = load("/studio/icons/common/export.svg"); // 16x16
     public static final Icon FILTER = load("/studio/icons/common/filter.svg"); // 16x16
+    public static final Icon GRID_VIEW = load("/studio/icons/common/grid-view.svg"); // 17x16
     public static final Icon HELP = load("/studio/icons/common/help.svg"); // 16x16
     public static final Icon IMPORT_DATA = load("/studio/icons/common/import-data.svg"); // 16x16
     public static final Icon INFO_INLINE_SELECTED = load("/studio/icons/common/info-inline-selected.svg"); // 16x16
     public static final Icon INFO_INLINE = load("/studio/icons/common/info-inline.svg"); // 16x16
     public static final Icon INFO = load("/studio/icons/common/info.svg"); // 16x16
     public static final Icon LINK = load("/studio/icons/common/link.svg"); // 16x16
+    public static final Icon LIST_VIEW = load("/studio/icons/common/list-view.svg"); // 17x16
     public static final Icon LOCKED_INLINE_SELECTED = load("/studio/icons/common/locked-inline-selected.svg"); // 16x16
     public static final Icon LOCKED_INLINE = load("/studio/icons/common/locked-inline.svg"); // 16x16
     public static final Icon MISSING = load("/studio/icons/common/missing.svg"); // 16x16
