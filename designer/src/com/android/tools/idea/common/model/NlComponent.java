@@ -397,8 +397,9 @@ public class NlComponent implements NlAttributesHolder {
     }
     // Handle validity
     myBackend.setAttribute(attribute, namespace, value);
-    if (mySnapshot != null) {
-      mySnapshot.setAttribute(attribute, namespace, prefix, value);
+    TagSnapshot snapshot = mySnapshot;
+    if (snapshot != null) {
+      snapshot.setAttribute(attribute, namespace, prefix, value);
     }
   }
 
@@ -443,8 +444,9 @@ public class NlComponent implements NlAttributesHolder {
 
   @Nullable
   public String getAttributeImpl(@Nullable String namespace, @NotNull String attribute) {
-    if (mySnapshot != null) {
-      return mySnapshot.getAttribute(attribute, namespace);
+    TagSnapshot snapshot = mySnapshot;
+    if (snapshot != null) {
+      return snapshot.getAttribute(attribute, namespace);
     }
 
     return myBackend.getAttribute(attribute, namespace);
@@ -477,8 +479,9 @@ public class NlComponent implements NlAttributesHolder {
 
   @NotNull
   public List<AttributeSnapshot> getAttributesImpl() {
-    if (mySnapshot != null) {
-      return mySnapshot.attributes;
+    TagSnapshot snapshot = mySnapshot;
+    if (snapshot != null) {
+      return snapshot.attributes;
     }
 
     XmlTag tag = getTagDeprecated();
