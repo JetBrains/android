@@ -67,6 +67,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
 import com.intellij.util.LineSeparator
 import freemarker.template.Configuration
@@ -683,6 +684,14 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
         return null
       }
       val virtualFile = findFileByIoFile(buildFile, true) ?: throw RuntimeException("Failed to find " + buildFile.path)
+
+      // TemplateUtils.writeTextFile saves Documents but doesn't commit them, since there might not be a Project to speak of yet.
+      // ProjectBuildModel uses PSI, so let's make sure the Document is committed, since it's illegal to modify PSI for a file with
+      // and uncommitted Document.
+      FileDocumentManager.getInstance()
+        .getCachedDocument(virtualFile)
+        ?.let(PsiDocumentManager.getInstance(project)::commitDocument)
+
       return ProjectBuildModel.getOrLog(project)?.getModuleBuildModel(virtualFile)
     }
 
