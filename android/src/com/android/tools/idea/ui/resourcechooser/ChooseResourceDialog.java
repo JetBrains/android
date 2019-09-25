@@ -725,7 +725,7 @@ public class ChooseResourceDialog extends ResourcePickerDialog {
 
   @NotNull
   private ToggleAction createGridViewAction() {
-    return new ToggleAction(null, "grid", StudioIcons.LayoutEditor.Palette.GRID_VIEW) {
+    return new ToggleAction(null, "grid", StudioIcons.Common.GRID_VIEW) {
       @Override
       public boolean isSelected(AnActionEvent e) {
         return myGridMode;
@@ -740,7 +740,7 @@ public class ChooseResourceDialog extends ResourcePickerDialog {
 
   @NotNull
   private ToggleAction createListViewAction() {
-    return new ToggleAction(null, "list", StudioIcons.LayoutEditor.Palette.LIST_VIEW) {
+    return new ToggleAction(null, "list", StudioIcons.Common.LIST_VIEW) {
       @Override
       public boolean isSelected(AnActionEvent e) {
         return !myGridMode;
