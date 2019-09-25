@@ -963,6 +963,13 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     LOG.error(t);
   }
 
+  /**
+   * Returns true if the given class has been loaded by the class loader.
+   */
+  boolean hasLoadedClass(@NotNull String classFqn) {
+    return myClassLoader.hasLoadedClass(classFqn);
+  }
+
   private static class NamedXmlParser extends KXmlParser {
     @Nullable
     private final String myName;
