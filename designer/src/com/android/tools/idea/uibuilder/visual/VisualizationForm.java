@@ -29,7 +29,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
@@ -47,7 +46,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -60,7 +58,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,7 +95,6 @@ public class VisualizationForm implements Disposable {
   private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
   private final JPanel myRoot = new JPanel(new BorderLayout());
-  private RenderResult myRenderResult;
   private VirtualFile myFile;
   private boolean isActive = false;
   private JComponent myContentPanel;
@@ -161,14 +157,6 @@ public class VisualizationForm implements Disposable {
      return null;
   }
 
-  @Nullable
-  private XmlFile getFile() {
-    if (myFile == null) {
-      return null;
-    }
-    return myManager.getBoundXmlFile(PsiManager.getInstance(myProject).findFile(myFile));
-  }
-
   @NotNull
   public JComponent getComponent() {
     return myRoot;
@@ -208,15 +196,6 @@ public class VisualizationForm implements Disposable {
     }
 
     return true;
-  }
-
-  public void clearRenderResult() {
-    XmlFile file = getFile();
-    if (file == null) {
-      myRenderResult = null;
-    } else if (myRenderResult != null && myRenderResult.getFile() != file) {
-      myRenderResult = RenderResult.createBlank(file);
-    }
   }
 
   private void initPreviewForm() {
