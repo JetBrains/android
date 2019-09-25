@@ -767,6 +767,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_COMPLETION_WEIGHER = Flag.create(
+    COMPOSE, "completion.weigher",
+    "Custom weigher for Compose",
+    "If enabled, code completion puts composable functions above other completion suggestions. For now in every context.",
+    false
+  );
+
   //endregion
 
   //region Binding
