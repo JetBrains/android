@@ -350,7 +350,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_VISUALIZATION = Flag.create(
     NELE, "visualisation", "Layout Visualisation Tool",
     "Enable Visualisation Tool to preview layout in multiple devices at the same time",
-    false);
+    true);
   //endregion
 
   //region Navigation Editor
