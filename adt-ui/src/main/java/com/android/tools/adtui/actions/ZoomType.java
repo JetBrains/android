@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.actions;
 
-import icons.StudioIcons;
+import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,29 +28,29 @@ public enum ZoomType {
    * Zoom to fit (the screen view port)
    */
   // TODO(b/139432440): Only use icons dedicated for zoom controls.
-  FIT("Zoom to Fit Screen", StudioIcons.Common.RESET_ZOOM, StudioIcons.LayoutEditor.Toolbar.EXPAND_TO_FIT),
+  FIT("Zoom to Fit Screen", AllIcons.General.FitContent, AllIcons.General.FitContent),
 
   /**
    * Zoom to fit, but do not zoom more than 100%
    */
-  FIT_INTO("Zoom out to Fit Screen", StudioIcons.Common.RESET_ZOOM, null),
+  FIT_INTO("Zoom out to Fit Screen", AllIcons.General.FitContent, null),
 
   /**
    * Zoom to actual size (100%)
    */
-  ACTUAL("100%", null, StudioIcons.Common.ZOOM_ACTUAL),
+  ACTUAL("100%", null, AllIcons.General.ActualZoom),
 
   /**
    * Zoom in
    */
   // TODO(b/139432440): Only use icons dedicated for zoom controls.
-  IN("Zoom In", StudioIcons.Common.ZOOM_IN, StudioIcons.Common.ADD),
+  IN("Zoom In", AllIcons.General.ZoomIn, AllIcons.General.Add),
 
   /**
    * Zoom out
    */
   // TODO(b/139432440): Only use icons dedicated for zoom controls.
-  OUT("Zoom Out", StudioIcons.Common.ZOOM_OUT, StudioIcons.Common.REMOVE),
+  OUT("Zoom Out", AllIcons.General.ZoomOut, AllIcons.General.Remove),
 
   /**
    * Zoom to match the exact device size (depends on the monitor dpi)
