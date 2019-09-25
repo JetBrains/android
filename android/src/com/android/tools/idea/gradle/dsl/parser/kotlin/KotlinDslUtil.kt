@@ -34,6 +34,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
@@ -70,8 +71,6 @@ import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import kotlin.reflect.KClass
-
-internal val ESCAPE_CHILD = Regex("[\\t ]+")
 
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
@@ -139,14 +138,14 @@ internal fun adjustForKtBlockExpression(blockExpression: KtBlockExpression) : Ps
   var element = blockExpression.firstChild
 
   // If the first child of the block is not an empty element, return it.
-  if (element != null && !(element.text.isNullOrEmpty() || element.text.matches(ESCAPE_CHILD))) {
+  if (element != null && !(element.text.isNullOrEmpty() || element is PsiWhiteSpace)) {
     return element
   }
 
   // Find first non-empty child of the block expression.
   while (element != null) {
     element = element.nextSibling
-    if (element != null && (element.text.isNullOrEmpty() || element.text.matches(ESCAPE_CHILD))) {
+    if (element != null && (element.text.isNullOrEmpty() || element is PsiWhiteSpace)) {
       // This is an empty element, so continue.
       continue
     }
