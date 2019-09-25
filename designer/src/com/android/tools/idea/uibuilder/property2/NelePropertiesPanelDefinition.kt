@@ -31,5 +31,5 @@ private val DEFAULT_PROPERTY_SIDE_WIDTH = JBUI.scale(280)
  */
 class NelePropertiesPanelDefinition(facet: AndroidFacet, side: Side, split: Split, autoHide: AutoHide) :
   ToolWindowDefinition<DesignSurface>("Attributes", StudioIcons.Shell.ToolWindows.ATTRIBUTES, "PROPERTIES", side, split, autoHide,
-                                      DEFAULT_PROPERTY_SIDE_WIDTH, ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
+                                      DEFAULT_PROPERTY_SIDE_WIDTH, DEFAULT_BUTTON_SIZE,
                                       { NelePropertiesPanelToolContent(facet, it) })

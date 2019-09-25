@@ -64,9 +64,9 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.pom.Navigatable
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
-import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomUtil
 import org.jetbrains.android.dom.AttributeProcessingUtil
@@ -523,18 +523,13 @@ open class NelePropertyItem(
     override val action: AnAction?
       get() {
         val value = rawValue
-        if (isColor(value)) {
-          return ColorSelectionAction
-        }
-        else {
-          return OpenResourceManagerAction
-        }
+        return if (isColor(value)) ColorSelectionAction else OpenResourceManagerAction
       }
 
       private fun resolveValueAsIcon(value: String?): Icon? {
         if (value != null && !isReferenceValue(value)) {
           val color = parseColor(value) ?: return null
-          return JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false))
+          return ColorIcon(RESOURCE_ICON_SIZE, color, false).scale(JBUIScale.scale(1f))
         }
         val resValue = asResourceValue(value) ?: return null
         return resolver?.resolveAsIcon(resValue, project, model.facet)

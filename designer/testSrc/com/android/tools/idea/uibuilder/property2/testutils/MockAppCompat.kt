@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 
 const val APPCOMPAT_IMAGE_VIEW = "android.support.v7.widget.AppCompatImageView"
@@ -153,7 +152,7 @@ public class MyActivity extends AppCompatActivity {}
 
 object MockAppCompat {
 
-  fun setUp(test: AndroidTestCase, facet: AndroidFacet, fixture: JavaCodeInsightTestFixture) {
+  fun setUp(facet: AndroidFacet, fixture: JavaCodeInsightTestFixture) {
     val gradleVersion = GradleVersion.parse(String.format("%1\$d.0.0",
         MOST_RECENT_API_LEVEL
     ))
