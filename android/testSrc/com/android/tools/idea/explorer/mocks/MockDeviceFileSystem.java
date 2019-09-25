@@ -15,25 +15,31 @@
  */
 package com.android.tools.idea.explorer.mocks;
 
-import com.android.tools.idea.util.FutureUtils;
+import com.android.ddmlib.FileListingService;
+import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceState;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
+import com.android.tools.idea.util.FutureUtils;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.Alarm;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Executor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("SameParameterValue")
 public class MockDeviceFileSystem implements DeviceFileSystem {
@@ -47,11 +53,13 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   private Throwable myDownloadError;
   private Throwable myRootDirectoryError;
   private Throwable myUploadError;
+  private FutureCallbackExecutor myTaskExectuor;
 
-  public MockDeviceFileSystem(@NotNull MockDeviceFileSystemService service, @NotNull String name) {
+  public MockDeviceFileSystem(@NotNull MockDeviceFileSystemService service, @NotNull String name, @NotNull Executor taskExecutor) {
     myService = service;
     myName = name;
     myRoot = MockDeviceFileEntry.createRoot(this);
+    myTaskExectuor = new FutureCallbackExecutor(taskExecutor);
   }
 
   @NotNull
@@ -88,7 +96,64 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   @NotNull
   @Override
   public ListenableFuture<DeviceFileEntry> getEntry(@NotNull String path) {
-    throw new UnsupportedOperationException();
+    SettableFuture<DeviceFileEntry> resultFuture = SettableFuture.create();
+
+    ListenableFuture<DeviceFileEntry> currentDir = getRootDirectory();
+    myTaskExectuor.addCallback(currentDir, new FutureCallback<DeviceFileEntry>() {
+      @Override
+      public void onSuccess(@javax.annotation.Nullable DeviceFileEntry result) {
+        assert result != null;
+
+        if (StringUtil.isEmpty(path) || StringUtil.equals(path, FileListingService.FILE_SEPARATOR)) {
+          resultFuture.set(result);
+          return;
+        }
+
+        String[] pathSegments = path.substring(1).split(FileListingService.FILE_SEPARATOR);
+        resolvePathSegments(resultFuture, result, pathSegments, 0);
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        resultFuture.setException(t);
+      }
+    });
+
+    return resultFuture;
+  }
+
+  private void resolvePathSegments(@NotNull SettableFuture<DeviceFileEntry> future,
+                                   @NotNull DeviceFileEntry currentEntry,
+                                   @NotNull String[] segments,
+                                   int segmentIndex) {
+    if (segmentIndex >= segments.length) {
+      future.set(currentEntry);
+      return;
+    }
+
+    ListenableFuture<List<DeviceFileEntry>> entriesFuture = currentEntry.getEntries();
+    myTaskExectuor.addCallback(entriesFuture, new FutureCallback<List<DeviceFileEntry>>() {
+      @Override
+      public void onSuccess(@javax.annotation.Nullable List<DeviceFileEntry> result) {
+        assert result != null;
+
+        Optional<DeviceFileEntry> entry = result
+          .stream()
+          .filter(x -> x.getName().equals(segments[segmentIndex]))
+          .findFirst();
+        if (!entry.isPresent()) {
+          future.setException(new IllegalArgumentException("Path not found"));
+        }
+        else {
+          resolvePathSegments(future, entry.get(), segments, segmentIndex + 1);
+        }
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        future.setException(t);
+      }
+    });
   }
 
   @NotNull

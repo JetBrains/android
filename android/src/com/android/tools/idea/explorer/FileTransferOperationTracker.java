@@ -16,14 +16,13 @@
 package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.apk.viewer.ApkViewPanel;
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ExceptionUtil;
+import java.nio.file.Path;
 import java.util.Locale;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.CancellationException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link LongRunningOperationTracker} class that tracks progress of a file transfer
@@ -111,15 +110,15 @@ public class FileTransferOperationTracker extends LongRunningOperationTracker {
     setStatusText(text);
   }
 
-  public void setDownloadFileText(@NotNull DeviceFileEntry entry, long currentBytes, long totalBytes) {
+  public void setDownloadFileText(@NotNull Path entryFullPath, long currentBytes, long totalBytes) {
     String text;
     if (myTotalFileCount > 1) {
       text = String.format(Locale.US, "Downloading file %,d of %,d: \"%s\"", myCurrentFileCount, myTotalFileCount,
-                           StringUtil.shortenPathWithEllipsis(entry.getFullPath(), MAX_PATH_DISPLAY_LENGTH));
+                           StringUtil.shortenPathWithEllipsis(entryFullPath.toString(), MAX_PATH_DISPLAY_LENGTH));
     }
     else {
       text = String.format("Downloading file \"%s\"",
-                           StringUtil.shortenPathWithEllipsis(entry.getFullPath(), MAX_PATH_DISPLAY_LENGTH));
+                           StringUtil.shortenPathWithEllipsis(entryFullPath.toString(), MAX_PATH_DISPLAY_LENGTH));
     }
     if (totalBytes > 0) {
       text += String.format(" (%s / %s)",

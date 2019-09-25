@@ -20,6 +20,8 @@ import static com.android.tools.idea.concurrent.FutureUtils.ignoreResult;
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.device.fs.DownloadProgress;
+import com.android.tools.idea.device.fs.DownloadedFileData;
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
@@ -489,7 +491,7 @@ public class DeviceExplorerController {
     }
 
     @Nullable
-    private DeviceFileEntryNode getTreeNodeFromEntry(@NonNull DeviceFileEntryNode treeNode, @NonNull DeviceFileEntry entry) {
+    private DeviceFileEntryNode getTreeNodeFromEntry(@NonNull DeviceFileEntryNode treeNode, @NonNull Path entryFullPath) {
       TreeNode treeNodeRoot = getTreeNodeRoot(treeNode);
 
       if (!(treeNodeRoot instanceof DeviceFileEntryNode)) {
@@ -497,7 +499,7 @@ public class DeviceExplorerController {
       }
 
       DeviceFileEntryNode treeRoot = (DeviceFileEntryNode)treeNodeRoot;
-      return findDeviceFileEntryNodeFromPath(treeRoot, entry.getFullPath());
+      return findDeviceFileEntryNodeFromPath(treeRoot, entryFullPath);
     }
 
     @NonNull
@@ -509,8 +511,8 @@ public class DeviceExplorerController {
     }
 
     @Nullable
-    private DeviceFileEntryNode findDeviceFileEntryNodeFromPath(@NonNull DeviceFileEntryNode root, @NonNull String filePath) {
-      String[] pathComponents = filePath.trim().substring(1).split("/");
+    private DeviceFileEntryNode findDeviceFileEntryNodeFromPath(@NonNull DeviceFileEntryNode root, @NonNull Path filePath) {
+      String[] pathComponents = filePath.toString().trim().substring(1).split("/");
 
       if (pathComponents.length == 0) {
         return root;
@@ -1447,12 +1449,12 @@ public class DeviceExplorerController {
       DeviceFileEntry entry = treeNode.getEntry();
 
       AtomicReference<Long> sizeRef = new AtomicReference<>(0L);
-      ListenableFuture<Void> futureDownload = myFileManager.downloadFileEntry(entry, localPath, new FileManagerDownloadProgress() {
+      ListenableFuture<DownloadedFileData> futureDownload = myFileManager.downloadFileEntry(entry, localPath, new DownloadProgress() {
         private long previousBytes;
 
         @Override
-        public void onDownloadStarting(DeviceFileEntry entry) {
-          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entry);
+        public void onStarting(@NotNull Path entryFullPath) {
+          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entryFullPath);
           assert currentNode != null;
 
           previousBytes = 0;
@@ -1460,19 +1462,19 @@ public class DeviceExplorerController {
         }
 
         @Override
-        public void onProgress(DeviceFileEntry entry, long currentBytes, long totalBytes) {
-          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entry);
+        public void onProgress(@NotNull Path entryFullPath, long currentBytes, long totalBytes) {
+          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entryFullPath);
           assert currentNode != null;
 
           tracker.processFileBytes(currentBytes - previousBytes);
           previousBytes = currentBytes;
-          tracker.setDownloadFileText(entry, currentBytes, totalBytes);
+          tracker.setDownloadFileText(entryFullPath, currentBytes, totalBytes);
           currentNode.setTransferProgress(currentBytes, totalBytes);
         }
 
         @Override
-        public void onDownloadCompleted(DeviceFileEntry entry) {
-          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entry);
+        public void onCompleted(@NotNull Path entryFullPath) {
+          DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entryFullPath);
           assert currentNode != null;
 
           sizeRef.set(sizeRef.get()+previousBytes);
