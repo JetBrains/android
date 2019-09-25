@@ -20,4 +20,5 @@ import com.intellij.psi.PsiElement
 interface ProguardR8ClassMember : PsiElement {
   val type: ProguardR8Type?
   val parameters: ProguardR8Parameters?
+  val accessModifierList: List<ProguardR8AccessModifier>
 }

@@ -25,6 +25,7 @@ import com.android.tools.idea.lang.proguardR8.psi.impl.*;
 
 public interface ProguardR8PsiTypes {
 
+  IElementType ACCESS_MODIFIER = new ProguardR8AstNodeType("ACCESS_MODIFIER");
   IElementType ANNOTATION_NAME = new ProguardR8AstNodeType("ANNOTATION_NAME");
   IElementType ANY_FIELD_OR_METHOD = new ProguardR8AstNodeType("ANY_FIELD_OR_METHOD");
   IElementType ANY_PRIMITIVE_TYPE = new ProguardR8AstNodeType("ANY_PRIMITIVE_TYPE");
@@ -36,7 +37,6 @@ public interface ProguardR8PsiTypes {
   IElementType CLASS_SPECIFICATION_HEADER = new ProguardR8AstNodeType("CLASS_SPECIFICATION_HEADER");
   IElementType CLASS_TYPE = new ProguardR8AstNodeType("CLASS_TYPE");
   IElementType FIELD = new ProguardR8AstNodeType("FIELD");
-  IElementType FIELDS_MODIFIER = new ProguardR8AstNodeType("FIELDS_MODIFIER");
   IElementType FIELDS_SPECIFICATION = new ProguardR8AstNodeType("FIELDS_SPECIFICATION");
   IElementType FILE_FILTER = new ProguardR8AstNodeType("FILE_FILTER");
   IElementType FLAG_ARGUMENT = new ProguardR8AstNodeType("FLAG_ARGUMENT");
@@ -44,7 +44,6 @@ public interface ProguardR8PsiTypes {
   IElementType JAVA_RULE = new ProguardR8AstNodeType("JAVA_RULE");
   IElementType KEEP_OPTION_MODIFIER = new ProguardR8AstNodeType("KEEP_OPTION_MODIFIER");
   IElementType METHOD = new ProguardR8AstNodeType("METHOD");
-  IElementType METHOD_MODIFIER = new ProguardR8AstNodeType("METHOD_MODIFIER");
   IElementType METHOD_SPECIFICATION = new ProguardR8AstNodeType("METHOD_SPECIFICATION");
   IElementType PARAMETERS = new ProguardR8AstNodeType("PARAMETERS");
   IElementType QUALIFIED_NAME = new ProguardR8AstNodeType("QUALIFIED_NAME");
@@ -119,7 +118,10 @@ public interface ProguardR8PsiTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-      if (type == ANNOTATION_NAME) {
+      if (type == ACCESS_MODIFIER) {
+        return new ProguardR8AccessModifierImpl(node);
+      }
+      else if (type == ANNOTATION_NAME) {
         return new ProguardR8AnnotationNameImpl(node);
       }
       else if (type == ANY_FIELD_OR_METHOD) {
@@ -152,9 +154,6 @@ public interface ProguardR8PsiTypes {
       else if (type == FIELD) {
         return new ProguardR8FieldImpl(node);
       }
-      else if (type == FIELDS_MODIFIER) {
-        return new ProguardR8FieldsModifierImpl(node);
-      }
       else if (type == FIELDS_SPECIFICATION) {
         return new ProguardR8FieldsSpecificationImpl(node);
       }
@@ -175,9 +174,6 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == METHOD) {
         return new ProguardR8MethodImpl(node);
-      }
-      else if (type == METHOD_MODIFIER) {
-        return new ProguardR8MethodModifierImpl(node);
       }
       else if (type == METHOD_SPECIFICATION) {
         return new ProguardR8MethodSpecificationImpl(node);
