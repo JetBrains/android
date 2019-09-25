@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer;
+package com.android.tools.idea.device.fs
 
-import com.android.annotations.concurrency.UiThread;
-import com.android.annotations.concurrency.WorkerThread;
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
+import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.UiThread
+import java.nio.file.Path
 
 /**
- * Progress indicator for downloading multiple entries.
+ * Progress indicator for downloading multiple entries from a device.
  */
-public interface FileManagerDownloadProgress {
+interface DownloadProgress {
+  @get:AnyThread
+  val isCancelled: Boolean
+
   @UiThread
-  void onDownloadStarting(DeviceFileEntry entry);
+  fun onStarting(entryFullPath: Path)
+
   @UiThread
-  void onProgress(DeviceFileEntry entry, long currentBytes, long totalBytes);
+  fun onProgress(entryFullPath: Path, currentBytes: Long, totalBytes: Long)
+
   @UiThread
-  void onDownloadCompleted(DeviceFileEntry entry);
-  @WorkerThread
-  boolean isCancelled();
+  fun onCompleted(entryFullPath: Path)
 }

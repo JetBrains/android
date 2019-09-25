@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.explorer;
 
+import static org.jetbrains.android.AsyncTestUtils.pumpEventsAndWaitForFuture;
+import static org.jetbrains.android.AsyncTestUtils.pumpEventsAndWaitForFutureException;
+import static org.jetbrains.android.AsyncTestUtils.pumpEventsAndWaitForFutures;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -36,9 +39,7 @@ import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService;
-import com.android.tools.idea.util.FutureUtils;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.ClipboardSynchronizer;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -89,7 +90,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -114,7 +114,6 @@ import org.jetbrains.ide.PooledThreadExecutor;
 import org.picocontainer.MutablePicoContainer;
 
 public class DeviceExplorerControllerTest extends AndroidTestCase {
-  private static final long TIMEOUT_MILLISECONDS = 30_000;
 
   private DeviceExplorerModel myModel;
   private MockDeviceExplorerView myMockView;
@@ -157,7 +156,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         super.setActiveDeviceTreeModel(device, treeModel, treeSelectionModel);
       }
     };
-    myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor);
+    myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor, myTaskExecutor);
     myMockView = new MockDeviceExplorerView(getProject(), new MockDeviceFileSystemRendererFactory(), myModel);
     File downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true);
     myDownloadLocationSupplier = mock(Supplier.class);
@@ -1722,32 +1721,6 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
   private DeviceExplorerController createController(DeviceExplorerView view, DeviceFileSystemService service) {
     return new DeviceExplorerController(getProject(), myModel, view, service, myMockFileManager, myEdtExecutor, myTaskExecutor);
-  }
-
-  private static <V> List<V> pumpEventsAndWaitForFutures(List<ListenableFuture<V>> futures) {
-    return pumpEventsAndWaitForFuture(Futures.allAsList(futures));
-  }
-
-  private static <V> V pumpEventsAndWaitForFuture(ListenableFuture<V> future) {
-    try {
-      return FutureUtils.pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private static <V> Throwable pumpEventsAndWaitForFutureException(ListenableFuture<V> future) {
-    try {
-      FutureUtils.pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
-      throw new RuntimeException("Expected ExecutionException from future, got value instead");
-    }
-    catch (ExecutionException e) {
-      return e;
-    }
-    catch (Throwable t) {
-      throw new RuntimeException("Expected ExecutionException from future, got Throwable instead", t);
-    }
   }
 
   /**

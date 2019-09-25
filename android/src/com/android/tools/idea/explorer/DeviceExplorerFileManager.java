@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.tools.idea.device.fs.DownloadProgress;
+import com.android.tools.idea.device.fs.DownloadedFileData;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,13 +40,16 @@ public interface DeviceExplorerFileManager {
   Path getDefaultLocalPathForEntry(@NotNull DeviceFileEntry entry);
 
   /**
-   * Download asynchronously the content of a {@link DeviceFileEntry} onto the local file system.
-   * Returns a {@link ListenableFuture} that completes when the download has completed.
+   * Asynchronously downloads the content of a {@link DeviceFileEntry} to the local file system.
+   *
+   * <p>Returns a {@link ListenableFuture} that completes when the download has completed.
    * The <code>progress</code> callback is regularly notified of the current progress of the
    * download operation.
    */
   @NotNull
-  ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileManagerDownloadProgress progress);
+  ListenableFuture<DownloadedFileData> downloadFileEntry(@NotNull DeviceFileEntry entry,
+                                                         @NotNull Path localPath,
+                                                         @NotNull DownloadProgress progress);
 
   /**
    * Opens a previously downloaded file and gives focus to the open component.

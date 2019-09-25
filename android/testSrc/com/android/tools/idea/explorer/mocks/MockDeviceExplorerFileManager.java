@@ -16,9 +16,10 @@
 package com.android.tools.idea.explorer.mocks;
 
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.device.fs.DownloadedFileData;
 import com.android.tools.idea.explorer.DeviceExplorerFileManager;
 import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl;
-import com.android.tools.idea.explorer.FileManagerDownloadProgress;
+import com.android.tools.idea.device.fs.DownloadProgress;
 import com.android.tools.idea.explorer.FutureValuesTracker;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
@@ -64,15 +65,15 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
 
   @NotNull
   @Override
-  public ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileManagerDownloadProgress progress) {
+  public ListenableFuture<DownloadedFileData> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull DownloadProgress progress) {
     myDownloadFileEntryTracker.produce(entry);
 
     myDevices.add(entry.getFileSystem());
 
-    ListenableFuture<Void> futureResult = myFileManagerImpl.downloadFileEntry(entry, localPath, progress);
-    myEdtExecutor.addCallback(futureResult, new FutureCallback<Void>() {
+    ListenableFuture<DownloadedFileData> futureResult = myFileManagerImpl.downloadFileEntry(entry, localPath, progress);
+    myEdtExecutor.addCallback(futureResult, new FutureCallback<DownloadedFileData>() {
       @Override
-      public void onSuccess(@Nullable Void result) {
+      public void onSuccess(@Nullable DownloadedFileData result) {
         myDownloadFileEntryCompletionTracker.produce(entry);
       }
 
