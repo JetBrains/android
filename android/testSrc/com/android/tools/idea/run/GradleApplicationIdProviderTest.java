@@ -56,7 +56,8 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
   }
 
   public void testGetPackageNameForInstantApps() throws Exception {
-    loadProject(INSTANT_APP);
+    // Use a plugin with instant app support
+    loadProject(INSTANT_APP, null, null, "3.5.0");
     PostBuildModelProviderStub modelProvider = new PostBuildModelProviderStub();
     AndroidModuleModel androidModel = AndroidModuleModel.get(myAndroidFacet);
     assertNotNull(androidModel);

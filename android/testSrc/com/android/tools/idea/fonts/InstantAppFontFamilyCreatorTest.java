@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
+import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ide.common.fonts.FontDetail;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -27,14 +31,11 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
-import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
-import static com.google.common.truth.Truth.assertThat;
-
 public class InstantAppFontFamilyCreatorTest extends AndroidGradleTestCase {
 
   public void testCreateFontWithInstantApp() throws Exception {
-    loadProject(INSTANT_APP, "instant-app");
+    // Use a plugin with instant app support
+    loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
     AndroidFacet baseFacet = AndroidFacet.getInstance(findBaseFeature(myAndroidFacet));
     FontFamilyCreator creator = new FontFamilyCreator(myAndroidFacet);
     FontDetail font = FontFamilyCreatorTest.createFontDetail("Roboto", 400, 100, false);

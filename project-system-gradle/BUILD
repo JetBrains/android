@@ -60,6 +60,7 @@ iml_module(
     test_coverage = False,  # TODO(b/136028658): too flaky for use in covergae runs
     test_data = [
         "//tools/base/build-system/previous-versions:2.2.0.zip",
+        "//tools/base/build-system/previous-versions:3.5.0.zip",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",

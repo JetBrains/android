@@ -135,7 +135,8 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
   }
 
   public void testOutputModelForInstantApp() throws Exception {
-    loadProject(INSTANT_APP);
+    // Use a plugin with instant app support
+    loadProject(INSTANT_APP, null, null, "3.5.0");
     File apk = mock(File.class);
     PostBuildModelProviderStub outputProvider = new PostBuildModelProviderStub();
     GradleApkProvider provider =
