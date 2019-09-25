@@ -900,7 +900,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    *              (value below 0 means zoom to fit)
    * @return True if the scaling was changed, false if this was a noop.
    */
-  private boolean setScale(double scale) {
+  public boolean setScale(double scale) {
     return setScale(scale, -1, -1);
   }
 
