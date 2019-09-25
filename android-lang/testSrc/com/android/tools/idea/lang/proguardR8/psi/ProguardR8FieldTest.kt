@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiPrimitiveType
+import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.parentOfType
 
 class ProguardR8FieldsTest : ProguardR8TestCase() {
@@ -426,5 +427,56 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
       """.trimIndent())
 
     myFixture.checkHighlighting()
+  }
+
+  fun testCodeCompletionWithoutType() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      class MyClass {
+        boolean[] myField1;
+        int myField2;
+        String myFiled3;
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+         $caret
+      """.trimIndent()
+    )
+    val methods = myFixture.completeBasic()
+
+    // suggest fields with different types
+    assertThat(methods.map { it.lookupString }).containsAllOf("myField1", "myField2", "myFiled3")
+  }
+
+  fun testResolveFieldWithoutType() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      class MyClass {
+        boolean[] myField;
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+         my${caret}Field;
+      }
+      """.trimIndent()
+    )
+    val methods = myFixture.referenceAtCaret.resolveReference() as Collection<ResolveResult>
+
+    assertThat(methods).hasSize(1)
+    assertThat(methods.map { it.element!!.text }).contains("boolean[] myField;")
   }
 }
