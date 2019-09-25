@@ -245,7 +245,7 @@ class ResourceExplorerView(
    * Button to enable the list view
    */
   private inner class ListModeButton
-    : ToggleAction("List mode", "Switch to list mode", StudioIcons.LayoutEditor.Palette.LIST_VIEW),
+    : ToggleAction("List mode", "Switch to list mode", StudioIcons.Common.LIST_VIEW),
       DumbAware {
 
     override fun isSelected(e: AnActionEvent) = !gridMode
@@ -263,7 +263,7 @@ class ResourceExplorerView(
    * Button to enable the grid view
    */
   private inner class GridModeButton
-    : ToggleAction("Grid mode", "Switch to grid mode", StudioIcons.LayoutEditor.Palette.GRID_VIEW),
+    : ToggleAction("Grid mode", "Switch to grid mode", StudioIcons.Common.GRID_VIEW),
       DumbAware {
 
     override fun isSelected(e: AnActionEvent) = gridMode
