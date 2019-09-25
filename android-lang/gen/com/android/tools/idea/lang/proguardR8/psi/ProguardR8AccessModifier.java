@@ -24,4 +24,6 @@ import com.intellij.psi.PsiElement;
 
 public interface ProguardR8AccessModifier extends PsiElement {
 
+  boolean isNegated();
+
 }

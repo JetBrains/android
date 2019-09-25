@@ -124,7 +124,9 @@ class_specification_header ::= annotation_name? class_modifier* class_type class
   without !('.'|'$') 'not' will be parsed as class_member_name
  */
 private class_member_core ::= ((type class_member_name) | class_member_name) !('.'|'$')
-access_modifier ::= "!"? (public|private|protected)
+access_modifier ::= "!"? (public|private|protected) {
+  methods=[isNegated]
+}
 field ::= annotation_name? fields_modifier* class_member_core {
   methods=[getParameters]
 }

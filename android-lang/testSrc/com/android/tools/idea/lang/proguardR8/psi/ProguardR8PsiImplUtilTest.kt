@@ -505,4 +505,29 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
     assertThat(classMemberName.containsWildcards()).isTrue()
   }
+
+  fun testisNegated() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+    -keep class myClass {
+      public int field1;
+      !public int field2;
+      ! public int field3;
+    }
+    """.trimIndent()
+    )
+
+    myFixture.moveCaret("publ|ic int field1")
+    var accessModifier = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8AccessModifier::class)!!
+    assertThat(accessModifier.isNegated()).isFalse()
+
+    myFixture.moveCaret("!publ|ic int field2")
+    accessModifier = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8AccessModifier::class)!!
+    assertThat(accessModifier.isNegated()).isTrue()
+
+    myFixture.moveCaret("! publ|ic int field3")
+    accessModifier = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8AccessModifier::class)!!
+    assertThat(accessModifier.isNegated()).isTrue()
+  }
 }
