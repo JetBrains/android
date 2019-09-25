@@ -35,6 +35,7 @@ import com.intellij.ui.TableCell
 import com.intellij.ui.TableExpandableItemsHandler
 import com.intellij.ui.TableUtil
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
@@ -555,8 +556,10 @@ class PTableImpl(
       }
 
       val rectLeftColumn = getCellRect(row, convertColumnIndexToView(0), false)
+      rectLeftColumn.width = UIUtil.getTreeExpandedIcon().iconWidth
       if (rectLeftColumn.contains(event.x, event.y)) {
         toggleTreeNode(row)
+        event.consume()
       }
     }
   }
