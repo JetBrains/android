@@ -28,7 +28,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
 
 class NewBenchmarkModuleDescriptionProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project?): Collection<ModuleGalleryEntry> = listOf(BenchmarkModuleTemplateGalleryEntry())
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(BenchmarkModuleTemplateGalleryEntry())
 
   private class BenchmarkModuleTemplateGalleryEntry : ModuleGalleryEntry {
     private val templateHandle: TemplateHandle = TemplateHandle(

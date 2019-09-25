@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.module;
+package com.android.tools.idea.npw.module
 
-import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.project.Project;
-
-import java.util.Collection;
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.project.Project
 
 /**
  * This interface provides extension point to customize the list of new Modules that can be created.
  * Each provider can return a list of Modules it knows how how to create, and a UI Step to implement its creation.
  */
-public interface ModuleDescriptionProvider {
-  ExtensionPointName<ModuleDescriptionProvider> EP_NAME = ExtensionPointName.create("com.android.moduleDescriptionProvider");
+interface ModuleDescriptionProvider {
+  fun getDescriptions(project: Project): Collection<ModuleGalleryEntry>
 
-  Collection<? extends ModuleGalleryEntry> getDescriptions(Project project);
+  companion object {
+    val EP_NAME = ExtensionPointName.create<ModuleDescriptionProvider>("com.android.moduleDescriptionProvider")
+  }
 }
