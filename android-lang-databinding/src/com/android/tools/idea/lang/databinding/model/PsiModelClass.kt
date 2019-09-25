@@ -130,16 +130,17 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     }
 
   /**
-   * Returns the [PsiSubstitutor] which can be used to resolve generic types.
+   * Returns the [PsiSubstitutor] which can be used to resolve generic types for fields and methods.
    */
   val substitutor: PsiSubstitutor
     get() {
       // Create the substitutor for this class
-      val localSubstitutor = (type as? PsiClassType)?.resolveGenerics()?.substitutor ?: PsiSubstitutor.EMPTY
-      // Find the superType for its base class
-      val superType = type.superTypes.firstOrNull { (it as? PsiClassType)?.resolve()?.isInterface == false } ?: return localSubstitutor
-      // Combine the substitutors for this class and its base class
-      return PsiModelClass(superType, mode).substitutor.putAll(localSubstitutor)
+      var substitutor = (type as? PsiClassType)?.resolveGenerics()?.substitutor ?: PsiSubstitutor.EMPTY
+      // Add substitutors from its super types
+      type.superTypes.forEach { superType ->
+        substitutor = substitutor.putAll(PsiModelClass(superType, mode).substitutor)
+      }
+      return substitutor
     }
 
   /**
