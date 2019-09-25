@@ -48,7 +48,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.ColorIcon;
-import com.intellij.util.ui.TwoColorsIcon;
+import com.intellij.util.ui.ColorsIcon;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -253,7 +253,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     ResourceValue value = rr.getResolvedResource(reference);
     Icon icon = ResourceHelper.resolveAsIcon(rr, value, getProject(), myFacet);
-    assertEquals(new TwoColorsIcon(16, new Color(0xEEDDCC), new Color(0x33123456, true)), icon);
+    assertEquals(new ColorsIcon(16, new Color(0xEEDDCC), new Color(0x33123456, true)), icon);
   }
 
   public void testResolveAsIconFromDrawable() throws IOException {
