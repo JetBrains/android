@@ -16,10 +16,9 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.npw.PathValidationResult;
-import com.android.tools.idea.npw.PathValidationResult.Status;
-import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallableComponent;
@@ -27,7 +26,6 @@ import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.Splitter;
@@ -42,36 +40,44 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import javax.accessibility.AccessibleContext;
-import javax.swing.*;
+import javax.swing.AbstractCellEditor;
+import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wizard page for selecting SDK components to download.
  */
 public class SdkComponentsStep extends FirstRunWizardStep implements Disposable {
-  public static final String FIELD_SDK_LOCATION = "SDK location";
-
   @NotNull private final ComponentTreeNode myRootNode;
   @NotNull private final FirstRunWizardMode myMode;
   @NotNull private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
@@ -89,7 +95,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
   private JBLoadingPanel myContentPanel;
 
   private boolean myUserEditedPath = false;
-  private PathValidationResult mySdkDirectoryValidationResult;
+  private PathValidator.Result mySdkDirectoryValidationResult;
   private boolean myWasVisible = false;
   private boolean myLoading;
 
@@ -107,7 +113,6 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     myMode = mode;
     myKeyCustomInstall = keyCustomInstall;
 
-    // noinspection DialogTitleCapitalization
     myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
                                    FileChooserDescriptorFactory.createSingleFolderDescriptor());
 
@@ -217,52 +222,40 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
 
   @Override
   public boolean validate() {
-    String path = myState.get(mySdkDownloadPathKey);
+    @NotNull String path = StringUtil.notNullize(myState.get(mySdkDownloadPathKey));
     if (!StringUtil.isEmpty(path)) {
       myUserEditedPath = true;
     }
 
-    mySdkDirectoryValidationResult =
-      validateLocation(path, FIELD_SDK_LOCATION, false, WritableCheckMode.NOT_WRITABLE_IS_WARNING);
+    mySdkDirectoryValidationResult = PathValidator.forAndroidSdkLocation().validate(new File(path));
 
-    boolean ok = mySdkDirectoryValidationResult.isOk();
-    Status status = mySdkDirectoryValidationResult.getStatus();
-    String message = ok ? null : mySdkDirectoryValidationResult.getFormattedMessage();
+    @NotNull Validator.Severity severity = mySdkDirectoryValidationResult.getSeverity();
+    boolean ok = severity == Validator.Severity.OK;
+    @Nullable String message = ok ? null : mySdkDirectoryValidationResult.getMessage();
 
     if (ok) {
       File filesystem = getTargetFilesystem(path);
 
       if (!(filesystem == null || filesystem.getFreeSpace() > getComponentsSize())) {
-        status = Status.ERROR;
+        severity = Validator.Severity.ERROR;
         message = "Target drive does not have enough free space.";
       }
       else if (isNonEmptyNonSdk(path)) {
-        status = Status.WARN;
+        severity = Validator.Severity.WARNING;
         message = "Target folder is neither empty nor does it point to an existing SDK installation.";
       }
       else if (isExistingSdk(path)) {
-        status = Status.WARN;
+        severity = Validator.Severity.WARNING;
         message = "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components.";
       }
     }
 
-    switch (status) {
-      case WARN:
-        myErrorMessage.setIcon(AllIcons.General.BalloonWarning);
-        break;
-      case ERROR:
-        myErrorMessage.setIcon(AllIcons.General.BalloonError);
-        break;
-      default:
-        myErrorMessage.setIcon(null);
-        break;
-    }
-
+    myErrorMessage.setIcon(severity.getIcon());
     setErrorHtml(myUserEditedPath ? message : null);
     if (myLoading) {
       return false;
     }
-    return !mySdkDirectoryValidationResult.isError();
+    return mySdkDirectoryValidationResult.getSeverity() != Validator.Severity.ERROR;
   }
 
   @Override
@@ -321,7 +314,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
 
     validate();
 
-    myWasVisible = !mySdkDirectoryValidationResult.isOk();
+    myWasVisible = mySdkDirectoryValidationResult.getSeverity() != Validator.Severity.OK;
     return myWasVisible;
   }
 
@@ -338,7 +331,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     splitter.setFirstComponent(ScrollPaneFactory.createScrollPane(myContentPanel, false));
     splitter.setSecondComponent(ScrollPaneFactory.createScrollPane(myComponentDescription, false));
 
-    myComponentDescription.setFont(UIUtil.getLabelFont());
+    myComponentDescription.setFont(StartupUiUtil.getLabelFont());
     myComponentDescription.setEditable(false);
     myComponentDescription.setBorder(BorderFactory.createEmptyBorder(WizardConstants.STUDIO_WIZARD_INSET_SIZE,
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE,
@@ -351,7 +344,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     private final RendererCheckBox myCheckBox;
     private Border myEmptyBorder;
 
-    public SdkComponentRenderer() {
+    SdkComponentRenderer() {
       myPanel = new RendererPanel();
       myCheckBox = new RendererCheckBox();
       myCheckBox.setOpaque(false);
@@ -528,7 +521,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
   private static final class ComponentsTableModel extends AbstractTableModel {
     private final List<Pair<ComponentTreeNode, Integer>> myComponents;
 
-    public ComponentsTableModel(final ComponentTreeNode component) {
+    ComponentsTableModel(final ComponentTreeNode component) {
       ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components = ImmutableList.builder();
       // Note that root component is not present in the table model so the tree appears to have multiple roots
       traverse(component.getImmediateChildren(), 0, components);
