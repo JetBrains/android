@@ -102,12 +102,12 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlText
 import com.intellij.psi.xml.XmlTokenType
 import com.intellij.ui.ColorUtil
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.io.URLUtil.FILE_PROTOCOL
 import com.intellij.util.io.URLUtil.JAR_PROTOCOL
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.TwoColorsIcon
+import com.intellij.util.ui.ColorsIcon
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
@@ -430,7 +430,7 @@ fun RenderResources.resolveMultipleColors(value: ResourceValue?, project: Projec
  * Tries to resolve a given resource value as a square Icon of max 16x16 (scaled size).
  * <ul>
  *   <li> A single color is represented as a [ColorIcon] </li>
- *   <li> A color state list is represented as a [TwoColorsIcon] with 2 of the possible colors in the list </li>
+ *   <li> A color state list is represented as a [ColorsIcon] with 2 of the possible colors in the list </li>
  *   <li> A drawable is shown as a scaled image if reasonable small version of the drawable exists </li>
  *   <li> Otherwise a null is returned. </li>
  * </ul>
@@ -443,8 +443,8 @@ private fun RenderResources.resolveAsColorIcon(value: ResourceValue?, size: Int,
   val colors = resolveMultipleColors(value, project)
   return when (colors.size) {
     0 -> null
-    1 -> JBUI.scale(ColorIcon(size, colors.first(), false))
-    else -> JBUI.scale(TwoColorsIcon(size, colors.last(), findContrastingOtherColor(colors, colors.last())))
+    1 -> ColorIcon(size, colors.first(), false).scale(JBUIScale.scale(1f))
+    else -> ColorsIcon(size, colors.last(), findContrastingOtherColor(colors, colors.last())).scale(JBUIScale.scale(1f))
   }
 }
 
