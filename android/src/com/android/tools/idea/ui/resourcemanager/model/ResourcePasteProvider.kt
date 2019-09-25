@@ -47,6 +47,8 @@ import com.intellij.psi.xml.XmlTag
  */
 class ResourcePasteProvider : PasteProvider {
 
+  private val IMAGE_LIKE_TYPES = setOf<ResourceType>(ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.COLOR)
+
   override fun performPaste(dataContext: DataContext) {
     val caret = CommonDataKeys.CARET.getData(dataContext)!!
     val psiFile = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return
@@ -73,8 +75,8 @@ class ResourcePasteProvider : PasteProvider {
     if (psiElement is PsiWhiteSpace) {
       if (getFolderType(psiElement.containingFile) == ResourceFolderType.LAYOUT) {
         ResourceManagerTracking.logPasteOnBlank(resourceUrl.type)
-        if (resourceUrl.type == ResourceType.DRAWABLE) {
-          insertImageView(resourceReference, psiElement, caret)
+        if (IMAGE_LIKE_TYPES.contains(resourceUrl.type)) {
+          insertImageView(resourceReference, psiElement, caret, isFixedDimension = resourceUrl.type == ResourceType.COLOR)
           return
         }
       }
@@ -106,17 +108,20 @@ class ResourcePasteProvider : PasteProvider {
     pasteAtCaret(caret, resourceReference, resourceUrl.type)
   }
 
-  private fun insertImageView(resourceReference: String, psiElement: PsiElement, caret: Caret) {
+  private fun insertImageView(resourceReference: String, psiElement: PsiElement, caret: Caret, isFixedDimension: Boolean) {
+    // TODO: Should figure out a way to have a more consistent behavior with the Drag Target in Layout Editor.
     val parent = psiElement.parentOfType<XmlTag>() ?: return
     val dependsOnAppCompat = dependsOnAppCompat(parent)
 
     val before = parent.children.last { it.textRange.startOffset < caret.offset }
 
+    val dimensionValue = if (isFixedDimension) "50${SdkConstants.UNIT_DP}" else SdkConstants.VALUE_WRAP_CONTENT
+
     runWriteAction {
       val childTag = parent.addAfter(parent.createChildTag("ImageView", parent.namespace, null, false), before) as XmlTag
       with(childTag) {
-        setAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT)
-        setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT)
+        setAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.ANDROID_URI, dimensionValue)
+        setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI, dimensionValue)
         setSrcAttribute(dependsOnAppCompat, this, resourceReference)
         collapseIfEmpty()
         TemplateUtils.reformatAndRearrange(parent.project, this)
