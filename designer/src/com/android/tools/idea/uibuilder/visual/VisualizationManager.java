@@ -42,7 +42,6 @@ import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBusConnection;
@@ -302,9 +301,6 @@ public class VisualizationManager implements ProjectComponent {
             // Note, that this may be wrong in certain circumstances, but should be OK for most scenarios.
             restoreFocus = () -> IdeFocusManager.getInstance(myProject).doWhenFocusSettlesDown(() -> restoreFocusToEditor(newEditor));
           }
-          // Clear out the render result for the previous file, such that it doesn't briefly show between the time the
-          // tool window is shown and the time the render has completed
-          myToolWindowForm.clearRenderResult();
           myToolWindow.activate(restoreFocus, false, false);
         }
       }
@@ -350,11 +346,6 @@ public class VisualizationManager implements ProjectComponent {
       })
       .findFirst()
       .orElse(null);
-  }
-
-  @Nullable
-  protected XmlFile getBoundXmlFile(@Nullable PsiFile file) {
-    return (XmlFile) file;
   }
 
   @Nullable
