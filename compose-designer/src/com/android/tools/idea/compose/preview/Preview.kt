@@ -182,6 +182,11 @@ interface ComposePreviewManager {
    * Invalidates the last cached [PreviewElement]s and forces a refresh
    */
   fun invalidateAndRefresh()
+
+  /**
+   * Whether the preview is being refreshed.
+   */
+  fun isRefreshing(): Boolean
 }
 
 /**
@@ -229,6 +234,8 @@ private class PreviewEditor(private val psiFile: PsiFile,
    */
   var previewElements: List<PreviewElement> = emptyList()
 
+  var isRefreshingPreview = false
+
   /**
    * Callback called after refresh has happened
    */
@@ -254,7 +261,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
   /**
    * Calls refresh method on the the successful gradle build
    */
-  private val refresher = SmartAutoRefresher(psiFile, this)
+  private val refresher = SmartAutoRefresher(psiFile, this) { isRefreshingPreview = true }
 
   init {
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
@@ -276,6 +283,8 @@ private class PreviewEditor(private val psiFile: PsiFile,
     .any {
       it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
     }
+
+  override fun isRefreshing(): Boolean = isRefreshingPreview
 
   /**
    * Returns true if the surface has at least one correctly rendered preview.
@@ -317,7 +326,11 @@ private class PreviewEditor(private val psiFile: PsiFile,
    */
   fun doRefresh(filePreviewElements: List<PreviewElement>) {
     if (filePreviewElements == previewElements) {
-      clearCacheAndRefreshSurface(surface)
+      clearCacheAndRefreshSurface(surface).whenComplete { _, _ ->
+        isRefreshingPreview = false
+        // Make sure to clear refreshing notification
+        EditorNotifications.getInstance(project).updateNotifications(file)
+      }
       updateSurfaceVisibility()
 
       return
@@ -404,6 +417,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
           LOG.warn(ex)
         }
 
+        isRefreshingPreview = false
         // Make sure all notifications are cleared-up
         EditorNotifications.getInstance(project).updateNotifications(file)
 
@@ -420,7 +434,11 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
     if (filePreviewElements == previewElements) {
       // There are not elements, skip model creation
-      clearCacheAndRefreshSurface(surface)
+      clearCacheAndRefreshSurface(surface).whenComplete { _, _ ->
+        isRefreshingPreview = false
+        // Make sure to clear refreshing notification
+        EditorNotifications.getInstance(project).updateNotifications(file)
+      }
       return
     }
 

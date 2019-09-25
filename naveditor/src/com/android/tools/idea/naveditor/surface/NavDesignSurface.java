@@ -215,6 +215,7 @@ public class NavDesignSurface extends DesignSurface {
     return 1f;
   }
 
+  @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
     // Ignored for nav editor

@@ -25,6 +25,7 @@ import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.LightColors
@@ -57,7 +58,16 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
     val previewManager = fileEditor.getComposePreviewManager() ?: return null
     val gradleBuildState = GradleBuildState.getInstance(project)
 
-    // Do not show the notification while the build is in progress
+    // Show a notification with a Loader if the preview is refreshing.
+    if (previewManager.isRefreshing()) {
+      LOG.debug("Refresh in progress")
+      return EditorNotificationPanel().apply {
+        setText(message("notification.preview.is.refreshing"))
+        icon(AnimatedIcon.Default())
+      }
+    }
+
+    // Do not show the notification while the build is in progress but refresh is not.
     if (gradleBuildState.isBuildInProgress) {
       LOG.debug("Build is progress")
       return null
