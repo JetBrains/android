@@ -19,6 +19,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCRE
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -29,6 +30,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
@@ -186,6 +188,9 @@ public class VisualizationForm implements Disposable {
    * @return true on success. False if the preview update is not possible (e.g. the file for the editor cannot be found).
    */
   public boolean setNextEditor(@NotNull FileEditor editor) {
+    if (ResourceHelper.getFolderType(editor.getFile()) != ResourceFolderType.LAYOUT) {
+      return false;
+    }
     myPendingEditor = editor;
     myFile = editor.getFile();
 
