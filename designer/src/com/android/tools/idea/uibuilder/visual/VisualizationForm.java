@@ -334,7 +334,7 @@ public class VisualizationForm implements Disposable {
         addModelFuture.thenRunAsync(() -> {
           if (!isRequestCancelled.get() && !facet.isDisposed() && !isAddingModelCanceled.get()) {
             activeModels(models);
-            mySurface.zoomToFit();
+            mySurface.setScale(0.25 / mySurface.getScreenScalingFactor());
             myWorkBench.showContent();
           }
           else {
