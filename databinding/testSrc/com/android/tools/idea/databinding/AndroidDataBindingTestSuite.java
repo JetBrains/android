@@ -22,7 +22,10 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(AndroidDataBindingTestSuite.class)  // a suite mustn't contain itself
+@JarTestSuiteRunner.ExcludeClasses({
+  AndroidDataBindingTestSuite.class,  // a suite mustn't contain itself
+  DataBindingInspectionVerificationTestSuite.class,  // TODO(b/141498231): reënable intellij.android.databinding.tests and remove this
+})
 public final class AndroidDataBindingTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
