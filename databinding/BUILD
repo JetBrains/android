@@ -161,6 +161,10 @@ java_test(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
+    tags = [
+        "no_test_mac",
+        "no_test_windows",
+    ],
     test_class = "com.android.tools.idea.databinding.DataBindingInspectionVerificationTestSuite",
     runtime_deps = [":intellij.android.databinding.tests_testlib"],
 )
