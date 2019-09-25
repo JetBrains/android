@@ -220,11 +220,12 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
         parentPsiElement.addBefore(lineTerminator, addedElement)
       }
       is KtBlockExpression -> {
-        addedElement = parentPsiElement.addAfter(statement, anchor)
         if (anchorAfter != null) {
+          addedElement = parentPsiElement.addAfter(statement, anchor)
           parentPsiElement.addBefore(lineTerminator, addedElement)
         }
         else {
+          addedElement = parentPsiElement.addBefore(statement, anchor)
           parentPsiElement.addAfter(lineTerminator, addedElement)
         }
       }
