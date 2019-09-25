@@ -19,7 +19,6 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.ProductFlavor;
-import com.android.builder.model.SourceProvider;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -46,7 +45,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -57,12 +55,10 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
@@ -780,44 +776,13 @@ public class LintIdeProject extends Project {
     public List<File> getManifestFiles() {
       if (manifestFiles == null) {
         manifestFiles = Lists.newArrayList();
-        File mainManifest = SourceProviderManager.getInstance(myFacet).getMainSourceProvider().getManifestFile();
-        if (mainManifest.exists()) {
-          manifestFiles.add(mainManifest);
-        }
-
-        List<SourceProvider> flavorSourceProviders = myAndroidModuleModel.getFlavorSourceProviders();
-        for (SourceProvider provider : flavorSourceProviders) {
-          File manifestFile = provider.getManifestFile();
-          if (manifestFile.exists()) {
-            manifestFiles.add(manifestFile);
-          }
-        }
-
-        SourceProvider multiProvider = myAndroidModuleModel.getMultiFlavorSourceProvider();
-        if (multiProvider != null) {
-          File manifestFile = multiProvider.getManifestFile();
-          if (manifestFile.exists()) {
-            manifestFiles.add(manifestFile);
-          }
-        }
-
-        SourceProvider buildTypeSourceProvider = myAndroidModuleModel.getBuildTypeSourceProvider();
-        if (buildTypeSourceProvider != null) {
-          File manifestFile = buildTypeSourceProvider.getManifestFile();
-          if (manifestFile.exists()) {
-            manifestFiles.add(manifestFile);
-          }
-        }
-
-        SourceProvider variantProvider = myAndroidModuleModel.getVariantSourceProvider();
-        if (variantProvider != null) {
-          File manifestFile = variantProvider.getManifestFile();
-          if (manifestFile.exists()) {
-            manifestFiles.add(manifestFile);
+        for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
+          VirtualFile manifestFile = sourceProvider.getManifestFile();
+          if (manifestFile != null) {
+            manifestFiles.add(VfsUtilCore.virtualToIoFile(manifestFile));
           }
         }
       }
-
       return manifestFiles;
     }
 
@@ -826,12 +791,10 @@ public class LintIdeProject extends Project {
     public List<File> getAssetFolders() {
       if (assetFolders == null) {
         assetFolders = Lists.newArrayList();
-        for (SourceProvider provider : IdeaSourceProvider.getAllSourceProviders(myFacet)) {
-          Collection<File> dirs = provider.getAssetsDirectories();
-          for (File dir : dirs) {
-            if (dir.exists()) { // model returns path whether or not it exists
-              assetFolders.add(dir);
-            }
+        for (IdeaSourceProvider provider : IdeaSourceProvider.getAllIdeaSourceProviders(myFacet)) {
+          Collection<VirtualFile> dirs = provider.getAssetsDirectories();
+          for (VirtualFile dir : dirs) {
+            assetFolders.add(VfsUtilCore.virtualToIoFile(dir));
           }
         }
       }
