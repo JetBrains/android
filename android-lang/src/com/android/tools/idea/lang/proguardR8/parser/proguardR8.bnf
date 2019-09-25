@@ -138,7 +138,7 @@ parameters ::= LPAREN (ANY_TYPE_AND_NUM_OF_ARGS|type_list) RPAREN {
   methods=[matchesPsiParameterList isAcceptAnyParameters]
 }
 private init_description ::= (<init>|<clinit>) parameters
-private class_description ::= class_name parameters
+private class_description ::= class_name parameters {pin=1}
 method_modifier ::= ("!"?(public|private|protected|static|synchronized|native|abstract|strictfp|final))
 
 method_specification ::= method | (annotation_name? method_modifier* (<methods> | init_description | class_description |any_field_or_method))
