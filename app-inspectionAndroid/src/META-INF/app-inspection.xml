@@ -15,5 +15,10 @@
   -->
 <idea-plugin>
   <depends>org.intellij.intelliLang</depends>
-  <extensions defaultExtensionNs="com.intellij"/>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.appinspection.AppInspectionHostService"/>
+  </extensions>>
+  <extensions defaultExtensionNs="com.android.run">
+    <androidLaunchTaskContributor implementation="com.android.tools.idea.appinspection.AppInspectionLaunchTaskContributor"/>
+  </extensions>
 </idea-plugin>
