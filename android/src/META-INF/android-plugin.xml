@@ -464,6 +464,10 @@
     <completion.contributor language="kotlin"
                             implementationClass="org.jetbrains.android.AndroidComposeCompletionContributor"
                             order="first, before KotlinCompletionContributor"/>
+    <weigher key="completion"
+             implementationClass="org.jetbrains.android.AndroidComposeCompletionWeigher"
+             id="android.compose"
+             order="first"/>
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>

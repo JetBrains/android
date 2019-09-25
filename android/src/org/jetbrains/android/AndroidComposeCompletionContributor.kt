@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_BANNER
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_DOTS_FOR_OPTIONAL
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_HIDE_RETURN_TYPES
@@ -25,8 +26,10 @@ import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_REQUIRED_ONLY
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_TRAILING_LAMBDA
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.codeInsight.completion.CompletionContributor
+import com.intellij.codeInsight.completion.CompletionLocation
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.completion.CompletionWeigher
 import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
@@ -72,12 +75,17 @@ private fun PsiElement.isComposableFunction(): Boolean {
   return this is KtNamedFunction && annotationEntries.any { it.getQualifiedName() == COMPOSABLE }
 }
 
+private fun CompletionParameters.isInsideComposableCode(): Boolean {
+  // TODO: Figure this out.
+  return originalFile.language == KotlinLanguage.INSTANCE
+}
+
 /**
  * Modifies [LookupElement]s for composable functions, to improve Compose editing UX.
  */
 class AndroidComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
-    if (allFlags.all { !it.isOverridden } || !isInsideComposableCode(parameters)) return
+    if (allFlags.all { !it.isOverridden } || !parameters.isInsideComposableCode()) return
 
     if (COMPOSE_COMPLETION_BANNER.get()) {
       ApplicationManager.getApplication().invokeLater {
@@ -101,11 +109,6 @@ class AndroidComposeCompletionContributor : CompletionContributor() {
 
       newResult?.let(resultSet::passResult)
     }
-  }
-
-  private fun isInsideComposableCode(parameters: CompletionParameters): Boolean {
-    // TODO: Figure this out.
-    return parameters.originalFile.language == KotlinLanguage.INSTANCE
   }
 
   /**
@@ -224,6 +227,26 @@ private val SHORT_NAMES_WITH_DOTS = BasicLookupElementFactory.SHORT_NAMES_RENDER
 
     override fun appendAfterValueParameters(parameterCount: Int, builder: StringBuilder) {
       builder.append(if (parameterCount == 0) "...)" else ", ...)")
+    }
+  }
+}
+
+/**
+ * Custom [CompletionWeigher] which moves composable functions up the completion list.
+ *
+ * It doesn't give composable functions "absolute" priority, some weighers are hardcoded to run first: specifically one that puts prefix
+ * matches above [LookupElement]s where the match is in the middle of the name. Overriding this behavior would require an extension point in
+ * [org.jetbrains.kotlin.idea.completion.CompletionSession.createSorter].
+ *
+ * See [com.intellij.codeInsight.completion.PrioritizedLookupElement] for more information on how ordering of lookup elements works and how
+ * to debug it.
+ */
+class AndroidComposeCompletionWeigher : CompletionWeigher() {
+  override fun weigh(element: LookupElement, location: CompletionLocation): Boolean {
+    return when {
+      !StudioFlags.COMPOSE_COMPLETION_WEIGHER.get() -> false
+      !location.completionParameters.isInsideComposableCode() -> false // TODO: only change weights for statements.
+      else -> element.psiElement?.isComposableFunction() ?: false
     }
   }
 }
