@@ -646,4 +646,64 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       )
     )
   }
+
+  fun testClassMemberWithoutType() {
+    assertEquals(
+      """
+      FILE
+        ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+          PsiElement(FLAG)('-keep')
+          ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+            ProguardR8ClassTypeImpl(CLASS_TYPE)
+              PsiElement(class)('class')
+            ProguardR8ClassNameImpl(CLASS_NAME)
+              ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                PsiElement(JAVA_IDENTIFIER)('myClass')
+          ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+            PsiElement(opening brace)('{')
+            ProguardR8JavaRuleImpl(JAVA_RULE)
+              ProguardR8FieldsSpecificationImpl(FIELDS_SPECIFICATION)
+                ProguardR8FieldImpl(FIELD)
+                  ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
+                    PsiElement(JAVA_IDENTIFIER)('field')
+            PsiElement(semicolon)(';')
+            ProguardR8JavaRuleImpl(JAVA_RULE)
+              ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
+                ProguardR8MethodImpl(METHOD)
+                  ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
+                    PsiElement(JAVA_IDENTIFIER)('method')
+                  ProguardR8ParametersImpl(PARAMETERS)
+                    PsiElement(left parenthesis)('(')
+                    ProguardR8TypeListImpl(TYPE_LIST)
+                      <empty list>
+                    PsiElement(right parenthesis)(')')
+            PsiElement(semicolon)(';')
+            ProguardR8JavaRuleImpl(JAVA_RULE)
+              PsiElement(JAVA_IDENTIFIER)('not')
+              PsiElement(dot)('.')
+              PsiElement(JAVA_IDENTIFIER)('classMember')
+              PsiErrorElement:${'$'}, <class member name>, '[]', dot or left parenthesis expected, got ';'
+                <empty list>
+            PsiElement(semicolon)(';')
+            ProguardR8JavaRuleImpl(JAVA_RULE)
+              PsiElement(JAVA_IDENTIFIER)('not')
+              PsiElement(${'$'})('${'$'}')
+              PsiElement(JAVA_IDENTIFIER)('classMember')
+              PsiErrorElement:<class member name>, '[]' or left parenthesis expected, got ';'
+                <empty list>
+            PsiElement(semicolon)(';')
+            PsiElement(closing brace)('}')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        -keep class myClass {
+            field;
+            method();
+            not.classMember;
+            not${'$'}classMember;
+          }
+        """.trimIndent()
+      )
+    )
+  }
 }
