@@ -60,6 +60,35 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // "!"? (public|private|protected)
+  public static boolean access_modifier(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "access_modifier")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder, level, _NONE_, ACCESS_MODIFIER, "<access modifier>");
+    result = access_modifier_0(builder, level + 1);
+    result = result && access_modifier_1(builder, level + 1);
+    exit_section_(builder, level, marker, result, false, null);
+    return result;
+  }
+
+  // "!"?
+  private static boolean access_modifier_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "access_modifier_0")) return false;
+    consumeToken(builder, EM);
+    return true;
+  }
+
+  // public|private|protected
+  private static boolean access_modifier_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "access_modifier_1")) return false;
+    boolean result;
+    result = consumeToken(builder, PUBLIC);
+    if (!result) result = consumeToken(builder, PRIVATE);
+    if (!result) result = consumeToken(builder, PROTECTED);
+    return result;
+  }
+
+  /* ********************************************************** */
   // AT qualifiedName
   public static boolean annotation_name(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "annotation_name")) return false;
@@ -372,32 +401,40 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // "!"?(public|private|protected|static|volatile|transient|final)
-  public static boolean fields_modifier(PsiBuilder builder, int level) {
+  // ("!"?(static|volatile|transient|final))|access_modifier
+  static boolean fields_modifier(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "fields_modifier")) return false;
     boolean result;
-    Marker marker = enter_section_(builder, level, _NONE_, FIELDS_MODIFIER, "<fields modifier>");
+    Marker marker = enter_section_(builder);
     result = fields_modifier_0(builder, level + 1);
-    result = result && fields_modifier_1(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, null);
+    if (!result) result = access_modifier(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // "!"?(static|volatile|transient|final)
+  private static boolean fields_modifier_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "fields_modifier_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = fields_modifier_0_0(builder, level + 1);
+    result = result && fields_modifier_0_1(builder, level + 1);
+    exit_section_(builder, marker, null, result);
     return result;
   }
 
   // "!"?
-  private static boolean fields_modifier_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "fields_modifier_0")) return false;
+  private static boolean fields_modifier_0_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "fields_modifier_0_0")) return false;
     consumeToken(builder, EM);
     return true;
   }
 
-  // public|private|protected|static|volatile|transient|final
-  private static boolean fields_modifier_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "fields_modifier_1")) return false;
+  // static|volatile|transient|final
+  private static boolean fields_modifier_0_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "fields_modifier_0_1")) return false;
     boolean result;
-    result = consumeToken(builder, PUBLIC);
-    if (!result) result = consumeToken(builder, PRIVATE);
-    if (!result) result = consumeToken(builder, PROTECTED);
-    if (!result) result = consumeToken(builder, STATIC);
+    result = consumeToken(builder, STATIC);
     if (!result) result = consumeToken(builder, VOLATILE);
     if (!result) result = consumeToken(builder, TRANSIENT);
     if (!result) result = consumeToken(builder, FINAL);
@@ -805,32 +842,40 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // "!"?(public|private|protected|static|synchronized|native|abstract|strictfp|final)
-  public static boolean method_modifier(PsiBuilder builder, int level) {
+  // ("!"?(static|synchronized|native|abstract|strictfp|final))|access_modifier
+  static boolean method_modifier(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "method_modifier")) return false;
     boolean result;
-    Marker marker = enter_section_(builder, level, _NONE_, METHOD_MODIFIER, "<method modifier>");
+    Marker marker = enter_section_(builder);
     result = method_modifier_0(builder, level + 1);
-    result = result && method_modifier_1(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, null);
+    if (!result) result = access_modifier(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // "!"?(static|synchronized|native|abstract|strictfp|final)
+  private static boolean method_modifier_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "method_modifier_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = method_modifier_0_0(builder, level + 1);
+    result = result && method_modifier_0_1(builder, level + 1);
+    exit_section_(builder, marker, null, result);
     return result;
   }
 
   // "!"?
-  private static boolean method_modifier_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "method_modifier_0")) return false;
+  private static boolean method_modifier_0_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "method_modifier_0_0")) return false;
     consumeToken(builder, EM);
     return true;
   }
 
-  // public|private|protected|static|synchronized|native|abstract|strictfp|final
-  private static boolean method_modifier_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "method_modifier_1")) return false;
+  // static|synchronized|native|abstract|strictfp|final
+  private static boolean method_modifier_0_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "method_modifier_0_1")) return false;
     boolean result;
-    result = consumeToken(builder, PUBLIC);
-    if (!result) result = consumeToken(builder, PRIVATE);
-    if (!result) result = consumeToken(builder, PROTECTED);
-    if (!result) result = consumeToken(builder, STATIC);
+    result = consumeToken(builder, STATIC);
     if (!result) result = consumeToken(builder, SYNCHRONIZED);
     if (!result) result = consumeToken(builder, NATIVE);
     if (!result) result = consumeToken(builder, ABSTRACT);

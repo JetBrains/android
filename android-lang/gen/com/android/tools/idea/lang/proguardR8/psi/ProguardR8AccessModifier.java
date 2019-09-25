@@ -22,6 +22,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ProguardR8MethodModifier extends PsiElement {
+public interface ProguardR8AccessModifier extends PsiElement {
 
 }
