@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -152,11 +153,11 @@ public class DeploymentTest {
 
       // Run the app and wait for it to be picked up by the AndroidProcessHandler.
       ideFrameFixture.findRunApplicationButton().click();
-      waitForClient(iDevice);
+      AndroidProcessHandler processHandler = waitForClient(iDevice);
 
       // Stop the app and wait for the AndroidProcessHandler termination.
       ideFrameFixture.findStopButton().click();
-      awaitTermination(iDevice);
+      awaitTermination(processHandler);
 
       myAdbServer.disconnectDevice(deviceBinder.getState().getDeviceId());
     }
@@ -180,35 +181,59 @@ public class DeploymentTest {
       });
   }
 
-  private void waitForClient(@NotNull IDevice iDevice) {
+  /**
+   * A utility class to capture {@link AndroidProcessHandler} for a given target {@link IDevice}.
+   */
+  static class AndroidProcessHandlerCaptor implements Wait.Objective {
+
+    private final Project myProject;
+    private final IDevice myTargetDevice;
+    private Optional<AndroidProcessHandler> capturedAndroidDeviceHandler = Optional.empty();
+
+    public AndroidProcessHandlerCaptor(Project project, IDevice targetDevice) {
+      myProject = project;
+      myTargetDevice = targetDevice;
+    }
+
+    @Override
+    public boolean isMet() {
+      capturedAndroidDeviceHandler = RunContentManager.getInstance(myProject).getAllDescriptors().stream()
+        .filter(descriptor -> descriptor.getProcessHandler() instanceof AndroidProcessHandler)
+        .map(descriptor -> (AndroidProcessHandler)descriptor.getProcessHandler())
+        .filter(handler -> handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY).getExecutor() ==
+                           DefaultRunExecutor.getRunExecutorInstance())
+        .filter(handler -> handler.isAssociated(myTargetDevice))
+        .filter(handler -> handler.getClient(myTargetDevice) != null)
+        .findAny();
+      return capturedAndroidDeviceHandler.isPresent();
+    }
+
+    public Optional<AndroidProcessHandler> getCapturedAndroidDeviceHandler() {
+      return capturedAndroidDeviceHandler;
+    }
+  }
+
+  private AndroidProcessHandler waitForClient(@NotNull IDevice iDevice) {
     Wait.seconds(WAIT_TIME)
       .expecting("launched client to appear")
       .until(() -> Arrays.stream(iDevice.getClients()).anyMatch(
         c ->
           PACKAGE_NAME.equals(c.getClientData().getClientDescription()) ||
           PACKAGE_NAME.equals(c.getClientData().getPackageName())));
+
+    AndroidProcessHandlerCaptor captor = new AndroidProcessHandlerCaptor(myProject, iDevice);
+
     Wait.seconds(WAIT_TIME)
       .expecting("launched client to appear")
-      .until(() -> RunContentManager.getInstance(myProject).getAllDescriptors().stream()
-        .filter(descriptor -> descriptor.getProcessHandler() instanceof AndroidProcessHandler)
-        .map(descriptor -> (AndroidProcessHandler)descriptor.getProcessHandler())
-        .filter(handler -> handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY).getExecutor() ==
-                           DefaultRunExecutor.getRunExecutorInstance())
-        .filter(handler -> handler.isAssociated(iDevice))
-        .anyMatch(handler -> handler.getClient(iDevice) != null)
-      );
+      .until(captor);
+
+    return captor.getCapturedAndroidDeviceHandler().get();
   }
 
-  private void awaitTermination(@NotNull IDevice iDevice) {
+  private void awaitTermination(AndroidProcessHandler androidProcessHandler) {
     Wait.seconds(WAIT_TIME)
       .expecting("launched app to stop")
-      .until(() -> RunContentManager.getInstance(myProject).getAllDescriptors().stream()
-        .filter(descriptor -> descriptor.getProcessHandler() instanceof AndroidProcessHandler)
-        .map(descriptor -> (AndroidProcessHandler)descriptor.getProcessHandler())
-        .filter(handler -> handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY).getExecutor() ==
-                           DefaultRunExecutor.getRunExecutorInstance())
-        .filter(handler -> handler.isAssociated(iDevice))
-        .allMatch(handler -> handler.isProcessTerminated()));
+      .until(() -> androidProcessHandler.isProcessTerminated());
   }
 
   private void setActiveApk(@NotNull Project project, @NotNull APK apk) throws IOException {
