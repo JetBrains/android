@@ -20,16 +20,11 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCRE
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ScreenOrientation;
-import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -52,12 +47,9 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -86,13 +78,6 @@ public class VisualizationForm implements Disposable {
    */
   @SwingCoordinate private static final int VERTICAL_SCREEN_DELTA = 60;
 
-  /**
-   * We predefined some pixel devices for now.
-   */
-  private static final List<String> DEVICES_TO_DISPLAY =
-    ImmutableList.of("Pixel 3", "Pixel 3 XL", "Pixel 3a", "Pixel 3a XL", "Pixel 2", "Pixel 2 XL", "Pixel", "Pixel XL", "Pixel C");
-
-  private final VisualizationManager myManager;
   private final Project myProject;
   private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
@@ -112,14 +97,16 @@ public class VisualizationForm implements Disposable {
   private FileEditor myPendingEditor;
 
   private FileEditor myEditor;
+
+  @NotNull private VisualizationModelsProvider myVisualizationModel = PixelDeviceModelsProvider.INSTANCE;
+
   /**
    * {@link CompletableFuture} of the next model load. This is kept so the load can be cancelled.
    */
   private AtomicBoolean myCancelPendingModelLoad = new AtomicBoolean(false);
 
-  public VisualizationForm(@NotNull VisualizationManager manager) {
-    myManager = manager;
-    myProject = myManager.getProject();
+  public VisualizationForm(@NotNull Project project) {
+    myProject = project;
     mySurface = NlDesignSurface.builder(myProject, myProject)
       .showModelNames()
       .setIsPreview(false)
@@ -276,33 +263,10 @@ public class VisualizationForm implements Disposable {
       .supplyAsync(() -> {
         // Hide the content while adding the models.
         myWorkBench.hideContent();
-        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet);
-        List<Device> devices = configurationManager.getDevices();
-        Configuration defaultConfig = configurationManager.getConfiguration(file.getVirtualFile());
-
-        List<Device> deviceList = new ArrayList<>();
-        for (String name : DEVICES_TO_DISPLAY) {
-          devices.stream().filter(device -> name.equals(device.getDisplayName())).findFirst().ifPresent(deviceList::add);
-        }
-
-        if (deviceList.isEmpty()) {
+        List<NlModel> models = myVisualizationModel.createNlModels(this, file, facet);
+        if (models.isEmpty()) {
           myWorkBench.showLoading("No Device Found");
           return null;
-        }
-
-        List<NlModel> models = new ArrayList<>();
-        VirtualFile virtualFile = file.getVirtualFile();
-        Consumer<NlComponent> registrar = mySurface.getComponentRegistrar();
-
-        for (Device d : deviceList) {
-          Configuration config = defaultConfig.clone();
-          config.setDevice(d, false);
-          String label = d.getDisplayName();
-          Dimension size = d.getScreenSize(ScreenOrientation.PORTRAIT);
-          if (size != null) {
-            label = label + " (" + size.width + " x " + size.height + ")";
-          }
-          models.add(NlModel.create(this, label, facet, virtualFile, config, registrar));
         }
         return models;
       }, AppExecutorUtil.getAppExecutorService()).thenAcceptAsync(models -> {
