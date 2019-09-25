@@ -38,7 +38,9 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiBinaryFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
@@ -63,6 +65,7 @@ import com.intellij.refactoring.util.RefactoringUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
+import com.intellij.util.PathUtil;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -385,13 +388,14 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
   private PsiFile getOrCreateTargetManifestFile(AndroidFacet facet) {
     PsiManager manager = PsiManager.getInstance(myProject);
 
-    VirtualFile manifestFile = VfsUtil.findFileByIoFile(SourceProviderManager.getInstance(facet).getMainSourceProvider().getManifestFile(), false);
+    VirtualFile manifestFile = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFile();
 
     if (manifestFile != null) {
       return manager.findFile(manifestFile);
     }
     else {
-      VirtualFile directory = VfsUtil.findFileByIoFile(SourceProviderManager.getInstance(facet).getMainSourceProvider().getManifestFile().getParentFile(), false);
+      VirtualFile directory = VirtualFileManager.getInstance().findFileByUrl(
+        PathUtil.getParentPath(SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFileUrl()));
       if (directory != null) {
         PsiDirectory targetDirectory = manager.findDirectory(directory);
         if (targetDirectory != null) {
