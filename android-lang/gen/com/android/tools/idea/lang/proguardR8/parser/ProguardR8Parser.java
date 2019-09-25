@@ -112,12 +112,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   // class_name parameters
   static boolean class_description(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_description")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
+    boolean result, pinned;
+    Marker marker = enter_section_(builder, level, _NONE_);
     result = class_name(builder, level + 1);
+    pinned = result; // pin = 1
     result = result && parameters(builder, level + 1);
-    exit_section_(builder, marker, null, result);
-    return result;
+    exit_section_(builder, level, marker, result, pinned, null);
+    return result || pinned;
   }
 
   /* ********************************************************** */

@@ -287,4 +287,34 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
     // don't suggest after class member
     assertThat(fields).isEmpty()
   }
+
+  fun testPackageNameCompletion() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package p1.myPackage1;
+
+      public class MyClass {}
+    """.trimIndent()
+    ).qualifiedName
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package p1.myPackage2;
+
+      public class MyClass2 {}
+    """.trimIndent()
+    ).qualifiedName
+
+    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+        -keep class p1.myPackage1.MyClass {
+          $caret
+    """.trimIndent()
+    )
+
+    val classes = myFixture.completeBasic()
+    assertThat(classes).isNotEmpty()
+    assertThat(classes.map { it.lookupString }).containsAllOf("p1", "MyClass2")
+  }
 }
