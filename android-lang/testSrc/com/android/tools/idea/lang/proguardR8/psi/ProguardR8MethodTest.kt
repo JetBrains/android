@@ -450,7 +450,6 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
         byte myMethod();
         String myMethod();
         MyClass myMethod();
-        
         boolean[] myMethod(int p1);
         byte myMethod(String[] p1);
         String myMethod(StringBuilder p1);
