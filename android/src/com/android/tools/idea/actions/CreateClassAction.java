@@ -17,6 +17,7 @@ package com.android.tools.idea.actions;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Streams;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.CreateFromTemplateAction;
@@ -36,7 +37,9 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -131,14 +134,19 @@ public final class CreateClassAction extends AnAction {
       return ide.getOrChooseDirectory();
     }
 
-    // TODO(b/140548468): Consider all source providers.
-    Collection<File> files = SourceProviderManager.getInstance(facet).getMainSourceProvider().getJavaDirectories();
+    Collection<VirtualFile> files =
+      Streams.concat(
+        IdeaSourceProvider.getCurrentSourceProviders(facet).stream(),
+        IdeaSourceProvider.getCurrentTestSourceProviders(facet).stream()
+      )
+        .flatMap(it -> it.getJavaDirectories().stream())
+        .collect(Collectors.toList());
 
     if (files.size() != 1) {
       return ide.getOrChooseDirectory();
     }
 
-    VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(files.iterator().next());
+    VirtualFile file = files.iterator().next();
 
     if (file == null) {
       return ide.getOrChooseDirectory();
