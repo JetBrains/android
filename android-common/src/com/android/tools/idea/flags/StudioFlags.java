@@ -454,6 +454,11 @@ public final class StudioFlags {
     SQLITE_VIEWER, "enabled", "Enable the SQLite database viewer",
     "If enabled, SQLite files downloaded from Android devices or emulators are open in a custom SQLite editor window",
     false);
+
+  public static final Flag<Boolean> SQLITE_APP_INSPECTOR_ENABLED = Flag.create(
+    SQLITE_VIEWER, "sqlite.app.inspector", "Enable experimental SQLite inspector",
+    "SQLite inspector runs and executes all operations in app process",
+    false);
   //endregion
 
   //region Layout Inspector

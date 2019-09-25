@@ -400,6 +400,20 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "experimental-sqlite-inspector-artifacts",
+    srcs = select({
+        "//tools/base/app-inspection:app_inspection_experimental": [
+            "//tools/base/experimental/live-sql-inspector:live_sql_viewer_dex.jar",
+        ],
+        "//conditions:default": [
+            # building just a proto, so we can compile code behind the flag in studio
+            "//tools/base/experimental/live-sql-inspector:live_sql_java_proto",
+        ],
+    }),
+    visibility = ["//visibility:public"],
+)
+
 # Various artifacts that the ANT and within-idea studio build depend on.
 filegroup(
     name = "artifacts",
@@ -410,6 +424,7 @@ filegroup(
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
+        ":experimental-sqlite-inspector-artifacts",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents:ObjectSizeInstrumentationAgent_deploy.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
