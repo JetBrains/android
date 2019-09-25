@@ -35,7 +35,7 @@ const val DYNAMIC_FEATURE_TEMPLATE = "Dynamic Feature"
 const val INSTANT_DYNAMIC_FEATURE_TEMPLATE = "Dynamic Feature (Instant App)"
 
 class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project?): Collection<ModuleGalleryEntry> = listOf(
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(
     FeatureTemplateGalleryEntry(false),
     FeatureTemplateGalleryEntry(true))
 
