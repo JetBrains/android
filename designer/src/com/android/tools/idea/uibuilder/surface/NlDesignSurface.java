@@ -710,6 +710,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     layoutContent();
   }
 
+  @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
     ArrayList<CompletableFuture<Void>> refreshFutures = new ArrayList<>();
