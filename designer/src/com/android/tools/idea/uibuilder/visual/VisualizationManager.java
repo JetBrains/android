@@ -114,7 +114,7 @@ public class VisualizationManager implements ProjectComponent {
 
   @NotNull
   protected VisualizationForm createPreviewForm() {
-    return new VisualizationForm(this);
+    return new VisualizationForm(myProject);
   }
 
   protected void initToolWindow() {
