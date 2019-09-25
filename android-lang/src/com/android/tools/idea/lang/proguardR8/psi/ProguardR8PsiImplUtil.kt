@@ -162,3 +162,5 @@ fun containsWildcards(member: ProguardR8ClassMemberName): Boolean {
 }
 
 fun getReference(member: ProguardR8ClassMemberName) = if (member.containsWildcards()) null else ProguardR8ClassMemberNameReference(member)
+
+fun isNegated(modifier: ProguardR8AccessModifier) = modifier.firstChild.node.elementType == ProguardR8PsiTypes.EM

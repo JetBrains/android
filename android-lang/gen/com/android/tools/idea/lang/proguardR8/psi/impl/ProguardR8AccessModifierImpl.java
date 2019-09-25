@@ -43,4 +43,9 @@ public class ProguardR8AccessModifierImpl extends ASTWrapperPsiElement implement
     else super.accept(visitor);
   }
 
+  @Override
+  public boolean isNegated() {
+    return ProguardR8PsiImplUtil.isNegated(this);
+  }
+
 }
