@@ -86,7 +86,6 @@ data class BindingXmlData(val layoutType: BindingLayoutType,
                           val viewIds: Collection<ViewIdData>) {
   private val importsMap = imports.associateBy { it.shortName }
   private val variablesMap = variables.associateBy { it.name }
-  private val viewIdsMap = viewIds.associateBy { it.id }
 
   /**
    * Find an import using its short name.
@@ -102,14 +101,6 @@ data class BindingXmlData(val layoutType: BindingLayoutType,
    * possible.
    */
   fun findVariable(name: String) = variablesMap[name]
-
-  /**
-   * Find a viewId using its name.
-   *
-   * This search is backed by a map and should be preferred over iterating [viewIds] when
-   * possible.
-   */
-  fun findViewId(name: String) = viewIdsMap[name]
 
   /**
    * Resolves an import's short name to its fully qualified class name, if found.
