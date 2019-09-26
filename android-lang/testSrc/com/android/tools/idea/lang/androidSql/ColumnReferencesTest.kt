@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql
 
+import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumnPsiReference
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
@@ -26,6 +27,11 @@ import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiManager
 
 class ColumnReferencesTest : RoomLightTestCase() {
+
+  override fun setUp() {
+    super.setUp()
+    AndroidSqlContext.Provider.EP_NAME.getPoint(null).registerExtension(AndroidSqlTestContext.Provider(), testRootDisposable)
+  }
 
   fun testDefaultColumnName() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
@@ -44,6 +50,19 @@ class ColumnReferencesTest : RoomLightTestCase() {
 
     val elementAtCaret = myFixture.elementAtCaret
     assertThat(elementAtCaret).isEqualTo(myFixture.findField("com.example.User", "name"))
+  }
+
+  fun testColumnNameInsideAlterQuery() {
+    val file = myFixture.configureByText(ANDROID_SQL_FILE_TYPE, "ALTER TABLE User RENAME COLUMN n<caret>ame TO newName")
+    val schema = file.setTestSqlSchema {
+      table {
+        name = "User"
+        column { name = "name" }
+      }
+    }
+
+    val column = (myFixture.referenceAtCaret as AndroidSqlColumnPsiReference).resolveColumn(HashSet())
+    assertThat(column).isEqualTo(schema.getTable("User").getColumn("name"))
   }
 
   fun testCaseInsensitive_unquoted() {

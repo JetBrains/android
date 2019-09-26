@@ -83,41 +83,22 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ALTER TABLE ( database_name '.' )? defined_table_name ( rename_table_statement | rename_column_statement | add_column_statement )
+  // ALTER TABLE single_table_statement_table ( rename_table_statement | rename_column_statement | add_column_statement )
   public static boolean alter_table_statement(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "alter_table_statement")) return false;
     if (!nextTokenIs(builder, ALTER)) return false;
     boolean result;
     Marker marker = enter_section_(builder);
     result = consumeTokens(builder, 0, ALTER, TABLE);
-    result = result && alter_table_statement_2(builder, level + 1);
-    result = result && defined_table_name(builder, level + 1);
-    result = result && alter_table_statement_4(builder, level + 1);
+    result = result && single_table_statement_table(builder, level + 1);
+    result = result && alter_table_statement_3(builder, level + 1);
     exit_section_(builder, marker, ALTER_TABLE_STATEMENT, result);
     return result;
   }
 
-  // ( database_name '.' )?
-  private static boolean alter_table_statement_2(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "alter_table_statement_2")) return false;
-    alter_table_statement_2_0(builder, level + 1);
-    return true;
-  }
-
-  // database_name '.'
-  private static boolean alter_table_statement_2_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "alter_table_statement_2_0")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = database_name(builder, level + 1);
-    result = result && consumeToken(builder, DOT);
-    exit_section_(builder, marker, null, result);
-    return result;
-  }
-
   // rename_table_statement | rename_column_statement | add_column_statement
-  private static boolean alter_table_statement_4(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "alter_table_statement_4")) return false;
+  private static boolean alter_table_statement_3(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "alter_table_statement_3")) return false;
     boolean result;
     result = rename_table_statement(builder, level + 1);
     if (!result) result = rename_column_statement(builder, level + 1);
