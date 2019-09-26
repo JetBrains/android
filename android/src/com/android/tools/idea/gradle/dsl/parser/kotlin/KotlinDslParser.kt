@@ -212,9 +212,12 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   }
 
   // Check if this is a block with a methodCall as name, and get the block in such case. Ex: getByName("release") -> the release block.
-  private fun methodCallBlock(expression: KtCallExpression, parent: GradlePropertiesDslElement): GradlePropertiesDslElement? {
+  private fun methodCallBlock(
+    expression: KtCallExpression,
+    parent: GradlePropertiesDslElement,
+    name: GradleNameElement? = null): GradlePropertiesDslElement? {
     val blockName = methodCallBlockName(expression) ?: return null
-    val blockElement = dslFile.getBlockElement(listOf(blockName), parent) ?: return null
+    val blockElement = dslFile.getBlockElement(listOf(blockName), parent, name) ?: return null
     if (blockElement is AbstractFlavorTypeDslElement) {
       // TODO(xof): this way of keeping track of how we got hold of the block (which method name) only works once
       blockElement.setMethodName(expression.name())
@@ -231,8 +234,18 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   override fun visitCallExpression(expression: KtCallExpression, parent: GradlePropertiesDslElement) {
     // If the call expression has no name, we don't know how to handle it.
     var referenceName = expression.name() ?: return
+
+    val referenceExpression = expression.referenceExpression()
+    var name =
+      if (referenceExpression != null) GradleNameElement.from(referenceExpression, this) else GradleNameElement.create(referenceName)
+
     // If expression is a pure block element and not an expression.
     if (expression.isBlockElement()) {
+      // If the block has a localMethodName, the nameElement should use the argument valueExpression psi. (ex: create("release") -> release)
+      if (expression.valueArgumentList != null) {
+        val argumentExpressionVal = expression.valueArgumentList?.arguments?.get(0)?.getArgumentExpression()
+        name = if (argumentExpressionVal != null) GradleNameElement.from(argumentExpressionVal, this) else name
+      }
       // We might need to apply the block to multiple DslElements.
       val blockElements = Lists.newArrayList<GradlePropertiesDslElement>()
       // If the block is allprojects, we need to apply the closure to the project and to all its subprojetcs.
@@ -242,7 +255,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         // Then the block should be applied to subprojects.
         referenceName = "subprojects"
       }
-      val blockElement = methodCallBlock(expression, parent) ?: dslFile.getBlockElement(listOf(referenceName), parent) ?: return
+      val blockElement = methodCallBlock(expression, parent, name) ?: dslFile.getBlockElement(listOf(referenceName), parent, name) ?: return
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
 
       blockElement.setPsiElement(argumentsBlock)
