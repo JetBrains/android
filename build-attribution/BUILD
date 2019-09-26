@@ -44,7 +44,6 @@ iml_module(
     iml_files = ["intellij.android.build-attribution.tests.iml"],
     tags = [
         "no_test_mac",  # b/113099009
-        "no_test_mac_psq",  # b/113099009
         "no_test_windows",  # b/135665870
     ],
     test_class = "com.android.build.attribution.AndroidBuildAttributionTestSuite",

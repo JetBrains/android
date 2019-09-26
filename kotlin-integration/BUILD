@@ -43,7 +43,6 @@ iml_module(
     test_shard_count = 2,
     test_srcs = ["testSrc"],
     test_tags = [
-        "slow",
         "no_test_mac",
     ],
     test_timeout = "long",

@@ -225,7 +225,6 @@ iml_module(
     test_shard_count = 50,
     test_srcs = ["testSrc"],
     test_tags = [
-        "slow",
         "cpu:3",
         "block-network",
         "no_test_mac",

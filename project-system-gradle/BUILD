@@ -101,7 +101,6 @@ iml_module(
     ],
     test_srcs = ["testSrc"],
     test_tags = [
-        "slow",
         "no_test_mac",
     ],
     visibility = ["//visibility:public"],
