@@ -479,4 +479,103 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     assertThat(fields).hasSize(1)
     assertThat(fields.map { it.element!!.text }).contains("boolean[] myField;")
   }
+
+  fun testResolveFieldWithRightAccessModifier() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      class MyClass {
+        int myPackagePrivate;
+        public int myPublic;
+        private int myPrivate;
+        protected int myProtected;
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+         my;
+         public my;
+         !public my;
+         private my;
+         private protected my;
+         !private !protected my;
+         !private !protected !public my;
+         private !private my;
+      }
+      """.trimIndent()
+    )
+    myFixture.moveCaret("m|y;")
+    var fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }
+    assertThat(fields).containsExactly("myPackagePrivate", "myPublic", "myPrivate", "myProtected")
+
+    myFixture.moveCaret("public m|y;")
+    fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }
+    assertThat(fields).containsExactly("myPublic")
+
+    myFixture.moveCaret("!public m|y;")
+    fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }
+    assertThat(fields).containsExactly("myPackagePrivate", "myPrivate", "myProtected")
+
+    myFixture.moveCaret("private m|y;")
+    fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }
+    assertThat(fields).containsExactly("myPrivate")
+
+    myFixture.moveCaret("private protected m|y;")
+    fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }
+    assertThat(fields).containsExactly("myPrivate", "myProtected")
+
+    myFixture.moveCaret("!private !protected m|y;")
+    fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }
+    assertThat(fields).containsExactly("myPackagePrivate", "myPublic")
+
+    myFixture.moveCaret("!private !protected !public m|y;")
+    fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }
+    assertThat(fields).containsExactly("myPackagePrivate")
+
+    myFixture.moveCaret("private !private m|y;")
+    fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }
+    assertThat(fields).isEmpty()
+  }
+
+  fun testResolveFieldWithRightAccessModifierKotlin() {
+    myFixture.addFileToProject(
+      "myClass.kt",
+      """
+      package test;
+
+      class MyClass {
+        internal var myInternal:Int;
+        var myPublic:Int;
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+         my;
+         public my;
+         !public my;
+         private my;
+         private protected my;
+         !private !protected my;
+         !private !protected !public my;
+         private !private my;
+      }
+      """.trimIndent()
+    )
+    myFixture.moveCaret("m|y;")
+    var fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }
+    assertThat(fields).containsAllOf("myInternal", "myPublic")
+
+    myFixture.moveCaret("public m|y;")
+    fields = (myFixture.referenceAtCaret as ProguardR8ClassMemberNameReference).variants.map { it.lookupString }
+    // There are public getter and setter getMyPublic, setMyPublic, but not a field
+    assertThat(fields).doesNotContain("myPublic")
+  }
 }

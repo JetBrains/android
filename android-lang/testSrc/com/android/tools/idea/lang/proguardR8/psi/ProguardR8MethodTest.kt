@@ -558,7 +558,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
       package test;
 
       class MyClass {
-        boolean[] myMethod();
+        public boolean[] myMethod();
       }
     """.trimIndent())
 

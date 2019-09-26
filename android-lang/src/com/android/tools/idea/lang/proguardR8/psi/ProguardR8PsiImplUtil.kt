@@ -24,6 +24,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiParameterList
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiReference
@@ -41,8 +42,7 @@ private class ProguardR8JavaClassReferenceProvider(val scope: GlobalSearchScope)
   override fun getReferencesByString(str: String, position: PsiElement, offsetInPosition: Int): Array<PsiReference> {
     return if (StringUtil.isEmpty(str)) {
       PsiReference.EMPTY_ARRAY
-    }
-    else {
+    } else {
       object : JavaClassReferenceSet(str, position, offsetInPosition, true, this) {
         // Allows inner classes be separated by a dollar sign "$", e.g.java.lang.Thread$State
         // We can't just use ALLOW_DOLLAR_NAMES flag because to make JavaClassReferenceSet work in the way we want;
@@ -104,8 +104,7 @@ fun matchesPsiType(type: ProguardR8Type, other: PsiType): Boolean {
   if (type.isArray) {
     if (other is PsiArrayType) {
       typeToMatch = other.componentType
-    }
-    else {
+    } else {
       return false
     }
   }
@@ -164,3 +163,10 @@ fun containsWildcards(member: ProguardR8ClassMemberName): Boolean {
 fun getReference(member: ProguardR8ClassMemberName) = if (member.containsWildcards()) null else ProguardR8ClassMemberNameReference(member)
 
 fun isNegated(modifier: ProguardR8AccessModifier) = modifier.firstChild.node.elementType == ProguardR8PsiTypes.EM
+
+fun toPsiModifier(modifier: ProguardR8AccessModifier) = when {
+  modifier.node.findChildByType(ProguardR8PsiTypes.PRIVATE) != null -> PsiModifier.PRIVATE
+  modifier.node.findChildByType(ProguardR8PsiTypes.PROTECTED) != null -> PsiModifier.PROTECTED
+  modifier.node.findChildByType(ProguardR8PsiTypes.PUBLIC) != null -> PsiModifier.PUBLIC
+  else -> error("Couldn't match ProguardR8AccessModifier \"${modifier.text}\" to PsiModifier")
+}
