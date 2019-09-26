@@ -449,10 +449,10 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
          $caret
       """.trimIndent()
     )
-    val methods = myFixture.completeBasic()
+    val fields = myFixture.completeBasic()
 
     // suggest fields with different types
-    assertThat(methods.map { it.lookupString }).containsAllOf("myField1", "myField2", "myFiled3")
+    assertThat(fields.map { it.lookupString }).containsAllOf("myField1", "myField2", "myFiled3")
   }
 
   fun testResolveFieldWithoutType() {
@@ -474,9 +474,9 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
       }
       """.trimIndent()
     )
-    val methods = myFixture.referenceAtCaret.resolveReference() as Collection<ResolveResult>
+    val fields = myFixture.referenceAtCaret.resolveReference() as Collection<ResolveResult>
 
-    assertThat(methods).hasSize(1)
-    assertThat(methods.map { it.element!!.text }).contains("boolean[] myField;")
+    assertThat(fields).hasSize(1)
+    assertThat(fields.map { it.element!!.text }).contains("boolean[] myField;")
   }
 }
