@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lang.databinding.config.DbFile
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbId
@@ -241,9 +242,14 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
             return
           }
         }
-        // Don't annotate this id element because the container is unresolvable for
+        // Don't annotate this id element when the container is unresolvable for
         // its expr element.
         else if (expr.reference == null) {
+          return
+        }
+        // Don't annotate this id element when the container's expr element is resolved to an array whose references are not supported yet.
+        // TODO: (b/141703341) Add references to array types.
+        else if (expr.toModelClassResolvable()?.resolvedType?.isArray == true) {
           return
         }
       }
