@@ -35,7 +35,10 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
@@ -53,7 +56,8 @@ private const val MIN_ZOOM = 30
  * Panel that shows the device screen in the layout inspector.
  */
 class DeviceViewPanel(
-  val layoutInspector: LayoutInspector, val viewSettings: DeviceViewSettings
+  val layoutInspector: LayoutInspector,
+  val viewSettings: DeviceViewSettings
 ) : JPanel(BorderLayout()), Zoomable, DataProvider {
 
   private val client = layoutInspector.client
@@ -64,11 +68,11 @@ class DeviceViewPanel(
   override val screenScalingFactor = 1f
 
   private val showBordersCheckBox = object : CheckboxAction("Show borders") {
-    override fun isSelected(e: AnActionEvent): Boolean {
+    override fun isSelected(event: AnActionEvent): Boolean {
       return viewSettings.drawBorders
     }
 
-    override fun setSelected(e: AnActionEvent, state: Boolean) {
+    override fun setSelected(event: AnActionEvent, state: Boolean) {
       viewSettings.drawBorders = state
       repaint()
     }
@@ -77,13 +81,14 @@ class DeviceViewPanel(
   private val myProcessSelectionAction = SelectProcessAction(client)
   private val myStopLayoutInspectorAction = PauseLayoutInspectorAction(client)
 
-  val contentPanel = DeviceViewContentPanel(layoutInspector, viewSettings)
+  private val contentPanel = DeviceViewContentPanel(layoutInspector, viewSettings)
   private val scrollPane = JBScrollPane(contentPanel)
 
   init {
     scrollPane.border = JBUI.Borders.empty()
 
     layoutInspector.modelChangeListeners.add(::modelChanged)
+    client.registerProcessChanged { ApplicationManager.getApplication().invokeLater { ActionToolbarImpl.updateAllToolbarsImmediately() } }
 
     add(createToolbar(), BorderLayout.NORTH)
     add(scrollPane, BorderLayout.CENTER)
@@ -138,12 +143,12 @@ class DeviceViewPanel(
 
     val rightGroup = DefaultActionGroup()
     rightGroup.add(object : AnAction("reset") {
-      override fun actionPerformed(e: AnActionEvent) {
+      override fun actionPerformed(event: AnActionEvent) {
         viewSettings.viewMode = viewSettings.viewMode.next
       }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.icon = viewSettings.viewMode.icon
+      override fun update(event: AnActionEvent) {
+        event.presentation.icon = viewSettings.viewMode.icon
       }
     })
     rightGroup.add(ZoomOutAction)
@@ -162,9 +167,19 @@ class DeviceViewPanel(
     repaint()
   }
 
-  // TODO: Replace this with the process selector from the profiler
   private class SelectProcessAction(val client: InspectorClient) :
     DropDownAction("Select Process", "Select a process to connect to.", AllIcons.General.Add) {
+
+    private var currentProcess = Common.Process.getDefaultInstance()
+
+    override fun update(event: AnActionEvent) {
+      if (currentProcess != client.selectedProcess) {
+        val processName = client.selectedProcess.name.substringAfterLast('.')
+        val actionName = if (client.selectedProcess == Common.Process.getDefaultInstance()) "Select Process" else processName
+        currentProcess = client.selectedProcess
+        event.presentation.text = actionName
+      }
+    }
 
     override fun updateActions(): Boolean {
       removeAll()
@@ -173,7 +188,7 @@ class DeviceViewPanel(
       val processesMap = client.loadProcesses()
       if (processesMap.isEmpty()) {
         val noDeviceAction = object : AnAction("No devices detected") {
-          override fun actionPerformed(e: AnActionEvent) {}
+          override fun actionPerformed(event: AnActionEvent) {}
         }
         noDeviceAction.templatePresentation.isEnabled = false
         add(noDeviceAction)
@@ -186,7 +201,7 @@ class DeviceViewPanel(
           val processes = processesMap[stream]
           if (processes == null || processes.isEmpty()) {
             val noProcessAction = object : AnAction("No debuggable processes detected") {
-              override fun actionPerformed(e: AnActionEvent) {}
+              override fun actionPerformed(event: AnActionEvent) {}
             }
             noProcessAction.templatePresentation.isEnabled = false
             deviceAction.add(noProcessAction)
@@ -194,9 +209,15 @@ class DeviceViewPanel(
           else {
             val sortedProcessList = processes.sortedWith(compareBy({ it.name }, { it.pid }))
             for (process in sortedProcessList) {
-              val processAction = object : AnAction("${process.name} (${process.pid})") {
-                override fun actionPerformed(event: AnActionEvent) {
-                  client.attach(stream, process)
+              val processAction = object : ToggleAction("${process.name} (${process.pid})") {
+                override fun isSelected(event: AnActionEvent): Boolean {
+                  return process == client.selectedProcess && stream == client.selectedStream
+                }
+
+                override fun setSelected(event: AnActionEvent, state: Boolean) {
+                  if (state) {
+                    client.attach(stream, process)
+                  }
                 }
               }
               deviceAction.add(processAction)

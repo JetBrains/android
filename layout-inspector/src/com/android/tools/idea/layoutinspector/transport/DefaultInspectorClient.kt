@@ -68,10 +68,10 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
                                                                   TimeUnit.MILLISECONDS.toNanos(100),
                                                                   Comparator.comparing(Common.Event::getTimestamp).reversed())
 
-  private var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
-  private var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
+  override var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
+  override var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
 
-  private val endListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
+  private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private val lastResponseTimePerGroup = mutableMapOf<Long, Long>()
   private var adb: ListenableFuture<AndroidDebugBridge>? = null
 
@@ -112,8 +112,8 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
     })
   }
 
-  override fun registerProcessEnded(callback: () -> Unit) {
-    endListeners.add(callback)
+  override fun registerProcessChanged(callback: () -> Unit) {
+    processChangedListeners.add(callback)
   }
 
   private fun registerProcessEnded() {
@@ -130,7 +130,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
         selectedStream = Common.Stream.getDefaultInstance()
         selectedProcess = Common.Process.getDefaultInstance()
         isConnected = false
-        endListeners.forEach { it() }
+        processChangedListeners.forEach { it() }
       }
       false
     })
@@ -223,6 +223,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
     selectedProcess = process
     isConnected = false
     isCapturing = false
+    processChangedListeners.forEach { it() }
 
     // The device daemon takes care of the case if and when the agent is previously attached already.
     val attachCommand = Command.newBuilder()
