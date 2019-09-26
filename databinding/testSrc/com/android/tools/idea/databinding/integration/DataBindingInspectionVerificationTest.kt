@@ -152,7 +152,7 @@ class DataBindingInspectionVerificationTest {
       .filter { entry -> !excludedFiles.contains(entry.relativePath) }
       .forEach { entry ->
         fixture.configureFromExistingVirtualFile(entry.virtualFile)
-        fixture.checkHighlighting()
+        fixture.checkHighlighting(false, false, false)
       }
   }
 
@@ -164,7 +164,7 @@ class DataBindingInspectionVerificationTest {
     for (entry in allFileEntriesUnderRoots) {
       try {
         fixture.configureFromExistingVirtualFile(entry.virtualFile)
-        fixture.checkHighlighting()
+        fixture.checkHighlighting(false, false, false)
       }
       catch (_: Throwable) {
         excludedPaths.add(entry.relativePath)

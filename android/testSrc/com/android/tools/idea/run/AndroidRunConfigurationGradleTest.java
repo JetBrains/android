@@ -23,15 +23,18 @@ import com.android.tools.idea.testing.AndroidGradleTests;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestUtil;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
   private AndroidRunConfiguration myRunConfiguration;
@@ -70,12 +73,16 @@ public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
   }
 
   public void testErrorIfGradlePluginVersionIsOutdated() throws Exception {
-    loadProject(SIMPLE_APPLICATION_PRE30);
+    File projectSourceRoot = resolveTestDataPath(SIMPLE_APPLICATION_PRE30);
+    File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
 
-    // Update plugin to 2.2.0 so that the bundle tool tasks are not available.
-    // Note that downgrading to 2.2.0 always fails gradle sync.
-    AndroidGradleTests.updateGradleVersions(getBaseDirPath(getProject()), "2.2.0");
-    requestSyncAndGetExpectedFailure();
+    AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectRoot, root -> {
+      AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
+      AndroidGradleTests.createGradleWrapper(projectRoot, "4.5");
+      AndroidGradleTests.updateGradleVersions(root, "3.0.0");
+    });
+    importProject();
+    prepareProjectForTest(getProject(), "app");
 
     // Verifies there is a validation error (since bundle tasks are not available)
     myRunConfiguration.DEPLOY = true;

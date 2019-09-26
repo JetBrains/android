@@ -28,14 +28,23 @@ import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.ex.dummy.DummyFileSystem
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.WaitFor
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
+import java.awt.Point
+import java.awt.event.InputEvent
+import java.awt.event.MouseEvent
 import java.io.File
+import javax.swing.JComponent
+import kotlin.test.assertTrue
 
 /**
  * Return a fake directory on a DummyFileSystem.
@@ -106,4 +115,24 @@ fun createFakeResDirectory(androidFacet: AndroidFacet): File? {
   val first = defaultSourceProvider.resDirectories.first()
   androidFacet.configuration.model = TestAndroidModel(defaultSourceProvider = defaultSourceProvider)
   return first
+}
+private const val WAIT_TIMEOUT = 3000
+
+internal inline fun <reified T : JComponent> waitAndAssert(view: ResourceExplorerView, crossinline condition: (list: T?) -> Boolean) {
+  val waitForComponentCondition = object : WaitFor(WAIT_TIMEOUT) {
+    public override fun condition() = condition(UIUtil.findComponentOfType(view, T::class.java))
+  }
+  assertTrue(waitForComponentCondition.isConditionRealized)
+}
+
+internal fun simulateMouseClick(component: JComponent, point: Point, clickCount: Int) {
+  runInEdtAndWait {
+    // A click is done through a mouse pressed & released event, followed by the actual mouse clicked event.
+    component.dispatchEvent(MouseEvent(
+      component, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
+    component.dispatchEvent(MouseEvent(
+      component, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
+    component.dispatchEvent(MouseEvent(
+      component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, clickCount, false))
+  }
 }

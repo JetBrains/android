@@ -133,4 +133,10 @@ public class AndroidInlineLayoutHandler extends InlineActionHandler {
     }
     AndroidInlineUtil.doInlineLayoutFile(project, (XmlFile)resolvedElement, ref.getElement(), ourTestConfig);
   }
+
+  @Nullable
+  @Override
+  public String getActionName(PsiElement element) {
+    return "Inline Android Layout";
+  }
 }

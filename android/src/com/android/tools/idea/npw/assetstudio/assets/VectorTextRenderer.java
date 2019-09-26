@@ -141,16 +141,19 @@ public class VectorTextRenderer {
       }
       pathIterator.next();
     }
-    result.append('\n').append(indent).append("<path android:pathData=\"").append(pathBuilder.toString()).append('"')
-        .append('\n').append(indent).append(DOUBLE_INDENT).append("android:fillColor=\"")
-        .append(String.format("#%06X", color.getRGB() & 0xFFFFFF)).append('"');
-    String opacityValue = formatFloatValue(opacity);
-    if (!opacityValue.equals("1")) {
-      result.append('\n').append(indent).append(DOUBLE_INDENT).append("android:fillAlpha=\"").append(opacityValue).append('"');
+
+    if (!pathBuilder.isEmpty()) {
+      result.append('\n').append(indent).append("<path android:pathData=\"").append(pathBuilder.toString()).append('"')
+          .append('\n').append(indent).append(DOUBLE_INDENT).append("android:fillColor=\"")
+          .append(String.format("#%06X", color.getRGB() & 0xFFFFFF)).append('"');
+      String opacityValue = formatFloatValue(opacity);
+      if (!opacityValue.equals("1")) {
+        result.append('\n').append(indent).append(DOUBLE_INDENT).append("android:fillAlpha=\"").append(opacityValue).append('"');
+      }
+      if (windingRule == WIND_EVEN_ODD) {
+        result.append('\n').append(indent).append(DOUBLE_INDENT).append("android:fillType=\"evenOdd\"");
+      }
+      result.append("/>");
     }
-    if (windingRule == WIND_EVEN_ODD) {
-      result.append('\n').append(indent).append(DOUBLE_INDENT).append("android:fillType=\"evenOdd\"");
-    }
-    result.append("/>");
   }
 }

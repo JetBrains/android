@@ -453,6 +453,12 @@ public class NavigationSchema implements Disposable {
       throw new ClassNotFoundException(NAVIGATOR_CLASS_NAME);
     }
 
+    PsiClass activity = javaPsiFacade.findClass(SdkConstants.CLASS_ACTIVITY, scope);
+    if (activity == null) {
+      Logger.getInstance(getClass()).warn("Activity class not found.");
+      throw new ClassNotFoundException(SdkConstants.CLASS_ACTIVITY);
+    }
+
     Map<PsiClass, String> navigatorToTag = new HashMap<>();
     Map<PsiClass, PsiClass> navigatorToDestinationClass = new HashMap<>();
 
@@ -526,16 +532,11 @@ public class NavigationSchema implements Disposable {
   @NotNull
   private ImmutableMultimap<DestinationType, TypeRef> buildDestinationTypeToDestinationMap() {
     Map<PsiClass, DestinationType> destinationClassToType = new HashMap<>();
-    destinationClassToType.put(getClass(SdkConstants.CLASS_ACTIVITY), ACTIVITY);
-    PsiClass oldFragment = getClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
-    if (oldFragment != null) {
-      destinationClassToType.put(oldFragment, FRAGMENT);
-    }
-    PsiClass newFragment = getClass(SdkConstants.CLASS_V4_FRAGMENT.newName());
-    if (newFragment != null) {
-      destinationClassToType.put(newFragment, FRAGMENT);
-    }
-    destinationClassToType.put(getClass(NAV_GRAPH_DESTINATION), NAVIGATION);
+
+    updateDestinationTypeMap(destinationClassToType, SdkConstants.CLASS_ACTIVITY, ACTIVITY, false);
+    updateDestinationTypeMap(destinationClassToType, SdkConstants.CLASS_V4_FRAGMENT.oldName(), FRAGMENT, true);
+    updateDestinationTypeMap(destinationClassToType, SdkConstants.CLASS_V4_FRAGMENT.newName(), FRAGMENT, true);
+    updateDestinationTypeMap(destinationClassToType, NAV_GRAPH_DESTINATION, NAVIGATION, false);
 
     for (TypeRef destinationClassRef : myTagToDestinationClass.values()) {
       if (destinationClassRef == NULL_TYPE) {
@@ -565,6 +566,15 @@ public class NavigationSchema implements Disposable {
     destinationClassToType.forEach((destination, type) -> typeToDestinationBuilder.put(type, new TypeRef(destination)));
     typeToDestinationBuilder.put(OTHER, NULL_TYPE);
     return typeToDestinationBuilder.build();
+  }
+
+  private void updateDestinationTypeMap(@NotNull Map<PsiClass, DestinationType> destinationClassToType,
+                                        @NotNull String className, @NotNull DestinationType type, boolean optional) {
+    PsiClass psiClass = getClass(className);
+    assert(psiClass != null || optional);
+    if (psiClass != null) {
+      destinationClassToType.put(psiClass, type);
+    }
   }
 
   /**

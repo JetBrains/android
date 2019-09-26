@@ -458,10 +458,10 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     private SwingWorker<VectorAsset.Preview> createWorker(int previewWidth) {
       return new SwingWorker<VectorAsset.Preview>() {
         @Nullable VectorAsset.Preview myPreview;
-        @NotNull VectorAsset myAsset = myActiveAsset.get();
-        @Nullable File myAssetFile = myAsset.path().getValueOrNull();
-        @NotNull VectorAsset.VectorDrawableInfo myVectorDrawableInfo = myAsset.getVectorDrawableInfo().get();
-        @NotNull VdOverrideInfo myOverrideInfo = myAsset.createOverrideInfo();
+        @NotNull final VectorAsset myAsset = myActiveAsset.get();
+        @Nullable final File myAssetFile = myAsset.path().getValueOrNull();
+        @NotNull final VectorAsset.VectorDrawableInfo myVectorDrawableInfo = myAsset.getVectorDrawableInfo().get();
+        @NotNull final VdOverrideInfo myOverrideInfo = myAsset.createOverrideInfo();
 
         @WorkerThread
         @Override

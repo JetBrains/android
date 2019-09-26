@@ -18,12 +18,14 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEJTable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -36,6 +38,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -59,6 +62,8 @@ class ConstraintSetPanel extends JPanel {
   boolean building = false;
   Icon[] types = {MEIcons.LIST_STATE, MEIcons.LIST_GRAY_STATE, MEIcons.LIST_LAYOUT};
   String[] mask = {"Value", "Layout", "Motion", "Transform", "PropertySet"};
+  JPopupMenu myPopupMenu = new JPopupMenu();
+
   DefaultTableModel mConstraintSetModel = new DefaultTableModel(
     new String[]{"Included", "ID", "Defined In"}, 0) {
 
@@ -66,9 +71,14 @@ class ConstraintSetPanel extends JPanel {
     public Class getColumnClass(int column) {
       return (column == 0) ? Icon.class : String.class;
     }
+
+    @Override
+    public boolean isCellEditable(int row, int column) {
+      return false;
+    }
   };
 
-  JTable mConstraintSetTable = new JTable(mConstraintSetModel);
+  JTable mConstraintSetTable = new MEJTable(mConstraintSetModel);
   private String mDerived;
   boolean showAll = true;
   private MeModel mMeModel;
@@ -128,6 +138,7 @@ class ConstraintSetPanel extends JPanel {
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
     mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(16));
+    mConstraintSetTable.setShowHorizontalLines(false);
     JCheckBox cbox = new JCheckBox("All");
     cbox.setSelected(true);
     cbox.addActionListener(e -> {
@@ -136,13 +147,9 @@ class ConstraintSetPanel extends JPanel {
                            }
     );
     JLabel label;
-    left.add(label = new JLabel("ConstraintSet (", MEIcons.LIST_STATE, SwingConstants.LEFT));
-    Font planeFont = label.getFont().deriveFont(Font.PLAIN);
-    label.setFont(planeFont);
+    left.add(label = new JLabel("ConstraintSet (", MEIcons.CONSTRAINT_SET, SwingConstants.LEFT));
     left.add(mTitle = new JLabel("", SwingConstants.LEFT));
     left.add(label = new JLabel(")", SwingConstants.LEFT));
-    label.setFont(planeFont);
-    mTitle.setFont(mTitle.getFont().deriveFont(Font.BOLD));
     makeRightMenu(right);
     right.add(cbox);
 
@@ -217,24 +224,30 @@ class ConstraintSetPanel extends JPanel {
   private void makeRightMenu(JPanel right) {
     mModifyMenu = MEUI.createToolBarButton(MEIcons.EDIT_MENU, MEIcons.EDIT_MENU_DISABLED, "modify constraint set");
     right.add(mModifyMenu);
-    JPopupMenu popupMenu = new JPopupMenu();
     mModifyMenu.setEnabled(false);
-    popupMenu.add(createConstraint);
-    popupMenu.add(createSectionedConstraint);
-    popupMenu.add(moveConstraint);
-    popupMenu.add(clearConstraint);
-    popupMenu.add(overrideConstraint);
+    myPopupMenu.add(createConstraint);
+    myPopupMenu.add(createSectionedConstraint);
+    myPopupMenu.add(moveConstraint);
+    myPopupMenu.add(clearConstraint);
+    myPopupMenu.add(overrideConstraint);
     mModifyMenu.addActionListener(e -> {
-      popupMenu.show(mModifyMenu, 0, 0);
+      myPopupMenu.show(mModifyMenu, 0, 0);
     });
   }
 
-  String buildListString(MTag tag) {
-    String cid = tag.getAttributeValue("id");
-    int noc = tag.getChildTags().length;
-    String end = tag.getAttributeValue("constraintSetEnd");
-    return "<html> <b> " + cid + " </b><br>" + noc + " Constraint" + ((noc == 1) ? "" : "s")
-           + "</html>";
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (myPopupMenu != null) { // any are not null they have been initialized
+      myPopupMenu.updateUI();
+      int n = myPopupMenu.getComponentCount();
+      for (int i = 0; i < n; i++) {
+        Component component = myPopupMenu.getComponent(i);
+        if (component instanceof JComponent) {
+          ((JComponent)component).updateUI();
+        }
+      }
+    }
   }
 
   public void buildTable() {
@@ -376,6 +389,10 @@ class ConstraintSetPanel extends JPanel {
         mConstraintSetTable.addRowSelectionInterval(i, i);
       }
     }
+  }
+
+  public void clearSelection(){
+    mConstraintSetTable.clearSelection();
   }
 
   ArrayList<MTag> getDerived(MTag[] constraintSets, String derived) {

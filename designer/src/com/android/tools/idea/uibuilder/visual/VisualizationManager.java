@@ -42,7 +42,6 @@ import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBusConnection;
@@ -123,7 +122,7 @@ public class VisualizationManager implements ProjectComponent {
     final String toolWindowId = getToolWindowId();
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
-    myToolWindow.setIcon(StudioIcons.Avd.DEVICE_MOBILE);
+    myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.MULTI_PREVIEW);
 
     // Do not give focus to the preview when first opened:
     myToolWindow.getComponent().setFocusTraversalPolicy(new NoDefaultFocusTraversalPolicy());
@@ -302,9 +301,6 @@ public class VisualizationManager implements ProjectComponent {
             // Note, that this may be wrong in certain circumstances, but should be OK for most scenarios.
             restoreFocus = () -> IdeFocusManager.getInstance(myProject).doWhenFocusSettlesDown(() -> restoreFocusToEditor(newEditor));
           }
-          // Clear out the render result for the previous file, such that it doesn't briefly show between the time the
-          // tool window is shown and the time the render has completed
-          myToolWindowForm.clearRenderResult();
           myToolWindow.activate(restoreFocus, false, false);
         }
       }
@@ -350,11 +346,6 @@ public class VisualizationManager implements ProjectComponent {
       })
       .findFirst()
       .orElse(null);
-  }
-
-  @Nullable
-  protected XmlFile getBoundXmlFile(@Nullable PsiFile file) {
-    return (XmlFile) file;
   }
 
   @Nullable
@@ -415,15 +406,19 @@ public class VisualizationManager implements ProjectComponent {
         // User is using preview, don't switch to VisualizationWindow.
         return;
       }
-      VirtualFile newVirtualFile = null;
-      FileEditor editor = event.getNewEditor();
-      if (editor != null) {
-        newVirtualFile = editor.getFile();
+      FileEditor editorForLayout = null;
+      FileEditor newEditor = event.getNewEditor();
+      if (newEditor != null) {
+        VirtualFile newVirtualFile = newEditor.getFile();
+        if (newVirtualFile != null) {
+          PsiFile psiFile = PsiManager.getInstance(myProject).findFile(newVirtualFile);
+          if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.LAYOUT) {
+            // Visualization tool only works for layout files.
+            editorForLayout = newEditor;
+          }
+        }
       }
-      if (newVirtualFile != null) {
-        PsiFile psiFile = PsiManager.getInstance(myProject).findFile(newVirtualFile);
-        processFileEditorChange(ResourceHelper.getFolderType(psiFile) == ResourceFolderType.LAYOUT ? editor : null);
-      }
+      processFileEditorChange(editorForLayout);
     }
   }
 

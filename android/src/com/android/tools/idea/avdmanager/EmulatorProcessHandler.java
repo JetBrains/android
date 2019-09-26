@@ -26,10 +26,9 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Locale;
 
 /**
  * The {@link EmulatorProcessHandler} is a custom process handler specific to handling
@@ -68,7 +67,7 @@ public class EmulatorProcessHandler extends BaseOSProcessHandler{
         }
         return;
       }
-      boolean hasError = text != null && text.toLowerCase(Locale.US).contains("error");
+      boolean hasError = text != null && StringUtil.toLowerCase(text).contains("error");
       if (hasError || ProcessOutputTypes.STDERR.equals(outputType)) {
         Notification notification = new Notification(AndroidBundle.message("android.emulator"),
                                                      "",

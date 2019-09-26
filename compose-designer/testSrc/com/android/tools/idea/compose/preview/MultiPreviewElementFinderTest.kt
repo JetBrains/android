@@ -20,7 +20,7 @@ import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import org.junit.Assert.assertArrayEquals
 
-class MultiPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() {
+class MultiPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """

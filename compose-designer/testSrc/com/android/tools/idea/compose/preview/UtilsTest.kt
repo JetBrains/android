@@ -22,15 +22,15 @@ class UtilsTest {
   @Test
   fun testPreviewConfigurationCleaner() {
     assertEquals(
-      PreviewConfiguration.cleanAndGet(-120, null, 1, 1),
-      PreviewConfiguration.cleanAndGet(-120, null, -2, -10))
+      PreviewConfiguration.cleanAndGet(-120, null, 1, 1, 2f),
+      PreviewConfiguration.cleanAndGet(-120, null, -2, -10, 2f))
 
     assertEquals(
-      PreviewConfiguration.cleanAndGet(9000, null, MAX_WIDTH, MAX_HEIGHT),
-      PreviewConfiguration.cleanAndGet(9000, null, 500000, 500000))
+      PreviewConfiguration.cleanAndGet(9000, null, MAX_WIDTH, MAX_HEIGHT, null),
+      PreviewConfiguration.cleanAndGet(9000, null, 500000, 500000, 1f))
 
     assertEquals(
-      PreviewConfiguration.cleanAndGet(12, null, 120, MAX_HEIGHT),
-      PreviewConfiguration.cleanAndGet(12, null, 120, 500000))
+      PreviewConfiguration.cleanAndGet(12, null, 120, MAX_HEIGHT, null),
+      PreviewConfiguration.cleanAndGet(12, null, 120, 500000, 1f))
   }
 }

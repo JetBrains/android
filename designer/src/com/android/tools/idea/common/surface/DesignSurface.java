@@ -197,6 +197,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @NotNull
   private State myState = State.FULL;
+  @Nullable
+  private StateChangeListener myStateChangeListener;
 
   private final Timer myRepaintTimer = new Timer(15, (actionEvent) -> {
     repaint();
@@ -391,9 +393,23 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
    *
    * @param model the added {@link NlModel}
+   * @see #addModel(NlModel, boolean)
    */
   @NotNull
   public CompletableFuture<Void> addModel(@NotNull NlModel model) {
+    return addModel(model, true);
+  }
+
+  /**
+   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
+   * the refresh will be triggered.
+   * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
+   *
+   * @param model the added {@link NlModel}
+   * @param zoomToFitAfterAdding indicate if surface should zoom to fit the content after rendering.
+   */
+  @NotNull
+  public CompletableFuture<Void> addModel(@NotNull NlModel model, boolean zoomToFitAfterAdding) {
     SceneManager modelSceneManager = addModelImpl(model);
 
     // We probably do not need to request a render for all models but it is currently the
@@ -401,7 +417,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return modelSceneManager.requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
-        zoomToFit();
+        if (zoomToFitAfterAdding) {
+          zoomToFit();
+        }
 
         for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
           listener.modelChanged(this, model);
@@ -545,11 +563,22 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public final void setState(@NotNull State state) {
     myState = state;
+    if (myStateChangeListener != null) {
+      myStateChangeListener.onStateChange(state);
+    }
   }
 
   @NotNull
   public final State getState() {
     return myState;
+  }
+
+  public void setStateChangeListener(@Nullable StateChangeListener stateChangeListener) {
+    myStateChangeListener = stateChangeListener;
+  }
+
+  public interface StateChangeListener {
+    void onStateChange(@NotNull State newState);
   }
 
   public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
@@ -871,7 +900,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    *              (value below 0 means zoom to fit)
    * @return True if the scaling was changed, false if this was a noop.
    */
-  private boolean setScale(double scale) {
+  public boolean setScale(double scale) {
     return setScale(scale, -1, -1);
   }
 
@@ -1174,7 +1203,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * @return true if the content is editable (e.g. move position or drag-and-drop), false otherwise.
    */
-  private boolean isEditable() {
+  public boolean isEditable() {
     return getLayoutType().isEditable() && myIsEditable;
   }
 

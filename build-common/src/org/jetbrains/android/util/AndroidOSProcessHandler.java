@@ -49,7 +49,7 @@ public class AndroidOSProcessHandler extends BaseOSProcessHandler {
     }
     String[] lines = text.split("[\\n\\r]+");
     for (String line : lines) {
-      String l = line.toLowerCase();
+      String l = StringUtil.toLowerCase(line);
       if (outputType == ProcessOutputTypes.STDOUT) {
         myInfoMessages.add(line);
       }

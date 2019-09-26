@@ -22,6 +22,8 @@ import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
 import static kotlin.sequences.SequencesKt.generateSequence;
 
 import com.android.resources.ResourceType;
+import com.intellij.lang.Language;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -29,6 +31,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassOwner;
@@ -38,6 +41,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -389,5 +393,21 @@ public class AndroidPsiUtils {
     else {
       return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)tag::isValid);
     }
+  }
+
+  /** Returns a modification tracker which tracks changes only to physical XML PSI. */
+  @NotNull
+  public static ModificationTracker getXmlPsiModificationTracker(@NotNull Project project) {
+    PsiModificationTrackerImpl psiTracker = (PsiModificationTrackerImpl)PsiManager.getInstance(project).getModificationTracker();
+    return psiTracker.forLanguage(XMLLanguage.INSTANCE);
+  }
+
+  /** Returns a modification tracker which tracks changes to all physical PSI *except* XML PSI. */
+  @NotNull
+  public static ModificationTracker getPsiModificationTrackerIgnoringXml(@NotNull Project project) {
+    // Note: we also ignore the Language.ANY modification count, because that modification count
+    // is incremented unconditionally on every PSI change (see PsiModificationTrackerImpl#incLanguageCounters).
+    PsiModificationTrackerImpl psiTracker = (PsiModificationTrackerImpl)PsiManager.getInstance(project).getModificationTracker();
+    return psiTracker.forLanguages(lang -> !lang.is(XMLLanguage.INSTANCE) && !lang.is(Language.ANY));
   }
 }

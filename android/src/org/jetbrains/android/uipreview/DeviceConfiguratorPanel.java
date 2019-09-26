@@ -43,7 +43,7 @@ import static com.android.ide.common.resources.configuration.LocaleQualifier.FAK
 public abstract class DeviceConfiguratorPanel extends JPanel {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.DeviceConfiguratorPanel");
 
-  private JBList myAvailableQualifiersList;
+  private JBList<ResourceQualifier> myAvailableQualifiersList;
   private JButton myAddQualifierButton;
   private JButton myRemoveQualifierButton;
   private JPanel myQualifierOptionsPanel;
@@ -53,7 +53,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   private final FolderConfiguration myAvailableQualifiersConfig = FolderConfiguration.createDefault();
   private final FolderConfiguration myChosenQualifiersConfig = new FolderConfiguration();
   private FolderConfiguration myActualQualifiersConfig = new FolderConfiguration();
-  private JBList myChosenQualifiersList;
+  private JBList<ResourceQualifier> myChosenQualifiersList;
 
   private final DocumentListener myUpdatingDocumentListener = new DocumentAdapter() {
     @Override
@@ -147,33 +147,20 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       myQualifierOptionsPanel.add(editor.getComponent(), name);
     }
 
-    myAvailableQualifiersList.setCellRenderer(new ColoredListCellRenderer() {
-      @Override
-      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof ResourceQualifier) {
-          ResourceQualifier qualifier = (ResourceQualifier)value;
-          append(qualifier.getShortName());
-          setIcon(getResourceIcon(qualifier));
-        }
-      }
-    });
+    myAvailableQualifiersList.setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      if (value == null) return;
+      label.setText(value.getShortName());
+      label.setIcon(getResourceIcon(value));
+    }));
 
-    myChosenQualifiersList.setCellRenderer(new ColoredListCellRenderer() {
-      @Override
-      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof ResourceQualifier) {
-          final ResourceQualifier qualifier = getActualQualifier((ResourceQualifier)value);
-          final String shortDisplayValue = qualifier.getShortDisplayValue();
-          if (shortDisplayValue != null && !shortDisplayValue.isEmpty()) {
-            append(shortDisplayValue);
-          }
-          else {
-            append(qualifier.getShortName() + " (?)");
-          }
-          setIcon(getResourceIcon(qualifier));
-        }
-      }
-    });
+    myChosenQualifiersList.setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      if (value == null) return;
+      ResourceQualifier qualifier = getActualQualifier(value);
+      String shortDisplayValue = qualifier.getShortDisplayValue();
+      label.setText(shortDisplayValue != null && !shortDisplayValue.isEmpty() ?
+                    shortDisplayValue : qualifier.getShortName() + " (?)");
+      label.setIcon(getResourceIcon(qualifier));
+    }));
 
     myAddQualifierButton.addActionListener(new ActionListener() {
       @Override

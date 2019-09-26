@@ -156,7 +156,7 @@ iml_module(
         "//tools/idea/.idea/libraries:perfetto-proto",
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
-        "//prebuilts/studio/layoutlib/data:layoutlib_native",
+        "//prebuilts/studio/layoutlib/data:layoutlib",
         "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer.annotations[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/idea/plugins/terminal:intellij.terminal[module]",
@@ -175,9 +175,7 @@ iml_module(
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
-        "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:docs",
@@ -204,6 +202,7 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/data-binding:data_binding_runtime.zip",
         "//tools/external/gradle:gradle-distrib-2.6",
+        "//tools/external/gradle:gradle-distrib-4.5",
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
@@ -346,9 +345,6 @@ filegroup(
 filegroup(
     name = "deploy-artifacts",
     srcs = select({
-        "//tools/base/bazel:remote_windows": [
-            "//tools/base/deploy/proto:deploy_java_proto",
-        ],
         "//tools/base/bazel:windows": [
             "//tools/base/deploy/installer:android-installer",
             "//tools/base/deploy/proto:deploy_java_proto",
@@ -418,7 +414,6 @@ filegroup(
         "//tools/base/tracer:trace_agent",
     ] + select({
         "//tools/base/bazel:windows": [],
-        "//tools/base/bazel:remote_windows": [],
         "//conditions:default": [
             "//tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents:jnibleakhelper",
         ],

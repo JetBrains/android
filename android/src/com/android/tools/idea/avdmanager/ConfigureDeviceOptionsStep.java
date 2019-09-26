@@ -218,17 +218,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   }
 
   private void createUIComponents() {
-    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<>(Navigation.class)) {
-      @Override
-      public ListCellRenderer getRenderer() {
-        return new ColoredListCellRenderer() {
-          @Override
-          protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
-            append(((Navigation)value).getShortDisplayValue());
-          }
-        };
-      }
-    };
+    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<>(Navigation.class));
+    myNavigationControlsCombo.setRenderer(SimpleListCellRenderer.create("", Navigation::getShortDisplayValue));
 
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);

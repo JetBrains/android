@@ -28,27 +28,8 @@ import org.junit.Test;
 public class DnDTransferItemTest {
 
   @Test
-  public void getTransferItem() {
-
-    Transferable transferable = new Transferable() {
-
-
-      @Override
-      public DataFlavor[] getTransferDataFlavors() {
-        return new DataFlavor[]{ResourceDataManagerKt.RESOURCE_URL_FLAVOR};
-      }
-
-      @Override
-      public boolean isDataFlavorSupported(DataFlavor flavor) {
-        return flavor == ResourceDataManagerKt.RESOURCE_URL_FLAVOR;
-      }
-
-      @NotNull
-      @Override
-      public Object getTransferData(DataFlavor flavor) {
-        return ResourceUrl.create("namespace", ResourceType.DRAWABLE, "name");
-      }
-    };
+  public void getDrawableTransferItem() {
+    Transferable transferable = getResourceUrlTransferable(ResourceType.DRAWABLE);
     DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, false);
     assertEquals("<ImageView\n" +
                  "    android:layout_width=\"wrap_content\"\n" +
@@ -58,9 +39,27 @@ public class DnDTransferItemTest {
   }
 
   @Test
-  public void getLayoutTransferItem() {
+  public void getMipMapTransferItem() {
+    Transferable transferable = getResourceUrlTransferable(ResourceType.MIPMAP);
+    DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, false);
+    assertEquals("<ImageView\n" +
+                 "    android:layout_width=\"wrap_content\"\n" +
+                 "    android:layout_height=\"wrap_content\"\n" +
+                 "    android:src=\"@namespace:mipmap/name\"/>",
+                 item.getComponents().get(0).getRepresentation());
+  }
 
-    Transferable transferable = new Transferable() {
+  @Test
+  public void getLayoutTransferItem() {
+    Transferable transferable = getResourceUrlTransferable(ResourceType.LAYOUT);
+    DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, false);
+    assertEquals("<include layout=\"@namespace:layout/name\"/>",
+                 item.getComponents().get(0).getRepresentation());
+  }
+
+  private static Transferable getResourceUrlTransferable(ResourceType type) {
+    return new Transferable() {
+
       @Override
       public DataFlavor[] getTransferDataFlavors() {
         return new DataFlavor[]{ResourceDataManagerKt.RESOURCE_URL_FLAVOR};
@@ -74,12 +73,8 @@ public class DnDTransferItemTest {
       @NotNull
       @Override
       public Object getTransferData(DataFlavor flavor) {
-        return ResourceUrl.create("namespace", ResourceType.LAYOUT, "name");
+        return ResourceUrl.create("namespace", type, "name");
       }
     };
-
-    DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, false);
-    assertEquals("<include layout=\"@namespace:layout/name\"/>",
-                 item.getComponents().get(0).getRepresentation());
   }
 }

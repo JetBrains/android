@@ -18,6 +18,8 @@ package com.android.tools.idea.room.migrations
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.room.migrations.generators.JavaMigrationClassGenerator
 import com.android.tools.idea.room.migrations.generators.JavaMigrationTestGenerator
+import com.android.tools.idea.room.migrations.generators.KotlinMigrationClassGenerator
+import com.android.tools.idea.room.migrations.generators.KotlinMigrationTestGenerator
 import com.android.tools.idea.room.migrations.json.SchemaBundle
 import com.android.tools.idea.room.migrations.ui.GenerateMigrationWizard
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate
@@ -67,17 +69,18 @@ class GenerateRoomMigrationAction : AnAction("Generate a Room migration") {
       WriteCommandAction.runWriteCommandAction(project) {
         try {
           val javaMigrationClassGenerator = JavaMigrationClassGenerator(project)
-          val migrationClass = javaMigrationClassGenerator.createMigrationClass(migrationWizard.migrationClassDirectory,
+          val migrationClass = javaMigrationClassGenerator.createMigrationClass(migrationWizard.targetPackage,
+                                                                                migrationWizard.migrationClassDirectory,
                                                                                 migrationWizard.userReviewedDatabaseUpdate)
           if (!migrationClass.qualifiedName.isNullOrEmpty()) {
             val javaMigrationTestGenerator = JavaMigrationTestGenerator(project)
-            javaMigrationTestGenerator.createMigrationTest(migrationWizard.migrationTestDirectory,
+            javaMigrationTestGenerator.createMigrationTest(migrationWizard.targetPackage,
+                                                           migrationWizard.migrationTestDirectory,
                                                            databaseClassQualifiedName,
                                                            migrationClass.qualifiedName!!,
                                                            databaseUpdate.previousVersion,
                                                            databaseUpdate.currentVersion)
           }
-
         } catch (e : Exception) {
           Messages.showInfoMessage(project, e.message, "Failed to generate a migration")
         }

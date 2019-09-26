@@ -19,6 +19,7 @@ import com.android.ide.common.resources.stripPrefixFromId
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
+import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
@@ -348,6 +349,37 @@ class LightBindingClassTest {
     val tags = findChild(file, XmlTag::class.java) { it.localName == "include" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
+    assertThat(fields[0].name).isEqualTo("testId")
     assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("test.db.databinding.OtherActivityBinding", context))
+  }
+
+  @Test
+  fun createIncludeFieldWithPlainType() {
+    assertThat(facet.isViewBindingEnabled()).isFalse() // Behavior of includes is slightly different if view binding is enabled
+
+    fixture.addFileToProject("res/layout/simple_text.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    """.trimIndent())
+    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <include
+            android:id="@+id/included"
+            android:layout="@layout/simple_text"/>
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    // initialize app resources
+    ResourceRepositoryManager.getAppResources(facet)
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val fields = binding.fields
+    assertThat(fields).hasLength(1)
+    assertThat(fields[0].name).isEqualTo("included")
+    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.TextView", context))
   }
 }

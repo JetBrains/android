@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// ATTENTION: This file has been automatically generated from roomSql.bnf. Do not edit it manually.
+// ATTENTION: This file has been automatically generated from proguardR8.bnf. Do not edit it manually.
 
 package com.android.tools.idea.lang.proguardR8.psi;
 

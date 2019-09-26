@@ -134,7 +134,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -726,7 +725,7 @@ public class ChooseResourceDialog extends ResourcePickerDialog {
 
   @NotNull
   private ToggleAction createGridViewAction() {
-    return new ToggleAction(null, "grid", StudioIcons.LayoutEditor.Palette.GRID_VIEW) {
+    return new ToggleAction(null, "grid", StudioIcons.Common.GRID_VIEW) {
       @Override
       public boolean isSelected(AnActionEvent e) {
         return myGridMode;
@@ -741,7 +740,7 @@ public class ChooseResourceDialog extends ResourcePickerDialog {
 
   @NotNull
   private ToggleAction createListViewAction() {
-    return new ToggleAction(null, "list", StudioIcons.LayoutEditor.Palette.LIST_VIEW) {
+    return new ToggleAction(null, "list", StudioIcons.Common.LIST_VIEW) {
       @Override
       public boolean isSelected(AnActionEvent e) {
         return !myGridMode;
@@ -2025,7 +2024,7 @@ public class ChooseResourceDialog extends ResourcePickerDialog {
           if (validator.doesResourceExist(enteredName)) {
             ResourceType type = getSelectedPanel().getType();
             overwriteResource = String.format("Saving this %1$s will override existing resource %2$s.",
-                                              type.getDisplayName().toLowerCase(Locale.US), enteredName);
+                                              StringUtil.toLowerCase(type.getDisplayName()), enteredName);
           }
           else {
             String errorText = validator.getErrorText(enteredName);

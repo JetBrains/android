@@ -48,7 +48,9 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
 
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
+    main.builders.add(SelectedViewBuilder())
     val tab = addTab("")
+    tab.builders.add(DimensionBuilder())
     tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.isDeclared }, model, controlTypeProvider, declaredEditorProvider))
     tab.builders.add(InspectorTableBuilder("All Attributes", { true }, model, controlTypeProvider, allEditorProvider))
   }

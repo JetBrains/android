@@ -378,6 +378,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleVersions"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleProjectSettingsFinder"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleLocalCache"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.util.PersistentSHA256Checksums"/>
     <applicationService serviceImplementation="com.android.tools.idea.res.AarResourceRepositoryCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApkCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledPatchCache"/>
@@ -402,8 +403,10 @@
     <applicationConfigurable groupId="build" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.deploy.DeploymentConfiguration"/>
-    <projectConfigurable instance="com.android.tools.idea.flags.ExperimentalSettingsConfigurable"
+    <projectConfigurable provider="com.android.tools.idea.flags.StudioExperimentalConfigurableProvider"
                          id ="experimental" displayName="Experimental" groupId="root" groupWeight="-999"/>
+    <projectConfigurable provider="com.android.tools.idea.flags.PluginExperimentalConfigurableProvider"
+                         id ="experimentalPlugin" displayName="Android (Experimental)" groupId="language"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>

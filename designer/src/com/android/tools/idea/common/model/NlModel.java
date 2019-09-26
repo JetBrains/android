@@ -18,6 +18,7 @@ package com.android.tools.idea.common.model;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 import com.android.annotations.concurrency.Slow;
@@ -275,18 +276,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myFile;
   }
 
-  /**
-   * Default implementation of XmlFile provider, XmlFile is the corresponding PSI representation for VirtualFile. VirtualFile must be an
-   * actual XML file in this case.
-   *
-   * @param project a project virtualFile belongs to
-   * @param virtualFile a file
-   * @return {@link XmlFile} representation of a VirtualFile (or its part's) content
-   */
+  /** Returns the {@code XmlFile} PSI representation of {@code virtualFile} in {@code project}. */
+  @NotNull
   private static XmlFile getDefaultXmlFile(Project project, VirtualFile virtualFile) {
     XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
-    assert file != null;
-    return file;
+    return verifyNotNull(file);
   }
 
   @NotNull

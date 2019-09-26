@@ -76,6 +76,7 @@ class BindingXmlIndexTest {
 
     val data = map.values.first()
     assertThat(data.layoutType).isEqualTo(BindingLayoutType.DATA_BINDING_LAYOUT)
+    assertThat(data.rootTag).isEqualTo("layout")
     assertThat(data.customBindingName).isEqualTo("a.b.c.CustomBinding")
     assertThat(data.imports).containsExactly(ImportData("C", null), ImportData("Map<D>", "Dee"))
     assertThat(data.variables).containsExactly(
@@ -98,7 +99,8 @@ class BindingXmlIndexTest {
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
     val data = map.values.first()
-    assertThat(data.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
+    assertThat(data.layoutType).isEqualTo(BindingLayoutType.PLAIN_LAYOUT)
+    assertThat(data.rootTag).isEqualTo("constraint_layout")
     assertThat(data.customBindingName).isNull()
     assertThat(data.viewBindingIgnore).isFalse()
     assertThat(data.imports).isEmpty()
@@ -121,7 +123,8 @@ class BindingXmlIndexTest {
     val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
 
     val data = map.values.first()
-    assertThat(data.layoutType).isEqualTo(BindingLayoutType.VIEW_BINDING_LAYOUT)
+    assertThat(data.layoutType).isEqualTo(BindingLayoutType.PLAIN_LAYOUT)
+    assertThat(data.rootTag).isEqualTo("constraint_layout")
     assertThat(data.customBindingName).isNull()
     assertThat(data.viewBindingIgnore).isTrue()
     assertThat(data.imports).isEmpty()
@@ -138,6 +141,11 @@ class BindingXmlIndexTest {
         <TextView android:id="@+id/testId2"/>
         <TextView android:id="@id/testId3"/>
         <TextView android:id="@+id/testId1"/>
+        <Button android:id="@id/android:testId7"/>
+        <CheckBox android:id="@android:id/testId8"/>
+        <DatePicker android:id="@+id/android:testId9"/>
+        <ProgressBar android:id="@android:id/android:testId10"/>
+        <NumberPicker android:id="invalid"/>
         <view android:id="@+id/testId4" android:class="com.example.class"/>
         <include android:id="@+id/testId5" layout="this_other_layout"/>
         <merge android:id="@+id/testId6" layout="this_other_layout"/>
@@ -151,6 +159,11 @@ class BindingXmlIndexTest {
       ViewIdData("testId2", "TextView", null),
       ViewIdData("testId3", "TextView", null),
       ViewIdData("testId1", "TextView", null),
+      ViewIdData("testId7", "Button", null),
+      ViewIdData("testId8", "CheckBox", null),
+      ViewIdData("testId9", "DatePicker", null),
+      // TODO(b/141013448): This should just be "testId10", update after ResourceUrl.parse is fixed
+      ViewIdData("android:testId10", "ProgressBar", null),
       ViewIdData("testId4", "com.example.class", null),
       ViewIdData("testId5", "include", "this_other_layout"),
       ViewIdData("testId6", "merge", "this_other_layout")
