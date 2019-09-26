@@ -118,7 +118,7 @@ public class CpuCaptureStage extends Stage {
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
   private final List<CpuAnalysisModel> myAnalysisModels = new ArrayList<>();
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
-  private final CpuCaptureMinimapModel myMinimapModel;
+  private CpuCaptureMinimapModel myMinimapModel;
   private State myState = State.PARSING;
 
   // Accessible only when in state analyzing
@@ -157,7 +157,6 @@ public class CpuCaptureStage extends Stage {
     super(profilers);
     myCpuCaptureHandler =
       new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configurationName, captureProcessNameHint, captureProcessIdHint);
-    myMinimapModel = new CpuCaptureMinimapModel(profilers);
   }
 
   public State getState() {
@@ -181,6 +180,7 @@ public class CpuCaptureStage extends Stage {
 
   @NotNull
   public CpuCaptureMinimapModel getMinimapModel() {
+    assert myState == State.ANALYZING;
     return myMinimapModel;
   }
 
@@ -233,6 +233,7 @@ public class CpuCaptureStage extends Stage {
   }
 
   private void onCaptureParsed(@NotNull CpuCapture capture) {
+    myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture);
     myMinimapModel.setMaxRange(capture.getRange());
     initTrackGroupList(myMinimapModel.getRangeSelectionModel().getSelectionRange(), capture);
     addCpuAnalysisModel(

@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Model for CPU capture minimap, which provides range selection for navigating track groups in a {@link CpuCaptureStage}.
@@ -38,8 +39,8 @@ public class CpuCaptureMinimapModel {
   @NotNull
   private final CpuUsage myCpuUsage;
 
-  public CpuCaptureMinimapModel(StudioProfilers profilers) {
-    myCpuUsage = new CpuUsage(profilers, myMaxRange, myMaxRange);
+  public CpuCaptureMinimapModel(@NotNull StudioProfilers profilers, @Nullable CpuCapture cpuCapture) {
+    myCpuUsage = new CpuUsage(profilers, myMaxRange, myMaxRange, cpuCapture);
   }
 
   @NotNull
