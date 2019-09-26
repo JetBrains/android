@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
+import java.util.EnumSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,6 +35,7 @@ import org.junit.Test;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
+import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -100,7 +102,7 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void noAndroidXSupportPresentationShouldBeDisabled() {
-    new NewAndroidComponentAction("templateCategory", "templateName", 0, 0, true).update(myActionEvent);
+    new NewAndroidComponentAction("templateCategory", "templateName", 0, 0, EnumSet.of(ANDROIDX)).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
     assertThat(myActionEvent.getPresentation().getText()).contains("Requires AndroidX support");

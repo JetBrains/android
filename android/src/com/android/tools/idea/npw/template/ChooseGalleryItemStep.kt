@@ -33,6 +33,7 @@ import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.TemplateMetadata
+import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
@@ -176,7 +177,7 @@ fun validateTemplate(template: TemplateMetadata?,
   else if (moduleBuildApiLevel < template.minBuildApi) {
     message(messageKeys.invalidMinBuild, template.minBuildApi)
   }
-  else if (template.androidXRequired && !isAndroidxProject) {
+  else if (template.constraints.contains(ANDROIDX) && !isAndroidxProject) {
     message(messageKeys.invalidAndroidX)
   }
   else ""
