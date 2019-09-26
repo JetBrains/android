@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.templates.RenderingContextAdapter
+import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
 import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
@@ -50,10 +51,12 @@ import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.TemplateUtils.writeTextFile
 import com.android.tools.idea.templates.findModule
 import com.android.tools.idea.templates.mergeGradleSettingsFile
+import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.utils.XmlUtils.XML_PROLOG
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings.nullToEmpty
 import com.google.common.io.Resources.getResource
 import com.intellij.diff.comparison.ComparisonManager
@@ -155,7 +158,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     require(hasExtension(targetFile, DOT_GRADLE)) { "Only Gradle files can be merged at this point: $targetFile" }
 
     val targetText = readTargetText(targetFile) ?: run {
-      save(source, to)
+      save(source, to, true, true)
       return
     }
 
@@ -179,7 +182,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     require(hasExtension(targetFile, DOT_XML)) { "Only XML files can be merged at this point: $targetFile" }
 
     val targetText = readTargetText(targetFile) ?: run {
-      save(source, to)
+      save(source, to, true, true)
       return
     }
 
@@ -214,16 +217,18 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   }
 
   override fun addClasspathDependency(mavenCoordinate: String) {
-    referencesExecutor.addClasspathDependency(mavenCoordinate)
+    val resolvedCoordinate = resolveDependency(RepositoryUrlManager.get(), mavenCoordinate.trim())
 
-    val toBeAddedDependency = ArtifactDependencySpec.create(mavenCoordinate)
-    check(toBeAddedDependency != null) { "$mavenCoordinate is not a valid classpath dependency" }
+    referencesExecutor.addClasspathDependency(resolvedCoordinate)
+
+    val toBeAddedDependency = ArtifactDependencySpec.create(resolvedCoordinate)
+    check(toBeAddedDependency != null) { "$resolvedCoordinate is not a valid classpath dependency" }
 
     val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project))
     val buildModel = getBuildModel(rootBuildFile, project)
     if (buildModel == null) {
       mergeBuildFilesAndWrite(
-        dependencies = formatClasspath(mavenCoordinate),
+        dependencies = formatClasspath(resolvedCoordinate),
         content = if (rootBuildFile.exists()) nullToEmpty(readTextFile(rootBuildFile)) else "",
         project = project,
         buildFile = rootBuildFile
@@ -290,9 +295,11 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   /**
    * Instantiates the given template file into the given output file (running the Freemarker engine over it)
    */
-  override fun save(source: String, to: File) {
+  override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean) {
     val targetFile = getTargetFile(to)
-    val content = extractFullyQualifiedNames(to, source)
+    val untrimmedContent = extractFullyQualifiedNames(to, source).trim()
+    val trimmedUnsquishedContent = if (trimVertical) untrimmedContent.trim() else untrimmedContent
+    val content = if (squishEmptyLines) trimmedUnsquishedContent.squishEmptyLines() else trimmedUnsquishedContent
 
     if (targetFile.exists()) {
       if (!targetFile.contentEquals(content)) {
@@ -632,3 +639,18 @@ fun formatClasspath(dependency: String): String =
 
 fun convertConfiguration(agpVersion: String?, configuration: String): String =
   GradleUtil.mapConfigurationName(configuration, agpVersion, false)
+
+
+@VisibleForTesting
+fun CharSequence.squishEmptyLines(): String {
+  var isLastBlank = false
+  return this.split("\n").mapNotNull { line ->
+    when {
+      !line.isBlank() -> line
+      !isLastBlank -> "" // replace blank with empty
+      else -> null
+    }.also {
+      isLastBlank = line.isBlank()
+    }
+  }.joinToString("\n")
+}
