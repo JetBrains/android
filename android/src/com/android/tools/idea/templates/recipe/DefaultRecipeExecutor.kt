@@ -38,12 +38,14 @@ import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingExcept
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException
 import com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate
 import com.android.tools.idea.templates.RepositoryUrlManager
-import com.android.tools.idea.templates.TemplateMetadata
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APPLICATION_PACKAGE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_DIR
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_APPLICATION_PACKAGE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BASE_FEATURE_DIR
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
 import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
@@ -216,7 +218,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
 
     referencesExecutor.addDependency(configuration, mavenUrl)
 
-    val dependencyList = paramMap[TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP] as SetMultimap<String, String>
+    val dependencyList = paramMap[ATTR_DEPENDENCIES_MULTIMAP] as SetMultimap<String, String>
     dependencyList.put(configuration, mavenUrl)
   }
 
@@ -339,7 +341,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
       val contents: String = when {
         targetFile.name == GRADLE_PROJECT_SETTINGS_FILE -> mergeGradleSettingsFile(sourceText, targetText)
         targetFile.name == FN_BUILD_GRADLE -> {
-          val compileSdkVersion = paramMap[TemplateMetadata.ATTR_BUILD_API_STRING] as String
+          val compileSdkVersion = paramMap[ATTR_BUILD_API_STRING] as String
           io.mergeBuildFiles(sourceText, targetText, context.project, compileSdkVersion)
         }
         hasExtension(targetFile, DOT_XML) -> mergeXml(context, sourceText, targetText, targetFile)
@@ -537,13 +539,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   }
 
   private fun readTextFile(file: File): String? =
-    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_MODULE])
+    if (java.lang.Boolean.TRUE == context.paramMap[ATTR_IS_NEW_MODULE])
       readTextFromDisk(file)
     else
       readTextFromDocument(context.project, file)
 
   private fun readTextFile(file: VirtualFile): String? =
-    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_MODULE])
+    if (java.lang.Boolean.TRUE == context.paramMap[ATTR_IS_NEW_MODULE])
       readTextFromDisk(virtualToIoFile(file))
     else
       readTextFromDocument(context.project, file)

@@ -49,84 +49,15 @@ import org.w3c.dom.NodeList;
  * An ADT template along with metadata
  */
 public class TemplateMetadata {
-  public static final String ATTR_IS_LAUNCHER = "isLauncher";
-  public static final String ATTR_IS_LIBRARY_MODULE = "isLibraryProject";
-  public static final String ATTR_TARGET_API = "targetApi";
-  public static final String ATTR_TARGET_API_STRING = "targetApiString";
-  public static final String ATTR_MIN_API = "minApi";
-  public static final String ATTR_MIN_BUILD_API = "minBuildApi";
-  public static final String ATTR_REQUIRES_ANDROID_X = "requireAndroidX";
-  public static final String ATTR_BUILD_API = "buildApi";
-  public static final String ATTR_BUILD_API_STRING = "buildApiString";
-  public static final String ATTR_BUILD_API_REVISION = "buildApiRevision";
-  public static final String ATTR_HAS_APPLICATION_THEME = "hasApplicationTheme";
-  public static final String ATTR_REVISION = "revision";
-  public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
-  public static final String ATTR_PACKAGE_NAME = "packageName";
-  public static final String ATTR_APP_TITLE = "appTitle";
-  public static final String ATTR_IS_NEW_MODULE = "isNewModule";
-  public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
-  public static final String ATTR_THEME_EXISTS = "themeExists";
-  public static final String ATTR_TOP_OUT = "topOut";
-  public static final String ATTR_PROJECT_OUT = "projectOut"; // Module (Project in gradle language) location
-  public static final String ATTR_SRC_OUT = "srcOut";
-  public static final String ATTR_RES_OUT = "resOut";
-  public static final String ATTR_MANIFEST_OUT = "manifestOut";
-  public static final String ATTR_TEST_OUT = "testOut";
-  public static final String ATTR_SRC_DIR = "srcDir";
-  public static final String ATTR_RES_DIR = "resDir";
-  public static final String ATTR_MANIFEST_DIR = "manifestDir";
-  public static final String ATTR_TEST_DIR = "testDir";
-  public static final String ATTR_AIDL_DIR = "aidlDir";
-  public static final String ATTR_AIDL_OUT = "aidlOut";
-  public static final String ATTR_DEBUG_KEYSTORE_SHA1 = "debugKeystoreSha1";
-  public static final String ATTR_BUILD_TOOLS_VERSION = "buildToolsVersion";
-  public static final String ATTR_EXPLICIT_BUILD_TOOLS_VERSION = "explicitBuildToolsVersion";
-  public static final String ATTR_GRADLE_PLUGIN_VERSION = "gradlePluginVersion";
-  public static final String ATTR_GRADLE_VERSION = "gradleVersion";
-  public static final String ATTR_JAVA_VERSION = "javaVersion";
-  public static final String ATTR_SDK_DIR = "sdkDir";
-  public static final String ATTR_APPLICATION_PACKAGE = "applicationPackage";
-  public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
-  public static final String ATTR_MODULE_NAME = "projectName";
-  public static final String ATTR_MODULE_SIMPLE_NAME = "projectSimpleName"; // Same as ATTR_MODULE_NAME but no spaces or other symbols
-  public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
-  public static final String ATTR_IS_LOW_MEMORY = "isLowMemory";
+  public static final String TAG_CATEGORY = "category";
+  public static final String TAG_FORM_FACTOR = "formfactor";
 
-  public static final String ATTR_CPP_FLAGS = "cppFlags";
-  public static final String ATTR_CPP_SUPPORT = "includeCppSupport";
   public static final String ATTR_DEPENDENCIES_MULTIMAP = "dependenciesMultimap";
 
-  public static final String ATTR_IS_DYNAMIC_FEATURE = "isDynamicFeature";
-  public static final String ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY = "dynamicFeatureInstallTimeDelivery";
-  public static final String ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY = "dynamicFeatureInstallTimeWithConditionsDelivery";
-  public static final String ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY = "dynamicFeatureOnDemandDelivery";
-  public static final String ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST = "dynamicFeatureDeviceFeatureList";
-  public static final String ATTR_DYNAMIC_FEATURE_TITLE = "dynamicFeatureTitle";
-  public static final String ATTR_DYNAMIC_FEATURE_ON_DEMAND = "dynamicFeatureOnDemand";
-  public static final String ATTR_DYNAMIC_FEATURE_FUSING = "dynamicFeatureFusing";
-  public static final String ATTR_DYNAMIC_IS_INSTANT_MODULE = "isInstantModule";
-
-  public static final String ATTR_COMPANY_DOMAIN = "companyDomain";
-  public static final String ATTR_BASE_FEATURE_NAME = "baseFeatureName";
-  public static final String ATTR_BASE_FEATURE_DIR = "baseFeatureDir";
-  public static final String ATTR_BASE_FEATURE_RES_DIR = "baseFeatureResDir";
-  public static final String ATTR_CLASS_NAME = "className";
-
-  public static final String ATTR_ANDROIDX_SUPPORT = "addAndroidXSupport";
-  public static final String ATTR_LANGUAGE = "language"; // Java vs Kotlin
-  public static final String ATTR_KOTLIN_VERSION = "kotlinVersion";
-  public static final String ATTR_KOTLIN_EAP_REPO = "includeKotlinEapRepo";
-
-  public static final String ATTR_APP_THEME = "applicationTheme";
-  public static final String ATTR_APP_THEME_NAME = "name";
-  public static final String ATTR_APP_THEME_EXISTS = "exists";
-  public static final String ATTR_APP_THEME_NO_ACTION_BAR = "NoActionBar";
-  public static final String ATTR_APP_THEME_APP_BAR_OVERLAY = "AppBarOverlay";
-  public static final String ATTR_APP_THEME_POPUP_OVERLAY = "PopupOverlay";
-
-  public static final String TAG_CATEGORY = "category";
-  public static final String TAG_FORMFACTOR = "formfactor";
+  private static final String ATTR_TEMPLATE_REVISION = "revision";
+  private static final String ATTR_MIN_BUILD_API = "minBuildApi";
+  private static final String ATTR_MIN_API = "minApi";
+  private static final String ATTR_REQUIRES_ANDROID_X = "requireAndroidX";
 
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
@@ -175,7 +106,7 @@ public class TemplateMetadata {
       }
     }
 
-    NodeList formFactors = myDocument.getElementsByTagName(TAG_FORMFACTOR);
+    NodeList formFactors = myDocument.getElementsByTagName(TAG_FORM_FACTOR);
     if (formFactors.getLength() > 0) {
       Element element = (Element)formFactors.item(0);
       if (element.hasAttribute(ATTR_VALUE)) {
@@ -221,7 +152,7 @@ public class TemplateMetadata {
   public boolean getAndroidXRequired() { return getBoolean(ATTR_REQUIRES_ANDROID_X, false); }
 
   public int getRevision() {
-    return getInteger(ATTR_REVISION, 1);
+    return getInteger(ATTR_TEMPLATE_REVISION, 1);
   }
 
   @Nullable

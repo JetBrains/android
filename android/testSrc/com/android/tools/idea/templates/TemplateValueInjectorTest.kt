@@ -26,6 +26,9 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.TemplateValueInjector
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_TOOLS_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_VERSION
 import com.intellij.mock.MockApplicationEx
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -86,9 +89,9 @@ class TemplateValueInjectorTest {
     injector.setBuildVersion(versionItem, null, true)
 
     assertThat(templateValues).isNotEmpty()
-    assertThat(templateValues[TemplateMetadata.ATTR_BUILD_API]).isEqualTo(PREVIEW_VERSION)
-    assertThat(templateValues[TemplateMetadata.ATTR_BUILD_TOOLS_VERSION]).isEqualTo("26.0.0 rc1")
-    assertThat(templateValues[TemplateMetadata.ATTR_KOTLIN_VERSION]).isNotNull()
+    assertThat(templateValues[ATTR_BUILD_API]).isEqualTo(PREVIEW_VERSION)
+    assertThat(templateValues[ATTR_BUILD_TOOLS_VERSION]).isEqualTo("26.0.0 rc1")
+    assertThat(templateValues[ATTR_KOTLIN_VERSION]).isNotNull()
   }
 
   @Test
@@ -100,7 +103,7 @@ class TemplateValueInjectorTest {
 
     injector.setBuildAttributes(versionItemForQ, project, false)
 
-    assertThat(templateValues[TemplateMetadata.ATTR_BUILD_API]).isEqualTo(VersionCodes.P)
+    assertThat(templateValues[ATTR_BUILD_API]).isEqualTo(VersionCodes.P)
   }
 
   companion object {

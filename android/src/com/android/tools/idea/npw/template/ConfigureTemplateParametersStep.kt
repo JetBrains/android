@@ -50,9 +50,9 @@ import com.android.tools.idea.templates.Parameter
 import com.android.tools.idea.templates.ParameterValueResolver
 import com.android.tools.idea.templates.StringEvaluator
 import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_CLASS_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_CLASS_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep

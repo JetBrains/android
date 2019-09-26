@@ -23,9 +23,9 @@ import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_CLASS_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_MODULE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_CLASS_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
 import com.intellij.openapi.project.Project
 
 class NewLibraryModuleModel(

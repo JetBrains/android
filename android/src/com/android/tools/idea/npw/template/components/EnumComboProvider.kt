@@ -18,7 +18,8 @@ package com.android.tools.idea.npw.template.components
 import com.android.SdkConstants.ATTR_ID
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.templates.Parameter
-import com.android.tools.idea.templates.TemplateMetadata
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_BUILD_API
 import com.android.tools.idea.ui.ApiComboBoxItem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
@@ -50,8 +51,8 @@ class EnumComboProvider(parameter: Parameter) : ParameterComponentProvider<Combo
       assert(it.length == 1 && it.item(0).nodeType == Node.TEXT_NODE)
     }
     val optionLabel = childNodes.item(0).nodeValue.trim()
-    val minSdk = getIntegerOptionValue(option, TemplateMetadata.ATTR_MIN_API, parameter.name, 1)
-    val minBuildApi = getIntegerOptionValue(option, TemplateMetadata.ATTR_MIN_BUILD_API, parameter.name, 1)
+    val minSdk = getIntegerOptionValue(option, ATTR_MIN_API, parameter.name, 1)
+    val minBuildApi = getIntegerOptionValue(option, ATTR_MIN_BUILD_API, parameter.name, 1)
     return ApiComboBoxItem(optionId!!, optionLabel, minSdk, minBuildApi)
   }
 
