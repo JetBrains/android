@@ -526,11 +526,23 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myLoadingPanel.setBounds(0, 0, getWidth(), getHeight());
   }
 
-  /**
-   * Sets the context and updates the model to reflect the context change.
-   */
   public void setContext(@NotNull String context) {
     myContext = context;
+  }
+
+  /**
+   * Sets default properties for the context in case they're not set yet and updates the model to reflect the changes.
+   */
+  public void setDefaultPropertiesForContext() {
+    List<AttachedToolWindow<T>> tools = myModel.getAllTools();
+    if (tools.isEmpty()) {
+      return;
+    }
+    tools.forEach((tool) -> {
+      tool.setDefaultProperty(AttachedToolWindow.PropertyType.LEFT, tool.getDefinition().getSide().isLeft());
+      tool.setDefaultProperty(AttachedToolWindow.PropertyType.SPLIT, tool.getDefinition().getSplit().isBottom());
+      tool.setDefaultProperty(AttachedToolWindow.PropertyType.AUTO_HIDE, tool.getDefinition().getAutoHide().isAutoHide());
+    });
     updateModel();
   }
 
@@ -541,6 +553,12 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   @NotNull
   public String getContext() {
     return myContext;
+  }
+
+  @Override
+  @NotNull
+  public String getName() {
+    return myName;
   }
 
   private class MyButtonDragListener implements ButtonDragListener<T> {
