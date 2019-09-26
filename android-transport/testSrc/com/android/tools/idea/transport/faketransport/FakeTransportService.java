@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.commands.BeginSession;
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler;
 import com.android.tools.idea.transport.faketransport.commands.EndSession;
@@ -32,11 +33,11 @@ import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.idea.protobuf.ByteString;
 import com.intellij.util.containers.MultiMap;
 import io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -409,6 +410,26 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
       builder.addGroups(eventGroup);
     }
     responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void deleteEvents(Transport.DeleteEventsRequest request, StreamObserver<Transport.DeleteEventsResponse> responseObserver) {
+    synchronized (myStreamEvents) {
+      List<Common.Event> events = myStreamEvents.get(request.getStreamId());
+      Iterator<Common.Event> itr = events.iterator();
+      while (itr.hasNext()) {
+        Common.Event event = itr.next();
+        if (event.getPid() == request.getPid() &&
+            event.getGroupId() == request.getGroupId() &&
+            event.getKind() == request.getKind() &&
+            event.getTimestamp() >= request.getFromTimestamp() &&
+            event.getTimestamp() <= request.getToTimestamp()) {
+          itr.remove();
+        }
+      }
+    }
+    responseObserver.onNext(Transport.DeleteEventsResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
 }

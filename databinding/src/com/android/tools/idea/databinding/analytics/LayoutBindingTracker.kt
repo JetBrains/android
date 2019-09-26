@@ -20,7 +20,7 @@ import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent
 import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
-import com.android.tools.idea.databinding.index.BindingLayoutType.VIEW_BINDING_LAYOUT
+import com.android.tools.idea.databinding.index.BindingLayoutType.PLAIN_LAYOUT
 import com.android.tools.idea.databinding.index.BindingXmlIndex.Companion.NAME
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.androidFacet
@@ -106,7 +106,7 @@ open class LayoutBindingTracker constructor(private val project: Project) : Data
                   dataBindingLayoutCount++
                   importCount += layoutInfo.imports.size
                   variableCount += layoutInfo.variables.size
-                } else if (layoutInfo.layoutType == VIEW_BINDING_LAYOUT && !layoutInfo.viewBindingIgnore) {
+                } else if (layoutInfo.layoutType == PLAIN_LAYOUT && !layoutInfo.viewBindingIgnore) {
                   viewBindingLayoutCount++
                 }
                 true

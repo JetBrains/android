@@ -42,11 +42,23 @@ import java.util.Arrays;
 public class BaseCreatePanel extends JPanel {
   public static final boolean DEBUG = false;
   protected Popup myPopup;
-  JDialog myDialog;
+  MEUI.Popup myDialog;
   Icon icon = MEIcons.CREATE_TRANSITION;
   protected MotionEditor mMotionEditor;
   protected boolean inSubPopup = false;
   private Component mSourceComponent;
+
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    int n = getComponentCount();
+    for (int i = 0; i < n; i++) {
+      Component c = getComponent(i);
+      if (c instanceof  JComponent){
+        ((JComponent)c).updateUI();
+      }
+    }
+  }
 
   public JButton createButton() {
     JButton button = new JButton(icon);
@@ -139,18 +151,18 @@ public class BaseCreatePanel extends JPanel {
   protected void showErrorDialog(String str) {
     inSubPopup = true;
     JOptionPane optionPane = new JOptionPane(str, JOptionPane.ERROR_MESSAGE);
-    JDialog dialog = optionPane.createDialog(myDialog, "Invalid");
+    JDialog dialog = optionPane.createDialog(this, "Invalid");
     dialog.setContentPane(optionPane);
     dialog.setTitle("Invalid");
     dialog.setAlwaysOnTop(true);
     dialog.setModal(true);
     dialog.setResizable(false);
     dialog.setLocationRelativeTo(this);
-    myDialog.setVisible(false);
+    myDialog.hide();
     dialog.setVisible(true);
     dialog.dispose();
     inSubPopup = false;
-    myDialog.setVisible(true);
+    myDialog.show();
   }
 
   protected void showPreconditionDialog(String str) {
@@ -174,10 +186,18 @@ public class BaseCreatePanel extends JPanel {
   }
 
   public void dismissPopup() {
-    myDialog.setVisible(false);
+    if (myDialog == null) {
+     return;
+    }
+    myDialog.dismiss();
+    myDialog = null;
   }
 
-  public void showPopup(Component source, int offx, int offy) {
+  public void showPopup(JComponent source, int offx, int offy) {
+    updateUI();
+    myDialog =  MEUI.createPopup(this,source);
+  }
+    public void showPopup2(Component source, int offx, int offy) {
 
     final JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(source),
       "Click a button");
@@ -208,7 +228,7 @@ public class BaseCreatePanel extends JPanel {
       }
     });
 
-    myDialog = dialog;
+    //myDialog = dialog;
     dialog.setVisible(true);
     dialog.requestFocus();
   }
@@ -217,7 +237,7 @@ public class BaseCreatePanel extends JPanel {
     return true;
   }
 
-  public Action getAction(Component component, MotionEditor motionEditor) {
+  public Action getAction(JComponent component, MotionEditor motionEditor) {
     mMotionEditor = motionEditor;
     AbstractAction aa = new AbstractAction(getName(), icon) {
 

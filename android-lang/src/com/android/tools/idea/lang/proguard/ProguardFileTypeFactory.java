@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileTypes.FileNameMatcherEx;
+import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
 import com.intellij.openapi.util.text.StringUtil;
@@ -34,7 +34,7 @@ public class ProguardFileTypeFactory extends FileTypeFactory {
     }
   }
 
-  private static class ProguardNameMatcher extends FileNameMatcherEx {
+  private static class ProguardNameMatcher implements FileNameMatcher {
     @Override
     public boolean acceptsCharSequence(@NotNull CharSequence fileName) {
       return !StudioFlags.R8_SUPPORT_ENABLED.get() && (StringUtil.endsWith(fileName, ProguardFileType.DOT_PRO) ||
@@ -51,7 +51,7 @@ public class ProguardFileTypeFactory extends FileTypeFactory {
     }
   }
 
-  public static class ProguardR8NameMatcher extends FileNameMatcherEx {
+  public static class ProguardR8NameMatcher implements FileNameMatcher {
     @Override
     public boolean acceptsCharSequence(@NotNull CharSequence fileName) {
       return StudioFlags.R8_SUPPORT_ENABLED.get() && (StringUtil.endsWith(fileName, ProguardR8FileType.DOT_PRO) ||

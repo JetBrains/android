@@ -120,7 +120,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     getComponent().add(splitter, BorderLayout.CENTER);
 
     getStage().getAspect().addDependency(this)
-              .onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateSelectedDurationView);
+      .onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateSelectedDurationView);
   }
 
   @NotNull
@@ -187,6 +187,10 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
       .setLegendIconType(LegendConfig.IconType.BOX)
       .setDataBucketInterval(EnergyMonitorView.CHART_INTERVAL_US);
     lineChart.configure(usage.getLocationUsageSeries(), locationConfig);
+    // The total usage series is only added in the LineChartModel so it can calculate the max Y value across all usages because the
+    // LineChartModel currently does not calculate the max y Range value based on stacked but individual values.
+    // We don't want to draw it as an extra line so we hide it by setting it to transparent.
+    lineChart.configure(usage.getTotalUsageDataSeries(), new LineConfig(ProfilerColors.TRANSPARENT_COLOR));
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 

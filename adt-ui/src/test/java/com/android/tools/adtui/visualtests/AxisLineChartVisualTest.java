@@ -25,8 +25,8 @@ import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.RangeTimeScrollBar;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.LineChartModel;
-import com.android.tools.adtui.model.LongDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -80,7 +80,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private List<RangedContinuousSeries> mRangedData;
 
-  private List<LongDataSeries> mData;
+  private List<DefaultDataSeries<Long>> mData;
 
   private AxisComponent mMemoryAxis1;
 
@@ -147,7 +147,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mMemoryAxis1.setShowUnitAtMax(true);
     mMemoryAxis1.setMargins(AXIS_SIZE, AXIS_SIZE);
 
-    LongDataSeries series1 = new LongDataSeries();
+    DefaultDataSeries<Long> series1 = new DefaultDataSeries<>();
     RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, mTimeViewRangeUs, yRange1Animatable, series1);
     mRangedData.add(ranged1);
     mData.add(series1);
@@ -161,7 +161,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mMemoryAxis2.setShowUnitAtMax(true);
     mMemoryAxis2.setMargins(AXIS_SIZE, AXIS_SIZE);
 
-    LongDataSeries series2 = new LongDataSeries();
+    DefaultDataSeries<Long> series2 = new DefaultDataSeries<>();
     RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, mTimeViewRangeUs, yRange2Animatable, series2);
     mRangedData.add(ranged2);
     mData.add(series2);
@@ -215,7 +215,7 @@ public class AxisLineChartVisualTest extends VisualTest {
       try {
         while (true) {
           long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
-          for (LongDataSeries series : mData) {
+          for (DefaultDataSeries<Long> series : mData) {
             List<SeriesData<Long>> data = series.getAllData();
             long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
             float delta = 10 * ((float)Math.random() - 0.45f);

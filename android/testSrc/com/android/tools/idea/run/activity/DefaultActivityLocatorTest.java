@@ -41,6 +41,15 @@ import static org.mockito.Mockito.when;
 public class DefaultActivityLocatorTest extends AndroidTestCase {
 
   @Override
+  public void tearDown() throws Exception {
+    try {
+      StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.clearOverride();
+    } finally {
+      super.tearDown();
+    }
+  }
+
+  @Override
   protected boolean providesCustomManifest() {
     return true;
   }
@@ -60,7 +69,10 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   @Nullable
   private static String computeDefaultActivity(@NotNull AndroidFacet facet, @Nullable IDevice device) {
     List<DefaultActivityLocator.ActivityWrapper> activities = DefaultActivityLocator.getActivitiesFromMergedManifest(facet);
-    return DefaultActivityLocator.computeDefaultActivity(facet, device, activities);
+    if (device == null) {
+      return DefaultActivityLocator.computeDefaultActivity(activities);
+    }
+    return DefaultActivityLocator.computeDefaultActivityWithDevicePreference(activities, device);
   }
 
   private static <T> T computeInBackgroundThread(Callable<T> callable) throws Exception {

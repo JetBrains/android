@@ -35,6 +35,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ACTION
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DATA
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DATA_PATTERN
+import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.android.facet.AndroidFacet
 
 class NavPropertiesViewTest : NavTestCase() {
@@ -131,11 +132,36 @@ class NavPropertiesViewTest : NavTestCase() {
     assertEquals(2, panel.lines.size)
   }
 
+  fun testDeeplink() {
+    val panel = setupPanel("deeplink1")
+    assertEquals(0, panel.lines.size)
+  }
+
+  fun testArgument() {
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        action("action1", destination = "fragment1") {
+          argument("argument")
+        }
+        fragment("fragment1") {
+          argument("argument")
+        }
+      }
+    }
+
+    val root = model.find("action1")!!
+    val include = root.children.first { it.tagName == TAG_ARGUMENT }
+    val panel = setupPanel(include, model.facet)
+
+    assertEquals(0, panel.lines.size)
+  }
+
   private fun setupPanel(name: String): FakeInspectorPanel {
     val model = model("nav.xml") {
-      NavModelBuilderUtil.navigation("root", startDestination = "fragment1") {
+      navigation("root", startDestination = "fragment1") {
         fragment("fragment1") {
           action("action1", "nested1")
+          deeplink("deeplink1", "www.foo.com")
         }
         activity("activity1")
         navigation("nested1", "fragment2") {

@@ -114,10 +114,14 @@ public class TutorialStep extends JPanel {
     if (!hideStepIndex) {
       initStepNumber();
     }
-    initLabel();
+    if (!myStep.getLabel().isEmpty()) {
+      initLabel();
+    }
     initStepContentsContainer();
 
     populateStepContents(listener);
+
+    setBorder(myStep.getBorder());
   }
 
   /**

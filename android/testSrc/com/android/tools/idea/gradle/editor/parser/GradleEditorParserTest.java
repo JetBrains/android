@@ -27,7 +27,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.util.Processor;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.util.AndroidBundle;
@@ -43,7 +43,7 @@ import static com.android.tools.idea.gradle.editor.metadata.StdGradleEditorEntit
 import static com.android.tools.idea.gradle.editor.parser.GradleEditorParserTestUtil.externalDependency;
 import static com.android.tools.idea.gradle.editor.parser.GradleEditorParserTestUtil.property;
 
-public class GradleEditorParserTest extends LightPlatformCodeInsightFixtureTestCase {
+public class GradleEditorParserTest extends BasePlatformTestCase {
 
   public static final String GRADLE_EDITOR_TEST_DATA_ROOT = "editor";
 

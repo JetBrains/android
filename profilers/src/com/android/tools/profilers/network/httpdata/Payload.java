@@ -18,6 +18,7 @@ package com.android.tools.profilers.network.httpdata;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.idea.protobuf.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,7 +89,7 @@ public abstract class Payload {
 
     myCachedBytes = myModel.requestBytes(getId());
     String contentEncoding = getHeader().getContentEncoding();
-    if (contentEncoding.toLowerCase().contains("gzip")) {
+    if (StringUtil.toLowerCase(contentEncoding).contains("gzip")) {
       try (GZIPInputStream inputStream = new GZIPInputStream(new ByteArrayInputStream(myCachedBytes.toByteArray()))) {
         myCachedBytes = ByteString.copyFrom(FileUtil.loadBytes(inputStream));
       }

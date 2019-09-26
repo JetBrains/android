@@ -32,9 +32,9 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import com.intellij.openapi.util.text.StringUtil;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -154,7 +154,7 @@ public class TemplateMetadata {
     if (icons.getLength() > 0) {
       Element element = (Element)icons.item(0);
       if (element.hasAttribute(ATTR_TYPE)) {
-        String iconTypeName = element.getAttribute(ATTR_TYPE).toUpperCase(Locale.US);
+        String iconTypeName = StringUtil.toUpperCase(element.getAttribute(ATTR_TYPE));
         myIconType = AndroidIconType.valueOf(iconTypeName);
       }
       else {

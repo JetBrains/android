@@ -31,7 +31,7 @@ import org.jetbrains.uast.visitor.AbstractUastVisitor
 private fun PreviewElement.previewBodyAsCompactText(): String? =
   this.previewBodyPsi?.element?.text?.replace("\\s+".toRegex(), " ")
 
-class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() {
+class MethodPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   fun testFindPreviewMethods() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
@@ -57,7 +57,7 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
 
       @Composable
       fun Preview3() {
-        Preview(name = "preview3", configuration = Configuration(width = 1, height = 2)) {
+        Preview(name = "preview3", configuration = Configuration(width = 1, height = 2, fontScale = .2f)) {
           Button("preview3") {
           }
         }
@@ -93,6 +93,7 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
       assertNull(it.configuration.theme)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertEquals(1f, it.configuration.fontScale)
 
       assertEquals("{ Button(\"preview2\") { } }", it.previewBodyAsCompactText())
     }
@@ -101,6 +102,7 @@ class MethodPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() 
       assertEquals("preview3", it.displayName)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
+      assertEquals(.2f, it.configuration.fontScale)
 
       assertEquals("{ Button(\"preview3\") { } }", it.previewBodyAsCompactText())
     }

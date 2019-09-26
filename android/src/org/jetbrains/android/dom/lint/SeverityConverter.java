@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.lint;
 
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.annotations.NonNls;
@@ -25,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 
 public class SeverityConverter extends ResolvingConverter<Severity> {
   private static final List<Severity> ALL_VALUES = ImmutableList.copyOf(Severity.values());
@@ -57,6 +57,6 @@ public class SeverityConverter extends ResolvingConverter<Severity> {
     if (severity == null) {
       return null;
     }
-    return severity.name().toLowerCase(Locale.US);
+    return StringUtil.toLowerCase(severity.name());
   }
 }

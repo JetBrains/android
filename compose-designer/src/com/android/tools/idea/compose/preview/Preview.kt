@@ -33,6 +33,9 @@ import com.android.tools.idea.compose.preview.ComposePreviewToolbar.ForceCompile
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.build.BuildContext
+import com.android.tools.idea.gradle.project.build.GradleBuildListener
+import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.rendering.RefreshRenderAction.clearCacheAndRefreshSurface
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.run.util.StopWatch
@@ -87,6 +90,8 @@ const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
 
 /** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
 const val COMPOSABLE_NAME_ATTR = "tools:composableName"
+
+const val BUILDING_MESSAGE = "Waiting for build to finish..."
 
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
@@ -199,13 +204,23 @@ private class PreviewEditor(private val psiFile: PsiFile,
     val issueErrorSplitter = IssuePanelSplitter(surface, surfacePanel)
 
     init(issueErrorSplitter, surface, listOf())
-    showLoading("Waiting for build to finish...")
+    showLoading(BUILDING_MESSAGE)
   }
 
   /**
    * Calls refresh method on the the successful gradle build
    */
   private val refresher = SmartAutoRefresher(psiFile, this, workbench)
+
+  init {
+    GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
+      override fun buildStarted(context: BuildContext) {
+        if (workbench.isMessageVisible) {
+          workbench.setLoadingText(BUILDING_MESSAGE)
+        }
+      }
+    }, this)
+  }
 
   override fun needsBuild(): Boolean = surface.models.asSequence()
     .mapNotNull { surface.getSceneManager(it) }
@@ -263,7 +278,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
       .toList()
 
     if (newModels.isEmpty()) {
-      workbench.loadingStopped("No previews defined")
+      workbench.loadingStopped(message("panel.no.previews.defined"))
     }
 
     // All models are now ready, remove the old ones and add the new ones
@@ -334,7 +349,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) : Toolba
    * of the surface.
    */
   private inner class ForceCompileAndRefreshAction :
-    AnAction("Build & Refresh", null, AllIcons.Actions.ForceRefresh) {
+    AnAction(message("notification.action.build.and.refresh"), null, AllIcons.Actions.ForceRefresh) {
     override fun actionPerformed(e: AnActionEvent) {
       val module = surface.model?.module ?: return
       requestBuild(surface.project, module)

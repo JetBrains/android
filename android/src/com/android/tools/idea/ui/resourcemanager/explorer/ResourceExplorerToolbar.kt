@@ -172,7 +172,9 @@ private class FilterAction internal constructor(val viewModel: ResourceExplorerT
   : PopupAction(AllIcons.General.Filter, FILTERS_BUTTON_LABEL) {
   override fun createAddPopupGroup() = DefaultActionGroup().apply {
     add(ShowModuleDependenciesAction(viewModel))
-    add(ShowDependenciesAction(viewModel))
+    add(ShowLibrariesAction(viewModel))
+    add(ShowFrameworkAction(viewModel))
+    add(ShowThemeAttributesAction(viewModel))
   }
 }
 
@@ -181,16 +183,34 @@ private class ShowModuleDependenciesAction internal constructor(val viewModel: R
   override fun isSelected(e: AnActionEvent) = viewModel.isShowModuleDependencies
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowModuleDependencies = state
-    // TODO: Add logging
+    ResourceManagerTracking.logShowLocalDependenciesToggle(state)
   }
 }
 
-private class ShowDependenciesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+private class ShowLibrariesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
   : ToggleAction("Show libraries") {
   override fun isSelected(e: AnActionEvent) = viewModel.isShowLibraryDependencies
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowLibraryDependencies = state
     ResourceManagerTracking.logShowLibrariesToggle(state)
+  }
+}
+
+private class ShowFrameworkAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : ToggleAction("Show android resources") {
+  override fun isSelected(e: AnActionEvent) = viewModel.isShowFrameworkResources
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    viewModel.isShowFrameworkResources = state
+    ResourceManagerTracking.logShowFrameworkToggle(state)
+  }
+}
+
+private class ShowThemeAttributesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : ToggleAction("Show theme attributes") {
+  override fun isSelected(e: AnActionEvent) = viewModel.isShowThemeAttributes
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    viewModel.isShowThemeAttributes = state
+    ResourceManagerTracking.logShowThemeAttributesToggle(state)
   }
 }
 

@@ -27,6 +27,7 @@ import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.JBEmptyBorder;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -234,9 +235,9 @@ final class HttpDataComponentFactory {
     boolean showSubType = typeAndSubType.length > 1 && (typeAndSubType[0].equals("text") || typeAndSubType[0].equals("application"));
     String name = showSubType ? typeAndSubType[1] : typeAndSubType[0];
     if (name.isEmpty() || showSubType) {
-      return name.toUpperCase();
+      return StringUtil.toUpperCase(name);
     }
-    return name.substring(0, 1).toUpperCase() + name.substring(1);
+    return StringUtil.toUpperCase(name.substring(0, 1)) + name.substring(1);
   }
 
 

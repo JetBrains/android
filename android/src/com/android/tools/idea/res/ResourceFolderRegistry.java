@@ -315,36 +315,43 @@ public class ResourceFolderRegistry implements Disposable {
     }
 
     private void onFileOrDirectoryCreated(@NotNull VirtualFile parent, @NotNull String childName) {
-      VirtualFile file = null;
-      for (VirtualFile dir = parent.isDirectory() ? parent : parent.getParent(); dir != null; dir = dir.getParent()) {
-        for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
-          ResourceFolderRepository repository = cache.getIfPresent(dir);
-          if (repository != null) {
-            if (file == null) {
-              file = parent.findChild(childName);
-              if (file == null) {
-                // The file is not found, there is no need to continue iterating over
-                // the repositories.
-                return;
-              }
-            }
+      VirtualFile created = parent.findChild(childName);
+      if (created == null) {
+        return;
+      }
 
-            if (file.isDirectory()) {
-              // ResourceFolderRepository doesn't handle event on a whole folder
-              // so we pass all the children
-              for (VirtualFile child : file.getChildren()) {
-                if (!child.isDirectory()) {
-                  // There is no need to visit subdirectories because Android does not support them.
-                  // If a base resource directory is created (e.g res/), a whole
-                  // ResourceFolderRepository will be created separately so we don't need to handle
-                  // this case here.
-                  repository.onFileCreated(child);
-                }
-              }
-            }
-            else {
-              repository.onFileCreated(file);
-            }
+      CachedRepositories cachedRepositories;
+      if (created.isDirectory()) {
+        cachedRepositories = getCached(parent);
+      }
+      else {
+        VirtualFile grandParent = parent.getParent();
+        cachedRepositories = grandParent == null ? null : getCached(grandParent);
+      }
+
+      if (cachedRepositories != null) {
+        onFileOrDirectoryCreated(created, cachedRepositories.namespaced);
+        onFileOrDirectoryCreated(created, cachedRepositories.nonNamespaced);
+      }
+    }
+
+    private void onFileOrDirectoryCreated(@NotNull VirtualFile created, @Nullable ResourceFolderRepository repository) {
+      if (repository == null) {
+        return;
+      }
+
+      if (!created.isDirectory()) {
+        repository.onFileCreated(created);
+      }
+      else {
+        // ResourceFolderRepository doesn't handle event on a whole folder so we pass all the children.
+        for (VirtualFile child : created.getChildren()) {
+          if (!child.isDirectory()) {
+            // There is no need to visit subdirectories because Android does not support them.
+            // If a base resource directory is created (e.g res/), a whole
+            // ResourceFolderRepository will be created separately so we don't need to handle
+            // this case here.
+            repository.onFileCreated(child);
           }
         }
       }

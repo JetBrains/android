@@ -89,7 +89,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
     assertTokenTypes(
       """
         -keepclasseswithmembers class * {
-        public <init>(android.content.Context, android.util.AttributeSet, int);
+        public <init>(androi_d.content.Context, android.util.AttributeSet, int);
         }
       """.trimIndent(),
       "-keepclasseswithmembers" to FLAG,
@@ -104,7 +104,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       SPACE,
       "<init>" to _INIT_,
       "(" to LPAREN,
-      "android" to JAVA_IDENTIFIER,
+      "androi_d" to JAVA_IDENTIFIER,
       "." to DOT,
       "content" to JAVA_IDENTIFIER,
       "." to DOT,
@@ -291,6 +291,110 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       "public" to PUBLIC,
       SPACE,
       "<methods>" to _METHODS_,
+      ";" to SEMICOLON,
+      NEWLINE,
+      "}" to CLOSE_BRACE
+    )
+  }
+
+  fun testStrangeJavaIdentifiers() {
+    assertTokenTypes(
+      """
+          -keep class i.am.NormalOne {
+          int _9pins;
+          int ανδρος;
+          int OReilly;
+          int кирилиц;
+          int 弛;
+          }
+      """.trimIndent(),
+      "-keep" to FLAG,
+      SPACE,
+      "class" to CLASS,
+      SPACE,
+      "i" to JAVA_IDENTIFIER,
+      "." to DOT,
+      "am" to JAVA_IDENTIFIER,
+      "." to DOT,
+      "NormalOne" to JAVA_IDENTIFIER,
+      SPACE,
+      "{" to OPEN_BRACE,
+      NEWLINE,
+      "int" to INT,
+      SPACE,
+      "_9pins" to JAVA_IDENTIFIER,
+      ";" to SEMICOLON,
+      NEWLINE,
+      "int" to INT,
+      SPACE,
+      "ανδρος" to JAVA_IDENTIFIER,
+      ";" to SEMICOLON,
+      NEWLINE,
+      "int" to INT,
+      SPACE,
+      "OReilly" to JAVA_IDENTIFIER,
+      ";" to SEMICOLON,
+      NEWLINE,
+      "int" to INT,
+      SPACE,
+      "кирилиц" to JAVA_IDENTIFIER,
+      ";" to SEMICOLON,
+      NEWLINE,
+      "int" to INT,
+      SPACE,
+      "弛" to JAVA_IDENTIFIER,
+      ";" to SEMICOLON,
+      NEWLINE,
+      "}" to CLOSE_BRACE
+    )
+  }
+
+  fun testWildcardsJavaIdentifiers() {
+    assertTokenTypes(
+      """
+          -keep class i.am.NormalOne {
+          int ident1fier?;
+          int ?ident1fier;
+          int ident1fier*ident1fier;
+          int **ident1fier**;
+          int **弛?ident1fier**弛*ident1fier?;
+          }
+      """.trimIndent(),
+      "-keep" to FLAG,
+      SPACE,
+      "class" to CLASS,
+      SPACE,
+      "i" to JAVA_IDENTIFIER,
+      "." to DOT,
+      "am" to JAVA_IDENTIFIER,
+      "." to DOT,
+      "NormalOne" to JAVA_IDENTIFIER,
+      SPACE,
+      "{" to OPEN_BRACE,
+      NEWLINE,
+      "int" to INT,
+      SPACE,
+      "ident1fier?" to JAVA_IDENTIFIER_WITH_WILDCARDS,
+      ";" to SEMICOLON,
+      NEWLINE,
+      "int" to INT,
+      SPACE,
+      "?ident1fier" to JAVA_IDENTIFIER_WITH_WILDCARDS,
+      ";" to SEMICOLON,
+      NEWLINE,
+      "int" to INT,
+      SPACE,
+      "ident1fier*ident1fier" to JAVA_IDENTIFIER_WITH_WILDCARDS,
+      ";" to SEMICOLON,
+      NEWLINE,
+      "int" to INT,
+      SPACE,
+      "**ident1fier**" to JAVA_IDENTIFIER_WITH_WILDCARDS,
+      ";" to SEMICOLON,
+      NEWLINE,
+      "int" to INT,
+      SPACE,
+      "**弛?ident1fier**弛*ident1fier?" to JAVA_IDENTIFIER_WITH_WILDCARDS,
       ";" to SEMICOLON,
       NEWLINE,
       "}" to CLOSE_BRACE

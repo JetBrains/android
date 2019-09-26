@@ -21,6 +21,7 @@ import com.android.tools.idea.room.migrations.generators.JavaMigrationTestGenera
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiPackage;
 import org.jetbrains.android.AndroidTestCase;
 
 public class JavaMigrationTestGeneratorTest extends AndroidTestCase {
@@ -83,11 +84,13 @@ public class JavaMigrationTestGeneratorTest extends AndroidTestCase {
   public void testMigrationTestGenerator() {
     PsiClass databaseClass = myFixture.addClass("package com.example;" +
                                                 "public class AppDatabase {}");
+    PsiPackage targetPackage = myFixture.findPackage("com.example");
     PsiDirectory targetDirectory = databaseClass.getContainingFile().getParent();
 
     WriteCommandAction.runWriteCommandAction(myFixture.getProject(), () -> {
       JavaMigrationTestGenerator javaMigrationTestGenerator = new JavaMigrationTestGenerator(myFixture.getProject());
-      javaMigrationTestGenerator.createMigrationTest(targetDirectory,
+      javaMigrationTestGenerator.createMigrationTest(targetPackage,
+                                                     targetDirectory,
                                                      "com.example.AppDatabase",
                                                      "com.example.Migration_1_2",
                                                      1,

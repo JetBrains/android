@@ -133,7 +133,8 @@ object MethodPreviewElementFinder : PreviewElementFinder {
                                              apiLevel = configuration["apiLevel"] as? Int,
                                              theme = configuration["theme"] as? String,
                                              width = configuration["width"] as? Int,
-                                             height = configuration["height"] as? Int)))
+                                             height = configuration["height"] as? Int,
+                                             fontScale = configuration["fontScale"] as? Float)))
 
       override fun visitCallExpression(node: UCallExpression): Boolean {
         val previewUMethod = getPreviewMethodCall(node) ?: return false

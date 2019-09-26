@@ -26,11 +26,10 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
 
@@ -65,7 +64,7 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
     String variantName = variant.getName();
     AndroidArtifact mainArtifactInfo = model.getMainArtifact();
     File classesFolder = mainArtifactInfo.getClassesFolder();
-    ImmutableList.Builder<VirtualFile> listBuilder = new ImmutableList.Builder<>();
+    ImmutableList.Builder<VirtualFile> compilerOutputs = new ImmutableList.Builder<>();
 
     // Older models may not supply it; in that case, we rely on looking relative to the .APK file location:
     //noinspection ConstantConditions
@@ -83,17 +82,17 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
     if (outFolder.exists()) {
       VirtualFile file = VfsUtil.findFileByIoFile(outFolder, true);
       if (file != null) {
-        listBuilder.add(file);
+        compilerOutputs.add(file);
       }
     }
 
     for (File additionalFolder : mainArtifactInfo.getAdditionalClassesFolders()) {
       VirtualFile file = VfsUtil.findFileByIoFile(additionalFolder, true);
       if (file != null) {
-        listBuilder.add(file);
+        compilerOutputs.add(file);
       }
     }
 
-    return listBuilder.build();
+    return compilerOutputs.build();
   }
 }

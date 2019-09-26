@@ -53,7 +53,7 @@ interface EnumValue {
    * user-friendly representation of it.
    */
   val display: String
-    get() = value ?: ""
+    get() = value ?: "none"
 
   /**
    * If true, display a separator above this value in the ComboBox popup.

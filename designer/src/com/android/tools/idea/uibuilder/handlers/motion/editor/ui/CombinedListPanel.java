@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI.ourTextColor;
+
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEList;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 
@@ -98,12 +102,12 @@ public class CombinedListPanel extends JPanel {
   }
 
   boolean building = false;
-  JList<Row> mMainList = new JList<>();
-  JScrollPane mTListPane = new JScrollPane(mMainList);
-  JList<Row> mConstraintSetList = new JList<>();
-  JScrollPane mConstraintSetPane = new JScrollPane(mConstraintSetList);
-  JList<Row> mTransitionList = new JList<>();
-  JScrollPane mTransitionPane = new JScrollPane(mTransitionList);
+  JList<Row> mMainList = new MEList<>();
+  JScrollPane mTListPane = new MEScrollPane(mMainList);
+  JList<Row> mConstraintSetList = new MEList<>();
+  JScrollPane mConstraintSetPane = new MEScrollPane(mConstraintSetList);
+  JList<Row> mTransitionList = new MEList<>();
+  JScrollPane mTransitionPane = new MEScrollPane(mTransitionList);
 
   ListCellRenderer<Row> rowRenderer = new ListCellRenderer<Row>() {
     JLabel label = new JLabel();
@@ -130,7 +134,7 @@ public class CombinedListPanel extends JPanel {
           titleString = "layout";
           break;
         case CONSTRAINT_SET:
-          label.setIcon(MEIcons.LIST_STATE);
+          label.setIcon(MEIcons.CONSTRAINT_SET);
           titleString = "Constraint Set";
           break;
         case TRANSITION:
@@ -160,6 +164,8 @@ public class CombinedListPanel extends JPanel {
       }
       label.setBackground(isSelected ? mSelectedColor : mUnselectedColor);
       panel.setBackground(isSelected ? mSelectedColor : mUnselectedColor);
+      label.setForeground(ourTextColor);
+      panel.setForeground(ourTextColor);
       return panel;
     }
   };

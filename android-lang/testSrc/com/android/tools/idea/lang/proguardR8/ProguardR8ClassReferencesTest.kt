@@ -15,24 +15,13 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lang.androidSql.referenceAtCaret
+import com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 
-class ProguardR8ClassReferencesTest : JavaCodeInsightFixtureTestCase() {
-
-  override fun setUp() {
-    StudioFlags.R8_SUPPORT_ENABLED.override(true)
-    super.setUp()
-  }
-
-  override fun tearDown() {
-    StudioFlags.R8_SUPPORT_ENABLED.clearOverride()
-    super.tearDown()
-  }
+class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
   fun testResolveToClassName() {
     myFixture.addClass(
@@ -221,7 +210,7 @@ class ProguardR8ClassReferencesTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testPackageRenaming() {
-    val className = myFixture.addClass(
+    myFixture.addClass(
       //language=JAVA
       """
       package p1.p2.myPackage;

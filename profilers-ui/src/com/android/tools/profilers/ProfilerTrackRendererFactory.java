@@ -22,6 +22,7 @@ import com.android.tools.profilers.cpu.CpuThreadTrackRenderer;
 import com.android.tools.profilers.cpu.FramesTrackRenderer;
 import com.android.tools.profilers.cpu.SurfaceflingerTrackRenderer;
 import com.android.tools.profilers.cpu.VsyncTrackRenderer;
+import com.android.tools.profilers.customevent.CustomEventTrackRenderer;
 import com.android.tools.profilers.event.LifecycleTrackRenderer;
 import com.android.tools.profilers.event.UserEventTrackRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +47,8 @@ public class ProfilerTrackRendererFactory implements TrackRendererFactory<Profil
         return new VsyncTrackRenderer();
       case CPU_THREAD:
         return new CpuThreadTrackRenderer();
+      case CUSTOM_EVENTS:
+        return new CustomEventTrackRenderer();
       default:
         return new DefaultTrackRenderer<>();
     }

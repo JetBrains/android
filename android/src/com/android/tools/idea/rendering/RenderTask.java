@@ -563,6 +563,8 @@ public class RenderTask {
       params.setTimeout(myTimeout);
     }
 
+    params.setFontScale(configuration.getFontScale());
+
     try {
       myLayoutlibCallback.setLogger(myLogger);
 

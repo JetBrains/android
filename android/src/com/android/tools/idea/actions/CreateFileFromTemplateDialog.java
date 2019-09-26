@@ -35,6 +35,7 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -281,8 +282,8 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     myCreationOptions.put(FileTemplate.ATTRIBUTE_PACKAGE_NAME, localPackage);
     Visibility visibility = myPublicRadioButton.isSelected() ? Visibility.PUBLIC : Visibility.PACKAGE_PRIVATE;
     myCreationOptions.put(ATTRIBUTE_VISIBILITY, visibility.toString());
-    myCreationOptions.put(ATTRIBUTE_ABSTRACT, Boolean.toString(myAbstractRadioButton.isSelected()).toUpperCase(Locale.ROOT));
-    myCreationOptions.put(ATTRIBUTE_FINAL, Boolean.toString(myFinalRadioButton.isSelected()).toUpperCase(Locale.ROOT));
+    myCreationOptions.put(ATTRIBUTE_ABSTRACT, StringUtil.toUpperCase(Boolean.toString(myAbstractRadioButton.isSelected())));
+    myCreationOptions.put(ATTRIBUTE_FINAL, StringUtil.toUpperCase(Boolean.toString(myFinalRadioButton.isSelected())));
     myCreationOptions.put(ATTRIBUTE_IMPORT_BLOCK, formatImports(imports));
     if (myCreator != null && myCreator.tryCreate(getName()).length == 0) {
       return;
