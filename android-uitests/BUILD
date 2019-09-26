@@ -1938,6 +1938,39 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+# fast test
+java_test(
+    name = "ImportAndRunInstantAppTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/InstantAppsService/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.ImportAndRunInstantAppTest",
+    ],
+    # do not sort: the beginning of this list is copied from COMMON_TAGS
+    tags = [
+        "block-network",
+        "no_mac",
+        "no_windows",
+        "slow",
+        "no-remote",
+        "requires-fakeroot",
+        "qa_fast",
+        "qa_fast_emu",
+        "requires_emulator",
+        "cpu:100",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # fat test
 java_test(
     name = "InferNullityTest",
