@@ -75,7 +75,7 @@ public class CustomEventProfilerStage extends Stage {
       CustomEventTrackModel customEventTrackModel = new CustomEventTrackModel(dataModel);
 
       eventTrackGroupModel.addTrackModel(
-        new TrackModel<>(customEventTrackModel,
+        TrackModel.newBuilder(customEventTrackModel,
                          ProfilerTrackRendererType.CUSTOM_EVENTS,
                          eventName));
     }

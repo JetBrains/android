@@ -272,12 +272,12 @@ public class CpuCaptureStage extends Stage {
   private TrackGroupModel createInteractionTrackGroup(@NotNull Range selectionRange) {
     TrackGroupModel interaction = TrackGroupModel.newBuilder().setTitle("Interaction").build();
     interaction.addTrackModel(
-      new TrackModel<>(
+      TrackModel.newBuilder(
         new EventModel<>(new RangedSeries<>(selectionRange, new UserEventDataSeries(getStudioProfilers()))),
         ProfilerTrackRendererType.USER_INTERACTION,
         "User"));
     interaction.addTrackModel(
-      new TrackModel<>(
+      TrackModel.newBuilder(
         new LifecycleEventModel(
           new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), false)),
           new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), true))),
@@ -292,17 +292,17 @@ public class CpuCaptureStage extends Stage {
       new AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, atraceCapture.getMainThreadId(),
                                   CpuFramesModel.SLOW_FRAME_RATE_US);
     display.addTrackModel(
-      new TrackModel<>(
+      TrackModel.newBuilder(
         new CpuFramesModel.FrameState("Main", filterConfig, atraceCapture, selectionRange),
         ProfilerTrackRendererType.FRAMES,
         "Frames"));
     display.addTrackModel(
-      new TrackModel<>(
+      TrackModel.newBuilder(
         new StateChartModel<EventAction>(),
         ProfilerTrackRendererType.SURFACEFLINGER,
         "Surfaceflinger"));
     display.addTrackModel(
-      new TrackModel<>(
+      TrackModel.newBuilder(
         new StateChartModel<EventAction>(),
         ProfilerTrackRendererType.VSYNC,
         "Vsync"));
@@ -315,7 +315,7 @@ public class CpuCaptureStage extends Stage {
     TrackGroupModel threads = TrackGroupModel.newBuilder().setTitle(threadsTitle).build();
     for (CpuThreadInfo threadInfo : threadInfos) {
       threads.addTrackModel(
-        new TrackModel<>(
+        TrackModel.newBuilder(
           new CpuThreadTrackModel(getStudioProfilers(), selectionRange, capture, threadInfo.getId()),
           ProfilerTrackRendererType.CPU_THREAD,
           threadInfo.getName()));
@@ -326,10 +326,10 @@ public class CpuCaptureStage extends Stage {
   private TrackGroupModel createCpuCoresTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture capture) {
     int cpuCount = capture.getCpuCount();
     String coresTitle = String.format(Locale.getDefault(), "CPU cores (%d)", cpuCount);
-    TrackGroupModel cores = TrackGroupModel.newBuilder().setTitle(coresTitle).build();
+    TrackGroupModel cores = TrackGroupModel.newBuilder().setTitle(coresTitle).setCollapsedInitially(true).build();
     for (int cpuId = 0; cpuId < cpuCount; ++cpuId) {
       cores.addTrackModel(
-        new TrackModel<>(
+        TrackModel.newBuilder(
           new CpuCoreTrackModel(selectionRange, capture, cpuId, getStudioProfilers().getSession().getPid()),
           ProfilerTrackRendererType.CPU_CORE,
           "CPU " + cpuId));
