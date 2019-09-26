@@ -9,9 +9,8 @@ iml_module(
     iml_files = ["intellij.android.profilers.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = [
-        "no_test_mac_psq",
         "no_test_windows",
-    ],  # b/113099009
+    ],
     test_coverage = True,
     test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
     # do not sort: must match IML order
