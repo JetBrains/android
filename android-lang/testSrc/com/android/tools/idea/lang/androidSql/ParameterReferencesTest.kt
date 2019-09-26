@@ -22,7 +22,7 @@ import com.intellij.psi.PsiParameter
 
 class ParameterReferencesTest : RoomLightTestCase() {
   fun testReference_single() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -58,7 +58,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   }
 
   fun testReference_multiple() {
-    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -94,7 +94,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   }
 
   fun testCompletionAfterColon_single() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -126,7 +126,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   }
 
   fun testCompletionAfterColon_none() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -145,7 +145,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   }
 
   fun testCompletionAfterColon_multiple() {
-    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -166,11 +166,11 @@ class ParameterReferencesTest : RoomLightTestCase() {
     val lookupElements = myFixture.completeBasic()
 
     assertThat(lookupElements.map { it.lookupString }).containsExactly("min", "max")
-    assertTrue(lookupElements.map { it.psiElement}.all { it is PsiParameter })
+    assertTrue(lookupElements.map { it.psiElement }.all { it is PsiParameter })
   }
 
   fun testCompletionNoColon() {
-    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
@@ -195,7 +195,7 @@ class ParameterReferencesTest : RoomLightTestCase() {
   }
 
   fun testRename() {
-    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;

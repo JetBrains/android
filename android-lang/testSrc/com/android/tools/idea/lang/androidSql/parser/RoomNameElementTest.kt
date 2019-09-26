@@ -41,7 +41,7 @@ class RoomNameElementTest : LightJavaCodeInsightFixtureTestCase() {
     assertThat(parseAndFind("select * from [$123 table ą]", AndroidSqlDefinedTableName::class).nameAsString).isEqualTo("$123 table ą")
     assertThat(parseAndFind("""select * from "my table"""", AndroidSqlDefinedTableName::class).nameAsString).isEqualTo("my table")
     assertThat(parseAndFind("select * from 'Foo''s kingdom''s table'", AndroidSqlDefinedTableName::class).nameAsString)
-        .isEqualTo("Foo's kingdom's table")
+      .isEqualTo("Foo's kingdom's table")
     assertThat(parseAndFind("select * from \"some\"\"table\"", AndroidSqlDefinedTableName::class).nameAsString).isEqualTo("some\"table")
     assertThat(parseAndFind("select * from `some table`", AndroidSqlDefinedTableName::class).nameAsString).isEqualTo("some table")
     assertThat(parseAndFind("select * from `some``table`", AndroidSqlDefinedTableName::class).nameAsString).isEqualTo("some`table")
