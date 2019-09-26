@@ -293,7 +293,7 @@ public class StudioIcons {
       public static final Icon VIDEO_VIEW = load("/studio/icons/layout-editor/palette/video-view.svg"); // 16x16
       public static final Icon VIEW_ANIMATOR = load("/studio/icons/layout-editor/palette/view-animator.svg"); // 16x16
       public static final Icon VIEW_FLIPPER = load("/studio/icons/layout-editor/palette/view-flipper.svg"); // 16x16
-      public static final Icon VIEW_PAGER = load("/studio/icons/layout-editor/palette/view-pager.svg"); // 16x16
+      public static final Icon VIEW_PAGER2 = load("/studio/icons/layout-editor/palette/view-pager.svg"); // 16x16
       public static final Icon VIEW_STUB = load("/studio/icons/layout-editor/palette/view-stub.svg"); // 16x16
       public static final Icon VIEW_SWITCHER = load("/studio/icons/layout-editor/palette/view-switcher.svg"); // 16x16
       public static final Icon VIEW = load("/studio/icons/layout-editor/palette/view.svg"); // 16x16

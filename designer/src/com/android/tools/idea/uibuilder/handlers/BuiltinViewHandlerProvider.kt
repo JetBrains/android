@@ -112,6 +112,7 @@ import com.android.SdkConstants.VIEW_GROUP
 import com.android.SdkConstants.VIEW_INCLUDE
 import com.android.SdkConstants.VIEW_MERGE
 import com.android.SdkConstants.VIEW_PAGER
+import com.android.SdkConstants.VIEW_PAGER2
 import com.android.SdkConstants.VIEW_STUB
 import com.android.SdkConstants.VIEW_SWITCHER
 import com.android.SdkConstants.VIEW_TAG
@@ -261,6 +262,8 @@ private object AndroidxViewHandlerProvider : ViewHandlerProvider {
       TEXT_INPUT_LAYOUT.isEquals(viewTag) -> TextInputLayoutHandler()
       TOOLBAR_V7.isEquals(viewTag) -> ToolbarHandler()
       VIEW_PAGER.isEquals(viewTag) -> ViewPagerHandler()
+      // ViewPager2 only exists on the androidx namespace so it does not need isEquals to check both old and new names.
+      VIEW_PAGER2 == viewTag -> ViewPager2Handler()
       else -> null
     }
 }
