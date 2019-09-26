@@ -292,9 +292,19 @@ public class RenderTask {
       Class<?> gapWorkerClass = myLayoutlibCallback.findClass(GAP_WORKER_CLASS_NAME);
       Field gapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker");
       gapWorkerField.setAccessible(true);
-      ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal)gapWorkerField.get(null);
-      gapWorkerFieldValue.set(null);
+
+      // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
+      RenderService.runAsyncRenderAction(() -> {
+        try {
+          ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal)gapWorkerField.get(null);
+          gapWorkerFieldValue.set(null);
+        }
+        catch (IllegalAccessException e) {
+          LOG.debug(e);
+        }
+      });
     } catch(Throwable t) {
+      LOG.debug(t);
     }
   }
 
@@ -334,7 +344,6 @@ public class RenderTask {
       myImageFactoryDelegate = null;
       myAssetRepository = null;
 
-      // Workaround for http://b/132970299
       clearGapWorkerCache();
 
       return null;
