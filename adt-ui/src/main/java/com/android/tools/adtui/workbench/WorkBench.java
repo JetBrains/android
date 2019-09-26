@@ -15,11 +15,13 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+
 import com.android.annotations.Nullable;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
@@ -33,20 +35,30 @@ import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.accessibility.ScreenReader;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-
-import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+import java.util.Map;
+import java.util.Optional;
+import javax.swing.AbstractButton;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.LayoutFocusTraversalPolicy;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Provides a work area with 1 or more {@link ToolWindowDefinition}s.
@@ -83,6 +95,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final ButtonDragListener<T> myButtonDragListener;
   private final PropertyChangeListener myMyPropertyChangeListener = this::autoHide;
   private FileEditor myFileEditor;
+
+  @NotNull private String myContext = "";
 
   /**
    * Creates a work space with associated tool windows, which can be attached.
@@ -141,6 +155,17 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
   public void loadingStopped(@NotNull String message) {
     myLoadingPanel.abortLoading(message, AllIcons.General.Warning);
+  }
+
+  /**
+   * Returns true if the WorkBench is displaying a message. The WorkBench will display a message when in one of two states:
+   * <ul>
+   *   <li>Loading state initiated by calling {@link WorkBench#showLoading}</li>
+   *   <li>Error state initiated by calling {@link WorkBench#loadingStopped(String)}</li>
+   * </ul>
+   */
+  public boolean isMessageVisible() {
+    return myLoadingPanel.isLoading() || myLoadingPanel.hasError();
   }
 
   @TestOnly
@@ -441,13 +466,28 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private void addToolsToModel() {
     List<AttachedToolWindow<T>> tools = new ArrayList<>(myToolDefinitions.size());
     for (ToolWindowDefinition<T> definition : myToolDefinitions) {
-      AttachedToolWindow<T> toolWindow = new AttachedToolWindow<>(definition, myButtonDragListener, myName, myModel);
+      AttachedToolWindow<T> toolWindow = new AttachedToolWindow<>(definition, myButtonDragListener, this, myModel);
       Disposer.register(this, toolWindow);
       tools.add(toolWindow);
     }
     setDefaultOrderIfMissing(tools);
     restoreToolOrder(tools);
     myModel.setTools(tools);
+  }
+
+  /**
+   * Hide the content of WorkBench so only loading icon and loading message are displayable.
+   */
+  public void hideContent() {
+    myMainPanel.setVisible(false);
+  }
+
+  /**
+   * Show the content in WorkBench. This also hide the loading icon and message if they are showing.
+   */
+  public void showContent() {
+    hideLoading();
+    myMainPanel.setVisible(true);
   }
 
   public List<AttachedToolWindow<T>> getDetachedToolWindows() {
@@ -484,6 +524,23 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   @Override
   public void doLayout() {
     myLoadingPanel.setBounds(0, 0, getWidth(), getHeight());
+  }
+
+  /**
+   * Sets the context and updates the model to reflect the context change.
+   */
+  public void setContext(@NotNull String context) {
+    myContext = context;
+    updateModel();
+  }
+
+  /**
+   * The same {@link WorkBench} can be used in different contexts. We need to store the context in order to (re)store different properties
+   * accordingly. For example, in the split editor we might have a tool window being hidden in design mode but shown in split mode.
+   */
+  @NotNull
+  public String getContext() {
+    return myContext;
   }
 
   private class MyButtonDragListener implements ButtonDragListener<T> {

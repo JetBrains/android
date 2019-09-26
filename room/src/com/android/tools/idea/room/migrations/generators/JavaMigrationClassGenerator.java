@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.room.migrations.generators;
 
+import static com.android.tools.idea.room.migrations.generators.MigrationClassGenerator.*;
+
 import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaDirectoryService;
@@ -42,16 +44,12 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>The class will always be generated in a new file</p>
  */
-public class JavaMigrationClassGenerator {
-  private static final String SUPER_CLASS_NAME = "androidx.room.migration.Migration";
-  private static final String MIGRATION_CLASS_NAME_TEMPLATE = "Migration_%d_%d";
-  private static final String MIGRATION_METHOD_NAME = "migrate";
-  private static final String MIGRATION_METHOD_PARAMETER_NAME = "database";
-  private static final String MIGRATION_METHOD_PARAMETER_TYPE = "androidx.sqlite.db.SupportSQLiteDatabase";
-  private static final String MIGRATION_METHOD_PARAMETER_ANNOTATION = "androidx.annotation.NonNull";
-  private static final String MIGRATION_METHOD_ANNOTATION = "java.lang.Override";
-  private static final String DATABASE_UPDATE_STATEMENT_TEMPLATE = "database.execSQL(\"%s\");";
+public class JavaMigrationClassGenerator implements MigrationClassGenerator<PsiClass> {
+  private static final String NOT_NULL_ANNOTATION = "androidx.annotation.NonNull";
+  private static final String OVERRIDE_ANNOTATION = "java.lang.Override";
   private static final String SUPER_CONSTRUCTOR_CALL_TEMPLATE = "super(%d, %d);";
+  private static final String DATABASE_UPDATE_STATEMENT_TEMPLATE = "database.execSQL(\"%s\");";
+
 
   private JavaPsiFacade myJavaPsiFacade;
   private PsiElementFactory myPsiElementFactory;
@@ -63,19 +61,12 @@ public class JavaMigrationClassGenerator {
     myPsiElementFactory = myJavaPsiFacade.getElementFactory();
   }
 
-  /**
-   * Generates a Migration class which produces the update from a database schema to another
-   *
-   * @param targetDirectory the directory where to generate the class
-   * @param databaseUpdate  the DatabaseUpdate object which describes the updates to be performed
-   */
+  @Override
   @NotNull
-  public PsiClass createMigrationClass(@NotNull PsiDirectory targetDirectory,
-                                    @NotNull DatabaseUpdate databaseUpdate) {
-    String migrationClassName = String.format(Locale.US,
-                                              MIGRATION_CLASS_NAME_TEMPLATE,
-                                              databaseUpdate.getPreviousVersion(),
-                                              databaseUpdate.getCurrentVersion());
+  public PsiClass createMigrationClass(@NotNull PsiPackage targetPackage,
+                                       @NotNull PsiDirectory targetDirectory,
+                                       @NotNull DatabaseUpdate databaseUpdate) {
+    String migrationClassName = getMigrationClassName(databaseUpdate.getPreviousVersion(), databaseUpdate.getCurrentVersion());
     PsiClass migrationClass = JavaDirectoryService.getInstance().createClass(targetDirectory, migrationClassName);
     addSuperClass(migrationClass);
     addMigrationConstructor(migrationClass, databaseUpdate);
@@ -90,11 +81,8 @@ public class JavaMigrationClassGenerator {
 
   private void addSuperClass(@NotNull PsiClass migrationClass) {
     GlobalSearchScope scope = GlobalSearchScope.allScope(myProject);
-    final PsiReferenceList extendsList = migrationClass.getExtendsList();
-
-    if (extendsList == null) {
-      return;
-    }
+    PsiReferenceList extendsList = migrationClass.getExtendsList();
+    assert extendsList != null;
 
     PsiJavaCodeReferenceElement superClassRef;
     superClassRef = myPsiElementFactory.createFQClassNameReferenceElement(SUPER_CLASS_NAME, scope);
@@ -106,14 +94,14 @@ public class JavaMigrationClassGenerator {
                                   @NotNull DatabaseUpdate databaseUpdate) {
     PsiMethod migrationMethod = myPsiElementFactory.createMethod(MIGRATION_METHOD_NAME, PsiType.VOID);
 
-    migrationMethod.getModifierList().addAnnotation(MIGRATION_METHOD_ANNOTATION);
+    migrationMethod.getModifierList().addAnnotation(OVERRIDE_ANNOTATION);
 
     PsiType parameterType = myPsiElementFactory.createTypeByFQClassName(MIGRATION_METHOD_PARAMETER_TYPE, migrationClass.getResolveScope());
     PsiParameter parameter = myPsiElementFactory.createParameter(MIGRATION_METHOD_PARAMETER_NAME, parameterType);
+    assert parameter.getModifierList() != null;
 
-    if (parameter.getModifierList() != null &&
-        myJavaPsiFacade.findClass(MIGRATION_METHOD_PARAMETER_ANNOTATION, migrationClass.getResolveScope()) != null) {
-      parameter.getModifierList().addAnnotation(MIGRATION_METHOD_PARAMETER_ANNOTATION);
+    if (myJavaPsiFacade.findClass(NOT_NULL_ANNOTATION, migrationClass.getResolveScope()) != null) {
+      parameter.getModifierList().addAnnotation(NOT_NULL_ANNOTATION);
     }
     migrationMethod.getParameterList().add(parameter);
 
@@ -128,12 +116,9 @@ public class JavaMigrationClassGenerator {
   private void addMigrationStatement(@NotNull PsiMethod migrationMethod,
                                      @NotNull String sqlStatement) {
     PsiStatement migrationStatement =
-      myPsiElementFactory.createStatementFromText(trimStatement(String.format(DATABASE_UPDATE_STATEMENT_TEMPLATE, sqlStatement)), null);
-
+      myPsiElementFactory.createStatementFromText(trimSqlStatement(String.format(DATABASE_UPDATE_STATEMENT_TEMPLATE, sqlStatement)), null);
     PsiCodeBlock methodBody = migrationMethod.getBody();
-    if (methodBody == null) {
-      return;
-    }
+    assert methodBody != null;
 
     methodBody.addAfter(migrationStatement, methodBody.getLastBodyElement());
   }
@@ -141,18 +126,12 @@ public class JavaMigrationClassGenerator {
   private void addMigrationConstructor(@NotNull PsiClass migrationClass,
                                        @NotNull DatabaseUpdate databaseUpdate) {
     PsiMethod migrationConstructor = myPsiElementFactory.createConstructor();
+    assert migrationConstructor.getBody() != null;
 
-    if (migrationConstructor.getBody() == null) {
-      return;
-    }
     migrationConstructor.getBody().add(myPsiElementFactory.createStatementFromText(
       String.format(Locale.US, SUPER_CONSTRUCTOR_CALL_TEMPLATE, databaseUpdate.getPreviousVersion(), databaseUpdate.getCurrentVersion()),
       null));
 
     migrationClass.add(migrationConstructor);
-  }
-
-  private String trimStatement(String statement) {
-    return statement.replace("(\n", "(").replace("\n)", ")").replace("\n", " ").replace("\t", "");
   }
 }

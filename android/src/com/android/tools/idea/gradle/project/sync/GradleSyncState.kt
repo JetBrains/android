@@ -67,7 +67,6 @@ import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -202,7 +201,6 @@ open class GradleSyncState(
   open var lastSyncFinishedTimeStamp = -1L
 
   private var trigger = GradleSyncStats.Trigger.TRIGGER_UNKNOWN
-  private var shouldRemoveModelsOnFailure = false
 
   /*
    * START GradleSyncListener methods
@@ -243,7 +241,6 @@ open class GradleSyncState(
       isSyncInProgress = true
     }
 
-    shouldRemoveModelsOnFailure = request.variantOnlySyncOptions == null
     val syncType = if (isSingleVariantSync()) "single-variant" else "full-variants"
     LOG.info("Started $syncType sync with Gradle for project '${project.name}'.")
 
@@ -336,8 +333,6 @@ open class GradleSyncState(
       syncFinished(syncEndTimeStamp)
       return
     }
-
-    if (shouldRemoveModelsOnFailure && !(project.isDisposed)) removeAndroidModels(project)
 
     syncFailedTimeStamp = syncEndTimeStamp
 
@@ -637,13 +632,4 @@ open class GradleSyncState(
 private fun Collection<Library>.findVersion(artifact: String) : GradleVersion? {
   val library = firstOrNull { library -> library.artifactAddress.startsWith(artifact) } ?: return null
   return GradleCoordinate.parseCoordinateString(library.artifactAddress)?.version
-}
-
-// See issue: https://code.google.com/p/android/issues/detail?id=64508
-private fun removeAndroidModels(project: Project) {
-  // Remove all Android models from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
-  // failure.
-  ModuleManager.getInstance(project).modules.mapNotNull { module ->
-    AndroidFacet.getInstance(module)
-  }.forEach { facet -> facet.configuration.model = null }
 }

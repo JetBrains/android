@@ -448,7 +448,9 @@ public final class ModelWizard implements Disposable {
 
     JComponent focusedComponent = step.getPreferredFocusComponent();
     if (focusedComponent != null) {
-      IdeFocusManager.findInstanceByComponent(focusedComponent).requestFocus(focusedComponent, false);
+      IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(
+        () -> IdeFocusManager.findInstanceByComponent(focusedComponent).requestFocus(focusedComponent, false)
+      );
     }
   }
 

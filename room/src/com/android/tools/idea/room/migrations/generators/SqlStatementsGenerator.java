@@ -457,7 +457,7 @@ public class SqlStatementsGenerator {
 
   private static boolean shouldAddAutoIncrementToColumn(@NotNull FieldBundle field, @NotNull PrimaryKeyBundle primaryKey) {
     return primaryKey.isAutoGenerate() &&
-           field.getAffinity().toLowerCase(Locale.ENGLISH).equals("integer") &&
+           field.getAffinity().toLowerCase(Locale.US).equals("integer") &&
            (primaryKey.getColumnNames().size() == 1 && primaryKey.getColumnNames().get(0).equals(field.getColumnName()));
   }
 

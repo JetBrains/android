@@ -229,6 +229,47 @@ public class VectorDrawableTransformerTest {
   }
 
   @Test
+  public void testScalingWithGroups() throws Exception {
+    String original = "" +
+                      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    android:width=\"94dp\"\n" +
+                      "    android:height=\"337.5dp\"\n" +
+                      "    android:viewportWidth=\"94\"\n" +
+                      "    android:viewportHeight=\"337.5\">\n" +
+                      "  <group android:translateY=\"133.59375\">\n" +
+                      "    <path android:pathData=\"M68.41406,-26.71875L25.523438,-26.71875L15.890625,0L1.96875,0L41.0625,-102.375L52.875,-102.375L92.03906,0L78.1875,0ZM29.601562,-37.828125L64.40625,-37.828125L46.96875,-85.71094Z\"\n" +
+                      "        android:fillColor=\"#000000\"/>\n" +
+                      "  </group>\n" +
+                      "  <group android:translateY=\"302.34375\">\n" +
+                      "    <path android:pathData=\"M68.41406,-26.71875L25.523438,-26.71875L15.890625,0L1.96875,0L41.0625,-102.375L52.875,-102.375L92.03906,0L78.1875,0ZM29.601562,-37.828125L64.40625,-37.828125L46.96875,-85.71094Z\"\n" +
+                      "        android:fillColor=\"#000000\"/>\n" +
+                      "  </group>\n" +
+                      "</vector>\n";
+    String expected = "" +
+                      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    android:width=\"100dp\"\n" +
+                      "    android:height=\"100dp\"\n" +
+                      "    android:viewportWidth=\"135\"\n" +
+                      "    android:viewportHeight=\"135\">\n" +
+                      "  <group android:translateX=\"20.5\"\n" +
+                      "      android:translateY=\"-101.25\">\n" +
+                      "    <group android:translateY=\"133.59375\">\n" +
+                      "      <path android:pathData=\"M68.41406,-26.71875L25.523438,-26.71875L15.890625,0L1.96875,0L41.0625,-102.375L52.875,-102.375L92.03906,0L78.1875,0ZM29.601562,-37.828125L64.40625,-37.828125L46.96875,-85.71094Z\"\n" +
+                      "          android:fillColor=\"#000000\"/>\n" +
+                      "    </group>\n" +
+                      "    <group android:translateY=\"302.34375\">\n" +
+                      "      <path android:pathData=\"M68.41406,-26.71875L25.523438,-26.71875L15.890625,0L1.96875,0L41.0625,-102.375L52.875,-102.375L92.03906,0L78.1875,0ZM29.601562,-37.828125L64.40625,-37.828125L46.96875,-85.71094Z\"\n" +
+                      "          android:fillColor=\"#000000\"/>\n" +
+                      "    </group>\n" +
+                      "  </group>\n" +
+                      "</vector>\n";
+    String result = VectorDrawableTransformer.transform(original, new Dimension(100, 100), 2.5, null, null, 1);
+    assertEquals(expected, result);
+  }
+
+  @Test
   public void testUnscalableDrawable() throws Exception {
     String original = "" +
         "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +

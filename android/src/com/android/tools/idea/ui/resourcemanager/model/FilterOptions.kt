@@ -27,8 +27,8 @@ class FilterOptions internal constructor(
   moduleDependenciesInitialValue: Boolean,
   librariesInitialValue: Boolean,
   val isShowSampleData: Boolean,
-  val showAndroidResources: Boolean,
-  val showThemeAttributes: Boolean) {
+  showAndroidResources: Boolean,
+  showThemeAttributes: Boolean) {
 
   /**
    * If true, the resources from the dependent modules will be shown.
@@ -41,6 +41,18 @@ class FilterOptions internal constructor(
    */
   var isShowLibraries: Boolean
     by Delegates.observable(librariesInitialValue) { _, old, new -> if (new != old) isShowResourcesChanged() }
+
+  /**
+   * If true, the Android Framework resources will be shown.
+   */
+  var isShowFramework: Boolean
+    by Delegates.observable(showAndroidResources) { _, old, new -> if (new != old) isShowResourcesChanged() }
+
+  /**
+   * If true, Theme Attributes resources will be shown.
+   */
+  var isShowThemeAttributes: Boolean
+    by Delegates.observable(showThemeAttributes) { _, old, new -> if (new != old) isShowResourcesChanged() }
 
   /**
    * The search string to use to filter resources

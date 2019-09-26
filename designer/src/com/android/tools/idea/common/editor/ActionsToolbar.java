@@ -201,7 +201,11 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     }
 
     // TODO: Perform caching
-    myDynamicGroup.copyFromGroup(mySurface.getActionManager().getToolbarActions(null, newSelection));
+    DesignerEditorFileType surfaceLayoutType = mySurface.getLayoutType();
+    DefaultActionGroup selectionToolbar = surfaceLayoutType.getSelectionContextToolbar(mySurface, newSelection);
+    if (selectionToolbar.getChildrenCount() > 0) {
+      myDynamicGroup.copyFromGroup(selectionToolbar);
+    }
     updateBottomActionBarBorder();
     myCenterToolbar.clearPresentationCache();
   }

@@ -16,14 +16,11 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker.HitElementListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker.HitElementListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Drawing;
-
-import javax.swing.JPanel;
-import javax.swing.border.StrokeBorder;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -37,6 +34,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
+import javax.swing.JPanel;
 
 /**
  * The overview panel displays graphically the layout and the transitions and allows selection for ether.
@@ -56,7 +54,7 @@ class OverviewPanel extends JPanel {
   private MTag mLayout;
   Listener mListener;
   private Stroke mThickStroke = new BasicStroke(2);
-  private Stroke mDashStroke = new BasicStroke(1f,BasicStroke.CAP_BUTT,BasicStroke.JOIN_ROUND,1, new float[]{5,5},0);
+  private Stroke mDashStroke = new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 1, new float[]{5, 5}, 0);
   GeneralPath mPath = new GeneralPath();
   int mRectPathLen = 4;
   int[] mRectPathX = new int[mRectPathLen];
@@ -146,9 +144,10 @@ class OverviewPanel extends JPanel {
       @Override
       public void over(Object over, double dist) {
         if (over instanceof MTag) {
-          objects[0] = ((MTag) over);
-        } else {
-          line[0] = (DerivedSetLine) over;
+          objects[0] = ((MTag)over);
+        }
+        else {
+          line[0] = (DerivedSetLine)over;
         }
       }
     });
@@ -160,7 +159,8 @@ class OverviewPanel extends JPanel {
       mMouseOverObject = null;
       repaint();
       return;
-    } else if (line[0] == null && mMouseOverDerived != null) {
+    }
+    else if (line[0] == null && mMouseOverDerived != null) {
       mMouseOverDerived = null;
       setToolTipText(MAIN_TOOL_TIP);
       repaint();
@@ -178,7 +178,8 @@ class OverviewPanel extends JPanel {
     MTag found = objects[0];
     if (select && mListener != null) {
       mListener.select(found);
-    } else {
+    }
+    else {
       if (mMouseOverObject != found) {
         mMouseOverObject = found;
 
@@ -230,7 +231,8 @@ class OverviewPanel extends JPanel {
     cs_width = (w - CS_GAP * 2 - 2) / noc - CS_GAP;
     if (cs_width > MAX_CS_WIDTH) {
       cs_width = MAX_CS_WIDTH;
-    } else if (cs_width < MIN_CS_WIDTH) {
+    }
+    else if (cs_width < MIN_CS_WIDTH) {
       cs_width = MIN_CS_WIDTH;
     }
     int p_width = (cs_width + CS_GAP) * noc + 2 + CS_GAP;
@@ -266,7 +268,7 @@ class OverviewPanel extends JPanel {
     if (mMotionScene == null) {
       return;
     }
-    Graphics2D g2g = (Graphics2D) g;
+    Graphics2D g2g = (Graphics2D)g;
     picker.reset();
     int w = getWidth();
     int h = getHeight();
@@ -302,15 +304,16 @@ class OverviewPanel extends JPanel {
         selectedStart = start;
         selectedEnd = end;
         g.setColor(MEUI.Overview.ourSelectedLineColor);
-      } else {
+      }
+      else {
         g.setColor(MEUI.Overview.ourLineColor);
       }
 
       boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
-      drawTransition((Graphics2D) g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i]);
+      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i]);
     }
     // --------  Draw Transitions lines -------------
-    ((Graphics2D) g).setStroke(ourSelectedStroke);
+    ((Graphics2D)g).setStroke(ourSelectedStroke);
     for (int i = 0; i < mTransitions.length; i++) {
       int start = mTransitionStart[i];
       int end = mTransitionEnd[i];
@@ -326,7 +329,7 @@ class OverviewPanel extends JPanel {
       g.setColor(MEUI.Overview.ourSelectedLineColor);
 
       boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
-      drawTransition((Graphics2D) g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i]);
+      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i]);
     }
     // --------  Draw Transitions strings -------------
 
@@ -341,7 +344,8 @@ class OverviewPanel extends JPanel {
         selectedStart = start;
         selectedEnd = end;
         g.setColor(MEUI.Overview.ourSelectedLineColor);
-      } else {
+      }
+      else {
         g.setColor(MEUI.Overview.ourLineColor);
       }
       picker.addLine(mTransitions[i], 3, x1, y, x2, y, 2);
@@ -350,10 +354,10 @@ class OverviewPanel extends JPanel {
         str = Utils.stripID(str);
         FontMetrics fm = g.getFontMetrics();
         Rectangle2D bounds = fm.getStringBounds(str, g);
-        int strX = (x1 > x2) ? x1 - (int) bounds.getWidth() - 20 : x1 + 4;
+        int strX = (x1 > x2) ? x1 - (int)bounds.getWidth() - 20 : x1 + 4;
         Color tmp = g.getColor();
         g.setColor(getBackground());
-        g.fillRect(strX, y - fm.getHeight(), (int) bounds.getWidth(), (int) bounds.getHeight());
+        g.fillRect(strX, y - fm.getHeight(), (int)bounds.getWidth(), (int)bounds.getHeight());
         g.setColor(tmp);
 
         g.drawString(str, strX, y - 5);
@@ -400,7 +404,8 @@ class OverviewPanel extends JPanel {
           if (mLayout == mMouseOverObject) {
             hover = true;
           }
-        } else {
+        }
+        else {
           if (mConstraintSet[setIndex] == mMouseOverObject) {
             hover = true;
           }
@@ -408,39 +413,41 @@ class OverviewPanel extends JPanel {
       }
       if (i != 0) {
         picker.addRect(mConstraintSet[setIndex], 3, x, y, x + csWidth, y + csHeight);
-      } else {
+      }
+      else {
         picker.addRect(mLayout, 3, x, y, x + csWidth, y + csHeight);
       }
       boolean isLayout = (i == 0);
       String name = isLayout ? "Layout" : mConstraintSetNames[setIndex];
 
       if (mConstraintSetSelected == i) {
-        g.setColor((hover) ? MEUI.Overview.ourHoverColor : MEUI.Overview.ourSelectedSetColor);
+        g.setColor((hover) ? MEUI.Overview.ourCS_Hover : MEUI.Overview.ourCS_Select);
         g.fillRoundRect(x, y, csWidth, csHeight, space, space);
         g.setColor(MEUI.Overview.ourSelectedLineColor);
         g.drawRoundRect(x, y, csWidth, csHeight, space, space);
-      } else {
-        g.setColor((hover) ? MEUI.Overview.ourHoverColor : MEUI.Overview.ourConstraintSet);
+      }
+      else {
+        g.setColor((hover) ? MEUI.Overview.ourCS_Hover : MEUI.Overview.ourCS);
         g.fillRoundRect(x, y, csWidth, csHeight, space, space);
         if (selectedEnd == setIndex || selectedStart == setIndex) {
           g.setColor(MEUI.Overview.ourSelectedLineColor);
-        } else {
+        }
+        else {
           g.setColor(MEUI.Overview.ourLineColor);
         }
         g.drawRoundRect(x, y, csWidth, csHeight, space, space);
         g.setColor(MEUI.Overview.ourLineColor);
       }
       if (i == 0) {
-        g.setColor((hover) ? MEUI.Overview.ourHoverColor : MEUI.Overview.ourLayoutColor);
+        g.setColor((hover) ? MEUI.Overview.ourCS_Hover : MEUI.Overview.ourLayoutColor);
         g.fillRoundRect(x, y, csWidth, csHeight, space, space);
         g.setColor(MEUI.Overview.ourLayoutHeaderColor);
         g.fillRoundRect(x, y, csWidth, csHeight / 4 + 1, space, space);
         g.setColor((mConstraintSetSelected == i) ? MEUI.Overview.ourSelectedLineColor : MEUI.Overview.ourLineColor);
         g.drawRoundRect(x, y, csWidth, csHeight, space, space);
         g.fillRect(x, y + csHeight / 4, csWidth, 2);
-
       }
-      g.setColor(MEUI.Overview.ourConstraintSetText);
+      g.setColor(MEUI.Overview.ourCSText);
 
       if (isLayout) {
         int stringWidth = fm.stringWidth("Motion");
@@ -454,7 +461,8 @@ class OverviewPanel extends JPanel {
         int ly = y + csHeight / 2 + fm.getAscent();
 
         g.drawString("Layout", lx, ly);
-      } else {
+      }
+      else {
         int stringWidth = fm.stringWidth(name);
         x += (csWidth - stringWidth) / 2;
         y += (csHeight - fm.getHeight()) / 2 + fm.getAscent();
@@ -498,7 +506,8 @@ class OverviewPanel extends JPanel {
 
       optimizeLines(mDerivedLines, mTotalDerivedLines);
       mComputedDerivedLines = true;
-    } else {
+    }
+    else {
       mTotalDerivedLines = 0;
       if (mDerivedLines.length < mConstraintSet.length) {
         mDerivedLines = new DerivedSetLine[mConstraintSet.length + 1];
@@ -553,16 +562,14 @@ class OverviewPanel extends JPanel {
       Drawing.drawPick(picker, mDerivedLines[i], mRectPathX, mRectPathY, mRectPathLen, 20);
       g2g.draw(mPath);
       mPath.reset();
-      mPath.moveTo(mRectPathX[3] , mRectPathY[3]);
+      mPath.moveTo(mRectPathX[3], mRectPathY[3]);
       mPath.lineTo(mRectPathX[3] - 5, mRectPathY[3]);
       mPath.lineTo(mRectPathX[3], mRectPathY[3] - 5);
       mPath.lineTo(mRectPathX[3] + 5, mRectPathY[3]);
       mPath.lineTo(mRectPathX[3], mRectPathY[3]);
       g2g.setStroke(stroke);
       g2g.draw(mPath);
-
     }
-
   }
 
   private void drawTransition(Graphics2D g, boolean hoverHighlight, int x1, int x2, int y, int constraintSetY, Object tag) {
@@ -588,10 +595,10 @@ class OverviewPanel extends JPanel {
     mPath.lineTo(mRectPathX[3] + tri_delta_x, mRectPathY[3]);
     mPath.lineTo(mRectPathX[3], mRectPathY[3]);
     if (hoverHighlight) {
-      Stroke originalStroke = ((Graphics2D) g).getStroke();
+      Stroke originalStroke = ((Graphics2D)g).getStroke();
       Color originalColor = g.getColor();
       g.setStroke(ourFatStroke);
-      g.setColor(MEUI.Overview.ourHoverColor);
+      g.setColor(MEUI.Overview.ourHoverLineColor);
       g.draw(mPath);
       g.setColor(originalColor);
       g.setStroke(originalStroke);
@@ -610,7 +617,6 @@ class OverviewPanel extends JPanel {
     mRectPathY[2] = mRectPathY[3];
 
     g.fillPolygon(mRectPathX, mRectPathY, 4);
-
   }
 
   private void drawTransition_orig(Graphics2D g, boolean hoverHighlight, int x1, int x2, int y, int constraintSetY, Object tag) {
@@ -618,16 +624,16 @@ class OverviewPanel extends JPanel {
 
     int delta = x2 > x1 ? -5 : 5;
     if (hoverHighlight) {
-      Stroke originalStroke = ((Graphics2D) g).getStroke();
+      Stroke originalStroke = ((Graphics2D)g).getStroke();
       Color originalColor = g.getColor();
-      ((Graphics2D) g).setStroke(ourFatStroke);
+      ((Graphics2D)g).setStroke(ourFatStroke);
       g.setColor(MEUI.Overview.ourHoverColor);
       g.drawLine(x1, y, x2, y);
       g.drawLine(x1, y - delta, x1, y + delta);
       g.drawLine(x2, y, x2 + delta, y + delta);
       g.drawLine(x2, y, x2 + delta, y - delta);
       g.setColor(originalColor);
-      ((Graphics2D) g).setStroke(originalStroke);
+      ((Graphics2D)g).setStroke(originalStroke);
     }
     g.drawLine(x1, y, x2, y);
     g.drawLine(x1, y - delta, x1, y + delta);
@@ -675,7 +681,8 @@ class OverviewPanel extends JPanel {
           .min(Math.max(l1.mSrcX, l1.mDstX), Math.max(l2.mSrcX, l2.mDstX))
             && l1.mPathYOffset == l2.mPathYOffset) {
           ret += 5;
-        } else {
+        }
+        else {
           boolean l1Inside = ((l1.mSrcX - l2.mSrcX) * (l1.mSrcX - l2.mDstX) <= 0) && (
             (l1.mDstX - l2.mSrcX) * (l1.mDstX - l2.mDstX) <= 0);
           if (l1Inside && l1.mPathYOffset > l2.mPathYOffset) {

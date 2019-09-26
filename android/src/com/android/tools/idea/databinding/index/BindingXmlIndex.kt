@@ -18,10 +18,10 @@ package com.android.tools.idea.databinding.index
 import com.android.SdkConstants
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.TAG_LAYOUT
-import com.android.ide.common.resources.stripPrefixFromId
 import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceUrl
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
-import com.android.tools.idea.databinding.index.BindingLayoutType.VIEW_BINDING_LAYOUT
+import com.android.tools.idea.databinding.index.BindingLayoutType.PLAIN_LAYOUT
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -105,6 +105,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
       override fun save(out: DataOutput, value: BindingXmlData?) {
         value ?: return
         writeINT(out, value.layoutType.ordinal)
+        IOUtil.writeUTF(out, value.rootTag)
         writeINT(out, if (value.viewBindingIgnore) 1 else 0)
         IOUtil.writeUTF(out, value.customBindingName ?: "")
 
@@ -130,6 +131,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
 
       override fun read(`in`: DataInput): BindingXmlData {
         val layoutType = BindingLayoutType.values()[readINT(`in`)]
+        val rootTag = IOUtil.readUTF(`in`)
         val viewBindingIgnore = readINT(`in`) == 1
         val customBindingName = IOUtil.readUTF(`in`).ifEmpty { null }
 
@@ -147,7 +149,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
           viewIds.add(ViewIdData(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`),
                                  IOUtil.readUTF(`in`).ifEmpty { null }))
         }
-        return BindingXmlData(layoutType, viewBindingIgnore, customBindingName, imports, variables, viewIds)
+        return BindingXmlData(layoutType, rootTag, viewBindingIgnore, customBindingName, imports, variables, viewIds)
       }
     }
   }
@@ -161,6 +163,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
       var isDataBindingLayout = false
       var customBindingName: String? = null
       var viewBindingIgnore = false
+      var rootTag: String? = null
       val variables = mutableListOf<VariableData>()
       val imports = mutableListOf<ImportData>()
       val viewIds = mutableListOf<ViewIdData>()
@@ -178,18 +181,21 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
       }
 
       NanoXmlUtil.parse(EscapingXmlReader(inputData.contentAsText), object : NanoXmlBuilder {
-        var currTag: TagData? = null
-        var isRootElement = true
+        val tags = mutableListOf<TagData>()
 
         override fun startElement(name: String, nsPrefix: String?, nsURI: String?, systemID: String, lineNr: Int) {
-          currTag = TagData(name)
+          tags.add(TagData(name))
           if (name == TAG_LAYOUT) {
             isDataBindingLayout = true
+          }
+
+          if (tags.size == 1) {
+            rootTag = name
           }
         }
 
         override fun addAttribute(key: String, nsPrefix: String?, nsURI: String?, value: String, type: String) {
-          val currTag = currTag!! // Always valid inside tags
+          val currTag = tags.last() // We are processing a tag so we know there's at least one
           when (currTag.name) {
             SdkConstants.TAG_DATA ->
               when (key) {
@@ -215,7 +221,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
                 when (key) {
                   // Used to determine view type of <View>.
                   SdkConstants.ATTR_CLASS -> currTag.viewClass = value
-                  SdkConstants.ATTR_ID -> currTag.viewId = stripPrefixFromId(value)
+                  SdkConstants.ATTR_ID -> currTag.viewId = ResourceUrl.parse(value)?.name
                 }
               }
               if (currTag.name == SdkConstants.VIEW_INCLUDE || currTag.name == SdkConstants.VIEW_MERGE) {
@@ -226,7 +232,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
               }
             }
           }
-          if (isRootElement) {
+          if (tags.size == 1) {
             if (nsURI == SdkConstants.TOOLS_URI && key == SdkConstants.ATTR_VIEW_BINDING_IGNORE) {
               viewBindingIgnore = value.toBoolean()
             }
@@ -234,7 +240,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
         }
 
         override fun elementAttributesProcessed(name: String, nsPrefix: String?, nsURI: String?) {
-          val currTag = currTag!! // Always valid inside tags
+          val currTag = tags.last() // We are processing a tag so we know there's at least one
           when (currTag.name) {
             SdkConstants.TAG_DATA -> {
               // Nothing to do here, but case needed to avoid ending up in default branch
@@ -260,17 +266,16 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
                 }
               }
             }
-
-          this.currTag = null
         }
 
-        override fun endElement(name: String, nsPrefix: String?, nsURI: String?) {
-          isRootElement = false
+        override fun endElement(s: String?, s1: String?, s2: String?) {
+          tags.removeAt(tags.lastIndex)
         }
       })
 
-      val layoutType = if (isDataBindingLayout) DATA_BINDING_LAYOUT else VIEW_BINDING_LAYOUT
-      mapOf(getKeyForFile(inputData.file) to BindingXmlData(layoutType, viewBindingIgnore, customBindingName, imports, variables, viewIds))
+      val layoutType = if (isDataBindingLayout) DATA_BINDING_LAYOUT else PLAIN_LAYOUT
+      mapOf(getKeyForFile(inputData.file) to
+              BindingXmlData(layoutType, rootTag.orEmpty(), viewBindingIgnore, customBindingName, imports, variables, viewIds))
     }
   }
 
@@ -285,7 +290,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
     }
   }
 
-  override fun getVersion() = 5
+  override fun getVersion() = 7
 }
 
 /**

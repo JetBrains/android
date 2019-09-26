@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
+import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
 import com.google.common.annotations.VisibleForTesting
@@ -81,9 +82,9 @@ constructor(
   }
 
   private fun getImage(xmlFile: XmlFile, configuration: Configuration): CompletableFuture<BufferedImage?> {
-    return renderTaskProvider(facet, xmlFile, configuration)
-      .thenCompose { it?.render() }
-      .thenApplyAsync(Function {
+    val renderTaskFuture = renderTaskProvider(facet, xmlFile, configuration)
+    return renderTaskFuture.thenCompose { it?.render() }
+      .thenApplyAsync(Function<RenderResult?, BufferedImage?> {
         if (it == null) {
           return@Function null
         }
@@ -92,7 +93,10 @@ constructor(
           it.renderResult.exception != null -> throw it.renderResult.exception
           else -> throw RenderingException(it.renderResult.status.name)
         }
-      }, PooledThreadExecutor.INSTANCE)
+      }, PooledThreadExecutor.INSTANCE).whenComplete { _, _ ->
+        // Dispose the RenderTask once it has finished rendering.
+        renderTaskFuture.get()?.dispose()
+      }
   }
 
   companion object {

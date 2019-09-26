@@ -69,7 +69,7 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
   /**
    * Gap between lists
    */
-  private val listsGap = JBUI.scale(50)
+  private val listsGap = JBUI.scale(16)
 
   /**
    * Returns the list of [Section] name
@@ -122,14 +122,11 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
     })
   }
 
+  /**
+   * Focuses the first list with a selected item, or just the first list if there's no selection.
+   */
   private fun focusInnerList() {
-    getFocusableList().requestFocusInWindow()
-  }
-
-  private fun getFocusableList(): JList<*> {
-    return allInnerLists
-             .firstOrNull { it.selectedIndex != -1 }
-           ?: allInnerLists.first()
+    (allInnerLists.firstOrNull { it.selectedIndex != -1 } ?: allInnerLists.firstOrNull())?.requestFocusInWindow()
   }
 
   /**

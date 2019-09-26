@@ -15,22 +15,11 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 
-class ProguardR8CompletionContributorTest : JavaCodeInsightFixtureTestCase() {
-
-  override fun setUp() {
-    StudioFlags.R8_SUPPORT_ENABLED.override(true);
-    super.setUp()
-  }
-
-  override fun tearDown() {
-    StudioFlags.R8_SUPPORT_ENABLED.clearOverride()
-    super.tearDown()
-  }
+class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
   fun testFlagCompletion() {
 
@@ -140,10 +129,37 @@ class ProguardR8CompletionContributorTest : JavaCodeInsightFixtureTestCase() {
 
     keys = myFixture.completeBasic()
 
+    // suggests at the start of new rule
     assertThat(keys).isNotEmpty()
-    assertThat(keys.map { it.lookupString }.toList()).containsExactly("public", "private", "protected",
-                                                                      "static", "synchronized", "native", "abstract", "strictfp",
-                                                                      "volatile", "transient", "final")
-  }
+    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("public", "private", "protected",
+                                                                    "static", "synchronized", "native", "abstract", "strictfp",
+                                                                    "volatile", "transient", "final")
 
+    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+        -keep class * {
+          public $caret
+        }
+    """.trimIndent())
+
+    keys = myFixture.completeBasic()
+
+    // suggests after another modifier
+    assertThat(keys).isNotEmpty()
+    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("public", "private", "protected",
+                                                                    "static", "synchronized", "native", "abstract", "strictfp",
+                                                                    "volatile", "transient", "final")
+
+    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+        -keep class * {
+          int $caret
+        }
+    """.trimIndent())
+
+    keys = myFixture.completeBasic()
+
+    // don't suggests after type
+    assertThat(keys.map { it.lookupString }.toList()).containsNoneOf("public", "private", "protected",
+                                                                     "static", "synchronized", "native", "abstract", "strictfp",
+                                                                     "volatile", "transient", "final")
+  }
 }

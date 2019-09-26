@@ -796,6 +796,25 @@ b/137231583 */
     assertThat(buildEvents.get(0).getMessage()).isEqualTo("successful");
   }
 
+  public void testStartAndFinishBuildEventHasSameBuildId() throws Exception {
+    Project project = getProject();
+    // Spy on SyncView manager to capture the build events.
+    SyncViewManager spyViewManager = spy(ServiceManager.getService(project, SyncViewManager.class));
+    myIdeComponents.replaceProjectService(SyncViewManager.class, spyViewManager);
+
+    // Invoke Gradle sync.
+    loadSimpleApplication();
+
+    ArgumentCaptor<Object> startIdCaptor = ArgumentCaptor.forClass(Object.class);
+    ArgumentCaptor<Object> finishIdCaptor = ArgumentCaptor.forClass(Object.class);
+
+    verify(spyViewManager).onEvent(startIdCaptor.capture(), any(StartBuildEvent.class));
+    verify(spyViewManager).onEvent(finishIdCaptor.capture(), any(FinishBuildEvent.class));
+
+    // Verify that start build event and finish build event are created for the same build id.
+    assertEquals(finishIdCaptor.getValue(), startIdCaptor.getValue());
+  }
+
   public void testContentRootDataNodeWithBuildSrcModule() throws Exception {
     loadSimpleApplication();
 

@@ -22,40 +22,33 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
-import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.simulateMouseClick
+import com.android.tools.idea.ui.resourcemanager.waitAndAssert
 import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
 import com.android.tools.idea.ui.resourcemanager.widget.LinkLabelSearchView
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.labels.LinkLabel
-import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Point
-import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
-import java.awt.event.MouseEvent
 import java.io.File
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
-
-private const val WAIT_TIMEOUT = 3000
 
 class ResourceExplorerViewTest {
 
@@ -83,7 +76,7 @@ class ResourceExplorerViewTest {
     // 'Drawable' tab is selected by default.
     selectAndAssertAsset(view, "png")
     // Change to COLOR resources.
-    runInEdtAndWait { viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.COLOR) }
+    runInEdtAndWait { viewModel.resourceTypeIndex = viewModel.supportedResourceTypes.indexOf(ResourceType.COLOR) }
     waitAndAssert<AssetListView>(view) { listView ->
       if (listView != null && listView.model.size > 0) {
         // Best is to make sure the resources in the list are now of the desired type.
@@ -152,15 +145,6 @@ class ResourceExplorerViewTest {
     }
   }
 
-  private fun createViewModel(module: Module): ResourceExplorerViewModel {
-    val facet = AndroidFacet.getInstance(module)!!
-    val viewModel = ResourceExplorerViewModel.createResManagerViewModel(facet)
-
-    assert(viewModel is Disposable)
-    Disposer.register(disposable, viewModel as Disposable)
-    return viewModel
-  }
-
   @Test
   fun openOnEnter() {
     // Setup the test with an image for two configuration
@@ -176,12 +160,18 @@ class ResourceExplorerViewTest {
     var openedFile = "" // Variable used to check the opened file name
 
     // Dummy implementation of a ViewModel to record the opened file
-    val viewModel = object : ResourceExplorerViewModel by createViewModel(projectRule.module) {
-      override val doSelectAssetAction: (asset: Asset) -> Unit =  { asset ->
+    val viewModel = ResourceExplorerViewModel.createResPickerViewModel(
+      projectRule.module.androidFacet!!,
+      null,
+      ResourceType.DRAWABLE,
+      arrayOf(ResourceType.DRAWABLE),
+      false,
+      { asset ->
         assertThat(asset).isInstanceOf(DesignAsset::class.java)
         openedFile = FileUtil.getRelativePath(projectRule.fixture.tempDirPath, (asset as DesignAsset).file.path, '/').orEmpty()
-      }
-    }
+      },
+      {})
+    Disposer.register(disposable, viewModel)
 
     // A parent used to swap the ResourceExplorerView and the DetailView
     val view = createResourceExplorerView(viewModel)
@@ -206,8 +196,7 @@ class ResourceExplorerViewTest {
     val viewModel = createViewModel(projectRule.module)
     val view = createResourceExplorerView(viewModel, withSummaryView = true)
 
-    val summaryView = UIUtil.findComponentOfType(view, DetailedPreview::class.java)
-    assertNotNull(summaryView, "Summary view should be present")
+    waitAndAssert<DetailedPreview>(view) { it != null }
 
     waitAndAssert<AssetListView>(view) { it != null && it.model.size > 0 && it.model.getElementAt(0).name == "png" }
     val list = UIUtil.findComponentOfType(view, AssetListView::class.java)!!
@@ -216,13 +205,25 @@ class ResourceExplorerViewTest {
     // Click a resource.
     simulateMouseClick(list, pointOfFirstResource, clickCount= 1)
 
-    // Confirm some basic data on the summary panel.
-    assertThat(summaryView.data).containsEntry("Name", "png")
-    assertThat(summaryView.data).containsEntry("Reference", "@drawable/png")
+    waitAndAssert<DetailedPreview>(view) { summaryView ->
+      if (summaryView == null) return@waitAndAssert false
+      // Wait for and confirm some basic data on the summary panel.
+      if (!summaryView.data.containsKey("Name") || summaryView.data["Name"] != "png") return@waitAndAssert false
+      if (!summaryView.data.containsKey("Reference") || summaryView.data["Reference"] != "@drawable/png") return@waitAndAssert false
+      return@waitAndAssert true
+    }
+  }
+
+  private fun createViewModel(module: Module): ResourceExplorerViewModel {
+    val facet = AndroidFacet.getInstance(module)!!
+    val viewModel = ResourceExplorerViewModel.createResManagerViewModel(facet)
+    Disposer.register(disposable, viewModel)
+    return viewModel
   }
 
   private fun createResourceExplorerView(viewModel: ResourceExplorerViewModel, withSummaryView: Boolean = false): ResourceExplorerView {
     val view = ResourceExplorerView(viewModel,
+                                    null,
                                     ResourceImportDragTarget(
                                       projectRule.module.androidFacet!!,
                                       ImportersProvider()),
@@ -240,25 +241,6 @@ private fun simulatePressEnter(component: JComponent) {
   component.keyListeners.forEach {
     it.keyPressed(keyEvent)
   }
-}
-
-private fun simulateMouseClick(component: JComponent, point: Point, clickCount: Int) {
-  runInEdtAndWait {
-    // A click is done through a mouse pressed & released event, followed by the actual mouse clicked event.
-    component.dispatchEvent(MouseEvent(
-      component, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
-    component.dispatchEvent(MouseEvent(
-      component, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, 0, false))
-    component.dispatchEvent(MouseEvent(
-      component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK, point.x, point.y, clickCount, false))
-  }
-}
-
-private inline fun <reified T : JComponent> waitAndAssert(view: ResourceExplorerView, crossinline condition: (list: T?) -> Boolean) {
-  val waitForComponentCondition = object : WaitFor(WAIT_TIMEOUT) {
-    public override fun condition() = condition(UIUtil.findComponentOfType(view, T::class.java))
-  }
-  assertTrue(waitForComponentCondition.isConditionRealized)
 }
 
 private fun selectAndAssertAsset(view: ResourceExplorerView, assetName: String) {

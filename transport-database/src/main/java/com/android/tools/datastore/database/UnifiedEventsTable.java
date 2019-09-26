@@ -38,6 +38,9 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
     INSERT_EVENT(
       "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, ProcessId, GroupId, Kind, CommandId, Timestamp, Data) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?)"),
+    DELETE_EVENTS(
+      "DELETE FROM [UnifiedEventsTable] " +
+      "WHERE StreamId = ? AND ProcessId = ? And GroupId = ? And Kind = ? AND Timestamp >= ? AND Timestamp <= ?"),
     // Only used for test.
     QUERY_EVENTS("SELECT Data FROM [UnifiedEventsTable]"),
     INSERT_BYTES("INSERT OR IGNORE INTO [BytesTable] (StreamId, Id, Data) VALUES (?, ?, ?)"),
@@ -97,6 +100,10 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
             event.getCommandId(),
             event.getTimestamp(),
             event.toByteArray());
+  }
+
+  public void deleteEvents(long streamId, int pid, long groupId, Event.Kind kind, long fromTimestamp, long toTimestamp) {
+    execute(Statements.DELETE_EVENTS, streamId, pid, groupId, kind.getNumber(), fromTimestamp, toTimestamp);
   }
 
   @VisibleForTesting

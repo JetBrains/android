@@ -19,12 +19,12 @@ import com.android.SdkConstants;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.testFramework.LightProjectDescriptor;
-import com.siyeh.ig.LightInspectionTestCase;
+import com.siyeh.ig.LightJavaInspectionTestCase;
 import org.jetbrains.android.AndroidFacetProjectDescriptor;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("StatementWithEmptyBody")
-public abstract class AndroidInspectionTestCase extends LightInspectionTestCase {
+public abstract class AndroidInspectionTestCase extends LightJavaInspectionTestCase {
 
   @NotNull
   @Override

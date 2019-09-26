@@ -36,6 +36,7 @@ iml_module(
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module]",
         "//tools/adt/idea/designer:intellij.android.designer[module]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module]",
+        "//tools/adt/idea/game-tools-starter:intellij.android.gameToolsStarter[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",

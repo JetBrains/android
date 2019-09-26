@@ -35,7 +35,7 @@ private fun assertMethodTextRange(file: UFile, methodName: String, actualBodyRan
   Assert.assertEquals(range, actualBodyRange)
 }
 
-class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCase() {
+class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
@@ -53,7 +53,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
       }
 
       @Composable
-      @Preview(name = "preview3", width = 1, height = 2)
+      @Preview(name = "preview3", width = 1, height = 2, fontScale = 0.2f)
       fun Preview3() {
       }
 
@@ -83,6 +83,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
       assertNull(it.configuration.theme)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertEquals(1f, it.configuration.fontScale)
 
       assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
       assertEquals("@Preview(name = \"preview2\", apiLevel = 12)", it.previewElementDefinitionPsi?.element?.text)
@@ -92,9 +93,10 @@ class AnnotationPreviewElementFinderTest : ComposeLightCodeInsightFixtureTestCas
       assertEquals("preview3", it.displayName)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
+      assertEquals(0.2f, it.configuration.fontScale)
 
       assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
-      assertEquals("@Preview(name = \"preview3\", width = 1, height = 2)", it.previewElementDefinitionPsi?.element?.text)
+      assertEquals("@Preview(name = \"preview3\", width = 1, height = 2, fontScale = 0.2f)", it.previewElementDefinitionPsi?.element?.text)
     }
 
     elements[0].let {

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.room.migrations.generators;
 
-import com.google.common.base.CaseFormat;
+import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.*;
+
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.CommonClassNames;
@@ -32,49 +33,19 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiStatement;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
-import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Creates a test file for a given database Migration class.
+ * Creates a new Migration test in Java.
+ *
+ * <p>The class will always be generated in a new file</p>
  */
-public class JavaMigrationTestGenerator {
-  private static final String MIGRATION_TEST_NAME_TEMPLATE = "%s_Test";
-  private static final String TEST_DATABASE_NAME_TEMPLATE = "\"test-%s\"";
-  private static final String TEST_DATABASE_FIELD_NAME_TEMPLATE = "TEST_%s";
-  private static final String MIGRATION_TEST_HELPER_FIELD_NAME = "migrationTestHelper";
-  private static final String MIGRATION_TEST_HELPER_TYPE = "androidx.room.testing.MigrationTestHelper";
-  private static final String RULE_ANNOTATION = "org.junit.Rule";
-  private static final String TEST_ANNOTATION = "org.junit.Test";
-  private static final String RUN_WITH_ANNOTATION = "org.junit.runner.RunWith";
-  private static final String OLD_ANDROID_JUNIT4_RUNNER = "androidx.test.runner.AndroidJUnit4";
-  private static final String NEW_ANDROID_JUNIT4_RUNNER = "androidx.test.ext.junit.runners.AndroidJUnit4";
-  private static final String HELPER_INIT_EXPRESSION_TEMPLATE = "%s = new MigrationTestHelper(\n%s,\n %s,\n %s);";
-  private static final String INSTRUMENTATION_PARAMETER = "androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()";
-  private static final String DATABASE_CLASS_CANONICAL_NAME_TEMPLATE = "%s.class.getCanonicalName()";
-  private static final String FRAMEWORK_SQLITE_OPEN_HELPER_FACTORY_PARAMETER =
-    "new androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory()";
-  private static final String MIGRATION_TEST_METHOD_NAME_TEMPLATE = "testMigrate%dTo%d";
-  private static final String SUPPORT_SQLITE_DATABASE_FIELD_DECLARATION_STATEMENT_TEMPLATE =
-    "androidx.sqlite.db.SupportSQLiteDatabase db = %s.createDatabase(%s, %d);";
-  private static final String SUPPORT_SQLITE_DATABASE_FIELD_DECLARATION_COMMENT_TEMPLATE =
-    "// Create database with schema version %s.";
-  private static final String EXEC_SQL_STATEMENT = "db.execSQL(\"INSERT INTO table_name (column_name) VALUES (value);\");";
-  private static final String EXEC_SQL_COMMENT = "// TODO: Insert data in the test database using SQL queries.";
-  private static final String CLOSE_STATEMENT = "db.close();";
-  private static final String CLOSE_COMMENT = "// Prepare for the next version.";
-  private static final String RUN_AND_VALIDATE_MIGRATION_STATEMENT_TEMPLATE = "db = %s.runMigrationsAndValidate(%s, %d, true, new %s());";
-  private static final String RUN_AND_VALIDATE_MIGRATION_COMMENT_TEMPLATE =
-    "// Re-open the database with version %s and provide %s as the migration process.";
-  private static final String ASSERT_STATEMENT = "org.junit.Assert.fail(\"TODO: Verify data after migration is correct\");";
-  private static final String ASSERT_COMMENT =
-    "// MigrationTestHelper automatically verifies the schema changes, but you need to validate that the data was migrated properly.";
-  private static final String MIGRATION_TEST_METHOD_EXCEPTION = "java.io.IOException";
-
+public class JavaMigrationTestGenerator implements MigrationTestGenerator{
   private JavaPsiFacade myJavaPsiFacade;
   private PsiElementFactory myPsiElementFactory;
   private Project myProject;
@@ -85,26 +56,19 @@ public class JavaMigrationTestGenerator {
     myPsiElementFactory = myJavaPsiFacade.getElementFactory();
   }
 
-  /**
-   * Generates a test class for a database's migrations.
-   *
-   * @param targetDirectory                  the directory where to generate the test class
-   * @param databaseClassFullyQualifiedName  the fully qualified name of the database class
-   * @param migrationClassFullyQualifiedName the name of the migration to generate a test method for
-   * @param migrationStartVersion            the schema version to migrate from
-   * @param migrationEndVersion              the schema version to migrate to
-   */
-  public void createMigrationTest(@NotNull PsiDirectory targetDirectory,
+  @Override
+  public void createMigrationTest(@NotNull PsiPackage targetPackage,
+                                  @NotNull PsiDirectory targetDirectory,
                                   @NotNull String databaseClassFullyQualifiedName,
                                   @NotNull String migrationClassFullyQualifiedName,
                                   int migrationStartVersion,
                                   int migrationEndVersion) {
     String databaseName = StringUtil.getShortName(databaseClassFullyQualifiedName);
-    String migrationTestName = String.format(MIGRATION_TEST_NAME_TEMPLATE, StringUtil.getShortName(migrationClassFullyQualifiedName));
+    String migrationTestName = getMigrationTestName(migrationStartVersion, migrationEndVersion);
     PsiClass migrationTest = JavaDirectoryService.getInstance().createClass(targetDirectory, migrationTestName);
 
     addRunWithAnnotation(migrationTest);
-    addTestDataBaseNameField(migrationTest, databaseName);
+    addTestDatabaseNameField(migrationTest, databaseName);
     addMigrationTestHelperField(migrationTest);
     addMigrationTestConstructor(migrationTest, databaseClassFullyQualifiedName);
     addMigrationTestMethod(migrationTest, migrationClassFullyQualifiedName, databaseName, migrationStartVersion, migrationEndVersion);
@@ -117,20 +81,14 @@ public class JavaMigrationTestGenerator {
     PsiModifierList modifierList = migrationTest.getModifierList();
     assert modifierList != null;
 
-    PsiAnnotation annotation = modifierList.addAnnotation(RUN_WITH_ANNOTATION);
-    PsiClass runnerClass = myJavaPsiFacade.findClass(NEW_ANDROID_JUNIT4_RUNNER, migrationTest.getResolveScope());
-
-    if (runnerClass == null) {
-      runnerClass = myJavaPsiFacade.findClass(OLD_ANDROID_JUNIT4_RUNNER, migrationTest.getResolveScope());
-    }
-
-    String runnerClassQualifiedName = runnerClass != null ? runnerClass.getQualifiedName() : NEW_ANDROID_JUNIT4_RUNNER;
+    PsiAnnotation annotation = modifierList.addAnnotation(RUN_WITH_ANNOTATION_QUALIFIED_NAME);
+    String runnerClassQualifiedName = selectRunnerClass(myJavaPsiFacade, migrationTest.getResolveScope());
     annotation.setDeclaredAttributeValue(
       PsiAnnotation.DEFAULT_REFERENCED_METHOD_NAME,
       myPsiElementFactory.createExpressionFromText(runnerClassQualifiedName + ".class", null));
   }
 
-  private void addTestDataBaseNameField(@NotNull PsiClass migrationTest,
+  private void addTestDatabaseNameField(@NotNull PsiClass migrationTest,
                                         @NotNull String databaseName) {
     PsiType fieldType = PsiType.getTypeByName(CommonClassNames.JAVA_LANG_STRING, myProject, migrationTest.getResolveScope());
     PsiField testDatabaseNameField = myPsiElementFactory.createField(getTestDatabaseFieldName(databaseName), fieldType);
@@ -149,12 +107,12 @@ public class JavaMigrationTestGenerator {
   }
 
   private void addMigrationTestHelperField(@NotNull PsiClass migrationTest) {
-    PsiType fieldType = myPsiElementFactory.createTypeByFQClassName(MIGRATION_TEST_HELPER_TYPE, migrationTest.getResolveScope());
+    PsiType fieldType = myPsiElementFactory.createTypeByFQClassName(MIGRATION_TEST_HELPER_QUALIFIED_NAME, migrationTest.getResolveScope());
     PsiField migrationTestHelperField = myPsiElementFactory.createField(MIGRATION_TEST_HELPER_FIELD_NAME, fieldType);
 
     PsiModifierList modifierList = migrationTestHelperField.getModifierList();
     assert modifierList != null;
-    modifierList.addAnnotation(RULE_ANNOTATION);
+    modifierList.addAnnotation(RULE_ANNOTATION_QUALIFIED_NAME);
 
     migrationTest.add(migrationTestHelperField);
   }
@@ -164,12 +122,7 @@ public class JavaMigrationTestGenerator {
     PsiMethod testConstructor = myPsiElementFactory.createConstructor();
     assert testConstructor.getBody() != null;
 
-    String helperInitializationText = String.format(HELPER_INIT_EXPRESSION_TEMPLATE,
-                                                    MIGRATION_TEST_HELPER_FIELD_NAME,
-                                                    INSTRUMENTATION_PARAMETER,
-                                                    String.format(DATABASE_CLASS_CANONICAL_NAME_TEMPLATE,
-                                                                  databaseClassFullyQualifiedName),
-                                                    FRAMEWORK_SQLITE_OPEN_HELPER_FACTORY_PARAMETER);
+    String helperInitializationText = getHelperInitializationExpression(CodeType.JAVA_CODE, databaseClassFullyQualifiedName);
     PsiStatement helperInitializationStatement = myPsiElementFactory.createStatementFromText(helperInitializationText, null);
 
     testConstructor.getBody().add(helperInitializationStatement);
@@ -181,35 +134,26 @@ public class JavaMigrationTestGenerator {
                                       @NotNull String databaseName,
                                       int startVersion,
                                       int endVersion) {
-    PsiMethod migrationTestMethod = myPsiElementFactory.createMethod(getMigrationMethodName(startVersion, endVersion), PsiType.VOID);
-    migrationTestMethod.getModifierList().addAnnotation(TEST_ANNOTATION);
+    PsiMethod migrationTestMethod = myPsiElementFactory.createMethod(getMigrationTestMethodName(startVersion, endVersion), PsiType.VOID);
+    migrationTestMethod.getModifierList().addAnnotation(TEST_ANNOTATION_QUALIFIED_NAME);
     migrationTestMethod.getThrowsList().add(
-      myPsiElementFactory.createFQClassNameReferenceElement(MIGRATION_TEST_METHOD_EXCEPTION,
+      myPsiElementFactory.createFQClassNameReferenceElement(IO_EXCEPTION_QUALIFIED_NAME,
                                                             migrationTest.getResolveScope()));
     PsiCodeBlock methodBody = migrationTestMethod.getBody();
     assert methodBody != null;
 
-    String statementText = String.format(Locale.ENGLISH,
-                                         SUPPORT_SQLITE_DATABASE_FIELD_DECLARATION_STATEMENT_TEMPLATE,
-                                         MIGRATION_TEST_HELPER_FIELD_NAME,
-                                         getTestDatabaseFieldName(databaseName),
-                                         startVersion);
-    String commentText = String.format(SUPPORT_SQLITE_DATABASE_FIELD_DECLARATION_COMMENT_TEMPLATE, startVersion);
+    String statementText = getCreateDatabaseStatement(CodeType.JAVA_CODE, databaseName, startVersion);
+    String commentText = getCreateDatabaseComment(startVersion);
     addMethodStatement(methodBody, statementText, commentText);
 
-    addMethodStatement(methodBody, EXEC_SQL_STATEMENT, EXEC_SQL_COMMENT);
-    addMethodStatement(methodBody, CLOSE_STATEMENT, CLOSE_COMMENT);
+    addMethodStatement(methodBody, getExecSqlStatement(CodeType.JAVA_CODE), EXEC_SQL_COMMENT);
+    addMethodStatement(methodBody, getCloseStatement(CodeType.JAVA_CODE), CLOSE_COMMENT);
 
-    statementText = String.format(Locale.ENGLISH,
-                                  RUN_AND_VALIDATE_MIGRATION_STATEMENT_TEMPLATE,
-                                  MIGRATION_TEST_HELPER_FIELD_NAME,
-                                  getTestDatabaseFieldName(databaseName),
-                                  endVersion,
-                                  migrationClassName);
-    commentText = String.format(RUN_AND_VALIDATE_MIGRATION_COMMENT_TEMPLATE, endVersion, StringUtil.getShortName(migrationClassName));
+    statementText = getRunAndValidateMigrationStatement(CodeType.JAVA_CODE, databaseName, migrationClassName, endVersion);
+    commentText = getRunAndValidateMigrationComment(StringUtil.getShortName(migrationClassName), endVersion);
     addMethodStatement(methodBody, statementText, commentText);
 
-    addMethodStatement(methodBody, ASSERT_STATEMENT, ASSERT_COMMENT);
+    addMethodStatement(methodBody, getAssertStatement(CodeType.JAVA_CODE), ASSERT_COMMENT);
 
     migrationTest.add(migrationTestMethod);
   }
@@ -220,17 +164,5 @@ public class JavaMigrationTestGenerator {
     PsiStatement statement = myPsiElementFactory.createStatementFromText(statementText, null);
     methodBody.add(statement);
     CodeStyleManager.getInstance(myProject).reformat(methodBody);
-  }
-
-  private static String getMigrationMethodName(int starVersion, int endVersion) {
-    return String.format(Locale.ENGLISH, MIGRATION_TEST_METHOD_NAME_TEMPLATE, starVersion, endVersion);
-  }
-
-  private static String getTestDatabaseFieldName(@NotNull String databaseName) {
-    return String.format(TEST_DATABASE_FIELD_NAME_TEMPLATE, CaseFormat.UPPER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, databaseName));
-  }
-
-  private static String getTestDatabaseName(@NotNull String databaseName) {
-    return String.format(TEST_DATABASE_NAME_TEMPLATE, CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, databaseName));
   }
 }

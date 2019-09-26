@@ -33,7 +33,7 @@ import java.awt.Color
 private fun createBuildNotificationPanel(project: Project,
                                          file: VirtualFile,
                                          text: String,
-                                         buildActionLabel: String = "Build",
+                                         buildActionLabel: String = message("notification.action.build"),
                                          color: Color? = null): EditorNotificationPanel? {
   val module = ModuleUtil.findModuleForFile(file, project) ?: return null
   return EditorNotificationPanel(color).apply {
@@ -71,7 +71,7 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
       return createBuildNotificationPanel(
         project,
         file,
-        text = "The project needs to be compiled successfully for the preview to be displayed",
+        text = message("notification.needs.build.broken"),
         color = LightColors.RED)
     }
 
@@ -82,7 +82,7 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
       return createBuildNotificationPanel(
         project,
         file,
-        text = "The project needs to be compiled for the preview to be displayed",
+        text = message("notification.needs.build"),
         color = LightColors.RED)
     }
 
@@ -100,8 +100,8 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
     return createBuildNotificationPanel(
       project,
       file,
-      text = "The preview is out of date",
-      buildActionLabel = "Build & Refresh")
+      text = message("notification.preview.out.of.date"),
+      buildActionLabel = message("notification.action.build.and.refresh"))
   }
 
   override fun getKey(): Key<EditorNotificationPanel> = COMPONENT_KEY

@@ -34,6 +34,9 @@ import org.jetbrains.uast.visitor.UastVisitor
 private fun UAnnotation.findAttributeIntValue(name: String) =
   findAttributeValue(name)?.evaluate() as? Int
 
+private fun UAnnotation.findAttributeFloatValue(name: String) =
+  findAttributeValue(name)?.evaluate() as? Float
+
 /**
  * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the values.
  */
@@ -42,8 +45,9 @@ private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
   val theme = node.findAttributeValue("theme")?.evaluateString()?.nullize()
   val width = node.findAttributeIntValue("width")
   val height = node.findAttributeIntValue("height")
+  val fontScale = node.findAttributeFloatValue("fontScale")
 
-  return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height)
+  return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height, fontScale)
 }
 
 /**

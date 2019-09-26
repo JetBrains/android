@@ -24,7 +24,7 @@ import com.android.repository.impl.meta.Archive;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.welcome.SdkLocationUtils;
-import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
+import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.google.common.collect.ComparisonChain;
@@ -107,7 +107,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
         .append("<tr><td>")
         .append(remotePkgInfo.getDisplayName())
         .append("</td><td>&nbsp;&nbsp;</td><td>")
-        .append(WelcomeUIUtils.getSizeLabel(archive.getComplete().getSize()))
+        .append(WelcomeUiUtils.getSizeLabel(archive.getComplete().getSize()))
         .append("</td></tr>");
     }
     table.append("</table>");
@@ -123,7 +123,7 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
 
       downloadSize += archive.getComplete().getSize();
     }
-    return new Section("Total Download Size", downloadSize == 0 ? "" : WelcomeUIUtils.getSizeLabel(downloadSize));
+    return new Section("Total Download Size", downloadSize == 0 ? "" : WelcomeUiUtils.getSizeLabel(downloadSize));
   }
 
   @Override

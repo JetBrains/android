@@ -197,7 +197,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     // TODO b/73538507 shared between all services to support inserting file content into generic byte cache (e.g. importing hprof)
     // We should be able to keep this inside TransportService after legacy pipeline removal.
     UnifiedEventsTable unifiedTable = new UnifiedEventsTable();
-    myTransportService = new TransportService(this, unifiedTable, myFetchExecutor, PROFILER_UNIFIED_PIPELINE.get());
+    myTransportService = new TransportService(this, unifiedTable, myFetchExecutor, !PROFILER_UNIFIED_PIPELINE.get());
     registerService(myTransportService);
     registerService(new ProfilerService(this, myLogService));
     registerService(new EventService(this, myFetchExecutor));

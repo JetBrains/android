@@ -23,9 +23,9 @@ import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.flamegraph.SampledMethodUsage;
 import com.android.tools.adtui.flamegraph.SampledMethodUsageHRenderer;
+import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.LineChartModel;
-import com.android.tools.adtui.model.LongDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -226,7 +226,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
         mTimeSelectionRangeUs.setMax(end);
 
         // Generate dummy values to simulate CPU Load.
-        LongDataSeries series = new LongDataSeries();
+        DefaultDataSeries<Long> series = new DefaultDataSeries<>();
         RangedContinuousSeries rangedSeries = new RangedContinuousSeries("CPU Load", mTimeGlobalRangeUs,
                                                                          new Range(0.0, (float)Sampler.MAX_VALUE),
                                                                          series);

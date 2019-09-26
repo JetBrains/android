@@ -42,7 +42,7 @@ public class GradleProjectStub implements GradleProject {
     myName = name;
     myPath = path;
     myScript = new GradleScriptStub(projectFile);
-    myProjectIdentifier = new ProjectIdentifierStub(rootDir);
+    myProjectIdentifier = new ProjectIdentifierStub(myPath, rootDir);
     myTasks = Lists.newArrayList();
     for (String taskName : tasks) {
       GradleTaskStub task = new GradleTaskStub(taskName, this);

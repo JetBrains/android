@@ -282,6 +282,9 @@ fun NlComponent.isGroup(): Boolean {
  * @param className A fully qualified class name
  */
 fun NlComponent.isOrHasSuperclass(className: String): Boolean {
+  if (!NlComponentHelper.hasNlComponentInfo(this)) {
+    return false;
+  }
   val viewInfo = viewInfo
   if (viewInfo != null) {
     val viewObject = viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && tagName == className

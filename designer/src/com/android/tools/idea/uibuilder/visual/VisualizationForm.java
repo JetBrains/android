@@ -19,6 +19,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCRE
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -29,8 +30,9 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.surface.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -46,7 +48,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -96,7 +97,6 @@ public class VisualizationForm implements Disposable {
   private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
   private final JPanel myRoot = new JPanel(new BorderLayout());
-  private RenderResult myRenderResult;
   private VirtualFile myFile;
   private boolean isActive = false;
   private JComponent myContentPanel;
@@ -159,14 +159,6 @@ public class VisualizationForm implements Disposable {
      return null;
   }
 
-  @Nullable
-  private XmlFile getFile() {
-    if (myFile == null) {
-      return null;
-    }
-    return myManager.getBoundXmlFile(PsiManager.getInstance(myProject).findFile(myFile));
-  }
-
   @NotNull
   public JComponent getComponent() {
     return myRoot;
@@ -196,6 +188,9 @@ public class VisualizationForm implements Disposable {
    * @return true on success. False if the preview update is not possible (e.g. the file for the editor cannot be found).
    */
   public boolean setNextEditor(@NotNull FileEditor editor) {
+    if (ResourceHelper.getFolderType(editor.getFile()) != ResourceFolderType.LAYOUT) {
+      return false;
+    }
     myPendingEditor = editor;
     myFile = editor.getFile();
 
@@ -206,15 +201,6 @@ public class VisualizationForm implements Disposable {
     }
 
     return true;
-  }
-
-  public void clearRenderResult() {
-    XmlFile file = getFile();
-    if (file == null) {
-      myRenderResult = null;
-    } else if (myRenderResult != null && myRenderResult.getFile() != file) {
-      myRenderResult = RenderResult.createBlank(file);
-    }
   }
 
   private void initPreviewForm() {
@@ -259,15 +245,12 @@ public class VisualizationForm implements Disposable {
   }
 
   private void initNeleModel() {
+    myWorkBench.showLoading("Rendering Previews...");
     DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
   }
 
   @UiThread
   private void initNeleModelWhenSmart() {
-
-    // TODO: performance improvements
-    //  Option A - After change the file, wait for 2 seconds then add NlModels. If the file is changed again then reset the timer.
-    //  Option B - Cancel the rendering request for the removed NlModel.
     setNoActiveModel();
 
     if (myCancelPreviousAddModelsRequestTask != null) {
@@ -291,6 +274,8 @@ public class VisualizationForm implements Disposable {
     // Asynchronously load the model and refresh the preview once it's ready
     CompletableFuture
       .supplyAsync(() -> {
+        // Hide the content while adding the models.
+        myWorkBench.hideContent();
         ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet);
         List<Device> devices = configurationManager.getDevices();
         Configuration defaultConfig = configurationManager.getConfiguration(file.getVirtualFile());
@@ -301,6 +286,7 @@ public class VisualizationForm implements Disposable {
         }
 
         if (deviceList.isEmpty()) {
+          myWorkBench.showLoading("No Device Found");
           return null;
         }
 
@@ -328,21 +314,28 @@ public class VisualizationForm implements Disposable {
           myCancelPreviousAddModelsRequestTask.run();
         }
 
-        List<CompletableFuture<Void>> completableFutureList = new ArrayList<>();
+        AtomicBoolean isAddingModelCanceled = new AtomicBoolean(false);
+        // We want to add model sequentially so we can interrupt them if needed.
+        // When adding a model the render request is triggered. Stop adding remaining models avoids unnecessary render requests.
+        CompletableFuture<Void> addModelFuture = CompletableFuture.completedFuture(null);
         for (NlModel model : models) {
-          // This will trigger a render of the model
-          completableFutureList.add(mySurface.addModel(model));
+          addModelFuture = addModelFuture.thenCompose(it -> {
+            if (isAddingModelCanceled.get()) {
+              return CompletableFuture.completedFuture(null);
+            }
+            else {
+              return mySurface.addModel(model, false);
+            }
+          });
         }
-        CompletableFuture<Void> future = CompletableFuture.allOf(completableFutureList.toArray(new CompletableFuture[0]));
 
-        myCancelPreviousAddModelsRequestTask = () -> {
-          future.cancel(true);
-          removeAndDisposeModels(models);
-        };
+        myCancelPreviousAddModelsRequestTask = () -> isAddingModelCanceled.set(true);
 
-        future.thenRunAsync(() -> {
-          if (!isRequestCancelled.get() && !facet.isDisposed()) {
+        addModelFuture.thenRunAsync(() -> {
+          if (!isRequestCancelled.get() && !facet.isDisposed() && !isAddingModelCanceled.get()) {
             activeModels(models);
+            mySurface.setScale(0.25 / mySurface.getScreenScalingFactor());
+            myWorkBench.showContent();
           }
           else {
             removeAndDisposeModels(models);
@@ -413,6 +406,7 @@ public class VisualizationForm implements Disposable {
     isActive = true;
     initPreviewForm();
     mySurface.activate();
+    getAnalyticsManager().trackVisualizationToolWindow(true);
   }
 
   /**
@@ -430,6 +424,11 @@ public class VisualizationForm implements Disposable {
     if (myContentPanel != null) {
       setNoActiveModel();
     }
+    getAnalyticsManager().trackVisualizationToolWindow(false);
+  }
+
+  private NlAnalyticsManager getAnalyticsManager() {
+    return mySurface.getAnalyticsManager();
   }
 
   @Nullable

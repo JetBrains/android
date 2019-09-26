@@ -84,7 +84,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   private Tree myProcessTree;
   private JBCheckBox myShowAllProcessesCheckBox;
 
-  private JComboBox myDebuggerTypeCombo;
+  private JComboBox<AndroidDebugger> myDebuggerTypeCombo;
   private JLabel myDebuggerLabel;
 
   private String myLastSelectedDevice;
@@ -238,7 +238,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     androidDebuggers.sort((left, right) -> left.getId().compareTo(right.getId()));
     myDebuggerTypeCombo.setModel(new CollectionComboBoxModel(androidDebuggers));
-    myDebuggerTypeCombo.setRenderer(new AndroidDebugger.Renderer());
+    myDebuggerTypeCombo.setRenderer(SimpleListCellRenderer.create("", AndroidDebugger::getDisplayName));
     if (selectedDebugger != null) {
       myDebuggerTypeCombo.setSelectedItem(selectedDebugger);
     }
@@ -388,7 +388,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   }
 
   private static boolean isRelatedProcess(Set<String> processNames, String clientDescription) {
-    final String lc = clientDescription.toLowerCase();
+    final String lc = StringUtil.toLowerCase(clientDescription);
 
     for (String processName : processNames) {
       if (lc.startsWith(processName)) {
@@ -407,7 +407,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       final String packageName = AndroidCompileUtil.getAaptManifestPackage(facet);
 
       if (packageName != null) {
-        result.add(packageName.toLowerCase());
+        result.add(StringUtil.toLowerCase(packageName));
       }
       final Manifest manifest = Manifest.getMainManifest(facet);
 
@@ -435,7 +435,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
           final String value = attribute.getValue();
 
           if (value != null) {
-            result.add(value.toLowerCase());
+            result.add(StringUtil.toLowerCase(value));
           }
         }
       }

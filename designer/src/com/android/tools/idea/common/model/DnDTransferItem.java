@@ -103,7 +103,7 @@ public class DnDTransferItem {
       representation = String.format("<include layout=\"%s\"/>", url.toString());
       tag = SdkConstants.TAG_INCLUDE;
     }
-    else if (url.type == ResourceType.COLOR || url.type == ResourceType.DRAWABLE) {
+    else if (url.type == ResourceType.COLOR || url.type == ResourceType.DRAWABLE || url.type == ResourceType.MIPMAP) {
       String size = url.type == ResourceType.COLOR ? "50dp" : "wrap_content";
 
       @Language("XML")

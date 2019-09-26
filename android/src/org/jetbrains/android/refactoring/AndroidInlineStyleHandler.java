@@ -66,10 +66,13 @@ public class AndroidInlineStyleHandler extends InlineActionHandler {
   private static StyleUsageData getUsageDataFromEditor(@NotNull PsiReference reference) {
     final PsiElement usageElement = reference.getElement();
 
-    if (usageElement == null) {
-      return null;
-    }
     final XmlTag tag = PsiTreeUtil.getParentOfType(usageElement, XmlTag.class, false);
     return tag != null ? AndroidInlineUtil.getStyleUsageData(tag) : null;
+  }
+
+  @Nullable
+  @Override
+  public String getActionName(PsiElement element) {
+    return "Inline Android Style";
   }
 }
