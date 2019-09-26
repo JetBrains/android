@@ -23,7 +23,6 @@ import com.intellij.lang.PsiBuilder.Marker;
 import static com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.*;
 import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.IFileElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
@@ -41,16 +40,15 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     boolean result;
     builder = adapt_builder_(type, builder, this, EXTENDS_SETS_);
     Marker marker = enter_section_(builder, 0, _COLLAPSE_, null);
-    if (type instanceof IFileElementType) {
-      result = parse_root_(type, builder, 0);
-    }
-    else {
-      result = false;
-    }
+    result = parse_root_(type, builder);
     exit_section_(builder, 0, marker, type, result, true, TRUE_CONDITION);
   }
 
-  protected boolean parse_root_(IElementType type, PsiBuilder builder, int level) {
+  protected boolean parse_root_(IElementType type, PsiBuilder builder) {
+    return parse_root_(type, builder, 0);
+  }
+
+  static boolean parse_root_(IElementType type, PsiBuilder builder, int level) {
     return root(builder, level + 1);
   }
 
