@@ -153,7 +153,7 @@ private subquery_recover ::= !')'
 private rename_table_statement ::= RENAME TO table_definition_name
 private rename_column_statement ::= RENAME COLUMN? column_name TO name
 private add_column_statement ::= ADD COLUMN? column_definition
-alter_table_statement ::= ALTER TABLE ( database_name '.' )? defined_table_name ( rename_table_statement | rename_column_statement | add_column_statement )
+alter_table_statement ::= ALTER TABLE single_table_statement_table ( rename_table_statement | rename_column_statement | add_column_statement )
 
 // Name of a table that is already in scope for the current query.
 selected_table_name ::= name {

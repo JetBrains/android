@@ -56,15 +56,9 @@ public class AndroidSqlAlterTableStatementImpl extends ASTWrapperPsiElement impl
   }
 
   @Override
-  @Nullable
-  public AndroidSqlDatabaseName getDatabaseName() {
-    return findChildByClass(AndroidSqlDatabaseName.class);
-  }
-
-  @Override
   @NotNull
-  public AndroidSqlDefinedTableName getDefinedTableName() {
-    return findNotNullChildByClass(AndroidSqlDefinedTableName.class);
+  public AndroidSqlSingleTableStatementTable getSingleTableStatementTable() {
+    return findNotNullChildByClass(AndroidSqlSingleTableStatementTable.class);
   }
 
   @Override
