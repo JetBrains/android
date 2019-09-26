@@ -82,7 +82,16 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
       }
   }
 
-  override fun fileChanged(path: PathString, facet: AndroidFacet) = refreshAffectedMergedManifests(facet)
+  override fun fileChanged(path: PathString, facet: AndroidFacet) {
+    updateModificationTrackers(facet)
+    refreshAffectedMergedManifests(facet)
+  }
+
+  private fun updateModificationTrackers(facet: AndroidFacet) {
+    facet.module.getTransitiveResourceDependents().forEach {
+      MergedManifestModificationTracker.getInstance(it).manifestChanged()
+    }
+  }
 
   private fun refreshAffectedMergedManifests(facet: AndroidFacet) {
     // While a freshness check for a single manifest should be fast enough to run on any thread, we want to run this off the EDT
@@ -131,5 +140,11 @@ private val FRESHNESS_EXECUTOR = AppExecutorUtil.createBoundedApplicationPoolExe
 private fun Module.getTopLevelResourceDependents() = TOP_LEVEL_RESOURCE_DEPENDENTS.`fun`(this)
 
 private val TOP_LEVEL_RESOURCE_DEPENDENTS = TreeTraversal.LEAVES_DFS.unique().traversal<Module> {
+  it.getModuleSystem().getDirectResourceModuleDependents()
+}
+
+private fun Module.getTransitiveResourceDependents() = TRANSITIVE_RESOURCE_DEPENDENTS.`fun`(this)
+
+private val TRANSITIVE_RESOURCE_DEPENDENTS = TreeTraversal.PLAIN_BFS.unique().traversal<Module> {
   it.getModuleSystem().getDirectResourceModuleDependents()
 }
