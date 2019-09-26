@@ -41,6 +41,7 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_TARGET_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_TARGET_API_STRING
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_THEME_EXISTS
+import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX
 import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
@@ -293,7 +294,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     val language = Language.fromName(moduleState[ATTR_LANGUAGE] as String?, Language.JAVA)
     val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker, language, createActivity)
 
-    if (templateMetadata?.androidXRequired == true) {
+    if (templateMetadata != null && templateMetadata.constraints.contains(ANDROIDX)) {
       enableAndroidX(moduleState, activityState)
     }
     if (moduleState[ATTR_ANDROIDX_SUPPORT] != true) {

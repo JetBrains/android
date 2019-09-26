@@ -21,7 +21,9 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 
 import com.android.tools.idea.templates.TemplateMetadata
+import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX
 import org.junit.Test
+import java.util.EnumSet
 
 /**
  * Tests for [ChooseFragmentTypeStep].
@@ -69,7 +71,7 @@ class ChooseFragmentTypeStepTest {
   @Test
   fun testTemplateRequiringAndroidX() {
     val template = mock(TemplateMetadata::class.java)
-    `when`(template.androidXRequired).thenReturn(true)
+    `when`(template.constraints).thenReturn(EnumSet.of(ANDROIDX))
 
     assertThat(validateTemplate(template, 5, 5,
                                 isNewModule = false, isAndroidxProject = false,

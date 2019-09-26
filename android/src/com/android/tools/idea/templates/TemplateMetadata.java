@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.tools.idea.templates.Template.ATTR_CONSTRAINTS;
 import static com.android.tools.idea.templates.Template.ATTR_DESCRIPTION;
 import static com.android.tools.idea.templates.Template.ATTR_FORMAT;
 import static com.android.tools.idea.templates.Template.ATTR_NAME;
@@ -25,16 +26,22 @@ import static com.android.tools.idea.templates.Template.RELATIVE_FILES_FORMAT;
 import static com.android.tools.idea.templates.Template.TAG_ICONS;
 import static com.android.tools.idea.templates.Template.TAG_PARAMETER;
 import static com.android.tools.idea.templates.Template.TAG_THUMB;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.google.common.base.Function;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +56,16 @@ import org.w3c.dom.NodeList;
  * An ADT template along with metadata
  */
 public class TemplateMetadata {
+  /**
+   * Constraints that can be applied to template that helps the UI add a
+   * validator etc for user input. These are typically combined into a set
+   * of constraints via an EnumSet.
+   */
+  public enum TemplateConstraint {
+    ANDROIDX,
+    KOTLIN
+  }
+
   public static final String TAG_CATEGORY = "category";
   public static final String TAG_FORM_FACTOR = "formfactor";
 
@@ -57,7 +74,6 @@ public class TemplateMetadata {
   private static final String ATTR_TEMPLATE_REVISION = "revision";
   private static final String ATTR_MIN_BUILD_API = "minBuildApi";
   private static final String ATTR_MIN_API = "minApi";
-  private static final String ATTR_REQUIRES_ANDROID_X = "requireAndroidX";
 
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
@@ -149,7 +165,19 @@ public class TemplateMetadata {
     return getInteger(ATTR_MIN_BUILD_API, 1);
   }
 
-  public boolean getAndroidXRequired() { return getBoolean(ATTR_REQUIRES_ANDROID_X, false); }
+  @NotNull
+  public EnumSet<TemplateConstraint> getConstraints() {
+    String constraintString = myDocument.getDocumentElement().getAttribute(ATTR_CONSTRAINTS);
+    if (!isNullOrEmpty(constraintString)) {
+      List<TemplateConstraint> constraintsList = new ArrayList<>();
+      for (String constraint : Splitter.on('|').omitEmptyStrings().trimResults().split(constraintString)) {
+        constraintsList.add(TemplateConstraint.valueOf(constraint.toUpperCase(Locale.US)));
+      }
+      return EnumSet.copyOf(constraintsList);
+    }
+
+    return EnumSet.noneOf(TemplateConstraint.class);
+  }
 
   public int getRevision() {
     return getInteger(ATTR_TEMPLATE_REVISION, 1);
@@ -303,15 +331,6 @@ public class TemplateMetadata {
       // Templates aren't allowed to contain codenames, should always be an integer
       //LOG.warn(nfe);
       return defaultValue;
-    }
-    catch (RuntimeException e) {
-      return defaultValue;
-    }
-  }
-
-  private boolean getBoolean(@NotNull String attrName, boolean defaultValue) {
-    try {
-      return Boolean.parseBoolean(myDocument.getDocumentElement().getAttribute(attrName));
     }
     catch (RuntimeException e) {
       return defaultValue;

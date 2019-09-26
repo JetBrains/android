@@ -17,6 +17,7 @@ package com.android.tools.idea.actions;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.templates.TemplateManager.CATEGORY_AUTOMOTIVE;
+import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 
 import com.android.sdklib.AndroidVersion;
@@ -28,6 +29,7 @@ import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -45,6 +47,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import icons.StudioIcons;
 import java.io.File;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -63,12 +66,12 @@ public class NewAndroidComponentAction extends AnAction {
 
   public static final DataKey<List<File>> CREATED_FILES = DataKey.create("CreatedFiles");
 
-  private final String myTemplateCategory;
-  private final String myTemplateName;
-  private final File myTemplateFile;
+  @NotNull private final String myTemplateCategory;
+  @NotNull private final String myTemplateName;
+  @Nullable private final File myTemplateFile;
   private final int myMinSdkApi;
   private final int myMinBuildSdkApi;
-  private final boolean myAndroidXRequired;
+  @NotNull private final EnumSet<TemplateConstraint> myTemplateConstraints;
   private boolean myShouldOpenFiles = true;
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion) {
@@ -76,24 +79,24 @@ public class NewAndroidComponentAction extends AnAction {
   }
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi) {
-    this(templateCategory, templateName, minSdkVersion, minBuildSdkApi, false);
+    this(templateCategory, templateName, minSdkVersion, minBuildSdkApi, EnumSet.noneOf(TemplateConstraint.class));
   }
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi,
-                                   boolean androidXRequired) {
-    this(templateCategory, templateName, minSdkVersion, minBuildSdkApi, androidXRequired,
+                                   @NotNull EnumSet<TemplateConstraint> templateConstraints) {
+    this(templateCategory, templateName, minSdkVersion, minBuildSdkApi, templateConstraints,
          TemplateManager.getInstance().getTemplateFile(templateCategory, templateName));
   }
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi,
-                                   boolean androidXRequired, File templateFile) {
+                                   @NotNull EnumSet<TemplateConstraint> templateConstraints, File templateFile) {
     super(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
     getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : StudioIcons.Shell.Filetree.ANDROID_FILE);
     myMinSdkApi = minSdkVersion;
     myMinBuildSdkApi = minBuildSdkApi;
-    myAndroidXRequired = androidXRequired;
+    myTemplateConstraints = templateConstraints;
     myTemplateFile = templateFile;
   }
 
@@ -131,7 +134,7 @@ public class NewAndroidComponentAction extends AnAction {
       presentation.setText(AndroidBundle.message("android.wizard.action.requires.minbuildsdk", myTemplateName, myMinBuildSdkApi));
       presentation.setEnabled(false);
     }
-    else if (myAndroidXRequired && !useAndroidX(module)) {
+    else if (myTemplateConstraints.contains(ANDROIDX) && !useAndroidX(module)) {
       presentation.setText(AndroidBundle.message("android.wizard.action.requires.androidx", myTemplateName));
       presentation.setEnabled(false);
     }
