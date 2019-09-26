@@ -81,7 +81,8 @@ public class CpuProfilingConfigPanel {
 
   @VisibleForTesting
   static final String FILE_SIZE_LIMIT_DESCRIPTION =
-    "<html>Maximum recording output file size. On Android 8.0 (API level 26) and higher, this value is ignored.</html>";
+    "<html>Maximum recording output file size for Sample/Trace Java Methods." +
+    " On Android 8.0 (API level 26) and higher, this value is ignored.</html>";
 
   /**
    * Max size of the buffer file that contains the output of the recording.
@@ -212,7 +213,7 @@ public class CpuProfilingConfigPanel {
       myConfigName.selectAll();
       setEnabledTraceTechnologyPanel(true);
       setRadioButtons(myConfiguration);
-      setEnabledFileSizeLimit(!myIsDeviceAtLeastO);
+      setEnabledFileSizeLimit(!myIsDeviceAtLeastO && myConfiguration.getTraceType().equals(Cpu.CpuTraceType.ART));
       boolean isSamplingEnabled = myConfiguration.getMode() == Cpu.CpuTraceMode.SAMPLED;
       setEnabledSamplingIntervalPanel(isSamplingEnabled);
       myFileSize.setValue(myConfiguration.getProfilingBufferSizeInMb());

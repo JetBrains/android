@@ -128,6 +128,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
@@ -444,7 +445,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
       if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CONSTRAINT_LAYOUT_BARRIER)) {
         @NonNls String side = nlComponent.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
-        boolean isHorizontal = (side == null || ourHorizontalBarriers.contains(side.toLowerCase()));
+        boolean isHorizontal = (side == null || ourHorizontalBarriers.contains(StringUtil.toLowerCase(side)));
         listBuilder
           .add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT, BarrierTarget.parseDirection(side)))
           .add(new BarrierTarget(BarrierTarget.parseDirection(side)));
@@ -573,6 +574,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @InputEventMask int modifiers) {
       ViewGroupHandler constraintHandler = (ViewGroupHandler) handler;
       constraintHandler.clearAttributes(selectedChildren);
+      getAnalyticsManager(editor).trackRemoveConstraint();
       ensureLayersAreShown(editor, 1000);
     }
 
@@ -1707,12 +1709,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                           @NotNull NlComponent component,
                           @NotNull List<NlComponent> selectedChildren,
                           @InputEventMask int modifiers) {
-        // TODO: getAnalyticsManager(editor).trackConnectConstraint();
         Scout.connect(selectedChildren, myConnectType, mReverse, true);
         ensureLayersAreShown(editor, 1000);
         ComponentModification modification = new ComponentModification(component, "Connect Constraint");
         component.startAttributeTransaction().applyToModification(modification);
         modification.commit();
+        getAnalyticsManager(editor).trackAddConstraint();
       }
 
       @Override

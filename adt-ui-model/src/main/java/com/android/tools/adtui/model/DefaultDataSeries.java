@@ -15,29 +15,73 @@
  */
 package com.android.tools.adtui.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
-public class DefaultDataSeries<E> extends BaseDataSeries<E> {
+public class DefaultDataSeries<E> implements DataSeries<E> {
+  @NotNull protected final List<SeriesData<E>> mSeriesList = new ArrayList<>();
 
   @NotNull
-  private final ArrayList<E> mY = new ArrayList<>();
+  private List<SeriesData<E>> getDataSubList(final int fromIndex, final int toIndex) {
+    return IntStream.range(fromIndex, toIndex).mapToObj(index -> mSeriesList.get(index)).collect(Collectors.toList());
+  }
 
   @Override
+  public List<SeriesData<E>> getDataForRange(Range range) {
+    //If the size of our data is 0, early return an empty list.
+    if (size() == 0 || range.isEmpty()) {
+      return getDataSubList(0, 0);
+    }
+
+    int fromIndex = getNearestXIndex((long)range.getMin());
+    int toIndex = getNearestXIndex((long)range.getMax()) + 1;
+    return getDataSubList(fromIndex, toIndex);
+  }
+
+  public List<SeriesData<E>> getAllData() {
+    return getDataSubList(0, size());
+  }
+
+  /**
+   * Implementations need to store both the x, and y values. For a given index the X value should correspond to the Y value.
+   */
   public void add(long x, E y) {
-    mX.add(x);
-    mY.add(y);
+    mSeriesList.add(new SeriesData<>(x, y));
   }
 
-  @Override
+  public int size() {
+    return mSeriesList.size();
+  }
+
+  public long getX(int index) {
+    return mSeriesList.get(index).x;
+  }
+
+  /**
+   * Returns the value of Y at a given index.
+   */
   public E getY(int index) {
-    return mY.get(index);
+    return mSeriesList.get(index).value;
   }
 
-  public void clear() {
-    mX.clear();
-    mY.clear();
+  public int getNearestXIndex(long x) {
+    int index = Collections.binarySearch(mSeriesList.stream().map(data -> data.x).collect(Collectors.toList()), x);
+
+    if (index < 0) {
+      // No exact match, returns position to the left of the insertion point.
+      // NOTE: binarySearch returns -(insertion point + 1) if not found.
+      // Example: Value = 2.5, data = 0,1,2,3,4.
+      //    BinarySearch will return -4 = -(3 + 1) as 3 is the insertion point.
+      //    Given our usage of the data we want to round down not up as such we step to 1 before the insertion point.
+      index = -index - 2;
+    }
+
+    return Math.max(0, Math.min(index, size() - 1));
   }
 }

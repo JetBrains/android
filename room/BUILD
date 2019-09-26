@@ -56,6 +56,7 @@ iml_module(
         "//tools/idea:intellij.java.impl[module]",
         "//tools/idea/java/openapi:intellij.java[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
 )
 
@@ -118,5 +119,6 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
+        "//tools/idea/.idea/libraries:kotlin-plugin[test]",
     ],
 )

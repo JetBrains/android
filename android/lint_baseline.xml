@@ -2,110 +2,6 @@
 <issues format="5" by="lint 3.6.0-dev">
 
     <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/dom/AndroidDomElementDescriptorProvider.java"
-            line="165"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/maven/AndroidFacetImporterBase.java"
-            line="1279"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/maven/AndroidFacetImporterBase.java"
-            line="1279"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/compiler/tools/AndroidMavenExecutor.java"
-            line="91"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/actions/AndroidProcessChooserDialog.java"
-            line="391"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/actions/AndroidProcessChooserDialog.java"
-            line="410"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/actions/AndroidProcessChooserDialog.java"
-            line="438"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/npw/importing/ArchiveToGradleModuleStep.java"
-            line="86"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/npw/assetstudio/wizard/ConfirmGenerateImagesStep.java"
-            line="214"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/run/DeviceChooser.java"
-            line="411"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/exportSignedPackage/ExportSignedPackageWizard.java"
-            line="260"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/exportSignedPackage/NewKeyForm.java"
-            line="106"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/run/tasks/RunInstantAppTask.java"
-            line="180"/>
-    </issue>
-
-    <issue
         id="SimpleDateFormat"
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
@@ -134,7 +30,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleTasksExecutorImpl.java"
-            line="371"/>
+            line="378"/>
     </issue>
 
     <issue
@@ -230,7 +126,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/npw/assetstudio/wizard/ConfirmGenerateImagesStep.java"
-            line="429"/>
+            line="423"/>
     </issue>
 
     <issue
@@ -254,7 +150,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleBuildInvoker.java"
-            line="743"/>
+            line="748"/>
     </issue>
 
     <issue
@@ -286,7 +182,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
-            line="944"/>
+            line="992"/>
     </issue>
 
     <issue
@@ -294,7 +190,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/model/MergedManifestInfo.java"
-            line="410"/>
+            line="414"/>
     </issue>
 
     <issue
@@ -334,7 +230,7 @@
         message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="425"/>
+            line="428"/>
     </issue>
 
     <issue
@@ -350,7 +246,7 @@
         message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/actions/AndroidInferNullityAnnotationAction.java"
-            line="245"/>
+            line="244"/>
     </issue>
 
     <issue
@@ -374,7 +270,7 @@
         message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/run/editor/DeployTargetPickerDialog.java"
-            line="210"/>
+            line="207"/>
     </issue>
 
     <issue
@@ -390,7 +286,7 @@
         message="Use `thenApplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/rendering/DrawableIconProvider.kt"
-            line="170"/>
+            line="181"/>
     </issue>
 
     <issue
@@ -414,7 +310,7 @@
         message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/actions/annotations/InferSupportAnnotationsAction.java"
-            line="337"/>
+            line="338"/>
     </issue>
 
     <issue

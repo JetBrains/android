@@ -20,6 +20,7 @@ import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.uibuilder.model.isOrHasSuperclass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileDocumentManager
 
@@ -85,5 +86,14 @@ class NavNlModelTest : NavTestCase() {
 
     assertEquals("global", model.find("global")?.tooltipText)
     assertEquals("exit", model.find("exit")?.tooltipText)
+  }
+
+  fun testIsOrHasSuperclass() {
+    val model = modelBuilder("nav.xml") {
+      navigation("root")
+    }.build()
+
+    val root = model.find("root")!!
+    assertFalse(root.isOrHasSuperclass("foo"))
   }
 }

@@ -22,9 +22,11 @@ package com.android.tools.idea.databinding.index
  */
 enum class BindingLayoutType {
   /**
-   * The layout XML doesn't contain any data binding information, but view binding option is enabled.
+   * The layout XML doesn't contain any data binding information, but a binding class will still
+   * be generated only if view binding is enabled.
    */
-  VIEW_BINDING_LAYOUT,
+  PLAIN_LAYOUT,
+
   /**
    * The layout XML starts with `<layout>` tag, and possibly contains a `<data>` tag.
    */
@@ -66,7 +68,8 @@ data class ViewIdData(val id: String, val viewName: String, val layoutName: Stri
  * For view binding data, many of these fields will be left empty.
  *
  * @param layoutType the type of binding for the target layout.
- * @param viewBindingIgnore set to True if binding should not be generated for this layout.
+ * @param rootTag the name of the root xml tag, e.g. `layout`, `LinearLayout`, etc.
+ * @param viewBindingIgnore set to true if binding should not be generated for this layout,
  *     currently only used for view binding layouts.
  * @param customBindingName optional value used to override the qualified class name of the
  *     generated binding.
@@ -75,6 +78,7 @@ data class ViewIdData(val id: String, val viewName: String, val layoutName: Stri
  * @param viewIds ids of views defined in this layout.
  */
 data class BindingXmlData(val layoutType: BindingLayoutType,
+                          val rootTag: String,
                           val viewBindingIgnore: Boolean,
                           val customBindingName: String?,
                           val imports: Collection<ImportData>,

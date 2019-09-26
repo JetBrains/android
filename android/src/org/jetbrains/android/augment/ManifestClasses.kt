@@ -16,6 +16,7 @@
 package org.jetbrains.android.augment
 
 import com.android.SdkConstants
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.res.AndroidClassWithOnlyInnerClassesBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -31,7 +32,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.util.containers.isNullOrEmpty
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.getCustomPermissionGroups
@@ -77,7 +77,7 @@ class ManifestClass(
 
   override fun getInnerClassesDependencies(): Array<Any> {
     // TODO(b/110188226): implement a ModificationTracker for the set of existing manifest files.
-    return arrayOf(PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT)
+    return arrayOf(AndroidPsiUtils.getXmlPsiModificationTracker(project))
   }
 }
 
@@ -98,7 +98,7 @@ sealed class ManifestInnerClass(
   private val myFieldsCache: CachedValue<Array<PsiField>> = CachedValuesManager.getManager(project).createCachedValue {
     val manifest = Manifest.getMainManifest(myFacet)
     if (manifest == null) {
-      CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, PsiModificationTracker.MODIFICATION_COUNT)
+      CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, AndroidPsiUtils.getXmlPsiModificationTracker(project))
     }
     else {
       CachedValueProvider.Result.create<Array<PsiField>>(
@@ -113,7 +113,7 @@ sealed class ManifestInnerClass(
             initializer = factory.createExpressionFromText("\"$value\"", this)
           }
         }.toTypedArray(),
-        listOf(manifest.xmlElement?.containingFile ?: PsiModificationTracker.MODIFICATION_COUNT)
+        listOf(manifest.xmlElement?.containingFile ?: AndroidPsiUtils.getXmlPsiModificationTracker(project))
       )
     }
   }

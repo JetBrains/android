@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class EnergyUsage extends LineChartModel {
 
-  @NotNull private final RangedContinuousSeries myUsageSeries;
+  @NotNull private final RangedContinuousSeries myTotalUsageDataSeries;
   @NotNull private final Range myUsageRange;
 
   public EnergyUsage(@NotNull StudioProfilers profilers) {
@@ -43,14 +43,14 @@ public class EnergyUsage extends LineChartModel {
     else {
       dataSeries = new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession());
     }
-    myUsageSeries = new RangedContinuousSeries(getSeriesLabel(), profilers.getTimeline().getViewRange(), myUsageRange, dataSeries,
-                                               profilers.getTimeline().getDataRange());
-    add(myUsageSeries);
+    myTotalUsageDataSeries = new RangedContinuousSeries(getSeriesLabel(), profilers.getTimeline().getViewRange(), myUsageRange, dataSeries,
+                                                        profilers.getTimeline().getDataRange());
+    add(myTotalUsageDataSeries);
   }
 
   @NotNull
-  public RangedContinuousSeries getUsageDataSeries() {
-    return myUsageSeries;
+  public RangedContinuousSeries getTotalUsageDataSeries() {
+    return myTotalUsageDataSeries;
   }
 
   @NotNull

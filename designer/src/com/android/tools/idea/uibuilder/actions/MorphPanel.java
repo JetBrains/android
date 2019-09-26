@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.Consumer;
@@ -86,23 +86,15 @@ public class MorphPanel extends JPanel {
     mySuggestionsList.setModel(model);
     mySuggestionsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     mySuggestionsList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-    mySuggestionsList.setCellRenderer(new ColoredListCellRenderer<Palette.Item>() {
-
-      @Override
-      protected void customizeCellRenderer(@NotNull JList<? extends Palette.Item> list,
-                                           Palette.Item value,
-                                           int index,
-                                           boolean selected,
-                                           boolean hasFocus) {
-        setIcon(value.getIcon());
-        String name = value.getTagName();
-        int i = name.lastIndexOf('.');
-        if (i > -1 && i < name.length() - 1) {
-          name = name.substring(i + 1);
-        }
-        append(name);
+    mySuggestionsList.setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      String name = value.getTagName();
+      int i = name.lastIndexOf('.');
+      if (i > -1 && i < name.length() - 1) {
+        name = name.substring(i + 1);
       }
-    });
+      label.setText(name);
+      label.setIcon(value.getIcon());
+    }));
     mySuggestionsList.setBackground(getBackground().brighter());
     mySuggestionsList.setVisibleRowCount(5);
     mySuggestionsList.setSelectedIndex(0);

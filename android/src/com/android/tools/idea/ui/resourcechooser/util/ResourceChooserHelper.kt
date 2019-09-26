@@ -60,6 +60,7 @@ fun createResourcePickerDialog(dialogTitle: String,
       ResourceExplorerDialog(facet,
                              currentValue,
                              resourceTypes,
+                             defaultResourceType,
                              showSampleData,
                              file)
     else ChooseResourceDialog.builder()

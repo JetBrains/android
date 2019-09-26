@@ -45,13 +45,13 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import icons.StudioIcons;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.Locale;
 import java.util.Set;
 import javax.swing.BoxLayout;
 import org.jetbrains.android.dom.AndroidDomUtil;
@@ -307,7 +307,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
    */
   @Nullable
   private static ResourceType getDefaultResourceType(@NotNull String propertyName) {
-    String lowerCaseProperty = propertyName.toLowerCase(Locale.ENGLISH);
+    String lowerCaseProperty = StringUtil.toLowerCase(propertyName);
     if (lowerCaseProperty.contains("color")
         || lowerCaseProperty.contains("tint")) {
       return ResourceType.COLOR;

@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.structure;
 
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
+import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
@@ -36,8 +36,8 @@ import static icons.StudioIcons.Common.INFO_INLINE;
 
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
@@ -45,6 +45,7 @@ import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -65,7 +66,6 @@ import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ComboboxWithBrowseButton;
-import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.navigation.History;
@@ -89,7 +89,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NonNls;
@@ -452,29 +451,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     });
   }
 
-  public void chooseJdkLocation() {
-    JComboBox comboBox = myJdkLocationComboBox.getComboBox();
-    comboBox.requestFocus();
-
-    VirtualFile suggestedDir = null;
-    File jdkLocation = getUserSelectedJdkLocation();
-    if (jdkLocation.isDirectory()) {
-      suggestedDir = findFileByIoFile(jdkLocation, false);
-    }
-    VirtualFile chosen = chooseFile(createSingleFolderDescriptor("Choose JDK Location", file -> {
-      if (validateJdkPath(file) == null) {
-        throw new IllegalArgumentException(generateChooseValidJdkDirectoryError());
-      }
-      return null;
-    }), null, suggestedDir);
-    if (chosen != null) {
-      File validJdkLocation = validateJdkPath(virtualToIoFile(chosen));
-      assert validJdkLocation != null;
-      myUserSelectedJdkHomePath = validJdkLocation.getPath();
-      setJdkLocationComboBox(validJdkLocation);
-    }
-  }
-
   @NotNull
   private static FileChooserDescriptor createSingleFolderDescriptor(@NotNull String title, @NotNull Function<File, Void> validation) {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false) {
@@ -663,12 +639,11 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
    */
   @Nullable
   private String validateAndroidSdkPath() {
-    //noinspection deprecation
-    PathValidationResult wizardValidationResult =
-      validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false,
-                       PathValidationResult.WritableCheckMode.DO_NOT_CHECK);
-    if (!wizardValidationResult.isOk()) {
-      return wizardValidationResult.getFormattedMessage();
+    Validator<File> validator = new PathValidator.Builder().withCommonRules().build("Android SDK location");
+    Validator.Result result = validator.validate(getSdkLocation());
+    Validator.Severity severity = result.getSeverity();
+    if (severity == ERROR) {
+      return result.getMessage();
     }
     ValidationResult validationResult = validateAndroidSdk(getSdkLocation(), false);
     if (!validationResult.success) {

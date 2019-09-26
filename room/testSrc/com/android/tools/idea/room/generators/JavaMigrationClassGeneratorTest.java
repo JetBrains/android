@@ -27,6 +27,7 @@ import com.android.tools.idea.room.migrations.update.DatabaseUpdate;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiPackage;
 import org.jetbrains.android.AndroidTestCase;
 
 public class JavaMigrationClassGeneratorTest extends AndroidTestCase {
@@ -58,11 +59,12 @@ public class JavaMigrationClassGeneratorTest extends AndroidTestCase {
   public void testMigrationClassCreation() {
     PsiClass databaseClass = myFixture.addClass("package com.example;" +
                                                 "public class AppDatabase {}");
+    PsiPackage targetPackage = myFixture.findPackage("com.example");
     PsiDirectory targetDirectory = databaseClass.getContainingFile().getParent();
 
     WriteCommandAction.runWriteCommandAction(myFixture.getProject(), () -> {
       JavaMigrationClassGenerator javaMigrationClassGenerator = new JavaMigrationClassGenerator(myFixture.getProject());
-      javaMigrationClassGenerator.createMigrationClass(targetDirectory, new DatabaseUpdate(db1, db2));
+      javaMigrationClassGenerator.createMigrationClass(targetPackage, targetDirectory, new DatabaseUpdate(db1, db2));
     });
 
     PsiClass migrationClass = myFixture.findClass("com.example.Migration_1_2");

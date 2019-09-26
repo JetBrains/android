@@ -11,6 +11,7 @@
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
     <orderEntry type="module" module-name="intellij.android.designer" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
+    <orderEntry type="module" module-name="intellij.android.gameToolsStarter" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />
     <orderEntry type="module" module-name="intellij.android.lang" />

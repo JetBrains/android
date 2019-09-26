@@ -16,21 +16,22 @@
 package com.android.tools.profilers.customevent;
 
 
-import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
+import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
 
 public class CustomEventProfilerStage extends Stage {
 
   private final EventMonitor myEventMonitor;
+  private final TrackGroupListModel myTrackGroupListModel = new TrackGroupListModel();
 
   public CustomEventProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
     myEventMonitor = new EventMonitor(profilers);
+    initTrackGroupList();
   }
 
   @Override
@@ -41,5 +42,20 @@ public class CustomEventProfilerStage extends Stage {
   @Override
   public void exit() {
     myEventMonitor.exit();
+  }
+
+  /**
+   * Initializes tracks for all the events that the user records.
+   */
+  private void initTrackGroupList() {
+    myTrackGroupListModel.clear();
+    myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("Custom Events"));
+
+    //TODO: add the user defined tracks to the custom events list model
+  }
+
+  @NotNull
+  public TrackGroupListModel getTrackGroupListModel() {
+    return myTrackGroupListModel;
   }
 }

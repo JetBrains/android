@@ -17,31 +17,22 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
-import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ListSpeedSearch;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.containers.Convertor;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.Collection;
 
-final class LocaleList extends JBList {
+final class LocaleList extends JBList<Locale> {
   LocaleList(@NotNull Collection<Locale> locales) {
     super(locales);
 
-    setCellRenderer(new ColoredListCellRenderer<Locale>() {
-      @Override
-      protected void customizeCellRenderer(@NotNull JList<? extends Locale> list,
-                                           @NotNull Locale locale,
-                                           int index,
-                                           boolean selected,
-                                           boolean focused) {
-        setIcon(locale.getFlagImage());
-        append(LocaleMenuAction.getLocaleLabel(locale, false));
-      }
-    });
-
+    setCellRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      label.setIcon(value.getFlagImage());
+      label.setText(LocaleMenuAction.getLocaleLabel(value, false));
+    }));
     setFixedCellHeight(20);
     setName("localeList");
 

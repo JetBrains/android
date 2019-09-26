@@ -131,6 +131,23 @@ class BuildAttributionManagerImpl(
       }
     }
 
+    analyzersProxy.getTasksSharingOutput().let {
+      if (it.isNotEmpty()) {
+        stringBuilder.appendln("Configuration Issues:")
+        it.forEach { entry ->
+          stringBuilder.append("Tasks ")
+          entry.taskList.forEachIndexed { index, taskData ->
+            if (index != 0) {
+              stringBuilder.append(", ")
+            }
+            stringBuilder.append("${taskData.getTaskPath()} from ${taskData.originPlugin}")
+          }
+          stringBuilder.appendln(
+            " declare the same output ${entry.outputFilePath}")
+        }
+      }
+    }
+
     if (stringBuilder.isNotEmpty()) {
       Logger.getInstance(this::class.java).warn("Build attribution analysis results:\n$stringBuilder")
     }

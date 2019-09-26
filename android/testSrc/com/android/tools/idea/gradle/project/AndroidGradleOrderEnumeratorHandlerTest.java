@@ -23,15 +23,17 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.roots.OrderEnumerationHandler;
 import com.intellij.openapi.roots.OrderRootType;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.junit.Assert;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.JAVA_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE;
 import static com.intellij.openapi.util.io.FileUtil.join;
@@ -52,10 +54,20 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
     assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getMainArtifact().getJavaResourcesFolder()));
     assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getGeneratedResourceFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
+
     assertDoesntContain(result, pathToIdeaUrl(model.getSelectedVariant().getUnitTestArtifact().getClassesFolder()));
-    assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getUnitTestArtifact().getAdditionalClassesFolders(),
-                                                          (input) -> input == null ? null : pathToIdeaUrl(input)));
+    Collection<String> unitTestAdditionalClassesFolders =
+      Collections2.transform(
+        model.getSelectedVariant().getUnitTestArtifact().getAdditionalClassesFolders(),
+        (input) -> input == null ? null : pathToIdeaUrl(input));
+    Collection<String> intersectionMainAndUnitTest = getIntersection(result, unitTestAdditionalClassesFolders);
+    // Main artifact and unit test artifact may either share the same R.jar or none at all (see bug 133326990).
+    if (!intersectionMainAndUnitTest.isEmpty()) {
+      Assert.assertTrue(intersectionMainAndUnitTest.size() == 1);
+      Assert.assertTrue(intersectionMainAndUnitTest.iterator().next().endsWith("R.jar!/"));
+    }
     assertDoesntContain(result, pathToIdeaUrl(model.getSelectedVariant().getUnitTestArtifact().getJavaResourcesFolder()));
+
     assertDoesntContain(result, pathToIdeaUrl(model.getSelectedVariant().getAndroidTestArtifact().getClassesFolder()));
     assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getAdditionalClassesFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
@@ -67,10 +79,10 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
   public void testAndroidProjectWithTestOutputCorrect() throws Exception {
     loadSimpleApplication();
     Module module = getModule("app");
-    List<String> result = getAmendedPaths(module, true);
+    Set<String> result = new HashSet<>(getAmendedPaths(module, true));
 
     AndroidModuleModel model = AndroidModuleModel.get(module);
-    List<String> expected = new ArrayList<>();
+    Set<String> expected = new HashSet<>();
     // Unit test
     expected.add(pathToIdeaUrl(model.getSelectedVariant().getUnitTestArtifact().getClassesFolder()));
 
@@ -148,5 +160,12 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
     List<String> result = new ArrayList<>();
     handler.addCustomModuleRoots(OrderRootType.CLASSES, moduleRootModel, result, true, includeTests);
     return result;
+  }
+
+  @NotNull
+  private static <E> Collection<E> getIntersection(@NotNull Collection<E> collection1, @NotNull Collection<E> collection2) {
+    Collection<E> intersection = new HashSet<>(collection1);
+    intersection.retainAll(collection2);
+    return intersection;
   }
 }

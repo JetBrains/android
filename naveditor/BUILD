@@ -68,8 +68,6 @@ iml_module(
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/studio/layoutlib/data/icu",
-        "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/android:test_deps.zip",

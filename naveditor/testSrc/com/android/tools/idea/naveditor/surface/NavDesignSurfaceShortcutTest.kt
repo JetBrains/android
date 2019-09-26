@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.surface
 
+import com.android.tools.adtui.actions.ZoomActualAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
@@ -34,6 +35,8 @@ class NavDesignSurfaceShortcutTest : NavTestCase() {
     testActionForKey(KeyEvent.VK_PLUS, ACTION_MASK + SHIFT_MASK, zoomClass)
     testActionForKey(KeyEvent.VK_EQUALS, ACTION_MASK, zoomClass)
     testActionForKey(KeyEvent.VK_EQUALS, ACTION_MASK + SHIFT_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_ADD, ACTION_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_ADD, ACTION_MASK + SHIFT_MASK, zoomClass)
   }
 
   fun testZoomOut() {
@@ -42,11 +45,26 @@ class NavDesignSurfaceShortcutTest : NavTestCase() {
     testActionForKey(KeyEvent.VK_MINUS, ACTION_MASK + SHIFT_MASK, zoomClass)
     testActionForKey(KeyEvent.VK_UNDERSCORE, ACTION_MASK, zoomClass)
     testActionForKey(KeyEvent.VK_UNDERSCORE, ACTION_MASK + SHIFT_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_SUBTRACT, ACTION_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_SUBTRACT, ACTION_MASK + SHIFT_MASK, zoomClass)
   }
 
   fun testZoomToFit() {
     val zoomClass = ZoomToFitAction::class.java
     testActionForKey(KeyEvent.VK_0, ACTION_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_0, ACTION_MASK + SHIFT_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_RIGHT_PARENTHESIS, ACTION_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_RIGHT_PARENTHESIS, ACTION_MASK + SHIFT_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_NUMPAD0, ACTION_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_NUMPAD0, ACTION_MASK + SHIFT_MASK, zoomClass)
+  }
+
+  fun testZoomToActual() {
+    val zoomClass = ZoomActualAction::class.java
+    testActionForKey(KeyEvent.VK_SLASH, ACTION_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_SLASH, ACTION_MASK + SHIFT_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_DIVIDE, ACTION_MASK, zoomClass)
+    testActionForKey(KeyEvent.VK_DIVIDE, ACTION_MASK + SHIFT_MASK, zoomClass)
   }
 
   private fun <T> testActionForKey(keyCode: Int, modifiers: Int, aClass: Class<T>) {

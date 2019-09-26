@@ -19,7 +19,11 @@ import static com.android.tools.idea.common.model.Coordinates.getAndroidXDip;
 import static com.android.tools.idea.common.model.Coordinates.getAndroidYDip;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
+import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -927,12 +931,38 @@ public class InteractionManager implements Disposable {
           String.format("Problem with drop: dragged.size(%1$d) != components.size(%2$d)", dragged.size(), components.size()));
       }
       for (int index = 0; index < dragged.size(); index++) {
+        if (!NlComponentHelperKt.getHasNlComponentInfo(components.get(index)) ||
+            !NlComponentHelperKt.getHasNlComponentInfo(dragged.get(index))) {
+          continue;
+        }
         NlComponentHelperKt.setX(components.get(index), NlComponentHelperKt.getX(dragged.get(index)));
         NlComponentHelperKt.setY(components.get(index), NlComponentHelperKt.getY(dragged.get(index)));
       }
+
+      logFinishDropInteraction(components);
+
       dragged.clear();
       dragged.addAll(components);
       return insertType;
+    }
+
+    private void logFinishDropInteraction(@NotNull List<NlComponent> components) {
+      DesignSurface surface = getSurface();
+      if (!(surface instanceof NlDesignSurface)) {
+        return;
+      }
+
+      NlAnalyticsManager manager = (NlAnalyticsManager)surface.getAnalyticsManager();
+      components.forEach( component -> {
+        if (SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName())) {
+          if (ConstraintLayoutGuidelineHandler.isVertical(component)) {
+            manager.trackAddVerticalGuideline();
+          }
+          else {
+            manager.trackAddHorizontalGuideline();
+          }
+        }
+      });
     }
 
     // --- Implements ActionListener ----

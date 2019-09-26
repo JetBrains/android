@@ -72,7 +72,7 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
       val localScope = GlobalSearchScope.filesWithoutLibrariesScope(project, virtualFiles)
 
       val scopeIncludingDeps = ModuleRootManager.getInstance(module)
-        .dependencies
+        .getDependencies(false)
         .mapNotNull { module -> module.androidFacet }
         .mapNotNull { facet -> getAdditionalResolveScope(facet) }
         .fold(localScope) { scopeAccum, depScope -> scopeAccum.union(depScope) }
