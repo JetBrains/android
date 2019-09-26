@@ -109,7 +109,10 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     mySurface = surface.apply(this);
     Disposer.register(this, mySurface);
     // Update the workbench context on state change, so we can have different contexts for each mode.
-    mySurface.setStateChangeListener((state) -> myWorkBench.setContext(mySurface.getState().name()));
+    mySurface.setStateChangeListener((state) -> {
+      myWorkBench.setContext(mySurface.getState().name());
+      myWorkBench.setDefaultPropertiesForContext();
+    });
 
     myAccessoryPanel = mySurface.getAccessoryPanel();
     myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
