@@ -59,7 +59,6 @@ import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.Constraint
 import com.google.common.base.Joiner
-import com.google.common.base.Strings
 import com.google.common.cache.CacheBuilder
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
@@ -99,7 +98,7 @@ private val log get() = logger<ConfigureTemplateParametersStep>()
  * Far from being generic data, the template edited by this step is very Android specific, and  needs to be aware of things like
  * the current project/module, package name, min supported API, previously configured values, etc.
  */
-class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String, private val myTemplates: List<NamedModuleTemplate>)
+class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String, private val templates: List<NamedModuleTemplate>)
   : ModelWizardStep<RenderTemplateModel>(model, title) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
@@ -242,12 +241,13 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     }
 
     fun displaySourceSetChoiceIfNeeded() {
-      if (myTemplates.size <= 1) {
+      if (templates.size <= 1) {
         return
       }
-      val row = RowEntry("Target Source Set", ModuleTemplateComboProvider(myTemplates))
-      row.setEnabled(myTemplates.size > 1)
-      row.addToPanel(parametersPanel)
+      val row = RowEntry("Target Source Set", ModuleTemplateComboProvider(templates)).apply {
+        setEnabled(templates.size > 1)
+        addToPanel(parametersPanel)
+      }
 
       val template = (row.property as SelectedItemProperty<NamedModuleTemplate>)
       // ModuleTemplateComboProvider always sets this
@@ -345,7 +345,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     evaluationState = EvaluationState.EVALUATING
 
     val parameters = model.templateHandle!!.metadata.parameters
-    val excludedParameters = hashSetOf<String>()
+    val excludedParameters = mutableSetOf<String>()
 
     try {
       val additionalValues = mutableMapOf<String, Any>()
@@ -543,12 +543,12 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
   private inner class ParameterDeduplicator : ParameterValueResolver.Deduplicator {
     override fun deduplicate(parameter: Parameter, value: String?): String? {
-      if (Strings.isNullOrEmpty(value) || !parameter.constraints.contains(Constraint.UNIQUE)) {
+      if (value.isNullOrEmpty() || !parameter.constraints.contains(Constraint.UNIQUE)) {
         return value
       }
 
-      var suggested: String? = value
-      val extPart = Files.getFileExtension(value!!)
+      var suggested = value
+      val extPart = Files.getFileExtension(value)
 
       // First remove file extension. Then remove all trailing digits, because we probably were the ones that put them there.
       // For example, if two parameters affect each other, say "Name" and "Layout", you get this:
@@ -564,7 +564,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       val relatedValues = getRelatedValues(parameter)
       val sourceProvider = model.template.get().getSourceProvider()
       while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {
-        suggested = filenameJoiner.join(namePart + suffix, Strings.emptyToNull(extPart))
+        suggested = filenameJoiner.join(namePart + suffix, extPart.ifEmpty { null })
         suffix++
       }
       return suggested
