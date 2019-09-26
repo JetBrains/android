@@ -87,7 +87,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
     client = layoutInspector?.client
     client?.register(Common.Event.EventGroupIds.COMPONENT_TREE, ::loadComponentTree)
-    client?.registerProcessEnded(::clearComponentTree)
+    client?.registerProcessChanged(::clearComponentTreeWhenProcessEnds)
     if (toolContext != null) {
       modelChanged(toolContext.layoutInspectorModel, toolContext.layoutInspectorModel)
     }
@@ -105,7 +105,10 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     location.navigatable?.navigate(true)
   }
 
-  private fun clearComponentTree() {
+  private fun clearComponentTreeWhenProcessEnds() {
+    if (client?.isConnected == true) {
+      return
+    }
     val application = ApplicationManager.getApplication()
     application.invokeLater {
       val emptyRoot = ViewNode.EMPTY

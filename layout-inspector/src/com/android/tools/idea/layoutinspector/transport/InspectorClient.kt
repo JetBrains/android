@@ -35,7 +35,7 @@ interface InspectorClient {
   /**
    * Register a handler for when the current process ends.
    */
-  fun registerProcessEnded(callback: () -> Unit)
+  fun registerProcessChanged(callback: () -> Unit)
 
   /**
    * Find all processes that the inspector can attach to.
@@ -73,6 +73,16 @@ interface InspectorClient {
    * True, if a connection to a device is currently open.
    */
   val isConnected: Boolean
+
+  /**
+   * If [isConnected] contains the current selected device stream.
+   */
+  val selectedStream: Common.Stream
+
+  /**
+   * If [isConnected] contains the current selected process.
+   */
+  val selectedProcess: Common.Process
 
   /**
    * True, if the current connection is currently receiving live updates.
