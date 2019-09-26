@@ -246,6 +246,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
       filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
     ) {
       isConnected = true
+      processChangedListeners.forEach { it() }
       setDebugViewAttributes(selectedStream, true)
       execute(LayoutInspectorCommand.Type.START)
 

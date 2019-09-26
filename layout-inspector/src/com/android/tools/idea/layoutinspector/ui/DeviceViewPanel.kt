@@ -39,7 +39,6 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
@@ -66,20 +65,6 @@ class DeviceViewPanel(
     get() = viewSettings.scaleFraction
 
   override val screenScalingFactor = 1f
-
-  private val showBordersCheckBox = object : CheckboxAction("Show borders") {
-    override fun isSelected(event: AnActionEvent): Boolean {
-      return viewSettings.drawBorders
-    }
-
-    override fun setSelected(event: AnActionEvent, state: Boolean) {
-      viewSettings.drawBorders = state
-      repaint()
-    }
-  }
-
-  private val myProcessSelectionAction = SelectProcessAction(client)
-  private val myStopLayoutInspectorAction = PauseLayoutInspectorAction(client)
 
   private val contentPanel = DeviceViewContentPanel(layoutInspector, viewSettings)
   private val scrollPane = JBScrollPane(contentPanel)
@@ -134,9 +119,27 @@ class DeviceViewPanel(
 
     val leftPanel = AdtPrimaryPanel(BorderLayout())
     val leftGroup = DefaultActionGroup()
-    leftGroup.add(myProcessSelectionAction)
-    leftGroup.add(myStopLayoutInspectorAction)
-    leftGroup.add(showBordersCheckBox)
+    leftGroup.add(SelectProcessAction(client))
+    leftGroup.add(object : DropDownAction(null, "View options", StudioIcons.Common.VISIBILITY_INLINE) {
+      init {
+        add(object : ToggleAction("Show borders") {
+          override fun update(event: AnActionEvent) {
+            super.update(event)
+            event.presentation.isEnabled = client.isConnected
+          }
+
+          override fun isSelected(event: AnActionEvent): Boolean {
+            return viewSettings.drawBorders
+          }
+
+          override fun setSelected(event: AnActionEvent, state: Boolean) {
+            viewSettings.drawBorders = state
+            repaint()
+          }
+        })
+      }
+    })
+    leftGroup.add(PauseLayoutInspectorAction(client))
     leftPanel.add(ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true).component,
                   BorderLayout.CENTER)
     panel.add(leftPanel, BorderLayout.CENTER)
@@ -259,18 +262,22 @@ class DeviceViewPanel(
     }
   }
 
-  private class PauseLayoutInspectorAction(val client: InspectorClient): AnAction() {
-    init {
-      templatePresentation.icon = StudioIcons.Profiler.Toolbar.PAUSE_LIVE
-      templatePresentation.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.PAUSE_LIVE)
-    }
+  private class PauseLayoutInspectorAction(val client: InspectorClient) : CheckboxAction("Live updates") {
 
     override fun update(event: AnActionEvent) {
+      super.update(event)
       event.presentation.isEnabled = client.isConnected
-      event.presentation.icon = if (client.isCapturing) StudioIcons.Profiler.Toolbar.PAUSE_LIVE else StudioIcons.Profiler.Toolbar.GOTO_LIVE
     }
 
-    override fun actionPerformed(event: AnActionEvent) {
+    // Display as "Live updates ON" when disconnected to indicate the default value after the inspector is connected to the device.
+    override fun isSelected(event: AnActionEvent): Boolean {
+      return !client.isConnected || client.isCapturing
+    }
+
+    override fun setSelected(event: AnActionEvent, state: Boolean) {
+      if (!client.isConnected) {
+        return
+      }
       val command = if (client.isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
       client.execute(command)
     }
