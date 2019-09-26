@@ -130,6 +130,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
         selectedStream = Common.Stream.getDefaultInstance()
         selectedProcess = Common.Process.getDefaultInstance()
         isConnected = false
+        isCapturing = false
         processChangedListeners.forEach { it() }
       }
       false
@@ -292,6 +293,22 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
     }
     if (timesAttempted < MAX_RETRY_COUNT) {
       JobScheduler.getScheduler().schedule({ attachWithRetry(preferredProcess, timesAttempted + 1) }, 1, TimeUnit.SECONDS)
+    }
+  }
+
+  override fun disconnect() {
+    ApplicationManager.getApplication().executeOnPooledThread {
+      if (selectedStream != Common.Stream.getDefaultInstance() &&
+          selectedProcess != Common.Process.getDefaultInstance()) {
+
+        execute(LayoutInspectorCommand.Type.STOP)
+
+        selectedStream = Common.Stream.getDefaultInstance()
+        selectedProcess = Common.Process.getDefaultInstance()
+        isConnected = false
+        isCapturing = false
+        processChangedListeners.forEach { it() }
+      }
     }
   }
 
