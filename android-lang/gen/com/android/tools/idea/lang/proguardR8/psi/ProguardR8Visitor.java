@@ -68,6 +68,10 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitConstructorName(@NotNull ProguardR8ConstructorName o) {
+    visitClassMemberName(o);
+  }
+
   public void visitField(@NotNull ProguardR8Field o) {
     visitClassMember(o);
   }

@@ -25,17 +25,16 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
 
-public class ProguardR8FullyQualifiedNameConstructorImpl extends ASTWrapperPsiElement implements ProguardR8FullyQualifiedNameConstructor {
+public class ProguardR8ConstructorNameImpl extends ProguardR8ClassMemberNameImpl implements ProguardR8ConstructorName {
 
-  public ProguardR8FullyQualifiedNameConstructorImpl(@NotNull ASTNode node) {
+  public ProguardR8ConstructorNameImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ProguardR8Visitor visitor) {
-    visitor.visitFullyQualifiedNameConstructor(this);
+    visitor.visitConstructorName(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -45,26 +44,8 @@ public class ProguardR8FullyQualifiedNameConstructorImpl extends ASTWrapperPsiEl
 
   @Override
   @NotNull
-  public List<ProguardR8AccessModifier> getAccessModifierList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8AccessModifier.class);
-  }
-
-  @Override
-  @NotNull
-  public ProguardR8ConstructorName getConstructorName() {
-    return findNotNullChildByClass(ProguardR8ConstructorName.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8Parameters getParameters() {
-    return findChildByClass(ProguardR8Parameters.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8Type getType() {
-    return ProguardR8PsiImplUtil.getType(this);
+  public ProguardR8QualifiedName getQualifiedName() {
+    return findNotNullChildByClass(ProguardR8QualifiedName.class);
   }
 
 }
