@@ -17,7 +17,22 @@ package com.android.tools.idea.run.util;
 
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Describes the state of launch (execution of {@link com.intellij.execution.configurations.RunConfiguration}).
+ */
 public interface LaunchStatus {
+  /**
+   * Returns true if the master process of this launch has been terminated.
+   */
   boolean isLaunchTerminated();
+
+  /**
+   * Forcefully terminates this launch regardless of {@link #isLaunchTerminated()} value.
+   *
+   * This method is used when the launch has to be stopped by unforeseen reasons such as cancellation by a user.
+   *
+   * @param reason an optional message to be shown to users to explain why the launch is terminated.
+   * @param destroyProcess if this is true, the underlying processes (if any) will be destroyed as well.
+   */
   void terminateLaunch(@Nullable String reason, boolean destroyProcess);
 }

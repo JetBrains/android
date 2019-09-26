@@ -20,8 +20,19 @@ import com.intellij.execution.process.ProcessOutputTypes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A {@link ProcessHandler} based implementation of {@link LaunchStatus}.
+ *
+ * When an associated process handler's state becomes terminated, {@link #isLaunchTerminated()} also starts returning true.
+ */
 public class ProcessHandlerLaunchStatus implements LaunchStatus {
-  @NotNull private ProcessHandler myHandler;
+
+  /**
+   * A process handler of this launch. When this handler is terminated, the launch should be considered as terminated.
+   *
+   * Client may override the master process by {@link #setProcessHandler}.
+   */
+  @NotNull private ProcessHandler myProcessHandler;
 
   /**
    * Indicates whether the process has been terminated or is in the process of termination.
@@ -30,30 +41,43 @@ public class ProcessHandlerLaunchStatus implements LaunchStatus {
    */
   private boolean myTerminated;
 
-  public ProcessHandlerLaunchStatus(@NotNull ProcessHandler handler) {
-    myHandler = handler;
+  /**
+   * Constructs with a given process handler.
+   *
+   * @param processHandler a master process handler to be monitored
+   */
+  public ProcessHandlerLaunchStatus(@NotNull ProcessHandler processHandler) {
+    myProcessHandler = processHandler;
   }
 
+  /**
+   * Returns the current master process handler.
+   */
   @NotNull
   public ProcessHandler getProcessHandler() {
-    return myHandler;
+    return myProcessHandler;
   }
 
-  public void setProcessHandler(@NotNull ProcessHandler handler) {
-    myHandler = handler;
+  /**
+   * Replaces the associated process handler with the given handler.
+   *
+   * @param processHandler a new master process handler to be used
+   */
+  public void setProcessHandler(@NotNull ProcessHandler processHandler) {
+    myProcessHandler = processHandler;
   }
 
   @Override
   public boolean isLaunchTerminated() {
-    return myTerminated || myHandler.isProcessTerminated() || myHandler.isProcessTerminating();
+    return myTerminated || myProcessHandler.isProcessTerminated() || myProcessHandler.isProcessTerminating();
   }
 
   @Override
   public void terminateLaunch(@Nullable String reason, boolean destroyProcess) {
     myTerminated = true;
-    myHandler.notifyTextAvailable(reason + "\n", ProcessOutputTypes.STDERR);
+    myProcessHandler.notifyTextAvailable(reason + "\n", ProcessOutputTypes.STDERR);
     if (destroyProcess) {
-      myHandler.destroyProcess();
+      myProcessHandler.destroyProcess();
     }
   }
 }
