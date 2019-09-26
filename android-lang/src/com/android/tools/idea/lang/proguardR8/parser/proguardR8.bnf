@@ -61,7 +61,7 @@
 
   generate=[names='long' java='8']
 
-  implements("method|field")="com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMember"
+  implements("method|field|fully_qualified_name_constructor")="com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMember"
 }
 
 root ::= (rule_with_class_specification | rule )*
@@ -141,10 +141,21 @@ parameters ::= LPAREN (ANY_TYPE_AND_NUM_OF_ARGS|type_list) RPAREN {
   methods=[matchesPsiParameterList isAcceptAnyParameters]
 }
 private init_description ::= (<init>|<clinit>) parameters
-private class_description ::= class_name parameters {pin=1}
+
+/**
+  In proguard/R8 constructors can be specified using their full class names.
+
+  Even though [class_name] can contain just one java_identifier_, "java_identifier_()" will never match
+  fully_qualified_name_constructor, because it will be consumed by [method] (@see class_member_core) due to parsing priority.
+  It means that only fully qualified names will match class_name
+ */
+fully_qualified_name_constructor ::= method_modifier* class_name parameters {
+  pin=2
+  methods=[getType]
+}
 private method_modifier ::= ("!"?(static|synchronized|native|abstract|strictfp|final))|access_modifier
 
-method_specification ::= method | (annotation_name? method_modifier* (<methods> | init_description | class_description |any_field_or_method))
+method_specification ::= method | fully_qualified_name_constructor | (annotation_name? method_modifier* (<methods> | init_description | any_field_or_method))
 
 //recover rules
 private not_semicolon ::= !SEMICOLON

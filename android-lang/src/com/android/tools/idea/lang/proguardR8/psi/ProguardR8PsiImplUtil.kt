@@ -170,3 +170,5 @@ fun toPsiModifier(modifier: ProguardR8AccessModifier) = when {
   modifier.node.findChildByType(ProguardR8PsiTypes.PUBLIC) != null -> PsiModifier.PUBLIC
   else -> error("Couldn't match ProguardR8AccessModifier \"${modifier.text}\" to PsiModifier")
 }
+
+fun getType(fullyQualifiedNameConstructor: ProguardR8FullyQualifiedNameConstructor): ProguardR8Type? = null

@@ -84,6 +84,10 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitFullyQualifiedNameConstructor(@NotNull ProguardR8FullyQualifiedNameConstructor o) {
+    visitClassMember(o);
+  }
+
   public void visitJavaPrimitive(@NotNull ProguardR8JavaPrimitive o) {
     visitPsiElement(o);
   }
