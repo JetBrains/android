@@ -19,13 +19,13 @@ import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_INSTANT_MODULE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
-import static com.android.tools.idea.templates.TemplateMetadata.TAG_FORMFACTOR;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_IS_INSTANT_MODULE;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_VERSION;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_LANGUAGE;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL;
+import static com.android.tools.idea.templates.TemplateAttributes.ATTR_TARGET_API;
+import static com.android.tools.idea.templates.TemplateMetadata.TAG_FORM_FACTOR;
 import static com.android.tools.idea.templates.TemplateUtils.hasExtension;
 import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
 
@@ -542,7 +542,7 @@ public class Template {
                      !name.equals(TAG_THUMBS) &&
                      !name.equals(TAG_THUMB) &&
                      !name.equals(TAG_ICONS) &&
-                     !name.equals(TAG_FORMFACTOR)) {
+                     !name.equals(TAG_FORM_FACTOR)) {
               LOG.error("WARNING: Unknown template directive " + name);
             }
           }

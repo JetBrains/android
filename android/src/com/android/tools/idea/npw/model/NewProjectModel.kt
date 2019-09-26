@@ -34,11 +34,11 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_FLAGS
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_SUPPORT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_PROJECT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_TOP_OUT
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.WizardConstants
 import com.android.tools.idea.wizard.model.WizardModel
