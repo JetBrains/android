@@ -23,10 +23,10 @@ import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.collect.Iterables;
+import com.intellij.util.lang.JavaVersion;
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.jetbrains.jps.model.java.JpsJavaSdkType;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -37,9 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -82,7 +80,7 @@ public class JavaModuleModelFactoryTest {
     assertFalse(javaModuleModel.isAndroidModuleWithoutVariants());
     assertEquals(myBuildFolderPath, javaModuleModel.getBuildFolderPath());
     assertNotNull(javaModuleModel.getJavaLanguageLevel());
-    assertEquals(myJavaLanguageLevel, JpsJavaSdkType.complianceOption(javaModuleModel.getJavaLanguageLevel().toJavaVersion()));
+    assertEquals(JavaVersion.tryParse(myJavaLanguageLevel), javaModuleModel.getJavaLanguageLevel().toJavaVersion());
     assertThat(javaModuleModel.getContentRoots()).hasSize(1);
     // Verify that build directory and .gradle are excluded.
     JavaModuleContentRoot contentRoot = javaModuleModel.getContentRoots().iterator().next();
