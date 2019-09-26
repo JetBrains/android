@@ -53,6 +53,7 @@ import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_CLASS_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTLIN
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
@@ -225,8 +226,15 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
         return
       }
 
-      val row = RowEntry("Source Language", LanguageComboProvider())
-      row.addToPanel(parametersPanel)
+      val row = RowEntry("Source Language", LanguageComboProvider()).apply {
+        addToPanel(parametersPanel)
+
+        if (templateMetadata.constraints.contains(KOTLIN)) {
+          model.renderLanguage.set(Language.KOTLIN)
+          setEnabled(false)
+        }
+      }
+
       val language = (row.property as SelectedItemProperty<Language>)
       // LanguageComboProvider always sets this
       bindings.bindTwoWay(ObjectProperty.wrap(language), model.renderLanguage)
