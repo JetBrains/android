@@ -53,6 +53,11 @@ interface InspectorClient {
   fun attach(stream: Common.Stream, process: Common.Process)
 
   /**
+   * Disconnect from the current process.
+   */
+  fun disconnect()
+
+  /**
    * Send a command to the agent.
    */
   fun execute(command: LayoutInspectorCommand)

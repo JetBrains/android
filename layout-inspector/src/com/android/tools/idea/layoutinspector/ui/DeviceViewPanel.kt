@@ -225,6 +225,15 @@ class DeviceViewPanel(
           }
           add(deviceAction)
         }
+        add(object : AnAction("Stop inspector") {
+          override fun update(event: AnActionEvent) {
+            event.presentation.isEnabled = client.isConnected
+          }
+
+          override fun actionPerformed(event: AnActionEvent) {
+            client.disconnect()
+          }
+        })
       }
       return true
     }
