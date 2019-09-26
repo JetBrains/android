@@ -28,6 +28,9 @@ public interface AndroidSqlAlterTableStatement extends PsiElement {
   AndroidSqlColumnDefinition getColumnDefinition();
 
   @Nullable
+  AndroidSqlColumnName getColumnName();
+
+  @Nullable
   AndroidSqlDatabaseName getDatabaseName();
 
   @NotNull
@@ -35,5 +38,20 @@ public interface AndroidSqlAlterTableStatement extends PsiElement {
 
   @Nullable
   AndroidSqlTableDefinitionName getTableDefinitionName();
+
+  @Nullable
+  PsiElement getBacktickLiteral();
+
+  @Nullable
+  PsiElement getBracketLiteral();
+
+  @Nullable
+  PsiElement getDoubleQuoteStringLiteral();
+
+  @Nullable
+  PsiElement getIdentifier();
+
+  @Nullable
+  PsiElement getSingleQuoteStringLiteral();
 
 }

@@ -62,7 +62,28 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   };
 
   /* ********************************************************** */
-  // ALTER TABLE ( database_name '.' )? defined_table_name ( RENAME TO table_definition_name | ADD ( COLUMN )? column_definition )
+  // ADD COLUMN? column_definition
+  static boolean add_column_statement(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "add_column_statement")) return false;
+    if (!nextTokenIs(builder, ADD)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, ADD);
+    result = result && add_column_statement_1(builder, level + 1);
+    result = result && column_definition(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // COLUMN?
+  private static boolean add_column_statement_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "add_column_statement_1")) return false;
+    consumeToken(builder, COLUMN);
+    return true;
+  }
+
+  /* ********************************************************** */
+  // ALTER TABLE ( database_name '.' )? defined_table_name ( rename_table_statement | rename_column_statement | add_column_statement )
   public static boolean alter_table_statement(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "alter_table_statement")) return false;
     if (!nextTokenIs(builder, ALTER)) return false;
@@ -94,45 +115,14 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // RENAME TO table_definition_name | ADD ( COLUMN )? column_definition
+  // rename_table_statement | rename_column_statement | add_column_statement
   private static boolean alter_table_statement_4(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "alter_table_statement_4")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
-    result = alter_table_statement_4_0(builder, level + 1);
-    if (!result) result = alter_table_statement_4_1(builder, level + 1);
-    exit_section_(builder, marker, null, result);
+    result = rename_table_statement(builder, level + 1);
+    if (!result) result = rename_column_statement(builder, level + 1);
+    if (!result) result = add_column_statement(builder, level + 1);
     return result;
-  }
-
-  // RENAME TO table_definition_name
-  private static boolean alter_table_statement_4_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "alter_table_statement_4_0")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = consumeTokens(builder, 0, RENAME, TO);
-    result = result && table_definition_name(builder, level + 1);
-    exit_section_(builder, marker, null, result);
-    return result;
-  }
-
-  // ADD ( COLUMN )? column_definition
-  private static boolean alter_table_statement_4_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "alter_table_statement_4_1")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = consumeToken(builder, ADD);
-    result = result && alter_table_statement_4_1_1(builder, level + 1);
-    result = result && column_definition(builder, level + 1);
-    exit_section_(builder, marker, null, result);
-    return result;
-  }
-
-  // ( COLUMN )?
-  private static boolean alter_table_statement_4_1_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "alter_table_statement_4_1_1")) return false;
-    consumeToken(builder, COLUMN);
-    return true;
   }
 
   /* ********************************************************** */
@@ -2747,6 +2737,42 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(builder, level, "release_statement_1")) return false;
     consumeToken(builder, SAVEPOINT);
     return true;
+  }
+
+  /* ********************************************************** */
+  // RENAME COLUMN? column_name TO name
+  static boolean rename_column_statement(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "rename_column_statement")) return false;
+    if (!nextTokenIs(builder, RENAME)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, RENAME);
+    result = result && rename_column_statement_1(builder, level + 1);
+    result = result && column_name(builder, level + 1);
+    result = result && consumeToken(builder, TO);
+    result = result && name(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // COLUMN?
+  private static boolean rename_column_statement_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "rename_column_statement_1")) return false;
+    consumeToken(builder, COLUMN);
+    return true;
+  }
+
+  /* ********************************************************** */
+  // RENAME TO table_definition_name
+  static boolean rename_table_statement(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "rename_table_statement")) return false;
+    if (!nextTokenIs(builder, RENAME)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeTokens(builder, 0, RENAME, TO);
+    result = result && table_definition_name(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
   }
 
   /* ********************************************************** */
