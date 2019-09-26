@@ -46,6 +46,8 @@ import com.intellij.ui.layout.panel
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkUtils
@@ -273,8 +275,16 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
       if (preferredProcess.isDeviceMatch(stream.device)) {
         for (process in processes) {
           if (process.name == preferredProcess.packageName) {
-            attach(stream, process)
-            return
+            try {
+              attach(stream, process)
+              return
+            }
+            catch (ex: StatusRuntimeException) {
+              // If the process is not found it may still be loading. Retry!
+              if (ex.status.code != Status.Code.NOT_FOUND) {
+                throw ex
+              }
+            }
           }
         }
       }
