@@ -129,6 +129,20 @@ public class WorkBenchTest extends WorkBenchTestCase {
     assertThat(myModel.getContext()).isEqualTo("Google");
   }
 
+  public void testToolWindowDefaultUpdatesOnContextChange() {
+    // Default context was set before initializing the workbench, so tool window property is properly defined.
+    assertThat(myToolWindow1.isLeft()).isTrue();
+    myWorkBench.setContext("NewContext");
+
+    // Defaults are not automatically updated when setting a new workbench context, so all properties are false by default.
+    assertThat(myToolWindow1.isLeft()).isFalse();
+
+    myWorkBench.setDefaultPropertiesForContext();
+    // After updating defaults, tool window properties should work properly.
+    assertThat(myToolWindow1.isLeft()).isTrue();
+  }
+
+
   public void testAutoHide() {
     myToolWindow1.setAutoHide(true);
     myToolWindow1.setMinimized(false);
