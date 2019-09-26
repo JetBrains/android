@@ -19,6 +19,7 @@ import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
+import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTLIN;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
@@ -59,7 +60,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import java.awt.Font;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -184,6 +184,12 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myFormFactorSdkControls.startDataLoading(formFactor, minSdk);
     setTemplateThumbnail(templateHandle);
+
+    boolean isKotlinOnly = templateHandle != null && templateHandle.getMetadata().getConstraints().contains(KOTLIN);
+    myProjectLanguage.setEnabled(!isKotlinOnly);
+    if (isKotlinOnly) {
+      myProjectModel.getLanguage().setValue(Language.KOTLIN);
+    }
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.template
 
+import com.android.tools.idea.npw.platform.Language.JAVA
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.util.AndroidBundle.message
 import org.mockito.Mockito.mock
@@ -35,14 +36,14 @@ class ChooseFragmentTypeStepTest {
   @Test
   fun testNoTemplateForExistingModule() {
     assertThat(validateTemplate(null, 5, 5,
-                                isNewModule = false, isAndroidxProject = false,
+                                isNewModule = false, isAndroidxProject = false, language = JAVA,
                                 messageKeys = messageKeys)).isEqualTo("No fragment template was selected")
   }
 
   @Test
   fun testNoTemplateForNewModule() {
     assertThat(validateTemplate(null, 5, 5,
-                                isNewModule = true, isAndroidxProject = false,
+                                isNewModule = true, isAndroidxProject = false, language = JAVA,
                                 messageKeys = messageKeys)).isEqualTo("")
   }
 
@@ -52,7 +53,7 @@ class ChooseFragmentTypeStepTest {
     `when`(template.minSdk).thenReturn(9)
 
     assertThat(validateTemplate(template, 5, 5,
-                                isNewModule = true, isAndroidxProject = true,
+                                isNewModule = true, isAndroidxProject = true, language = JAVA,
                                 messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.min.sdk", 9))
   }
@@ -63,7 +64,7 @@ class ChooseFragmentTypeStepTest {
     `when`(template.minBuildApi).thenReturn(9)
 
     assertThat(validateTemplate(template, 5, 5,
-                                isNewModule = true, isAndroidxProject = true,
+                                isNewModule = true, isAndroidxProject = true, language = JAVA,
                                 messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.min.build", 9))
   }
@@ -74,7 +75,7 @@ class ChooseFragmentTypeStepTest {
     `when`(template.constraints).thenReturn(EnumSet.of(ANDROIDX))
 
     assertThat(validateTemplate(template, 5, 5,
-                                isNewModule = false, isAndroidxProject = false,
+                                isNewModule = false, isAndroidxProject = false, language = JAVA,
                                 messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.androidx"))
   }

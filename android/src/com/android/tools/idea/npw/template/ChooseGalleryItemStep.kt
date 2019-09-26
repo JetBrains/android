@@ -25,6 +25,7 @@ import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
+import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.ui.ActivityGallery
 import com.android.tools.idea.npw.ui.WizardGallery
@@ -34,6 +35,7 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX
+import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTLIN
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
@@ -138,7 +140,7 @@ abstract class ChooseGalleryItemStep(
     val project = model.project.valueOrNull
     val isAndroidxProject = project != null && project.isAndroidx()
     invalidParameterMessage.set(validateTemplate(
-      templateData, moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, messageKeys))
+      templateData, moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, model.language.value, messageKeys))
   }
 
   open class TemplateRenderer(internal val template: TemplateHandle?) {
@@ -167,6 +169,7 @@ fun validateTemplate(template: TemplateMetadata?,
                      moduleBuildApiLevel: Int,
                      isNewModule: Boolean,
                      isAndroidxProject: Boolean,
+                     language: Language,
                      messageKeys: WizardGalleryItemsStepMessageKeys): String =
   if (template == null) {
     if (isNewModule) "" else message(messageKeys.itemNotFound)
@@ -180,6 +183,9 @@ fun validateTemplate(template: TemplateMetadata?,
   else if (template.constraints.contains(ANDROIDX) && !isAndroidxProject) {
     message(messageKeys.invalidAndroidX)
   }
+  else if (template.constraints.contains(KOTLIN) && language != Language.KOTLIN) {
+    message(messageKeys.invalidNeedsKotlin)
+  }
   else ""
 
 data class WizardGalleryItemsStepMessageKeys(
@@ -188,5 +194,6 @@ data class WizardGalleryItemsStepMessageKeys(
   val itemNotFound: String,
   val invalidMinSdk: String,
   val invalidMinBuild: String,
-  val invalidAndroidX: String
+  val invalidAndroidX: String,
+  val invalidNeedsKotlin: String
 )
