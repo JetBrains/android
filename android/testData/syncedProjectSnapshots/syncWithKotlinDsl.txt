@@ -382,20 +382,20 @@ PROJECT             : testSyncWithKotlinDsl
             Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50-compose-20190920@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50/kotlin-stdlib-common-1.3.50.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50@jar
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50-compose-20190920@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50-compose-20190920/kotlin-stdlib-common-1.3.50-compose-20190920.jar!/
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50-compose-20190920@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50/kotlin-stdlib-1.3.50.jar!/
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50-compose-20190920@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50-compose-20190920/kotlin-stdlib-1.3.50-compose-20190920.jar!/
         LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
             LibraryLevel        : project
             IsModuleLevel       : false

@@ -114,7 +114,7 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
 
-      String kotlinVersion = getKotlinVersionForTests().split("-")[0];
+      String kotlinVersion = getKotlinVersionForTests(); //.split("-")[0]; // for compose
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
       // App compat version needs to match compile SDK

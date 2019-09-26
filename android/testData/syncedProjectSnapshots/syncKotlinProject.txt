@@ -50,13 +50,13 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.50/kotlin-android-extensions-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50/kotlin-compiler-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50/kotlin-daemon-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50/kotlin-reflect-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50/kotlin-script-runtime-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50/kotlin-stdlib-common-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50/kotlin-stdlib-1.3.50.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.50-compose-20190920/kotlin-android-extensions-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50-compose-20190920/kotlin-compiler-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50-compose-20190920/kotlin-daemon-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50-compose-20190920/kotlin-reflect-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50-compose-20190920/kotlin-script-runtime-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50-compose-20190920/kotlin-stdlib-common-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50-compose-20190920/kotlin-stdlib-1.3.50-compose-20190920.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -74,13 +74,13 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.50/kotlin-android-extensions-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50/kotlin-compiler-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50/kotlin-daemon-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50/kotlin-reflect-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50/kotlin-script-runtime-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50/kotlin-stdlib-common-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50/kotlin-stdlib-1.3.50.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.50-compose-20190920/kotlin-android-extensions-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50-compose-20190920/kotlin-compiler-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50-compose-20190920/kotlin-daemon-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50-compose-20190920/kotlin-reflect-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50-compose-20190920/kotlin-script-runtime-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50-compose-20190920/kotlin-stdlib-common-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50-compose-20190920/kotlin-stdlib-1.3.50-compose-20190920.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -512,34 +512,34 @@ PROJECT             : testSyncKotlinProject
             IsExported          : false
             Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.3.50@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.3.50-compose-20190920@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.3.50@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/1.3.50/kotlin-android-extensions-runtime-1.3.50.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50@jar
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.3.50-compose-20190920@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/1.3.50-compose-20190920/kotlin-android-extensions-runtime-1.3.50-compose-20190920.jar!/
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50-compose-20190920@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50/kotlin-stdlib-common-1.3.50.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.50@jar
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50-compose-20190920@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50-compose-20190920/kotlin-stdlib-common-1.3.50-compose-20190920.jar!/
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.50-compose-20190920@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.50@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.50/kotlin-stdlib-jdk7-1.3.50.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50@jar
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.50-compose-20190920@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.50-compose-20190920/kotlin-stdlib-jdk7-1.3.50-compose-20190920.jar!/
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50-compose-20190920@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50/kotlin-stdlib-1.3.50.jar!/
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50-compose-20190920@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50-compose-20190920/kotlin-stdlib-1.3.50-compose-20190920.jar!/
         LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -597,13 +597,13 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.50/kotlin-android-extensions-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50/kotlin-compiler-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50/kotlin-daemon-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50/kotlin-reflect-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50/kotlin-script-runtime-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50/kotlin-stdlib-common-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50/kotlin-stdlib-1.3.50.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.50-compose-20190920/kotlin-android-extensions-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50-compose-20190920/kotlin-compiler-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50-compose-20190920/kotlin-daemon-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50-compose-20190920/kotlin-reflect-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50-compose-20190920/kotlin-script-runtime-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50-compose-20190920/kotlin-stdlib-common-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50-compose-20190920/kotlin-stdlib-1.3.50-compose-20190920.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -621,13 +621,13 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.50/kotlin-android-extensions-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50/kotlin-compiler-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50/kotlin-daemon-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50/kotlin-reflect-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50/kotlin-script-runtime-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50/kotlin-stdlib-common-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50/kotlin-stdlib-1.3.50.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/1.3.50-compose-20190920/kotlin-android-extensions-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50-compose-20190920/kotlin-compiler-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50-compose-20190920/kotlin-daemon-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50-compose-20190920/kotlin-reflect-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50-compose-20190920/kotlin-script-runtime-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50-compose-20190920/kotlin-stdlib-common-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50-compose-20190920/kotlin-stdlib-1.3.50-compose-20190920.jar
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions     : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
@@ -1027,27 +1027,27 @@ PROJECT             : testSyncKotlinProject
             IsExported          : false
             Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50-compose-20190920@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50/kotlin-stdlib-common-1.3.50.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.50@jar
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.50-compose-20190920@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50-compose-20190920/kotlin-stdlib-common-1.3.50-compose-20190920.jar!/
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.50-compose-20190920@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.50@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.50/kotlin-stdlib-jdk7-1.3.50.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50@jar
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.50-compose-20190920@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.50-compose-20190920/kotlin-stdlib-jdk7-1.3.50-compose-20190920.jar!/
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50-compose-20190920@jar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50@jar [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50/kotlin-stdlib-1.3.50.jar!/
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.3.50-compose-20190920@jar [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50-compose-20190920/kotlin-stdlib-1.3.50-compose-20190920.jar!/
         LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1079,15 +1079,15 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50/kotlin-compiler-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50/kotlin-daemon-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50/kotlin-reflect-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50/kotlin-script-runtime-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/1.3.50/kotlin-scripting-common-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/1.3.50/kotlin-scripting-jvm-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50/kotlin-stdlib-common-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50/kotlin-stdlib-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.1.1/kotlinx-coroutines-core-1.1.1.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50-compose-20190920/kotlin-compiler-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50-compose-20190920/kotlin-daemon-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50-compose-20190920/kotlin-reflect-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50-compose-20190920/kotlin-script-runtime-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/1.3.50-compose-20190920/kotlin-scripting-common-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/1.3.50-compose-20190920/kotlin-scripting-jvm-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50-compose-20190920/kotlin-stdlib-common-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50-compose-20190920/kotlin-stdlib-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.2.1/kotlinx-coroutines-core-1.2.1.jar
             CompilerSettings
                 additionalArguments : -Xallow-no-source-files -verbose
                 copyJsLibraryFiles  : true
@@ -1102,15 +1102,15 @@ PROJECT             : testSyncKotlinProject
                 languageVersion     : 1.3
                 - pluginClasspaths  : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths  : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50/kotlin-compiler-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50/kotlin-daemon-embeddable-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50/kotlin-reflect-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50/kotlin-script-runtime-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/1.3.50/kotlin-scripting-common-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/1.3.50/kotlin-scripting-jvm-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50/kotlin-stdlib-common-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50/kotlin-stdlib-1.3.50.jar
-                - pluginClasspaths  : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.1.1/kotlinx-coroutines-core-1.1.1.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.50-compose-20190920/kotlin-compiler-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/1.3.50-compose-20190920/kotlin-daemon-embeddable-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-reflect/1.3.50-compose-20190920/kotlin-reflect-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/1.3.50-compose-20190920/kotlin-script-runtime-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/1.3.50-compose-20190920/kotlin-scripting-common-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/1.3.50-compose-20190920/kotlin-scripting-jvm-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50-compose-20190920/kotlin-stdlib-common-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50-compose-20190920/kotlin-stdlib-1.3.50-compose-20190920.jar
+                - pluginClasspaths  : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.2.1/kotlinx-coroutines-core-1.2.1.jar
             Platform            : JVM (JVM_1_8)
             UseProjectSettings  : false
             Version             : 3
@@ -1155,34 +1155,34 @@ PROJECT             : testSyncKotlinProject
             Name                : Gradle: kaptGeneratedClasses [=]
             *CLASSES            : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/main [-]
             *CLASSES            : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/test [-]
-        LIBRARY             : Gradle: kotlin-stdlib-1.3.50
+        LIBRARY             : Gradle: kotlin-stdlib-1.3.50-compose-20190920
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: kotlin-stdlib-1.3.50 [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50/kotlin-stdlib-1.3.50.jar!/
-        LIBRARY             : Gradle: kotlin-stdlib-common-1.3.50
+            Name                : Gradle: kotlin-stdlib-1.3.50-compose-20190920 [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/1.3.50-compose-20190920/kotlin-stdlib-1.3.50-compose-20190920.jar!/
+        LIBRARY             : Gradle: kotlin-stdlib-common-1.3.50-compose-20190920
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: kotlin-stdlib-common-1.3.50 [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50/kotlin-stdlib-common-1.3.50.jar!/
-        LIBRARY             : Gradle: kotlin-stdlib-jdk7-1.3.50
+            Name                : Gradle: kotlin-stdlib-common-1.3.50-compose-20190920 [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50-compose-20190920/kotlin-stdlib-common-1.3.50-compose-20190920.jar!/
+        LIBRARY             : Gradle: kotlin-stdlib-jdk7-1.3.50-compose-20190920
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: kotlin-stdlib-jdk7-1.3.50 [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.50/kotlin-stdlib-jdk7-1.3.50.jar!/
-        LIBRARY             : Gradle: kotlin-stdlib-jdk8-1.3.50
+            Name                : Gradle: kotlin-stdlib-jdk7-1.3.50-compose-20190920 [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.50-compose-20190920/kotlin-stdlib-jdk7-1.3.50-compose-20190920.jar!/
+        LIBRARY             : Gradle: kotlin-stdlib-jdk8-1.3.50-compose-20190920
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: kotlin-stdlib-jdk8-1.3.50 [=]
-            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.50/kotlin-stdlib-jdk8-1.3.50.jar!/
+            Name                : Gradle: kotlin-stdlib-jdk8-1.3.50-compose-20190920 [=]
+            *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.50-compose-20190920/kotlin-stdlib-jdk8-1.3.50-compose-20190920.jar!/
     MODULE              : testSyncKotlinProject
         - ModuleGroupPath   : testSyncKotlinProject
         LinkedProjectId     : testSyncKotlinProject
