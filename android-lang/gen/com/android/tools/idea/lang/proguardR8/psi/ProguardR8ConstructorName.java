@@ -22,18 +22,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ProguardR8FullyQualifiedNameConstructor extends ProguardR8ClassMember {
+public interface ProguardR8ConstructorName extends ProguardR8ClassMemberName {
 
   @NotNull
-  List<ProguardR8AccessModifier> getAccessModifierList();
-
-  @NotNull
-  ProguardR8ConstructorName getConstructorName();
-
-  @Nullable
-  ProguardR8Parameters getParameters();
-
-  @Nullable
-  ProguardR8Type getType();
+  ProguardR8QualifiedName getQualifiedName();
 
 }

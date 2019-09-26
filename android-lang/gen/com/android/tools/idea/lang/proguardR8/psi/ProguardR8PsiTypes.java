@@ -36,6 +36,7 @@ public interface ProguardR8PsiTypes {
   IElementType CLASS_SPECIFICATION_BODY = new ProguardR8AstNodeType("CLASS_SPECIFICATION_BODY");
   IElementType CLASS_SPECIFICATION_HEADER = new ProguardR8AstNodeType("CLASS_SPECIFICATION_HEADER");
   IElementType CLASS_TYPE = new ProguardR8AstNodeType("CLASS_TYPE");
+  IElementType CONSTRUCTOR_NAME = new ProguardR8AstNodeType("CONSTRUCTOR_NAME");
   IElementType FIELD = new ProguardR8AstNodeType("FIELD");
   IElementType FIELDS_SPECIFICATION = new ProguardR8AstNodeType("FIELDS_SPECIFICATION");
   IElementType FILE_FILTER = new ProguardR8AstNodeType("FILE_FILTER");
@@ -151,6 +152,9 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == CLASS_TYPE) {
         return new ProguardR8ClassTypeImpl(node);
+      }
+      else if (type == CONSTRUCTOR_NAME) {
+        return new ProguardR8ConstructorNameImpl(node);
       }
       else if (type == FIELD) {
         return new ProguardR8FieldImpl(node);

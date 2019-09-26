@@ -149,7 +149,10 @@ private init_description ::= (<init>|<clinit>) parameters
   fully_qualified_name_constructor, because it will be consumed by [method] (@see class_member_core) due to parsing priority.
   It means that only fully qualified names will match class_name
  */
-fully_qualified_name_constructor ::= method_modifier* class_name parameters {
+constructor_name ::= qualifiedName {
+  extends=class_member_name
+}
+fully_qualified_name_constructor ::= method_modifier* constructor_name parameters {
   pin=2
   methods=[getType]
 }

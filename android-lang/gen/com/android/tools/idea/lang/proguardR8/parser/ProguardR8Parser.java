@@ -38,7 +38,7 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
 
   public void parseLight(IElementType type, PsiBuilder builder) {
     boolean result;
-    builder = adapt_builder_(type, builder, this, null);
+    builder = adapt_builder_(type, builder, this, EXTENDS_SETS_);
     Marker marker = enter_section_(builder, 0, _COLLAPSE_, null);
     result = parse_root_(type, builder);
     exit_section_(builder, 0, marker, type, result, true, TRUE_CONDITION);
@@ -58,6 +58,10 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     }
     return result;
   }
+
+  public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
+    create_token_set_(CLASS_MEMBER_NAME, CONSTRUCTOR_NAME),
+  };
 
   /* ********************************************************** */
   // "!"? (public|private|protected)
@@ -357,6 +361,17 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // qualifiedName
+  public static boolean constructor_name(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "constructor_name")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder, level, _NONE_, CONSTRUCTOR_NAME, "<constructor name>");
+    result = qualifiedName(builder, level + 1);
+    exit_section_(builder, level, marker, result, false, null);
+    return result;
+  }
+
+  /* ********************************************************** */
   // annotation_name? fields_modifier* class_member_core
   public static boolean field(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "field")) return false;
@@ -642,13 +657,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // method_modifier* class_name parameters
+  // method_modifier* constructor_name parameters
   public static boolean fully_qualified_name_constructor(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "fully_qualified_name_constructor")) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, FULLY_QUALIFIED_NAME_CONSTRUCTOR, "<fully qualified name constructor>");
     result = fully_qualified_name_constructor_0(builder, level + 1);
-    result = result && class_name(builder, level + 1);
+    result = result && constructor_name(builder, level + 1);
     pinned = result; // pin = 2
     result = result && parameters(builder, level + 1);
     exit_section_(builder, level, marker, result, pinned, null);
