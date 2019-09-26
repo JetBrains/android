@@ -45,7 +45,7 @@ class AndroidSqlBindParameterSyntaxInspectionTest : RoomLightTestCase() {
   }
 
   fun testQuestionMark() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -97,7 +97,7 @@ class AndroidSqlBindParameterSyntaxInspectionTest : RoomLightTestCase() {
   }
 
   fun testAtSign() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -133,7 +133,7 @@ class AndroidSqlBindParameterSyntaxInspectionTest : RoomLightTestCase() {
   }
 
   fun testColon() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -169,7 +169,7 @@ class AndroidSqlBindParameterSyntaxInspectionTest : RoomLightTestCase() {
   }
 
   fun testDollar() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
