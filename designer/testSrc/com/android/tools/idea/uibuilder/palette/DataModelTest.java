@@ -193,7 +193,7 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
-      "Spinner", "RecyclerView", "ScrollView", "HorizontalScrollView", "NestedScrollView", "ViewPager", "CardView",
+      "Spinner", "RecyclerView", "ScrollView", "HorizontalScrollView", "NestedScrollView", "ViewPager2", "CardView",
       "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "Toolbar", "TabLayout", "TabItem", "ViewStub",
       "<include>", "<fragment>", "NavHostFragment", "<view>", "<requestFocus>").inOrder();
   }
