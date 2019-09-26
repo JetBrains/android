@@ -895,6 +895,81 @@ class MiscParserTest : AndroidSqlParserTest() {
         "WITH minmax AS (SELECT (SELECT min(a) as min_a FROM Aaa), (SELECT max(a) FROM Aaa) as max_a) SELECT * FROM Aaa WHERE a=(SELECT foo FROM minmax)")
     )
   }
+
+  fun testRenameTable() {
+    assertEquals(
+      """
+      FILE
+        AndroidSqlAlterTableStatementImpl(ALTER_TABLE_STATEMENT)
+          PsiElement(ALTER)('ALTER')
+          PsiElement(TABLE)('TABLE')
+          AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+            PsiElement(IDENTIFIER)('myTable')
+          PsiElement(RENAME)('RENAME')
+          PsiElement(TO)('TO')
+          AndroidSqlTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
+            PsiElement(IDENTIFIER)('myNewTable')
+      """.trimIndent(),
+      toParseTreeText("ALTER TABLE myTable RENAME TO myNewTable")
+    )
+  }
+
+  fun testAddColumn() {
+    assertEquals(
+      """
+      FILE
+        AndroidSqlAlterTableStatementImpl(ALTER_TABLE_STATEMENT)
+          PsiElement(ALTER)('ALTER')
+          PsiElement(TABLE)('TABLE')
+          AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+            PsiElement(IDENTIFIER)('employees')
+          PsiElement(ADD)('ADD')
+          AndroidSqlColumnDefinitionImpl(COLUMN_DEFINITION)
+            AndroidSqlColumnDefinitionNameImpl(COLUMN_DEFINITION_NAME)
+              PsiElement(IDENTIFIER)('status')
+            AndroidSqlTypeNameImpl(TYPE_NAME)
+              PsiElement(IDENTIFIER)('VARCHAR')
+      """.trimIndent(),
+      toParseTreeText("ALTER TABLE employees ADD status VARCHAR")
+    )
+  }
+
+  fun testColumnRenaming() {
+    assertEquals(
+      """
+      FILE
+        AndroidSqlAlterTableStatementImpl(ALTER_TABLE_STATEMENT)
+          PsiElement(ALTER)('ALTER')
+          PsiElement(TABLE)('TABLE')
+          AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+            PsiElement(IDENTIFIER)('myTable')
+          PsiElement(RENAME)('RENAME')
+          PsiElement(COLUMN)('COLUMN')
+          AndroidSqlColumnNameImpl(COLUMN_NAME)
+            PsiElement(IDENTIFIER)('columnNameOld')
+          PsiElement(TO)('TO')
+          PsiElement(IDENTIFIER)('columnNameNew')
+      """.trimIndent(),
+      toParseTreeText("ALTER TABLE myTable RENAME COLUMN columnNameOld TO columnNameNew")
+    )
+
+    assertEquals(
+      """
+      FILE
+        AndroidSqlAlterTableStatementImpl(ALTER_TABLE_STATEMENT)
+          PsiElement(ALTER)('ALTER')
+          PsiElement(TABLE)('TABLE')
+          AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+            PsiElement(IDENTIFIER)('myTable')
+          PsiElement(RENAME)('RENAME')
+          AndroidSqlColumnNameImpl(COLUMN_NAME)
+            PsiElement(IDENTIFIER)('columnNameOld')
+          PsiElement(TO)('TO')
+          PsiElement(IDENTIFIER)('columnNameNew')
+      """.trimIndent(),
+      toParseTreeText("ALTER TABLE myTable RENAME columnNameOld TO columnNameNew")
+    )
+  }
 }
 
 class ErrorMessagesTest : AndroidSqlParserTest() {

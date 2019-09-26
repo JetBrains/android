@@ -51,6 +51,12 @@ public class AndroidSqlAlterTableStatementImpl extends ASTWrapperPsiElement impl
 
   @Override
   @Nullable
+  public AndroidSqlColumnName getColumnName() {
+    return findChildByClass(AndroidSqlColumnName.class);
+  }
+
+  @Override
+  @Nullable
   public AndroidSqlDatabaseName getDatabaseName() {
     return findChildByClass(AndroidSqlDatabaseName.class);
   }
@@ -65,6 +71,36 @@ public class AndroidSqlAlterTableStatementImpl extends ASTWrapperPsiElement impl
   @Nullable
   public AndroidSqlTableDefinitionName getTableDefinitionName() {
     return findChildByClass(AndroidSqlTableDefinitionName.class);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getBacktickLiteral() {
+    return findChildByType(BACKTICK_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getDoubleQuoteStringLiteral() {
+    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getIdentifier() {
+    return findChildByType(IDENTIFIER);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getSingleQuoteStringLiteral() {
+    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
   }
 
 }
