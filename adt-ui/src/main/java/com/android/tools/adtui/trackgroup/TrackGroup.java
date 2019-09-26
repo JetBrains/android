@@ -103,7 +103,9 @@ public class TrackGroup {
 
     JPanel titlePanel = new JPanel(new BorderLayout());
     titlePanel.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 1, 0, 1, 0));
-    titlePanel.add(myTitleLabel, BorderLayout.WEST);
+    if (!groupModel.getHideHeader()) {
+      titlePanel.add(myTitleLabel, BorderLayout.WEST);
+    }
     titlePanel.add(toolbarPanel, BorderLayout.EAST);
 
     myComponent = new JPanel(new BorderLayout());

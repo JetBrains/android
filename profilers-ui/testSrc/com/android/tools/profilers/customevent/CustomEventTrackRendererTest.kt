@@ -18,14 +18,7 @@ package com.android.tools.profilers.customevent
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.linechart.LineChart
-import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.model.LineChartModel
-import com.android.tools.adtui.model.Range
-import com.android.tools.adtui.model.RangedContinuousSeries
-import com.android.tools.adtui.model.SeriesData
-import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
-import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -59,11 +52,10 @@ class CustomEventTrackRendererTest {
   @Test
   fun testRendererComponents() {
     // Tests that the line chart and axis component are rendered in the track.
-    val range = Range(0.0, 0.0)
     val lineChartModel = UserCounterModel(profilers, "foo")
-    val customEventTrackModel = TrackModel(CustomEventTrackModel(lineChartModel),
-                                           ProfilerTrackRendererType.CUSTOM_EVENTS,
-                                           "Custom Events")
+    val customEventTrackModel = TrackModel.newBuilder(CustomEventTrackModel(lineChartModel),
+                                                      ProfilerTrackRendererType.CUSTOM_EVENTS,
+                                                      "Custom Events").build()
 
     val renderer = CustomEventTrackRenderer()
     val component = renderer.render(customEventTrackModel)
@@ -74,15 +66,5 @@ class CustomEventTrackRendererTest {
 
     val trackAxisComponent = treeWalker.descendants().filterIsInstance(AxisComponent::class.java)
     Truth.assertThat(trackAxisComponent.size).isEqualTo(1)
-  }
-
-  private class FakeDataSeries
-    : DataSeries<Long> {
-
-    val func = { i: Int -> SeriesData(0L, i.toLong()) }
-
-    override fun getDataForRange(range: Range?): MutableList<SeriesData<Long>> {
-      return MutableList(1, func)
-    }
   }
 }

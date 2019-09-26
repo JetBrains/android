@@ -24,10 +24,8 @@ class TrackGroupModelTest {
   @Test
   fun addTrackModel() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("group").build()
-    val trackModel1 = TrackModel(123, TestTrackRendererType.FOO, "foo")
-    val trackModel2 = TrackModel(321, TestTrackRendererType.BAR, "bar")
-    trackGroupModel.addTrackModel(trackModel1)
-    trackGroupModel.addTrackModel(trackModel2)
+    trackGroupModel.addTrackModel(TrackModel.newBuilder(123, TestTrackRendererType.FOO, "foo"))
+    trackGroupModel.addTrackModel(TrackModel.newBuilder(321, TestTrackRendererType.BAR, "bar"))
 
     val addedTrackModel1 = trackGroupModel.get(0)
     val addedTrackModel2 = trackGroupModel.get(1)
@@ -36,11 +34,5 @@ class TrackGroupModelTest {
     assertThat(addedTrackModel2.title).isEqualTo("bar")
     assertThat(addedTrackModel2.dataModel).isEqualTo(321)
     assertWithMessage("Track IDs should be unique within a group").that(addedTrackModel1.id).isNotEqualTo(addedTrackModel2.id)
-  }
-
-  @Test
-  fun collapsedTrackModel() {
-    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("foo").setCollapsedInitially(true).build()
-    assertThat(trackGroupModel.isCollapsedInitially).isTrue()
   }
 }

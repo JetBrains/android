@@ -28,35 +28,56 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
    */
   private static final AtomicInteger TRACK_ID_GENERATOR = new AtomicInteger();
 
-  private String myTitle;
-  private boolean myCollapsedInitially;
+  private final String myTitle;
+  private final boolean myCollapsedInitially;
+  private final boolean myHideHeader;
+  private final int myTrackLimit;
 
   /**
    * Use builder to instantiate this class.
    */
-  private TrackGroupModel(String title, boolean collapsedInitially) {
-    myTitle = title;
-    myCollapsedInitially = collapsedInitially;
+  private TrackGroupModel(Builder builder) {
+    myTitle = builder.myTitle;
+    myCollapsedInitially = builder.myCollapsedInitially;
+    myHideHeader = builder.myHideHeader;
+    myTrackLimit = builder.myTrackLimit;
   }
 
   /**
    * Add a {@link TrackModel} to the group.
    *
-   * @param trackModel {@link TrackModel} to add
+   * @param builder    to build the {@link TrackModel} to add
    * @param <M>        data model type
    * @param <R>        renderer enum type
    */
-  public <M, R extends Enum> void addTrackModel(@NotNull TrackModel<M, R> trackModel) {
+  public <M, R extends Enum> void addTrackModel(@NotNull TrackModel.Builder<M, R> builder) {
     // add() is disabled in DragAndDropListModel to support dynamically reordering elements. Use insertOrderedElement() instead.
-    insertOrderedElement(trackModel.setId(TRACK_ID_GENERATOR.getAndIncrement()));
+    insertOrderedElement(builder.setId(TRACK_ID_GENERATOR.getAndIncrement()).build());
   }
 
   public String getTitle() {
     return myTitle;
   }
 
+  /**
+   * @return whether the track group is collapsed initially.
+   */
   public boolean isCollapsedInitially() {
     return myCollapsedInitially;
+  }
+
+  /**
+   * @return whether to hide the group header.
+   */
+  public boolean getHideHeader() {
+    return myHideHeader;
+  }
+
+  /**
+   * @return the number limit of tracks to display.
+   */
+  public int getTrackLimit() {
+    return myTrackLimit;
   }
 
   public static Builder newBuilder() {
@@ -66,10 +87,14 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   public static class Builder {
     private String myTitle;
     private boolean myCollapsedInitially;
+    private boolean myHideHeader;
+    private int myTrackLimit;
 
     private Builder() {
       myTitle = "";
       myCollapsedInitially = false;
+      myHideHeader = false;
+      myTrackLimit = Integer.MAX_VALUE;
     }
 
     /**
@@ -80,16 +105,23 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
       return this;
     }
 
-    /**
-     * @param collapsedInitially true if the track group is collapsed initially
-     */
     public Builder setCollapsedInitially(boolean collapsedInitially) {
       myCollapsedInitially = collapsedInitially;
       return this;
     }
 
+    public Builder setHideHeader(boolean hideHeader) {
+      myHideHeader = hideHeader;
+      return this;
+    }
+
+    public Builder setTrackLimit(int trackLimit) {
+      myTrackLimit = trackLimit;
+      return this;
+    }
+
     public TrackGroupModel build() {
-      return new TrackGroupModel(myTitle, myCollapsedInitially);
+      return new TrackGroupModel(this);
     }
   }
 }
