@@ -22,24 +22,18 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ProguardR8MethodSpecification extends PsiElement {
+public interface ProguardR8FullyQualifiedNameConstructor extends ProguardR8ClassMember {
 
   @NotNull
   List<ProguardR8AccessModifier> getAccessModifierList();
 
-  @Nullable
-  ProguardR8AnnotationName getAnnotationName();
-
-  @Nullable
-  ProguardR8AnyFieldOrMethod getAnyFieldOrMethod();
-
-  @Nullable
-  ProguardR8FullyQualifiedNameConstructor getFullyQualifiedNameConstructor();
-
-  @Nullable
-  ProguardR8Method getMethod();
+  @NotNull
+  ProguardR8ClassName getClassName();
 
   @Nullable
   ProguardR8Parameters getParameters();
+
+  @Nullable
+  ProguardR8Type getType();
 
 }

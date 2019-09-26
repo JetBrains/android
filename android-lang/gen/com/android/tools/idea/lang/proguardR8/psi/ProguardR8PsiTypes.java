@@ -40,6 +40,7 @@ public interface ProguardR8PsiTypes {
   IElementType FIELDS_SPECIFICATION = new ProguardR8AstNodeType("FIELDS_SPECIFICATION");
   IElementType FILE_FILTER = new ProguardR8AstNodeType("FILE_FILTER");
   IElementType FLAG_ARGUMENT = new ProguardR8AstNodeType("FLAG_ARGUMENT");
+  IElementType FULLY_QUALIFIED_NAME_CONSTRUCTOR = new ProguardR8AstNodeType("FULLY_QUALIFIED_NAME_CONSTRUCTOR");
   IElementType JAVA_PRIMITIVE = new ProguardR8AstNodeType("JAVA_PRIMITIVE");
   IElementType JAVA_RULE = new ProguardR8AstNodeType("JAVA_RULE");
   IElementType KEEP_OPTION_MODIFIER = new ProguardR8AstNodeType("KEEP_OPTION_MODIFIER");
@@ -162,6 +163,9 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == FLAG_ARGUMENT) {
         return new ProguardR8FlagArgumentImpl(node);
+      }
+      else if (type == FULLY_QUALIFIED_NAME_CONSTRUCTOR) {
+        return new ProguardR8FullyQualifiedNameConstructorImpl(node);
       }
       else if (type == JAVA_PRIMITIVE) {
         return new ProguardR8JavaPrimitiveImpl(node);

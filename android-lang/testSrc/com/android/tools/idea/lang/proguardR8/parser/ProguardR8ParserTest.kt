@@ -378,15 +378,16 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
             PsiElement(opening brace)('{')
             ProguardR8JavaRuleImpl(JAVA_RULE)
               ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
-                ProguardR8ClassNameImpl(CLASS_NAME)
-                  ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
-                    PsiElement(JAVA_IDENTIFIER)('java')
-                    PsiElement(dot)('.')
-                    PsiElement(JAVA_IDENTIFIER)('lang')
-                    PsiElement(dot)('.')
-                    PsiElement(JAVA_IDENTIFIER)('StringBuilder')
-                PsiErrorElement:${'$'}, <class member name>, '[]', dot or left parenthesis expected, got ';'
-                  <empty list>
+                ProguardR8FullyQualifiedNameConstructorImpl(FULLY_QUALIFIED_NAME_CONSTRUCTOR)
+                  ProguardR8ClassNameImpl(CLASS_NAME)
+                    ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                      PsiElement(JAVA_IDENTIFIER)('java')
+                      PsiElement(dot)('.')
+                      PsiElement(JAVA_IDENTIFIER)('lang')
+                      PsiElement(dot)('.')
+                      PsiElement(JAVA_IDENTIFIER)('StringBuilder')
+                  PsiErrorElement:${'$'}, <class member name>, '[]', dot or left parenthesis expected, got ';'
+                    <empty list>
             PsiElement(semicolon)(';')
             ProguardR8JavaRuleImpl(JAVA_RULE)
               ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
@@ -682,23 +683,25 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
             PsiElement(semicolon)(';')
             ProguardR8JavaRuleImpl(JAVA_RULE)
               ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
-                ProguardR8ClassNameImpl(CLASS_NAME)
-                  ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
-                    PsiElement(JAVA_IDENTIFIER)('not')
-                    PsiElement(dot)('.')
-                    PsiElement(JAVA_IDENTIFIER)('classMember')
-                PsiErrorElement:${'$'}, <class member name>, '[]', dot or left parenthesis expected, got ';'
-                  <empty list>
+                ProguardR8FullyQualifiedNameConstructorImpl(FULLY_QUALIFIED_NAME_CONSTRUCTOR)
+                  ProguardR8ClassNameImpl(CLASS_NAME)
+                    ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                      PsiElement(JAVA_IDENTIFIER)('not')
+                      PsiElement(dot)('.')
+                      PsiElement(JAVA_IDENTIFIER)('classMember')
+                  PsiErrorElement:${'$'}, <class member name>, '[]', dot or left parenthesis expected, got ';'
+                    <empty list>
             PsiElement(semicolon)(';')
             ProguardR8JavaRuleImpl(JAVA_RULE)
               ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
-                ProguardR8ClassNameImpl(CLASS_NAME)
-                  ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
-                    PsiElement(JAVA_IDENTIFIER)('not')
-                    PsiElement(${'$'})('${'$'}')
-                    PsiElement(JAVA_IDENTIFIER)('classMember')
-                PsiErrorElement:<class member name>, '[]' or left parenthesis expected, got ';'
-                  <empty list>
+                ProguardR8FullyQualifiedNameConstructorImpl(FULLY_QUALIFIED_NAME_CONSTRUCTOR)
+                  ProguardR8ClassNameImpl(CLASS_NAME)
+                    ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                      PsiElement(JAVA_IDENTIFIER)('not')
+                      PsiElement(${'$'})('${'$'}')
+                      PsiElement(JAVA_IDENTIFIER)('classMember')
+                  PsiErrorElement:<class member name>, '[]' or left parenthesis expected, got ';'
+                    <empty list>
             PsiElement(semicolon)(';')
             PsiElement(closing brace)('}')
       """.trimIndent(),
@@ -709,6 +712,52 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
             method();
             not.classMember;
             not${'$'}classMember;
+          }
+        """.trimIndent()
+      )
+    )
+  }
+
+  fun testFullyQualifiedNameConstructor() {
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+            PsiElement(FLAG)('-keep')
+            ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+              ProguardR8ClassTypeImpl(CLASS_TYPE)
+                PsiElement(class)('class')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER)('p1')
+                  PsiElement(dot)('.')
+                  PsiElement(JAVA_IDENTIFIER)('p2')
+                  PsiElement(dot)('.')
+                  PsiElement(JAVA_IDENTIFIER)('myClass')
+            ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+              PsiElement(opening brace)('{')
+              ProguardR8JavaRuleImpl(JAVA_RULE)
+                ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
+                  ProguardR8FullyQualifiedNameConstructorImpl(FULLY_QUALIFIED_NAME_CONSTRUCTOR)
+                    ProguardR8ClassNameImpl(CLASS_NAME)
+                      ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                        PsiElement(JAVA_IDENTIFIER)('p1')
+                        PsiElement(dot)('.')
+                        PsiElement(JAVA_IDENTIFIER)('p2')
+                        PsiElement(dot)('.')
+                        PsiElement(JAVA_IDENTIFIER)('myClass')
+                    ProguardR8ParametersImpl(PARAMETERS)
+                      PsiElement(left parenthesis)('(')
+                      ProguardR8TypeListImpl(TYPE_LIST)
+                        <empty list>
+                      PsiElement(right parenthesis)(')')
+                PsiErrorElement:'}' unexpected
+                  PsiElement(closing brace)('}')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        -keep class p1.p2.myClass {
+            p1.p2.myClass()
           }
         """.trimIndent()
       )
