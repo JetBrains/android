@@ -22,17 +22,19 @@ import com.android.builder.model.AndroidArtifactOutput;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.common.base.Strings;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -53,7 +55,6 @@ import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getOutput;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -214,13 +215,6 @@ public class AndroidRootUtil {
   public static VirtualFile getBuildconfigGenDir(@NotNull AndroidFacet facet) {
     String path = getBuildconfigGenSourceRootPath(facet);
     return path != null ? LocalFileSystem.getInstance().findFileByPath(path) : null;
-  }
-
-  // works even if there is no Android facet in a module
-
-  @Nullable
-  public static VirtualFile getStandardGenDir(@NotNull Module module) {
-    return getFileByRelativeModulePath(module, '/' + SdkConstants.FD_GEN_SOURCES, false);
   }
 
   private static void collectClassFilesAndJars(@NotNull VirtualFile root,
@@ -384,6 +378,10 @@ public class AndroidRootUtil {
   @Nullable
   @SystemIndependent
   public static String getModuleDirPath(@NotNull Module module) {
+    String linkedProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module);
+    if (!Strings.isNullOrEmpty(linkedProjectPath)) {
+      return linkedProjectPath;
+    }
     @SystemIndependent String moduleFilePath = module.getModuleFilePath();
     return VfsUtil.getParentDir(moduleFilePath);
   }
