@@ -48,4 +48,10 @@ public class ProguardR8AccessModifierImpl extends ASTWrapperPsiElement implement
     return ProguardR8PsiImplUtil.isNegated(this);
   }
 
+  @Override
+  @NotNull
+  public String toPsiModifier() {
+    return ProguardR8PsiImplUtil.toPsiModifier(this);
+  }
+
 }

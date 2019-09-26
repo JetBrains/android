@@ -16,10 +16,13 @@
 package com.android.tools.idea.lang.proguardR8.psi
 
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder
+import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementResolveResult
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiModifierList
+import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiPolyVariantReferenceBase
 import com.intellij.psi.PsiSubstitutor
@@ -32,8 +35,15 @@ import com.intellij.psi.util.parentOfType
 class ProguardR8ClassMemberNameReference(
   member: ProguardR8ClassMemberName
 ) : PsiPolyVariantReferenceBase<ProguardR8ClassMemberName>(member) {
-  val type = member.parentOfType(ProguardR8ClassMember::class)!!.type
-  val parameters = member.parentOfType(ProguardR8ClassMember::class)!!.parameters
+  private val containingMember = member.parentOfType(ProguardR8ClassMember::class)!!
+  private val type = containingMember.type
+  private val parameters = containingMember.parameters
+  private val accessModifiers = containingMember.accessModifierList.filter { !it.isNegated }.map(::toPsiModifier)
+  private val negatedAccessModifiers = containingMember.accessModifierList.filter { it.isNegated }.map(::toPsiModifier)
+
+  private fun List<String>.overlaps(psiModifierList: PsiModifierList): Boolean {
+    return any { psiModifierList.hasModifierProperty(it) }
+  }
 
   fun resolveParentClasses(): List<PsiClass> {
     return element.parentOfType<ProguardR8RuleWithClassSpecification>()
@@ -42,10 +52,23 @@ class ProguardR8ClassMemberNameReference(
       .orEmpty()
   }
 
+  /**
+   * Checks if [ProguardR8ClassMemberName] of this reference matches access modifiers of the given [PsiModifierListOwner]
+   *
+   * If there are some access flags, to match there must be an overlap with accessModifiers and no overlap with negatedAccessModifiers
+   */
+  private fun matchesAccessLevel(psiElement: PsiModifierListOwner): Boolean {
+    val psiModifierList = psiElement.modifierList ?: return false
+    if (accessModifiers.isNotEmpty() && !accessModifiers.overlaps(psiModifierList)) return false
+    if (negatedAccessModifiers.isNotEmpty() && negatedAccessModifiers.overlaps(psiModifierList)) return false
+    return true
+  }
+
   private fun getFields(): Collection<PsiField> {
     return resolveParentClasses().asSequence()
       .flatMap { it.fields.asSequence() }
       .filter { type == null || type.matchesPsiType(it.type) }
+      .filter(::matchesAccessLevel)
       .toList()
   }
 
@@ -55,6 +78,7 @@ class ProguardR8ClassMemberNameReference(
       .filter { it.returnType != null } // if returnType is null it's constructor
       .filter { type == null || type.matchesPsiType(it.returnType!!) } // match return type
       .filter { parameters == null || parameters.matchesPsiParameterList(it.parameterList) } // match parameters
+      .filter(::matchesAccessLevel)
       .toList()
   }
 
@@ -68,7 +92,7 @@ class ProguardR8ClassMemberNameReference(
     return members.filter { it.name == element.text }.map(::PsiElementResolveResult).toTypedArray()
   }
 
-  override fun getVariants(): Array<Any> {
+  override fun getVariants(): Array<LookupElementBuilder> {
     val fields = (if (parameters == null) getFields() else emptyList()).map(JavaLookupElementBuilder::forField)
     val methods = getMethods().map { JavaLookupElementBuilder.forMethod(it, PsiSubstitutor.EMPTY) }
     return (fields + methods).toTypedArray()

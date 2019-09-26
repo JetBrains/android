@@ -26,4 +26,7 @@ public interface ProguardR8AccessModifier extends PsiElement {
 
   boolean isNegated();
 
+  @NotNull
+  String toPsiModifier();
+
 }

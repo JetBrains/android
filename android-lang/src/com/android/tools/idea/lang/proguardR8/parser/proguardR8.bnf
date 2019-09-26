@@ -125,7 +125,7 @@ class_specification_header ::= annotation_name? class_modifier* class_type class
  */
 private class_member_core ::= ((type class_member_name) | class_member_name) !('.'|'$')
 access_modifier ::= "!"? (public|private|protected) {
-  methods=[isNegated]
+  methods=[isNegated toPsiModifier]
 }
 field ::= annotation_name? fields_modifier* class_member_core {
   methods=[getParameters]
