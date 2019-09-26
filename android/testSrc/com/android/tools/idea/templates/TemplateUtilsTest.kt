@@ -22,7 +22,7 @@ import com.android.tools.idea.templates.TemplateUtils.underlinesToCamelCase
 import junit.framework.TestCase
 import java.io.File
 
-// TODO cover more functions
+// TODO(qumeric): cover more functions
 
 class TemplateUtilsTest : TestCase() {
   fun testExtractClassName() {

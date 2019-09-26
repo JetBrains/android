@@ -33,6 +33,7 @@ import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
 import com.android.tools.idea.wizard.template.PackageName
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Version
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -189,7 +190,7 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
   private fun Project?.hasAndroidxSupport() : Boolean =
     this == null || isNew || this.isAndroidx()
 
-  internal fun build() = ProjectTemplateData(
+  fun build() = ProjectTemplateData(
     minApi!!,
     minApiLevel!!,
     buildApi!!,

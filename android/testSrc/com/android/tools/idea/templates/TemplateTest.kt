@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.testutils.TestUtils
+import com.android.tools.idea.npw.platform.Language
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_LANGUAGE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.google.common.truth.Truth.assertWithMessage
 import java.io.File
 import kotlin.reflect.full.findAnnotation
@@ -30,6 +37,14 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewBasicActivityWithKotlin() {
     checkCreateTemplate("activities", "BasicActivity", false, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareNewBasicActivityWithKotlin() {
+    checkCreateTemplate("activities", "BasicActivity", false) { templateMap, projectMap ->
+      withKotlin(templateMap, projectMap)
+      templateMap[COMPARE_NEW_RENDERING_CONTEXT] = true
+    }
   }
 
   @TemplateCheck
@@ -684,9 +699,16 @@ open class TemplateTest : TemplateTestBase() {
       val failurePrefix = """
         The following templates were not covered by TemplateTest. Please ensure that tests are added to cover
         these templates and that they are annotated with @TemplateCheck.
-        
         """.trimIndent()
       assertWithMessage(failurePrefix).that(failureMessages).isEmpty()
     }
   }
 }
+
+/**
+ * Const for toggling the behavior of a test.
+ *
+ * If this value is true, the test should include comparison between the contents of the two projects generated from
+ * the [RenderingContext] and the new [RenderingContext2].
+ */
+const val COMPARE_NEW_RENDERING_CONTEXT = "compareNewRenderingContext"

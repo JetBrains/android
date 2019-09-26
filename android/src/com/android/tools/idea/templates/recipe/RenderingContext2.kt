@@ -20,6 +20,7 @@ import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.SetMultimap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtilCore
 import java.io.File
 
@@ -28,7 +29,7 @@ data class RenderingContext2(
   val module: Module?,
   val commandName: String,
   val templateData: ModuleTemplateData,
-  val outputRoot: File = VfsUtilCore.virtualToIoFile(project.getBaseDir()),
+  val outputRoot: File = VfsUtilCore.virtualToIoFile(project.guessProjectDir() ?: project.baseDir),
   val moduleRoot: File,
   val dryRun: Boolean,
   val showErrors: Boolean
