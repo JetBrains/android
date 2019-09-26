@@ -115,7 +115,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick2="@{view_id.getText()}"/>
+            android:onClick2="@{viewId.getText()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
