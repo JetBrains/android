@@ -760,6 +760,7 @@ public final class StudioFlags {
     "parameters as well.",
     false
   );
+
   public static final Flag<Boolean> COMPOSE_COMPLETION_TRAILING_LAMBDA = Flag.create(
     COMPOSE, "completion.lambda",
     "Show trailing function parameter as lambda",
@@ -774,6 +775,12 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_WIZARD_TEMPLATES = Flag.create(
+    COMPOSE, "wizard.templates",
+    "Show Compose Wizards",
+    "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
+    false
+  );
   //endregion
 
   //region Binding

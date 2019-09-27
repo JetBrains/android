@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.getModuleRoot
@@ -145,6 +146,11 @@ class NewModuleModel(
 
       moduleTemplateValues[ATTR_APP_TITLE] = applicationName.get()
       moduleTemplateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
+
+      if (StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()) {
+        // TODO(parentej) ag/q/topic:kotlin-1.3.50-compose-20190920 - This should not be needed when the kotlin plugin is merged.
+        moduleTemplateValues["isCompose"] = true
+      }
 
       val project = project.value
       TemplateValueInjector(moduleTemplateValues).apply {

@@ -17,6 +17,7 @@ package com.android.tools.idea.actions;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.templates.TemplateManager.CATEGORY_AUTOMOTIVE;
+import static com.android.tools.idea.templates.TemplateManager.CATEGORY_COMPOSE;
 import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 
@@ -61,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class NewAndroidComponentAction extends AnAction {
   // These categories will be using a new wizard
-  public static final Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google", CATEGORY_AUTOMOTIVE);
+  public static final Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google", CATEGORY_AUTOMOTIVE, CATEGORY_COMPOSE);
   public static final Set<String> FRAGMENT_CATEGORY = ImmutableSet.of("Fragment");
 
   public static final DataKey<List<File>> CREATED_FILES = DataKey.create("CreatedFiles");
