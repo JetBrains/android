@@ -65,6 +65,7 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
 import com.intellij.problems.WolfTheProblemSolver
@@ -270,6 +271,8 @@ private class PreviewEditor(private val psiFile: PsiFile,
       setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true)
     }
 
+  private val modelUpdater: NlModel.NlModelUpdaterInterface = PreviewModelUpdater(surface)
+
   /**
    * List of [PreviewElement] being rendered by this editor
    */
@@ -403,8 +406,8 @@ private class PreviewEditor(private val psiFile: PsiFile,
         if (LOG.isDebugEnabled) {
           LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
 
-                ${it.toPreviewXmlString(withBorder = false)}
-            """.trimIndent())
+              ${it.toPreviewXmlString(withBorder = false)}
+          """.trimIndent())
         }
       }
       .map { Pair(it, it.toPreviewXmlString(withBorder = showBorder)) }
@@ -431,12 +434,13 @@ private class PreviewEditor(private val psiFile: PsiFile,
                          facet,
                          file,
                          configuration,
-                         surface.componentRegistrar)
+                         surface.componentRegistrar,
+                         modelUpdater)
         }
 
         val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
           project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
-        navigationHandler.addMap(model, navigable)
+        navigationHandler.addMap(model, navigable, psiFile.virtualFile.name)
 
         previewElement.configuration.applyTo(model.configuration)
 

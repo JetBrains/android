@@ -44,6 +44,8 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
+        "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/idea/.idea/libraries:studio-analytics-proto",

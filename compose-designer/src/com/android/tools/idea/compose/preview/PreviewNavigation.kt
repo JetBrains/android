@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.collect.ImmutableList
 import com.intellij.pom.Navigatable
+import com.intellij.psi.xml.XmlTag
 
 
 /**
@@ -28,10 +32,17 @@ import com.intellij.pom.Navigatable
 class PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
 
   private val map = HashMap<NlModel, Navigatable>()
+  private val fileNames = HashSet<String>()
 
-  fun addMap(model: NlModel, navigatable: Navigatable) {
+  fun addMap(model: NlModel, navigatable: Navigatable, name: String) {
     map[model] = navigatable
+    fileNames.add(name)
   }
+
+  override fun getFileNames(): Set<String> {
+    return fileNames
+  }
+
 
   override fun handleNavigate(sceneView: SceneView, models: ImmutableList<NlModel>, requestFocus: Boolean) {
     for (model in models) {
@@ -45,5 +56,36 @@ class PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
 
   override fun dispose() {
     map.clear()
+    fileNames.clear()
+  }
+}
+
+class PreviewModelUpdater(val surface: NlDesignSurface) : DefaultModelUpdater() {
+  override fun update(model: NlModel, newRoot: XmlTag?, roots: MutableList<NlModel.TagSnapshotTreeNode>) {
+
+    // TODO: Perhaps there's a better place to register the listener. It must be after
+    // the scene manager is set though.
+    surface.sceneManager!!.addRenderListener(object : RenderListener {
+      override fun onRenderCompleted() {
+        // Make sure you deregister after.
+        surface.sceneManager!!.removeRenderListener(this)
+
+        if (model.components.isEmpty()) {
+          return
+        }
+
+        val root = model.components[0]
+        val viewInfo = root.viewInfo
+        val viewObject = viewInfo!!.viewObject
+        val customViewInfo = parseViewObject(
+          surface.navigationHandler!!, viewObject)
+
+        // TODO: After the render is complete, we inject our own scene hierarchy.
+
+      }
+    })
+
+    // Delegate to the default updater.
+    super.update(model, newRoot, roots)
   }
 }

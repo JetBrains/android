@@ -80,6 +80,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -211,6 +212,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public interface NavigationHandler extends Disposable {
 
     /**
+     * Returns the list of file names that the handler can navigate.
+     */
+    @NotNull Set<String> getFileNames();
+
+    /**
      * Triggered when preview in the design surface is clicked.
      */
     void handleNavigate(SceneView view, ImmutableList<NlModel> models, boolean editor);
@@ -334,6 +340,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   public SceneMode getSceneMode() {
     return mySceneMode;
+  }
+
+  @Nullable
+  public NavigationHandler getNavigationHandler() {
+    return myNavigationHandler;
   }
 
   public void setScreenMode(@NotNull SceneMode sceneMode, boolean setAsDefault) {
