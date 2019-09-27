@@ -913,7 +913,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       return Desugaring.NONE;
     }
 
-    return getGradleDesugaring(version, getJavaLanguageLevel());
+    return getGradleDesugaring(version, getJavaLanguageLevel(), myAndroidProject.getJavaCompileOptions().isCoreLibraryDesugaringEnabled());
   }
 
   @Override
