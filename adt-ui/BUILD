@@ -84,6 +84,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:Java_Compatibility",
+        "//tools/idea/.idea/libraries:gson",
     ],
 )
 
