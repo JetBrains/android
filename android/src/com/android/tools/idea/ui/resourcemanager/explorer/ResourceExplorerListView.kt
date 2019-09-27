@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -209,6 +210,12 @@ class ResourceExplorerListView(
     }
   }
 
+  private val contentPanel: JPanel =
+    JPanel(BorderLayout()).apply {
+      add(topActionsPanel, BorderLayout.NORTH)
+      add(centerPanel)
+    }
+
   /**
    * Mouse listener to invoke the popup menu.
    *
@@ -278,21 +285,17 @@ class ResourceExplorerListView(
   }
 
   private fun showDetailView(designAssetSet: ResourceAssetSet) {
-    val parent = parent
-    parent.remove(this)
     val previousSelectedValue = sectionList.selectedValue
 
-    val detailView = ResourceDetailView(designAssetSet, viewModel) { detailView ->
-      parent.remove(detailView)
-      parent.add(this@ResourceExplorerListView)
-      parent.revalidate()
-      parent.repaint()
+    val detailView = ResourceDetailView(designAssetSet, viewModel) {
+      setContentPanel()
       sectionList.selectedValue = previousSelectedValue
     }
 
-    parent.add(detailView)
-    parent.revalidate()
-    parent.repaint()
+    removeAll()
+    add(detailView)
+    revalidate()
+    repaint()
     detailView.requestFocusInWindow()
   }
 
@@ -346,7 +349,10 @@ class ResourceExplorerListView(
   init {
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
 
-    viewModel.resourceChangedCallback = {
+    viewModel.updateUiCallback = { reason ->
+      if (reason == UpdateUiReason.RESOURCE_TYPE_CHANGED) {
+        setContentPanel()
+      }
       populateExternalActions()
       populateResourcesLists()
       populateSearchLinkLabels()
@@ -364,7 +370,7 @@ class ResourceExplorerListView(
       populateSearchLinkLabels()
     }
 
-    add(getContentPanel())
+    setContentPanel()
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
       override fun getFirstComponent(p0: Container?): Component {
@@ -373,11 +379,12 @@ class ResourceExplorerListView(
     }
   }
 
-  private fun getContentPanel(): JPanel =
-    JPanel(BorderLayout()).apply {
-      add(topActionsPanel, BorderLayout.NORTH)
-      add(centerPanel)
-    }
+  private fun setContentPanel() {
+    removeAll()
+    add(contentPanel)
+    revalidate()
+    repaint()
+  }
 
   private fun getSelectedAssets(): List<Asset> {
     return sectionList.getLists()
