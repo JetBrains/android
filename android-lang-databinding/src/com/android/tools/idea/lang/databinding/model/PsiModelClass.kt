@@ -273,8 +273,14 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
                              staticOnly = staticOnly,
                              allowProtected = allowProtected,
                              unwrapObservableFields = unwrapObservableFields)
-    // TODO: b/130429958 Choose method based on args matching
-    return if (methods.isEmpty()) null else methods[0]
+    if (methods.isEmpty()) {
+      return null
+    }
+    var bestMethod = methods[0]
+    for (i in 1 until methods.size) {
+      bestMethod = PsiModelMethod.betterMatchWithArguments(args, bestMethod, methods[i])
+    }
+    return bestMethod
   }
 
   private fun getField(name: String, allowPrivate: Boolean, isStatic: Boolean): PsiModelField? {
@@ -318,6 +324,12 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     else null
   }
 
+  override fun equals(other: Any?): Boolean {
+    val otherClass = other as? PsiModelClass ?: return false
+    return type == otherClass.type && mode == otherClass.mode
+  }
+
+  override fun hashCode() = type.hashCode().xor(mode.hashCode())
 
   companion object {
 
