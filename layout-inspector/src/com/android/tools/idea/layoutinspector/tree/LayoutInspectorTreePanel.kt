@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
@@ -127,7 +128,16 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
       val bytes = client?.getPayload(event.tree.payloadId) ?: return
       var viewRoot: InspectorView? = null
       if (bytes.isNotEmpty()) {
-        viewRoot = SkiaParser.getViewTree(bytes)
+        try {
+          viewRoot = SkiaParser.getViewTree(bytes)
+          if (viewRoot != null && viewRoot.id.isEmpty()) {
+            // We were unable to parse the skia image. Allow the user to interact with the component tree.
+            viewRoot = null
+          }
+        }
+        catch (ex: Exception) {
+          Logger.getInstance(LayoutInspectorTreePanel::class.java).warn(ex)
+        }
       }
       if (viewRoot != null) {
         val imageLoader = ComponentImageLoader(rootView, viewRoot)
