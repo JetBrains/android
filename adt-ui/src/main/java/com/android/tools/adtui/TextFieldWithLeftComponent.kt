@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.awt.BorderLayout
 import java.awt.Graphics
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTextField
 import javax.swing.UIManager
@@ -28,15 +29,14 @@ import javax.swing.UIManager
 private const val ICON_SIDES_MARGIN = 4
 
 /**
- * Wraps the given [FocusableIcon] and [JTextField] in a panel that has the appearance of a regular TextField, with the [focusableIcon]
+ * Wraps the given [JComponent] and [JTextField] in a panel that has the appearance of a regular TextField, with the [leftComponent]
  * placed left to the [textField].
  *
  * The panel paints as focused whenever [textField] would be focused.
  *
- * Since the panel will have the TextField appearance, [textField] is stripped from its border and background.
+ * Since the panel will have the TextField appearance, [textField] and [leftComponent] are stripped from their border and background.
  */
-class TextFieldWithIcon(val focusableIcon: FocusableIcon, val textField: JTextField) : JPanel(BorderLayout()) {
-
+class TextFieldWithLeftComponent(val leftComponent: JComponent, val textField: JTextField) : JPanel(BorderLayout()) {
   private val focusListener: FocusListener = object : FocusListener {
     override fun focusLost(e: FocusEvent?) {
       repaint()
@@ -49,16 +49,17 @@ class TextFieldWithIcon(val focusableIcon: FocusableIcon, val textField: JTextFi
 
   init {
     border = DarculaTextBorder()
-    focusableIcon.border = JBUI.Borders.empty(0, ICON_SIDES_MARGIN)
+    leftComponent.border = JBUI.Borders.empty(0, ICON_SIDES_MARGIN)
+    leftComponent.isOpaque = false
     textField.border = JBUI.Borders.empty()
     textField.isOpaque = false
     textField.addFocusListener(focusListener)
-    super.add(focusableIcon, BorderLayout.WEST)
+    super.add(leftComponent, BorderLayout.WEST)
     super.add(textField, BorderLayout.CENTER)
   }
 
   override fun requestFocus() {
-    focusableIcon.requestFocusInWindow() || textField.requestFocusInWindow()
+    leftComponent.requestFocusInWindow() || textField.requestFocusInWindow()
   }
 
   override fun hasFocus(): Boolean {
