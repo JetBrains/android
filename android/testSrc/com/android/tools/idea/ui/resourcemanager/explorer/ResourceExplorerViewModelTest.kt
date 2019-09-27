@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth
@@ -115,8 +116,10 @@ class ResourceExplorerViewModelTest {
                        })
       .containsExactly("res/drawable/png.png", "res/drawable/vector_drawable.xml")
 
-    listViewModel.resourceChangedCallback = {
-      resourceChangedLatch.countDown()
+    listViewModel.updateUiCallback = {
+      if (it == UpdateUiReason.RESOURCES_CHANGED) {
+        resourceChangedLatch.countDown()
+      }
     }
 
     val file = projectRule.fixture.findFileInTempDir("res/drawable/vector_drawable.xml")!!
