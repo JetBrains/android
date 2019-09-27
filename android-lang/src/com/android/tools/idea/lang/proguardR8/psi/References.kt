@@ -74,14 +74,26 @@ class ProguardR8ClassMemberNameReference(
       .toList()
   }
 
+  private fun getConstructors(): Collection<PsiMethod> {
+    // Constructors don't have return type, but always have parameters.
+    if (type != null || parameters == null) return emptyList()
+
+    return containingMember.resolveParentClasses().asSequence()
+      .flatMap { it.constructors.asSequence() }
+      .filter { parameters.matchesPsiParameterList(it.parameterList) } // match parameters
+      .filter { matchesAccessLevel(it) }
+      .toList()
+  }
+
   /**
    * Returns empty array if there is no class member matching the type and parameters corresponding to this [ProguardR8ClassMemberName]
    * otherwise returns array with found class members.
    * It can be single element array or not (case with overloads/different access modifiers/not specified return type/ etc.)
    */
   override fun multiResolve(incompleteCode: Boolean): Array<PsiElementResolveResult> {
+    val constructors = if (containingMember.isConstructor()) getConstructors() else emptyList()
     val members: Collection<PsiNamedElement> = if (parameters == null) getFields() else getMethods()
-    return members.filter { it.name == element.text }.map(::PsiElementResolveResult).toTypedArray()
+    return (members.filter { it.name == element.text } + constructors).map(::PsiElementResolveResult).toTypedArray()
   }
 
   override fun getVariants(): Array<LookupElementBuilder> {
