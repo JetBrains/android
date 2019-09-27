@@ -164,7 +164,7 @@ class ResourceExplorerViewTest {
       projectRule.module.androidFacet!!,
       null,
       ResourceType.DRAWABLE,
-      arrayOf(ResourceType.DRAWABLE),
+      arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR),
       false,
       { asset ->
         assertThat(asset).isInstanceOf(DesignAsset::class.java)
@@ -184,10 +184,15 @@ class ResourceExplorerViewTest {
 
     list.selectedIndex = 0
     simulatePressEnter(list)
+    waitAndAssert<ResourceDetailView>(view) { it != null }
     val detailView = UIUtil.findComponentOfType(parent, ResourceDetailView::class.java)!!
     val assetView = UIUtil.findComponentsOfType(detailView, AssetView::class.java)[0]
     simulatePressEnter(assetView)
     assertEquals("res/drawable/png.png", openedFile)
+
+    // Change to COLOR resources, ResourceDetailView should no longer be visible.
+    runInEdtAndWait { viewModel.resourceTypeIndex = viewModel.supportedResourceTypes.indexOf(ResourceType.COLOR) }
+    waitAndAssert<ResourceDetailView>(view) { it == null }
   }
 
   @Test

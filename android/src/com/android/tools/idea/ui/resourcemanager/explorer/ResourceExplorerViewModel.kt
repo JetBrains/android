@@ -30,6 +30,7 @@ import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
@@ -217,7 +218,7 @@ class ResourceExplorerViewModel private constructor(
       refreshListModel = true
     }
     else {
-      listModel.resourceChangedCallback?.invoke()
+      listModel.updateUiCallback?.invoke(UpdateUiReason.RESOURCES_CHANGED)
     }
   }
 
