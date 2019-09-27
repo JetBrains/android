@@ -20,6 +20,7 @@ import static com.android.SdkConstants.FD_EXTRAS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_TEMPLATES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.tools.idea.flags.StudioFlags.COMPOSE_WIZARD_TEMPLATES;
 import static com.android.tools.idea.npw.project.AndroidPackageUtils.getModuleTemplates;
 import static com.android.tools.idea.npw.project.AndroidPackageUtils.getPackageForPath;
 import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
@@ -109,6 +110,7 @@ public class TemplateManager {
   public static final String CATEGORY_ACTIVITY = "Activity";
   public static final String CATEGORY_FRAGMENT = "Fragment";
   public static final String CATEGORY_AUTOMOTIVE = "Automotive";
+  public static final String CATEGORY_COMPOSE = "Compose";
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
   public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of();
@@ -474,6 +476,9 @@ public class TemplateManager {
 
       for (final String category : getCategoryTable().rowKeySet()) {
         if (EXCLUDED_CATEGORIES.contains(category)) {
+          continue;
+        }
+        if (CATEGORY_COMPOSE.equals(category) && !COMPOSE_WIZARD_TEMPLATES.get()) {
           continue;
         }
         // Create the menu group item
