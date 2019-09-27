@@ -63,20 +63,12 @@ class DataBindingInspectionVerificationTest {
   private val excludedFiles = setOf(
     "app/src/androidTest/java/android/databinding/testapp/InstanceAdapterTest.java",
     "app/src/androidTest/java/androidx/databinding/DataBindingMapperTest.java",
-    "app/src/main/res/layout/auto_context.xml",
-    "app/src/main/res/layout/bracket_test.xml",
     "app/src/main/res/layout/conditional_binding.xml",
     "app/src/main/res/layout/find_method_test.xml",
     "app/src/main/res/layout/fragment_main.xml",
-    "app/src/main/res/layout/included_layout.xml",
-    "app/src/main/res/layout/leak_test.xml",
-    "app/src/main/res/layout/listeners_with_dot.xml",
-    "app/src/main/res/layout/live_data.xml",
-    "app/src/main/res/layout/live_data_included.xml",
     "app/src/main/res/layout/observable_field_test.xml",
     "app/src/main/res/layout/resource_test.xml",
     "app/src/main/res/layout/static_access_import_on_demand_with_conflict.xml",
-    "app/src/main/res/layout/two_way.xml",
     "app/src/main/res/layout/use_default.xml"
   )
 
