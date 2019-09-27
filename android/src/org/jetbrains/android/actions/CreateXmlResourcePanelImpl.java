@@ -22,6 +22,7 @@ import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.ui.TextFieldWithBooleanBoxKt;
 import com.android.tools.idea.ui.TextFieldWithColorPickerKt;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.application.ApplicationManager;
@@ -119,6 +120,9 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
       Color defaultColor = ResourceHelper.parseColor(resourceValue);
       myValueFieldContainer.removeAll();
       myValueFieldContainer.add(TextFieldWithColorPickerKt.wrapWithColorPickerIcon(myValueField, defaultColor));
+    } else if (resourceType == ResourceType.BOOL) {
+      myValueFieldContainer.removeAll();
+      myValueFieldContainer.add(TextFieldWithBooleanBoxKt.wrapWithBooleanCheckBox(myValueField, Boolean.parseBoolean(resourceValue)));
     }
 
     if (chooseValue) {
