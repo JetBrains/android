@@ -33,6 +33,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
 import java.util.List;
+import org.jetbrains.android.facet.AndroidRootUtil;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
@@ -68,7 +69,7 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
     Module libModule = getModule("lib");
     AndroidFacet libAndroidFacet = AndroidFacet.getInstance(libModule);
 
-    File libModuleDir = new File(libModule.getModuleFilePath()).getParentFile();
+    File libModuleDir = AndroidRootUtil.findModuleRootFolderPath(libModule);
     File origLibBuildFile = new File(libModuleDir, FN_BUILD_GRADLE);
     File settingsGradle = new File(project.getBasePath(), FN_SETTINGS_GRADLE);
 

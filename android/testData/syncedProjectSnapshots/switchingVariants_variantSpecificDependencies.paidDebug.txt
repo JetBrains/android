@@ -5,7 +5,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -409,7 +409,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
         LinkedProjectId     : :moduleA
         LinkedProjectPath   : <PROJECT>/moduleA
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleA/moduleA.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleA/moduleA.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -753,7 +753,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
         LinkedProjectId     : :moduleB
         LinkedProjectPath   : <PROJECT>/moduleB
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/moduleB/moduleB.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleB/moduleB.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1098,7 +1098,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
         LinkedProjectId     : testSwitchingVariants_variantSpecificDependencies
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testSwitchingVariants_variantSpecificDependencies.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testSwitchingVariants_variantSpecificDependencies.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle

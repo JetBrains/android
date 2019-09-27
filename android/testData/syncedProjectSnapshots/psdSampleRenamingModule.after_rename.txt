@@ -5,7 +5,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -435,7 +435,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :container1
         LinkedProjectPath   : <PROJECT>/container1
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/container1/container1.iml
+        ModuleFile          : <PROJECT>/.idea/modules/container1/container1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -537,7 +537,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :container1:deep
         LinkedProjectPath   : <PROJECT>/container1/deep
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/container1/deep/container1-deep.iml
+        ModuleFile          : <PROJECT>/.idea/modules/container1/deep/container1-deep.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -640,7 +640,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :nested2:trans:deep2
         LinkedProjectPath   : <PROJECT>/nested2/trans/deep2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/trans/deep2/deep2.iml
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/trans/deep2/deep2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -741,7 +741,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :dyn_feature
         LinkedProjectPath   : <PROJECT>/dyn_feature
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/dyn_feature/dyn_feature.iml
+        ModuleFile          : <PROJECT>/.idea/modules/dyn_feature/dyn_feature.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -842,7 +842,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :jav
         LinkedProjectPath   : <PROJECT>/jav
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/jav/jav.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jav/jav.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -867,7 +867,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/lib/lib.iml
+        ModuleFile          : <PROJECT>/.idea/modules/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1211,7 +1211,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :nested2
         LinkedProjectPath   : <PROJECT>/nested2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/nested2.iml
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/nested2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1355,7 +1355,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :nested2:deep
         LinkedProjectPath   : <PROJECT>/nested2/deep
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/deep/nested2-deep.iml
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/deep/nested2-deep.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1455,7 +1455,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : testPsdSampleRenamingModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testPsdSampleRenamingModule.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testPsdSampleRenamingModule.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
@@ -1473,7 +1473,7 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectId     : :nested2:trans
         LinkedProjectPath   : <PROJECT>/nested2/trans
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/nested2/trans/trans.iml
+        ModuleFile          : <PROJECT>/.idea/modules/nested2/trans/trans.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle

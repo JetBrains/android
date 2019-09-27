@@ -3,7 +3,7 @@ PROJECT             : testImportNoSync
         LinkedProjectId     : :
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testImportNoSync.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testImportNoSync.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
