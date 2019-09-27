@@ -225,4 +225,15 @@ class LayoutPanel extends JPanel {
   public void setListeners(MotionEditorSelector listeners) {
     mMotionEditorSelector = listeners;
   }
+
+  public void selectByIds(String[] ids) {
+    HashSet<String> selectedSet = new HashSet<>(Arrays.asList(ids));
+    mConstraintSetTable.clearSelection();
+    for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
+      String id = (String)mConstraintSetModel.getValueAt(i, 1);
+      if (selectedSet.contains(id)) {
+        mConstraintSetTable.addRowSelectionInterval(i, i);
+      }
+    }
+  }
 }

@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
+import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
+
 /**
  * This is the place holder class for Analytics
  * TODO add calls to NLAnalyticsManager
  */
 public class Track {
+  public static void init(DesignerAnalyticsManager manager) {
+  }
 
   public static void createConstraintSet() {
   }

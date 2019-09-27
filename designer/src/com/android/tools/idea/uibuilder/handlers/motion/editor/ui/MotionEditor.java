@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEList;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.METabbedPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
@@ -77,10 +78,12 @@ public class MotionEditor extends JPanel {
   JScrollPane mOverviewScrollPane = new MEScrollPane(mOverviewPanel);
   CardLayout mCardLayout = new CardLayout();
   JPanel mCenterPanel = new JPanel(mCardLayout);
-  private static String LAYOUT_PANEL = "Layout";
-  private static String TRANSITION_PANEL = "Transition";
-  private static String CONSTRAINTSET_PANEL = "ConstraintSet";
-  CreateConstraintSet mCreateConstraintSet = new CreateConstraintSet();
+  private static final String LAYOUT_PANEL = "Layout";
+  private static final String TRANSITION_PANEL = "Transition";
+  private static final String CONSTRAINTSET_PANEL = "ConstraintSet";
+  private String mCurrentlyDisplaying = CONSTRAINTSET_PANEL;
+
+    CreateConstraintSet mCreateConstraintSet = new CreateConstraintSet();
   CreateOnClick mCreateOnClick = new CreateOnClick();
   CreateOnSwipe mCreateOnSwipe = new CreateOnSwipe();
   CreateTransition mCreateTransition = new CreateTransition();
@@ -115,6 +118,22 @@ public class MotionEditor extends JPanel {
   public void setSelection(MotionEditorSelector.Type type, MTag[] tag) {
     mSelectedTag = tag[0];
     notifyListeners(type, tag);
+  }
+
+  /**
+   * This will selected the ids views or ConstraintSets based on the ide
+   * @param ids
+   */
+  public void selectById(String[] ids) {
+   switch (mCurrentlyDisplaying) {
+     case LAYOUT_PANEL:
+       mLayoutPanel.selectByIds(ids);
+       break;
+     case CONSTRAINTSET_PANEL:
+       mConstraintSetPanel.selectById(ids);
+     break;
+     case TRANSITION_PANEL:
+   }
   }
 
   enum LayoutMode {
@@ -365,7 +384,7 @@ public class MotionEditor extends JPanel {
     if (index >= 0) {
       MTag[] c_sets = mCombinedListPanel.mMotionScene.getChildTags("ConstraintSet");
       if (0 < index) {
-        mCardLayout.show(mCenterPanel, CONSTRAINTSET_PANEL);
+        mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = CONSTRAINTSET_PANEL);
         MTag selectedConstraintSet = c_sets[index - 1];
         notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET,
                         new MTag[]{selectedConstraintSet});
@@ -373,7 +392,7 @@ public class MotionEditor extends JPanel {
         mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
       }
       else {
-        mCardLayout.show(mCenterPanel, LAYOUT_PANEL);
+        mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = LAYOUT_PANEL);
         mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
         notifyListeners(MotionEditorSelector.Type.LAYOUT,
                         (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
@@ -386,7 +405,7 @@ public class MotionEditor extends JPanel {
   void transitionSelection() {
     int index = mCombinedListPanel.getSelectedTransition();
     mOverviewPanel.setTransitionSetIndex(index);
-    mCardLayout.show(mCenterPanel, TRANSITION_PANEL);
+    mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = TRANSITION_PANEL);
     MTag[] transitions = mCombinedListPanel.mMotionScene.getChildTags("Transition");
     if (transitions.length == 0) {
       constraintSetSelection();
@@ -632,8 +651,8 @@ public class MotionEditor extends JPanel {
   class ConstraintSetListPanel extends BaseListPanel {
 
     boolean building = false;
-    JList<String> mConstraintSetList = new JList<>();
-    JScrollPane mTListPane = new JScrollPane(mConstraintSetList);
+    JList<String> mConstraintSetList = new MEList<>();
+    JScrollPane mTListPane = new MEScrollPane(mConstraintSetList);
 
     ConstraintSetListPanel() {
       add(mTListPane, BorderLayout.CENTER);
