@@ -100,7 +100,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   public interface NlModelUpdaterInterface {
 
-    void update(NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots);
+    void update(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots);
   }
 
   public static final int DELAY_AFTER_TYPING_MS = 250;
