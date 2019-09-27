@@ -23,11 +23,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.BrowseSamplesWizar
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SdkProblemDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.RecentProjectPanel;
 import com.intellij.ui.components.JBList;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, FlatWelcomeFrame> {
@@ -89,9 +91,14 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
     JBList jbList = robot().finder().findByType(recentProjectPanel, JBList.class, true);
 
     if (!jbList.isEmpty()) {
-      JListFixture listFixture= new JListFixture(robot(), jbList);
+      JListFixture listFixture = new JListFixture(robot(), jbList);
       listFixture.clickItem(0);
     }
+
+    Wait
+      .seconds(5)
+      .expecting("Project to be open")
+      .until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
 
     return guiTestRule.ideFrame();
   }
