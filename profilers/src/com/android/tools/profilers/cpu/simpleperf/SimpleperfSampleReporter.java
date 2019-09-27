@@ -72,7 +72,8 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
 
       boolean reportSampleSuccess = reportSample.exitValue() == 0;
       if (!reportSampleSuccess) {
-        getLogger().warn("simpleperf report-sample exited unsuccessfully.");
+        String error = new BufferedReader(new InputStreamReader(reportSample.getErrorStream())).readLine();
+        getLogger().warn("simpleperf report-sample exited unsuccessfully. " + error);
         return FAILURE;
       }
 
