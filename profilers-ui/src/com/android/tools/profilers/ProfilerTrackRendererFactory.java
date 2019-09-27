@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.trackgroup.DefaultTrackRenderer;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.trackgroup.TrackRendererFactory;
+import com.android.tools.profilers.cpu.CpuCoreTrackRenderer;
 import com.android.tools.profilers.cpu.CpuThreadTrackRenderer;
 import com.android.tools.profilers.cpu.FramesTrackRenderer;
 import com.android.tools.profilers.cpu.SurfaceflingerTrackRenderer;
@@ -47,6 +48,8 @@ public class ProfilerTrackRendererFactory implements TrackRendererFactory<Profil
         return new VsyncTrackRenderer();
       case CPU_THREAD:
         return new CpuThreadTrackRenderer();
+      case CPU_CORE:
+        return new CpuCoreTrackRenderer();
       case CUSTOM_EVENTS:
         return new CustomEventTrackRenderer();
       default:

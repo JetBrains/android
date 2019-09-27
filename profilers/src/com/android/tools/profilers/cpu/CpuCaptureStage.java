@@ -248,6 +248,9 @@ public class CpuCaptureStage extends Stage {
     addCpuAnalysisModel(fullTraceModel);
   }
 
+  /**
+   * The order of track groups dictates their default order in the UI.
+   */
   private void initTrackGroupList(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
     myTrackGroupListModel.clear();
 
@@ -262,8 +265,10 @@ public class CpuCaptureStage extends Stage {
     // Thread states and trace events.
     initThreadsTrackGroup(selectionRange, capture);
 
-    // CPU per-core frequency and etc.
-    initCpuCoresTrackGroup();
+    // CPU per-core usage and event etc. Systrace only.
+    if (capture instanceof AtraceCpuCapture) {
+      initCpuCoresTrackGroup(selectionRange, (AtraceCpuCapture)capture);
+    }
   }
 
   private void initInteractionTrackGroup(@NotNull Range selectionRange) {
@@ -306,7 +311,7 @@ public class CpuCaptureStage extends Stage {
 
   private void initThreadsTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
     Set<CpuThreadInfo> threadInfos = capture.getThreads();
-    String threadsTitle = String.format(Locale.US, "Threads (%d)", threadInfos.size());
+    String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     TrackGroupModel threads = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle(threadsTitle));
     for (CpuThreadInfo threadInfo : threadInfos) {
       threads.addTrackModel(
@@ -317,5 +322,16 @@ public class CpuCaptureStage extends Stage {
     }
   }
 
-  private void initCpuCoresTrackGroup() {}
+  private void initCpuCoresTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture capture) {
+    int cpuCount = capture.getCpuCount();
+    String coresTitle = String.format(Locale.getDefault(), "CPU cores (%d)", cpuCount);
+    TrackGroupModel cores = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle(coresTitle));
+    for (int cpuId = 0; cpuId < cpuCount; ++cpuId) {
+      cores.addTrackModel(
+        new TrackModel<>(
+          new CpuCoreTrackModel(selectionRange, capture, cpuId, getStudioProfilers().getSession().getPid()),
+          ProfilerTrackRendererType.CPU_CORE,
+          "CPU " + cpuId));
+    }
+  }
 }
