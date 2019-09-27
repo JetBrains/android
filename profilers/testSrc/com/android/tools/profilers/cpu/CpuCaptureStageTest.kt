@@ -117,10 +117,10 @@ class CpuCaptureStageTest {
   @Test
   fun trackGroupModelsAreSetForAtrace() {
     services.enableAtrace(true)
-    val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"))
+    val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
     profilers.stage = stage
 
-    assertThat(stage.trackGroupListModel.size).isEqualTo(3)
+    assertThat(stage.trackGroupListModel.size).isEqualTo(4)
 
     val interactionTrackGroup = stage.trackGroupListModel[0]
     assertThat(interactionTrackGroup.title).isEqualTo("Interaction")
@@ -136,9 +136,13 @@ class CpuCaptureStageTest {
     assertThat(displayTrackGroup[2].title).isEqualTo("Vsync")
 
     val threadsTrackGroup = stage.trackGroupListModel[2]
-    assertThat(threadsTrackGroup.title).isEqualTo("Threads (1)")
-    assertThat(threadsTrackGroup.size).isEqualTo(1)
-    assertThat(threadsTrackGroup[0].title).isEqualTo("atrace")
+    assertThat(threadsTrackGroup.title).isEqualTo("Threads (40)")
+    assertThat(threadsTrackGroup.size).isEqualTo(40)
+
+    val coresTrackGroup = stage.trackGroupListModel[3]
+    assertThat(coresTrackGroup.title).isEqualTo("CPU cores (4)")
+    assertThat(coresTrackGroup.size).isEqualTo(4)
+    assertThat(coresTrackGroup[0].title).isEqualTo("CPU 0")
   }
 
   @Test
