@@ -16,7 +16,6 @@ package com.android.tools.idea.gradle.dsl.model.ext
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_AND_REMOVE_FROM_NON_LITERAL_LIST
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_EXISTING_MAP_PROPERTY
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_EXISTING_MAP_PROPERTY_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_MAP_VALUE_TO_STRING
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_MIDDLE_OF_LIST
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_OUT_OF_BOUNDS
@@ -36,28 +35,20 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREA
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_MAP_TO_EMPTY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_PLACE_HOLDERS_TO_EMPTY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEEP_DEPENDENCIES
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_AND_RESET_KTS_ARRAY_EXPRESSION_PROPERTY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_AND_RESET_PROPERTY
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_ARRAY_EXPRESSION_PROPERTY_IN_LIST
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_EMPTY_MAP
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_ITEMS_FROM_LIST
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_ITEMS_IN_MAP
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_LIST_WITH_ITEMS
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_MAP_ITEM_TO_AND_SET_FROM_EMPTY
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_MAP_ITEM_TO_AND_SET_FROM_EMPTY_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_MAP_PROPERTY
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_MAP_PROPERTY_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_MAP_VARIABLE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_MAP_WITH_ITEMS
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_LIST
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_FOR_KTS_ARRAY_EXPRESSION_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_TO_EMPTY_MAP
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_TO_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_VARIABLE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_VARIABLE_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCIES_IN_MAP
@@ -79,9 +70,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_IN_S
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT_SUB
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_LIST_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAPS_IN_MAP
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_FOR_KTS_ARRAY_EXPRESSION_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAP_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MAP_ORDER
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_MULTIPLE_DEPENDENCIES_WITH_FULLY_QUALIFIED_NAME
@@ -92,7 +81,6 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_OBTA
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_OUTER_SCOPE_VARIABLES_RESOLVED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_OUT_OF_SCOPE_MAP_AND_LIST_DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PARSE_MAP_IN_MAP
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PARSE_MAP_IN_MAP_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTIES
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTY_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTY_SET_VALUE
@@ -117,15 +105,11 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_LIST
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_LIST_IN_MAP
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_LITERAL_TO_MAP_VALUE
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_LITERAL_TO_MAP_VALUE_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_MAP_IN_MAP
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_MAP_VALUE_ON_NONE_MAP
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_MAP_VALUE_TO_LITERAL
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_MAP_VALUE_TO_LITERAL_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_EMPTY_MAP
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_MAP
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_MAP_FOR_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_REFERENCE_VALUE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_REFERENCE_WITH_MODEL
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_TO_LIST_VALUES
@@ -134,8 +118,6 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_UNKNOWN_VALUES
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_UNKNOWN_VALUES_IN_LIST
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_UNKNOWN_VALUES_IN_MAP
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_UPDATE_PROPERTY_WITHOUT_SYNTAX_CHANGE
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_UPDATE_PROPERTY_WITHOUT_SYNTAX_CHANGE_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLES
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY_APPLIED
@@ -145,7 +127,6 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARI
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLE_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLE_PROPERTY_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLE_SET_VALUE
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BIG_DECIMAL_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
@@ -1478,37 +1459,32 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_AND_RESET_PROPERTY)
     val buildModel = gradleBuildModel
 
-    verifyDeleteAndResetProperty(buildModel)
-  }
 
-  @Test
-  fun testDeleteAndResetKTSArrayExpressionProperty() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_AND_RESET_KTS_ARRAY_EXPRESSION_PROPERTY)
-    val buildModel = gradleBuildModel
-
-    verifyDeleteAndResetProperty(buildModel)
-  }
-
-  @Test
-  fun testUpdatePropertyValueWithoutSyntaxChange() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_UPDATE_PROPERTY_WITHOUT_SYNTAX_CHANGE)
-    val buildModel = gradleBuildModel
-
+    // Delete and reset the property
     run {
-      val property1Model = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(property1Model, STRING_TYPE, "val1", STRING, REGULAR, 0)
-      property1Model.setValue(123)
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      propertyModel.delete()
+      propertyModel.setValue("New Value")
     }
 
+    // Check prop2 hasn't been affected
     run {
-      val property2Model = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(property2Model, STRING_TYPE, "val2", STRING, REGULAR, 0)
-      property2Model.setValue(true)
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Other Value", STRING, REGULAR, 0)
     }
 
     applyChangesAndReparse(buildModel)
 
-    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_UPDATE_PROPERTY_WITHOUT_SYNTAX_CHANGE_EXPECTED)
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "New Value", STRING, REGULAR, 0)
+    }
+
+    // Check prop2 is still correct
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Other Value", STRING, REGULAR, 0)
+    }
   }
 
   @Test
@@ -1534,8 +1510,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteVariableDependency() {
-    // This test is Groovy specific as it declares variables inside extra block.
-    assumeTrue(isGroovy)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_VARIABLE_DEPENDENCY)
     val buildModel = gradleBuildModel
 
@@ -1620,19 +1594,41 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_LIST)
 
     val buildModel = gradleBuildModel
-    verifyDeletePropertyInList(buildModel)
-  }
+    val extModel = buildModel.ext()
 
-  @Test
-  fun testDeleteArrayExpressionPropertyInList() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_ARRAY_EXPRESSION_PROPERTY_IN_LIST)
+    // Values that should be obtained from the build file.
+    val one = 1
+    val two = 2
 
-    val buildModel = gradleBuildModel
-    verifyDeletePropertyInList(buildModel)
+    run {
+      val propertyModel = extModel.findProperty("prop1")
+      verifyListProperty(propertyModel, listOf<Any>(1, 2, 3, 4), REGULAR, 0)
+    }
+
+    run {
+      val propertyModel = extModel.findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, one.toString(), STRING, REGULAR, 1, "prop2", "ext.prop2")
+      // Check the dependency
+      val dependencyModel = propertyModel.dependencies[0]
+      verifyPropertyModel(dependencyModel, INTEGER_TYPE, one, INTEGER, DERIVED, 0 /*, "0", "ext.prop1.0" TODO: FIX THIS */)
+      // Delete this property.
+      dependencyModel.delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    // Check that the value of prop2 has changed
+    run {
+      val propertyModel = gradleBuildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, two.toString(), STRING, REGULAR, 1, "prop2", "ext.prop2")
+      val dependencyModel = propertyModel.dependencies[0]
+      verifyPropertyModel(dependencyModel, INTEGER_TYPE, two, INTEGER, DERIVED, 0 /*, "0", "ext.prop1.0" TODO: FIX THIS */)
+    }
   }
 
   @Test
   fun testCreateNewEmptyMapValue() {
+    assumeTrue(isGroovy())
     val text = ""
     writeToBuildFile(text)
 
@@ -1680,15 +1676,45 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_MAP)
 
     val buildModel = gradleBuildModel
-    verifySetNewValueInMap(buildModel)
-  }
 
-  @Test
-  fun testSetNewValueInMapForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_MAP_FOR_ARRAY_EXPRESSION)
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
 
-    val buildModel = gradleBuildModel
-    verifySetNewValueInMap(buildModel)
+      run {
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(2, map.entries)
+        verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
+        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+
+        // Attempt to set a new value.
+        val newValue = propertyModel.getMapValue("key3")
+        verifyPropertyModel(newValue, OBJECT_TYPE, null, NONE, DERIVED, 0)
+        newValue.setValue(true)
+        verifyPropertyModel(newValue, BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
+      }
+
+      run {
+        // Check map now has three values.
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(3, map.entries)
+        verifyPropertyModel(map["key3"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
+        verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
+        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+      }
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(3, map.entries)
+      verifyPropertyModel(map["key3"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
+      verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
+      verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+    }
   }
 
   @Test
@@ -1696,15 +1722,38 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_EMPTY_MAP)
     val buildModel = gradleBuildModel
 
-    verifySetNewValueInEmptyMap(buildModel)
-  }
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
 
-  @Test
-  fun testSetNewValueInEmptyMapForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION)
-    val buildModel = gradleBuildModel
+      // Check every thing is in order
+      run {
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(0, map.entries)
+      }
 
-    verifySetNewValueInEmptyMap(buildModel)
+      // Set the new value.
+      propertyModel.getMapValue("key1").setValue(ReferenceTo("val"))
+
+      // Check the correct values are shown in the property.
+      run {
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(1, map.entries)
+        verifyPropertyModel(map["key1"], STRING_TYPE, "val", REFERENCE, DERIVED, 1)
+        verifyPropertyModel(map["key1"]!!.dependencies[0], STRING_TYPE, "value", STRING, VARIABLE, 0)
+      }
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      verifyPropertyModel(map["key1"], STRING_TYPE, "val", REFERENCE, DERIVED, 1)
+      verifyPropertyModel(map["key1"]!!.dependencies[0], STRING_TYPE, "value", STRING, VARIABLE, 0)
+    }
   }
 
   @Test
@@ -1713,16 +1762,35 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    verifyDeletePropertyInMap(buildModel, GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_EXPECTED)
-  }
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      run {
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(2, map.entries)
+        verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
+        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+        map["key1"]?.delete()
+      }
 
-  @Test
-  fun testDeletePropertyInMapForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_FOR_KTS_ARRAY_EXPRESSION)
+      run {
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(1, map.entries)
+        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+      }
+    }
 
-    val buildModel = gradleBuildModel
+    applyChangesAndReparse(buildModel)
 
-    verifyDeletePropertyInMap(buildModel, GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_FOR_KTS_ARRAY_EXPRESSION_EXPECTED)
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+    }
+
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_DELETE_PROPERTY_IN_MAP_EXPECTED)
   }
 
   @Test
@@ -1731,16 +1799,44 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    verifyDeleteMapItemToAndSetFromEmpty(buildModel)
-  }
+    // Delete the item in the map.
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      verifyPropertyModel(map["key1"], INTEGER_TYPE, 25, INTEGER, DERIVED, 0)
 
-  @Test
-  fun testDeleteMapItemToAndSetFromEmptyForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_MAP_ITEM_TO_AND_SET_FROM_EMPTY_FOR_KTS_ARRAY_EXPRESSION)
+      map["key1"]?.delete()
 
-    val buildModel = gradleBuildModel
+      val newMap = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(0, newMap.entries)
+    }
 
-    verifyDeleteMapItemToAndSetFromEmpty(buildModel)
+    applyChangesAndReparse(buildModel)
+
+    // Check that a reparse still has a missing model
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
+
+      // Attempt to set a new value
+      propertyModel.getMapValue("Conquest").setValue("Famine")
+      // Check the model again
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      verifyPropertyModel(map["Conquest"], STRING_TYPE, "Famine", STRING, DERIVED, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      verifyPropertyModel(map["Conquest"], STRING_TYPE, "Famine", STRING, DERIVED, 0)
+    }
   }
 
   @Test
@@ -1749,16 +1845,23 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    verifySetMapValueToLiteralForKTSArrayExpression(buildModel)
-  }
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
 
-  @Test
-  fun testSetMapValueToLiteralForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_MAP_VALUE_TO_LITERAL_FOR_KTS_ARRAY_EXPRESSION)
+      // Set the property to a new value.
+      propertyModel.setValue(77)
+      verifyPropertyModel(propertyModel, INTEGER_TYPE, 77, INTEGER, REGULAR, 0)
+    }
 
-    val buildModel = gradleBuildModel
+    applyChangesAndReparse(buildModel)
 
-    verifySetMapValueToLiteralForKTSArrayExpression(buildModel)
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, INTEGER_TYPE, 77, INTEGER, REGULAR, 0)
+    }
   }
 
   @Test
@@ -1767,16 +1870,27 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    verifyDeleteToEmptyMap(buildModel)
-  }
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      assertSize(3, propertyModel.getValue(MAP_TYPE)!!.entries)
 
-  @Test
-  fun testDeleteToEmptyMapForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_TO_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      map["key"]!!.delete()
+      map["key1"]!!.delete()
+      map["key2"]!!.delete()
 
-    val buildModel = gradleBuildModel
+      assertEquals(MAP, propertyModel.valueType)
+      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
+    }
 
-    verifyDeleteToEmptyMap(buildModel)
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
+    }
   }
 
   @Test
@@ -1785,16 +1899,20 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    verifyAddExistingMapProperty(buildModel)
-  }
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyMapProperty(propertyModel, ImmutableMap.of("key", "val") as Map<String, Any>)
 
-  @Test
-  fun testAddExistingMapPropertyForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_EXISTING_MAP_PROPERTY_FOR_KTS_ARRAY_EXPRESSION)
+      propertyModel.getMapValue("key").setValue("newVal")
+      verifyMapProperty(propertyModel, ImmutableMap.of("key", "newVal") as Map<String, Any>)
+    }
 
-    val buildModel = gradleBuildModel
+    applyChangesAndReparse(buildModel)
 
-    verifyAddExistingMapProperty(buildModel)
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyMapProperty(propertyModel, ImmutableMap.of("key", "newVal") as Map<String, Any>)
+    }
   }
 
   @Test
@@ -1803,16 +1921,22 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    verifyDeleteMapProperty(buildModel)
-  }
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      assertSize(1, propertyModel.getValue(MAP_TYPE)!!.entries)
 
-  @Test
-  fun testDeleteMapPropertyForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_MAP_PROPERTY_FOR_KTS_ARRAY_EXPRESSION)
+      // Delete the map
+      propertyModel.delete()
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
 
-    val buildModel = gradleBuildModel
+    applyChangesAndReparse(buildModel)
 
-    verifyDeleteMapProperty(buildModel)
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
   }
 
   @Test
@@ -1848,16 +1972,21 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    verifyDeleteEmptyMap(buildModel)
-  }
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      assertEquals(MAP, propertyModel.valueType)
+      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
 
-  @Test
-  fun testDeleteEmptyMapForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION)
+      propertyModel.delete()
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
 
-    val buildModel = gradleBuildModel
+    applyChangesAndReparse(buildModel)
 
-    verifyDeleteEmptyMap(buildModel)
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
   }
 
   @Test
@@ -1866,16 +1995,36 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    verifySetLiteralToMapValue(buildModel)
-  }
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "val1", REFERENCE, REGULAR, 1)
+      val deps = propertyModel.dependencies
+      assertSize(1, deps)
+      val mapPropertyModel = deps[0]
+      // Check it is not a map yet
+      verifyPropertyModel(mapPropertyModel, STRING_TYPE, "value", STRING, VARIABLE, 0)
 
-  @Test
-  fun testSetLiteralToMapValueForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_LITERAL_TO_MAP_VALUE_FOR_KTS_ARRAY_EXPRESSION)
+      mapPropertyModel.convertToEmptyMap().getMapValue("key").setValue("Hello")
 
-    val buildModel = gradleBuildModel
+      assertEquals(MAP, mapPropertyModel.valueType)
+      val map = mapPropertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      verifyPropertyModel(map["key"], STRING_TYPE, "Hello", STRING, DERIVED, 0)
+    }
 
-    verifySetLiteralToMapValue(buildModel)
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "val1", REFERENCE, REGULAR, 1)
+      val deps = propertyModel.dependencies
+      assertSize(1, deps)
+      val mapPropertyModel = deps[0]
+      assertEquals(MAP, mapPropertyModel.valueType)
+      val map = mapPropertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      verifyPropertyModel(map["key"], STRING_TYPE, "Hello", STRING, DERIVED, 0)
+    }
   }
 
   @Test
@@ -1884,16 +2033,19 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    verifyParseMapInMap(buildModel)
-  }
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(2, map.entries)
+      verifyPropertyModel(map["key1"], INTEGER_TYPE, 25, INTEGER, DERIVED, 0)
 
-  @Test
-  fun testParseMapInMapForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_PARSE_MAP_IN_MAP_FOR_KTS_ARRAY_EXPRESSION)
-
-    val buildModel = gradleBuildModel
-
-    verifyParseMapInMap(buildModel)
+      val mapPropertyModel = map["key2"]!!
+      assertEquals(MAP, mapPropertyModel.valueType)
+      val innerMap = mapPropertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, innerMap.entries)
+      verifyPropertyModel(innerMap["key"], STRING_TYPE, "value", STRING, DERIVED, 0)
+    }
   }
 
   @Test
@@ -1902,16 +2054,73 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    verifyMapsInMap(buildModel, GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_EXPECTED)
-  }
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(3, map.entries)
 
-  @Test
-  fun testMapsInMapForKTSArrayExpression() {
-    writeToBuildFile(GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_FOR_KTS_ARRAY_EXPRESSION)
+      val firstInnerMapModel = map["key1"]!!
+      assertEquals(MAP, firstInnerMapModel.valueType)
+      val firstInnerMap = firstInnerMapModel.getValue(MAP_TYPE)!!
+      assertSize(1, firstInnerMap.entries)
+      // Delete the first inner map
+      firstInnerMapModel.delete()
 
-    val buildModel = gradleBuildModel
+      // Check is has been deleted.
+      verifyPropertyModel(firstInnerMapModel, OBJECT_TYPE, null, NONE, DERIVED, 0)
 
-    verifyMapsInMap(buildModel, GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_FOR_KTS_ARRAY_EXPRESSION_EXPECTED)
+      val secondInnerMapModel = map["key3"]!!
+      assertEquals(MAP, secondInnerMapModel.valueType)
+      val secondInnerMap = secondInnerMapModel.getValue(MAP_TYPE)!!
+      assertSize(2, secondInnerMap.entries)
+      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+      verifyPropertyModel(secondInnerMap["key5"], INTEGER_TYPE, 43, INTEGER, DERIVED, 0)
+      // Delete one of these values, and change the other.
+      secondInnerMap["key4"]!!.setValue(ReferenceTo("var1"))
+      secondInnerMap["key5"]!!.delete()
+
+      // Check the values are correct.
+      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var1", REFERENCE, DERIVED, 1)
+      verifyPropertyModel(secondInnerMap["key5"], OBJECT_TYPE, null, NONE, DERIVED, 0)
+
+      val thirdInnerMapModel = map["key6"]!!
+      assertEquals(MAP, thirdInnerMapModel.valueType)
+      val thirdInnerMap = thirdInnerMapModel.getValue(MAP_TYPE)!!
+      assertSize(1, thirdInnerMap.entries)
+      verifyPropertyModel(thirdInnerMap["key7"], STRING_TYPE, "value3", STRING, DERIVED, 0)
+
+      // Set this third map model to be another basic value.
+      thirdInnerMapModel.setValue(77)
+
+      // Check it has been deleted.
+      verifyPropertyModel(thirdInnerMapModel, INTEGER_TYPE, 77, INTEGER, DERIVED, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_MAPS_IN_MAP_EXPECTED)
+
+    // Check everything is in order after a reparse.
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(2, map.entries)
+
+      val firstInnerMapModel = map["key1"]
+      assertNull(firstInnerMapModel)
+
+      val secondInnerMapModel = map["key3"]!!
+      assertEquals(MAP, secondInnerMapModel.valueType)
+      val secondInnerMap = secondInnerMapModel.getValue(MAP_TYPE)!!
+      assertSize(1, secondInnerMap.entries)
+      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var1", REFERENCE, DERIVED, 1)
+      assertNull(secondInnerMap["key5"])
+
+      val thirdInnerMapModel = map["key6"]!!
+      verifyPropertyModel(thirdInnerMapModel, INTEGER_TYPE, 77, INTEGER, DERIVED, 0)
+    }
   }
 
   @Test
@@ -3127,433 +3336,6 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val map = buildModel.ext().findProperty("versions").toMap()!!
     assertSize(1, map.keys)
     assertThat(map["firebasePlugins"]!!.forceString(), equalTo("2.1.5"))
-  }
-
-  private fun verifyDeleteAndResetProperty(buildModel : GradleBuildModel) {
-    // Delete and reset the property
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      propertyModel.delete()
-      propertyModel.setValue("New Value")
-    }
-
-    // Check prop2 hasn't been affected
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "Other Value", STRING, REGULAR, 0)
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "New Value", STRING, REGULAR, 0)
-    }
-
-    // Check prop2 is still correct
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "Other Value", STRING, REGULAR, 0)
-    }
-  }
-
-  private fun verifyDeletePropertyInList(buildModel: GradleBuildModel) {
-    val extModel = buildModel.ext()
-
-    // Values that should be obtained from the build file.
-    val one = 1
-    val two = 2
-
-    run {
-      val propertyModel = extModel.findProperty("prop1")
-      verifyListProperty(propertyModel, listOf<Any>(1, 2, 3, 4), REGULAR, 0)
-    }
-
-    run {
-      val propertyModel = extModel.findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, one.toString(), STRING, REGULAR, 1, "prop2", "ext.prop2")
-      // Check the dependency
-      val dependencyModel = propertyModel.dependencies[0]
-      verifyPropertyModel(dependencyModel, INTEGER_TYPE, one, INTEGER, DERIVED, 0 /*, "0", "ext.prop1.0" TODO: FIX THIS */)
-      // Delete this property.
-      dependencyModel.delete()
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    // Check that the value of prop2 has changed
-    run {
-      val propertyModel = gradleBuildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, two.toString(), STRING, REGULAR, 1, "prop2", "ext.prop2")
-      val dependencyModel = propertyModel.dependencies[0]
-      verifyPropertyModel(dependencyModel, INTEGER_TYPE, two, INTEGER, DERIVED, 0 /*, "0", "ext.prop1.0" TODO: FIX THIS */)
-    }
-  }
-
-  private fun verifySetNewValueInMap(buildModel: GradleBuildModel) {
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-
-      run {
-        val map = propertyModel.getValue(MAP_TYPE)!!
-        assertSize(2, map.entries)
-        verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
-        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
-
-        // Attempt to set a new value.
-        val newValue = propertyModel.getMapValue("key3")
-        verifyPropertyModel(newValue, OBJECT_TYPE, null, NONE, DERIVED, 0)
-        newValue.setValue(true)
-        verifyPropertyModel(newValue, BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
-      }
-
-      run {
-        // Check map now has three values.
-        val map = propertyModel.getValue(MAP_TYPE)!!
-        assertSize(3, map.entries)
-        verifyPropertyModel(map["key3"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
-        verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
-        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
-      }
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      val map = propertyModel.getValue(MAP_TYPE)!!
-      assertSize(3, map.entries)
-      verifyPropertyModel(map["key3"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
-      verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
-      verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
-    }
-  }
-
-  private fun verifyDeletePropertyInMap(buildModel: GradleBuildModel, testFileName: TestFileName) {
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      run {
-        val map = propertyModel.getValue(MAP_TYPE)!!
-        assertSize(2, map.entries)
-        verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
-        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
-        map["key1"]?.delete()
-      }
-
-      run {
-        val map = propertyModel.getValue(MAP_TYPE)!!
-        assertSize(1, map.entries)
-        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
-      }
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      val map = propertyModel.getValue(MAP_TYPE)!!
-      assertSize(1, map.entries)
-      verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
-    }
-
-    verifyFileContents(myBuildFile, testFileName)
-  }
-
-  private fun verifySetNewValueInEmptyMap(buildModel: GradleBuildModel) {
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-
-      // Check every thing is in order
-      run {
-        val map = propertyModel.getValue(MAP_TYPE)!!
-        assertSize(0, map.entries)
-      }
-
-      // Set the new value.
-      propertyModel.getMapValue("key1").setValue(ReferenceTo("val1"))
-
-      // Check the correct values are shown in the property.
-      run {
-        val map = propertyModel.getValue(MAP_TYPE)!!
-        assertSize(1, map.entries)
-        verifyPropertyModel(map["key1"], STRING_TYPE, "val1", REFERENCE, DERIVED, 1)
-        verifyPropertyModel(map["key1"]!!.dependencies[0], STRING_TYPE, "value", STRING, VARIABLE, 0)
-      }
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      val map = propertyModel.getValue(MAP_TYPE)!!
-      assertSize(1, map.entries)
-      verifyPropertyModel(map["key1"], STRING_TYPE, "val1", REFERENCE, DERIVED, 1)
-      verifyPropertyModel(map["key1"]!!.dependencies[0], STRING_TYPE, "value", STRING, VARIABLE, 0)
-    }
-  }
-
-  private fun verifyDeleteMapItemToAndSetFromEmpty(buildModel: GradleBuildModel) {
-    // Delete the item in the map.
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      val map = propertyModel.getValue(MAP_TYPE)!!
-      assertSize(1, map.entries)
-      verifyPropertyModel(map["key1"], INTEGER_TYPE, 25, INTEGER, DERIVED, 0)
-
-      map["key1"]?.delete()
-
-      val newMap = propertyModel.getValue(MAP_TYPE)!!
-      assertSize(0, newMap.entries)
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    // Check that a reparse still has a missing model
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
-
-      // Attempt to set a new value
-      propertyModel.getMapValue("Conquest").setValue("Famine")
-      // Check the model again
-      assertEquals(MAP, propertyModel.valueType)
-      val map = propertyModel.getValue(MAP_TYPE)!!
-      verifyPropertyModel(map["Conquest"], STRING_TYPE, "Famine", STRING, DERIVED, 0)
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      val map = propertyModel.getValue(MAP_TYPE)!!
-      verifyPropertyModel(map["Conquest"], STRING_TYPE, "Famine", STRING, DERIVED, 0)
-    }
-  }
-
-  private fun verifySetMapValueToLiteralForKTSArrayExpression(buildModel: GradleBuildModel) {
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      val map = propertyModel.getValue(MAP_TYPE)!!
-      assertSize(1, map.entries)
-
-      // Set the property to a new value.
-      propertyModel.setValue(77)
-      verifyPropertyModel(propertyModel, INTEGER_TYPE, 77, INTEGER, REGULAR, 0)
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, INTEGER_TYPE, 77, INTEGER, REGULAR, 0)
-    }
-  }
-
-  private fun verifyDeleteToEmptyMap(buildModel: GradleBuildModel) {
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      assertSize(3, propertyModel.getValue(MAP_TYPE)!!.entries)
-
-      val map = propertyModel.getValue(MAP_TYPE)!!
-      map["key"]!!.delete()
-      map["key1"]!!.delete()
-      map["key2"]!!.delete()
-
-      assertEquals(MAP, propertyModel.valueType)
-      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
-    }
-  }
-
-  private fun verifyAddExistingMapProperty(buildModel: GradleBuildModel) {
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop")
-      verifyMapProperty(propertyModel, ImmutableMap.of("key", "val") as Map<String, Any>)
-
-      propertyModel.getMapValue("key").setValue("newVal")
-      verifyMapProperty(propertyModel, ImmutableMap.of("key", "newVal") as Map<String, Any>)
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop")
-      verifyMapProperty(propertyModel, ImmutableMap.of("key", "newVal") as Map<String, Any>)
-    }
-  }
-
-  private fun verifyDeleteMapProperty(buildModel: GradleBuildModel) {
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      assertSize(1, propertyModel.getValue(MAP_TYPE)!!.entries)
-
-      // Delete the map
-      propertyModel.delete()
-      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
-    }
-  }
-
-  private fun verifyDeleteEmptyMap(buildModel: GradleBuildModel) {
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop")
-      assertEquals(MAP, propertyModel.valueType)
-      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
-
-      propertyModel.delete()
-      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop")
-      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
-    }
-  }
-
-  private fun verifySetLiteralToMapValue(buildModel: GradleBuildModel) {
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "val1", REFERENCE, REGULAR, 1)
-      val deps = propertyModel.dependencies
-      assertSize(1, deps)
-      val mapPropertyModel = deps[0]
-      // Check it is not a map yet
-      verifyPropertyModel(mapPropertyModel, STRING_TYPE, "value", STRING, VARIABLE, 0)
-
-      mapPropertyModel.convertToEmptyMap().getMapValue("key").setValue("Hello")
-
-      assertEquals(MAP, mapPropertyModel.valueType)
-      val map = mapPropertyModel.getValue(MAP_TYPE)!!
-      assertSize(1, map.entries)
-      verifyPropertyModel(map["key"], STRING_TYPE, "Hello", STRING, DERIVED, 0)
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "val1", REFERENCE, REGULAR, 1)
-      val deps = propertyModel.dependencies
-      assertSize(1, deps)
-      val mapPropertyModel = deps[0]
-      assertEquals(MAP, mapPropertyModel.valueType)
-      val map = mapPropertyModel.getValue(MAP_TYPE)!!
-      assertSize(1, map.entries)
-      verifyPropertyModel(map["key"], STRING_TYPE, "Hello", STRING, DERIVED, 0)
-    }
-  }
-
-  private fun verifyParseMapInMap(buildModel: GradleBuildModel) {
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      val map = propertyModel.getValue(MAP_TYPE)!!
-      assertSize(2, map.entries)
-      verifyPropertyModel(map["key1"], INTEGER_TYPE, 25, INTEGER, DERIVED, 0)
-
-      val mapPropertyModel = map["key2"]!!
-      assertEquals(MAP, mapPropertyModel.valueType)
-      val innerMap = mapPropertyModel.getValue(MAP_TYPE)!!
-      assertSize(1, innerMap.entries)
-      verifyPropertyModel(innerMap["key"], STRING_TYPE, "value", STRING, DERIVED, 0)
-    }
-  }
-
-  private fun verifyMapsInMap(buildModel: GradleBuildModel, fileName: TestFileName) {
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      val map = propertyModel.getValue(MAP_TYPE)!!
-      assertSize(3, map.entries)
-
-      val firstInnerMapModel = map["key1"]!!
-      assertEquals(MAP, firstInnerMapModel.valueType)
-      val firstInnerMap = firstInnerMapModel.getValue(MAP_TYPE)!!
-      assertSize(1, firstInnerMap.entries)
-      // Delete the first inner map
-      firstInnerMapModel.delete()
-
-      // Check is has been deleted.
-      verifyPropertyModel(firstInnerMapModel, OBJECT_TYPE, null, NONE, DERIVED, 0)
-
-      val secondInnerMapModel = map["key3"]!!
-      assertEquals(MAP, secondInnerMapModel.valueType)
-      val secondInnerMap = secondInnerMapModel.getValue(MAP_TYPE)!!
-      assertSize(2, secondInnerMap.entries)
-      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "value2", STRING, DERIVED, 0)
-      verifyPropertyModel(secondInnerMap["key5"], INTEGER_TYPE, 43, INTEGER, DERIVED, 0)
-      // Delete one of these values, and change the other.
-      secondInnerMap["key4"]!!.setValue(ReferenceTo("var1"))
-      secondInnerMap["key5"]!!.delete()
-
-      // Check the values are correct.
-      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var1", REFERENCE, DERIVED, 1)
-      verifyPropertyModel(secondInnerMap["key5"], OBJECT_TYPE, null, NONE, DERIVED, 0)
-
-      val thirdInnerMapModel = map["key6"]!!
-      assertEquals(MAP, thirdInnerMapModel.valueType)
-      val thirdInnerMap = thirdInnerMapModel.getValue(MAP_TYPE)!!
-      assertSize(1, thirdInnerMap.entries)
-      verifyPropertyModel(thirdInnerMap["key7"], STRING_TYPE, "value3", STRING, DERIVED, 0)
-
-      // Set this third map model to be another basic value.
-      thirdInnerMapModel.setValue(77)
-
-      // Check it has been deleted.
-      verifyPropertyModel(thirdInnerMapModel, INTEGER_TYPE, 77, INTEGER, DERIVED, 0)
-    }
-
-    applyChangesAndReparse(buildModel)
-
-    verifyFileContents(myBuildFile, fileName)
-
-    // Check everything is in order after a reparse.
-    run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
-      assertEquals(MAP, propertyModel.valueType)
-      val map = propertyModel.getValue(MAP_TYPE)!!
-      assertSize(2, map.entries)
-
-      val firstInnerMapModel = map["key1"]
-      assertNull(firstInnerMapModel)
-
-      val secondInnerMapModel = map["key3"]!!
-      assertEquals(MAP, secondInnerMapModel.valueType)
-      val secondInnerMap = secondInnerMapModel.getValue(MAP_TYPE)!!
-      assertSize(1, secondInnerMap.entries)
-      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var1", REFERENCE, DERIVED, 1)
-      assertNull(secondInnerMap["key5"])
-
-      val thirdInnerMapModel = map["key6"]!!
-      verifyPropertyModel(thirdInnerMapModel, INTEGER_TYPE, 77, INTEGER, DERIVED, 0)
-    }
   }
 
   fun assertSize(expectedSize: Int, list: MutableList<*>?) {
