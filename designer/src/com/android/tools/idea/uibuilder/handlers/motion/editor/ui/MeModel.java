@@ -367,7 +367,7 @@ public class MeModel {
   }
 
   public MTag findTag(String type, String id) {
-    if (mSelectedType == null) {
+    if (mSelectedType == null || id == null) {
       return null;
     }
 
@@ -381,6 +381,7 @@ public class MeModel {
         break;
       case CONSTRAINT:
         tag = tag.getParent(); // for constraint we need to go up a level to the constraint set
+        // falls through
       case CONSTRAINT_SET:
         MTag[] look = tag.getChildTags("id", id);
         if (look != null && look.length > 0) {

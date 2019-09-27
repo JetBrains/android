@@ -260,6 +260,7 @@ class ConstraintSetPanel extends JPanel {
         return;
       }
       else {
+        String cset_id = Utils.stripID(mConstraintSet.getAttributeValue("id"));
         MTag[] sets = mConstraintSet.getChildTags("Constraint");
         String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
 
@@ -271,10 +272,8 @@ class ConstraintSetPanel extends JPanel {
           row[1] = id;
           ArrayList<MTag> children = constraint.getChildren();
           HashMap<String, Attribute> attrs = constraint.getAttrList();
-          // row[2] = getMask(children, attrs, id);
-          row[2] = (derived == null) ? "layout" : findFirstDefOfView(id, mConstraintSet);
+          row[2] = cset_id;
           row[0] = MEIcons.LIST_STATE;
-
           mDisplayedRows.add(constraint);
           mConstraintSetModel.addRow(row);
         }
@@ -448,5 +447,16 @@ class ConstraintSetPanel extends JPanel {
         in = false;
       }
     });
+  }
+
+  public void selectById(String[] ids) {
+    HashSet<String> selectedSet = new HashSet<>(Arrays.asList(ids));
+    mConstraintSetTable.clearSelection();
+    for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
+      String id = (String)mConstraintSetModel.getValueAt(i, 1);
+      if (selectedSet.contains(id)) {
+        mConstraintSetTable.addRowSelectionInterval(i, i);
+      }
+    }
   }
 }
