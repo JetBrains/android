@@ -21,6 +21,8 @@ import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_DOTS_FOR_OPTI
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_HIDE_RETURN_TYPES
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_HIDE_SPECIAL_LOOKUP_ELEMENTS
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_ICONS
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_LAYOUT_ICON
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_REQUIRED_ONLY
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_TRAILING_LAMBDA
@@ -30,12 +32,20 @@ import com.intellij.codeInsight.completion.CompletionLocation
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionWeigher
+import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
+import com.intellij.codeInsight.daemon.impl.quickfix.EmptyExpression
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.codeInsight.template.Template
+import com.intellij.codeInsight.template.TemplateEditingAdapter
+import com.intellij.codeInsight.template.TemplateManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.parentOfType
 import com.intellij.ui.LayeredIcon
 import com.intellij.util.castSafelyTo
 import icons.AndroidIcons
@@ -47,7 +57,10 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
+import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
+import org.jetbrains.kotlin.idea.util.CallType
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.types.typeUtil.isUnit
@@ -68,7 +81,9 @@ private val allFlags = signaturesFlags + listOf(
   COMPOSE_COMPLETION_BANNER,
   COMPOSE_COMPLETION_HIDE_SPECIAL_LOOKUP_ELEMENTS,
   COMPOSE_COMPLETION_HIDE_RETURN_TYPES,
-  COMPOSE_COMPLETION_LAYOUT_ICON
+  COMPOSE_COMPLETION_LAYOUT_ICON,
+  COMPOSE_COMPLETION_INSERT_HANDLER,
+  COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL
 )
 
 private fun PsiElement.isComposableFunction(): Boolean {
@@ -79,6 +94,15 @@ private fun CompletionParameters.isInsideComposableCode(): Boolean {
   // TODO: Figure this out.
   return originalFile.language == KotlinLanguage.INSTANCE
 }
+
+private fun LookupElement.getFunctionDescriptor(): FunctionDescriptor? {
+  return this.`object`
+    .castSafelyTo<DeclarationLookupObject>()
+    ?.descriptor
+    ?.castSafelyTo<FunctionDescriptor>()
+}
+
+private val List<ValueParameterDescriptor>.hasTrailingFunction: Boolean get() = lastOrNull()?.type?.isBuiltinFunctionalType == true
 
 /**
  * Modifies [LookupElement]s for composable functions, to improve Compose editing UX.
@@ -141,12 +165,7 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
       presentation.icon = COMPOSABLE_FUNCTION_ICON
     }
 
-    val descriptor =
-      this.`object`
-        .castSafelyTo<DeclarationLookupObject>()
-        ?.descriptor
-        ?.castSafelyTo<FunctionDescriptor>()
-      ?: return
+    val descriptor = getFunctionDescriptor() ?: return
 
     if (COMPOSE_COMPLETION_HIDE_RETURN_TYPES.get() || COMPOSE_COMPLETION_LAYOUT_ICON.get()) {
       val text = when {
@@ -164,6 +183,15 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
 
     if (signaturesFlags.any { it.get()} ) {
       rewriteSignature(descriptor, presentation)
+    }
+  }
+
+  override fun handleInsert(context: InsertionContext) {
+    val descriptor = getFunctionDescriptor()
+    return when {
+      !COMPOSE_COMPLETION_INSERT_HANDLER.get() -> super.handleInsert(context)
+      descriptor == null ->  super.handleInsert(context)
+      else -> AndroidComposeInsertHandler(descriptor).handleInsert(context, this)
     }
   }
 
@@ -193,8 +221,6 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
       presentation.appendTailText(" " + LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION, true)
     }
   }
-
-  private val List<ValueParameterDescriptor>.hasTrailingFunction: Boolean get() = lastOrNull()?.type?.isBuiltinFunctionalType == true
 }
 
 /**
@@ -248,5 +274,64 @@ class AndroidComposeCompletionWeigher : CompletionWeigher() {
       !location.completionParameters.isInsideComposableCode() -> false // TODO: only change weights for statements.
       else -> element.psiElement?.isComposableFunction() ?: false
     }
+  }
+}
+
+class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinCallableInsertHandler(CallType.DEFAULT) {
+  override fun handleInsert(context: InsertionContext, lookupElement: LookupElement) = with(context) {
+    super.handleInsert(context, lookupElement)
+
+    // All Kotlin insertion handlers do this, possibly to post-process adding a new import in the call to super above.
+    val psiDocumentManager = PsiDocumentManager.getInstance(project)
+    psiDocumentManager.commitAllDocuments()
+    psiDocumentManager.doPostponedOperationsAndUnblockDocument(document)
+
+    val templateManager = TemplateManager.getInstance(project)
+    val requiredParameters = descriptor.valueParameters.filter { !it.declaresDefaultValue() }
+    val insertLambda = requiredParameters.hasTrailingFunction
+    val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
+
+    val template = templateManager.createTemplate("", "").apply {
+      isToReformat = true
+      setToIndent(true)
+
+      when {
+        inParens.isNotEmpty() -> {
+          addTextSegment("(")
+          inParens.forEachIndexed { index, parameter ->
+            if (index > 0) {
+              addTextSegment(", ")
+            }
+            addTextSegment(parameter.name.asString() + " = ")
+            addVariable(EmptyExpression(), true)
+          }
+          addTextSegment(")")
+        }
+        insertLambda && COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL.get() -> {
+          addTextSegment("(")
+          addVariable(EmptyExpression(), true)
+          addTextSegment(")")
+        }
+        !insertLambda -> addTextSegment("()")
+      }
+
+      if (insertLambda) {
+        addTextSegment(" {\n")
+        addEndVariable()
+        addTextSegment("\n}")
+      }
+    }
+
+    templateManager.startTemplate(editor, template, object : TemplateEditingAdapter() {
+      override fun templateFinished(template: Template, brokenOff: Boolean) {
+        if (!brokenOff) {
+          val callExpression = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtCallExpression>() ?: return
+          val valueArgumentList = callExpression.valueArgumentList ?: return
+          if (valueArgumentList.arguments.isEmpty() && callExpression.lambdaArguments.isNotEmpty()) {
+            runWriteAction { valueArgumentList.delete() }
+          }
+        }
+      }
+    })
   }
 }
