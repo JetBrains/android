@@ -33,6 +33,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.android.tools.idea.ui.resourcemanager.ImageCache
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
@@ -95,13 +96,13 @@ class ResourceExplorerListViewModelImpl(
   /**
    * callback called when the resource model have change. This happen when the facet is changed.
    */
-  override var resourceChangedCallback: (() -> Unit)? = null
+  override var updateUiCallback: ((UpdateUiReason) -> Unit)? = null
 
   override var facetUpdaterCallback: ((facet: AndroidFacet) -> Unit)? = null
 
   override var currentResourceType: ResourceType by Delegates.observable(defaultResourceType) { _, oldValue, newValue ->
     if (newValue != oldValue) {
-      resourceChangedCallback?.invoke()
+      updateUiCallback?.invoke(UpdateUiReason.RESOURCE_TYPE_CHANGED)
     }
   }
 
