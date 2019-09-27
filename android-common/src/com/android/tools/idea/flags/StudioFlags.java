@@ -775,6 +775,20 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER = Flag.create(
+    COMPOSE, "completion.insert.handler",
+    "Custom insert handler for composable functions",
+    "If enabled, code completion for composable functions uses a custom InsertHandler that inserts required parameter names.",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL = Flag.create(
+    COMPOSE, "completion.insert.handler.optional",
+    "Custom insert handler for composable functions adds a stop for optional parameters",
+    "If enabled, custom InsertHandler adds an extra 'stop' for optional parameters.",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_WIZARD_TEMPLATES = Flag.create(
     COMPOSE, "wizard.templates",
     "Show Compose Wizards",
