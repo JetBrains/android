@@ -5,7 +5,7 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -411,7 +411,7 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : :javalib1
         LinkedProjectPath   : <PROJECT>/javalib1
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/javalib1/javalib1.iml
+        ModuleFile          : <PROJECT>/.idea/modules/javalib1/javalib1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -472,7 +472,7 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : :javalib2
         LinkedProjectPath   : <PROJECT>/javalib2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/javalib2/javalib2.iml
+        ModuleFile          : <PROJECT>/.idea/modules/javalib2/javalib2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -497,7 +497,7 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : :library1
         LinkedProjectPath   : <PROJECT>/library1
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/library1/library1.iml
+        ModuleFile          : <PROJECT>/.idea/modules/library1/library1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -938,7 +938,7 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : :library2
         LinkedProjectPath   : <PROJECT>/library2
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/library2/library2.iml
+        ModuleFile          : <PROJECT>/.idea/modules/library2/library2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1319,7 +1319,7 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : testTransitiveDependencies
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testTransitiveDependencies.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testTransitiveDependencies.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle

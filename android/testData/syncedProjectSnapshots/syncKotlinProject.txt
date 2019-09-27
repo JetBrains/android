@@ -5,7 +5,7 @@ PROJECT             : testSyncKotlinProject
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -554,7 +554,7 @@ PROJECT             : testSyncKotlinProject
         LinkedProjectId     : :awesomeandroidlibrary
         LinkedProjectPath   : <PROJECT>/awesomeandroidlibrary
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/awesomeandroidlibrary/awesomeandroidlibrary.iml
+        ModuleFile          : <PROJECT>/.idea/modules/awesomeandroidlibrary/awesomeandroidlibrary.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1061,7 +1061,7 @@ PROJECT             : testSyncKotlinProject
         LinkedProjectId     : :contentLib
         LinkedProjectPath   : <PROJECT>/contentLib
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/contentLib/contentLib.iml
+        ModuleFile          : <PROJECT>/.idea/modules/contentLib/contentLib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -1188,7 +1188,7 @@ PROJECT             : testSyncKotlinProject
         LinkedProjectId     : testSyncKotlinProject
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testSyncKotlinProject.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testSyncKotlinProject.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle

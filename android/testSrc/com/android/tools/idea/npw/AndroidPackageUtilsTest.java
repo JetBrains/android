@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.mockito.Mockito;
 
 import java.io.File;
@@ -36,7 +37,7 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
   public void testGetPackageForPath() throws Exception {
     loadProject(PROJECT_WITH_APPAND_LIB);
 
-    File javaSrcDir = new File(getModuleDirPath(myAndroidFacet.getModule()), "src/main/java");
+    File javaSrcDir = new File(AndroidRootUtil.findModuleRootFolderPath(myAndroidFacet.getModule()), "src/main/java");
     AndroidModulePaths androidModuleTemplate = Mockito.mock(AndroidModulePaths.class);
     Mockito.when(androidModuleTemplate.getSrcDirectory(null)).thenReturn(javaSrcDir);
 

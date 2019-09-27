@@ -4,7 +4,7 @@ PROJECT             : testWithEmptyGradleSettingsFileInSingleModuleProject
         LinkedProjectId     : testWithEmptyGradleSettingsFileInSingleModuleProject
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testWithEmptyGradleSettingsFileInSingleModuleProject.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testWithEmptyGradleSettingsFileInSingleModuleProject.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android

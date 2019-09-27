@@ -36,6 +36,7 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCate
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static java.util.Collections.emptyList;
@@ -205,7 +206,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String[] moduleGroup;
     final String gradlePath = gradleModule.getGradleProject().getPath();
     final String rootName = gradleModule.getProject().getName();
-    final boolean isRootModule = StringUtil.isEmpty(gradlePath) || ":".equals(gradlePath);
+    final boolean isRootModule = isEmpty(gradlePath) || ":".equals(gradlePath);
     moduleGroup = isRootModule
                   ? new String[]{moduleName}
                   : (rootName + gradlePath).split(":");
@@ -221,12 +222,26 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     String projectPath = projectDataNode.getData().getLinkedExternalProjectPath();
     String moduleConfigPath = getModuleConfigPath(resolverCtx, gradleModule, projectPath);
+    String ideProjectPath = resolverCtx.getIdeProjectPath();
 
-    String moduleId = GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule);
+    GradleProject gradleProject = gradleModule.getGradleProject();
+    String gradlePath = gradleProject.getPath();
+    boolean isMainRootModule =
+      (isEmpty(gradlePath) || ":".equals(gradlePath))
+      && gradleModule.getProject() == resolverCtx.getModels().getIdeaProject();
+
     ProjectSystemId owner = GradleConstants.SYSTEM_ID;
     String typeId = StdModuleTypes.JAVA.getId();
 
-    ModuleData moduleData = new ModuleData(moduleId, owner, typeId, moduleName, moduleConfigPath, moduleConfigPath);
+    String moduleId = GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule);
+    String relativeModuleFileDirectoryPath = isMainRootModule ? "" : moduleId.replace(':', File.separatorChar);
+
+    String moduleFileDirectoryPath =
+      ideProjectPath == null
+      ? moduleConfigPath
+      : new File(new File(ideProjectPath), relativeModuleFileDirectoryPath).getAbsolutePath();
+
+    ModuleData moduleData = new ModuleData(moduleId, owner, typeId, moduleName, moduleFileDirectoryPath, moduleConfigPath);
     moduleData.setIdeModuleGroup(getIdeModuleGroup(moduleName, gradleModule));
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
     if (externalProject != null) {

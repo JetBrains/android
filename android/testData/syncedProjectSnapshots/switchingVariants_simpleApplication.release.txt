@@ -5,7 +5,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -455,7 +455,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
         LinkedProjectId     : testSwitchingVariants_simpleApplication
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/testSwitchingVariants_simpleApplication.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testSwitchingVariants_simpleApplication.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
