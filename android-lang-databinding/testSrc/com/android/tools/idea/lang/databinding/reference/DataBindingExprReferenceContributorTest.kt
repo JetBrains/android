@@ -1200,4 +1200,30 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     assertThat(referencedMethod.isReferenceTo(methodInSourceCode)).isTrue()
     assertThat(referencedMethod.resolve()).isEqualTo(methodInSourceCode)
   }
+
+  @Test
+  fun dbReferencesMethodBestMatchedWithArguments() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public Object confusingFunction(Object object) {}
+        public String confusingFunction(String str) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.confu<caret>singFunction(`string`)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+  }
 }
