@@ -81,7 +81,7 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
                      @NotNull DesignerEditor designerEditor,
                      @NotNull String editorName,
                      @NotNull Project project) {
-    super(textEditor, designerEditor, editorName);
+    super(textEditor, designerEditor, editorName, Layout.SHOW_PREVIEW);
     myProject = project;
     myDesignerEditor = designerEditor;
     registerModeNavigationShortcuts();
