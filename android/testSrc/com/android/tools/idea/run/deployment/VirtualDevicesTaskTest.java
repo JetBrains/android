@@ -24,41 +24,78 @@ import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
+@RunWith(JUnit4.class)
 public final class VirtualDevicesTaskTest {
+  private FileSystem myFileSystem;
+
+  private VirtualDevicesTask myTask;
+
+  @Before
+  public void setUp() {
+    myFileSystem = Jimfs.newFileSystem(Configuration.unix());
+    myTask = new VirtualDevicesTask(true, myFileSystem, null);
+  }
+
   @Test
   public void getSnapshotSnapshotProtocolBufferDoesntExist() {
-    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-    Path directory = fileSystem.getPath("/usr/local/google/home/testuser/.android/avd/Pixel_2_XL_API_28.avd/snapshots/default_boot");
+    // Arrange
+    Path directory = myFileSystem.getPath("/usr/local/google/home/testuser/.android/avd/Pixel_2_XL_API_28.avd/snapshots/default_boot");
 
-    Object actualName = VirtualDevicesTask.getSnapshot(directory);
+    // Act
+    Object snapshot = myTask.getSnapshot(directory);
 
-    assertEquals(new Snapshot("default_boot"), actualName);
+    // Assert
+    assertEquals(Snapshot.quickboot(myFileSystem), snapshot);
   }
 
   @Test
   public void getSnapshotImageCountEqualsZero() {
-    assertNull(VirtualDevicesTask.getSnapshot(SnapshotOuterClass.Snapshot.getDefaultInstance(), ""));
+    // Arrange
+    SnapshotOuterClass.Snapshot protocolBufferSnapshot = SnapshotOuterClass.Snapshot.getDefaultInstance();
+    Path directory = myFileSystem.getPath("");
+
+    // Act
+    Object snapshot = myTask.getSnapshot(protocolBufferSnapshot, directory);
+
+    // Assert
+    assertNull(snapshot);
   }
 
   @Test
   public void getSnapshotLogicalNameIsEmpty() {
-    SnapshotOuterClass.Snapshot snapshot = SnapshotOuterClass.Snapshot.newBuilder()
+    // Arrange
+    SnapshotOuterClass.Snapshot protocolBufferSnapshot = SnapshotOuterClass.Snapshot.newBuilder()
       .addImages(Image.getDefaultInstance())
       .build();
 
-    String fallbackName = "default_boot";
-    assertEquals(new Snapshot(fallbackName), VirtualDevicesTask.getSnapshot(snapshot, fallbackName));
+    Path directory = Snapshot.defaultBoot(myFileSystem);
+
+    // Act
+    Object snapshot = myTask.getSnapshot(protocolBufferSnapshot, directory);
+
+    // Assert
+    assertEquals(Snapshot.quickboot(myFileSystem), snapshot);
   }
 
   @Test
   public void getSnapshot() {
-    SnapshotOuterClass.Snapshot snapshot = SnapshotOuterClass.Snapshot.newBuilder()
+    // Arrange
+    SnapshotOuterClass.Snapshot protocolBufferSnapshot = SnapshotOuterClass.Snapshot.newBuilder()
       .addImages(Image.getDefaultInstance())
       .setLogicalName("My Snapshot")
       .build();
 
-    assertEquals(new Snapshot("My Snapshot", ""), VirtualDevicesTask.getSnapshot(snapshot, ""));
+    Path directory = myFileSystem.getPath("");
+
+    // Act
+    Object snapshot = myTask.getSnapshot(protocolBufferSnapshot, directory);
+
+    // Assert
+    assertEquals(new Snapshot(directory, "My Snapshot"), snapshot);
   }
 }
