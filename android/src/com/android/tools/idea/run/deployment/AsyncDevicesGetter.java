@@ -27,6 +27,7 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -95,14 +96,14 @@ public class AsyncDevicesGetter {
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
 
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean()) {
-      Callable<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(false, myChecker);
+      Callable<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(false, FileSystems.getDefault(), myChecker);
       Callable<Collection<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(myProject, myChecker);
 
       return getImpl(myVirtualDevicesWorker.get(virtualDevicesTask), myConnectedDevicesWorker.get(connectedDevicesTask));
     }
 
     // TODO Reconcile the virtual devices with the connected ones. Retain the connected device keys in the map.
-    return new ArrayList<>(myVirtualDevicesWorker.get(new VirtualDevicesTask(true, myChecker)));
+    return new ArrayList<>(myVirtualDevicesWorker.get(new VirtualDevicesTask(true, FileSystems.getDefault(), myChecker)));
   }
 
   /**

@@ -68,7 +68,7 @@ public final class SelectDeviceAction extends AnAction {
       Snapshot snapshot = device.getSnapshot();
       assert snapshot != null;
 
-      presentation.setText(snapshot.getDisplayName(), false);
+      presentation.setText(snapshot.toString(), false);
       return;
     }
 

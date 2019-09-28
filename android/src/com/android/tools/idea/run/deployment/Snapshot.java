@@ -15,36 +15,53 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.google.common.annotations.VisibleForTesting;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A <a href="https://developer.android.com/studio/run/emulator#snapshots">snapshot</a> is a persisted image of the entire state of a
+ * virtual device. Loading a snapshot into the emulator is quicker than a cold boot.
+ *
+ * <p>A default Quickboot snapshot is created when a developer creates a virtual device in Studio. Quickboot snapshots are not displayed in
+ * the drop down button nor list but they are displayed in sublists.
+ *
+ * <p>The Quickboot snapshot is still a snapshot and loading it is faster than a cold boot. If a virtual device has no snapshots it is cold
+ * booted at launch every time.
+ */
 final class Snapshot implements Comparable<Snapshot> {
-  static final Snapshot DEFAULT = new Snapshot("default_boot");
+  @NotNull
+  private final Path myDirectory;
 
   @NotNull
-  private final String myDisplayName;
+  private final String myName;
 
-  @NotNull
-  private final String myDirectoryName;
-
-  Snapshot(@NotNull String directoryName) {
-    this(directoryName, directoryName);
+  Snapshot(@NotNull Path directory, @NotNull FileSystem fileSystem) {
+    this(directory, directory.equals(defaultBoot(fileSystem)) ? "Quickboot" : directory.toString());
   }
 
-  Snapshot(@NotNull String displayName, @NotNull String directoryName) {
-    myDisplayName = displayName;
-    myDirectoryName = directoryName;
-  }
-
-  @NotNull
-  String getDisplayName() {
-    return myDisplayName;
+  Snapshot(@NotNull Path directory, @NotNull String name) {
+    myDirectory = directory;
+    myName = name;
   }
 
   @NotNull
-  String getDirectoryName() {
-    return myDirectoryName;
+  static Snapshot quickboot(@NotNull FileSystem fileSystem) {
+    return new Snapshot(defaultBoot(fileSystem), "Quickboot");
+  }
+
+  @NotNull
+  @VisibleForTesting
+  static Path defaultBoot(@NotNull FileSystem fileSystem) {
+    return fileSystem.getPath("default_boot");
+  }
+
+  @NotNull
+  Path getDirectory() {
+    return myDirectory;
   }
 
   @Override
@@ -54,22 +71,22 @@ final class Snapshot implements Comparable<Snapshot> {
     }
 
     Snapshot snapshot = (Snapshot)object;
-    return myDisplayName.equals(snapshot.myDisplayName) && myDirectoryName.equals(snapshot.myDirectoryName);
+    return myDirectory.equals(snapshot.myDirectory) && myName.equals(snapshot.myName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myDisplayName, myDirectoryName);
+    return Objects.hash(myDirectory, myName);
   }
 
   @NotNull
   @Override
   public String toString() {
-    return myDisplayName;
+    return myName;
   }
 
   @Override
   public int compareTo(@NotNull Snapshot snapshot) {
-    return myDisplayName.compareTo(snapshot.myDisplayName);
+    return myName.compareTo(snapshot.myName);
   }
 }
