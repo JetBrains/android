@@ -211,8 +211,8 @@ interface IdeaSourceProvider {
      * the given folder.
      */
     @JvmStatic
-    fun isContainedBy(provider: SourceProvider, targetFolder: File): Boolean {
-      val srcDirectories = getAllSourceFolders(provider)
+    fun isContainedBy(provider: IdeaSourceProvider, targetFolder: VirtualFile): Boolean {
+      val srcDirectories = provider.allSourceFolders
       for (container in srcDirectories) {
         if (isAncestor(targetFolder, container, false)) {
           return true
@@ -233,16 +233,16 @@ interface IdeaSourceProvider {
      * Returns true iff this SourceProvider provides the source folder that contains the given file.
      */
     @JvmStatic
-    fun containsFile(provider: SourceProvider, file: File): Boolean {
-      val srcDirectories = getAllSourceFolders(provider)
-      if (filesEqual(provider.manifestFile, file)) {
+    fun containsFile(provider: IdeaSourceProvider, file: VirtualFile): Boolean {
+      val srcDirectories = provider.allSourceFolders
+      if (provider.manifestFile == file) {
         return true
       }
 
       for (container in srcDirectories) {
         // Check the flavor root directories
-        val parent = container.parentFile
-        if (parent != null && parent.isDirectory && filesEqual(parent, file)) {
+        val parent = container.parent
+        if (parent != null && parent.isDirectory && parent == file) {
           return true
         }
 
@@ -359,14 +359,13 @@ interface IdeaSourceProvider {
     fun getSourceProvidersForFile(
       facet: AndroidFacet,
       targetFolder: VirtualFile?,
-      defaultSourceProvider: SourceProvider?
-    ): List<SourceProvider> {
-      val targetIoFolder = targetFolder?.toIoFile()
+      defaultSourceProvider: IdeaSourceProvider?
+    ): List<IdeaSourceProvider> {
       val sourceProviderList =
-        if (targetIoFolder != null) {
+        if (targetFolder != null) {
           // Add source providers that contain the file (if any) and any that have files under the given folder
-          getAllSourceProviders(facet)
-            .filter { provider -> containsFile(provider, targetIoFolder) || isContainedBy(provider, targetIoFolder) }
+          getAllIdeaSourceProviders(facet)
+            .filter { provider -> containsFile(provider, targetFolder) || isContainedBy(provider, targetFolder) }
             .takeUnless { it.isEmpty() }
         }
         else null
