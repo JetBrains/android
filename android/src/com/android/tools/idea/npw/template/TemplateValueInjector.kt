@@ -105,6 +105,7 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
@@ -324,15 +325,18 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
   }
 
   fun setBaseFeature(baseFeature: Module): TemplateValueInjector {
+
+    fun String.toPath() = VfsUtilCore.urlToPath(this)
+
     val androidFacet = AndroidFacet.getInstance(baseFeature)!!
     val rootFolder = AndroidRootUtil.findModuleRootFolderPath(baseFeature)
-    val resDirectories = SourceProviderManager.getInstance(androidFacet).mainSourceProvider.resDirectories
-    assert(!resDirectories.isEmpty())
-    val baseModuleResourceRoot = resDirectories.iterator().next() // Put the new resources in any of the available res directories
+    val mainSourceProvider = SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider
+    val baseModuleResourceRootPath = mainSourceProvider.resDirectories.firstOrNull()?.path
+                                     ?: mainSourceProvider.resDirectoryUrls.first().toPath()
 
     myTemplateValues[ATTR_BASE_FEATURE_NAME] = GradleUtil.getGradlePath(baseFeature).orEmpty()
     myTemplateValues[ATTR_BASE_FEATURE_DIR] = rootFolder?.path.orEmpty()
-    myTemplateValues[ATTR_BASE_FEATURE_RES_DIR] = baseModuleResourceRoot.path
+    myTemplateValues[ATTR_BASE_FEATURE_RES_DIR] = baseModuleResourceRootPath
     return this
   }
 
