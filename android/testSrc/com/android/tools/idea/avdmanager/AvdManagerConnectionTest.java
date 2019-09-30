@@ -40,7 +40,9 @@ import com.android.utils.NullLogger;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.execution.Platform;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.OutputStreamWriter;
 import java.util.Map;
@@ -369,14 +371,15 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
   public void testFindEmulator() {
     // Create files that looks like Emulator binaries
-    mFileOp.recordExistingFile("/sdk/emulator/emulator");
-    mFileOp.recordExistingFile("/sdk/tools/emulator");
+    String binaryName = SystemInfo.isWindows ? "emulator.exe" : "emulator";
+    mFileOp.recordExistingFile("/sdk/emulator/" + binaryName);
+    mFileOp.recordExistingFile("/sdk/tools/" + binaryName);
 
     File emulatorFile = mAvdManagerConnection.getEmulatorBinary();
     assertNotNull("Could not find Emulator", emulatorFile);
     File emulatorDirectory = emulatorFile.getParentFile();
     assertTrue("Found invalid Emulator", mFileOp.isDirectory(emulatorDirectory));
-    String emulatorDirectoryPath = emulatorDirectory.getAbsolutePath();
+    String emulatorDirectoryPath = mFileOp.getAgnosticAbsPath(emulatorDirectory);
     assertEquals("Found wrong emulator", "/sdk/emulator", emulatorDirectoryPath);
 
     // Remove the emulator package
