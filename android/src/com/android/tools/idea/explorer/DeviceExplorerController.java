@@ -125,6 +125,7 @@ public class DeviceExplorerController {
   @NotNull private final Alarm myLoadingNodesAlarms;
   @NotNull private final Alarm myTransferringNodesAlarms;
   @NotNull private final Alarm myLoadingChildrenAlarms;
+  @NotNull private final FileOpener myFileOpener;
   @Nullable private LongRunningOperationTracker myLongRunningOperationTracker;
 
   public DeviceExplorerController(@NotNull Project project,
@@ -132,6 +133,7 @@ public class DeviceExplorerController {
                                   @NotNull DeviceExplorerView view,
                                   @NotNull DeviceFileSystemService service,
                                   @NotNull DeviceExplorerFileManager fileManager,
+                                  @NotNull FileOpener fileOpener,
                                   @NotNull Executor edtExecutor,
                                   @NotNull Executor taskExecutor) {
     myProject = project;
@@ -146,6 +148,7 @@ public class DeviceExplorerController {
     myLoadingNodesAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
     myTransferringNodesAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
     myLoadingChildrenAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
+    myFileOpener = fileOpener;
 
     project.putUserData(KEY, this);
   }
@@ -450,9 +453,9 @@ public class DeviceExplorerController {
       DeviceFileSystem device = myModel.getActiveDevice();
       Map<DeviceFileEntryNode, Path> downloadedNodes = new HashMap<>();
 
-      executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
+      myEdtExecutor.executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
         if (downloadedNodes.containsKey(treeNode)) {
-          openFile(treeNode, downloadedNodes.get(treeNode));
+          myFileOpener.openFile(downloadedNodes.get(treeNode));
           return null;
         }
 
@@ -475,7 +478,7 @@ public class DeviceExplorerController {
           ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(path);
 
           myEdtExecutor.transform(getVirtualFile, virtualFile -> {
-            openFile(treeNode, path); return null;
+            myFileOpener.openFile(virtualFile); return null;
           });
 
           return null;
@@ -543,24 +546,6 @@ public class DeviceExplorerController {
         tracker -> addDownloadOperationWork(tracker, treeNode),
         tracker -> ignoreResult(downloadFileEntry(treeNode, localPath, tracker)));
       return myEdtExecutor.transform(futureSave, summary -> localPath);
-    }
-
-    private void openFile(DeviceFileEntryNode treeNode, Path localPath) {
-      ApplicationManager.getApplication().invokeLater(() -> {
-        ListenableFuture<Void> futureOpen = myFileManager.openFile(treeNode.getEntry(), localPath);
-        myEdtExecutor.addCallback(futureOpen, new FutureCallback<Void>() {
-          @Override
-          public void onSuccess(@Nullable Void result) {
-            // Nothing to do, file is opened in editor
-          }
-
-          @Override
-          public void onFailure(@NotNull Throwable t) {
-            String message = String.format("Unable to open file \"%s\" in editor", localPath);
-            myView.reportErrorRelatedToNode(treeNode, message, t);
-          }
-        });
-      });
     }
 
     @Override
@@ -1830,5 +1815,12 @@ public class DeviceExplorerController {
         }
       };
     }
+  }
+
+  public interface FileOpener {
+    @UiThread
+    void openFile(@NotNull Path localPath);
+    @UiThread
+    void openFile(@NotNull VirtualFile virtualFile);
   }
 }

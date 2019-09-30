@@ -16,15 +16,14 @@
 package com.android.tools.idea.explorer.mocks;
 
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.device.fs.DownloadProgress;
 import com.android.tools.idea.device.fs.DownloadedFileData;
 import com.android.tools.idea.explorer.DeviceExplorerFileManager;
 import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl;
-import com.android.tools.idea.device.fs.DownloadProgress;
 import com.android.tools.idea.explorer.FutureValuesTracker;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -49,9 +48,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private final Set<DeviceFileSystem> myDevices = new HashSet<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntry> myDownloadFileEntryTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<DeviceFileEntry> myDownloadFileEntryCompletionTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<Path> myOpenFileInEditorTracker = new FutureValuesTracker<>();
-  @Nullable private RuntimeException myOpenFileInEditorError;
+  @NotNull private final FutureValuesTracker<DownloadedFileData> myDownloadFileEntryCompletionTracker = new FutureValuesTracker<>();
 
   public MockDeviceExplorerFileManager(
     @NotNull Project project,
@@ -74,7 +71,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
     myEdtExecutor.addCallback(futureResult, new FutureCallback<DownloadedFileData>() {
       @Override
       public void onSuccess(@Nullable DownloadedFileData result) {
-        myDownloadFileEntryCompletionTracker.produce(entry);
+        myDownloadFileEntryCompletionTracker.produce(result);
       }
 
       @Override
@@ -90,16 +87,6 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   @Override
   public Path getDefaultLocalPathForEntry(@NotNull DeviceFileEntry entry) {
     return myFileManagerImpl.getDefaultLocalPathForEntry(entry);
-  }
-
-  @Override
-  @NotNull
-  public ListenableFuture<Void> openFile(@NotNull DeviceFileEntry deviceFileEntry, @NotNull Path localPath) {
-    myOpenFileInEditorTracker.produce(localPath);
-    if (myOpenFileInEditorError != null) {
-      return Futures.immediateFailedFuture(myOpenFileInEditorError);
-    }
-    return myFileManagerImpl.openFile(deviceFileEntry, localPath);
   }
 
   @Override
@@ -133,16 +120,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   }
 
   @NotNull
-  public FutureValuesTracker<DeviceFileEntry> getDownloadFileEntryCompletionTracker() {
+  public FutureValuesTracker<DownloadedFileData> getDownloadFileEntryCompletionTracker() {
     return myDownloadFileEntryCompletionTracker;
-  }
-
-  @NotNull
-  public FutureValuesTracker<Path> getOpenFileInEditorTracker() {
-    return myOpenFileInEditorTracker;
-  }
-
-  public void setOpenFileInEditorError(@Nullable RuntimeException e) {
-    myOpenFileInEditorError = e;
   }
 }
