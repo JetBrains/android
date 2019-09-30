@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
+import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import junit.framework.TestCase.assertEquals
 import org.junit.After
@@ -42,12 +43,12 @@ class DeviceViewContentPanelTest {
 
   @Before
   fun setUp() {
-    InspectorClient.currentInstance = mock(InspectorClient::class.java)
+    InspectorClient.clientFactory = { mock(InspectorClient::class.java) }
   }
 
   @After
   fun tearDown() {
-    InspectorClient.currentInstance = null
+    InspectorClient.clientFactory = { DefaultInspectorClient(it) }
   }
 
   @Test
@@ -119,6 +120,7 @@ class DeviceViewContentPanelTest {
       }
     }
 
+    @Suppress("UndesirableClassUsage")
     val childImage = BufferedImage(50, 100, TYPE_INT_ARGB)
     val childImageGraphics = childImage.createGraphics()
     childImageGraphics.color = Color.RED

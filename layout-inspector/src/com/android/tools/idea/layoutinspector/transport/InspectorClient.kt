@@ -95,14 +95,15 @@ interface InspectorClient {
   val isCapturing: Boolean
 
   companion object {
-
-    fun createOrGetDefaultInstance(project: Project): InspectorClient {
-      val client = currentInstance ?: DefaultInspectorClient(project)
-      currentInstance = client
-      return client
-    }
-
+    /**
+     * Prove a way for tests to generate a mock client.
+     */
     @VisibleForTesting
-    var currentInstance: InspectorClient? = null
+    var clientFactory: (project: Project) -> InspectorClient = { DefaultInspectorClient(it) }
+
+    /**
+     * Use this method to create a new client.
+     */
+    fun createInstance(project: Project): InspectorClient = clientFactory(project)
   }
 }
