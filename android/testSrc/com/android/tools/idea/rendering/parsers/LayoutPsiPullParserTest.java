@@ -15,6 +15,29 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_BACKGROUND;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_MIN_HEIGHT;
+import static com.android.SdkConstants.ATTR_MIN_WIDTH;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_TAG;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.ATTR_VISIBILITY;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.URI_PREFIX;
+import static com.android.SdkConstants.VALUE_FILL_PARENT;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.xmlpull.v1.XmlPullParser.END_TAG;
+import static org.xmlpull.v1.XmlPullParser.START_TAG;
+
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
@@ -29,22 +52,15 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.io.StringReader;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.StringReader;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import static com.android.SdkConstants.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
 public class LayoutPsiPullParserTest extends AndroidTestCase {
   @SuppressWarnings("SpellCheckingInspection")
@@ -607,6 +623,48 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
                  "    <fragment\n" +
                  "        android:id=\"@+id/launcher_home\"\n" +
                  "        tools:layout=\"@layout/main_fragment\">\n";
+    myFixture.addFileToProject("res/navigation/mobile_navigation.xml", nav);
+
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    Configuration configuration = manager.getConfiguration(xmlFile.getVirtualFile());
+    ResourceResolver resourceResolver = configuration.getResourceResolver();
+
+    LayoutPsiPullParser parser =
+      LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, resourceResolver);
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("include", parser.getName());
+    assertEquals("@layout/main_fragment", parser.getAttributeValue(null, ATTR_LAYOUT));
+  }
+
+  public void testNavigationNestedStartDestination() throws XmlPullParserException {
+    @Language("XML")
+    final String layout = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                    "          xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                    "    android:layout_width=\"match_parent\"\n" +
+                    "    android:layout_height=\"match_parent\">\n" +
+                    "  <fragment\n" +
+                    "      android:id=\"@+id/fragment\"\n" +
+                    "      android:name=\"androidx.navigation.fragment.NavHostFragment\"\n" +
+                    "      android:layout_width=\"match_parent\"\n" +
+                    "      android:layout_height=\"match_parent\"\n" +
+                    "      app:navGraph=\"@navigation/mobile_navigation\" />\n" +
+                    "</LinearLayout>";
+
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/my_layout.xml", layout);
+
+    @Language("XML") final String nav = "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                        "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                                        "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                                        "    app:startDestination=\"@+id/nested_graph\">\n" +
+                                        "    <navigation\n" +
+                                        "        android:id=\"@+id/nested_graph\"\n" +
+                                        "        app:startDestination=\"@+id/launcher_home\">\n" +
+                                        "        <fragment\n" +
+                                        "            android:id=\"@+id/launcher_home\"\n" +
+                                        "            tools:layout=\"@layout/main_fragment\"/>\n" +
+                                        "    </navigation>\n" +
+                                        "</navigation>\n";
     myFixture.addFileToProject("res/navigation/mobile_navigation.xml", nav);
 
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
