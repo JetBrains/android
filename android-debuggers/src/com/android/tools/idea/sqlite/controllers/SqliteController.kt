@@ -17,6 +17,9 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.device.fs.DeviceFileDownloaderService
+import com.android.tools.idea.device.fs.DeviceFileId
+import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.SqliteServiceFactory
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
@@ -39,7 +42,11 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
+import java.nio.file.Path
+import java.util.Collections
+import java.util.TreeMap
 import java.util.concurrent.Executor
+import java.util.function.Consumer
 
 /**
  * Implementation of the application logic related to viewing/editing sqlite databases.
@@ -53,6 +60,7 @@ class SqliteController(
   private val sqliteServiceFactory: SqliteServiceFactory,
   private val viewFactory: SqliteEditorViewFactory,
   val sqliteView: SqliteView,
+  val fileOpener: Consumer<VirtualFile>,
   edtExecutor: EdtExecutorService,
   taskExecutor: Executor
 ) : Disposable {
@@ -284,6 +292,31 @@ class SqliteController(
 
     override fun removeDatabaseActionInvoked(database: SqliteDatabase) {
       closeDatabase(database)
+    }
+
+    override fun syncDatabaseActionInvoked(database: SqliteDatabase) {
+      val deviceFileId: DeviceFileId = database.virtualFile.getUserData(DeviceFileId.KEY) ?: return
+      val downloadFuture = DeviceFileDownloaderService.getInstance(project).downloadFile(deviceFileId, object : DownloadProgress {
+        override val isCancelled: Boolean
+          get() = false
+
+        override fun onStarting(entryFullPath: Path) {
+          sqliteView.reportSyncProgress("${entryFullPath.fileName}: start sync")
+        }
+
+        override fun onProgress(entryFullPath: Path, currentBytes: Long, totalBytes: Long) {
+          sqliteView.reportSyncProgress("${entryFullPath.fileName}: sync progress $currentBytes/$totalBytes")
+        }
+
+        override fun onCompleted(entryFullPath: Path) {
+          sqliteView.reportSyncProgress("${entryFullPath.fileName}: sync completed")
+        }
+      })
+
+      edtExecutor.transform(downloadFuture) { downloadedFileData ->
+        fileOpener.accept(downloadedFileData.virtualFile)
+        sqliteView.reportSyncProgress("")
+      }
     }
   }
 

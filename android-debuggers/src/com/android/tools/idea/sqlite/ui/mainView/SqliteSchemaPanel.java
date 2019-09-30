@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui.mainView;
 
 import com.intellij.ui.treeStructure.Tree;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class SqliteSchemaPanel {
@@ -24,6 +25,8 @@ public class SqliteSchemaPanel {
   private Tree myTree;
   private JPanel myControlsPanel;
   private JButton myRemoveDatabaseButton;
+  private JButton mySyncButton;
+  private JLabel mySyncProgressLabel;
 
   public JPanel getComponent() {
     return myComponent;
@@ -39,5 +42,13 @@ public class SqliteSchemaPanel {
 
   public JButton getRemoveDatabaseButton() {
     return myRemoveDatabaseButton;
+  }
+
+  public JButton getSyncButton() {
+    return mySyncButton;
+  }
+
+  public JLabel getSyncProgressLabel() {
+    return mySyncProgressLabel;
   }
 }

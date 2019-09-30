@@ -64,6 +64,8 @@ interface SqliteView {
   fun focusTab(tabId: TabId)
   fun closeTab(tabId: TabId)
 
+  fun reportSyncProgress(message: String)
+
   fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable)
 }
 
@@ -76,6 +78,8 @@ interface SqliteViewListener {
   fun openSqliteEvaluatorTabActionInvoked()
   /** Called when the user wants to remove a database from the list of open databases */
   fun removeDatabaseActionInvoked(database: SqliteDatabase)
+  /** Called when the user wants to sync a database */
+  fun syncDatabaseActionInvoked(database: SqliteDatabase)
 }
 
 /**
