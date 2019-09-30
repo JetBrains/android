@@ -18,16 +18,14 @@ package com.android.tools.idea.material.icons
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.vectordrawable.VdIcon
+import com.android.tools.idea.material.icons.MaterialIconsUtils.toDirFormat
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.MultiMap
 import java.io.File
 import java.io.IOException
 import java.net.JarURLConnection
 import java.net.URL
-import java.util.Locale
 import java.util.zip.ZipEntry
-
-private const val PATH = "images/material/icons/"
 
 private val LOG = Logger.getInstance(MaterialVdIconsLoader::class.java)
 
@@ -176,42 +174,3 @@ class MaterialVdIcons(
     val EMPTY = MaterialVdIcons(emptyMap(), emptyMap())
   }
 }
-
-/**
- * Interface used to get [URL] objects for [MaterialVdIconsLoader].
- */
-interface MaterialIconsUrlProvider {
-
-  /**
-   * Get the [URL] of the files under a particular material icon style.
-   */
-  fun getStyleUrl(style: String): URL?
-
-  /**
-   * Get the [URL] of the actual Material Icon file for the given style, icon name and its file name.
-   */
-  fun getIconUrl(style: String, iconName: String, iconFileName: String): URL?
-}
-
-/**
- * The default [MaterialIconsUrlProvider] for [VdIcon] files bundled with Android Studio.
- */
-private class MaterialIconsUrlProviderImpl : MaterialIconsUrlProvider {
-  override fun getStyleUrl(style: String): URL? {
-    return MaterialVdIconsLoader::class.java.classLoader.getResource(getStyleDirectoryPath(style))
-  }
-
-  override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
-    return MaterialVdIconsLoader::class.java.classLoader.getResource(getIconDirectoryPath(style, iconName) + iconFileName)
-  }
-
-  private fun getIconDirectoryPath(style: String, name: String): String {
-    return getStyleDirectoryPath(style) + name + "/"
-  }
-
-  private fun getStyleDirectoryPath(style: String): String {
-    return PATH + style.toDirFormat() + "/"
-  }
-}
-
-private fun String.toDirFormat(): String = this.toLowerCase(Locale.US).replace(" ", "")
