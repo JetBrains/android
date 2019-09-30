@@ -23,6 +23,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
@@ -31,7 +32,7 @@ import org.mockito.Mockito
 object InspectorBuilder {
 
   fun setUpDemo(projectRule: AndroidProjectRule) {
-    InspectorClient.currentInstance = Mockito.mock(InspectorClient::class.java)
+    InspectorClient.clientFactory = { Mockito.mock(InspectorClient::class.java) }
     projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/layout-inspector/testData/resource").path
     projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyFileToProject("res/color/app_text_color.xml")
@@ -52,7 +53,7 @@ object InspectorBuilder {
   }
 
   fun tearDownDemo() {
-    InspectorClient.currentInstance = null
+    InspectorClient.clientFactory = { DefaultInspectorClient(it) }
   }
 
   fun createLayoutInspectorForDemo(projectRule: AndroidProjectRule): LayoutInspector {

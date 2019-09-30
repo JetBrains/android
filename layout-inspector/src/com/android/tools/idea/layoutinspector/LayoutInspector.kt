@@ -29,7 +29,7 @@ private const val DEBUG = true
 
 class LayoutInspector(layoutInspectorModel: InspectorModel) {
   val modelChangeListeners = mutableListOf<(InspectorModel, InspectorModel) -> Unit>()
-  val client = InspectorClient.createOrGetDefaultInstance(layoutInspectorModel.project)
+  val client = InspectorClient.createInstance(layoutInspectorModel.project)
 
   init {
     client.register(Common.Event.EventGroupIds.LAYOUT_INSPECTOR_ERROR, ::showError)
