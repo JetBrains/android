@@ -165,7 +165,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * </ul>
    */
   public boolean isMessageVisible() {
-    return myLoadingPanel.isLoading() || myLoadingPanel.hasError();
+    return myLoadingPanel.isLoadingOrHasError();
   }
 
   @TestOnly

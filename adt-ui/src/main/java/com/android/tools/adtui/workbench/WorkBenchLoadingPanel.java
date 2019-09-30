@@ -16,15 +16,21 @@
 package com.android.tools.adtui.workbench;
 
 import com.android.annotations.Nullable;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.ui.UIUtil;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.LayoutManager;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * Drop-in replacement for JBLoadingPanel with ability to display a message when loading
@@ -57,14 +63,18 @@ public class WorkBenchLoadingPanel extends JPanel {
     myLoadingPanel.setLoadingText(text);
   }
 
-  @TestOnly
+  @VisibleForTesting
   public boolean isLoading() {
     return myLoadingPanel.isLoading();
   }
 
-  @TestOnly
+  @VisibleForTesting
   public boolean hasError() {
     return myMessagePanel.isShowing();
+  }
+
+  boolean isLoadingOrHasError() {
+    return isLoading() || hasError();
   }
 
   @Override
