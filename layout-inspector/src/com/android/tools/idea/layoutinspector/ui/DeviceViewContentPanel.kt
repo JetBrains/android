@@ -120,8 +120,10 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
     model.hitRects.asReversed().forEach { drawView(g2d, it, it.node.imageTop) }
   }
 
-  override fun getPreferredSize() = Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt(),
-                                              (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt())
+  override fun getPreferredSize() =
+    if (inspectorModel.root == null) Dimension(0, 0)
+    else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt(),
+                   (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt())
 
   private fun drawView(g: Graphics,
                        drawInfo: ViewDrawInfo,
