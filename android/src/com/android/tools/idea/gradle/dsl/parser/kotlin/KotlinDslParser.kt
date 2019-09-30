@@ -325,6 +325,32 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }
   }
 
+  fun getDotQualifiedExpression(
+    parent: GradleDslElement,
+    expression: KtDotQualifiedExpression,
+    name: GradleNameElement) : GradleDslExpression? {
+    val receiver = expression.receiverExpression
+    val selector = expression.selectorExpression
+    when (selector) {
+      is KtCallExpression -> {
+        // Check if this is about a localMethod used for blocks referencing, or not.
+        val referenceName = selector.name()
+        if (isValidBlockName(referenceName)) {
+          return GradleDslLiteral(parent, expression, name, expression, true)
+        }
+        else {
+          // This is the case of method calls for which we want to keep all the expression name as reference and resolve the nested
+          // method call. For example : System.getEnv("pass") -> in such case, we shouldn't consider the expression as a literal but rather
+          // as a methodCall.
+          val methodName = "${receiver.text}.${referenceName}"
+          return getMethodCall(parent, selector, name, methodName)
+        }
+      }
+    }
+
+    return null
+  }
+
   override fun visitBinaryExpression(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
     var parentBlock = parent
     val name: GradleNameElement
@@ -470,7 +496,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
     val methodCall = GradleDslMethodCall(parent, psiElement, name, methodName, false)
     val arguments = (psiElement as KtCallExpression).valueArgumentList ?: return methodCall
-    val argumentList = getExpressionList(methodCall, arguments, name, arguments.arguments, false)
+    val argumentList = getExpressionList(methodCall, arguments, GradleNameElement.empty(), arguments.arguments, false)
     methodCall.setParsedArgumentList(argumentList)
     return methodCall
   }
@@ -537,6 +563,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         val arguments = expression.valueArgumentList ?: return null
         return getCallExpression(parent, expression, name, arguments, expressionName, false, isLiteral)
       }
+      is KtDotQualifiedExpression -> return getDotQualifiedExpression(parent, expression, name)
       is KtParenthesizedExpression -> return createExpressionElement(parent, psiElement, name, expression.expression ?: expression)
       else -> return getExpressionElement(parent, psiElement, name, expression)
     }

@@ -351,33 +351,29 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     val statementText =
       if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
-        // Ex: implementation(fileTree()).
-        maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent()) + "(" + maybeTrimForParent(
-          GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent()) + "())"
+        val propertyName = maybeTrimForParent(methodCall.nameElement, methodCall.parent)
+        val methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent)
+        if (methodCall.shouldUseAssignment()) {
+          // Ex: a = b().
+          "$propertyName = $methodName()"
+        }
+        else {
+          // Ex: implementation(fileTree()).
+          "$propertyName($methodName())"
+        }
       }
     else {
         // Ex : proguardFile() where the name is the same as the methodName, so we need to make sure we create one method only.
         maybeTrimForParent(
           GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent()) + "()"
       }
-    val expression =
-      psiFactory.createExpression(statementText) as? KtCallExpression ?: throw IllegalArgumentException(
-        "Can't create expression from \"$statementText\"")  // Maybe we can change the behaviour to just return null in such case.
+    val expression = psiFactory.createExpression(statementText)
 
     val addedElement :PsiElement
-    /*if (parentPsiElement is KtBlockExpression) {
-      addedElement = parentPsiElement.addAfter(expression, anchor)
-      // We need to add empty lines if we're adding expressions to a block because IDEA doesn't handle formatting
-      // in kotlin the same way as GROOVY.
-      if (anchor != null && !hasNewLineBetween(addedElement, anchor)) {
-        val lineTerminator = psiFactory.createNewLine()
-        parentPsiElement.addAfter(lineTerminator, addedElement)
-      }
-    }*/
     if (parentPsiElement is KtValueArgumentList) {
       val valueArgument = psiFactory.createArgument(expression)
       val addedArgument = parentPsiElement.addArgumentAfter(valueArgument, anchor as? KtValueArgument)
-      addedElement = addedArgument.getArgumentExpression() ?: throw Exception("ValueArgument was not created properly.")
+      addedElement = requireNotNull(addedArgument.getArgumentExpression())
     }
     else {
       addedElement = parentPsiElement.addAfter(expression, anchor)
@@ -390,8 +386,25 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       }
     }
 
-    // Adjust the PsiElement for methodCall.
-    val argumentList = (addedElement as KtCallExpression).valueArgumentList?.arguments ?: return null
+    if (addedElement is KtBinaryExpression) {
+      val addedMethodExpression = addedElement.right ?: return null
+      when (addedMethodExpression) {
+        is KtDotQualifiedExpression -> {
+          val callExpression = addedMethodExpression.selectorExpression as? KtCallExpression ?: return null
+          methodCall.psiElement = callExpression
+          methodCall.argumentsElement.psiElement = callExpression.valueArgumentList
+          return methodCall.psiElement
+        }
+        is KtCallExpression -> {
+          methodCall.psiElement = addedMethodExpression
+          methodCall.argumentsElement.psiElement = addedMethodExpression.valueArgumentList
+          return methodCall.psiElement
+        }
+        else -> return null
+      }
+    }
+
+    val argumentList = (addedElement as? KtCallExpression)?.valueArgumentList?.arguments ?: return null
     if (argumentList.size == 1 && argumentList[0].getArgumentExpression() is KtCallExpression) {
       methodCall.psiElement = argumentList[0].getArgumentExpression()
       methodCall.argumentsElement.psiElement = (argumentList[0].getArgumentExpression() as KtCallExpression).valueArgumentList
