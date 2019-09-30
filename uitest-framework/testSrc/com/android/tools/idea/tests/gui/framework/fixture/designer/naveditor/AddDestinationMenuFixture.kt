@@ -58,8 +58,15 @@ class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddD
     return menu.destinationsList.itemsCount
   }
 
+  fun clickCreateBlank(): ConfigureTemplateParametersWizardFixture {
+    ActionButtonFixture(robot, menu.blankDestinationButton).click()
+
+    val dialog = findMenuDialog(robot, "New Android Component")
+    return ConfigureTemplateParametersWizardFixture(robot, dialog)
+  }
+
   fun clickCreateNewFragment(): NewFragmentWizardFixture {
-    ActionButtonFixture(robot, menu.createNewDestinationButton).click()
+    ActionButtonFixture(robot, menu.blankDestinationButton).click()
 
     val dialog = findMenuDialog(robot, "New Android Fragment")
     return NewFragmentWizardFixture(robot, dialog)
