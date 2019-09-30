@@ -166,6 +166,11 @@ b/137231583 */
     assertIsEqualToSnapshot(text)
   }
 
+  fun testMultiFlavor() {
+    val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testSimpleApplicationWithAgp3_3_2() {
     val text = importSyncAndDumpProject(SIMPLE_APPLICATION) {
       val buildFile = it.resolve("build.gradle")

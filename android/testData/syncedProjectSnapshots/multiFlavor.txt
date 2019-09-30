@@ -1,0 +1,337 @@
+PROJECT             : testMultiFlavor
+    MODULE              : MultiFlavor
+        - ModuleGroupPath   : MultiFlavor
+        LinkedProjectId     : MultiFlavor
+        LinkedProjectPath   : <PROJECT>
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/.idea/modules/MultiFlavor.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     : <PROJECT>/build [-]
+        CONENT_ENTRY        : file://<PROJECT>
+            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : app
+        - ModuleGroupPath   : MultiFlavor
+        - ModuleGroupPath   : app
+        LinkedProjectId     : :app
+        LinkedProjectPath   : <PROJECT>/app
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android
+            TypeId              : android
+            SelectedBuildVariant          : firstAbcSecondAbcDebug
+            AssembleTaskName    : assembleFirstAbcSecondAbcDebug
+            CompileJavaTaskName : compileFirstAbcSecondAbcDebugSources
+            - AfterSyncTask     : generateFirstAbcSecondAbcDebugSources
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
+            TestResFoldersRelativePath    :  [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType         : 0
+            RunProcessResourcesMavenTask  : true
+            PackTestCode        : false
+            RunProguard         : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing     : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex      : false
+            MinimalMainDex      : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :app
+        CONENT_ENTRY        : file://<PROJECT>/app
+            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/firstAbcSecondAbcDebugAndroidTest/out [-]
+            JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug [-]
+            JavaResource        : file://<PROJECT>/app/build/generated/res/rs/firstAbcSecondAbc/debug [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/firstAbcSecondAbc/debug [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/firstAbcSecondAbc/debug [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbc/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbc/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbc/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbc/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbc/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbc/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbc/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestSecondAbc/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestSecondAbc/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestSecondAbc/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestSecondAbc/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestSecondAbc/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestSecondAbc/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestSecondAbc/shaders [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/aidl [-]
+            JavaResource        : file://<PROJECT>/app/src/debug/assets [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/java [-]
+            JavaResource        : file://<PROJECT>/app/src/debug/res [-]
+            JavaResource        : file://<PROJECT>/app/src/debug/resources [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/rs [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/shaders [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbc/aidl [-]
+            JavaResource        : file://<PROJECT>/app/src/firstAbc/assets [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbc/java [-]
+            JavaResource        : file://<PROJECT>/app/src/firstAbc/res [-]
+            JavaResource        : file://<PROJECT>/app/src/firstAbc/resources [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbc/rs [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbc/shaders [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbc/aidl [-]
+            JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbc/assets [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbc/java
+            JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbc/res [-]
+            JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbc/resources [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbc/rs [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbc/shaders [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/aidl [-]
+            JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/assets [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/java [-]
+            JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/res [-]
+            JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/resources [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/rs [-]
+            JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/shaders [-]
+            JavaSource          : file://<PROJECT>/app/src/main/aidl [-]
+            JavaResource        : file://<PROJECT>/app/src/main/assets [-]
+            JavaSource          : file://<PROJECT>/app/src/main/java
+            JavaResource        : file://<PROJECT>/app/src/main/res
+            JavaResource        : file://<PROJECT>/app/src/main/resources [-]
+            JavaSource          : file://<PROJECT>/app/src/main/rs [-]
+            JavaSource          : file://<PROJECT>/app/src/main/shaders [-]
+            JavaSource          : file://<PROJECT>/app/src/secondAbc/aidl [-]
+            JavaResource        : file://<PROJECT>/app/src/secondAbc/assets [-]
+            JavaSource          : file://<PROJECT>/app/src/secondAbc/java
+            JavaResource        : file://<PROJECT>/app/src/secondAbc/res [-]
+            JavaResource        : file://<PROJECT>/app/src/secondAbc/resources [-]
+            JavaSource          : file://<PROJECT>/app/src/secondAbc/rs [-]
+            JavaSource          : file://<PROJECT>/app/src/secondAbc/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/test/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/java
+            JavaResource (test) : file://<PROJECT>/app/src/test/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/test/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbc/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbc/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbc/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbc/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbc/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbc/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbc/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbc/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbc/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbc/java
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbc/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbc/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbc/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbc/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/java
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testSecondAbc/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testSecondAbc/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testSecondAbc/java
+            JavaResource (test) : file://<PROJECT>/app/src/testSecondAbc/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testSecondAbc/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testSecondAbc/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testSecondAbc/shaders [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
+        JDK                 : <NAME_CUT> Android SDK
+        *isInherited        : false
+            SdkType             : Android SDK
+            HomePath            : <ANDROID_SDK>
+            VersionString       : java version "<JDK_VERSION>"
+        ORDER_ENTRY         : <Module source>
+        LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.annotation:annotation:1.0.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/
+        LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3@jar [=]
+            *CLASSES            : jar://<M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar!/
+        LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/res
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar!/
+        LIBRARY             : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test.ext:junit:1.1.1@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/res [-]
+        LIBRARY             : Gradle: androidx.test:core:1.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test:core:1.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test:monitor:1.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test:monitor:1.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test:runner:1.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test:runner:1.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/res [-]
+        LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar [=]
+            *CLASSES            : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
+        LIBRARY             : Gradle: com.squareup:javawriter:2.1.1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: com.squareup:javawriter:2.1.1@jar [=]
+            *CLASSES            : jar://<M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar!/
+        LIBRARY             : Gradle: javax.inject:javax.inject:1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: javax.inject:javax.inject:1@jar [=]
+            *CLASSES            : jar://<M2>/javax/inject/javax.inject/1/javax.inject-1.jar!/
+        LIBRARY             : Gradle: junit:junit:4.12@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: junit:junit:4.12@jar [=]
+            *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
+        LIBRARY             : Gradle: net.sf.kxml:kxml2:2.3.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: net.sf.kxml:kxml2:2.3.0@jar [=]
+            *CLASSES            : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-core:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-integration:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-integration:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-library:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/

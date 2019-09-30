@@ -55,6 +55,12 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
     assertIsEqualToSnapshot(text)
   }
 
+  // TODO(b/121345405): Fix missing test source providers.
+  fun testMultiFlavor() {
+    val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testNestedProjects() {
     val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE)
     assertIsEqualToSnapshot(text)
