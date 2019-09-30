@@ -98,7 +98,7 @@ class AndroidUsagesTargetProviderTest : AndroidTestCase() {
     moduleWithDependency: Boolean,
     moduleWithoutDependency: Boolean
   ) {
-    val scope = resourceReferencePsiElement.getUserData(AndroidUsagesTargetProvider.RESOURCE_CONTEXT_SCOPE)
+    val scope = resourceReferencePsiElement.getCopyableUserData(ResourceReferencePsiElement.RESOURCE_CONTEXT_SCOPE)
     assertThat(scope!!.contains(MAIN_MODULE_COLOR_FILE)).isEqualTo(mainModule)
     assertThat(scope.contains(MODULE_WITH_DEPENDENCY_COLOR_FILE)).isEqualTo(moduleWithDependency)
     assertThat(scope.contains(MODULE_WITHOUT_DEPENDENCY_COLOR_FILE)).isEqualTo(moduleWithoutDependency)
@@ -106,7 +106,7 @@ class AndroidUsagesTargetProviderTest : AndroidTestCase() {
 
   private fun checkContextElement(targetElement: ResourceReferencePsiElement) {
     val elementInFile = myFixture.file!!.findReferenceAt(myFixture.editor.caretModel.offset)!!.element
-    val contextElement = targetElement.getUserData(AndroidUsagesTargetProvider.RESOURCE_CONTEXT_ELEMENT)
+    val contextElement = targetElement.getCopyableUserData(ResourceReferencePsiElement.RESOURCE_CONTEXT_ELEMENT)
     assertThat(contextElement).isEqualTo(elementInFile)
   }
 

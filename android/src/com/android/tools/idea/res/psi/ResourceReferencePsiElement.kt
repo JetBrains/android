@@ -35,6 +35,8 @@ import com.intellij.psi.ElementDescriptionProvider
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.find.findUsages.FindUsagesHandler
 import com.android.tools.idea.util.androidFacet
+import com.android.utils.reflection.qualifiedName
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -43,6 +45,7 @@ import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.FakePsiElement
 import com.intellij.psi.impl.compiled.ClsFieldImpl
+import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
@@ -77,6 +80,8 @@ class ResourceReferencePsiElement(
   companion object {
 
     @JvmField val RESOURCE_ICON: Icon =  StudioIcons.Shell.ToolWindows.VISUAL_ASSETS
+    @JvmField val RESOURCE_CONTEXT_SCOPE: Key<SearchScope> = Key.create<SearchScope>(::RESOURCE_CONTEXT_SCOPE.qualifiedName)
+    @JvmField val RESOURCE_CONTEXT_ELEMENT: Key<PsiElement> = Key.create<PsiElement>(::RESOURCE_CONTEXT_ELEMENT.qualifiedName)
 
     @JvmStatic
     fun create(element: PsiElement): ResourceReferencePsiElement? {
@@ -195,7 +200,9 @@ class ResourceReferencePsiElement(
   fun toWritableResourceReferencePsiElement() : ResourceReferencePsiElement? {
     // Framework resources are not writable.
     if (this.resourceReference.namespace != ResourceNamespace.ANDROID) {
-      return ResourceReferencePsiElement(this.resourceReference, this.psiManager, true)
+      val writableElement = ResourceReferencePsiElement(this.resourceReference, this.psiManager, true)
+      copyCopyableDataTo(writableElement)
+      return writableElement
     }
     return null
   }
