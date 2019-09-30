@@ -54,14 +54,14 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
   @Override
   @NotNull
   public ResolvedPropertyModel storeFile() {
-    return GradlePropertyModelBuilder.create(myDslElement, STORE_FILE).asMethod(true)
+    return GradlePropertyModelBuilder.create(myDslElement, STORE_FILE).asMethod(false)
       .addTransform(FILE_TRANSFORM).buildResolved();
   }
 
   @Override
   @NotNull
   public PasswordPropertyModel storePassword() {
-    return GradlePropertyModelBuilder.create(myDslElement, STORE_PASSWORD).asMethod(true)
+    return GradlePropertyModelBuilder.create(myDslElement, STORE_PASSWORD).asMethod(false)
       .buildPassword();
   }
 
@@ -80,7 +80,7 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
   @Override
   @NotNull
   public PasswordPropertyModel keyPassword() {
-    return GradlePropertyModelBuilder.create(myDslElement, KEY_PASSWORD).asMethod(true)
+    return GradlePropertyModelBuilder.create(myDslElement, KEY_PASSWORD).asMethod(false)
       .buildPassword();
   }
 }

@@ -415,6 +415,11 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
           psiElement.delete()
         }
       }
+      is KtDotQualifiedExpression -> {
+        if (psiElement.selectorExpression == null) {
+          psiElement.delete()
+        }
+      }
     }
   }
 
