@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.impl.model.util
 
+import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.ptable2.PTableModel
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.PropertyEditorModel
@@ -39,6 +40,7 @@ open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
   var expandable = false
   override var expanded = false
   val children = mutableListOf<InspectorLineModel>()
+  var listeners = mutableListOf<ValueChangedListener>()
   val childProperties: List<String>
     get() = children.map { it as FakeInspectorLineModel }.map { it.editorModel!!.property.name }
 
@@ -52,6 +54,18 @@ open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
   override fun makeExpandable(initiallyExpanded: Boolean) {
     expandable = true
     expanded = initiallyExpanded
+  }
+
+  override fun refresh() {
+    listeners.toTypedArray().forEach { it.valueChanged() }
+  }
+
+  override fun addValueChangedListener(listener: ValueChangedListener) {
+    listeners.add(listener)
+  }
+
+  override fun removeValueChangedListener(listener: ValueChangedListener) {
+    listeners.remove(listener)
   }
 }
 

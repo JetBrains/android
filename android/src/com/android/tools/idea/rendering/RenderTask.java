@@ -74,6 +74,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -139,6 +140,7 @@ public class RenderTask {
                                                                                                         "RenderTask dispose thread");
                                                                                     }
                                                                                   });
+  public static final String GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker";
 
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderTaskContext myContext;
@@ -279,6 +281,33 @@ public class RenderTask {
     return isDisposed.get();
   }
 
+  private void clearGapWorkerCache() {
+    if (!myLayoutlibCallback.hasLoadedClass(SdkConstants.RECYCLER_VIEW.newName()) &&
+        !myLayoutlibCallback.hasLoadedClass(SdkConstants.RECYCLER_VIEW.oldName())) {
+      // If RecyclerView has not been loaded, we do not need to care about the GapWorker cache
+      return;
+    }
+
+    try {
+      Class<?> gapWorkerClass = myLayoutlibCallback.findClass(GAP_WORKER_CLASS_NAME);
+      Field gapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker");
+      gapWorkerField.setAccessible(true);
+
+      // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
+      RenderService.runAsyncRenderAction(() -> {
+        try {
+          ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal)gapWorkerField.get(null);
+          gapWorkerFieldValue.set(null);
+        }
+        catch (IllegalAccessException e) {
+          LOG.debug(e);
+        }
+      });
+    } catch(Throwable t) {
+      LOG.debug(t);
+    }
+  }
+
   /**
    * Disposes the RenderTask and releases the allocated resources. The execution of the dispose operation will run asynchronously.
    * The returned {@link Future} can be used to wait for the dispose operation to complete.
@@ -314,6 +343,8 @@ public class RenderTask {
       }
       myImageFactoryDelegate = null;
       myAssetRepository = null;
+
+      clearGapWorkerCache();
 
       return null;
     });
