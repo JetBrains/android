@@ -487,7 +487,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
     Path downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
-    assertTrue(downloadPath.toString()
+    assertTrue(FileUtil.toSystemIndependentName(downloadPath.toString())
                            .endsWith("device-explorer-temp/TestDevice-1/file1.txt"));
 
     // Change the setting to an alternate directory, ensure that changing during runtime works
@@ -506,7 +506,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
     downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
-    assertTrue(downloadPath.toString()
+    assertTrue(FileUtil.toSystemIndependentName(downloadPath.toString())
                            .endsWith("device-explorer-temp-2/TestDevice-1/file1.txt"));
   }
 
