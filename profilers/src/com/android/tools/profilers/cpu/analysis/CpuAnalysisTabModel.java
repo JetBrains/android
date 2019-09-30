@@ -25,34 +25,15 @@ import org.jetbrains.annotations.NotNull;
  * used for the tab. An example of a tab that uses the list may be the Flame chart with multiselect or in the "Full Trace".
  */
 public class CpuAnalysisTabModel<T> {
-  public enum Type {
-    /**
-     * Summary tab used to display high level information about the current capture / selection.
-     */
-    SUMMARY("Summary");
-
-    /**
-     * The display name to show in the tab header.
-     */
-    @NotNull
-    public String getName() {
-      return myName;
-    }
-
-    private final String myName;
-    Type(@NotNull String name) {
-      myName = name;
-    }
-  }
-
-  private final Type myType;
+  private final String myTitle;
   private final List<T> myDataSeries = new ArrayList<>();
-  public CpuAnalysisTabModel(@NotNull Type type) {
-    myType = type;
+
+  public CpuAnalysisTabModel(@NotNull String title) {
+    myTitle = title;
   }
 
-  public Type getType() {
-    return myType;
+  public String getTitle() {
+    return myTitle;
   }
 
   public void addData(T data) {

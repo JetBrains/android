@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A base class for {@link CallChartDetailsView} and {@link FlameChartDetailsView} details views.
  */
-abstract class ChartDetailsView extends CaptureDetailsView {
+public abstract class ChartDetailsView extends CaptureDetailsView {
   /**
    * Component that contains everything, e.g chart, axis, scrollbar.
    */
@@ -155,7 +155,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
     return null;
   }
 
-  static final class CallChartDetailsView extends ChartDetailsView {
+  public static final class CallChartDetailsView extends ChartDetailsView {
     /**
      * The visual representation of the {@link #myCallChart}.
      */
@@ -166,7 +166,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
      */
     @NotNull private final CaptureDetails.CallChart myCallChart;
 
-    CallChartDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.CallChart callChart) {
+    public CallChartDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.CallChart callChart) {
       super(profilersView, callChart);
       myCallChart = callChart;
       // Call Chart model always correlates to the entire capture. CallChartView shows the data corresponding to the selected range in
@@ -229,7 +229,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
     }
   }
 
-  static final class FlameChartDetailsView extends ChartDetailsView {
+  public static final class FlameChartDetailsView extends ChartDetailsView {
     /**
      * The visual representation of the {@link #myFlameChart}.
      */
@@ -245,7 +245,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
      */
     @NotNull private final Range myMasterRange;
 
-    FlameChartDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.FlameChart flameChart) {
+    public FlameChartDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.FlameChart flameChart) {
       super(profilersView, flameChart);
       // FlameChart model always correlates to the selected range on the timeline, not necessarily the entire capture. Users cannot
       // navigate to other part within the capture by interacting with the FlameChart UI (they can do so only from timeline UI).

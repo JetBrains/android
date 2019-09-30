@@ -146,7 +146,7 @@ public abstract class CaptureDetails {
     }
   }
 
-  static class FlameChart extends ChartDetails {
+  public static class FlameChart extends ChartDetails {
     public enum Aspect {
       /**
        * When the root changes.

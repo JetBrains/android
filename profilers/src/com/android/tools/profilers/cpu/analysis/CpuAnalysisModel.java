@@ -25,6 +25,11 @@ import org.jetbrains.annotations.NotNull;
  * added and what data they show. The {@link CpuAnalysisModel}'s counterpart is the {@link CpuAnalysisPanel}
  */
 public class CpuAnalysisModel {
+  static final String SUMMARY_TITLE = "Summary";
+  static final String FLAME_CHART_TITLE = "Flame Chart";
+  static final String TOP_DOWN_TITLE = "Top Down";
+  static final String BOTTOM_UP_TITLE = "Bottom up";
+
   private final String myName;
   private final List<CpuAnalysisTabModel> myTabs = new ArrayList<>();
 

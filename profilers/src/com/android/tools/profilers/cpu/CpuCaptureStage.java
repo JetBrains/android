@@ -29,8 +29,10 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
+import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.AtraceFrameFilterConfig;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
@@ -42,6 +44,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -53,9 +56,6 @@ import org.jetbrains.annotations.Nullable;
  * This stage is set when a capture is selected from the {@link CpuProfilerStage}, or when a capture is imported.
  */
 public class CpuCaptureStage extends Stage {
-  @VisibleForTesting
-  static final String DEFAULT_ANALYSIS_NAME = "Full trace";
-
   public enum Aspect {
     /**
      * Triggered when the stage changes state from parsing to analyzing. This can also be viewed as capture parsing completed.
@@ -235,15 +235,9 @@ public class CpuCaptureStage extends Stage {
   private void onCaptureParsed(@NotNull CpuCapture capture) {
     myMinimapModel.setMaxRange(capture.getRange());
     initTrackGroupList(myMinimapModel.getRangeSelectionModel().getSelectionRange(), capture);
-    buildAnalysisTabs(capture);
-  }
-
-  private void buildAnalysisTabs(@NotNull CpuCapture capture) {
-    CpuAnalysisModel fullTraceModel = new CpuAnalysisModel(DEFAULT_ANALYSIS_NAME);
-    CpuAnalysisTabModel<CpuCapture> summaryModel = new CpuAnalysisTabModel<>(CpuAnalysisTabModel.Type.SUMMARY);
-    summaryModel.addData(capture);
-    fullTraceModel.getTabs().add(summaryModel);
-    addCpuAnalysisModel(fullTraceModel);
+    addCpuAnalysisModel(
+      new CpuFullTraceAnalysisModel(capture, myMinimapModel.getRangeSelectionModel().getSelectionRange()));
+    // TODO (b/138408053): Add new models based on selected items when we have that concept.
   }
 
   /**

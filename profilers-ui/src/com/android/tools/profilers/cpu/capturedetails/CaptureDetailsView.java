@@ -47,7 +47,7 @@ public abstract class CaptureDetailsView {
   }
 
   @NotNull
-  abstract JComponent getComponent();
+  public abstract JComponent getComponent();
 
   protected static void switchCardLayout(@NotNull JPanel panel, boolean isEmpty) {
     CardLayout cardLayout = (CardLayout)panel.getLayout();
