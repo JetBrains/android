@@ -103,7 +103,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myProject = project;
     myFile = file;
     myWorkBench = workBench;
-    myWorkBench.setOpaque(true);
 
     myContentPanel = new AdtPrimaryPanel(new BorderLayout());
     mySurface = surface.apply(this);
