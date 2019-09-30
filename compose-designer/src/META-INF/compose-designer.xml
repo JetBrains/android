@@ -29,5 +29,7 @@
                      enabledByDefault="true"
                      level="ERROR"/>
 
+    <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
+
   </extensions>
 </idea-plugin>
