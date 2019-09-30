@@ -245,7 +245,6 @@ private class PreviewEditor(private val psiFile: PsiFile,
    * [WorkBench] used to contain all the preview elements.
    */
   override val workbench = WorkBench<DesignSurface>(project, "Compose Preview", this, this).apply {
-    isOpaque = true
 
     val actionsToolbar = ActionsToolbar(this@PreviewEditor, surface)
     val surfacePanel = JPanel(BorderLayout()).apply {
