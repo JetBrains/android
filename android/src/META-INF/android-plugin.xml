@@ -95,6 +95,9 @@
     <component>
       <implementation-class>com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener</implementation-class>
     </component>
+    <component>
+      <implementation-class>org.jetbrains.android.AndroidComposeAutoDocumentation</implementation-class>
+    </component>
   </project-components>
   <actions>
     <action id="Project.CallGraph" internal="true" text="Contextual Call Paths" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>

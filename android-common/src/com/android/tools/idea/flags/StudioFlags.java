@@ -795,6 +795,14 @@ public final class StudioFlags {
     "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
     false
   );
+
+  public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
+    COMPOSE, "completion.auto.documentation",
+    "Show quick documentation automatically for Compose",
+    "If enabled, during code completion popup with documentation shows automatically",
+    false
+  );
+
   //endregion
 
   //region Binding
