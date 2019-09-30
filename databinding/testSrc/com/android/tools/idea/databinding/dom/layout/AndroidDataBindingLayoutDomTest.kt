@@ -105,6 +105,11 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
   }
 
   @Test
+  fun dataBindingHighlighting_fragmentInLayoutIsNotAnError() {
+    domRule.testHighlighting("databinding_highlighting_fragment_as_layout_root.xml")
+  }
+
+  @Test
   fun dataBindingHighlighting_dataClassIsValidAttrbute() {
     domRule.testHighlighting("databinding_highlighting_data_class.xml")
   }
