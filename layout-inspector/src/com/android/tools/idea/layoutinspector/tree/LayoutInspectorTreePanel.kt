@@ -23,7 +23,6 @@ import com.android.tools.componenttree.api.ViewNodeType
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.common.StringTable
-import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -82,16 +81,12 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
   override fun setToolContext(toolContext: LayoutInspector?) {
     layoutInspector?.layoutInspectorModel?.modificationListeners?.remove(this::modelModified)
-    layoutInspector?.modelChangeListeners?.remove(this::modelChanged)
     layoutInspector = toolContext
-    layoutInspector?.modelChangeListeners?.add(this::modelChanged)
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
     client = layoutInspector?.client
     client?.register(Common.Event.EventGroupIds.COMPONENT_TREE, ::loadComponentTree)
     client?.registerProcessChanged(::clearComponentTreeWhenProcessEnds)
-    if (toolContext != null) {
-      modelChanged(toolContext.layoutInspectorModel, toolContext.layoutInspectorModel)
-    }
+    toolContext?.layoutInspectorModel?.selectionListeners?.add(this::selectionChanged)
   }
 
   override fun getComponent() = componentTree
@@ -231,12 +226,6 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     if (structuralChange) {
       componentTreeModel.treeRoot = newView
     }
-  }
-
-  private fun modelChanged(oldView: InspectorModel, newView: InspectorModel) {
-    componentTreeModel.treeRoot = newView.root
-    oldView.selectionListeners.remove(this::selectionChanged)
-    newView.selectionListeners.add(this::selectionChanged)
   }
 
   @Suppress("UNUSED_PARAMETER")

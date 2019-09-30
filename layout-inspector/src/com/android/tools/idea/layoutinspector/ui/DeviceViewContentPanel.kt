@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
@@ -50,7 +49,6 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
   )
 
   init {
-    layoutInspector.modelChangeListeners.add(::modelChanged)
     inspectorModel.modificationListeners.add(::modelChanged)
     inspectorModel.selectionListeners.add(::selectionChanged)
     val mouseListener = object : MouseAdapter() {
@@ -170,16 +168,6 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
   @Suppress("UNUSED_PARAMETER")
   private fun modelChanged(old: ViewNode?, new: ViewNode?, structuralChange: Boolean) {
     model.refresh()
-    repaint()
-  }
-
-  private fun modelChanged(old: InspectorModel, new: InspectorModel) {
-    old.selectionListeners.remove(::selectionChanged)
-    new.selectionListeners.add(::selectionChanged)
-    old.modificationListeners.remove(::modelChanged)
-    new.modificationListeners.add(::modelChanged)
-
-    model = DeviceViewPanelModel(new)
     repaint()
   }
 }
