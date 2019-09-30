@@ -190,6 +190,19 @@ interface ComposePreviewManager {
 }
 
 /**
+ * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently, this
+ * will configure if the preview elements will be displayed with "full device size" or simply containing the
+ * previewed components (shrink mode).
+ * @param fullDeviceSize when true, the rendered content will be shown with the full device size specified in
+ * the device configuration.
+ */
+private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, fullDeviceSize: Boolean): LayoutlibSceneManager =
+  sceneManager.apply {
+    setTransparentRendering(!fullDeviceSize)
+    setShrinkRendering(!fullDeviceSize)
+  }
+
+/**
  * A [FileEditor] that displays a preview of composable elements defined in the given [psiFile].
  *
  * The editor will display previews for all declared `@Composable` methods that also use the `@Preview` (see [PREVIEW_ANNOTATION_FQN])
@@ -211,17 +224,18 @@ private class PreviewEditor(private val psiFile: PsiFile,
     .showModelNames()
     .setNavigationHandler(navigationHandler)
     .setSceneManagerProvider { surface, model ->
+      val currentRenderSettings = RenderSettings.getProjectSettings(project)
+
       val settingsProvider = Supplier {
         // For the compose preview we always use live rendering enabled to make use of the image pool. Also
         // we customize the quality setting and set it to the minimum for now to optimize for rendering speed.
         // For now we just render at 70% quality to get a good balance of speed/memory vs rendering quality.
-        RenderSettings.getProjectSettings(project)
+        currentRenderSettings
           .copy(quality = 0.7f, useLiveRendering = true)
       }
-      LayoutlibSceneManager(model, surface, settingsProvider).apply {
-        enableTransparentRendering()
-        enableShrinkRendering()
-      }
+      // When showing decorations, show the full device size
+      configureLayoutlibSceneManager(LayoutlibSceneManager(model, surface, settingsProvider),
+                                     fullDeviceSize = currentRenderSettings.showDecorations)
     }
     .setEditable(false)
     .build()
@@ -324,17 +338,6 @@ private class PreviewEditor(private val psiFile: PsiFile,
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    */
   fun doRefresh(filePreviewElements: List<PreviewElement>) {
-    if (filePreviewElements == previewElements) {
-      clearCacheAndRefreshSurface(surface).whenComplete { _, _ ->
-        isRefreshingPreview = false
-        // Make sure to clear refreshing notification
-        EditorNotifications.getInstance(project).updateNotifications(file)
-      }
-      updateSurfaceVisibility()
-
-      return
-    }
-
     // Only display component border if decorations are not showed
     val showBorder = !RenderSettings.getProjectSettings(project).showDecorations
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
@@ -432,6 +435,18 @@ private class PreviewEditor(private val psiFile: PsiFile,
     val filePreviewElements = previewProvider()
 
     if (filePreviewElements == previewElements) {
+      // In this case, there are no new previews. We need to make sure that the surface is still correctly
+      // configured and that we are showing the right size for components. For example, if the user switches on/off
+      // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
+      val showingDecorations = RenderSettings.getProjectSettings(project).showDecorations
+      surface.models
+        .mapNotNull { surface.getSceneManager(it) }
+        .filterIsInstance<LayoutlibSceneManager>()
+        .forEach {
+          // When showing decorations, show the full device size
+          configureLayoutlibSceneManager(it, fullDeviceSize = showingDecorations)
+        }
+
       // There are not elements, skip model creation
       clearCacheAndRefreshSurface(surface).whenComplete { _, _ ->
         isRefreshingPreview = false
