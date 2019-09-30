@@ -58,9 +58,6 @@ class DeviceFileDownloaderServiceImplTest : AndroidTestCase() {
           DownloadedFileData(DeviceFileId("deviceId", "fileId"), mock(VirtualFile::class.java), emptyList())
         )
       }
-
-      override fun openFile(entry: DeviceFileEntry, localPath: Path): ListenableFuture<Void> = Futures.immediateFuture(null)
-
     }
 
     val mockEntry = mock(DeviceFileEntry::class.java)

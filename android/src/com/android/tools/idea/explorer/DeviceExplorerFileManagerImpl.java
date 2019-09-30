@@ -30,14 +30,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.intellij.ide.actions.OpenFileAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.ex.FileTypeChooser;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtilRt;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -49,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -65,7 +63,6 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   private static final Logger LOGGER = Logger.getInstance(DeviceExplorerFileManagerImpl.class);
 
   @NotNull private final Project myProject;
-  @NotNull private final List<VirtualFile> myTemporaryEditorFiles = new ArrayList<>();
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private final FutureCallbackExecutor myTaskExecutor;
   @NotNull private Supplier<Path> myDefaultDownloadPath;
@@ -85,7 +82,17 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
                                        @NotNull Executor taskExecutor,
                                        @NotNull Supplier<Path> downloadPathSupplier) {
     myProject = project;
-    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerAdapter());
+
+    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
+      @Override
+      public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+        if (VfsUtilCore.isAncestor(getDefaultDownloadPath().toFile(), VfsUtilCore.virtualToIoFile(file), true)) {
+          Path localPath = Paths.get(file.getPath());
+          deleteTemporaryFile(localPath);
+        }
+      }
+    });
+
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
     myTaskExecutor = new FutureCallbackExecutor(taskExecutor);
     myDefaultDownloadPath = downloadPathSupplier;
@@ -198,6 +205,11 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     myEdtExecutor.addCallback(getVirtualFile, new FutureCallback<VirtualFile>() {
       @Override
       public void onSuccess(VirtualFile virtualFile) {
+        // Set the device/path information on the virtual file so custom editors
+        // (e.g. database viewer) know which device this file is coming from.
+        DeviceFileId fileInfo = new DeviceFileId(entry.getFileSystem().getName(), entry.getFullPath());
+        virtualFile.putUserData(DeviceFileId.KEY, fileInfo);
+
         progress.onCompleted(Paths.get(entry.getFullPath()));
         if (callback != null) callback.onSuccess(virtualFile);
       }
@@ -329,12 +341,6 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     return additionalPaths;
   }
 
-  @Override
-  @NotNull
-  public ListenableFuture<Void> openFile(@NotNull DeviceFileEntry entry, @NotNull Path localPath) {
-    return openFileInEditorWorker(entry, localPath);
-  }
-
   @NotNull
   private Path getDefaultDownloadPath() {
     return myDefaultDownloadPath.get();
@@ -358,45 +364,12 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     return path.get();
   }
 
-  private ListenableFuture<Void> openFileInEditorWorker(@NotNull DeviceFileEntry entry, @NotNull Path localPath) {
-    ListenableFuture<VirtualFile> futureFile = DeviceExplorerFilesUtils.findFile(localPath);
-
-    return myEdtExecutor.transform(futureFile, file -> {
-      // Set the device/path information on the virtual file so custom editors
-      // (e.g. database viewer) know which device this file is coming from.
-      DeviceFileId fileInfo = new DeviceFileId(entry.getFileSystem().getName(), entry.getFullPath());
-      file.putUserData(DeviceFileId.KEY, fileInfo);
-
-      FileType type = FileTypeChooser.getKnownFileTypeOrAssociate(file, myProject);
-      if (type == null) {
-        throw new CancellationException("Operation cancelled by user");
-      }
-
-      OpenFileAction.openFile(file, myProject);
-
-      myTemporaryEditorFiles.add(file);
-      return null;
-    });
-  }
-
   private static void deleteTemporaryFile(@NotNull Path localPath) {
     try {
       Files.deleteIfExists(localPath);
     }
     catch (IOException e) {
       LOGGER.warn(String.format("Error deleting device file from local file system \"%s\"", localPath), e);
-    }
-  }
-
-  private class MyFileEditorManagerAdapter implements FileEditorManagerListener {
-    @Override
-    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      if (myTemporaryEditorFiles.contains(file)) {
-        myTemporaryEditorFiles.remove(file);
-
-        Path localPath = Paths.get(file.getPath());
-        deleteTemporaryFile(localPath);
-      }
     }
   }
 }

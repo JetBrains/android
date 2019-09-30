@@ -18,15 +18,18 @@ package com.android.tools.idea.explorer;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemRendererFactory;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
+import com.intellij.ide.actions.OpenFileAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
+import java.nio.file.Path;
 import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -52,8 +55,20 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     DeviceExplorerModel model = new DeviceExplorerModel();
 
     DeviceExplorerViewImpl view = new DeviceExplorerViewImpl(project, deviceFileSystemRendererFactory, model);
+    DeviceExplorerController.FileOpener fileOpener = new DeviceExplorerController.FileOpener() {
+      @Override
+      public void openFile(@NotNull Path localPath) {
+        OpenFileAction.openFile(localPath.toString(), project);
+      }
+
+      @Override
+      public void openFile(@NotNull VirtualFile virtualFile) {
+        OpenFileAction.openFile(virtualFile, project);
+      }
+    };
+
     DeviceExplorerController controller =
-      new DeviceExplorerController(project, model, view, adbService, fileManager, edtExecutor, taskExecutor);
+      new DeviceExplorerController(project, model, view, adbService, fileManager, fileOpener, edtExecutor, taskExecutor);
 
     controller.setup();
 

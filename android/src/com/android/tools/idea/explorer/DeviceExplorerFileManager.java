@@ -50,18 +50,4 @@ public interface DeviceExplorerFileManager {
   ListenableFuture<DownloadedFileData> downloadFileEntry(@NotNull DeviceFileEntry entry,
                                                          @NotNull Path localPath,
                                                          @NotNull DownloadProgress progress);
-
-  /**
-   * Opens a previously downloaded file and gives focus to the open component.
-   * If the file contents is not recognized,
-   * the implementation may open a dialog box asking the user to pick the best editor type.
-   *
-   * <ul>
-   * <li>Completes with a {@link RuntimeException} if the file can not be opened.</li>
-   * <li>Completes with a {@link java.util.concurrent.CancellationException} if the user cancels
-   * the 'choose editor type' dialog.</li>
-   * </ul>
-   */
-  @NotNull
-  ListenableFuture<Void> openFile(@NotNull DeviceFileEntry entry, @NotNull Path localPath);
 }
