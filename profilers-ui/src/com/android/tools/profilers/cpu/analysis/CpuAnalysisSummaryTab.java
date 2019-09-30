@@ -15,23 +15,14 @@
  */
 package com.android.tools.profilers.cpu.analysis;
 
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.CpuCapture;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public class CpuAnalysisSummaryTab extends CpuAnalysisTab<CpuCapture> {
-
-  private final JPanel myPanel = new JPanel();
-
-  public CpuAnalysisSummaryTab(@NotNull CpuAnalysisTabModel<?> model) {
-    super((CpuAnalysisTabModel<CpuCapture>)model);
-  }
-
-  @Override
-  @NotNull
-  public JComponent getComponent() {
-    //TODO (b/138408518): Populate with summary content depending on what is selected.
-    return myPanel;
+public class CpuAnalysisSummaryTab extends CpuAnalysisTab<CpuAnalysisTabModel<?>> {
+  public CpuAnalysisSummaryTab(@NotNull StudioProfilersView view, @NotNull CpuAnalysisTabModel<?> model) {
+    super(model);
   }
 }

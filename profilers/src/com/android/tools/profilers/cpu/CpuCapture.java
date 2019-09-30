@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Cpu;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -101,6 +102,12 @@ public class CpuCapture implements ConfigurableDurationData {
   @NotNull
   Set<CpuThreadInfo> getThreads() {
     return myParser.getCaptureTrees().keySet();
+  }
+
+  // TODO (b/138408053): Remove this when we have a proper selection model.
+  @NotNull
+  public Collection<CaptureNode> getCaptureNodes() {
+    return myParser.getCaptureTrees().values();
   }
 
   public boolean containsThread(int threadId) {

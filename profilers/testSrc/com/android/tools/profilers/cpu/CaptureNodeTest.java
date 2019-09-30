@@ -15,31 +15,31 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.perflib.vmtrace.ClockType;
 import org.junit.Test;
 
 import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
 
 public class CaptureNodeTest {
 
   @Test
   public void captureNodeSpecificMethods() throws IOException {
     CaptureNode node = new CaptureNode(new StubCaptureNodeModel());
-    assertEquals(ClockType.GLOBAL, node.getClockType());
+    assertThat(node.getClockType()).isEqualTo(ClockType.GLOBAL);
 
     node.setStartThread(3);
     node.setEndThread(5);
     node.setStartGlobal(3);
     node.setEndGlobal(13);
 
-    assertEquals(3, node.getStartThread());
-    assertEquals(5, node.getEndThread());
-    assertEquals(3, node.getStartGlobal());
-    assertEquals(13, node.getEndGlobal());
+    assertThat(node.getStartThread()).isEqualTo(3);
+    assertThat(node.getEndThread()).isEqualTo(5);
+    assertThat(node.getStartGlobal()).isEqualTo(3);
+    assertThat(node.getEndGlobal()).isEqualTo(13);
 
-    assertEquals(0.2, node.threadGlobalRatio(), 0.0001);
+    assertThat(node.threadGlobalRatio()).isWithin(0.0001).of(0.2);
   }
 
   @Test
@@ -51,15 +51,32 @@ public class CaptureNodeTest {
     node.setStartGlobal(20);
     node.setEndGlobal(50);
 
-    assertEquals(ClockType.GLOBAL, node.getClockType());
-    assertEquals(20, node.getStart());
-    assertEquals(50, node.getEnd());
-    assertEquals(30, node.getDuration());
+    assertThat(node.getClockType()).isEqualTo(ClockType.GLOBAL);
+    assertThat(node.getStart()).isEqualTo(20);
+    assertThat(node.getEnd()).isEqualTo(50);
+    assertThat(node.getDuration()).isEqualTo(30);
 
     node.setClockType(ClockType.THREAD);
-    assertEquals(ClockType.THREAD, node.getClockType());
-    assertEquals(0, node.getStart());
-    assertEquals(10, node.getEnd());
-    assertEquals(10, node.getDuration());
+    assertThat(node.getClockType()).isEqualTo(ClockType.THREAD);
+    assertThat(node.getStart()).isEqualTo(0);
+    assertThat(node.getEnd()).isEqualTo(10);
+    assertThat(node.getDuration()).isEqualTo(10);
+  }
+
+  @Test
+  public void addChild() {
+    CaptureNode realParent = new CaptureNode(new StubCaptureNodeModel());
+    CaptureNode childA = new CaptureNode(new StubCaptureNodeModel());
+    VisualNodeCaptureNode visualParent = new VisualNodeCaptureNode(new StubCaptureNodeModel());
+
+    realParent.addChild(childA);
+
+    assertThat(childA.getParent()).isEqualTo(realParent);
+    assertThat(realParent.getChildAt(0)).isEqualTo(childA);
+
+    visualParent.addChild(childA);
+    assertThat(childA.getParent()).isEqualTo(realParent);
+    assertThat(realParent.getChildAt(0)).isEqualTo(childA);
+    assertThat(visualParent.getChildAt(0)).isEqualTo(childA);
   }
 }

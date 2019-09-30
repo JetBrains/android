@@ -69,7 +69,7 @@ import org.jetbrains.annotations.Nullable;
  * A base view for {@link TopDownDetailsView} and {@link BottomUpDetailsView}.
  * They are almost similar except a few key differences, e.g bottom-up hides its root or lazy loads its children on expand.
  */
-abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsView {
+public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsView {
   private static final Comparator<DefaultMutableTreeNode> DEFAULT_SORT_ORDER =
     Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getGlobalTotal));
 
@@ -409,8 +409,8 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
     }
   }
 
-  static class TopDownDetailsView extends TreeDetailsView<TopDownNode> {
-    TopDownDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.TopDown topDown) {
+  public static class TopDownDetailsView extends TreeDetailsView<TopDownNode> {
+    public TopDownDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.TopDown topDown) {
       super(profilersView, topDown.getCapture(), topDown.getModel());
       TopDownTreeModel model = topDown.getModel();
       if (model == null) {
@@ -440,8 +440,8 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
     }
   }
 
-  static class BottomUpDetailsView extends TreeDetailsView<BottomUpNode> {
-    BottomUpDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.BottomUp bottomUp) {
+  public static class BottomUpDetailsView extends TreeDetailsView<BottomUpNode> {
+    public BottomUpDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.BottomUp bottomUp) {
       super(profilersView, bottomUp.getCapture(), bottomUp.getModel());
       BottomUpTreeModel model = bottomUp.getModel();
       if (model == null) {

@@ -44,7 +44,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
     myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
-    myAnalysisPanel = new CpuAnalysisPanel(stage);
+    myAnalysisPanel = new CpuAnalysisPanel(view, stage);
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     stage.getMinimapModel().getRangeSelectionModel().addDependency(this)
       .onChange(RangeSelectionModel.Aspect.SELECTION, this::updateTrackGroupList);

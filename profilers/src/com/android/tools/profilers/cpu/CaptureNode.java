@@ -50,7 +50,7 @@ public class CaptureNode implements HNode<CaptureNode> {
   private long myEndThread;
 
   @NotNull
-  private final List<CaptureNode> myChildren;
+  protected final List<CaptureNode> myChildren;
 
   @NotNull
   private ClockType myClockType;

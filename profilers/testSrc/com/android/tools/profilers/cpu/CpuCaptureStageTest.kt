@@ -25,6 +25,9 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel
+import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -170,7 +173,7 @@ class CpuCaptureStageTest {
     val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("basic.trace"))
     profilers.stage = stage
     assertThat(stage.analysisModels.size).isEqualTo(1)
-    assertThat(stage.analysisModels[0].name).isEqualTo(CpuCaptureStage.DEFAULT_ANALYSIS_NAME)
+    assertThat(stage.analysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)
     assertThat(stage.analysisModels[0].tabs).isNotEmpty()
   }
 
@@ -225,4 +228,18 @@ class CpuCaptureStageTest {
     val mainThread = stage.capture.threads.find { it.isMainThread }
     assertThat(mainThread!!.name).isEqualTo("android.traceur")
   }
+
+  @Test
+  fun validateThreadSelectTabsAreDisplayedOnNewCapture() {
+    val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("basic.trace"))
+    profilers.stage = stage
+    assertThat(stage.analysisModels.size).isEqualTo(1)
+    assertThat(stage.analysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)
+    assertThat(stage.analysisModels[0].tabs).hasSize(4)
+    assertThat(stage.analysisModels[0].tabs[0]).isInstanceOf(CpuAnalysisTabModel::class.java)
+    assertThat(stage.analysisModels[0].tabs[1]).isInstanceOf(CpuAnalysisChartModel::class.java)
+    assertThat(stage.analysisModels[0].tabs[2]).isInstanceOf(CpuAnalysisChartModel::class.java)
+    assertThat(stage.analysisModels[0].tabs[3]).isInstanceOf(CpuAnalysisChartModel::class.java)
+  }
+
 }

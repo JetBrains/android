@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis;
 
+import com.android.tools.adtui.common.StudioColorsKt;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,30 +23,16 @@ import org.jetbrains.annotations.NotNull;
  * The view component for {@link CpuAnalysisTabModel}. Each model can have its own unique data type as such its is the responsibility
  * of the child view type to do proper type checking. An example of a child tab is the {@link CpuAnalysisSummaryTab}.
  */
-public abstract class CpuAnalysisTab<T> {
-  public static CpuAnalysisTab create(@NotNull CpuAnalysisTabModel<?> model) {
-    switch (model.getType()) {
-      case SUMMARY:
-        return new CpuAnalysisSummaryTab(model);
-      default:
-        throw new IllegalArgumentException("The supplied type " + model.getType() + " does not have an associated tab view.");
-    }
-  }
+public class CpuAnalysisTab<T extends CpuAnalysisTabModel> extends JComponent {
+  private final T myModel;
 
-  private final CpuAnalysisTabModel<T> myModel;
-
-  public CpuAnalysisTab(@NotNull CpuAnalysisTabModel<T> model) {
+  public CpuAnalysisTab(@NotNull T model) {
     myModel = model;
+    setBackground(StudioColorsKt.getPrimaryContentBackground());
   }
 
   @NotNull
-  public CpuAnalysisTabModel<T> getModel() {
+  public T getModel() {
     return myModel;
   }
-
-  /**
-   * The result of this function is returned as the body of the tab.
-   */
-  @NotNull
-  protected abstract JComponent getComponent();
 }
