@@ -22,21 +22,15 @@ import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
-import kotlin.properties.Delegates
 
 // TODO: Set this to false before turning the dynamic layout inspector on by default
 private const val DEBUG = true
 
-class LayoutInspector(layoutInspectorModel: InspectorModel) {
-  val modelChangeListeners = mutableListOf<(InspectorModel, InspectorModel) -> Unit>()
+class LayoutInspector(val layoutInspectorModel: InspectorModel) {
   val client = InspectorClient.createInstance(layoutInspectorModel.project)
 
   init {
     client.register(Common.Event.EventGroupIds.LAYOUT_INSPECTOR_ERROR, ::showError)
-  }
-
-  var layoutInspectorModel: InspectorModel by Delegates.observable(layoutInspectorModel) { _, old, new ->
-    modelChangeListeners.forEach { it(old, new) }
   }
 
   private fun showError(event: LayoutInspectorProto.LayoutInspectorEvent) {

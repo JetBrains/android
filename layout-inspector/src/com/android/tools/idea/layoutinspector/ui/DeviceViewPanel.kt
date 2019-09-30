@@ -25,7 +25,6 @@ import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.profiler.proto.Common
@@ -72,7 +71,6 @@ class DeviceViewPanel(
   init {
     scrollPane.border = JBUI.Borders.empty()
 
-    layoutInspector.modelChangeListeners.add(::modelChanged)
     client.registerProcessChanged { ApplicationManager.getApplication().invokeLater { ActionToolbarImpl.updateAllToolbarsImmediately() } }
 
     add(createToolbar(), BorderLayout.NORTH)
@@ -162,12 +160,6 @@ class DeviceViewPanel(
     toolbar.setTargetComponent(this)
     panel.add(toolbar.component, BorderLayout.EAST)
     return panel
-  }
-
-  @Suppress("UNUSED_PARAMETER")
-  private fun modelChanged(old: InspectorModel, new: InspectorModel) {
-    scrollPane.viewport.revalidate()
-    repaint()
   }
 
   private class SelectProcessAction(val client: InspectorClient) :
