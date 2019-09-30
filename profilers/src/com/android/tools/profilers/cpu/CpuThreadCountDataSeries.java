@@ -19,10 +19,10 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.profiler.proto.Transport.EventGroup;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,29 +58,35 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
       .build();
     GetEventGroupsResponse response = myClient.getEventGroups(request);
 
+    // Count the first and last events of a thread by timestamp. If the event is terminal, use -1 towards the count to offset the summing
+    // phase later.
+    //
+    // Threads states:
+    // +: non terminal
+    // @: terminal
+    // Timestamp    0  1  2  3  4  5
+    // Thread 1        +-----@
+    // Thread 2           +-----+--@
+    // First Pass   x  1  1 -1  x -1
+    // Total Count  0  1  2  1  1  0
     TreeMap<Long, Long> timestampToCountMap = new TreeMap<>();
-    for (EventGroup group : response.getGroupsList()) {
+    for (Transport.EventGroup group : response.getGroupsList()) {
       if (group.getEventsCount() > 0) {
         Common.Event first = group.getEvents(0);
         Common.Event last = group.getEvents(group.getEventsCount() - 1);
-        if (last.getTimestamp() < minNs && last.getIsEnded()) {
-          continue;
-        }
-        Long count = timestampToCountMap.get(first.getTimestamp());
-        timestampToCountMap.put(first.getTimestamp(), count == null ? 1 : count + 1);
+        timestampToCountMap.compute(first.getTimestamp(), (timestamp, count) -> count == null ? 1 : count + 1);
         if (last.getIsEnded()) {
-          count = timestampToCountMap.get(last.getTimestamp());
-          timestampToCountMap.put(last.getTimestamp(), count == null ? -1 : count - 1);
+          timestampToCountMap.compute(last.getTimestamp(), (timestamp, count) -> count == null ? -1 : count - 1);
         }
       }
     }
-
     List<SeriesData<Long>> data = new ArrayList<>();
     long total = 0;
     for (Map.Entry<Long, Long> entry : timestampToCountMap.entrySet()) {
       total += entry.getValue();
       data.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(entry.getKey()), total));
     }
+
     // When no threads are found within the requested range, we add the threads count (0)
     // to both range's min and max. Otherwise we wouldn't add any information to the data series
     // within timeCurrentRangeUs and nothing would be added to the chart.

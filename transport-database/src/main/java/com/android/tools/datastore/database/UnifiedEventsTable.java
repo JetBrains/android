@@ -184,7 +184,8 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       baseParams.add(request.getCommandId());
     }
 
-    String sqlBefore = String.format(sql, ", IsEnded, MAX(Timestamp), MAX(ROWID)", filter.toString() + " AND Timestamp < ? GROUP BY GroupId");
+    String sqlBefore =
+      String.format(sql, ", IsEnded, MAX(Timestamp), MAX(ROWID)", filter.toString() + " AND Timestamp < ? GROUP BY GroupId");
     String sqlAfter = String.format(sql, ", MIN(Timestamp), MIN(ROWID)", filter.toString() + " AND Timestamp > ? GROUP BY GroupId");
     ArrayList<Object> inRangeQueryParams = new ArrayList<>(baseParams);
     if (request.getFromTimestamp() > 0) {
@@ -268,10 +269,10 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
    * @param builderGroups map of event group ids to event groups used to collect events into respective groups.
    * @param filter        predicate to determine which events are included in the event group.
    */
-  private <T> void gatherEvents(String sql,
-                                List<Object> params,
-                                HashMap<Long, EventGroup.Builder> builderGroups,
-                                Predicate<ResultSet> filter) {
+  private void gatherEvents(String sql,
+                            List<Object> params,
+                            HashMap<Long, EventGroup.Builder> builderGroups,
+                            Predicate<ResultSet> filter) {
     try {
       ResultSet results = executeOneTimeQuery(sql, params.toArray());
       while (results.next()) {
