@@ -25,6 +25,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactoryImpl
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewImpl
+import com.intellij.ide.actions.OpenFileAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
@@ -34,6 +35,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.TreeMap
 import java.util.concurrent.locks.ReentrantLock
+import java.util.function.Consumer
 import javax.swing.JComponent
 import kotlin.concurrent.withLock
 
@@ -123,12 +125,15 @@ class SqliteExplorerProjectServiceImpl(
   private val controller: SqliteController by lazy @UiThread {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
+    val fileOpener = Consumer<VirtualFile> { OpenFileAction.openFile(it, project) }
+
     SqliteController(
       project,
       SqliteExplorerProjectService.getInstance(project),
       SqliteServiceFactoryImpl(),
       SqliteEditorViewFactoryImpl.getInstance(),
       SqliteViewImpl(project, project),
+      fileOpener,
       EdtExecutorService.getInstance(),
       PooledThreadExecutor.INSTANCE
     ).also { it.setUp() }
