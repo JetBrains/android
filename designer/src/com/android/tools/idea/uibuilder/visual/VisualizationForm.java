@@ -20,6 +20,8 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCRE
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.adtui.common.AdtPrimaryPanel;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
@@ -35,6 +37,12 @@ import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbService;
@@ -46,11 +54,14 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
+import com.intellij.util.ui.EmptyIcon;
 import java.awt.BorderLayout;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -85,6 +96,7 @@ public class VisualizationForm implements Disposable {
   private VirtualFile myFile;
   private boolean isActive = false;
   private JComponent myContentPanel;
+  private JLabel myFileNameLabel;
 
   @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
 
@@ -130,6 +142,30 @@ public class VisualizationForm implements Disposable {
 
   private void createContentPanel() {
     myContentPanel = new JPanel(new BorderLayout());
+    myFileNameLabel = new JLabel();
+    // Create an action group and fill a dummy action for now. This makes the height of toolbar same as layout editor's.
+    // TODO: Remove the dummy action when another action is added.
+    ActionGroup group = new DefaultActionGroup(new AnAction(EmptyIcon.create(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.width,
+                                                                             ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height)) {
+      @Override
+      public void update(@NotNull AnActionEvent e) {
+        e.getPresentation().setEnabled(false);
+        e.getPresentation().setVisible(true);
+      }
+
+      @Override
+      public void actionPerformed(@NotNull AnActionEvent e) {
+      }
+    });
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("VisualizationBar", group, true);
+
+    JComponent fileNamePanel = new AdtPrimaryPanel(new BorderLayout());
+    fileNamePanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
+                                                             BorderFactory.createEmptyBorder(0, 6, 0, 0)));
+    fileNamePanel.add(myFileNameLabel, BorderLayout.WEST);
+    fileNamePanel.add(toolbar.getComponent(), BorderLayout.CENTER);
+
+    myContentPanel.add(fileNamePanel, BorderLayout.NORTH);
     myContentPanel.add(mySurface, BorderLayout.CENTER);
   }
 
@@ -253,6 +289,8 @@ public class VisualizationForm implements Disposable {
     if (facet == null) {
       return;
     }
+
+    myFileNameLabel.setText(file.getName());
 
     // isRequestCancelled allows us to cancel the ongoing computation if it is not needed anymore. There is no need to hold
     // to the Future since Future.cancel does not really interrupt the work.
