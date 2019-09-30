@@ -34,6 +34,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.util.IncorrectOperationException
+import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
 import org.jetbrains.kotlin.idea.intentions.branchedTransformations.isNullExpressionOrEmptyBlock
 import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.name.Name
@@ -542,10 +543,19 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
     newElement = oldName
   }
   else {
+    val project = element.psiElement?.project ?: return
+    val factory = KtPsiFactory(project)
     val psiElement : PsiElement = if (oldName.node.elementType == IDENTIFIER) {
-      KtPsiFactory(element.psiElement?.project).createNameIdentifier(newName)
-    } else {
-      KtPsiFactory(element.psiElement?.project).createExpression(newName)
+      factory.createNameIdentifier(newName)
+    }
+    // TODO(b/141842964): this is a bandage over the fact that we don't (yet) have a principled translation from Psi to Dsl to Psi.  We
+    //  parse extra["foo"] to ext.foo, so when writing we have to do the reverse.
+    else if (oldName.node.elementType == ARRAY_ACCESS_EXPRESSION && newName.startsWith("ext.")) {
+      val extraExpression = "extra[\"${newName.substring("ext.".length, newName.length)}\"]"
+      factory.createExpression(extraExpression)
+    }
+    else {
+      factory.createExpression(newName)
     }
 
     // For Kotlin, committing changes is a bit different, and if the psiElement is invalid, it throws an exception (unlike Groovy), so we
