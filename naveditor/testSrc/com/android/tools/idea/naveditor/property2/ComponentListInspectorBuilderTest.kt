@@ -142,6 +142,36 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
     verifyClientProperties(listModel, false, false, false)
   }
 
+  fun testUpdates() {
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1") {
+          action("action1", destination = "fragment1")
+          action("action2", destination = "fragment1")
+          action("action3", destination = "fragment1")
+        }
+      }
+    }
+
+    val fragment1 = model.find("fragment1")!!
+
+    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    val provider = NelePropertiesProvider(myFacet)
+    val propertiesTable = provider.getProperties(propertiesModel, null, listOf(fragment1))
+    val panel = FakeInspectorPanel()
+    val builder = ActionListInspectorBuilder(propertiesModel)
+    builder.attachToInspector(panel, propertiesTable)
+
+    val lineModel = panel.lines[1]
+    val componentList = lineModel.component as ComponentList
+    val listModel = componentList.list.model
+    assertEquals(3, listModel.size)
+
+    fragment1.model.delete(listOf(fragment1.children[0]))
+    lineModel.refresh()
+    assertEquals(2, listModel.size)
+  }
+
   private fun verifyClientProperties(model: ListModel<NlComponent>, vararg expectedValues: Boolean) {
     assertEquals(model.size, expectedValues.size)
 
