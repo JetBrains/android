@@ -86,7 +86,7 @@ private val allFlags = signaturesFlags + listOf(
   COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL
 )
 
-private fun PsiElement.isComposableFunction(): Boolean {
+fun PsiElement.isComposableFunction(): Boolean {
   return this is KtNamedFunction && annotationEntries.any { it.getQualifiedName() == COMPOSABLE }
 }
 
