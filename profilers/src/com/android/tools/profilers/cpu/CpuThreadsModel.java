@@ -108,12 +108,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       // Merge the two lists.
       for (EventGroup eventGroup : response.getGroupsList()) {
         if (eventGroup.getEventsCount() > 0) {
-          Common.Event first = eventGroup.getEvents(0);
-          Common.Event last = eventGroup.getEvents(eventGroup.getEventsCount() - 1);
-          if (last.getTimestamp() < minNs && last.getIsEnded()) {
-            continue;
-          }
-          Cpu.CpuThreadData threadData = first.getCpuThread();
+          Cpu.CpuThreadData threadData = eventGroup.getEvents(0).getCpuThread();
           requestedThreadsRangedCpuThreads.put(threadData.getTid(), myThreadIdToCpuThread
             .computeIfAbsent(threadData.getTid(), id -> new RangedCpuThread(myRange, threadData.getTid(), threadData.getName())));
         }
@@ -224,9 +219,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       buildImportedTraceThreads(capture);
     }
     else {
-      myThreadIdToCpuThread.forEach((key, value) -> {
-        value.applyCapture(capture);
-      });
+      myThreadIdToCpuThread.forEach((key, value) -> value.applyCapture(capture));
     }
   }
 
@@ -260,7 +253,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     /**
      * If the thread is imported from a trace file (excluding an atrace one), we use a {@link ImportedTraceThreadDataSeries} to represent
      * its data. Otherwise, we use a {@link MergeCaptureDataSeries} that will combine the sampled {@link DataSeries} pulled from perfd, and
-     * {@link #myAtraceDataSeries}, populated when an atrace capture is parsed.
+     * {@link AtraceCpuCapture}, populated when an atrace capture is parsed.
      */
     private DataSeries<CpuProfilerStage.ThreadState> mySeries;
 
