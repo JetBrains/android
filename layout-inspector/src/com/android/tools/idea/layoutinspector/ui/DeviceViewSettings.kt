@@ -28,7 +28,7 @@ enum class ViewMode(val icon: Icon) {
     get() = enumValues<ViewMode>()[(this.ordinal + 1).rem(enumValues<ViewMode>().size)]
 }
 
-class DeviceViewSettings(scalePercent: Int = 50, drawBorders: Boolean = true, viewMode: ViewMode = ViewMode.XY) {
+class DeviceViewSettings(scalePercent: Int = 100, drawBorders: Boolean = true, viewMode: ViewMode = ViewMode.XY) {
   val modificationListeners = mutableListOf<() -> Unit>()
 
   /** Scale of the view in percentage: 100 = 100% */

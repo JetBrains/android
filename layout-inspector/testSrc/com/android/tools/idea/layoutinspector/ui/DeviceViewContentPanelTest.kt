@@ -133,7 +133,7 @@ class DeviceViewContentPanelTest {
     val graphics = generatedImage.createGraphics()
 
     val inspector = LayoutInspector(model)
-    val settings = DeviceViewSettings()
+    val settings = DeviceViewSettings(scalePercent = 50)
     val panel = DeviceViewContentPanel(inspector, settings)
     panel.setSize(200, 300)
 

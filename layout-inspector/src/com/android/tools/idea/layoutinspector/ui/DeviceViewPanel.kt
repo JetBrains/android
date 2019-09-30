@@ -30,25 +30,27 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspec
 import com.android.tools.profiler.proto.Common
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.Point
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.math.min
 
 private const val MAX_ZOOM = 300
-private const val MIN_ZOOM = 30
+private const val MIN_ZOOM = 10
 
 /**
  * Panel that shows the device screen in the layout inspector.
@@ -70,33 +72,58 @@ class DeviceViewPanel(
 
   init {
     scrollPane.border = JBUI.Borders.empty()
-
-    client.registerProcessChanged { ApplicationManager.getApplication().invokeLater { ActionToolbarImpl.updateAllToolbarsImmediately() } }
-
-    add(createToolbar(), BorderLayout.NORTH)
+    val (toolbar, toolbarComponent) = createToolbar()
+    add(toolbarComponent, BorderLayout.NORTH)
     add(scrollPane, BorderLayout.CENTER)
+
+    layoutInspector.layoutInspectorModel.modificationListeners.add { _, _, structural ->
+      if (structural) {
+        zoom(ZoomType.FIT)
+      }
+    }
+    viewSettings.modificationListeners.add { toolbar.updateActionsImmediately() }
   }
 
   override fun zoom(type: ZoomType): Boolean {
-    if (layoutInspector.layoutInspectorModel.root == null) {
+    val root = layoutInspector.layoutInspectorModel.root
+    if (root == null) {
       viewSettings.scalePercent = 100
+      scrollPane.viewport.revalidate()
       return false
     }
     val position = scrollPane.viewport.viewPosition.apply { translate(scrollPane.viewport.width / 2, scrollPane.viewport.height / 2) }
     position.x = (position.x / scale).toInt()
     position.y = (position.y / scale).toInt()
     when (type) {
-      ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> viewSettings.scalePercent = 50  // TODO
+      ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
+        val availableWidth = scrollPane.width - scrollPane.verticalScrollBar.width
+        val availableHeight = scrollPane.height - scrollPane.horizontalScrollBar.height
+        val desiredWidth = (root.width).toDouble()
+        val desiredHeight = (root.height).toDouble()
+        viewSettings.scalePercent = if (desiredHeight == 0.0 || desiredWidth == 0.0) 100
+        else (100 * min(availableHeight / desiredHeight, availableWidth / desiredWidth)).toInt()
+      }
       ZoomType.ACTUAL -> viewSettings.scalePercent = 100
       ZoomType.IN -> viewSettings.scalePercent += 10
       ZoomType.OUT -> viewSettings.scalePercent -= 10
     }
     scrollPane.viewport.revalidate()
 
-    position.x = (position.x * scale).toInt()
-    position.y = (position.y * scale).toInt()
-    position.translate(-scrollPane.viewport.width / 2, -scrollPane.viewport.height / 2)
-    scrollPane.viewport.viewPosition = position
+    ApplicationManager.getApplication().invokeLater {
+      scrollPane.viewport.viewPosition = when (type) {
+        ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
+          val bounds = scrollPane.viewport.extentSize
+          val size = scrollPane.viewport.view.preferredSize
+          Point((size.width - bounds.width) / 2, (size.height - bounds.height) / 2)
+        }
+        else -> {
+          position.x = (position.x * scale).toInt()
+          position.y = (position.y * scale).toInt()
+          position.translate(-scrollPane.viewport.width / 2, -scrollPane.viewport.height / 2)
+          position
+        }
+      }
+    }
     return true
   }
 
@@ -115,7 +142,7 @@ class DeviceViewPanel(
     return null
   }
 
-  private fun createToolbar(): JComponent {
+  private fun createToolbar(): Pair<ActionToolbar, JComponent> {
     val panel = AdtPrimaryPanel(BorderLayout())
     panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)!!
 
@@ -163,7 +190,7 @@ class DeviceViewPanel(
     val toolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorRight", rightGroup, true)
     toolbar.setTargetComponent(this)
     panel.add(toolbar.component, BorderLayout.EAST)
-    return panel
+    return Pair(toolbar, panel)
   }
 
   private class SelectProcessAction(val client: InspectorClient) :
