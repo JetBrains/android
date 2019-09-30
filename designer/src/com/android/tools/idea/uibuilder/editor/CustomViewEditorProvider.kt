@@ -50,6 +50,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
@@ -74,6 +75,8 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import icons.StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW
+import icons.StudioIcons.LayoutEditor.Toolbar.WRAP_HEIGHT
+import icons.StudioIcons.LayoutEditor.Toolbar.WRAP_WIDTH
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinFileType
 import java.awt.BorderLayout
@@ -95,12 +98,14 @@ private fun VirtualFile.hasSourceFileExtension() = when (extension) {
   else -> false
 }
 
-private fun getXmlLayout(qualifiedName: String): String {
+private fun layoutType(wrapContent: Boolean) = if (wrapContent) "wrap_content" else "match_parent"
+
+private fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeight: Boolean): String {
   return """
 <$qualifiedName
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"/>"""
+    android:layout_width="${layoutType(shrinkWidth)}"
+    android:layout_height="${layoutType(shrinkHeight)}"/>"""
 }
 
 private fun fqcn2name(fcqn: String) = fcqn.substringAfterLast('.')
@@ -240,7 +245,27 @@ private class CustomViewPreviewActionManager(
         }
       })
     }
+
+    val wrapWidth = object : ToggleAction(null, null, WRAP_WIDTH) {
+      override fun isSelected(e: AnActionEvent) = previewEditor.shrinkWidth
+
+      override fun setSelected(e: AnActionEvent, state: Boolean) {
+        previewEditor.shrinkWidth = state
+      }
+    }
+
+    val wrapHeight = object : ToggleAction(null, null, WRAP_HEIGHT) {
+      override fun isSelected(e: AnActionEvent) = previewEditor.shrinkHeight
+
+      override fun setSelected(e: AnActionEvent, state: Boolean) {
+        previewEditor.shrinkHeight = state
+      }
+    }
+
     customViewPreviewActions.add(customViews)
+    customViewPreviewActions.add(wrapWidth)
+    customViewPreviewActions.add(wrapHeight)
+
     return customViewPreviewActions
   }
 }
@@ -256,6 +281,8 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${virtualFile.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
   private fun dimensionsPropertyNameForClass(className: String) = "${previewId}_${className}_DIMENSIONS"
+  private fun wrapContentWidthPropertyNameForClass(className: String) = "${previewId}_${className}_WRAP_CONTENT_W"
+  private fun wrapContentHeightPropertyNameForClass(className: String) = "${previewId}_${className}_WRAP_CONTENT_H"
 
   private var classes = listOf<String>()
     set(value) {
@@ -285,8 +312,28 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
       }
     }
 
+  var shrinkHeight = PropertiesComponent.getInstance(project).getValue(wrapContentHeightPropertyNameForClass(currentState), "false").toBoolean()
+    set(value) {
+      if (field != value) {
+        field = value
+        PropertiesComponent.getInstance(project).setValue(wrapContentHeightPropertyNameForClass(currentState), value)
+        updateModel()
+      }
+    }
+
+  var shrinkWidth = PropertiesComponent.getInstance(project).getValue(wrapContentWidthPropertyNameForClass(currentState), "false").toBoolean()
+    set(value) {
+      if (field != value) {
+        field = value
+        PropertiesComponent.getInstance(project).setValue(wrapContentWidthPropertyNameForClass(currentState), value)
+        updateModel()
+      }
+    }
+
   private val surface = NlDesignSurface.builder(project, this).setSceneManagerProvider { surface, model ->
-    NlDesignSurface.defaultSceneManagerProvider(surface, model)
+    NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+      setShrinkRendering(true)
+    }
   }.setActionManagerProvider { surface ->
     CustomViewPreviewActionManager(surface as NlDesignSurface, this)
   }.build().apply {
@@ -333,7 +380,7 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
     surface.models.forEach { surface.removeModel(it) }
     val selectedClass = classes.firstOrNull { fqcn2name(it) == currentState }
     selectedClass?.let {
-      val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", getXmlLayout(selectedClass))
+      val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", getXmlLayout(selectedClass, shrinkWidth, shrinkHeight))
       val facet = AndroidFacet.getInstance(psiFile)!!
       val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
       val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
