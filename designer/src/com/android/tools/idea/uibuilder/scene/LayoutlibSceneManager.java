@@ -654,12 +654,12 @@ public class LayoutlibSceneManager extends SceneManager {
     return ourRenderViewPort;
   }
 
-  public void enableTransparentRendering() {
-    useTransparentRendering = true;
+  public void setTransparentRendering(boolean enabled) {
+    useTransparentRendering = enabled;
   }
 
-  public void enableShrinkRendering() {
-    useShrinkRendering = true;
+  public void setShrinkRendering(boolean enabled) {
+    useShrinkRendering = enabled;
   }
 
   @Override
