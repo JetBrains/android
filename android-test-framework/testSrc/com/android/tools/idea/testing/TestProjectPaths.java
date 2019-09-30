@@ -44,6 +44,7 @@ public final class TestProjectPaths {
   public static final String MODULE_INFO_MERGE = "projects/moduleInfo/merge";
   public static final String MOVE_WITH_RESOURCES = "projects/moveWithResources";
   public static final String MULTI_FEATURE = "projects/multiFeature";
+  public static final String MULTI_FLAVOR = "projects/multiFlavor";
   public static final String MULTIPLE_LINKED = "projects/multipleLinked";
   public static final String NAMESPACES = "projects/namespaces";
   public static final String NAMESPACES_WITH_APPCOMPAT = "projects/namespaces_with_appcompat";

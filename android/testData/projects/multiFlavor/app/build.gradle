@@ -1,0 +1,61 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
+
+    defaultConfig {
+        applicationId "com.example.multiflavor"
+        minSdkVersion 16
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    flavorDimensions 'Dim1', 'Dim2'
+    productFlavors {
+        firstAbc {
+            dimension = 'Dim1'
+        }
+        firstXyz {
+            dimension = 'Dim1'
+        }
+        secondAbc {
+            dimension = 'Dim2'
+        }
+        secondXyz {
+            dimension = 'Dim2'
+        }
+    }
+    sourceSets {
+        firstAbcSecondAbc {
+            java {
+                // srcDirs 'src/firstAbcSecondAbc/java2'  // TODO(b/141846471): Uncomment when fixed.
+            }
+        }
+        secondAbc {
+            java {
+                // srcDirs 'src/secondAbc/java2'  // TODO(b/141846471): Uncomment when fixed.
+            }
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
