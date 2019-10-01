@@ -213,6 +213,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
               nest("by IdeaSourceProviders:") {
                 dumpPathsCore("Manifests", { IdeaSourceProvider.getManifestFiles(androidFacet) }, { it.url })
                 nest("AllIdeaSourceProviders:") { IdeaSourceProvider.getAllIdeaSourceProviders(androidFacet).forEach { it.dump() } }
+                nest("AllSourceProviders:") { IdeaSourceProvider.getAllSourceProviders(androidFacet).forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { IdeaSourceProvider.getCurrentSourceProviders(androidFacet).forEach { it.dump() } }
                 nest("CurrentTestSourceProviders:") { IdeaSourceProvider.getCurrentTestSourceProviders(androidFacet).forEach { it.dump() } }
               }
