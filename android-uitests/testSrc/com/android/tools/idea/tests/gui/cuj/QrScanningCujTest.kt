@@ -160,12 +160,12 @@ class QrScanningCujTest {
 
     // Add dependency by typing it in build.gradle file
     ide.editor
-      .open("app/build.gradle")
-      .moveBetween("dependencies {\n", "")
-      .typeText("    implementation 'com.google.android.gms:play-services-vision:+'\n")
       // play-services-vision uses AndroidX, so we need to add the following property (see bug 130286699). Eventually, all the dependencies
       // used in this test project should be upgraded to AndroidX.
       .newFile(Paths.get("gradle.properties"), "android.useAndroidX=true")
+      .open("app/build.gradle")
+      .moveBetween("dependencies {\n", "")
+      .typeText("    implementation 'com.google.android.gms:play-services-vision:+'\n")
       .ideFrame
       .requestProjectSync()
       .waitForGradleProjectSyncToFinish()
