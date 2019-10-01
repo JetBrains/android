@@ -90,10 +90,12 @@ public class MemoryInstanceFilterView extends AspectModel<MemoryProfilerAspect> 
           if (description != null) {
             HyperlinkLabel label = new HyperlinkLabel();
             String docLink = filter.getDocumentationLink();
-            // Add an extra space after description before the link.
-            label.setHyperlinkText(description + " ", docLink == null ? "" : "[link]", "");
             if (docLink != null) {
+              label.setHyperlinkText(description + " Please see the ", "documentation", " for details.");
               label.setHyperlinkTarget(docLink);
+            }
+            else {
+              label.setHyperlinkText(description, "", "");
             }
             myFilterDescriptionPanel.add(label, new TabularLayout.Constraint(i++, 0));
             hasFilterDescription = true;
