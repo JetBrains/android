@@ -38,7 +38,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.mockito.Mockito
 import javax.imageio.metadata.IIOMetadataNode
@@ -77,12 +76,13 @@ class UniqueParameterTest : AndroidGradleTestCase() {
 
     assertNotNull(myAppFacet!!.configuration.model)
     // TODO: b/23032990
-    val paidFlavor = AndroidModuleModel.get(myAppFacet!!)!!.findProductFlavor("paid")
+    val appAndroidModuleModel = AndroidModuleModel.get(myAppFacet!!)
+    val paidFlavor = appAndroidModuleModel!!.findProductFlavor("paid")
     assertNotNull(paidFlavor)
     myPaidSourceProvider = paidFlavor!!.sourceProvider
     assertNotNull(myPaidSourceProvider)
 
-    myMainSourceProvider = SourceProviderManager.getInstance(myAppFacet!!).mainSourceProvider
+    myMainSourceProvider = appAndroidModuleModel!!.defaultSourceProvider
     assertNotNull(myMainSourceProvider)
 
     val mockMetadata = Mockito.mock(TemplateMetadata::class.java)
