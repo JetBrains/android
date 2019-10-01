@@ -203,12 +203,23 @@ public class NlPaletteModel implements Disposable {
     }
   }
 
+  @VisibleForTesting
+  @NotNull
+  public static String getPaletteFileNameFromId(@NotNull String id) {
+    return id + "_palette.xml";
+  }
+
   @Slow
   @NotNull
   private Palette loadPalette(@NotNull LayoutEditorFileType type) {
     try {
-      String metadata = type.getPaletteFileName();
-      URL url = NlPaletteModel.class.getResource(metadata);
+      String id = type.getPaletteId();
+      if (id == null) {
+        Logger.getInstance(NlPaletteModel.class).warn(type + " has no palette id. No palette will be used.");
+        return Palette.EMPTY;
+      }
+
+      URL url = NlPaletteModel.class.getResource(getPaletteFileNameFromId(id));
       URLConnection connection = url.openConnection();
 
       try (Reader reader = new InputStreamReader(connection.getInputStream(), Charsets.UTF_8)) {
