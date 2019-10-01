@@ -52,6 +52,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.IOException;
 import java.util.List;
+import org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler;
 import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -414,6 +415,67 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
     super.tearDown();
     // Restore static flag to its default value.
     AndroidResourceRenameResourceProcessor.ASK = true;
+  }
+
+  public void testRenameColorFromJava() throws IOException {
+    createManifest();
+    myFixture.addFileToProject(
+      "res/values/colors.xml",
+      //language=xml
+      "<resources><color name=\"colorPrimary\">#008577</color></resources>");
+    VirtualFile activityFile = myFixture.addFileToProject(
+      "src/p1/p2/Foo.java",
+      //language=java
+      "package p1.p2;\n" +
+      "public class Foo {\n" +
+      " public static void example() {\n" +
+      "   int colorPrimary = R.color.color<caret>Primary;\n" +
+      "   int black = android.R.color.black;\n" +
+      " }\n" +
+      "}").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(activityFile);
+    checkAndRename("newColor");
+    myFixture.checkResult(
+      //language=java
+      "package p1.p2;\n" +
+      "public class Foo {\n" +
+      " public static void example() {\n" +
+      "   int colorPrimary = R.color.newColor;\n" +
+      "   int black = android.R.color.black;\n" +
+      " }\n" +
+      "}", true);
+    myFixture.checkResult(
+      "res/values/colors.xml",
+      //language=xml
+      "<resources><color name=\"newColor\">#008577</color></resources>", true);
+  }
+
+  public void testRenameColorFromKotlin() throws IOException {
+    createManifest();
+    myFixture.addFileToProject("res/values/colors.xml", "<resources><color name=\"colorPrimary\">#008577</color></resources>");
+    VirtualFile activityFile = myFixture.addFileToProject(
+      "src/p1/p2/Activity1.kt",
+      //language=kotlin
+      "package p1.p2\n" +
+      "class Activity1 : android.app.Activity() {\n" +
+      "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
+      "        val color = R.color.colorPrimary<caret>\n" +
+      "    }\n" +
+      "}").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(activityFile);
+    checkAndRename("newColor");
+    myFixture.checkResult(
+      //language=kotlin
+      "package p1.p2\n" +
+      "class Activity1 : android.app.Activity() {\n" +
+      "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
+      "        val color = R.color.newColor\n" +
+      "    }\n" +
+      "}", true);
+    myFixture.checkResult(
+      "res/values/colors.xml",
+      //language=xml
+      "<resources><color name=\"newColor\">#008577</color></resources>", true);
   }
 
   public void testMoveApplicationClass() throws Throwable {
@@ -987,7 +1049,9 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
     // We can either invoke the processor directly or go through the handler layer. Unfortunately MemberInplaceRenameHandler won't work in
     // unit test mode, the default handler fails for light elements and some tests depend on the logic from AndroidRenameHandler. To handle
     // that mess, use the handlers only if the Android handler is available.
-    if (new ResourceRenameHandler().isAvailableOnDataContext(context) || new AndroidRenameHandler().isAvailableOnDataContext(context)) {
+    if (new AndroidRenameHandler().isAvailableOnDataContext(context) ||
+        new ResourceRenameHandler().isAvailableOnDataContext(context) ||
+        new KotlinResourceRenameHandler().isAvailableOnDataContext(context)) {
       myFixture.renameElementAtCaretUsingHandler(newName);
     }
     else {

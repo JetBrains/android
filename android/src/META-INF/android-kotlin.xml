@@ -123,6 +123,7 @@
         <highlighterExtension implementation="org.jetbrains.kotlin.android.AndroidHighlighterExtension"/>
         <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
         <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
+        <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.android">
