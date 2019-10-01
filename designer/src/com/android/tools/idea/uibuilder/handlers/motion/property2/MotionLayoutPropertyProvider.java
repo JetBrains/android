@@ -263,7 +263,6 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
         return NelePropertyType.COLOR_STATE_LIST;
 
       case MotionSceneAttrs.ATTR_CUSTOM_INTEGER_VALUE:
-      case MotionSceneAttrs.ATTR_CUSTOM_PIXEL_DIMENSION_VALUE:
         return NelePropertyType.INTEGER;
 
       case MotionSceneAttrs.ATTR_CUSTOM_FLOAT_VALUE:
@@ -271,6 +270,9 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
 
       case MotionSceneAttrs.ATTR_CUSTOM_DIMENSION_VALUE:
         return NelePropertyType.DIMENSION;
+
+      case MotionSceneAttrs.ATTR_CUSTOM_PIXEL_DIMENSION_VALUE:
+        return NelePropertyType.DIMENSION_PIXEL;
 
       case MotionSceneAttrs.ATTR_CUSTOM_BOOLEAN_VALUE:
         return NelePropertyType.BOOLEAN;
@@ -298,6 +300,9 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
 
       case DIMENSION:
         return MotionSceneAttrs.ATTR_CUSTOM_DIMENSION_VALUE;
+
+      case DIMENSION_PIXEL:
+        return MotionSceneAttrs.ATTR_CUSTOM_PIXEL_DIMENSION_VALUE;
 
       case BOOLEAN:
         return MotionSceneAttrs.ATTR_CUSTOM_BOOLEAN_VALUE;

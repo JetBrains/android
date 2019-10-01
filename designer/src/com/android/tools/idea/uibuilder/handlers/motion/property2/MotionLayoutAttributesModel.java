@@ -30,7 +30,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
-import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.property.panel.api.PropertiesModel;
@@ -209,7 +208,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   public void createCustomXmlTag(@NotNull MotionSelection selection,
                                  @NotNull String attrName,
                                  @NotNull String value,
-                                 @NotNull MotionSceneModel.CustomAttributes.Type type,
+                                 @NotNull CustomAttributeType type,
                                  @NotNull Consumer<MotionSceneTag> operation) {
     String valueAttrName = type.getTagName();
     String newValue = StringUtil.isNotEmpty(value) ? value : type.getDefaultValue();

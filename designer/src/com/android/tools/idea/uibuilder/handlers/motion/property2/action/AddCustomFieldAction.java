@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 
-import com.android.tools.idea.uibuilder.handlers.motion.attributeEditor.NewCustomAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
+import com.android.tools.idea.uibuilder.handlers.motion.property2.CustomAttributeType;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection;
+import com.android.tools.idea.uibuilder.handlers.motion.property2.NewCustomAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.property.panel.api.TableLineModel;
@@ -54,8 +55,8 @@ public class AddCustomFieldAction extends AnAction {
     }
     String attributeName = newAttributePanel.getAttributeName();
     String value = newAttributePanel.getInitialValue();
-    MotionSceneModel.CustomAttributes.Type type = newAttributePanel.getType();
-    if (StringUtil.isEmpty(attributeName)) {
+    CustomAttributeType type = newAttributePanel.getType();
+    if (type == null || StringUtil.isEmpty(attributeName)) {
       return;
     }
     MotionSelection selection = MotionLayoutAttributesModel.getMotionSelection(myProperty);

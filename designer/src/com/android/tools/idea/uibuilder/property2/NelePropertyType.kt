@@ -35,6 +35,7 @@ enum class NelePropertyType {
   COLOR,
   COLOR_STATE_LIST,
   DIMENSION,
+  DIMENSION_PIXEL,      // Dimension in pixels (motion layout)
   DIMENSION_UNIT_LESS,  // Dimension or unit less float (motion layout)
   DESTINATION,
   DRAWABLE,
@@ -70,6 +71,7 @@ enum class NelePropertyType {
       COLOR -> EnumSet.of(ResourceType.COLOR)
       COLOR_STATE_LIST -> EnumSet.of(ResourceType.COLOR)
       DESTINATION -> EnumSet.of(ResourceType.ID)
+      DIMENSION_PIXEL,
       DIMENSION -> EnumSet.of(ResourceType.DIMEN)
       DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP)
       FLAGS -> EnumSet.of(ResourceType.STRING)
