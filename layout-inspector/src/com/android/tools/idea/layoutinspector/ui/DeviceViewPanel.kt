@@ -18,10 +18,6 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.adtui.actions.ZoomInAction
-import com.android.tools.adtui.actions.ZoomLabelAction
-import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -29,6 +25,7 @@ import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.profiler.proto.Common
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
@@ -44,20 +41,27 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Point
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
+import java.awt.event.ComponentListener
 import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import kotlin.math.min
 
 private const val MAX_ZOOM = 300
 private const val MIN_ZOOM = 10
 
+private const val TOOLBAR_INSET = 14
+
 /**
  * Panel that shows the device screen in the layout inspector.
  */
 class DeviceViewPanel(
   val layoutInspector: LayoutInspector,
-  val viewSettings: DeviceViewSettings
+  val viewSettings: DeviceViewSettings,
+  disposableParent: Disposable
 ) : JPanel(BorderLayout()), Zoomable, DataProvider {
 
   private val client = layoutInspector.client
@@ -69,19 +73,51 @@ class DeviceViewPanel(
 
   private val contentPanel = DeviceViewContentPanel(layoutInspector, viewSettings)
   private val scrollPane = JBScrollPane(contentPanel)
+  private val layeredPane = JLayeredPane()
+  private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbar
 
   init {
     scrollPane.border = JBUI.Borders.empty()
     val (toolbar, toolbarComponent) = createToolbar()
     add(toolbarComponent, BorderLayout.NORTH)
-    add(scrollPane, BorderLayout.CENTER)
+    add(layeredPane, BorderLayout.CENTER)
+
+    deviceViewPanelActionsToolbar = DeviceViewPanelActionsToolbar(this, disposableParent)
+
+    val floatingToolbar = deviceViewPanelActionsToolbar.designSurfaceToolbar
+
+    layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
+    layeredPane.setLayer(floatingToolbar, JLayeredPane.PALETTE_LAYER)
+    layeredPane.add(scrollPane)
+    layeredPane.add(floatingToolbar)
 
     layoutInspector.layoutInspectorModel.modificationListeners.add { _, _, structural ->
       if (structural) {
         zoom(ZoomType.FIT)
       }
     }
-    viewSettings.modificationListeners.add { toolbar.updateActionsImmediately() }
+    var prevZoom = viewSettings.scalePercent
+    viewSettings.modificationListeners.add {
+      if (prevZoom != viewSettings.scalePercent) {
+        deviceViewPanelActionsToolbar.zoomChanged()
+        prevZoom = viewSettings.scalePercent
+      }
+      toolbar.updateActionsImmediately()
+      //deviceViewPanelActionsToolbar.updateActionsImmediately()
+    }
+    layeredPane.addComponentListener(object: ComponentAdapter() {
+      override fun componentResized(e: ComponentEvent?) {
+        updateLayeredPaneSize()
+      }
+    })
+  }
+
+  private fun updateLayeredPaneSize() {
+    scrollPane.size = layeredPane.size
+    val floatingToolbar = deviceViewPanelActionsToolbar.designSurfaceToolbar
+    floatingToolbar.size = floatingToolbar.preferredSize
+    floatingToolbar.location = Point(layeredPane.width - floatingToolbar.width - TOOLBAR_INSET,
+                                     layeredPane.height - floatingToolbar.height - TOOLBAR_INSET)
   }
 
   override fun zoom(type: ZoomType): Boolean {
@@ -107,7 +143,7 @@ class DeviceViewPanel(
       ZoomType.IN -> viewSettings.scalePercent += 10
       ZoomType.OUT -> viewSettings.scalePercent -= 10
     }
-    scrollPane.viewport.revalidate()
+    updateLayeredPaneSize()
 
     ApplicationManager.getApplication().invokeLater {
       scrollPane.viewport.viewPosition = when (type) {
@@ -183,10 +219,6 @@ class DeviceViewPanel(
         event.presentation.icon = viewSettings.viewMode.icon
       }
     })
-    rightGroup.add(ZoomOutAction)
-    rightGroup.add(ZoomLabelAction)
-    rightGroup.add(ZoomInAction)
-    rightGroup.add(ZoomToFitAction)
     val toolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorRight", rightGroup, true)
     toolbar.setTargetComponent(this)
     panel.add(toolbar.component, BorderLayout.EAST)
@@ -306,3 +338,4 @@ class DeviceViewPanel(
     }
   }
 }
+

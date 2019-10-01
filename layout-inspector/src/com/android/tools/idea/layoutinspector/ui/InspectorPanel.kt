@@ -36,7 +36,7 @@ class InspectorPanel(val project: Project, toolName: String, disposableParent: D
     val workbench = WorkBench<LayoutInspector>(project, toolName, null, disposableParent)
     val viewSettings = DeviceViewSettings()
     val layoutInspector = LayoutInspector(InspectorModel(project))
-    deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings)
+    deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings, disposableParent)
     workbench.init(deviceViewPanel, layoutInspector, listOf(
       LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()))
     add(workbench, BorderLayout.CENTER)
