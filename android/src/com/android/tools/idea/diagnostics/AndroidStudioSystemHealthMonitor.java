@@ -248,7 +248,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
     long usedMemoryAfter = getUsedMemory();
 
-    return (usedMemoryAfter > usedMemoryBefore) ? 0 : usedMemoryAfter - usedMemoryBefore;
+    return (usedMemoryAfter > usedMemoryBefore) ? 0 : usedMemoryBefore - usedMemoryAfter;
   }
 
   private static long getUsedMemory() {
