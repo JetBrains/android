@@ -45,6 +45,8 @@ import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
+import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -627,7 +629,9 @@ class ComposeFileEditorProvider(
 
   init {
     if (StudioFlags.COMPOSE_PREVIEW.get()) {
-      DesignerTypeRegistrar.register(object : DesignerEditorFileType {
+      DesignerTypeRegistrar.register(object : LayoutEditorFileType() {
+        override fun getLayoutEditorStateType() = LayoutEditorState.Type.COMPOSE
+
         override fun isResourceTypeOf(file: PsiFile): Boolean =
           file.virtualFile is ComposeAdapterLightVirtualFile
 
@@ -636,10 +640,6 @@ class ComposeFileEditorProvider(
 
         override fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
           DefaultActionGroup()
-
-        override fun isEditable(): Boolean {
-          return true
-        }
       })
     }
   }
