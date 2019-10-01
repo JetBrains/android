@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.ui.JBColor
@@ -32,11 +33,10 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.JPanel
 
 private const val MARGIN = 50
 
-class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings: DeviceViewSettings) : JPanel() {
+class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
 
   private val inspectorModel = layoutInspector.layoutInspectorModel
   var model = DeviceViewPanelModel(inspectorModel)
@@ -103,7 +103,7 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
     }
   }
 
-  override fun paint(g: Graphics) {
+  override fun paint(g: Graphics?) {
     val g2d = g as? Graphics2D ?: return
     g2d.color = background
     g2d.fillRect(0, 0, width, height)
