@@ -66,7 +66,7 @@ object InspectorBuilder {
   }
 
   fun findViewNode(inspector: LayoutInspector, id: String): ViewNode? {
-    return findViewNode(inspector.layoutInspectorModel.root, id)
+    return findViewNode(inspector.layoutInspectorModel.root!!, id)
   }
 
   private fun findViewNode(node: ViewNode, id: String): ViewNode? {

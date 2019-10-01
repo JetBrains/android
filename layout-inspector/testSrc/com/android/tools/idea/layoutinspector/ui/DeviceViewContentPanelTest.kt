@@ -126,7 +126,7 @@ class DeviceViewContentPanelTest {
     childImageGraphics.color = Color.RED
     childImageGraphics.fillOval(0, 0, 50, 100)
 
-    model.root.children[0].imageBottom = childImage
+    model.root!!.children[0].imageBottom = childImage
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
