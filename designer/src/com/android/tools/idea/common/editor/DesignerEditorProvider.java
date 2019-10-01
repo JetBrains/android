@@ -86,10 +86,13 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Dumb
     if (!StudioFlags.NELE_SPLIT_EDITOR.get()) {
       return designEditor;
     }
+    DesignerEditorPanel editorPanel = designEditor.getComponent();
     TextEditor textEditor = (TextEditor)TextEditorProvider.getInstance().createEditor(project, file);
     addCaretListener(textEditor, designEditor);
-    designEditor.getComponent().getSurface().setFileEditorDelegate(textEditor);
-    return new SplitEditor(textEditor, designEditor, "Design", project);
+    editorPanel.getSurface().setFileEditorDelegate(textEditor);
+    FileEditor splitEditor = new SplitEditor(textEditor, designEditor, "Design", project);
+    editorPanel.getWorkBench().setFileEditor(splitEditor);
+    return splitEditor;
   }
 
   private static void addCaretListener(@NotNull TextEditor editor, @NotNull DesignerEditor designEditor) {
