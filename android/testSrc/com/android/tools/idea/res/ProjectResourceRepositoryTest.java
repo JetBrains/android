@@ -46,6 +46,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -258,18 +259,17 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     variant.getMainArtifact().getDependencies().addLibrary(library);
 
     // Refresh temporary resource directories created by the model, so that they are accessible as VirtualFiles.
-    Collection<File> resourceDirs =
-      IdeaSourceProvider.getAllSourceProviders(myFacet)
+    Collection<String> resourceDirUrls =
+      IdeaSourceProvider.getAllIdeaSourceProviders(myFacet)
         .stream()
-        .flatMap(provider -> provider.getResDirectories().stream())
+        .flatMap(provider -> provider.getResDirectoryUrls().stream())
         .collect(Collectors.toList());
-    refreshForVfs(resourceDirs);
+    refreshForVfs(resourceDirUrls);
   }
 
-  private static void refreshForVfs(Collection<File> freshFiles) {
-    for (File file : freshFiles) {
-      String path = FileUtil.toSystemIndependentName(file.getPath());
-      VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+  private static void refreshForVfs(Collection<String> freshFileUrls) {
+    for (String fileUrl : freshFileUrls) {
+      VirtualFile virtualFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(fileUrl);
       VfsUtil.markDirtyAndRefresh(false, true, true, virtualFile);
     }
   }
