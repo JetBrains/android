@@ -17,7 +17,6 @@ package com.android.tools.idea.lang.proguardR8.psi
 
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementResolveResult
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
@@ -33,9 +32,9 @@ import com.intellij.psi.util.parentOfType
  *  because getVariants() will may return methods for PSI that is (user haven't typed parentheses yet) a field.
  */
 class ProguardR8ClassMemberNameReference(
-  member: ProguardR8ClassMemberName
-) : PsiPolyVariantReferenceBase<ProguardR8ClassMemberName>(member) {
-  private val containingMember = member.parentOfType(ProguardR8ClassMember::class)!!
+  classMemberName: ProguardR8ClassMemberName
+) : PsiPolyVariantReferenceBase<ProguardR8ClassMemberName>(classMemberName) {
+  private val containingMember = classMemberName.parentOfType(ProguardR8ClassMember::class)!!
   private val type = containingMember.type
   private val parameters = containingMember.parameters
   private val accessModifiers = containingMember.accessModifierList.filter { !it.isNegated }.map(::toPsiModifier)
@@ -43,13 +42,6 @@ class ProguardR8ClassMemberNameReference(
 
   private fun List<String>.overlaps(psiModifierList: PsiModifierList): Boolean {
     return any { psiModifierList.hasModifierProperty(it) }
-  }
-
-  fun resolveParentClasses(): List<PsiClass> {
-    return element.parentOfType<ProguardR8RuleWithClassSpecification>()
-      ?.classSpecificationHeader
-      ?.resolvePsiClasses()
-      .orEmpty()
   }
 
   /**
@@ -65,7 +57,7 @@ class ProguardR8ClassMemberNameReference(
   }
 
   private fun getFields(): Collection<PsiField> {
-    return resolveParentClasses().asSequence()
+    return containingMember.resolveParentClasses().asSequence()
       .flatMap { it.fields.asSequence() }
       .filter { type == null || type.matchesPsiType(it.type) }
       .filter(::matchesAccessLevel)
@@ -73,7 +65,7 @@ class ProguardR8ClassMemberNameReference(
   }
 
   private fun getMethods(): Collection<PsiMethod> {
-    return resolveParentClasses().asSequence()
+    return containingMember.resolveParentClasses().asSequence()
       .flatMap { it.methods.asSequence() }
       .filter { it.returnType != null } // if returnType is null it's constructor
       .filter { type == null || type.matchesPsiType(it.returnType!!) } // match return type

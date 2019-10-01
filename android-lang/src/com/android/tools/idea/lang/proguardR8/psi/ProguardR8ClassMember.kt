@@ -15,10 +15,19 @@
  */
 package com.android.tools.idea.lang.proguardR8.psi
 
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.parentOfType
 
 interface ProguardR8ClassMember : PsiElement {
   val type: ProguardR8Type?
   val parameters: ProguardR8Parameters?
   val accessModifierList: List<ProguardR8AccessModifier>
+}
+
+fun ProguardR8ClassMember.resolveParentClasses(): List<PsiClass> {
+  return parentOfType<ProguardR8RuleWithClassSpecification>()
+    ?.classSpecificationHeader
+    ?.resolvePsiClasses()
+    .orEmpty()
 }

@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMember
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMemberName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Visitor
+import com.android.tools.idea.lang.proguardR8.psi.resolveParentClasses
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.util.parentOfType
 
 /**
  *  Reports unresolved class members in Proguard/R8 files.
@@ -31,7 +34,8 @@ class ProguardR8ClassMemberInspection : LocalInspectionTool() {
       override fun visitClassMemberName(name: ProguardR8ClassMemberName) {
         super.visitClassMemberName(name)
         val reference = name.reference ?: return
-        if (reference.resolveParentClasses().isNotEmpty() && reference.resolveReference().isEmpty()) {
+        val classMember = reference.element.parentOfType<ProguardR8ClassMember>()!!
+        if (classMember.resolveParentClasses().isNotEmpty() && reference.resolveReference().isEmpty()) {
           // We can't resolve reference and we highlight it with "unused" (gray colour)
           // because it's not an error in Proguard/R8 to specify class member that doesn't exist
           holder.registerProblem(name.reference!!, "The rule matches no class members", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
