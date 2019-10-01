@@ -515,7 +515,9 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
   }
 
   private static Palette getPalette(@NotNull Project project) throws Exception {
-    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(LayoutFileType.INSTANCE.getPaletteFileName()))) {
+    String id = LayoutFileType.INSTANCE.getPaletteId();
+    assertNotNull(id);
+    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlPaletteModel.getPaletteFileNameFromId(id)))) {
       return Palette.parse(reader, new ViewHandlerManager(project));
     }
   }
