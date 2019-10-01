@@ -47,14 +47,14 @@ class InspectorModelTest {
       }
     }
 
-    val origNodes = model.root.flatten().associateBy { it.drawId }
+    val origNodes = model.root!!.flatten().associateBy { it.drawId }
 
     model.update(model2.root)
     // property change doesn't count as "modified."
     // TODO: confirm this behavior is as desired
     assertFalse(isModified)
 
-    val newNodes = model.root.flatten().associateBy { it.drawId }
+    val newNodes = model.root!!.flatten().associateBy { it.drawId }
     for ((id, orig) in origNodes) {
       assertSame(orig, newNodes[id])
     }
@@ -80,12 +80,12 @@ class InspectorModelTest {
       }
     }
 
-    val origNodes = model.root.flatten().associateBy { it.drawId }
+    val origNodes = model.root!!.flatten().associateBy { it.drawId }
 
     model.update(model2.root)
     assertTrue(isModified)
 
-    val newNodes = model.root.flatten().associateBy { it.drawId }
+    val newNodes = model.root!!.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys, origNodes.keys.plus(VIEW3))
     assertSameElements(origNodes[VIEW1]?.children!!, newNodes[VIEW3])
   }
@@ -108,12 +108,12 @@ class InspectorModelTest {
       }
     }
 
-    val origNodes = model.root.flatten().associateBy { it.drawId }
+    val origNodes = model.root!!.flatten().associateBy { it.drawId }
 
     model.update(model2.root)
     assertTrue(isModified)
 
-    val newNodes = model.root.flatten().associateBy { it.drawId }
+    val newNodes = model.root!!.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys.plus(VIEW3), origNodes.keys)
     assertEquals(true, origNodes[VIEW1]?.children?.isEmpty())
   }
@@ -140,18 +140,18 @@ class InspectorModelTest {
       }
     }
 
-    val origNodes = model.root.flatten().associateBy { it.drawId }
+    val origNodes = model.root!!.flatten().associateBy { it.drawId }
 
     model.update(model2.root)
     assertTrue(isModified)
 
-    val newNodes = model.root.flatten().associateBy { it.drawId }
+    val newNodes = model.root!!.flatten().associateBy { it.drawId }
 
     assertSame(origNodes[ROOT], newNodes[ROOT])
     assertSame(origNodes[VIEW2], newNodes[VIEW2])
 
     assertNotSame(origNodes[VIEW1], newNodes[VIEW4])
-    assertSameElements(model.root.children.map { it.drawId }, VIEW4, VIEW2)
+    assertSameElements(model.root!!.children.map { it.drawId }, VIEW4, VIEW2)
     assertEquals("v4Type", newNodes[VIEW4]?.qualifiedName)
     assertEquals("v3Type", newNodes[VIEW3]?.qualifiedName)
     assertEquals(8, newNodes[VIEW3]?.y)

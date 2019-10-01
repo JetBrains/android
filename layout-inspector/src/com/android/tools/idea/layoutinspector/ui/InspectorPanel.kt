@@ -35,7 +35,7 @@ class InspectorPanel(val project: Project, toolName: String, disposableParent: D
   init {
     val workbench = WorkBench<LayoutInspector>(project, toolName, null, disposableParent)
     val viewSettings = DeviceViewSettings()
-    val layoutInspector = LayoutInspector(InspectorModel(project, ViewNode.EMPTY))
+    val layoutInspector = LayoutInspector(InspectorModel(project))
     deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings)
     workbench.init(deviceViewPanel, layoutInspector, listOf(
       LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()))
