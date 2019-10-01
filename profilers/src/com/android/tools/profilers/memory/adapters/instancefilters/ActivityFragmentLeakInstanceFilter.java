@@ -61,13 +61,13 @@ public class ActivityFragmentLeakInstanceFilter implements CaptureObjectInstance
   @Nullable
   @Override
   public String getDetailedDescription() {
-    return "Note that Activity/Fragment leaks may include false positives. Please see the documentation for details.";
+    return "Activity/Fragment leaks may include false positives.";
   }
 
   @Nullable
   @Override
   public String getDocumentationLink() {
-    return "https://developer.android.com/docs";
+    return "https://developer.android.com/r/studio-ui/profiler-memory-leak-detection";
   }
 
   @Override
