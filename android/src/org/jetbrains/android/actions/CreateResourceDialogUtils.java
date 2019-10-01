@@ -112,9 +112,9 @@ public class CreateResourceDialogUtils {
     // we're in here, so we default to always including the source set combo (if it's a Gradle project that is.)
     // TODO: Give an option for each 'res' directory within each source set. Eg: main/res1, main/res2.
     if (facet != null && facet.requiresAndroidModel() && facet.getConfiguration().getModel() != null) {
-      Collection<IdeaSourceProvider> providers = IdeaSourceProvider.getAllIdeaSourceProviders(facet);
+      Collection<SourceProvider> providers = IdeaSourceProvider.getAllSourceProviders(facet);
       DefaultComboBoxModel model = new DefaultComboBoxModel();
-      for (IdeaSourceProvider sourceProvider : providers) {
+      for (SourceProvider sourceProvider : providers) {
         //noinspection unchecked
         model.addElement(new ApiComboBoxItem(sourceProvider, sourceProvider.getName(), 0, 0));
       }
