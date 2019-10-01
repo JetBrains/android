@@ -18,9 +18,9 @@ package com.android.tools.idea.testartifacts.scopes;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.tools.idea.testartifacts.scopes.ExcludedRoots.getAllSourceFolders;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
-import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
 
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;

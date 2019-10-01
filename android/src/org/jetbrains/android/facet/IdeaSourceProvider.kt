@@ -190,20 +190,6 @@ interface IdeaSourceProvider {
       }
     }
 
-    @JvmStatic
-    fun getAllSourceFolders(provider: SourceProvider): Collection<File> {
-      return flatten(arrayOf(
-        provider.javaDirectories,
-        provider.resDirectories,
-        provider.aidlDirectories,
-        provider.renderscriptDirectories,
-        provider.assetsDirectories,
-        provider.cDirectories,
-        provider.cppDirectories,
-        provider.jniLibsDirectories
-      )).toList()
-    }
-
     /**
      * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
      * the given folder.
