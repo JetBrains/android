@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.proguardR8.psi
 
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 
 interface ProguardR8ClassMember : PsiElement {
@@ -30,4 +31,25 @@ fun ProguardR8ClassMember.resolveParentClasses(): List<PsiClass> {
     ?.classSpecificationHeader
     ?.resolvePsiClasses()
     .orEmpty()
+}
+
+/**
+ * Returns true if the class member refers to a constructor.
+ *
+ * Check this may require resolving other references in the file, so is potentially expensive.
+ */
+fun ProguardR8ClassMember.isConstructor(): Boolean {
+  val name = PsiTreeUtil.findChildOfType(this, ProguardR8ClassMemberName::class.java) ?: return false
+  // ProguardR8ClassMemberName could be just java identifier or qualified name. In both cases last child is java identifier.
+  val shortName = PsiTreeUtil.lastChild(name).text
+  // Constructors don't have return type, but always have parameters, even if it's empty list.
+  if (type != null || parameters == null) return false
+
+  val qualifiedName = PsiTreeUtil.findChildOfType(name, ProguardR8QualifiedName::class.java)
+  if (qualifiedName != null) {
+    val psiClass = qualifiedName.resolveToPsiClass() ?: return false
+    return resolveParentClasses().any { it == psiClass }
+  } else {
+    return resolveParentClasses().any { it.name == shortName }
+  }
 }
