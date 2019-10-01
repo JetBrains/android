@@ -18,11 +18,11 @@ package com.android.tools.idea.ui.resourcemanager.importer
 import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.createFakeResDirectory
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
@@ -35,6 +35,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.Consumer
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Component
@@ -47,7 +49,7 @@ import kotlin.test.assertTrue
 class ResourceImportDialogViewModelTest {
 
   @get:Rule
-  val rule = AndroidProjectRule.inMemory()
+  val rule = AndroidProjectRule.withAndroidModel()
 
   @Test
   fun importMoreAssets() {
@@ -83,7 +85,7 @@ class ResourceImportDialogViewModelTest {
 
   @Test
   fun renameAsset() {
-    val first = createFakeResDirectory(rule.module.androidFacet!!)
+    val mainIdeaSourceProvider = SourceProviderManager.getInstance(AndroidFacet.getInstance(rule.module)!!).mainIdeaSourceProvider
     val testFile = getTestFiles("entertainment/icon_category_entertainment.png").first()
     val designAsset = DesignAsset(testFile, emptyList(), ResourceType.DRAWABLE)
     val viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(designAsset))
@@ -96,6 +98,7 @@ class ResourceImportDialogViewModelTest {
     }
     viewModel.commit()
     viewModel.summaryScreenViewModel.doImport()
+    val first = mainIdeaSourceProvider.resDirectories.first().toIoFile()
     assertThat(File(first, "drawable/newName.png").exists()).isTrue()
   }
 
