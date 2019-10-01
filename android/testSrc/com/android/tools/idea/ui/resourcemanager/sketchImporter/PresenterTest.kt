@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.ui.resourcemanager.sketchImporter
 
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.importer.DesignAssetImporter
-import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.StubAssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchImporterPresenter
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchImporterView
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.android.AndroidTestBase
