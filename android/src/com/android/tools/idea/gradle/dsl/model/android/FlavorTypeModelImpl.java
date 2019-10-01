@@ -215,7 +215,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   @Override
   public SigningConfigPropertyModel signingConfig() {
-    return GradlePropertyModelBuilder.create(myDslElement, SIGNING_CONFIG).asMethod(true).buildSigningConfig();
+    return GradlePropertyModelBuilder.create(myDslElement, SIGNING_CONFIG).asMethod(false).buildSigningConfig();
   }
 
   @Override
