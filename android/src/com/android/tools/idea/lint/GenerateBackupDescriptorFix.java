@@ -48,9 +48,9 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiType;
-import com.intellij.psi.impl.source.xml.XmlTagImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.refactoring.psi.SearchUtils;
 import com.intellij.util.containers.SmartHashSet;
@@ -196,7 +196,7 @@ class GenerateBackupDescriptorFix implements LintIdeQuickFix {
                 for (PsiElement resElement : resources) {
                   if (resElement instanceof XmlAttributeValue) {
                     // get the parent XmlTag and drill down to it's text.
-                    XmlTagValue value = ((XmlTagImpl)resElement.getParent().getParent()).getValue();
+                    XmlTagValue value = ((XmlTag)resElement.getParent().getParent()).getValue();
                     prefFiles.add(value.getText());
                     break;
                   }
