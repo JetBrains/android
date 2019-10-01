@@ -30,6 +30,7 @@ import com.intellij.refactoring.listeners.RefactoringElementListener
 import com.intellij.refactoring.rename.RenameDialog
 import com.intellij.refactoring.rename.RenameHandler
 import com.intellij.refactoring.rename.RenamePsiElementProcessor
+import org.jetbrains.kotlin.idea.KotlinLanguage
 
 /**
  * Custom Rename processor that accepts ResourceReferencePsiElement and renames all corresponding references to that resource.
@@ -54,15 +55,24 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
 }
 
 /**
- * [RenameHandler] for Android Resources.
+ * [RenameHandler] for Android Resources, in Java, XML, and PsiFiles.
  */
-class ResourceRenameHandler : RenameHandler, TitledHandler {
+open class ResourceRenameHandler : RenameHandler, TitledHandler {
   override fun isAvailableOnDataContext(dataContext: DataContext): Boolean {
     if (!StudioFlags.RESOLVE_USING_REPOS.get()) {
       return false
     }
-    val element = CommonDataKeys.PSI_ELEMENT.getData(dataContext) ?: return false
-    return ResourceReferencePsiElement.create(element)?.toWritableResourceReferencePsiElement() != null
+    val file = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return false
+    return isAvailableInFile(file) && getWritableResourceReferenceElement(dataContext) != null
+  }
+
+  open fun isAvailableInFile(file: PsiFile) : Boolean {
+    return file.language != KotlinLanguage.INSTANCE
+  }
+
+  private fun getWritableResourceReferenceElement(dataContext: DataContext): ResourceReferencePsiElement? {
+    val element = CommonDataKeys.PSI_ELEMENT.getData(dataContext) ?: return null
+    return ResourceReferencePsiElement.create(element)?.toWritableResourceReferencePsiElement()
   }
 
   override fun isRenaming(dataContext: DataContext): Boolean {
@@ -70,8 +80,7 @@ class ResourceRenameHandler : RenameHandler, TitledHandler {
   }
 
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext) {
-    val element = CommonDataKeys.PSI_ELEMENT.getData(dataContext) ?: return
-    val referencePsiElement = ResourceReferencePsiElement.create(element)?.toWritableResourceReferencePsiElement() ?: return
+    val referencePsiElement = getWritableResourceReferenceElement(dataContext) ?: return
     val renameDialog = ResourceRenameDialog(project, referencePsiElement, null, editor)
     RenameDialog.showRenameDialog(dataContext, renameDialog)
   }
@@ -103,5 +112,14 @@ class ResourceRenameHandler : RenameHandler, TitledHandler {
         throw ConfigurationException(errorText)
       }
     }
+  }
+}
+
+/**
+ * [RenameHandler] for Android Resources, in Kotlin.
+ */
+class KotlinResourceRenameHandler : ResourceRenameHandler() {
+  override fun isAvailableInFile(file: PsiFile) : Boolean {
+    return file.language == KotlinLanguage.INSTANCE
   }
 }
