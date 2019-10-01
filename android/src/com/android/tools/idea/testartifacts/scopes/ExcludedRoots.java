@@ -29,9 +29,6 @@ import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
-import java.util.Collection;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,6 +45,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
 
 class ExcludedRoots {
   @NotNull private final ExcludedModules myExcludedModules;
@@ -241,18 +239,5 @@ class ExcludedRoots {
   @NotNull
   public Set<File> get() {
     return myExcludedRoots;
-  }
-
-  public static Collection<File> getAllSourceFolders(SourceProvider provider) {
-    return Stream.of(
-      provider.getJavaDirectories(),
-      provider.getResDirectories(),
-      provider.getAidlDirectories(),
-      provider.getRenderscriptDirectories(),
-      provider.getAssetsDirectories(),
-      provider.getCDirectories(),
-      provider.getCppDirectories(),
-      provider.getJniLibsDirectories()
-    ).flatMap(it -> it.stream()).collect(Collectors.toList());
   }
 }
