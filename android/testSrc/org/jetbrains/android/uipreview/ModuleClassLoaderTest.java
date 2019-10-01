@@ -46,6 +46,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.TimeoutUtil;
 import java.io.File;
@@ -224,7 +225,8 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testLibRClass() throws Exception {
-    VirtualFile defaultManifest = SourceProviderManager.getInstance(myFacet).getMainManifestFile();
+    SourceProviderManager sourceProviderManager = SourceProviderManager.getInstance(myFacet);
+    VirtualFile defaultManifest = sourceProviderManager.getMainManifestFile();
 
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
     androidProject.setProjectType(AndroidProject.PROJECT_TYPE_LIBRARY);
@@ -239,9 +241,13 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(myFacet.requiresAndroidModel()).isTrue();
 
     WriteAction.run(() -> {
-      File sourceProviderManifestFile = SourceProviderManager.getInstance(myFacet).getMainSourceProvider().getManifestFile();
-      FileUtil.createIfDoesntExist(sourceProviderManifestFile);
-      VirtualFile manifestFile = VfsUtil.findFileByIoFile(sourceProviderManifestFile, true);
+      VirtualFile manifestFile = sourceProviderManager.getMainManifestFile();
+      if (manifestFile == null) {
+        String manifestUrl = sourceProviderManager.getMainIdeaSourceProvider().getManifestFileUrl();
+        String manifestDirectoryUrl = VfsUtil.getParentDir(manifestUrl);
+        VirtualFile manifestDirectory = VirtualFileManager.getInstance().findFileByUrl(manifestDirectoryUrl);
+        manifestFile = manifestDirectory.createChildData(this, VfsUtil.extractFileName(manifestUrl));
+      }
       assertThat(manifestFile).named("Manifest virtual file").isNotNull();
       byte[] defaultManifestContent = defaultManifest.contentsToByteArray();
       assertNotNull(defaultManifestContent);
