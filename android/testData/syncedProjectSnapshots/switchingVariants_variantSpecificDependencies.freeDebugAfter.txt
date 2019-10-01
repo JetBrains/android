@@ -18,8 +18,18 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        :  [-]
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/free/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/freeDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/free/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -423,6 +433,14 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -767,8 +785,14 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        :  [-]
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false

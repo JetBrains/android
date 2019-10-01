@@ -18,8 +18,14 @@ PROJECT             : testTransitiveDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -510,8 +516,14 @@ PROJECT             : testTransitiveDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/library1/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/library1/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/library1/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/library1/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library1/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library1/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library1/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library1/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library1/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -951,8 +963,14 @@ PROJECT             : testTransitiveDependencies
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/library2/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/library2/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/library2/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/library2/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library2/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library2/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library2/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library2/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/library2/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false

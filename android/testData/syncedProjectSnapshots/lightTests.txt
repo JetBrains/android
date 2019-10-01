@@ -15,6 +15,10 @@ PROJECT             : LightSyncBasedTestsTest
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /unitTest/src/main/AndroidManifest.xml
             ResFolderRelativePath         : /unitTest/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/unitTest/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/unitTest/src/debug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/src/test/res [-]
             AssetsFolderRelativePath      : /unitTest/src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false

@@ -34,8 +34,14 @@ PROJECT             : testWithCompositeBuild
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/TestCompositeLib1/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -480,8 +486,14 @@ PROJECT             : testWithCompositeBuild
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/TestCompositeLib1/lib/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/lib/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/lib/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/lib/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -926,8 +938,14 @@ PROJECT             : testWithCompositeBuild
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/TestCompositeLib3/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1370,8 +1388,14 @@ PROJECT             : testWithCompositeBuild
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/TestCompositeLib3/lib/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/lib/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/lib/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/lib/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1779,8 +1803,14 @@ PROJECT             : testWithCompositeBuild
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2226,8 +2256,14 @@ PROJECT             : testWithCompositeBuild
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/lib/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false

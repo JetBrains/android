@@ -47,6 +47,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.sanitizeFileName
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacetConfiguration
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
@@ -85,16 +86,19 @@ class ProjectDumper(
   private val gradleHashPattern = Regex("[0-9a-f]{${gradleHashStub.length}}")
   private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length}}")
 
+  fun String.toPrintablePaths(): Collection<String> =
+    split(JpsAndroidModuleProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION).map { it.toPrintablePath() }
+
   /**
    * Replaces well-known instable parts of a path/url string with stubs and adds [-] to the end if the file does not exist.
    */
   fun String.toPrintablePath(): String {
     fun String.splitPathAndSuffix(): Pair<String, String> =
-        when {
-          this.endsWith("!") -> this.substring(0, this.length - 1) to "!"
-          this.endsWith("!/") -> this.substring(0, this.length - 2) to "!/"
-          else -> this to ""
-        }
+      when {
+        this.endsWith("!") -> this.substring(0, this.length - 1) to "!"
+        this.endsWith("!/") -> this.substring(0, this.length - 2) to "!/"
+        else -> this to ""
+      }
 
     return when {
       this.startsWith("file://") -> "file://" + this.substring("file://".length).toPrintablePath()
@@ -311,8 +315,8 @@ private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfigurat
     prop("GenFolderRelativePathAidl") { GEN_FOLDER_RELATIVE_PATH_AIDL.nullize() }
     prop("ManifestFileRelativePath") { MANIFEST_FILE_RELATIVE_PATH.nullize() }
     prop("ResFolderRelativePath") { RES_FOLDER_RELATIVE_PATH.nullize() }
-    prop("ResFoldersRelativePath") { RES_FOLDERS_RELATIVE_PATH?.toPrintablePath()?.nullize() }
-    prop("TestResFoldersRelativePath") { TEST_RES_FOLDERS_RELATIVE_PATH?.toPrintablePath()?.nullize() }
+    RES_FOLDERS_RELATIVE_PATH?.toPrintablePaths()?.forEach { prop("- ResFoldersRelativePath") { it } }
+    TEST_RES_FOLDERS_RELATIVE_PATH?.toPrintablePaths()?.forEach { prop("- TestResFoldersRelativePath") { it } }
     prop("AssetsFolderRelativePath") { ASSETS_FOLDER_RELATIVE_PATH.nullize() }
     prop("LibsFolderRelativePath") { LIBS_FOLDER_RELATIVE_PATH.nullize() }
     prop("UseCustomApkResourceFolder") { USE_CUSTOM_APK_RESOURCE_FOLDER.toString() }

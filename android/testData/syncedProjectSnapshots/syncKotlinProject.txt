@@ -18,8 +18,14 @@ PROJECT             : testSyncKotlinProject
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -567,6 +573,14 @@ PROJECT             : testSyncKotlinProject
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/awesomeandroidlibrary/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/awesomeandroidlibrary/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/awesomeandroidlibrary/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/awesomeandroidlibrary/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
