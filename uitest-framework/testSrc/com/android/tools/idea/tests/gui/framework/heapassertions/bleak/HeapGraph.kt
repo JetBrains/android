@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ExpanderChooser
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Node
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.RootExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.SmartListExpander
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
@@ -50,6 +51,7 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
     ArrayObjectIdentityExpander(this),
     ClassLoaderExpander(this, jniHelper),
     ClassStaticsExpander(this),
+    SmartListExpander(this),
     DefaultObjectExpander(this)))
 
   private val objToNode: MutableMap<Any, Node> = IdentityHashMap()
