@@ -96,7 +96,10 @@ public class Configuration implements Disposable, ModificationTracker {
   public static final String AVD_ID_PREFIX = "_android_virtual_device_id_";
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
-  /** The associated file */
+  /**
+   * The associated file.
+   * TODO(b/141988340): consider to remove this field from Configuration class.
+   */
   @Nullable final VirtualFile myFile;
 
   /** The PSI File associated with myFile. */
@@ -251,7 +254,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @NotNull
   public static Configuration create(@NotNull Configuration base, @NotNull VirtualFile file) {
     // TODO: Figure out whether we need this, or if it should be replaced by a call to ConfigurationManager#createSimilar()
-    Configuration configuration = base.clone();
+    Configuration configuration = copyWithNewFile(base, file);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
     configuration.getEditedConfig().set(FolderConfiguration.getConfigForFolder(file.getParent().getName()));
     matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -283,9 +286,22 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @NotNull
   public static Configuration copy(@NotNull Configuration original) {
+    return copyWithNewFile(original, original.myFile);
+  }
+
+  /**
+   * Creates a new {@linkplain Configuration} that is a copy from a different configuration and its associated file
+   * is the given one.
+   *
+   * @param original the original to copy from
+   * @param newFile  the file of returned {@link Configuration}.
+   * @return a new configuration copied from the original
+   */
+  @NotNull
+  private static Configuration copyWithNewFile(@NotNull Configuration original, @Nullable VirtualFile newFile) {
     FolderConfiguration copiedConfig = new FolderConfiguration();
     copiedConfig.set(original.getEditedConfig());
-    Configuration copy = new Configuration(original.myManager, original.myFile, copiedConfig);
+    Configuration copy = new Configuration(original.myManager, newFile, copiedConfig);
     copy.myFullConfig.set(original.myFullConfig);
     copy.myFolderConfigDirty = original.myFolderConfigDirty;
     copy.myProjectStateVersion = original.myProjectStateVersion;

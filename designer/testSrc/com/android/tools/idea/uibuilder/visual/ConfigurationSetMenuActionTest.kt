@@ -33,9 +33,10 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
 
     val actual = prettyPrintActions(menuAction)
     // The displayed text of dropdown action is the current selected option, which is Pixel Devices in this case.
-    // For now there is only one option "Pixel Devices" in the drop down menu.
+    // There are 2 options: "Pixel Devices" and "Project Locales" in the drop down menu.
     val expected = "Pixel Devices\n" + // The current selection of dropdown action
-                   "    Pixel Devices\n" // The options in dropdown menu have  4 spaces as indent
+                   "    Pixel Devices\n" + // The options in dropdown menu have  4 spaces as indent
+                   "    Project Locales\n"
     assertEquals(expected, actual)
 
     Disposer.dispose(form)
