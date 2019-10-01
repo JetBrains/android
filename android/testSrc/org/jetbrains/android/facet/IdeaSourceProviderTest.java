@@ -20,21 +20,17 @@ import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAN
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.builder.model.ProductFlavorContainer;
-import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModelTest;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Sdks;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
 import java.io.File;
 import java.util.Collection;
-import java.util.Set;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -148,103 +144,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Resources Directories: []\n", sb.toString());
   }
 
-  /**
-   * TODO: Move this test to {@link AndroidModuleModelTest}.
-   */
-  public void testGetAllSourceProviders() throws Exception {
-    StringBuilder sb = new StringBuilder();
-    File baseDir = new File(getProject().getBaseDir().getPath());
-    for (SourceProvider provider : IdeaSourceProvider.getAllSourceProviders(myAppFacet)) {
-      sb.append(getStringRepresentation(provider, baseDir));
-    }
-    assertEquals("Name: main\n" +
-                 "Manifest File: app/src/main/AndroidManifest.xml\n" +
-                 "Java Directories: [app/src/main/java]\n" +
-                 "Res Directories: [app/src/main/res]\n" +
-                 "Assets Directories: [app/src/main/assets]\n" +
-                 "AIDL Directories: [app/src/main/aidl]\n" +
-                 "Renderscript Directories: [app/src/main/rs]\n" +
-                 "Jni Directories: [app/src/main/jni]\n" +
-                 "Resources Directories: [app/src/main/resources]\n" +
-                 "Name: paid\n" +
-                 "Manifest File: app/src/paid/AndroidManifest.xml\n" +
-                 "Java Directories: [app/src/paid/java]\n" +
-                 "Res Directories: [app/src/paid/res]\n" +
-                 "Assets Directories: [app/src/paid/assets]\n" +
-                 "AIDL Directories: [app/src/paid/aidl]\n" +
-                 "Renderscript Directories: [app/src/paid/rs]\n" +
-                 "Jni Directories: [app/src/paid/jni]\n" +
-                 "Resources Directories: [app/src/paid/resources]\n" +
-                 "Name: basic\n" +
-                 "Manifest File: app/src/basic/AndroidManifest.xml\n" +
-                 "Java Directories: [app/src/basic/java]\n" +
-                 "Res Directories: [app/src/basic/res]\n" +
-                 "Assets Directories: [app/src/basic/assets]\n" +
-                 "AIDL Directories: [app/src/basic/aidl]\n" +
-                 "Renderscript Directories: [app/src/basic/rs]\n" +
-                 "Jni Directories: [app/src/basic/jni]\n" +
-                 "Resources Directories: [app/src/basic/resources]\n" +
-                 "Name: debug\n" +
-                 "Manifest File: app/src/debug/AndroidManifest.xml\n" +
-                 "Java Directories: [app/src/debug/java]\n" +
-                 "Res Directories: [app/src/debug/res]\n" +
-                 "Assets Directories: [app/src/debug/assets]\n" +
-                 "AIDL Directories: [app/src/debug/aidl]\n" +
-                 "Renderscript Directories: [app/src/debug/rs]\n" +
-                 "Jni Directories: [app/src/debug/jni]\n" +
-                 "Resources Directories: [app/src/debug/resources]\n" +
-                 "Name: release\n" +
-                 "Manifest File: app/src/release/AndroidManifest.xml\n" +
-                 "Java Directories: [app/src/release/java]\n" +
-                 "Res Directories: [app/src/release/res]\n" +
-                 "Assets Directories: [app/src/release/assets]\n" +
-                 "AIDL Directories: [app/src/release/aidl]\n" +
-                 "Renderscript Directories: [app/src/release/rs]\n" +
-                 "Jni Directories: [app/src/release/jni]\n" +
-                 "Resources Directories: [app/src/release/resources]\n" +
-                 "Name: basicDebug\n" +
-                 "Manifest File: app/src/basicDebug/AndroidManifest.xml\n" +
-                 "Java Directories: [app/src/basicDebug/java]\n" +
-                 "Res Directories: [app/src/basicDebug/res]\n" +
-                 "Assets Directories: [app/src/basicDebug/assets]\n" +
-                 "AIDL Directories: [app/src/basicDebug/aidl]\n" +
-                 "Renderscript Directories: [app/src/basicDebug/rs]\n" +
-                 "Jni Directories: [app/src/basicDebug/jni]\n" +
-                 "Resources Directories: [app/src/basicDebug/resources]\n", sb.toString());
-
-    sb = new StringBuilder();
-    for (SourceProvider provider : IdeaSourceProvider.getAllSourceProviders(myLibFacet)) {
-      sb.append(getStringRepresentation(provider, baseDir));
-    }
-    assertEquals("Name: main\n" +
-                 "Manifest File: lib/src/main/AndroidManifest.xml\n" +
-                 "Java Directories: [lib/src/main/java]\n" +
-                 "Res Directories: [lib/src/main/res]\n" +
-                 "Assets Directories: [lib/src/main/assets]\n" +
-                 "AIDL Directories: [lib/src/main/aidl]\n" +
-                 "Renderscript Directories: [lib/src/main/rs]\n" +
-                 "Jni Directories: [lib/src/main/jni]\n" +
-                 "Resources Directories: [lib/src/main/resources]\n" +
-                 "Name: debug\n" +
-                 "Manifest File: lib/src/debug/AndroidManifest.xml\n" +
-                 "Java Directories: [lib/src/debug/java]\n" +
-                 "Res Directories: [lib/src/debug/res]\n" +
-                 "Assets Directories: [lib/src/debug/assets]\n" +
-                 "AIDL Directories: [lib/src/debug/aidl]\n" +
-                 "Renderscript Directories: [lib/src/debug/rs]\n" +
-                 "Jni Directories: [lib/src/debug/jni]\n" +
-                 "Resources Directories: [lib/src/debug/resources]\n" +
-                 "Name: release\n" +
-                 "Manifest File: lib/src/release/AndroidManifest.xml\n" +
-                 "Java Directories: [lib/src/release/java]\n" +
-                 "Res Directories: [lib/src/release/res]\n" +
-                 "Assets Directories: [lib/src/release/assets]\n" +
-                 "AIDL Directories: [lib/src/release/aidl]\n" +
-                 "Renderscript Directories: [lib/src/release/rs]\n" +
-                 "Jni Directories: [lib/src/release/jni]\n" +
-                 "Resources Directories: [lib/src/release/resources]\n", sb.toString());
-  }
-
   public void testFindSourceProvider() throws Exception {
     assertNotNull(myAppFacet.getConfiguration().getModel());
     VirtualFile moduleFile = findFileByIoFile(getProjectFolderPath(), true).findFileByRelativePath("app");
@@ -278,52 +177,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     actualProvider = providers.iterator().next();
     assertEquals(paidFlavorSourceProvider.getManifestFile(),
                  actualProvider.getManifestFile());
-  }
-
-  public String getStringRepresentation(@NotNull SourceProvider sourceProvider, @Nullable File baseFile) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("Name: ");
-    sb.append(sourceProvider.getName());
-    sb.append('\n');
-    File manifestFile = sourceProvider.getManifestFile();
-    String manifestPath = null;
-    if (manifestFile != null) {
-      if (baseFile != null) {
-        manifestPath = FileUtil.getRelativePath(baseFile, manifestFile);
-      }
-      else {
-        manifestPath = manifestFile.getPath();
-      }
-    }
-    sb.append("Manifest File: ");
-    sb.append(PathUtil.toSystemIndependentName(manifestPath));
-    sb.append('\n');
-
-    sb.append("Java Directories: ");
-    sb.append(fileSetToString(sourceProvider.getJavaDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("Res Directories: ");
-    sb.append(fileSetToString(sourceProvider.getResDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("Assets Directories: ");
-    sb.append(fileSetToString(sourceProvider.getAssetsDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("AIDL Directories: ");
-    sb.append(fileSetToString(sourceProvider.getAidlDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("Renderscript Directories: ");
-    sb.append(fileSetToString(sourceProvider.getRenderscriptDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("Jni Directories: ");
-    Set<File> jniDirectories = Sets.newHashSet();
-    jniDirectories.addAll(sourceProvider.getCDirectories());
-    jniDirectories.addAll(sourceProvider.getCppDirectories());
-    sb.append(fileSetToString(jniDirectories, baseFile));
-    sb.append('\n');
-    sb.append("Resources Directories: ");
-    sb.append(fileSetToString(sourceProvider.getResourcesDirectories(), baseFile));
-    sb.append('\n');
-    return sb.toString();
   }
 
   public String getStringRepresentation(@NotNull IdeaSourceProvider sourceProvider, @Nullable VirtualFile baseFile) {
@@ -373,25 +226,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     boolean isFirst = true;
     for (VirtualFile vf : files) {
       String path = baseFile != null ? VfsUtilCore.getRelativePath(vf, baseFile, File.separatorChar) : vf.getPath();
-      if (!isFirst) {
-        sb.append(", ");
-      }
-      else {
-        isFirst = false;
-      }
-      sb.append(PathUtil.toSystemIndependentName(path));
-    }
-    sb.append("]");
-    return sb.toString();
-  }
-
-  @NotNull
-  private static String fileSetToString(@NotNull Collection<File> files, @Nullable File baseFile) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("[");
-    boolean isFirst = true;
-    for (File f : files) {
-      String path = baseFile != null ? FileUtil.getRelativePath(baseFile, f) : f.getPath();
       if (!isFirst) {
         sb.append(", ");
       }
