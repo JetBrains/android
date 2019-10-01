@@ -43,7 +43,7 @@ import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
 import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.ML_COMMENT;
 import static org.jetbrains.plugins.groovy.lang.psi.impl.PsiImplUtil.isWhiteSpaceOrNls;
 
-public class GroovyDslWriter implements GradleDslWriter {
+public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDslWriter {
   @Override
   public PsiElement moveDslElement(@NotNull GradleDslElement element) {
     // 1. Get the anchor where we need to move the element to.

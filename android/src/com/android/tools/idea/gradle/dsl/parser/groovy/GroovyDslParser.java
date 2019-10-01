@@ -93,7 +93,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
  * {@link AndroidModelImpl}. See {@link #getBlockElement(List, GradlePropertiesDslElement)} for all the block elements currently supported
  * by this parser.
  */
-public class GroovyDslParser implements GradleDslParser {
+public class GroovyDslParser extends GroovyDslNameConverter implements GradleDslParser {
   @NotNull private final GroovyFile myPsiFile;
   @NotNull private final GradleDslFile myDslFile;
 
