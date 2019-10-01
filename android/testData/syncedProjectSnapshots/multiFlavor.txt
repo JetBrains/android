@@ -34,8 +34,22 @@ PROJECT             : testMultiFlavor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/firstAbc/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/secondAbc/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/firstAbcSecondAbc/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/firstAbcSecondAbc/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFirstAbc/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testFirstAbc/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestSecondAbc/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testSecondAbc/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false

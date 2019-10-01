@@ -18,8 +18,22 @@ PROJECT             : testPsdSampleRenamingModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basic/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/bar/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basicBar/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/basicBarDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/basicBar/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBasic/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testBasic/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestBar/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testBar/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -450,6 +464,14 @@ PROJECT             : testPsdSampleRenamingModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -551,6 +573,14 @@ PROJECT             : testPsdSampleRenamingModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/dyn_feature/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -677,6 +707,14 @@ PROJECT             : testPsdSampleRenamingModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1021,6 +1059,14 @@ PROJECT             : testPsdSampleRenamingModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1123,6 +1169,14 @@ PROJECT             : testPsdSampleRenamingModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested1/deep/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1224,6 +1278,18 @@ PROJECT             : testPsdSampleRenamingModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/basic/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/src/basicDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/build/generated/res/rs/basic/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestBasic/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/testBasic/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1368,6 +1434,14 @@ PROJECT             : testPsdSampleRenamingModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/nested2/deep/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false

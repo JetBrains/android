@@ -18,8 +18,18 @@ PROJECT             : testPsdDependencyDeleteModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        :  [-]
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/free/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/freeDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/free/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -651,8 +661,18 @@ PROJECT             : testPsdDependencyDeleteModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        :  [-]
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/free/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/freeDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/testFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1069,6 +1089,14 @@ PROJECT             : testPsdDependencyDeleteModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1427,6 +1455,14 @@ PROJECT             : testPsdDependencyDeleteModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1779,6 +1815,14 @@ PROJECT             : testPsdDependencyDeleteModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2123,6 +2167,18 @@ PROJECT             : testPsdDependencyDeleteModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/free/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/freeDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/testFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2266,6 +2322,14 @@ PROJECT             : testPsdDependencyDeleteModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false

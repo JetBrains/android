@@ -18,8 +18,14 @@ PROJECT             : testSyncWithKotlinDsl
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -423,8 +429,14 @@ PROJECT             : testSyncWithKotlinDsl
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            ResFoldersRelativePath        :  [-]
-            TestResFoldersRelativePath    :  [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
