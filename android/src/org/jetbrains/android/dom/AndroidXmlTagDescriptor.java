@@ -17,6 +17,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.psi.TagToClassMapper;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -31,9 +32,9 @@ import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.XmlElementsGroup;
 import com.intellij.xml.XmlNSDescriptor;
+import java.util.Map;
 import javax.swing.Icon;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,15 +79,12 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresent
     }
     final XmlElementDescriptor[] androidDescriptors = new XmlElementDescriptor[descriptors.length];
     final DomElement domElement = DomManager.getDomManager(context.getProject()).getDomElement(context);
-    final PsiClass baseClass = JavaPsiFacade.getInstance(context.getProject()).findClass(
-      myBaseClassName, facet.getModule().getModuleWithLibrariesScope());
+    final Map<String, PsiClass> tagToClassMap = TagToClassMapper.getInstance(facet.getModule()).getClassMap(myBaseClassName);
 
     for (int i = 0; i < descriptors.length; i++) {
       final XmlElementDescriptor descriptor = descriptors[i];
       final String tagName = descriptor.getName();
-      final PsiClass aClass = tagName != null && baseClass != null
-                              ? LayoutViewClassUtils.findClassByTagName(facet, tagName, baseClass)
-                              : null;
+      final PsiClass aClass = tagName != null ? tagToClassMap.get(tagName) : null;
       final Icon icon = AndroidDomElementDescriptorProvider.getIconForTag(tagName, domElement);
       androidDescriptors[i] = new AndroidXmlTagDescriptor(aClass, descriptor, myBaseClassName, icon);
     }
