@@ -24,8 +24,10 @@ import icons.StudioIcons
 /**
  * Pre-defined Configuration sets for visualization tools.
  */
+@Suppress("unused") // Entries are indirectly used by for-loop.
 enum class ConfigurationSet(val title: String, val modelsProvider: VisualizationModelsProvider) {
-  PIXEL_DEVICES("Pixel Devices", PixelDeviceModelsProvider)
+  PIXEL_DEVICES("Pixel Devices", PixelDeviceModelsProvider),
+  PROJECT_LOCALES("Project Locales", LocaleModelsProvider)
 }
 
 interface ConfigurationSetListener {
