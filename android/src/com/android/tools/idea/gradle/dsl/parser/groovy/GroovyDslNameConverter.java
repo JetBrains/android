@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser;
+package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
-public interface GradleDslNameConverter {
+public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
-  default String psiToName(@NotNull PsiElement element) { return ""; }
+  @Override
+  public String psiToName(@NotNull PsiElement element) {
+    return element.getText();
+  }
 
   @NotNull
-  default String convertReferenceText(@NotNull GradleDslElement context, @NotNull String referenceText) { return ""; }
+  @Override
+  public String convertReferenceText(@NotNull GradleDslElement context, @NotNull String referenceText) {
+    return referenceText;
+  }
 }
