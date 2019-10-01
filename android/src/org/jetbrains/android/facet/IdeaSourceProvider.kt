@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_MANIFEST_XML
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.util.toIoFile
 import com.google.common.collect.Lists
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.io.FileUtil.filesEqual
@@ -108,6 +109,7 @@ interface IdeaSourceProvider {
     }
     return false
   }
+
 
   companion object {
 
@@ -254,6 +256,26 @@ interface IdeaSourceProvider {
         }
       }
       return false
+    }
+
+    /**
+     * Returns an iterable of all source providers, for the given facet,
+     * in the overlay order (meaning that later providers
+     * override earlier providers when they redefine resources.)
+     *
+     * Note that the list will never be empty; there is always at least one source provider.
+     *
+     * The overlay source order is defined by the underlying build system.
+     */
+    @JvmStatic
+    fun getAllSourceProviders(facet: AndroidFacet): List<SourceProvider> {
+      return if (!facet.requiresAndroidModel() || facet.configuration.model == null) {
+        listOf(SourceProviderManager.getInstance(facet).mainSourceProvider)
+      }
+      else {
+        @Suppress("DEPRECATION")
+        facet.configuration.model!!.allSourceProviders
+      }
     }
 
     /**
@@ -598,23 +620,3 @@ private val IdeaSourceProvider.allSourceFolders: Collection<VirtualFile>
                     jniLibsDirectories))
 
 private fun String.convertToUrl() = VfsUtil.pathToUrl(this)
-
-/**
- * Returns an iterable of all source providers, for the given facet,
- * in the overlay order (meaning that later providers
- * override earlier providers when they redefine resources.)
- *
- * Note that the list will never be empty; there is always at least one source provider.
- *
- * The overlay source order is defined by the underlying build system.
- */
-private fun getAllSourceProviders(facet: AndroidFacet): List<SourceProvider> {
-  return if (!facet.requiresAndroidModel() || facet.configuration.model == null) {
-    listOf(SourceProviderManager.getInstance(facet).mainSourceProvider)
-  }
-  else {
-    @Suppress("DEPRECATION")
-    facet.configuration.model!!.allSourceProviders
-  }
-}
-
