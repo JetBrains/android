@@ -55,16 +55,6 @@ MODULE: MyApplication
                     file://./res
                 ResDirectories:
                     file://./res
-        AllSourceProviders:
-            main
-                Manifest:
-                    ./AndroidManifest.xml
-                AssetsDirectories:
-                    ./assets
-                JavaDirectories:
-                    .
-                ResDirectories:
-                    ./res
         CurrentSourceProviders:
              (IDEA)
                 ManifestUrl:
