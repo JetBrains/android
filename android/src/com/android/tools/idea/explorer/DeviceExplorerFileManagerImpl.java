@@ -18,6 +18,7 @@ package com.android.tools.idea.explorer;
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DeviceFileId;
 import com.android.tools.idea.deviceExplorer.FileHandler;
+import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
@@ -35,7 +36,6 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FileTypeChooser;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtilRt;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -266,12 +266,14 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     DeviceFileEntry parent = originalEntry.getParent();
     String parentPath;
     if (parent != null)
-      parentPath = parent.getFullPath() +"/";
+      parentPath = parent.getFullPath();
     else
-      parentPath = "/";
+      parentPath = "";
 
     for (String currentPath : additionalPaths) {
-      FileUtil.isAncestor(parentPath, currentPath, true);
+      if (!parentPath.equals(AdbPathUtil.getParentPath(currentPath))) {
+        return false;
+      }
     }
 
     return true;
