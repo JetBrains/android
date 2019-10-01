@@ -38,6 +38,7 @@ import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APPLICATION_PACKAGE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_SOURCE_PROVIDER_NAME
+import com.android.tools.idea.templates.TemplateManager.CATEGORY_COMPOSE
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
@@ -137,6 +138,11 @@ class RenderTemplateModel private constructor(
       if (paths.moduleRoot == null) {
         log.error("RenderTemplateModel can't create files because module root is not found. Please report this error.")
         return
+      }
+
+      if (StudioFlags.COMPOSE_WIZARD_TEMPLATES.get() && templateHandle?.metadata?.category == CATEGORY_COMPOSE) {
+        // TODO(parentej) ag/q/topic:kotlin-1.3.50-compose-20190920 - This should not be needed when the kotlin plugin is merged.
+        moduleTemplateValues["isCompose"] = true
       }
 
       templateValues.putAll(moduleTemplateValues)
