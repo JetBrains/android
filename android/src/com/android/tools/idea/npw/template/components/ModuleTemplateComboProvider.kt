@@ -19,7 +19,7 @@ import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.ListCellRendererWrapper
+import com.intellij.ui.SimpleListCellRenderer
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JList
 
@@ -28,20 +28,19 @@ import javax.swing.JList
  *
  * @see NamedModuleTemplate
  */
-class ModuleTemplateComboProvider(private val myTemplates: List<NamedModuleTemplate>) : ComponentProvider<ComboBox<*>>() {
-
+class ModuleTemplateComboProvider(private val templates: List<NamedModuleTemplate>) : ComponentProvider<ComboBox<*>>() {
   override fun createComponent(): ComboBox<*> {
     val comboBoxModel = DefaultComboBoxModel<Any>()
-    myTemplates.forEach {
+    templates.forEach {
       comboBoxModel.addElement(it)
     }
 
     return ComboBox(comboBoxModel).apply {
       toolTipText = "<html>The source set within which to generate new project files.<br>" +
                     "If you specify a source set that does not yet exist on disk, a folder will be created for it.</html>"
-      renderer = object : ListCellRendererWrapper<Any>() {
+      renderer = object : SimpleListCellRenderer<Any>() {
         override fun customize(list: JList<*>, value: Any, index: Int, selected: Boolean, hasFocus: Boolean) {
-          setText((value as NamedModuleTemplate).name)
+          text = (value as NamedModuleTemplate).name
         }
       }
     }
