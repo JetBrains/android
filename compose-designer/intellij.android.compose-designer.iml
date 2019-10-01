@@ -20,5 +20,7 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="library" name="kotlin-plugin" level="project" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="protobuf" level="project" />
   </component>
 </module>
