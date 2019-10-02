@@ -193,6 +193,17 @@ public class GradleNameElement {
     myName = null;
   }
 
+  /**
+   * Arranges that this element have the name given by its argument, and also that that name be considered canonical (which in practice
+   * means preventing any client from detecting a difference between its current name and its original name).
+   *
+   * @param newName the new name to be considered canonical
+   */
+  public void canonize(@NotNull String newName) { // NOTYPO
+    rename(newName);
+    myOriginalName = newName;
+  }
+
   public boolean isEmpty() {
     String name = findName();
     return name == null || name.isEmpty();
