@@ -19,7 +19,7 @@ import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
@@ -30,7 +30,7 @@ import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
-import javax.swing.JList
+import javax.swing.JPanel
 
 class CustomEventProfilerStageViewTest {
 
@@ -57,7 +57,7 @@ class CustomEventProfilerStageViewTest {
   fun trackGroupListIsCreated() {
     val stageView = CustomEventProfilerStageView(view, stage)
     stage.enter()
-    assertThat(stageView.trackGroupList.model.size).isEqualTo(1)
+    assertThat(stageView.trackGroupList.componentCount).isEqualTo(1)
   }
 
   @Test
@@ -80,8 +80,7 @@ class CustomEventProfilerStageViewTest {
     val treeWalker = TreeWalker(customEventProfilerStageView.component)
 
     //track list
-    val tracklist = treeWalker.descendants().filterIsInstance(JList::class.java)
-    assertThat(tracklist.size).isEqualTo(1)
+    assertThat(customEventProfilerStageView.component.components.contains(customEventProfilerStageView.trackGroupList))
 
     //timeline
     val timeline = treeWalker.descendants().filterIsInstance(AxisComponent::class.java)

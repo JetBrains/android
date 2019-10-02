@@ -39,8 +39,8 @@ class CustomEventProfilerStageTest {
   fun trackGroupModelsAreSet() {
     val stage = CustomEventProfilerStage(profilers)
     profilers.stage = stage
-    assertThat(stage.trackGroupListModel.size).isEqualTo(1)
-    val interactionTrackGroup = stage.trackGroupListModel[0]
+    assertThat(stage.trackGroupModels.size).isEqualTo(1)
+    val interactionTrackGroup = stage.trackGroupModels[0]
     assertThat(interactionTrackGroup.title).isEqualTo("Custom Events")
     assertThat(interactionTrackGroup.size).isEqualTo(0)
 

@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -29,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JLabel
 
 class CpuCaptureStageViewTest {
   private val cpuService = FakeCpuService()
@@ -72,16 +74,11 @@ class CpuCaptureStageViewTest {
   fun trackGroupListIsInitializedAfterParsing() {
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
-    assertThat(stageView.trackGroupList.model.size).isEqualTo(2)
-    val interactionTrackGroup = stageView.trackGroupList.model.getElementAt(0)
-    assertThat(interactionTrackGroup.title).isEqualTo("Interaction")
-    assertThat(interactionTrackGroup.size).isEqualTo(2)
-    assertThat(interactionTrackGroup.get(0).title).isEqualTo("User")
-    assertThat(interactionTrackGroup.get(1).title).isEqualTo("Lifecycle")
+    assertThat(stageView.trackGroupList.component.componentCount).isEqualTo(2)
+    val treeWalker = TreeWalker(stageView.trackGroupList.component)
 
-    val threadsTrackGroup = stageView.trackGroupList.model.getElementAt(1)
-    assertThat(threadsTrackGroup.title).isEqualTo("Threads (3)")
-    assertThat(threadsTrackGroup.size).isEqualTo(3)
+    val titleStrings = treeWalker.descendants().filterIsInstance<JLabel>().map(JLabel::getText).toList()
+    assertThat(titleStrings).containsAllOf("Interaction", "Threads (3)").inOrder()
   }
 
   @Test

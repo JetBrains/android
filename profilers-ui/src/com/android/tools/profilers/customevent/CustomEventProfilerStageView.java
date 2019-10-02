@@ -18,15 +18,15 @@ package com.android.tools.profilers.customevent;
 
 import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
-import com.android.tools.adtui.DragAndDropList;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
+import com.android.tools.adtui.trackgroup.TrackGroup;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerScrollbar;
 import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
@@ -40,8 +40,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBScrollPane;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.util.List;
 import javax.swing.JComponent;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,18 +49,19 @@ import org.jetbrains.annotations.NotNull;
  * This class represents the view of all the custom events that users have chosen to track for Custom Event Visualization.
  */
 public class CustomEventProfilerStageView extends StageView<CustomEventProfilerStage> {
+  private static final ProfilerTrackRendererFactory TRACK_RENDERER_FACTORY = new ProfilerTrackRendererFactory();
 
   @NotNull
-  private final JList<TrackGroupModel> myTrackGroupList;
+  private final JComponent myTrackGroupList;
   @NotNull private final StudioProfilers myStudioProfilers;
 
   public CustomEventProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CustomEventProfilerStage stage) {
     super(profilersView, stage);
 
-    myTrackGroupList = createTrackGroups(stage.getTrackGroupListModel());
+    myTrackGroupList = createTrackGroups(stage.getTrackGroupModels());
     myStudioProfilers = stage.getStudioProfilers();
 
-    // Add a dependency for when the range changes so the JList has to be repainted as the timeline moves.
+    // Add a dependency for when the range changes so the track group list has to be repainted as the timeline moves.
     myStudioProfilers.getTimeline().getViewRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateTrackGroupList);
 
     buildUI();
@@ -77,7 +78,7 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
 
   @VisibleForTesting
   @NotNull
-  protected final JList<TrackGroupModel> getTrackGroupList() {
+  protected final JComponent getTrackGroupList() {
     return myTrackGroupList;
   }
 
@@ -121,15 +122,19 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
   }
 
   private void updateTrackGroupList() {
-    // Force JList cell renderer to validate.
+    // Force track group list to validate its children.
     myTrackGroupList.updateUI();
   }
 
   /**
-   * Creates the JList containing all the track groups in the stage.
+   * Creates the JComponent containing all the track groups in the stage.
    */
-  private static JList<TrackGroupModel> createTrackGroups(@NotNull TrackGroupListModel trackGroupListModel) {
-    DragAndDropList<TrackGroupModel> trackGroupList = new DragAndDropList<>(trackGroupListModel);
-    return trackGroupList;
+  private static JComponent createTrackGroups(@NotNull List<TrackGroupModel> trackGroupModels) {
+    JPanel panel = new JPanel(new TabularLayout("*", "Fit"));
+    for (int i = 0; i < trackGroupModels.size(); ++i) {
+      panel.add(new TrackGroup(trackGroupModels.get(i), TRACK_RENDERER_FACTORY).getComponent(),
+                new TabularLayout.Constraint(i, 0));
+    }
+    return panel;
   }
 }

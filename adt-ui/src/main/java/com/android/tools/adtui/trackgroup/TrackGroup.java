@@ -19,12 +19,13 @@ import com.android.tools.adtui.DragAndDropList;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.flat.FlatSeparator;
+import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.stdui.CommonButton;
+import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -40,6 +41,7 @@ import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A collapsible UI component that contains a list of {@link Track}s to visualize multiple horizontal data series.
@@ -53,7 +55,7 @@ public class TrackGroup {
   private final JLabel myTitleLabel;
   private final DragAndDropList<TrackModel> myTrackList;
   private final CommonButton myFilterButton;
-  private final CommonButton myShowMoreButton;
+  private final CommonDropDownButton myActionsDropdown;
   private final CommonButton myCollapseButton;
 
   /**
@@ -80,7 +82,8 @@ public class TrackGroup {
     });
 
     myFilterButton = new CommonButton(AllIcons.General.Filter);
-    myShowMoreButton = new CommonButton(AllIcons.Actions.More);
+    myActionsDropdown = new CommonDropDownButton(new CommonAction("", AllIcons.Actions.More));
+    initShowMoreDropdown();
 
     myCollapseButton = new CommonButton(COLLAPSE_ICON);
     myCollapseButton.setHorizontalTextPosition(SwingConstants.LEFT);
@@ -90,7 +93,7 @@ public class TrackGroup {
     JPanel toolbarPanel = new JPanel(new GridBagLayout());
     toolbarPanel.setBorder(JBUI.Borders.emptyRight(16));
     toolbarPanel.add(myFilterButton);
-    toolbarPanel.add(myShowMoreButton);
+    toolbarPanel.add(myActionsDropdown);
     toolbarPanel.add(new FlatSeparator());
     toolbarPanel.add(myCollapseButton);
 
@@ -122,6 +125,25 @@ public class TrackGroup {
       myCollapseButton.setText(null);
       myCollapseButton.setIcon(COLLAPSE_ICON);
     }
+  }
+
+  /**
+   * @param mover a mover to enable moving up and down this track group in a list. Null to disable moving.
+   * @return this instance
+   */
+  public TrackGroup setMover(@Nullable TrackGroupMover mover) {
+    initShowMoreDropdown();
+    if (mover != null) {
+      myActionsDropdown.getAction().addChildrenActions(new CommonAction("Move Up", null, () -> mover.moveTrackGroupUp(this)));
+      myActionsDropdown.getAction().addChildrenActions(new CommonAction("Move Down", null, () -> mover.moveTrackGroupDown(this)));
+    }
+    return this;
+  }
+
+  private void initShowMoreDropdown() {
+    myActionsDropdown.getAction().clear();
+
+    // Add children actions.
   }
 
   @VisibleForTesting
