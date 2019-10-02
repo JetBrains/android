@@ -32,7 +32,8 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     """.trimIndent()
     )
 
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
         -keep class test.MyC${caret}lass {
         }
     """.trimIndent()
@@ -77,18 +78,17 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
       public class MyClass {}
     """.trimIndent()
-    ).qualifiedName
+    )
 
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
         -keep class te${caret}st.MyClass {
         }
     """.trimIndent()
     )
 
-
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findPackage("test"))
   }
-
 
   fun testResolveToInnerClass() {
     myFixture.addClass(
@@ -100,18 +100,71 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
         class InnerClass {}
       }
     """.trimIndent()
-    ).qualifiedName
+    )
 
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
         -keep class test.MyClass${"$"}Inner${caret}Class {
         }
     """.trimIndent()
     )
 
-
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("test.MyClass.InnerClass"))
   }
 
+  fun testResolveToClassWithDollarSymbol() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      public class MyClass${'$'}Name { }
+    """.trimIndent()
+    )
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class test.MyClass${"$"}Nam${caret}e {
+        }
+    """.trimIndent()
+    )
+
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("test.MyClass${'$'}Name"))
+  }
+
+  fun testRenameClassWithCurrencySymbol() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      public class My${'$'}Class {}
+    """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class test.My${'$'}Cla<caret>ss {
+        }
+      """.trimIndent()
+    )
+
+    val element = myFixture.elementAtCaret
+    assertThat(element).isEqualTo(myFixture.findClass("test.My${'$'}Class"))
+
+    myFixture.renameElement(element, "MyClassNewName", true, true)
+
+    assertThat(myFixture.findClass("test.MyClassNewName")).isNotNull()
+
+    myFixture.checkResult(
+      """
+        -keep class test.MyClassNewName {
+        }
+      """.trimIndent()
+    )
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("test.MyClassNewName"))
+  }
 
   fun testCompletionForInnerClass() {
     myFixture.addClass(
@@ -123,14 +176,14 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
         class InnerClass {}
       }
     """.trimIndent()
-    ).qualifiedName
+    )
 
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
         -keep class test.MyClass${"$"}${caret} {
         }
     """.trimIndent()
     )
-
 
     val classes = myFixture.completeBasic()
     assertThat(classes).isNotEmpty()
@@ -145,20 +198,19 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
       public class MyClass {}
     """.trimIndent()
-    ).qualifiedName
+    )
 
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
         -keep class test.${caret} {
         }
     """.trimIndent()
     )
 
-
     val classes = myFixture.completeBasic()
     assertThat(classes).isNotEmpty()
     assertThat(classes.map { it.lookupString }).containsExactly("MyClass")
   }
-
 
   fun testCompletionForPackages() {
     myFixture.addClass(
@@ -168,14 +220,14 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
       public class MyClass {}
     """.trimIndent()
-    ).qualifiedName
+    )
 
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
         -keep class p1.p2.${caret} {
         }
     """.trimIndent()
     )
-
 
     val classes = myFixture.completeBasic()
     assertThat(classes).isNotEmpty()
@@ -183,41 +235,47 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
   }
 
   fun testJavaClassNameRenaming() {
-    val className = myFixture.addClass(
+    myFixture.addClass(
       //language=JAVA
       """
       package test;
 
       public class MyClass {}
     """.trimIndent()
-    ).qualifiedName
+    )
 
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
-        -keep class ${className} {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
+        -keep class test.My${caret}Class {
         }
     """.trimIndent()
     )
-
-    myFixture.moveCaret("My|Class")
-
-    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass(className!!))
-
     myFixture.renameElementAtCaret("MyClassNewName")
 
     assertThat(myFixture.referenceAtCaret.element.text).isEqualTo("test.MyClassNewName")
+    assertThat(myFixture.findClass("test.MyClassNewName")).isNotNull()
+
+    myFixture.checkResult(
+      """
+      -keep class test.MyClassNewName {
+      }
+    """.trimIndent()
+    )
   }
 
   fun testKotlinClassNameRenaming() {
-    myFixture.configureByText("MyClass.kt",
+    myFixture.configureByText(
+      "MyClass.kt",
       //language=JAVA
-                              """
+      """
       package test;
 
       class MyClass {}
     """.trimIndent()
     )
 
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
         -keep class test.My${caret}Class {
         }
     """.trimIndent()
@@ -227,7 +285,8 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
     myFixture.renameElementAtCaret("MyClassNewName")
 
-    myFixture.checkResult("""
+    myFixture.checkResult(
+      """
       -keep class test.MyClassNewName {
       }
     """.trimIndent()
@@ -242,9 +301,10 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
       public class MyClass {}
     """.trimIndent()
-    ).qualifiedName
+    )
 
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
         -keep class p1.p2.myPackage.MyClass {
         }
     """.trimIndent()
@@ -256,7 +316,8 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
     myFixture.renameElementAtCaret("myPackageNewName")
 
-    myFixture.checkResult("""
+    myFixture.checkResult(
+      """
       -keep class p1.p2.myPackageNewName.MyClass {
       }
     """.trimIndent()
@@ -276,7 +337,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
       public class MyClass {}
     """.trimIndent()
-    ).qualifiedName
+    )
 
     myFixture.addClass(
       //language=JAVA
@@ -285,9 +346,10 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
 
       public class MyClass2 {}
     """.trimIndent()
-    ).qualifiedName
+    )
 
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
         -keep class p1.myPackage1.MyClass {
           p1.$caret
     """.trimIndent()

@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.lang.proguardR8.psi
 
+import com.android.tools.idea.lang.proguardR8.JAVA_IDENTIFIER_TOKENS
+import com.android.tools.idea.lang.proguardR8.parser.ProguardR8Lexer
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.LINE_CMT
+import com.intellij.lang.cacheBuilder.DefaultWordsScanner
+import com.intellij.lang.findUsages.EmptyFindUsagesProvider
+import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.cache.impl.id.ScanningIdIndexer
+import com.intellij.psi.tree.TokenSet
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
-
 
 private val PROGUARD_R8_USAGE_TYPE = UsageType("Referenced in Proguard/R8 files")
 
@@ -29,4 +36,23 @@ private val PROGUARD_R8_USAGE_TYPE = UsageType("Referenced in Proguard/R8 files"
  */
 class ProguardR8UsageTypeProvider : UsageTypeProvider {
   override fun getUsageType(element: PsiElement?) = if (element?.containingFile is ProguardR8PsiFile) PROGUARD_R8_USAGE_TYPE else null
+}
+
+/**
+ * Provides "Find Usages" functionality on elements in Proguard file.
+ *
+ * @see [com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlFindUsagesProvider]
+ */
+class ProguardR8FindUsagesProvider : FindUsagesProvider by EmptyFindUsagesProvider() {
+  override fun getWordsScanner() = DefaultWordsScanner(ProguardR8Lexer(), JAVA_IDENTIFIER_TOKENS, TokenSet.create(LINE_CMT), TokenSet.EMPTY)
+}
+
+/**
+ * Makes correct word index on Proguard file.
+ *
+ * For example "My$Class" would not be consider as word in Proguard file without this Indexer.
+ */
+class ProguardR8IdIndexer : ScanningIdIndexer() {
+  override fun createScanner() = ProguardR8FindUsagesProvider().wordsScanner
+  override fun getVersion(): Int = 0
 }

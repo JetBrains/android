@@ -35,7 +35,10 @@ import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassRe
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 
-private class ProguardR8JavaClassReferenceProvider(val scope: GlobalSearchScope) : JavaClassReferenceProvider() {
+private class ProguardR8JavaClassReferenceProvider(
+  val scope: GlobalSearchScope,
+  val isAllowDollar: Boolean
+) : JavaClassReferenceProvider() {
 
   override fun getScope(project: Project): GlobalSearchScope = scope
 
@@ -47,7 +50,7 @@ private class ProguardR8JavaClassReferenceProvider(val scope: GlobalSearchScope)
         // Allows inner classes be separated by a dollar sign "$", e.g.java.lang.Thread$State
         // We can't just use ALLOW_DOLLAR_NAMES flag because to make JavaClassReferenceSet work in the way we want;
         // language of PsiElement that we parse should be instanceof XMLLanguage.
-        override fun isAllowDollarInNames() = true
+        override fun isAllowDollarInNames() = isAllowDollar
 
       }.allReferences as Array<PsiReference>
     }
@@ -55,9 +58,14 @@ private class ProguardR8JavaClassReferenceProvider(val scope: GlobalSearchScope)
 }
 
 fun getReferences(className: ProguardR8QualifiedName): Array<PsiReference> {
-  val provider = ProguardR8JavaClassReferenceProvider(className.resolveScope)
-
-  return provider.getReferencesByElement(className)
+  val provider = ProguardR8JavaClassReferenceProvider(className.resolveScope, true)
+  var referenceSet = provider.getReferencesByElement(className)
+  if (className.lastChild.textContains('$')) {
+    // If there is $ in last part we want to add reference for a name_with_dollar.
+    // We already have references for class + inner class. See [isAllowDollarInNames] and [JavaClassReferenceSet.reparse]
+    referenceSet += ProguardR8JavaClassReferenceProvider(className.resolveScope, false).getReferencesByElement(className).last()
+  }
+  return referenceSet
 }
 
 fun resolveToPsiClass(className: ProguardR8QualifiedName): PsiClass? {
