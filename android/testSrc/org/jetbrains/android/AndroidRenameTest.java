@@ -76,6 +76,39 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       }
     }
 
+    public void testConstraintReferencedIds() throws Throwable {
+      createManifest();
+      myFixture.addClass(
+        "package androidx.constraintlayout.widget;\n" +
+        "public class ConstraintLayout extends android.view.ViewGroup {}");
+      myFixture.addClass(
+        "package androidx.constraintlayout.widget;\n" +
+        "public class Barrier extends androidx.constraintlayout.widget.ConstraintLayout {}");
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        "<resources>\n" +
+        " <declare-styleable name=\"ConstraintLayout_Layout\">\n" +
+        "  <attr name=\"constraint_referenced_ids\" format=\"string\" />\n" +
+        " </declare-styleable>\n" +
+        "</resources>");
+      VirtualFile file =
+        myFixture.copyFileToProject(BASE_PATH + "layout_constraint_referenced_ids.xml", "res/layout/layout_constraint_referenced_ids.xml");
+      myFixture.configureFromExistingVirtualFile(file);
+      checkAndRename("@+id/anchor1");
+      myFixture.checkResultByFile(BASE_PATH + "layout_constraint_referenced_ids_after.xml");
+    }
+
+    /**
+     * We don't want this behaviour in the new renaming pipeline. You never want to rename an id resource to a plain text string.
+     */
+    public void testIdDeclarationToNormalString() throws Throwable {
+      createManifest();
+      VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout6.xml", "res/layout/layout6.xml");
+      myFixture.configureFromExistingVirtualFile(file);
+      checkAndRename("nonId");
+      myFixture.checkResultByFile(BASE_PATH + "layout_id_to_nonId_after.xml");
+    }
+
     public void testXmlReferenceToFileResource1() throws Throwable {
       createManifest();
       VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml");
@@ -167,14 +200,6 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       assertEquals("icon.xml", iconInValue.getName());
     }
 
-    public void testXmlReferenceToId() throws Throwable {
-      createManifest();
-      VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout5.xml", "res/layout/layout5.xml");
-      myFixture.configureFromExistingVirtualFile(file);
-      checkAndRename("@+id/anchor1");
-      myFixture.checkResultByFile(BASE_PATH + "layout_id_after.xml");
-    }
-
     public void testRenameDeclareStyleableAttrFromJava() throws Throwable {
       // Renaming a styleable field should update the attrs.xml and field references
       createManifest();
@@ -184,15 +209,6 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       checkAndRename("newname");
       myFixture.checkResultByFile("res/values/attrs11.xml", BASE_PATH + "attrs11_after.xml", true);
       myFixture.checkResultByFile(BASE_PATH + "MyView2_after.java", true);
-    }
-
-    public void testConstraintReferencedIds() throws Throwable {
-      createManifest();
-      VirtualFile file =
-        myFixture.copyFileToProject(BASE_PATH + "layout_constraint_referenced_ids.xml", "res/layout/layout_constraint_referenced_ids.xml");
-      myFixture.configureFromExistingVirtualFile(file);
-      checkAndRename("@+id/anchor1");
-      myFixture.checkResultByFile(BASE_PATH + "layout_constraint_referenced_ids_after.xml");
     }
 
     public void testValueResource2() throws Throwable {
@@ -205,28 +221,6 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
 
     public void testValueResource4() throws Throwable {
       doTestStringRename("strings4.xml");
-    }
-
-    public void testJavaReferenceToId() throws Throwable {
-      createManifest();
-      VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR7.java", "src/p1/p2/RefR7.java");
-      myFixture.configureFromExistingVirtualFile(file);
-      myFixture.copyFileToProject(BASE_PATH + "layout7.xml", "res/layout/layout7.xml");
-      checkAndRename("anchor1");
-      myFixture.checkResultByFile(BASE_PATH + "RefR7_after.java", true);
-      myFixture.checkResultByFile("res/layout/layout7.xml", BASE_PATH + "layout_id_after.xml", true);
-    }
-
-    public void testJavaReferenceToId1() throws Throwable {
-      createManifest();
-      VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR7.java", "src/p1/p2/RefR7.java");
-      myFixture.configureFromExistingVirtualFile(file);
-      myFixture.copyFileToProject(BASE_PATH + "layout7.xml", "res/layout/l1.xml");
-      myFixture.copyFileToProject(BASE_PATH + "layout7.xml", "res/layout/l2.xml");
-      checkAndRename("anchor1");
-      myFixture.checkResultByFile(BASE_PATH + "RefR7_after.java", true);
-      myFixture.checkResultByFile("res/layout/l1.xml", BASE_PATH + "layout_id_after.xml", true);
-      myFixture.checkResultByFile("res/layout/l2.xml", BASE_PATH + "layout_id_after.xml", true);
     }
 
     public void testXmlReferenceToFileResource() throws Throwable {
@@ -289,14 +283,6 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
     public void testStyleInheritance4() throws Throwable {
       doTestStyleInheritance("styles5.xml", "styles5_after.xml", "Dilimiter.Horisontal");
     }
-
-    public void testIdDeclarationToNormalString() throws Throwable {
-      createManifest();
-      VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout6.xml", "res/layout/layout6.xml");
-      myFixture.configureFromExistingVirtualFile(file);
-      checkAndRename("nonId");
-      myFixture.checkResultByFile(BASE_PATH + "layout_id_to_nonId_after.xml");
-    }
   }
 
   public static class NewAndroidRenameTest extends AndroidRenameTest {
@@ -314,6 +300,28 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       finally {
         super.tearDown();
       }
+    }
+
+    public void testConstraintReferencedIds() throws Throwable {
+      createManifest();
+      myFixture.addClass(
+        "package androidx.constraintlayout.widget;\n" +
+        "public class ConstraintLayout extends android.view.ViewGroup {}");
+      myFixture.addClass(
+        "package androidx.constraintlayout.widget;\n" +
+        "public class Barrier extends androidx.constraintlayout.widget.ConstraintLayout {}");
+      myFixture.addFileToProject(
+        "res/values/values.xml",
+        "<resources>\n" +
+        " <declare-styleable name=\"ConstraintLayout_Layout\">\n" +
+        "  <attr name=\"constraint_referenced_ids\" format=\"string\" />\n" +
+        " </declare-styleable>\n" +
+        "</resources>");
+      VirtualFile file =
+        myFixture.copyFileToProject(BASE_PATH + "layout_constraint_referenced_ids.xml", "res/layout/layout_constraint_referenced_ids.xml");
+      myFixture.configureFromExistingVirtualFile(file);
+      checkAndRename("anchor1");
+      myFixture.checkResultByFile(BASE_PATH + "layout_constraint_referenced_ids_after.xml");
     }
 
     /**
@@ -511,6 +519,36 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
     checkAndRename("my_pic");
     myFixture.checkResultByFile(BASE_PATH + "RefR12_after.java");
     assertNotNull(myFixture.findFileInTempDir("res/drawable/my_pic.png"));
+  }
+
+  public void testJavaReferenceToId() throws Throwable {
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR7.java", "src/p1/p2/RefR7.java");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.copyFileToProject(BASE_PATH + "layout7.xml", "res/layout/layout7.xml");
+    checkAndRename("anchor1");
+    myFixture.checkResultByFile(BASE_PATH + "RefR7_after.java", true);
+    myFixture.checkResultByFile("res/layout/layout7.xml", BASE_PATH + "layout_id_after.xml", true);
+  }
+
+  public void testJavaReferenceToId1() throws Throwable {
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR7.java", "src/p1/p2/RefR7.java");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.copyFileToProject(BASE_PATH + "layout7.xml", "res/layout/l1.xml");
+    myFixture.copyFileToProject(BASE_PATH + "layout7.xml", "res/layout/l2.xml");
+    checkAndRename("anchor1");
+    myFixture.checkResultByFile(BASE_PATH + "RefR7_after.java", true);
+    myFixture.checkResultByFile("res/layout/l1.xml", BASE_PATH + "layout_id_after.xml", true);
+    myFixture.checkResultByFile("res/layout/l2.xml", BASE_PATH + "layout_id_after.xml", true);
+  }
+
+  public void testXmlReferenceToId() throws Throwable {
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout5.xml", "res/layout/layout5.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    checkAndRename("@+id/anchor1");
+    myFixture.checkResultByFile(BASE_PATH + "layout_id_after.xml");
   }
 
   public void testMoveApplicationClass() throws Throwable {
