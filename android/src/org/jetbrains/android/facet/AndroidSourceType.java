@@ -17,41 +17,43 @@ package org.jetbrains.android.facet;
 
 import static java.util.Collections.emptyList;
 
+import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
 import java.util.function.Function;
 import javax.swing.Icon;
+import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public enum AndroidSourceType {
   /** Manifests from all variants. */
-  MANIFEST("manifest", IdeaSourceProvider.MANIFEST_PROVIDER, AllIcons.Modules.SourceRoot),
+  MANIFEST("manifest", it -> CollectionsKt.listOfNotNull(it.getManifestFile()), AllIcons.Modules.SourceRoot),
 
   /** Java and Kotlin sources. */
-  JAVA("java", IdeaSourceProvider.JAVA_PROVIDER, AllIcons.Modules.SourceRoot),
+  JAVA("java", it -> ImmutableList.copyOf(it.getJavaDirectories()), AllIcons.Modules.SourceRoot),
 
   /** Generated java source folders, e.g. R, BuildConfig, and etc. */
   GENERATED_JAVA(JAVA.getName(), null, AllIcons.Modules.GeneratedSourceRoot, true),
 
   /** C++ sources */
-  CPP("cpp", IdeaSourceProvider.JNI_PROVIDER, AllIcons.Modules.SourceRoot),
+  CPP("cpp", it -> ImmutableList.copyOf(it.getJniDirectories()), AllIcons.Modules.SourceRoot),
 
-  AIDL("aidl", IdeaSourceProvider.AIDL_PROVIDER, AllIcons.Modules.SourceRoot),
-  RENDERSCRIPT("renderscript", IdeaSourceProvider.RENDERSCRIPT_PROVIDER, AllIcons.Modules.SourceRoot),
-  SHADERS("shaders", IdeaSourceProvider.SHADERS_PROVIDER, AllIcons.Modules.SourceRoot),
-  ASSETS("assets", IdeaSourceProvider.ASSETS_PROVIDER, AllIcons.Modules.ResourcesRoot),
-  JNILIBS("jniLibs", IdeaSourceProvider.JNI_LIBS_PROVIDER, AllIcons.Modules.ResourcesRoot),
+  AIDL("aidl", it -> ImmutableList.copyOf(it.getAidlDirectories()), AllIcons.Modules.SourceRoot),
+  RENDERSCRIPT("renderscript", it -> ImmutableList.copyOf(it.getRenderscriptDirectories()), AllIcons.Modules.SourceRoot),
+  SHADERS("shaders", it -> ImmutableList.copyOf(it.getShadersDirectories()), AllIcons.Modules.SourceRoot),
+  ASSETS("assets", it -> ImmutableList.copyOf(it.getAssetsDirectories()), AllIcons.Modules.ResourcesRoot),
+  JNILIBS("jniLibs", it -> ImmutableList.copyOf(it.getJniLibsDirectories()), AllIcons.Modules.ResourcesRoot),
 
   /** Android resources. */
-  RES("res", IdeaSourceProvider.RES_PROVIDER, AllIcons.Modules.ResourcesRoot),
+  RES("res", it -> ImmutableList.copyOf(it.getResDirectories()), AllIcons.Modules.ResourcesRoot),
 
   /** Generated Android resources, coming from the build system model. */
-  GENERATED_RES(RES.getName(), IdeaSourceProvider.RES_PROVIDER, AllIcons.Modules.ResourcesRoot, true),
+  GENERATED_RES(RES.getName(), it -> ImmutableList.copyOf(it.getResDirectories()), AllIcons.Modules.ResourcesRoot, true),
 
   /** Java-style resources. */
-  RESOURCES("resources", IdeaSourceProvider.RESOURCES_PROVIDER, AllIcons.Modules.ResourcesRoot),
+  RESOURCES("resources", it -> ImmutableList.copyOf(it.getResourcesDirectories()), AllIcons.Modules.ResourcesRoot),
   ;
 
   private final String myName;
