@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
+import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -37,4 +38,17 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     return gradleNameFor(referencePsi) ?: referenceText
   }
 
+  @JvmDefault
+  override fun externalNameForParent(modelName: String, context: GradleDslElement): String {
+    val map = context.getExternalToModelMap(this)
+    for (e in map.entries) {
+      if (e.value == modelName) return e.key
+    }
+    return modelName
+  }
+
+  @JvmDefault
+  override fun modelNameForParent(externalName: String, context: GradleDslElement): String {
+    return context.getExternalToModelMap(this).getOrDefault(externalName, externalName)
+  }
 }
