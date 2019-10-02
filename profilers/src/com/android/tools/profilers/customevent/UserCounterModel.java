@@ -74,8 +74,13 @@ public class UserCounterModel extends LineChartModel {
   }
 
   @NotNull
-  @VisibleForTesting
-  Range getUsageRange() {
+  public Range getUsageRange() {
     return DEFAULT_CUSTOM_EVENT_RANGE;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  String getEventName() {
+    return myEventName;
   }
 }
