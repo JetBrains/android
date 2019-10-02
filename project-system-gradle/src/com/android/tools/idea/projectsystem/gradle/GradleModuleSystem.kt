@@ -26,11 +26,11 @@ import com.android.ide.common.repository.MavenRepositories
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.Library
 import com.android.repository.io.FileOpUtils
-import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
@@ -55,11 +55,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.util.text.nullize
-import org.jetbrains.android.dom.manifest.AndroidManifestXmlFile
 import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 import java.util.ArrayDeque
@@ -384,7 +382,7 @@ class GradleModuleSystem(
 
   override fun getManifestOverrides(): ManifestOverrides {
     val facet = AndroidFacet.getInstance(module)
-    val androidModel = facet?.configuration?.model ?: return ManifestOverrides()
+    val androidModel = facet?.let(AndroidModel::get) ?: return ManifestOverrides()
     val directOverrides = notNullMapOf(
       ManifestSystemProperty.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
       ManifestSystemProperty.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,

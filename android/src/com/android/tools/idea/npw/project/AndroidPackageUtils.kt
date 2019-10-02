@@ -21,6 +21,7 @@
 
 package com.android.tools.idea.npw.project
 
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toIoFile
@@ -31,7 +32,7 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Return the top-level package associated with this project.
  */
-fun AndroidFacet.getPackageForApplication(): String = configuration.model!!.applicationId
+fun AndroidFacet.getPackageForApplication(): String = AndroidModel.get(this)!!.applicationId
 
 /**
  * Return the package associated with the target directory.

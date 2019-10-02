@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -228,7 +229,7 @@ public class BuildVariantView {
     List<Module> gradleModules = new ArrayList<>();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.requiresAndroidModel() && androidFacet.getConfiguration().getModel() != null) {
+      if (androidFacet != null && AndroidModel.isRequired(androidFacet) && AndroidModel.get(androidFacet) != null) {
         gradleModules.add(module);
         continue;
       }

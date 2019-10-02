@@ -15,23 +15,24 @@
  */
 package com.android.tools.idea.model;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.utils.concurrency.AsyncSupplier;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.util.concurrency.SameThreadExecutor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 
 /**
  * Android information about a module, such as its application package, its minSdkVersion, and so on. This
@@ -43,7 +44,8 @@ import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
  * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifestManager#getSnapshot(Module)}.
  */
 public class AndroidModuleInfo extends AndroidFacetScopedService {
-  private static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
+  @VisibleForTesting
+  static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
 
   @NotNull
   public static AndroidModuleInfo getInstance(@NotNull AndroidFacet facet) {
@@ -95,7 +97,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   @Nullable
   public String getPackage() {
     AndroidFacet facet = getFacet();
-    AndroidModel androidModel = facet.getConfiguration().getModel();
+    AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
       return androidModel.getApplicationId();
     }
@@ -128,7 +130,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   @NotNull
   public AndroidVersion getRuntimeMinSdkVersionSynchronously() {
     AndroidFacet facet = getFacet();
-    AndroidModel androidModel = facet.getConfiguration().getModel();
+    AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getRuntimeMinSdkVersion();
       if (minSdkVersion != null) {
@@ -148,7 +150,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   @NotNull
   public ListenableFuture<AndroidVersion> getRuntimeMinSdkVersion() {
     AndroidFacet facet = getFacet();
-    AndroidModel androidModel = facet.getConfiguration().getModel();
+    AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getRuntimeMinSdkVersion();
       if (minSdkVersion != null) {
@@ -163,7 +165,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   @NotNull
   public AndroidVersion getMinSdkVersion() {
     AndroidFacet facet = getFacet();
-    AndroidModel androidModel = facet.getConfiguration().getModel();
+    AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
       if (minSdkVersion != null) {
@@ -178,7 +180,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   @NotNull
   public AndroidVersion getTargetSdkVersion() {
     AndroidFacet facet = getFacet();
-    AndroidModel androidModel = facet.getConfiguration().getModel();
+    AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
       AndroidVersion targetSdkVersion = androidModel.getTargetSdkVersion();
       if (targetSdkVersion != null) {
@@ -209,7 +211,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   @Nullable
   public Boolean isDebuggable() {
     AndroidFacet facet = getFacet();
-    AndroidModel androidModel = facet.getConfiguration().getModel();
+    AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
       Boolean debuggable = androidModel.isDebuggable();
       if (debuggable != null) {

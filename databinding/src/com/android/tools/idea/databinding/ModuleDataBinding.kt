@@ -23,8 +23,10 @@ import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.util.androidFacet
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetManagerAdapter
@@ -121,7 +123,7 @@ class ModuleDataBinding private constructor(private val module: Module) {
 
   init {
     fun syncModeWithFacetConfiguration() {
-      dataBindingMode = AndroidFacet.getInstance(module)?.configuration?.model?.dataBindingMode ?: return
+      dataBindingMode = module.androidFacet?.let(AndroidModel::get)?.dataBindingMode ?: return
     }
 
     val connection = module.messageBus.connect(module)

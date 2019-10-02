@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -127,7 +128,7 @@ public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
     AndroidModuleModel moduleModel = mock(AndroidModuleModel.class);
     GradleVersion version = GradleVersion.parse(modelVersion);
     when(moduleModel.getFeatures()).thenReturn(new AndroidModelFeatures(version));
-    androidFacet.getConfiguration().setModel(moduleModel);
+    AndroidModel.set(androidFacet, moduleModel);
     when(moduleModel.getAndroidProject()).thenReturn(androidProject);
     return moduleModel;
   }

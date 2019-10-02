@@ -26,6 +26,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -370,7 +371,7 @@ public class ResourceNotificationManager {
     }
 
     private void registerListeners() {
-      if (myFacet.requiresAndroidModel()) {
+      if (AndroidModel.isRequired(myFacet)) {
         // Ensure that project resources have been initialized first, since
         // we want all repos to add their own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated

@@ -16,8 +16,6 @@ import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalLibrary;
 import com.android.projectmodel.Library;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -280,13 +278,13 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return false;
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.getConfiguration().getModel() == null) {
+    if (facet == null || AndroidModel.get(facet) == null) {
       return false;
     }
     // Allow file system access for timestamps.
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      return facet.getConfiguration().getModel().isClassFileOutOfDate(module, name, classFile);
+      return AndroidModel.get(facet).isClassFileOutOfDate(module, name, classFile);
     } finally {
       RenderSecurityManager.exitSafeRegion(token);
     }
@@ -430,8 +428,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @NotNull
   private static Stream<File> getExternalLibraryJars(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.requiresAndroidModel()) {
-      AndroidModel model = facet.getConfiguration().getModel();
+    if (facet != null && AndroidModel.isRequired(facet)) {
+      AndroidModel model = AndroidModel.get(facet);
       if (model != null) {
         return model.getClassJarProvider().getModuleExternalLibraries(module).stream();
       }

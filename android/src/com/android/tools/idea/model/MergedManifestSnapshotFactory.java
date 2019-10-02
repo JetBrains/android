@@ -330,7 +330,7 @@ class MergedManifestSnapshotFactory {
 
       AndroidVersion modelMinSdk = null;
       AndroidVersion modelTargetSdk = null;
-      AndroidModel androidModel = facet.getConfiguration().getModel();
+      AndroidModel androidModel = AndroidModel.get(facet);
       if (androidModel != null) {
         modelMinSdk = androidModel.getMinSdkVersion();
         modelTargetSdk = androidModel.getTargetSdkVersion();

@@ -15,20 +15,10 @@
  */
 package com.android.tools.idea.gradle.editor;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.mockito.Mock;
-
-import java.util.Collection;
-
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.ProjectFiles.*;
+import static com.android.tools.idea.testing.ProjectFiles.createFile;
+import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
+import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +26,18 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestCase;
+import java.util.Collection;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link GeneratedFileWritingAccessProvider}.
@@ -103,7 +105,7 @@ public class GeneratedFileWritingAccessProviderTest extends PlatformTestCase {
 
   private void simulateIsAndroidModule() {
     AndroidFacet androidFacet = createAndAddAndroidFacet(getModule());
-    androidFacet.getConfiguration().setModel(myAndroidModel);
+    AndroidModel.set(androidFacet, myAndroidModel);
     when(myProjectInfo.findAndroidModelInModule(any(), eq(false))).thenReturn(myAndroidModel);
   }
 

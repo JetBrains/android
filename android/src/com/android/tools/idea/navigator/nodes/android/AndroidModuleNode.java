@@ -28,6 +28,7 @@ import com.android.ide.common.util.PathString;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
@@ -82,7 +83,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   @NotNull
   protected Collection<AbstractTreeNode> getModuleChildren() {
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
-    if (facet == null || facet.getConfiguration().getModel() == null) {
+    if (facet == null || AndroidModel.get(facet) == null) {
       return platformGetChildren();
     }
     return getChildren(facet, getSettings(), myProjectViewPane, AndroidProjectViewPane.getSourceProviders(facet));
@@ -258,7 +259,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
 
       // If there is a native-containing module then check it for externally referenced header files
       AndroidFacet facet = AndroidFacet.getInstance(getModule());
-      if (facet == null || facet.getConfiguration().getModel() == null) {
+      if (facet == null || AndroidModel.get(facet) == null) {
         return false;
       }
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());

@@ -23,14 +23,13 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.openapi.diagnostic.Logger;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -125,9 +124,9 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
     if (platform == null) {
       throw new IllegalStateException("Android platform not set for module: " + facet.getModule().getName());
     }
-    Set<String> supportedAbis = facet.getConfiguration().getModel() instanceof AndroidModuleModel ?
-                                ((AndroidModuleModel)facet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact()
-                                  .getAbiFilters() :
+    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+    Set<String> supportedAbis = androidModuleModel != null ?
+                                androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
                                 null;
     return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), facet, env, androidRunConfigurationBase, supportedAbis);
   }

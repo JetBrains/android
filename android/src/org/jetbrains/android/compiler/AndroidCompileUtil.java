@@ -17,6 +17,7 @@ package org.jetbrains.android.compiler;
 
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.CommonBundle;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerConfigurationImpl;
@@ -609,7 +610,7 @@ public class AndroidCompileUtil {
   }
 
   public static boolean createGenModulesAndSourceRoots(@NotNull AndroidFacet facet, @NotNull ModifiableRootModel model) {
-    if (facet.requiresAndroidModel() || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
+    if (AndroidModel.isRequired(facet) || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
       return false;
     }
     final GlobalSearchScope moduleScope = facet.getModule().getModuleScope();
@@ -926,7 +927,7 @@ public class AndroidCompileUtil {
         final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
 
         for (final AndroidFacet facet : facets) {
-          if (facet.requiresAndroidModel()) {
+          if (AndroidModel.isRequired(facet)) {
             continue;
           }
           final Module module = facet.getModule();

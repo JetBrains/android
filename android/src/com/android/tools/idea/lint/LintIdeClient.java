@@ -593,7 +593,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     Module module = getModule();
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      return facet != null && facet.requiresAndroidModel();
+      return facet != null && AndroidModel.isRequired(facet);
     }
     return AndroidProjectInfo.getInstance(myProject).requiresAndroidModel();
   }

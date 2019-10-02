@@ -78,6 +78,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -191,7 +192,7 @@ public class AttributeProcessingUtil {
   @Nullable
   private static String getNamespaceUriByResourcePackage(@NotNull AndroidFacet facet, @Nullable String resPackage) {
     if (resPackage == null) {
-      if (!facet.getConfiguration().isAppProject() || facet.requiresAndroidModel()) {
+      if (!facet.getConfiguration().isAppProject() || AndroidModel.isRequired(facet)) {
         return AUTO_URI;
       }
       Manifest manifest = Manifest.getMainManifest(facet);

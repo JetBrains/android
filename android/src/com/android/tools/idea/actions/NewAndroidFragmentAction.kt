@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -52,7 +53,7 @@ class NewAndroidFragmentAction
     val dataContext = e.dataContext
     val module = LangDataKeys.MODULE.getData(dataContext) ?: return
     val facet = AndroidFacet.getInstance(module)
-    if (facet == null || facet.configuration.model == null) {
+    if (facet == null || AndroidModel.get(facet) == null) {
       return
     }
 

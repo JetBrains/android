@@ -3,6 +3,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ProjectTopics;
 import com.intellij.lang.properties.IProperty;
 import com.intellij.lang.properties.psi.PropertiesElementFactory;
@@ -99,7 +100,7 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
 
-      if (facet != null && !facet.requiresAndroidModel()) {
+      if (facet != null && !AndroidModel.isRequired(facet)) {
         final String updatePropertyFiles = facet.getProperties().UPDATE_PROPERTY_FILES;
         final boolean ask = updatePropertyFiles.isEmpty();
 

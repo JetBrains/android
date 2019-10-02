@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -160,10 +161,11 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   public void testIsSourceModified() throws IOException {
     File rootDirPath = Projects.getBaseDirPath(getProject());
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
-    myFacet.getConfiguration()
-      .setModel(AndroidModuleModel.create(androidProject.getName(), rootDirPath, androidProject, "debug", new IdeDependenciesFactory()));
+    AndroidModel.set(myFacet,
+                     AndroidModuleModel.create(androidProject.getName(), rootDirPath, androidProject, "debug",
+                                               new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-    assertThat(myFacet.requiresAndroidModel()).isTrue();
+    assertThat(AndroidModel.isRequired(myFacet)).isTrue();
 
     File srcDir = new File(Files.createTempDir(), "src");
     File rSrc = new File(srcDir, "com/google/example/R.java");
@@ -231,14 +233,14 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
     androidProject.setProjectType(AndroidProject.PROJECT_TYPE_LIBRARY);
     myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProject.PROJECT_TYPE_LIBRARY;
-    myFacet.getConfiguration().setModel(
+    AndroidModel.set(myFacet,
       AndroidModuleModel.create(androidProject.getName(),
                                 Projects.getBaseDirPath(getProject()),
                                 androidProject,
                                 "debug",
                                 new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-    assertThat(myFacet.requiresAndroidModel()).isTrue();
+    assertThat(AndroidModel.isRequired(myFacet)).isTrue();
 
     WriteAction.run(() -> {
       VirtualFile manifestFile = sourceProviderManager.getMainManifestFile();

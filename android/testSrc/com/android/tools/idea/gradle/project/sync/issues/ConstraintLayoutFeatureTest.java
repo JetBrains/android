@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
+import com.intellij.testFramework.PlatformTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link ConstraintLayoutFeature}.
@@ -54,6 +55,6 @@ public class ConstraintLayoutFeatureTest extends PlatformTestCase {
     AndroidModuleModel model = mock(AndroidModuleModel.class);
     when(model.getFeatures()).thenReturn(features);
     AndroidFacet facet = createAndAddAndroidFacet(getModule());
-    facet.getConfiguration().setModel(model);
+    AndroidModel.set(facet, model);
   }
 }

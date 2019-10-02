@@ -22,6 +22,7 @@ import static com.intellij.notification.NotificationType.WARNING;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.stats.UsageTrackerUtils;
@@ -81,7 +82,7 @@ class LegacyAndroidProjects {
 
       for (Module module : ModuleManager.getInstance(myProject).getModules()) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null && !facet.requiresAndroidModel()) {
+        if (facet != null && !AndroidModel.isRequired(facet)) {
           if (facet.getConfiguration().isAppProject()) {
             // Prefer the package name from an app module.
             packageName = getPackageNameInLegacyIdeaAndroidModule(facet);

@@ -15,8 +15,13 @@
  */
 package org.jetbrains.android.facet;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ui.FacetEditorContext;
@@ -28,6 +33,8 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.ArrayList;
+import java.util.List;
 import org.jdom.Element;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -36,11 +43,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -51,8 +53,6 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   private AndroidFacet myFacet = null;
 
   private JpsAndroidModuleProperties myProperties = new JpsAndroidModuleProperties();
-
-  @Nullable private AndroidModel myAndroidModel;
 
   public void init(@NotNull Module module, @NotNull VirtualFile contentRoot) {
     init(module, contentRoot.getPath());
@@ -167,33 +167,6 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public boolean canBeDependency() {
     int projectType = getState().PROJECT_TYPE;
     return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_FEATURE;
-  }
-
-  /**
-   * Associates the given Android model to this facet.
-   *
-   * @param androidModel the new Android model.
-   */
-  public void setModel(@Nullable AndroidModel model) {
-    myAndroidModel = model;
-    if (myFacet != null) {
-      myFacet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(myFacet);
-    }
-  }
-
-  /**
-   * @return the Android model associated to this facet.
-   */
-  @Nullable
-  public AndroidModel getModel() {
-    return myAndroidModel;
-  }
-
-  /**
-   * Invoked when the facet is disposed. Nulls out fields to facilitate garbage collection.
-   */
-  public void disposeFacet() {
-    myAndroidModel = null;
   }
 
   public boolean isLibraryProject() {

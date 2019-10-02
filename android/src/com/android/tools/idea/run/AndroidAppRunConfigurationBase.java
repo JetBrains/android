@@ -20,6 +20,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -180,7 +181,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
                                        @NotNull ApplicationIdProvider applicationIdProvider,
                                        @NotNull List<AndroidDevice> targetDevices) {
-    if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
+    if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
       return createGradleApkProvider(facet, applicationIdProvider, false, targetDevices);
     }
     ApkFacet apkFacet = ApkFacet.getInstance(facet.getModule());
