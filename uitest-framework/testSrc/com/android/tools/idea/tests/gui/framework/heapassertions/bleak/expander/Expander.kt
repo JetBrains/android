@@ -59,6 +59,11 @@ abstract class Expander(val g: HeapGraph): DoNotTrace {
   abstract fun expand(n: Node)  // should use n.addEdgeTo() to add edges to the node
   open fun expandCorrespondingEdge(n: Node, e: Edge): Node? = n[e] ?: n.addEdgeTo(e.end.obj, e.label)
 
+  // this determines the initial value for whether a Node is growing (its corresponding Expander will
+  // be queried during the first HeapGraph expansion). Returning false will prevent the node from
+  // being considered a leak root.
+  open fun canPotentiallyGrowIndefinitely(n: Node) = false
+
   // subclasses are encouraged to override this method to improve lookup performance, e.g, an
   // index-based array expander should just look at the i'th child.
   open fun getChildForLabel(n: Node, label: Label): Node? = n.edges.find { it.label == label }?.end

@@ -17,6 +17,8 @@
 
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ElidingExpander
+
 /**
  * BLeak checks for memory leaks by repeatedly running a test that returns to its original state, taking
  * and analyzing memory snapshots between each run. It looks for paths from GC roots through the heap that
@@ -48,8 +50,8 @@ fun Signature.isWhitelisted(): Boolean =
   entry(-4) == "java.io.DeleteOnExitHook#files" ||
 
   // don't report growing weak maps. Nodes whose weak referents have been GC'd will be removed from the map during some future map operation.
-  entry(-3) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" && lastType() == "[Ljava.util.concurrent.ConcurrentHashMap\$Node;" ||
-  entry(-3) == "com.intellij.util.containers.ConcurrentWeakKeyWeakValueHashMap#myMap" ||
+  entry(-2) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" ||
+  entry(-2) == "com.intellij.util.containers.ConcurrentWeakKeyWeakValueHashMap#myMap" ||
   entry(-3) == "com.intellij.util.containers.WeakHashMap#myMap" && lastType() == "[Ljava.lang.Object;" ||
 
   entry(-4) == "com.android.tools.idea.configurations.ConfigurationManager#myCache" ||
@@ -101,7 +103,7 @@ fun findLeaks(runs: Int = 3, scenario: () -> Unit): BleakResult {
   scenario()  // warm up
   if (System.getProperty("enable.bleak") != "true") return BleakResult() // if BLeak isn't enabled, the test will run normally.
 
-  var g1 = HeapGraph { isRootNode || obj.javaClass.isArray }.expandWholeGraph(initialRun = true)
+  var g1 = HeapGraph().expandWholeGraph(initialRun = true)
   scenario()
   var g2 = HeapGraph().expandWholeGraph()
   g1.propagateGrowing(g2)

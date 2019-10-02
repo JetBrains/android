@@ -27,6 +27,8 @@ import com.intellij.util.SmartFMap
 class SmartFMapExpander(g: HeapGraph): Expander(g) {
   override fun canExpand(obj: Any) = obj is SmartFMap<*,*>
 
+  override fun canPotentiallyGrowIndefinitely(n: Node) = true
+
   override fun expand(n: Node) {
     val map = myMapField.get(n.obj)
     when (map) {
