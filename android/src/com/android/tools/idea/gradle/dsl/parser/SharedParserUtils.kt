@@ -117,13 +117,15 @@ private val makeDistinctClassSet = setOf(MavenRepositoryDslElement::class.java, 
  * Get the block element that is given be repeat
  */
 fun GradleDslFile.getBlockElement(
-    nameParts: List<String>,
-    parentElement: GradlePropertiesDslElement,
-    nameElement: GradleNameElement? = null
+  nameParts: List<String>,
+  converter: GradleDslNameConverter,
+  parentElement: GradlePropertiesDslElement,
+  nameElement: GradleNameElement? = null
 ): GradlePropertiesDslElement? {
   return nameParts.map { namePart -> namePart.trim { it <= ' ' } }.fold(parentElement) { resultElement, nestedElementName ->
-    val elementName = nameElement ?: GradleNameElement.fake(nestedElementName)
-    var element = resultElement.getElement(nestedElementName)
+    val canonicalNestedElementName = resultElement.getExternalToModelMap(converter).getOrDefault(nestedElementName, nestedElementName)
+    val elementName = nameElement ?: GradleNameElement.fake(canonicalNestedElementName)
+    var element = resultElement.getElement(canonicalNestedElementName)
 
     if (element != null && makeDistinctClassSet.contains(element::class.java)) {
       element = null // Force recreation of the element
