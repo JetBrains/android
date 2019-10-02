@@ -22,6 +22,7 @@
                       conditionClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
                       factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService"/>
+    <applicationService serviceImplementation="com.android.tools.idea.profilers.AndroidProfilerService"/>
   </extensions>
   <actions>
     <action id="Android.ChooseProfileConfiguration" class="com.android.tools.idea.profilers.ChooseProfileConfigurationPopupAction"
