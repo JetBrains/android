@@ -77,6 +77,7 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtImportDirective
 import java.awt.BorderLayout
@@ -384,39 +385,57 @@ private class PreviewEditor(private val psiFile: PsiFile,
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    */
-  fun doRefresh(filePreviewElements: List<PreviewElement>) {
+  private fun doRefresh(filePreviewElements: List<PreviewElement>) {
     // Only display component border if decorations are not showed
     val showBorder = !RenderSettings.getProjectSettings(project).showDecorations
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
+
+    val facet = AndroidFacet.getInstance(psiFile)!!
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+
+    // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
+    val existingModels = surface.models.reverse().toMutableList()
+
+    // Now we generate all the models (or reuse) for the PreviewElements.
     val newModels = filePreviewElements
+      .asSequence()
       .onEach {
         if (LOG.isDebugEnabled) {
           LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
 
-              ${it.toPreviewXmlString(withBorder = false)}
-          """.trimIndent())
+                ${it.toPreviewXmlString(withBorder = false)}
+            """.trimIndent())
         }
       }
-      .map { Pair(it, ComposeAdapterLightVirtualFile("testFile.xml", it.toPreviewXmlString(withBorder = showBorder))) }
+      .map { Pair(it, it.toPreviewXmlString(withBorder = showBorder)) }
       .map {
-        val (previewElement, file) = it
-        val facet = AndroidFacet.getInstance(psiFile)!!
-        val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
-        val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-        val model = NlModel.create(this@PreviewEditor,
-                                   previewElement.displayName,
-                                   facet,
-                                   file,
-                                   configuration,
-                                   surface.componentRegistrar)
+        val (previewElement, fileContents) = it
 
-        Pair(previewElement, model)
-      }
-      .map {
-        val (previewElement, model) = it
+        val model = if (existingModels.isNotEmpty()) {
+          LOG.debug("Re-using model")
+          val existingModel = existingModels.pop()
+
+          // Reconfigure the model by setting the new display name and applying the configuration values
+          existingModel.modelDisplayName = previewElement.displayName
+          val file = existingModel.virtualFile as ComposeAdapterLightVirtualFile
+          file.setContent(this, fileContents, true)
+
+          existingModel
+        }
+        else {
+          LOG.debug("No models to reuse were found. New model.")
+          val file = ComposeAdapterLightVirtualFile("testFile.xml", fileContents)
+          val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
+          NlModel.create(this@PreviewEditor,
+                         previewElement.displayName,
+                         facet,
+                         file,
+                         configuration,
+                         surface.componentRegistrar)
+        }
 
         val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
-              project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
+          project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
         navigationHandler.addMap(model, navigable)
 
         previewElement.configuration.applyTo(model.configuration)
@@ -425,10 +444,16 @@ private class PreviewEditor(private val psiFile: PsiFile,
       }
       .toList()
 
-    // All models are now ready, remove the old ones and add the new ones
-    surface.models.forEach { surface.removeModel(it) }
+    // Remove and dispose pre-existing models that were not used.
+    // This will happen if the user removes one or more previews.
+    existingModels.forEach { surface.removeModel(it) }
+
     val rendersCompletedFuture = if (newModels.isNotEmpty()) {
-      val renders = newModels.map { surface.addModel(it) }
+      val renders = newModels.map {
+        // We call addModel even though the model might not be new. If we try to add an existing model,
+        // this will trigger a new render which is exactly what we want.
+        surface.addModel(it)
+      }
       CompletableFuture.allOf(*(renders.toTypedArray()))
     }
     else {
