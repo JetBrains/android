@@ -257,7 +257,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
   public GradlePropertiesDslElement getBlockElement(@NotNull List<String> nameParts,
                                                     @NotNull GradlePropertiesDslElement parentElement,
                                                     @Nullable GradleNameElement nameElement) {
-    return SharedParserUtilsKt.getBlockElement(myDslFile, nameParts, parentElement, nameElement);
+    return SharedParserUtilsKt.getBlockElement(myDslFile, nameParts, this, parentElement, nameElement);
   }
 
   private void parse(@NotNull PsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {

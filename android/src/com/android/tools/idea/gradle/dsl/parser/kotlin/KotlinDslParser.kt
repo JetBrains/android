@@ -208,7 +208,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   override fun getBlockElement(nameParts: List<String>,
                                parentElement: GradlePropertiesDslElement,
                                nameElement: GradleNameElement?): GradlePropertiesDslElement? {
-    return dslFile.getBlockElement(nameParts, parentElement, nameElement)
+    return dslFile.getBlockElement(nameParts, this, parentElement, nameElement)
   }
 
   // Check if this is a block with a methodCall as name, and get the block in such case. Ex: getByName("release") -> the release block.
@@ -217,7 +217,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     parent: GradlePropertiesDslElement,
     name: GradleNameElement? = null): GradlePropertiesDslElement? {
     val blockName = methodCallBlockName(expression) ?: return null
-    val blockElement = dslFile.getBlockElement(listOf(blockName), parent, name) ?: return null
+    val blockElement = dslFile.getBlockElement(listOf(blockName), this, parent, name) ?: return null
     if (blockElement is AbstractFlavorTypeDslElement) {
       // TODO(xof): this way of keeping track of how we got hold of the block (which method name) only works once
       blockElement.setMethodName(expression.name())
@@ -255,7 +255,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         // Then the block should be applied to subprojects.
         referenceName = "subprojects"
       }
-      val blockElement = methodCallBlock(expression, parent, name) ?: dslFile.getBlockElement(listOf(referenceName), parent, name) ?: return
+      val blockElement = methodCallBlock(expression, parent, name) ?: dslFile.getBlockElement(listOf(referenceName), this, parent, name) ?: return
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
 
       blockElement.setPsiElement(argumentsBlock)
@@ -297,7 +297,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         override fun visitReferenceExpression(expression: KtReferenceExpression) {
           when (expression) {
             is KtNameReferenceExpression -> {
-              current = dslFile.getBlockElement(listOf(expression.text), current) ?: return
+              current = dslFile.getBlockElement(listOf(expression.text), this@KotlinDslParser, current) ?: return
             }
             else -> Unit
           }
