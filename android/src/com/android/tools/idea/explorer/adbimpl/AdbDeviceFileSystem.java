@@ -17,7 +17,7 @@ package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.ddmlib.FileListingService;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceState;

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
-import static org.jetbrains.android.AsyncTestUtils.pumpEventsAndWaitForFuture;
-import static org.jetbrains.android.AsyncTestUtils.pumpEventsAndWaitForFutureException;
+import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture;
+import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;

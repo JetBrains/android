@@ -16,7 +16,7 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.ddmlib.*;
-import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;

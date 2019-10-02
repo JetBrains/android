@@ -23,7 +23,7 @@ import static java.lang.Math.max;
 import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
-import com.android.tools.idea.concurrent.FutureUtils;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
