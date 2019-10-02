@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.gradle.rendering;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -34,13 +39,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-
 import java.io.File;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.jetbrains.android.facet.AndroidFacet;
 
 public class GradleRenderErrorContributorTest extends PlatformTestCase {
   private GradleRenderErrorContributor.GradleProvider myProvider;
@@ -117,7 +117,7 @@ public class GradleRenderErrorContributorTest extends PlatformTestCase {
     androidProject.setModelVersion("1.2.2");
 
     AndroidModuleModel model = AndroidModuleModel.create(androidProject.getName(), root, androidProject, "debug", myDependenciesFactory);
-    facet.getConfiguration().setModel(model);
+    AndroidModel.set(facet, model);
     model = AndroidModuleModel.get(myModule);
 
     assertThat(model).isNotNull();

@@ -31,6 +31,7 @@ import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
@@ -272,7 +273,7 @@ public final class ResourceRepositoryManager implements Disposable {
   @NotNull
   public static Collection<Library> findAarLibraries(@NotNull AndroidFacet facet) {
     List<Library> libraries = new ArrayList<>();
-    if (facet.requiresAndroidModel()) {
+    if (AndroidModel.isRequired(facet)) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
         List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
@@ -714,7 +715,7 @@ public final class ResourceRepositoryManager implements Disposable {
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
     synchronized (myLibraryLock) {
       if (myResourceVisibilityProvider == null) {
-        if (!myFacet.requiresAndroidModel() || myFacet.getConfiguration().getModel() == null) {
+        if (!AndroidModel.isRequired(myFacet) || AndroidModel.get(myFacet) == null) {
           return null;
         }
         myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();

@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_MANIFEST_XML
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.model.AndroidModel
 import com.google.common.collect.Lists
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.io.FileUtil.filesEqual
@@ -107,12 +108,12 @@ interface IdeaSourceProvider {
      */
     @JvmStatic
     fun getCurrentSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
-      return if (!facet.requiresAndroidModel()) {
+      return if (!AndroidModel.isRequired(facet)) {
         listOf(SourceProviderManager.getInstance(facet).mainIdeaSourceProvider)
       }
       else {
         @Suppress("DEPRECATION")
-        facet.configuration.model?.activeSourceProviders?.toIdeaProviders().orEmpty()
+        AndroidModel.get(facet)?.activeSourceProviders?.toIdeaProviders().orEmpty()
       }
     }
 
@@ -126,7 +127,7 @@ interface IdeaSourceProvider {
     @Deprecated("Do not use. This is unlikely to be what anybody needs.")
     @JvmStatic
     fun getMainAndFlavorSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
-      if (!facet.requiresAndroidModel()) {
+      if (!AndroidModel.isRequired(facet)) {
         return listOf(SourceProviderManager.getInstance(facet).mainIdeaSourceProvider)
       }
       else {
@@ -151,12 +152,12 @@ interface IdeaSourceProvider {
      */
     @JvmStatic
     fun getCurrentTestSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
-      return if (!facet.requiresAndroidModel()) {
+      return if (!AndroidModel.isRequired(facet)) {
         emptyList()
       }
       else {
         @Suppress("DEPRECATION")
-        facet.configuration.model?.testSourceProviders?.toIdeaProviders().orEmpty()
+        AndroidModel.get(facet)?.testSourceProviders?.toIdeaProviders().orEmpty()
       }
     }
 
@@ -227,11 +228,11 @@ interface IdeaSourceProvider {
      */
     @JvmStatic
     fun getAllIdeaSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
-      return if (!facet.requiresAndroidModel() || facet.configuration.model == null) {
+      return if (!AndroidModel.isRequired(facet) || AndroidModel.get(facet) == null) {
         listOf(SourceProviderManager.getInstance(facet).mainIdeaSourceProvider)
       }
       else {
-        facet.configuration.model!!.allSourceProviders.toIdeaProviders()
+        AndroidModel.get(facet)!!.allSourceProviders.toIdeaProviders()
       }
     }
 
@@ -279,7 +280,7 @@ interface IdeaSourceProvider {
     /** Returns true if the given candidate file is a manifest file in the given module  */
     @JvmStatic
     fun isManifestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-      return if (facet.requiresAndroidModel()) {
+      return if (AndroidModel.isRequired(facet)) {
         getCurrentSourceProviders(facet).any { candidate == it.manifestFile }
       }
       else {
@@ -291,7 +292,7 @@ interface IdeaSourceProvider {
     @JvmStatic
     fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> {
       val main = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.manifestFile
-      if (!facet.requiresAndroidModel()) {
+      if (!AndroidModel.isRequired(facet)) {
         return if (main != null) listOf(main) else emptyList()
       }
 

@@ -3,6 +3,7 @@ package org.jetbrains.android.dom.manifest;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.xml.AndroidManifest;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -59,7 +60,7 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
 
   public static boolean isManifestFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     return file.getName().equals(FN_ANDROID_MANIFEST_XML) ||
-           facet.requiresAndroidModel() && file.getVirtualFile() != null && IdeaSourceProvider.isManifestFile(facet, file.getVirtualFile());
+           AndroidModel.isRequired(facet) && file.getVirtualFile() != null && IdeaSourceProvider.isManifestFile(facet, file.getVirtualFile());
   }
 
   @Override

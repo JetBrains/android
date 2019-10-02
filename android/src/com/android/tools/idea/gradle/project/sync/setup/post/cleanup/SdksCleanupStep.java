@@ -30,6 +30,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallPlatformHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -91,7 +92,7 @@ public class SdksCleanupStep extends ProjectCleanupStep {
   @VisibleForTesting
   void cleanUpSdk(@NotNull Module module, @NotNull Set<Sdk> fixedSdks, @NotNull Set<Sdk> invalidSdks) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null || androidFacet.getConfiguration().getModel() == null) {
+    if (androidFacet == null || AndroidModel.get(androidFacet) == null) {
       return;
     }
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();

@@ -25,6 +25,7 @@ import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.Library
 import com.android.projectmodel.RecursiveResourceFolder
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
@@ -37,6 +38,7 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toPathString
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
@@ -190,8 +192,7 @@ class DefaultModuleSystem(override val module: Module) :
   }
 
   override fun getManifestOverrides(): ManifestOverrides {
-    val facet = AndroidFacet.getInstance(module)
-    val androidModel = facet?.configuration?.model ?: return ManifestOverrides()
+    val androidModel = module.androidFacet?.let(AndroidModel::get) ?: return ManifestOverrides()
     val directOverrides = notNullMapOf(
       ManifestSystemProperty.MIN_SDK_VERSION to androidModel.minSdkVersion?.apiString,
       ManifestSystemProperty.TARGET_SDK_VERSION to androidModel.targetSdkVersion?.apiString,

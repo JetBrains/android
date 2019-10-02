@@ -18,6 +18,7 @@ package org.jetbrains.android.facet;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.MoreCollectors;
@@ -137,7 +138,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   }
 
   public void testFindSourceProvider() throws Exception {
-    assertNotNull(myAppFacet.getConfiguration().getModel());
+    assertNotNull(AndroidModel.get(myAppFacet));
     VirtualFile moduleFile = findFileByIoFile(getProjectFolderPath(), true).findFileByRelativePath("app");
     assertNotNull(moduleFile);
 
@@ -229,7 +230,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   }
 
   public void testSourceProviderContainsFile() throws Exception {
-    assertNotNull(myAppFacet.getConfiguration().getModel());
+    assertNotNull(AndroidModel.get(myAppFacet));
     IdeaSourceProvider paidFlavorSourceProvider =
       IdeaSourceProvider.getAllIdeaSourceProviders(myAppFacet).stream()
         .filter(it -> it.getName().equalsIgnoreCase("paid")).collect(MoreCollectors.onlyElement());
@@ -249,7 +250,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
 
   public void testSourceProviderIsContainedByFolder() throws Exception {
-    assertNotNull(myAppFacet.getConfiguration().getModel());
+    assertNotNull(AndroidModel.get(myAppFacet));
     IdeaSourceProvider paidFlavorSourceProvider =
       IdeaSourceProvider.getAllIdeaSourceProviders(myAppFacet).stream()
         .filter(it -> it.getName().equalsIgnoreCase("paid")).collect(MoreCollectors.onlyElement());

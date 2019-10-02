@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.testing.Modules;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -141,7 +142,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public AndroidModuleModel getAndroidProjectForModule(@NotNull String name) {
     Module module = getModule(name);
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.requiresAndroidModel()) {
+    if (facet != null && AndroidModel.isRequired(facet)) {
       // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
       AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {

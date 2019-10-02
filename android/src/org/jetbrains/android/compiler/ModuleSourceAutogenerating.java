@@ -16,6 +16,7 @@
 package org.jetbrains.android.compiler;
 
 import com.android.tools.idea.apk.ApkFacet;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
@@ -75,7 +76,7 @@ public class ModuleSourceAutogenerating {
   }
 
   public static boolean requiresAutoSourceGeneration(@NotNull AndroidFacet facet) {
-    return !facet.requiresAndroidModel() && ApkFacet.getInstance(facet.getModule()) == null;
+    return !AndroidModel.isRequired(facet) && ApkFacet.getInstance(facet.getModule()) == null;
   }
 
   public boolean isGeneratedFileRemoved(@NotNull AndroidAutogeneratorMode mode) {

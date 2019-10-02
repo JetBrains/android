@@ -41,6 +41,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.layoutlib.bridge.impl.RenderSessionImpl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -1267,7 +1268,7 @@ public class RenderErrorContributor {
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(logger.getModule());
-    if (facet != null && !facet.requiresAndroidModel()) {
+    if (facet != null && !AndroidModel.isRequired(facet)) {
       Project project = logger.getModule().getProject();
       builder
         .addLink("Rebuild project with '-target 1.6'", myLinkManager.createRunnableLink(new RebuildWith16Fix(project)))

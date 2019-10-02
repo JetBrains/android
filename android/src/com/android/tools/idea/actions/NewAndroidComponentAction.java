@@ -22,6 +22,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstrai
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
@@ -141,7 +142,7 @@ public class NewAndroidComponentAction extends AnAction {
     }
     else {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
-      boolean isProjectReady = facet != null && facet.getConfiguration().getModel() != null && facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP;
+      boolean isProjectReady = facet != null && AndroidModel.get(facet) != null && facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP;
       presentation.setEnabled(isProjectReady);
     }
   }
@@ -155,7 +156,7 @@ public class NewAndroidComponentAction extends AnAction {
       return;
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.getConfiguration().getModel() == null) {
+    if (facet == null || AndroidModel.get(facet) == null) {
       return;
     }
 

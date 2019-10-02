@@ -16,6 +16,8 @@
 package org.jetbrains.android.facet
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.util.androidFacet
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetManagerAdapter
@@ -26,7 +28,6 @@ class AndroidFacetConfigurationTest : AndroidTestCase() {
 
   fun testChangingModelFiresEvent() {
     val module = myFixture.module
-    val configuration = AndroidFacet.getInstance(module)!!.configuration
     val model = mock(AndroidModuleModel::class.java)
 
     val connection = module.messageBus.connect()
@@ -39,7 +40,7 @@ class AndroidFacetConfigurationTest : AndroidTestCase() {
       }
     })
 
-    configuration.model = model
+    AndroidModel.set(module.androidFacet!!, model)
     connection.deliverImmediately()
     connection.disconnect()
 

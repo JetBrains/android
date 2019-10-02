@@ -21,13 +21,13 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.base.Strings;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -507,7 +507,7 @@ public class AndroidRootUtil {
   @Nullable
   @SystemDependent
   public static String getApkPath(@NotNull AndroidFacet facet) {
-    if (facet.requiresAndroidModel()) {
+    if (AndroidModel.isRequired(facet)) {
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
       if (androidModuleModel != null) {
         // For Android-Gradle projects, AndroidModel is not null.

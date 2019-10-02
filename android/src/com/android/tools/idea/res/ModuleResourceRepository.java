@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -65,7 +66,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
 
-    if (!facet.requiresAndroidModel()) {
+    if (!AndroidModel.isRequired(facet)) {
       // Always just a single resource folder: simple.
       VirtualFile primaryResourceDir = ContainerUtil.getFirstItem(folderManager.getFolders(), null);
       if (primaryResourceDir == null) {
@@ -111,7 +112,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
 
-    if (!facet.requiresAndroidModel()) {
+    if (!AndroidModel.isRequired(facet)) {
       // No test resources in legacy projects.
       return new EmptyRepository(namespace);
     }

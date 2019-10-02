@@ -19,9 +19,12 @@ import com.android.builder.model.AaptOptions;
 import com.android.builder.model.SourceProvider;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.lint.detector.api.Desugaring;
+import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collections;
 import java.util.List;
@@ -35,11 +38,29 @@ import org.jetbrains.annotations.Nullable;
  * A common interface for Android module models.
  */
 public interface AndroidModel {
+
+  Key<AndroidModel> KEY = Key.create(AndroidModel.class.getName());
+
+  @Nullable
+  static AndroidModel get(@NotNull AndroidFacet facet) {
+    return facet.getUserData(KEY);
+  }
+
   @Nullable
   static AndroidModel get(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? facet.getConfiguration().getModel() : null;
+    return facet == null ? null : get(facet);
   }
+
+  static void set(@NotNull AndroidFacet facet, @Nullable AndroidModel androidModel) {
+    facet.putUserData(KEY, androidModel);
+    facet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
+  }
+
+  static boolean isRequired(@NotNull AndroidFacet facet) {
+    return !facet.getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(facet.getModule()) == null;
+  }
+
   /**
    * @return the default source provider.
    * @see org.jetbrains.android.facet.SourceProviderManager

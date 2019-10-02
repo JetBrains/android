@@ -17,6 +17,7 @@ package com.android.tools.idea.templates
 
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.templates.Template.ATTR_CONSTRAINTS
 import com.android.tools.idea.templates.Template.ATTR_DEFAULT
 import com.android.tools.idea.templates.Template.ATTR_HELP
@@ -68,7 +69,7 @@ class UniqueParameterTest : AndroidGradleTestCase() {
     Sdks.addLatestAndroidSdk(appFacet!!, appModule!!)
 
     assertNotNull(AndroidPlatform.getInstance(appModule!!))
-    assertNotNull(appFacet!!.configuration.model)
+    assertNotNull(AndroidModel.get(appFacet!!))
     // TODO: b/23032990
     val appModuleModel = AndroidModuleModel.get(appFacet!!)!!
     val paidFlavor = appModuleModel.findProductFlavor("paid")!!

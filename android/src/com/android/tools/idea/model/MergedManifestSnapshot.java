@@ -227,7 +227,7 @@ public class MergedManifestSnapshot {
     // From manifest theme documentation:
     // "If that attribute is also not set, the default system theme is used."
     int targetSdk = getTargetSdkVersion().getApiLevel();
-    AndroidModel androidModel = facet.getConfiguration().getModel();
+    AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel != null) {
       AndroidVersion targetSdkVersion = androidModel.getTargetSdkVersion();
       if (targetSdkVersion != null) {

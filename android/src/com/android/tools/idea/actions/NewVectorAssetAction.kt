@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions
 
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel
 import com.android.tools.idea.npw.assetstudio.wizard.NewVectorAssetStep
 import com.android.tools.idea.projectsystem.AndroidModulePaths
@@ -38,7 +39,7 @@ class NewVectorAssetAction : AndroidAssetStudioAction("Vector Asset", "Open Vect
     val module = facet.module
     val status = module.getModuleSystem().canGeneratePngFromVectorGraphics()
     if (status is CapabilityNotSupported) {
-      val androidModel = facet.configuration.model
+      val androidModel = AndroidModel.get(facet)
       if (androidModel != null) {
         val minSdkVersion = androidModel.minSdkVersion
 

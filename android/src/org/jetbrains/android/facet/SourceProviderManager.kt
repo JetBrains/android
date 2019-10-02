@@ -16,6 +16,7 @@
 package org.jetbrains.android.facet
 
 import com.android.builder.model.SourceProvider
+import com.android.tools.idea.model.AndroidModel
 import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -58,14 +59,14 @@ private class SourceProviderManagerImpl(val facet: AndroidFacet) : SourceProvide
    */
   private val mainSourceProvider: SourceProvider
     get() {
-      return facet.configuration.model?.defaultSourceProvider
+      return AndroidModel.get(facet)?.defaultSourceProvider
              ?: mainSourceSet
              ?: LegacySourceProvider(facet).also { mainSourceSet = it }
     }
 
   override val mainIdeaSourceProvider: IdeaSourceProvider
     get() {
-      if (!facet.requiresAndroidModel()) {
+      if (!AndroidModel.isRequired(facet)) {
         if (mainIdeaSourceSet == null) {
           mainIdeaSourceSet = IdeaSourceProvider.createForLegacyProject(facet)
           mainIdeaSourceSetCreatedFor = null

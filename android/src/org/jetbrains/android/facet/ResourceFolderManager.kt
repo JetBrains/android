@@ -21,6 +21,7 @@ import com.android.SdkConstants.FD_SOURCES
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.gradle.variant.view.BuildVariantView
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.res.AndroidProjectRootListener
 import com.android.tools.idea.util.androidFacet
 import com.google.common.base.Splitter
@@ -162,7 +163,7 @@ class ResourceFolderManager(
 
 
   private fun computeFolders(facet: AndroidFacet): Folders {
-    return if (!facet.requiresAndroidModel()) {
+    return if (!AndroidModel.isRequired(facet)) {
       Folders(main = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.toList(), test = emptyList())
     }
     else {

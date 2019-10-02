@@ -311,11 +311,11 @@ public class LintIdeProject extends Project {
       project = new LintModuleProject(client, dir, dir, module);
       AndroidFacet f = findAndroidFacetInProject(module.getProject());
       if (f != null) {
-        project.gradleProject = f.requiresAndroidModel();
+        project.gradleProject = AndroidModel.isRequired(f);
       }
     }
-    else if (facet.requiresAndroidModel()) {
-      AndroidModel androidModel = facet.getConfiguration().getModel();
+    else if (AndroidModel.isRequired(facet)) {
+      AndroidModel androidModel = AndroidModel.get(facet);
       if (androidModel instanceof AndroidModuleModel) {
         project = new LintGradleProject(client, dir, dir, facet, (AndroidModuleModel)androidModel);
       } else if (androidModel != null) {
@@ -806,7 +806,7 @@ public class LintIdeProject extends Project {
     @Override
     public List<File> getProguardFiles() {
       if (proguardFiles == null) {
-        if (myFacet.requiresAndroidModel()) {
+        if (AndroidModel.isRequired(myFacet)) {
           // TODO: b/22928250
           AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
           if (androidModel != null) {
@@ -848,7 +848,7 @@ public class LintIdeProject extends Project {
       if (!GradleProjectInfo.getInstance(myFacet.getModule().getProject()).isBuildWithGradle()) {
         return false;
       }
-      if (!myFacet.requiresAndroidModel()) {
+      if (!AndroidModel.isRequired(myFacet)) {
         return false;
       }
       AndroidModuleModel model = AndroidModuleModel.get(myFacet);
@@ -888,7 +888,7 @@ public class LintIdeProject extends Project {
     public List<File> getJavaLibraries(boolean includeProvided) {
       if (SUPPORT_CLASS_FILES) {
         if (javaLibraries == null) {
-          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null) {
+          if (AndroidModel.isRequired(myFacet) && AndroidModel.get(myFacet) != null) {
             Collection<JavaLibrary> libs = myAndroidModuleModel.getSelectedMainCompileDependencies().getJavaLibraries();
             javaLibraries = Lists.newArrayListWithExpectedSize(libs.size());
             for (JavaLibrary lib : libs) {
@@ -998,7 +998,7 @@ public class LintIdeProject extends Project {
       if (SUPPORT_LIB_ARTIFACT.equals(artifact)
           || ANDROIDX_SUPPORT_LIB_ARTIFACT.equals(artifact)) {
         if (supportLib == null) {
-          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null && androidModel != null) {
+          if (AndroidModel.isRequired(myFacet) && AndroidModel.get(myFacet) != null && androidModel != null) {
             supportLib =
               GradleUtil.dependsOn(androidModel, SUPPORT_LIB_ARTIFACT) ||
               GradleUtil.dependsOn(androidModel, ANDROIDX_SUPPORT_LIB_ARTIFACT);
@@ -1013,7 +1013,7 @@ public class LintIdeProject extends Project {
       } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)
                  || ANDROIDX_APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
         if (appCompat == null) {
-          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null && androidModel != null) {
+          if (AndroidModel.isRequired(myFacet) && AndroidModel.get(myFacet) != null && androidModel != null) {
             appCompat =
               GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT) ||
               GradleUtil.dependsOn(androidModel, ANDROIDX_APPCOMPAT_LIB_ARTIFACT);
@@ -1029,7 +1029,7 @@ public class LintIdeProject extends Project {
       else if (LEANBACK_V17_ARTIFACT.equals(artifact)
                || ANDROIDX_LEANBACK_ARTIFACT.equals(artifact)) {
         if (leanback == null) {
-          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null && androidModel != null) {
+          if (AndroidModel.isRequired(myFacet) && AndroidModel.get(myFacet) != null && androidModel != null) {
             leanback =
               GradleUtil.dependsOn(androidModel, LEANBACK_V17_ARTIFACT) ||
               GradleUtil.dependsOn(androidModel, ANDROIDX_LEANBACK_ARTIFACT);
@@ -1044,7 +1044,7 @@ public class LintIdeProject extends Project {
       }
       else {
         // Some other (not yet directly cached result)
-        if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null
+        if (AndroidModel.isRequired(myFacet) && AndroidModel.get(myFacet) != null
             && androidModel != null) {
           if (GradleUtil.dependsOn(androidModel, artifact)) {
             return true;

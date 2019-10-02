@@ -35,6 +35,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -361,7 +362,7 @@ public class ResourceHelperTest extends AndroidTestCase {
 
   private void setProjectNamespace(ResourceNamespace appNs) {
     CommandProcessor.getInstance().runUndoTransparentAction(() -> ApplicationManager.getApplication().runWriteAction(() -> {
-      myFacet.getConfiguration().setModel(TestAndroidModel.namespaced(myFacet));
+      AndroidModel.set(myFacet, TestAndroidModel.namespaced(myFacet));
       Manifest.getMainManifest(myFacet).getPackage().setValue(appNs.getPackageName());
     }));
   }

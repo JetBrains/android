@@ -75,7 +75,7 @@ public class AndroidPermissionConverter extends Converter<String> implements Cus
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        AndroidModel model = facet.getConfiguration().getModel();
+        AndroidModel model = AndroidModel.get(facet);
         if (model != null) {
           AndroidVersion version = model.getMinSdkVersion();
           if (version != null) {

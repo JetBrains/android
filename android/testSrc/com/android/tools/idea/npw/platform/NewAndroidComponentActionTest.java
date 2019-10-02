@@ -15,6 +15,18 @@
  */
 package com.android.tools.idea.npw.platform;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
+import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.model.AndroidModel;
@@ -26,18 +38,11 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Key;
 import java.util.EnumSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static com.android.builder.model.AndroidProject.*;
-import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
-import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
 
 public final class NewAndroidComponentActionTest {
   private AnActionEvent myActionEvent;
@@ -49,17 +54,16 @@ public final class NewAndroidComponentActionTest {
   @Before
   public void setUp() {
     mySelectedAndroidFacet = AndroidFacet.getInstance(projectRule.getModule());
-    mySelectedAndroidFacet.getConfiguration().setModel(mock(AndroidModel.class));
+    AndroidModel.set(mySelectedAndroidFacet, mock(AndroidModel.class));
 
     AndroidModuleInfo mockAndroidModuleInfo = mock(AndroidModuleInfo.class);
     when(mockAndroidModuleInfo.getMinSdkVersion()).thenReturn(new AndroidVersion(1));
     when(mockAndroidModuleInfo.getBuildSdkVersion()).thenReturn(new AndroidVersion(1));
 
-    AndroidFacet mockAndroidFacet = spy(mySelectedAndroidFacet);
-    doReturn(mockAndroidModuleInfo).when(mockAndroidFacet).getUserData(any(Key.class));
+    AndroidModuleInfo.setInstanceForTest(mySelectedAndroidFacet, mockAndroidModuleInfo);
 
     FacetManager mockFacetManager = mock(FacetManager.class);
-    when(mockFacetManager.getFacetByType(AndroidFacet.ID)).thenReturn(mockAndroidFacet);
+    when(mockFacetManager.getFacetByType(AndroidFacet.ID)).thenReturn(mySelectedAndroidFacet);
 
     Module mockModel = mock(Module.class);
     doReturn(mockFacetManager).when(mockModel).getComponent(FacetManager.class);
