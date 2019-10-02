@@ -83,32 +83,6 @@ interface IdeaSourceProvider {
   val shadersDirectoryUrls: Collection<String>
   val shadersDirectories: Collection<VirtualFile>
 
-  /**
-   * Returns true iff this SourceProvider provides the source folder that contains the given file.
-   */
-  fun containsFile(file: VirtualFile): Boolean {
-    val srcDirectories = allSourceFolders
-    if (file == manifestFile) {
-      return true
-    }
-
-    for (container in srcDirectories) {
-      if (!container.exists()) {
-        continue
-      }
-
-      if (isAncestor(container, file, false /* allow them to be the same */)) {
-        return true
-      }
-
-      // Check the flavor root directories
-      if (file == container.parent) {
-        return true
-      }
-    }
-    return false
-  }
-
   companion object {
 
     /**
@@ -266,42 +240,6 @@ interface IdeaSourceProvider {
     }
 
     /**
-     * Returns a list of all IDEA source providers that contain, or are contained by, the given file.
-     * For example, with the file structure:
-     *
-     * ```
-     * src
-     *   main
-     *     aidl
-     *       myfile.aidl
-     *   free
-     *     aidl
-     *       myoverlay.aidl
-     * ```
-     *
-     * With target file == "myoverlay.aidl" the returned list would be ['free'], but if target file == "src",
-     * the returned list would be ['main', 'free'] since both of those source providers have source folders which
-     * are descendants of "src."
-     */
-    @JvmStatic
-    fun getIdeaSourceProvidersForFile(
-      facet: AndroidFacet,
-      targetFolder: VirtualFile?,
-      defaultIdeaSourceProvider: IdeaSourceProvider?
-    ): List<IdeaSourceProvider> {
-      val sourceProviderList =
-        if (targetFolder != null) {
-          // Add source providers that contain the file (if any) and any that have files under the given folder
-          getAllIdeaSourceProviders(facet)
-            .filter { provider -> provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder) }
-            .takeUnless { it.isEmpty() }
-        }
-        else null
-
-      return sourceProviderList ?: listOfNotNull(defaultIdeaSourceProvider)
-    }
-
-    /**
      * Returns a list of all source providers that contain, or are contained by, the given file.
      * For example, with the file structure:
      *
@@ -339,7 +277,7 @@ interface IdeaSourceProvider {
 
     @JvmStatic
     fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-      return getCurrentTestSourceProviders(facet).any { it.containsFile(candidate) }
+      return getCurrentTestSourceProviders(facet).any { containsFile(it, candidate) }
     }
 
     /** Returns true if the given candidate file is a manifest file in the given module  */
@@ -560,24 +498,6 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
   override fun hashCode(): Int = facet.hashCode()
 }
 
-/**
- * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
- * the given folder.
- */
-fun IdeaSourceProvider.isContainedBy(targetFolder: VirtualFile): Boolean {
-  val srcDirectories = allSourceFolders
-  for (container in srcDirectories) {
-    if (!container.exists()) {
-      continue
-    }
-
-    if (isAncestor(targetFolder, container, false /* allow them to be the same */)) {
-      return true
-    }
-  }
-  return false
-}
-
 private val IdeaSourceProvider.allSourceFolders: Collection<VirtualFile>
   get() =
     flatten(arrayOf(javaDirectories, resDirectories, aidlDirectories, renderscriptDirectories, assetsDirectories, jniDirectories,
@@ -603,4 +523,3 @@ private fun getAllSourceProviders(facet: AndroidFacet): List<SourceProvider> {
     facet.configuration.model!!.allSourceProviders
   }
 }
-
