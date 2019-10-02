@@ -33,7 +33,7 @@ public class SyncProjectAction extends AndroidStudioGradleAction {
   @NotNull private final GradleSyncInvoker mySyncInvoker;
 
   public SyncProjectAction() {
-    this("Sync Project with Gradle Files");
+    this("Sync Project with _Gradle Files");
   }
 
   protected SyncProjectAction(@NotNull String text) {
