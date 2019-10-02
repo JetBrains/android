@@ -43,6 +43,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.xml.XmlAttribute;
@@ -708,11 +709,12 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
       assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY);
       assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
 
+      // b/139262116: manually commit the Document and clear some caches in an attempt to reduce flakiness of this test.
       myFixture.type('X');
-
-      // b/139262116: manually commit the Document and clear ResolveCache in an attempt to reduce flakiness of this test.
-      PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
+      dispatchEvents();
       ResolveCache.getInstance(getProject()).clearCache(myFixture.getFile().isPhysical());
+      PsiManager.getInstance(getProject()).dropPsiCaches();
+      PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
       dispatchEvents();
 
       highlightInfos = myFixture.doHighlighting();
