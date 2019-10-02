@@ -45,25 +45,26 @@ import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.Nd
 import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME;
 
 public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements ProductFlavorModel {
-  @NonNls private static final String APPLICATION_ID = "applicationId";
-  @NonNls private static final String DIMENSION = "dimension";
-  @NonNls private static final String MAX_SDK_VERSION = "maxSdkVersion";
-  @NonNls private static final String MIN_SDK_VERSION = "minSdkVersion";
-  @NonNls private static final String MISSING_DIMENSION_STRATEGY = "missingDimensionStrategy";
-  @NonNls private static final String RENDER_SCRIPT_TARGET_API = "renderscriptTargetApi";
-  @NonNls private static final String RENDER_SCRIPT_SUPPORT_MODE_ENABLED = "renderscriptSupportModeEnabled";
-  @NonNls private static final String RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED = "renderscriptSupportModeBlasEnabled";
-  @NonNls private static final String RENDER_SCRIPT_NDK_MODE_ENABLED = "renderscriptNdkModeEnabled";
-  @NonNls private static final String RES_CONFIGS = "resConfigs";
-  @NonNls private static final String TARGET_SDK_VERSION = "targetSdkVersion";
-  @NonNls private static final String TEST_APPLICATION_ID = "testApplicationId";
-  @NonNls private static final String TEST_FUNCTIONAL_TEST = "testFunctionalTest";
-  @NonNls private static final String TEST_HANDLE_PROFILING = "testHandleProfiling";
-  @NonNls private static final String TEST_INSTRUMENTATION_RUNNER = "testInstrumentationRunner";
-  @NonNls private static final String TEST_INSTRUMENTATION_RUNNER_ARGUMENTS = "testInstrumentationRunnerArguments";
-  @NonNls private static final String VERSION_CODE = "versionCode";
-  @NonNls private static final String VERSION_NAME = "versionName";
-  @NonNls private static final String WEAR_APP_UNBUNDLED = "wearAppUnbundled";
+  @NonNls public static final String APPLICATION_ID = "mApplicationId";
+  @NonNls public static final String DIMENSION = "mDimension";
+  @NonNls public static final String MAX_SDK_VERSION = "mMaxSdkVersion";
+  @NonNls public static final String MIN_SDK_VERSION = "mMinSdkVersion";
+  @NonNls public static final String MISSING_DIMENSION_STRATEGY = "mMissingDimensionStrategy";
+  @NonNls public static final String RENDER_SCRIPT_TARGET_API = "mRenderscriptTargetApi";
+  @NonNls public static final String RENDER_SCRIPT_SUPPORT_MODE_ENABLED = "mRenderscriptSupportModeEnabled";
+  @NonNls public static final String RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED = "mRenderscriptSupportModeBlasEnabled";
+  @NonNls public static final String RENDER_SCRIPT_NDK_MODE_ENABLED = "mRenderscriptNdkModeEnabled";
+  @NonNls public static final String RES_CONFIGS = "mResConfigs";
+  @NonNls public static final String TARGET_SDK_VERSION = "mTargetSdkVersion";
+  @NonNls public static final String TEST_APPLICATION_ID = "mTestApplicationId";
+  @NonNls public static final String TEST_FUNCTIONAL_TEST = "mTestFunctionalTest";
+  @NonNls public static final String TEST_HANDLE_PROFILING = "mTestHandleProfiling";
+  @NonNls public static final String TEST_INSTRUMENTATION_RUNNER = "mTestInstrumentationRunner";
+  @NonNls public static final String TEST_INSTRUMENTATION_RUNNER_ARGUMENTS = "mTestInstrumentationRunnerArguments";
+  @NonNls public static final String VERSION_CODE = "mVersionCode";
+  @NonNls public static final String VERSION_NAME = "mVersionName";
+  @NonNls public static final String WEAR_APP_UNBUNDLED = "mWearAppUnbundled";
+
 
   public ProductFlavorModelImpl(@NotNull ProductFlavorDslElement dslElement) {
     super(dslElement);
