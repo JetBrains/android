@@ -15,26 +15,30 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
-import com.intellij.ide.util.DirectoryUtil;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
+import java.io.IOException;
 import java.util.Collection;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -42,21 +46,19 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.io.File;
-
 /**
  * Functions for create resource dialogs, where the dialogs depend on using source sets, and modules
  * for deciding the base resource directory.
  */
 public class CreateResourceDialogUtils {
+  private static final Logger LOG = Logger.getInstance(ExternalSystemUtil.class);
 
   @Nullable
-  public static SourceProvider getSourceProvider(@Nullable JComboBox combo) {
+  public static IdeaSourceProvider getSourceProvider(@Nullable JComboBox combo) {
     if (combo != null && combo.isVisible()) {
       Object selectedItem = combo.getSelectedItem();
       if (selectedItem instanceof ApiComboBoxItem) {
-        return (SourceProvider)((ApiComboBoxItem)selectedItem).getData();
+        return (IdeaSourceProvider)((ApiComboBoxItem)selectedItem).getData();
       }
     }
 
@@ -64,29 +66,24 @@ public class CreateResourceDialogUtils {
   }
 
   @Nullable
-  public static PsiDirectory getResourceDirectory(@Nullable SourceProvider sourceProvider, @NotNull Module module) {
+  public static PsiDirectory getResourceDirectory(@Nullable IdeaSourceProvider sourceProvider, @NotNull Module module) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     if (sourceProvider != null) {
       final PsiManager manager = PsiManager.getInstance(module.getProject());
-      for (final File file : sourceProvider.getResDirectories()) {
-        if (!file.exists()) {
-          PsiDirectory dir = ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>() {
-            @Override
-            public PsiDirectory compute() {
-              return DirectoryUtil.mkdirs(manager, FileUtil.toSystemIndependentName(file.getPath()));
-            }
-          });
-          if (dir != null) {
-            return dir;
+      for (String fileUrl : sourceProvider.getResDirectoryUrls()) {
+        VirtualFile virtualFile = VirtualFileManager.getInstance().findFileByUrl(fileUrl);
+        if (virtualFile == null) {
+          try {
+            virtualFile = VfsUtil.createDirectories(VfsUtilCore.urlToPath(fileUrl));
+          }
+          catch (IOException ex) {
+            LOG.warn(ex);
           }
         }
-        else {
-          VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(file);
-          if (virtualFile != null) {
-            PsiDirectory dir = manager.findDirectory(virtualFile);
-            if (dir != null) {
-              return dir;
-            }
+        if (virtualFile != null) {
+          PsiDirectory dir = manager.findDirectory(virtualFile);
+          if (dir != null) {
+            return dir;
           }
         }
       }
@@ -112,9 +109,9 @@ public class CreateResourceDialogUtils {
     // we're in here, so we default to always including the source set combo (if it's a Gradle project that is.)
     // TODO: Give an option for each 'res' directory within each source set. Eg: main/res1, main/res2.
     if (facet != null && facet.requiresAndroidModel() && facet.getConfiguration().getModel() != null) {
-      Collection<SourceProvider> providers = IdeaSourceProvider.getAllSourceProviders(facet);
+      Collection<IdeaSourceProvider> providers = IdeaSourceProvider.getAllIdeaSourceProviders(facet);
       DefaultComboBoxModel model = new DefaultComboBoxModel();
-      for (SourceProvider sourceProvider : providers) {
+      for (IdeaSourceProvider sourceProvider : providers) {
         //noinspection unchecked
         model.addElement(new ApiComboBoxItem(sourceProvider, sourceProvider.getName(), 0, 0));
       }
