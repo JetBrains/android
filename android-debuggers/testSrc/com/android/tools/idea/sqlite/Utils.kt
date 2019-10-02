@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.jdbc.SqliteJdbcServiceTest
-import com.android.tools.idea.util.FutureUtils
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
 object Utils {
   fun <V> pumpEventsAndWaitForFuture(future: ListenableFuture<V>): V {
     try {
-      return FutureUtils.pumpEventsAndWaitForFuture(future, SqliteJdbcServiceTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+      return pumpEventsAndWaitForFuture(future, SqliteJdbcServiceTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     }
     catch (e: Exception) {
       throw RuntimeException(e)
@@ -33,7 +33,7 @@ object Utils {
 
   fun <V> pumpEventsAndWaitForFutureException(future: ListenableFuture<V>): Throwable {
     try {
-      FutureUtils.pumpEventsAndWaitForFuture(future, SqliteJdbcServiceTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+      pumpEventsAndWaitForFuture(future, SqliteJdbcServiceTest.TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
       throw RuntimeException("Expected ExecutionException from future, got value instead")
     }
     catch (e: ExecutionException) {

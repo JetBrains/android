@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.explorer;
 
-import static com.android.tools.idea.concurrent.FutureUtils.ignoreResult;
+import static com.android.tools.idea.concurrency.FutureUtils.ignoreResult;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DownloadProgress;
 import com.android.tools.idea.device.fs.DownloadedFileData;
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;

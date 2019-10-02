@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.util
 
-import com.android.tools.idea.concurrent.executeOnPooledThread
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult

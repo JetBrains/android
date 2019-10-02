@@ -30,8 +30,6 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
 import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery

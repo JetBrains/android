@@ -18,7 +18,7 @@ package com.android.tools.idea.explorer.adbimpl;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceState;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;

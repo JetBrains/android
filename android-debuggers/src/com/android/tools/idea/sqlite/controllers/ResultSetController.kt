@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrent.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.google.common.util.concurrent.Futures

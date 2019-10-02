@@ -41,7 +41,7 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
-import com.android.tools.idea.util.FutureUtils;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
