@@ -118,7 +118,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     Project project = parentPsiElement.getProject();
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
-    String statementText = maybeTrimForParent(element.getNameElement(), element.getParent());
+    String statementText = maybeTrimForParent(element.getNameElement(), element.getParent(), this);
     assert statementText != null && !statementText.isEmpty() : "Element name can't be null! This will cause statement creation to error.";
     if (element.isBlockElement()) {
       statementText += " {\n}\n";
@@ -263,8 +263,8 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
     String statementText =
-      (!methodCall.getFullName().isEmpty() ? maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent()) + " " : "") +
-      maybeTrimForParent(GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent()) +
+      (!methodCall.getFullName().isEmpty() ? maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this) + " " : "") +
+      maybeTrimForParent(GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent(), this) +
       "()";
     GrStatement statement = factory.createStatementFromText(statementText);
     PsiElement addedElement = parentPsiElement.addAfter(statement, anchor);

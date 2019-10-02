@@ -111,7 +111,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val psiFactory = KtPsiFactory(project)
 
     // The text should be quoted if not followed by anything else,  otherwise it will create a reference expression.
-    var statementText = maybeTrimForParent(element.nameElement, element.parent)
+    var statementText = maybeTrimForParent(element.nameElement, element.parent, this)
 
     if (element is AbstractFlavorTypeDslElement) {
       statementText = if (element.methodName != null) "${element.methodName}(\"${statementText}\")" else "create(\"${statementText}\")"
@@ -351,8 +351,8 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     val statementText =
       if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
-        val propertyName = maybeTrimForParent(methodCall.nameElement, methodCall.parent)
-        val methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent)
+        val propertyName = maybeTrimForParent(methodCall.nameElement, methodCall.parent, this)
+        val methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent, this)
         if (methodCall.shouldUseAssignment()) {
           // Ex: a = b().
           "$propertyName = $methodName()"
@@ -365,7 +365,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     else {
         // Ex : proguardFile() where the name is the same as the methodName, so we need to make sure we create one method only.
         maybeTrimForParent(
-          GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent()) + "()"
+          GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent(), this) + "()"
       }
     val expression = psiFactory.createExpression(statementText)
 

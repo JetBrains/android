@@ -311,22 +311,27 @@ internal fun findLastPsiElementIn(startElement: GradleDslElement): PsiElement? {
 }
 
 /**
- * Get the name of a dsl element by triming the parent's name parts.
+ * Get the external name of a dsl element by trimming the parent's name parts and converting the name from model to external, if necessary.
  */
-internal fun maybeTrimForParent(name: GradleNameElement, parent: GradleDslElement?): String {
+internal fun maybeTrimForParent(name: GradleNameElement,
+                                parent: GradleDslElement?,
+                                converter: GradleDslNameConverter): String {
+  // FIXME(xof): this case needs fixing too
   if (parent == null) return name.fullName()
 
   val parts = ArrayList(name.fullNameParts())
   if (parts.isEmpty()) {
     return name.fullName()
   }
-  val lastNamePart = parts.removeAt(parts.size - 1)
+  var lastNamePart = parts.removeAt(parts.size - 1)
   val parentParts = Splitter.on(".").splitToList(parent.qualifiedName)
   var i = 0
   while (i < parentParts.size && !parts.isEmpty() && parentParts[i] == parts[0]) {
     parts.removeAt(0)
     i++
   }
+  // FIXME(xof): I have a feeling that this is partly wrong, with the same kind of forward/backward issues as in GradleNameElement.from()
+  lastNamePart = converter.externalNameForParent(lastNamePart, parent)
   parts.add(lastNamePart)
   return GradleNameElement.createNameFromParts(parts)
 }
