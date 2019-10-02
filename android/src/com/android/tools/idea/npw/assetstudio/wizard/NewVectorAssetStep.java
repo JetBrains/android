@@ -468,6 +468,10 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         @NotNull
         public VectorAsset.Preview construct() {
           try {
+            if (myVectorDrawableInfo == null) {
+              myPreview = new VectorAsset.Preview("Preview not available");
+              return myPreview;
+            }
             myPreview = VectorAsset.generatePreview(myVectorDrawableInfo, previewWidth, myOverrideInfo);
           } catch (Throwable t) {
             Logger.getInstance(getClass()).error(t);
