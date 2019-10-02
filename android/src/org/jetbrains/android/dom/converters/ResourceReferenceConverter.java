@@ -707,16 +707,19 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       return PsiReference.EMPTY_ARRAY;
     }
 
-    // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
-    //    android:layout_alignLeft="@+id/foo"
-    // is a reference to R.id.foo, but
-    //    android:id="@+id/foo"
-    // is not; it's the place we're defining it.
-    if (resValue.getPackage() == null && "+id".equals(resType) && element != null && element.getParent() instanceof XmlAttribute) {
-      XmlAttribute attribute = (XmlAttribute)element.getParent();
-      if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
-        // When defining an id, don't point to another reference
-        return PsiReference.EMPTY_ARRAY;
+
+    if (!StudioFlags.RESOLVE_USING_REPOS.get()) {
+      // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
+      //    android:layout_alignLeft="@+id/foo"
+      // is a reference to R.id.foo, but
+      //    android:id="@+id/foo"
+      // is not; it's the place we're defining it.
+      if (resValue.getPackage() == null && "+id".equals(resType) && element != null && element.getParent() instanceof XmlAttribute) {
+        XmlAttribute attribute = (XmlAttribute)element.getParent();
+        if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
+          // When defining an id, don't point to another reference
+          return PsiReference.EMPTY_ARRAY;
+        }
       }
     }
 
