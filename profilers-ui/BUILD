@@ -67,9 +67,6 @@ kotlin_test(
     srcs = ["testSrc/com/android/tools/profilers/performance"],
     data = glob(["testData/**"]),
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilers.ui.performance.jar"],
-    tags = [
-        "perfgate_multi_run",
-    ],
     test_class = "com.android.testutils.JarTestSuite",
     runtime_deps = [
         ":intellij.android.profilers.ui_testlib",
