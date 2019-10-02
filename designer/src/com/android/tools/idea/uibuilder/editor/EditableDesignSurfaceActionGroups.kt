@@ -23,7 +23,7 @@ import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomShortcut
 import com.android.tools.adtui.actions.ZoomToFitAction
-import com.android.tools.idea.common.editor.DesignSurfaceActionGroups
+import com.android.tools.editor.EditorActionsToolbarActionGroups
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -32,7 +32,7 @@ import javax.swing.JComponent
 /**
  * Actions for editable designer editor file types. Includes the [PanSurfaceAction] since it'll only work for that kind of files.
  */
-class EditableDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) : DesignSurfaceActionGroups {
+class EditableDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) : EditorActionsToolbarActionGroups {
 
   override val zoomControlsGroup: ActionGroup
     get() = createZoomControlsGroup(shortcutConsumer, this)
@@ -49,7 +49,7 @@ class EditableDesignSurfaceActionGroups(private val shortcutConsumer: JComponent
 /**
  * Populates the most basic/common actions that can be used on the DesignSurface.
  */
-class BasicDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) : DesignSurfaceActionGroups {
+class BasicDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) : EditorActionsToolbarActionGroups {
 
   override val zoomControlsGroup: ActionGroup
     get() = createZoomControlsGroup(shortcutConsumer, this)

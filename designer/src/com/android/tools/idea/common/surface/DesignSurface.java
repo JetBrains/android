@@ -22,6 +22,7 @@ import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.editor.SplitEditor;
@@ -975,7 +976,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private void notifyScaleChanged() {
     if (myZoomListeners != null) {
       for (PanZoomListener myZoomListener : myZoomListeners) {
-        myZoomListener.zoomChanged(this);
+        myZoomListener.zoomChanged();
       }
     }
   }

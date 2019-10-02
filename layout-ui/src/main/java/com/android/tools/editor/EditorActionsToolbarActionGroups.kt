@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.editor
+package com.android.tools.editor
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
 /** Action groups for the DesignSurface. */
-interface DesignSurfaceActionGroups: Disposable {
+interface EditorActionsToolbarActionGroups : Disposable {
 
-  val zoomControlsGroup: ActionGroup
+  val zoomControlsGroup: ActionGroup?
 
-  val zoomLabelGroup: ActionGroup
+  val zoomLabelGroup: ActionGroup?
 
-  val panControlsGroup: ActionGroup
+  val panControlsGroup: ActionGroup?
 
   override fun dispose() {
     // Do nothing
   }
 }
 
-/** The default implementation for [DesignSurfaceActionGroups], only returns [DefaultActionGroup.EMPTY_GROUP]. */
-object DesignSurfaceEmptyActionGroups: DesignSurfaceActionGroups {
+/** The default implementation for [EditorActionsToolbarActionGroups], only returns [DefaultActionGroup.EMPTY_GROUP]. */
+object DesignSurfaceEmptyActionGroups: EditorActionsToolbarActionGroups {
   override val zoomControlsGroup: ActionGroup
     get() = DefaultActionGroup.EMPTY_GROUP
 
