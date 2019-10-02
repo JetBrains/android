@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -51,6 +50,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -363,7 +363,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   }
 
   @Nullable
-  private SourceProvider getSourceProvider() {
+  private IdeaSourceProvider getSourceProvider() {
     return CreateResourceDialogUtils.getSourceProvider(mySourceSetCombo);
   }
 
