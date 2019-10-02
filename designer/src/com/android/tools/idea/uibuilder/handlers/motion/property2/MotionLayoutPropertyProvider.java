@@ -37,6 +37,7 @@ import com.android.tools.idea.uibuilder.property2.PropertiesProvider;
 import com.android.tools.idea.uibuilder.property2.support.TypeResolver;
 import com.android.tools.property.panel.api.PropertiesTable;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import com.intellij.openapi.application.ApplicationManager;
@@ -78,7 +79,8 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
 
   private static final int EXPECTED_ROWS = 3;
   private static final int EXPECTED_CELLS_PER_ROW = 10;
-
+  private static final List<String> INCLUDE_SUB_TAGS_OF = ImmutableList.of(MotionSceneAttrs.Tags.CONSTRAINT,
+                                                                           MotionSceneAttrs.Tags.TRANSITION);
   public MotionLayoutPropertyProvider(@NotNull AndroidFacet facet) {
     myFacet = facet;
     myProject = facet.getModule().getProject();
@@ -154,7 +156,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
 
       loadCustomAttributes(model, allProperties, motionSceneTag, selection);
 
-      if (tag.getLocalName().equals(MotionSceneAttrs.Tags.CONSTRAINT)) {
+      if (INCLUDE_SUB_TAGS_OF.contains(tag.getLocalName())) {
         XmlElementDescriptor[] subTagDescriptors = elementDescriptor.getElementsDescriptors(tag);
         for (XmlElementDescriptor descriptor : subTagDescriptors) {
           String subTagName = descriptor.getName();

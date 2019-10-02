@@ -44,6 +44,7 @@ import com.android.tools.property.panel.api.PropertiesView;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.property.panel.api.TableUIProvider;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Table;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
@@ -115,6 +116,11 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           addSubTagSections(inspector, selection, myModel);
           break;
 
+        case TRANSITION:
+          addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false);
+          addSubTagSections(inspector, selection, myModel);
+          break;
+
         case KEY_FRAME:
           NelePropertyItem target = properties.getOrNull(AUTO_URI, MotionSceneAttrs.Key.MOTION_TARGET);
           NelePropertyItem position = properties.getOrNull(AUTO_URI, MotionSceneAttrs.Key.FRAME_POSITION);
@@ -137,12 +143,18 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     private void addSubTagSections(@NotNull InspectorPanel inspector,
                                    @NotNull MotionSelection selection,
                                    @NotNull MotionLayoutAttributesModel model) {
-      if (!shouldDisplaySection(MotionSceneAttrs.Tags.LAYOUT, selection)) {
+      XmlTag xmlTag = selection.getXmlTag(selection.getMotionSceneTag());
+      XmlElementDescriptor elementDescriptor = xmlTag != null ? myDescriptorProvider.getDescriptor(xmlTag) : null;
+      if (elementDescriptor == null) {
         return;
       }
-      for (String subTagName : CONSTRAINT_SECTIONS) {
-        SubTagAttributesModel subModel = new SubTagAttributesModel(model, subTagName);
-        addPropertyTable(inspector, selection, subTagName, subModel, true, true);
+      XmlElementDescriptor[] subTagDescriptors = elementDescriptor.getElementsDescriptors(xmlTag);
+      for (XmlElementDescriptor descriptor : subTagDescriptors) {
+        String subTagName = descriptor.getName();
+        if (!subTagName.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
+          SubTagAttributesModel subModel = new SubTagAttributesModel(model, subTagName);
+          addPropertyTable(inspector, selection, subTagName, subModel, true, true);
+        }
       }
     }
 
@@ -239,6 +251,10 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
             return false;
           }
           return tag != null && isSectionedConstraint(tag);
+
+        case MotionSceneAttrs.Tags.ON_CLICK:
+        case MotionSceneAttrs.Tags.ON_SWIPE:
+          return selection.getType() == MotionEditorSelector.Type.TRANSITION;
 
         case MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE:
           if (tag == null && selection.getType() == MotionEditorSelector.Type.CONSTRAINT) {
