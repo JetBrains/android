@@ -18,8 +18,10 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -209,4 +211,6 @@ public interface GradleDslElement extends AnchorProvider {
   void resolve();
 
   boolean isNewEmptyBlockElement();
+
+  ImmutableMap<String, String> getExternalToModelMap(GradleDslNameConverter converter);
 }

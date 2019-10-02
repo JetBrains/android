@@ -16,8 +16,12 @@
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 public class GroovyDslNameConverter implements GradleDslNameConverter {
@@ -31,5 +35,28 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @Override
   public String convertReferenceText(@NotNull GradleDslElement context, @NotNull String referenceText) {
     return referenceText;
+  }
+
+  @NotNull
+  @Override
+  public String externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
+    ImmutableMap<String, String> map = context.getExternalToModelMap(this);
+    for (Map.Entry<String, String> e : map.entrySet()) {
+      if (e.getValue().equals(modelName)) {
+        return e.getKey();
+      }
+    }
+    return modelName;
+  }
+
+  @NotNull
+  @Override
+  public String modelNameForParent(@NotNull String externalName, @NotNull GradleDslElement context) {
+    if (externalName.contains(".")) {
+      return modelNameForParent(externalName.substring(0, externalName.lastIndexOf(".")), context.getParent()) +
+             "." +
+             modelNameForParent(externalName.substring(externalName.lastIndexOf(".") + 1), context);
+    }
+    return context.getExternalToModelMap(this).getOrDefault(externalName, externalName);
   }
 }
