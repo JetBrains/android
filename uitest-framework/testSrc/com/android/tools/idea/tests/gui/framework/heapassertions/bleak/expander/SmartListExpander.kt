@@ -26,6 +26,8 @@ import com.intellij.util.SmartList
 class SmartListExpander(g: HeapGraph): Expander(g) {
   override fun canExpand(obj: Any) = obj is SmartList<*>
 
+  override fun canPotentiallyGrowIndefinitely(n: Node) = true
+
   override fun expand(n: Node) {
     val elem = myElemField.get(n.obj)
     val size = mySizeField.get(n.obj) as Int

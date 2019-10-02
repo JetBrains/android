@@ -26,6 +26,8 @@ import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
 class RootExpander(g: HeapGraph): Expander(g) {
   override fun canExpand(obj: Any): Boolean = obj is BleakHelper
 
+  override fun canPotentiallyGrowIndefinitely(n: Node) = true
+
   override fun expand(n: Node) {
     val classes = (n.obj as BleakHelper).allLoadedClasses() as List<Class<*>>
     val classLoaders = classes.map{ it.classLoader }.filterNotNull().toSet() // the bootstrap class loader is represented by null

@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.RootExpander
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.SmartFMapExpander
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.SmartListExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ElidingExpander
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
@@ -45,7 +46,7 @@ typealias Node = HeapGraph.Node
  * Each node corresponds to a single object, and edges represent references, either real, or
  * abstracted. [Expander]s are responsible for defining the nature of this abstraction.
  */
-class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTrace {
+class HeapGraph: DoNotTrace {
 
   private val expanderChooser: ExpanderChooser = ExpanderChooser(listOf(
     RootExpander(this),
@@ -53,8 +54,9 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
     ClassLoaderExpander(this, jniHelper),
     ClassStaticsExpander(this),
     SmartListExpander(this),
-    SmartFMapExpander(this),
-    DefaultObjectExpander(this)))
+    SmartFMapExpander(this)) +
+    ElidingExpander.getExpanders(this) +
+    listOf(DefaultObjectExpander(this)))
 
   private val objToNode: MutableMap<Any, Node> = IdentityHashMap()
   private val rootNodes: List<Node> = mutableListOf(Node(jniHelper, true)) //traversalRoots.map{Node(it, true)}
@@ -64,7 +66,7 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
   lateinit var disposerInfo: DisposerInfo
 
   inner class Node(val obj: Any, val isRootNode: Boolean = false): DoNotTrace {
-    private val expander = expanderChooser.expanderFor(obj)
+    val expander = expanderChooser.expanderFor(obj)
     val edges = mutableListOf<Edge>()
     val type: Class<*> = obj.javaClass
     var incomingEdge: Edge? = if (isRootNode) Edge(this, this, expander.RootLoopbackLabel()) else null
@@ -172,7 +174,7 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
   fun expandWholeGraph(initialRun: Boolean = false): HeapGraph {
     withThreadsPaused {
         time("Expanding graph") {
-          bfs { expand(); if (isInitiallyGrowing()) markAsGrowing() }
+          bfs { expand(); if (initialRun && expander.canPotentiallyGrowIndefinitely(this)) markAsGrowing() }
           if (initialRun) disposerInfo = DisposerInfo.createBaseline()
         }
     }
