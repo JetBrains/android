@@ -27,13 +27,14 @@ import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskN
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Arrays.asList;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 import com.android.annotations.concurrency.WorkerThread;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -55,6 +56,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -62,15 +64,16 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.SystemProperties;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
@@ -140,16 +143,29 @@ public class GradleSyncExecutor {
 
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
-    createGradleProjectSettingsIfNotExist(myProject);
+    // FYI: some info on linked projects: https://www.jetbrains.com/help/idea/gradle.html#link_gradle_project
     Set<String> androidProjectCandidatesPaths = GradleSettings.getInstance(myProject)
       .getLinkedProjectsSettings()
       .stream()
       .map(ExternalProjectSettings::getExternalProjectPath)
       .collect(Collectors.toSet());
 
+    // We have no Gradle project linked, attempt to link one using Intellijs Projects root path.
     if (androidProjectCandidatesPaths.isEmpty()) {
-      GradleSyncState.getInstance(myProject).syncSkipped(currentTimeMillis(), listener);
-      return;
+      // auto-discovery of the gradle project located in the IDE Project.basePath can not be applied to IntelliJ IDEA
+      // because IDEA still supports working with gradle projects w/o built-in gradle integration
+      // (e.g. using generated project by 'idea' gradle plugin)
+      if (IdeInfo.getInstance().isAndroidStudio()) {
+        String foundPath = attemptToLinkGradleProject(myProject);
+        if (foundPath != null) {
+          androidProjectCandidatesPaths.add(foundPath);
+        }
+        else {
+          // Linking failed.
+          GradleSyncState.getInstance(myProject).syncSkipped(currentTimeMillis(), listener);
+          return;
+        }
+      }
     }
 
     for (String rootPath : androidProjectCandidatesPaths) {
@@ -160,17 +176,36 @@ public class GradleSyncExecutor {
     }
   }
 
-  public static void createGradleProjectSettingsIfNotExist(@NotNull Project project) {
-    GradleSettings gradleSettings = GradleSettings.getInstance(project);
-    Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
-    if (projectsSettings.isEmpty()) {
-      if (project.getBasePath() != null && GradleProjectImportUtil.canImportProjectFrom(project.getBaseDir())) {
-        GradleProjectSettings projectSettings = new GradleProjectSettings();
-        String externalProjectPath = toCanonicalPath(project.getBasePath());
-        projectSettings.setExternalProjectPath(externalProjectPath);
-        gradleSettings.setLinkedProjectsSettings(Collections.singletonList(projectSettings));
-      }
+  /**
+   * Attempts to find and link a Gradle project based at the current Project's base path.
+   *
+   * This method should only be called when running and Android Studio since intellij needs to support legacy Gradle projects
+   * which should not be linked via the ExternalSystem API.
+   *
+   * @param project the current project
+   * @return the canonical path to the project that has just been linked if successful, null otherwise.
+   */
+  @Nullable
+  public static String attemptToLinkGradleProject(@NotNull Project project) {
+    @SystemIndependent String projectBasePath = project.getBasePath();
+    // We can't link anything if we have no path
+    if (projectBasePath == null) {
+     return null;
     }
+
+    String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(projectBasePath);
+    VirtualFile projectRootFolder = project.getBaseDir();
+    projectRootFolder.refresh(false /* synchronous */, true /* recursive */);
+
+    if (!GradleProjectImportUtil.canImportProjectFrom(projectRootFolder)) {
+      return null;
+    }
+
+    GradleProjectSettings projectSettings = new GradleProjectSettings();
+    GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, project, null);
+    //noinspection unchecked
+    ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);
+    return externalProjectPath;
   }
 
   private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
