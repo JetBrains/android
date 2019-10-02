@@ -20,6 +20,7 @@ import static com.android.testutils.TestUtils.getWorkspaceRoot;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
+import com.android.testutils.BazelRunfilesManifestProcessor;
 import com.android.testutils.TestUtils;
 import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
@@ -36,6 +37,7 @@ public class IdeaTestSuiteBase {
 
   static {
     VfsRootAccess.allowRootAccess("/", "C:\\");  // Bazel tests are sandboxed so we disable VfsRoot checks.
+    BazelRunfilesManifestProcessor.setUpRunfiles();
     setProperties();
     setupKotlinPlugin();
   }
@@ -135,9 +137,22 @@ public class IdeaTestSuiteBase {
           }
         }
         Path targetPath = file.toPath();
-        Path linkName = Paths.get(TMP_DIR, target);
-        Files.createDirectories(linkName.getParent());
-        Files.createSymbolicLink(linkName, targetPath);
+        Path linkPath = Paths.get(TMP_DIR, target);
+
+        // Note: On Windows, due to a known limitation with symbolic link in Docker environments,
+        //       we need to create a symbolic links with the target as a relative path. This works
+        //       on Linux too, so we apply the same logic to both platforms to avoid diverging
+        //       behavior between platforms.
+        Path targetRelativePath = linkPath.getParent().relativize(targetPath);
+        Files.createDirectories(linkPath.getParent());
+        Files.createSymbolicLink(linkPath, targetRelativePath);
+
+        // Ensure we have access to the link target, as a way to check we don't run into the issue
+        // mentioned above.
+        // For reference, the statement below throws an IOException with the message "The create operation
+        // failed because the name contained at least one mount point which resolves to a volume to which
+        // the specified device object is not attached." if there is a problem with the symlink target.
+        linkPath.getFileSystem().provider().checkAccess(linkPath);
       }
     }
     catch (IOException e) {
