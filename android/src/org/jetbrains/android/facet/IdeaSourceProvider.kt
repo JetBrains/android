@@ -35,9 +35,6 @@ import org.jetbrains.android.facet.AndroidRootUtil.getFileByRelativeModulePath
 import org.jetbrains.android.facet.AndroidRootUtil.getRenderscriptGenDir
 import org.jetbrains.android.facet.AndroidRootUtil.getRenderscriptGenSourceRootPath
 import java.io.File
-import java.util.function.Function
-
-typealias SourceTypeAccessor = Function<IdeaSourceProvider, List<VirtualFile>>
 
 /**
  * Like [SourceProvider], but for IntelliJ, which means it provides
@@ -47,7 +44,6 @@ typealias SourceTypeAccessor = Function<IdeaSourceProvider, List<VirtualFile>>
          file referred to does not exist in the VFS.
  *
  * @see VirtualFile.getUrl
- * @see AndroidSourceType
  */
 interface IdeaSourceProvider {
 
@@ -301,36 +297,6 @@ interface IdeaSourceProvider {
 
       return getCurrentSourceProviders(facet).mapNotNull { it.manifestFile }
     }
-
-    @JvmField
-    val MANIFEST_PROVIDER = Function { provider: IdeaSourceProvider -> provider.manifestFile?.let { listOf(it) }.orEmpty() }
-
-    @JvmField
-    val RES_PROVIDER = SourceTypeAccessor { it.resDirectories.toList() }
-
-    @JvmField
-    val JAVA_PROVIDER = SourceTypeAccessor { it.javaDirectories.toList() }
-
-    @JvmField
-    val RESOURCES_PROVIDER = SourceTypeAccessor { it.resourcesDirectories.toList() }
-
-    @JvmField
-    val AIDL_PROVIDER = SourceTypeAccessor { it.aidlDirectories.toList() }
-
-    @JvmField
-    val JNI_PROVIDER = SourceTypeAccessor { it.jniDirectories.toList() }
-
-    @JvmField
-    val JNI_LIBS_PROVIDER = SourceTypeAccessor { it.jniLibsDirectories.toList() }
-
-    @JvmField
-    val ASSETS_PROVIDER = SourceTypeAccessor { it.assetsDirectories.toList() }
-
-    @JvmField
-    val RENDERSCRIPT_PROVIDER = SourceTypeAccessor { it.renderscriptDirectories.toList() }
-
-    @JvmField
-    val SHADERS_PROVIDER = SourceTypeAccessor { it.shadersDirectories.toList() }
   }
 }
 
