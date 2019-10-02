@@ -16,28 +16,25 @@
 package com.android.tools.adtui.model.trackgroup;
 
 import com.android.tools.adtui.model.DragAndDropListModel;
-import com.android.tools.adtui.model.DragAndDropModelListElement;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Data model for TrackGroup, a collapsible UI component that contains a list of Tracks.
  */
-public class TrackGroupModel extends DragAndDropListModel<TrackModel> implements DragAndDropModelListElement {
+public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   /**
    * Use this to generate unique (within this group) IDs for {@link TrackModel}s in this group.
    */
   private static final AtomicInteger TRACK_ID_GENERATOR = new AtomicInteger();
 
-  private int myId;
   private String myTitle;
   private boolean myCollapsedInitially;
 
   /**
    * Use builder to instantiate this class.
    */
-  private TrackGroupModel(int id, String title, boolean collapsedInitially) {
-    myId = id;
+  private TrackGroupModel(String title, boolean collapsedInitially) {
     myTitle = title;
     myCollapsedInitially = collapsedInitially;
   }
@@ -62,35 +59,17 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> implements
     return myCollapsedInitially;
   }
 
-  /**
-   * @return a unique ID needed for being in a drag and drop list. -1 if it's not in a {@link TrackGroupListModel} yet.
-   */
-  @Override
-  public int getId() {
-    return myId;
-  }
-
   public static Builder newBuilder() {
     return new Builder();
   }
 
   public static class Builder {
-    private int myId;
     private String myTitle;
     private boolean myCollapsedInitially;
 
     private Builder() {
-      myId = -1;
       myTitle = "";
       myCollapsedInitially = false;
-    }
-
-    /**
-     * Used by container (e.g. {@link TrackGroupListModel}) to set unique IDs automatically.
-     */
-    public Builder setId(int id) {
-      myId = id;
-      return this;
     }
 
     /**
@@ -110,7 +89,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> implements
     }
 
     public TrackGroupModel build() {
-      return new TrackGroupModel(myId, myTitle, myCollapsedInitially);
+      return new TrackGroupModel(myTitle, myCollapsedInitially);
     }
   }
 }

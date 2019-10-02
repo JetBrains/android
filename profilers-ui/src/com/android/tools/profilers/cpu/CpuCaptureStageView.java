@@ -15,11 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.DragAndDropList;
 import com.android.tools.adtui.model.RangeSelectionModel;
-import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
-import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
-import com.android.tools.adtui.trackgroup.TrackGroup;
+import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
@@ -29,13 +26,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.util.HashMap;
-import java.util.Map;
 import javax.swing.JComponent;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.ListCellRenderer;
 import javax.swing.ScrollPaneConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,13 +38,12 @@ import org.jetbrains.annotations.NotNull;
 public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private static final ProfilerTrackRendererFactory TRACK_RENDERER_FACTORY = new ProfilerTrackRendererFactory();
 
-  private final JList<TrackGroupModel> myTrackGroupList;
+  private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
-  private final JBSplitter mySplitter = new JBSplitter(false, 0.5f);
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
-    myTrackGroupList = createTrackGroups(stage.getTrackGroupListModel());
+    myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
     myAnalysisPanel = new CpuAnalysisPanel(stage);
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     stage.getMinimapModel().getRangeSelectionModel().addDependency(this)
@@ -69,51 +60,37 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     getComponent().removeAll();
     if (getStage().getState() == CpuCaptureStage.State.PARSING) {
       getComponent().add(new StatusPanel(getStage().getCaptureHandler(), "Parsing", "Abort"));
-    } else {
+    }
+    else {
       getComponent().add(createAnalyzingComponents());
+      getComponent().revalidate();
     }
   }
 
   private JComponent createAnalyzingComponents() {
+    myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels(), true);
     JPanel container = new JPanel(new BorderLayout());
     container.add(new CpuCaptureMinimapView(getStage().getMinimapModel()).getComponent(), BorderLayout.NORTH);
     container.add(
-      new JBScrollPane(myTrackGroupList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER),
+      new JBScrollPane(myTrackGroupList.getComponent(),
+                       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER),
       BorderLayout.CENTER);
-    mySplitter.setFirstComponent(container);
-    mySplitter.setSecondComponent(myAnalysisPanel.getComponent());
-    return mySplitter;
+
+    JBSplitter splitter = new JBSplitter(false, 0.5f);
+    splitter.setFirstComponent(container);
+    splitter.setSecondComponent(myAnalysisPanel.getComponent());
+    return splitter;
   }
 
   private void updateTrackGroupList() {
-    // Force JList cell renderer to validate.
-    myTrackGroupList.updateUI();
-  }
-
-  /**
-   * Creates a JList containing all the track groups in this stage.
-   */
-  private static JList<TrackGroupModel> createTrackGroups(@NotNull TrackGroupListModel trackGroupListModel) {
-    // Caches TrackGroupViews for the list cell renderer.
-    Map<Integer, TrackGroup> trackGroupMap = new HashMap<>();
-
-    DragAndDropList<TrackGroupModel> trackGroupList = new DragAndDropList<>(trackGroupListModel);
-    trackGroupList.setCellRenderer(new ListCellRenderer<TrackGroupModel>() {
-      @Override
-      public Component getListCellRendererComponent(JList<? extends TrackGroupModel> list,
-                                                    TrackGroupModel value,
-                                                    int index,
-                                                    boolean isSelected,
-                                                    boolean cellHasFocus) {
-        return trackGroupMap.computeIfAbsent(value.getId(), id -> new TrackGroup(value, TRACK_RENDERER_FACTORY)).getComponent();
-      }
-    });
-    return trackGroupList;
+    // Force track group list to validate its children.
+    myTrackGroupList.getComponent().updateUI();
   }
 
   @VisibleForTesting
   @NotNull
-  protected final JList<TrackGroupModel> getTrackGroupList() {
+  protected final TrackGroupListPanel getTrackGroupList() {
     return myTrackGroupList;
   }
 

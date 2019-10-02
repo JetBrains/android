@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
-import com.android.tools.adtui.model.trackgroup.TrackGroupListModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.idea.protobuf.ByteString;
@@ -34,7 +33,6 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.AtraceFrameFilterConfig;
-import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.UserEventDataSeries;
 import com.google.common.annotations.VisibleForTesting;
@@ -119,7 +117,7 @@ public class CpuCaptureStage extends Stage {
   private final CpuCaptureHandler myCpuCaptureHandler;
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
   private final List<CpuAnalysisModel> myAnalysisModels = new ArrayList<>();
-  private final TrackGroupListModel myTrackGroupListModel = new TrackGroupListModel();
+  private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
   private final CpuCaptureMinimapModel myMinimapModel;
   private State myState = State.PARSING;
 
@@ -177,8 +175,8 @@ public class CpuCaptureStage extends Stage {
   }
 
   @NotNull
-  public TrackGroupListModel getTrackGroupListModel() {
-    return myTrackGroupListModel;
+  public List<TrackGroupModel> getTrackGroupModels() {
+    return myTrackGroupModels;
   }
 
   @NotNull
@@ -252,27 +250,27 @@ public class CpuCaptureStage extends Stage {
    * The order of track groups dictates their default order in the UI.
    */
   private void initTrackGroupList(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
-    myTrackGroupListModel.clear();
+    myTrackGroupModels.clear();
 
     // Interaction events, e.g. user interaction, app lifecycle.
-    initInteractionTrackGroup(selectionRange);
+    myTrackGroupModels.add(createInteractionTrackGroup(selectionRange));
 
     // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
     if (capture instanceof AtraceCpuCapture) {
-      initDisplayTrackGroup(selectionRange, (AtraceCpuCapture)capture);
+      myTrackGroupModels.add(createDisplayTrackGroup(selectionRange, (AtraceCpuCapture)capture));
     }
 
     // Thread states and trace events.
-    initThreadsTrackGroup(selectionRange, capture);
+    myTrackGroupModels.add(createThreadsTrackGroup(selectionRange, capture));
 
     // CPU per-core usage and event etc. Systrace only.
     if (capture instanceof AtraceCpuCapture) {
-      initCpuCoresTrackGroup(selectionRange, (AtraceCpuCapture)capture);
+      myTrackGroupModels.add(createCpuCoresTrackGroup(selectionRange, (AtraceCpuCapture)capture));
     }
   }
 
-  private void initInteractionTrackGroup(@NotNull Range selectionRange) {
-    TrackGroupModel interaction = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("Interaction"));
+  private TrackGroupModel createInteractionTrackGroup(@NotNull Range selectionRange) {
+    TrackGroupModel interaction = TrackGroupModel.newBuilder().setTitle("Interaction").build();
     interaction.addTrackModel(
       new TrackModel<>(
         new EventModel<>(new RangedSeries<>(selectionRange, new UserEventDataSeries(getStudioProfilers()))),
@@ -285,10 +283,11 @@ public class CpuCaptureStage extends Stage {
           new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), true))),
         ProfilerTrackRendererType.APP_LIFECYCLE,
         "Lifecycle"));
+    return interaction;
   }
 
-  private void initDisplayTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture atraceCapture) {
-    TrackGroupModel display = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle("Display"));
+  private static TrackGroupModel createDisplayTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture atraceCapture) {
+    TrackGroupModel display = TrackGroupModel.newBuilder().setTitle("Display").build();
     AtraceFrameFilterConfig filterConfig =
       new AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, atraceCapture.getMainThreadId(),
                                   CpuFramesModel.SLOW_FRAME_RATE_US);
@@ -307,12 +306,13 @@ public class CpuCaptureStage extends Stage {
         new StateChartModel<EventAction>(),
         ProfilerTrackRendererType.VSYNC,
         "Vsync"));
+    return display;
   }
 
-  private void initThreadsTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
+  private TrackGroupModel createThreadsTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
     Set<CpuThreadInfo> threadInfos = capture.getThreads();
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
-    TrackGroupModel threads = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle(threadsTitle));
+    TrackGroupModel threads = TrackGroupModel.newBuilder().setTitle(threadsTitle).build();
     for (CpuThreadInfo threadInfo : threadInfos) {
       threads.addTrackModel(
         new TrackModel<>(
@@ -320,12 +320,13 @@ public class CpuCaptureStage extends Stage {
           ProfilerTrackRendererType.CPU_THREAD,
           threadInfo.getName()));
     }
+    return threads;
   }
 
-  private void initCpuCoresTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture capture) {
+  private TrackGroupModel createCpuCoresTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture capture) {
     int cpuCount = capture.getCpuCount();
     String coresTitle = String.format(Locale.getDefault(), "CPU cores (%d)", cpuCount);
-    TrackGroupModel cores = myTrackGroupListModel.addTrackGroupModel(TrackGroupModel.newBuilder().setTitle(coresTitle));
+    TrackGroupModel cores = TrackGroupModel.newBuilder().setTitle(coresTitle).build();
     for (int cpuId = 0; cpuId < cpuCount; ++cpuId) {
       cores.addTrackModel(
         new TrackModel<>(
@@ -333,5 +334,6 @@ public class CpuCaptureStage extends Stage {
           ProfilerTrackRendererType.CPU_CORE,
           "CPU " + cpuId));
     }
+    return cores;
   }
 }
