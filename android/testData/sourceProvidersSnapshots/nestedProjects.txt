@@ -1,28 +1,5 @@
 MODULE: app
     by Facet:
-        main
-            Manifest:
-                ./app/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./app/src/main/aidl
-            AssetsDirectories:
-                ./app/src/main/assets
-            CDirectories:
-                ./app/src/main/jni
-            CppDirectories:
-                ./app/src/main/jni
-            JavaDirectories:
-                ./app/src/main/java
-            JniLibsDirectories:
-                ./app/src/main/jniLibs
-            RenderscriptDirectories:
-                ./app/src/main/rs
-            ResDirectories:
-                ./app/src/main/res
-            ResourcesDirectories:
-                ./app/src/main/resources
-            ShadersDirectories:
-                ./app/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./app/src/main/AndroidManifest.xml
@@ -1109,29 +1086,6 @@ MODULE: app
                     file://./app/src/testDebug/shaders
 MODULE: deep2
     by Facet:
-        main
-            Manifest:
-                ./nested2/trans/deep2/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./nested2/trans/deep2/src/main/aidl
-            AssetsDirectories:
-                ./nested2/trans/deep2/src/main/assets
-            CDirectories:
-                ./nested2/trans/deep2/src/main/jni
-            CppDirectories:
-                ./nested2/trans/deep2/src/main/jni
-            JavaDirectories:
-                ./nested2/trans/deep2/src/main/java
-            JniLibsDirectories:
-                ./nested2/trans/deep2/src/main/jniLibs
-            RenderscriptDirectories:
-                ./nested2/trans/deep2/src/main/rs
-            ResDirectories:
-                ./nested2/trans/deep2/src/main/res
-            ResourcesDirectories:
-                ./nested2/trans/deep2/src/main/resources
-            ShadersDirectories:
-                ./nested2/trans/deep2/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./nested2/trans/deep2/src/main/AndroidManifest.xml
@@ -1570,29 +1524,6 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/testDebug/shaders
 MODULE: dyn_feature
     by Facet:
-        main
-            Manifest:
-                ./dyn_feature/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./dyn_feature/src/main/aidl
-            AssetsDirectories:
-                ./dyn_feature/src/main/assets
-            CDirectories:
-                ./dyn_feature/src/main/jni
-            CppDirectories:
-                ./dyn_feature/src/main/jni
-            JavaDirectories:
-                ./dyn_feature/src/main/java
-            JniLibsDirectories:
-                ./dyn_feature/src/main/jniLibs
-            RenderscriptDirectories:
-                ./dyn_feature/src/main/rs
-            ResDirectories:
-                ./dyn_feature/src/main/res
-            ResourcesDirectories:
-                ./dyn_feature/src/main/resources
-            ShadersDirectories:
-                ./dyn_feature/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./dyn_feature/src/main/AndroidManifest.xml
@@ -2032,29 +1963,6 @@ MODULE: dyn_feature
 MODULE: jav
 MODULE: lib
     by Facet:
-        main
-            Manifest:
-                ./lib/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./lib/src/main/aidl
-            AssetsDirectories:
-                ./lib/src/main/assets
-            CDirectories:
-                ./lib/src/main/jni
-            CppDirectories:
-                ./lib/src/main/jni
-            JavaDirectories:
-                ./lib/src/main/java
-            JniLibsDirectories:
-                ./lib/src/main/jniLibs
-            RenderscriptDirectories:
-                ./lib/src/main/rs
-            ResDirectories:
-                ./lib/src/main/res
-            ResourcesDirectories:
-                ./lib/src/main/resources
-            ShadersDirectories:
-                ./lib/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./lib/src/main/AndroidManifest.xml
@@ -2505,29 +2413,6 @@ MODULE: lib
                     file://./lib/src/testDebug/shaders
 MODULE: nested1
     by Facet:
-        main
-            Manifest:
-                ./nested1/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./nested1/src/main/aidl
-            AssetsDirectories:
-                ./nested1/src/main/assets
-            CDirectories:
-                ./nested1/src/main/jni
-            CppDirectories:
-                ./nested1/src/main/jni
-            JavaDirectories:
-                ./nested1/src/main/java
-            JniLibsDirectories:
-                ./nested1/src/main/jniLibs
-            RenderscriptDirectories:
-                ./nested1/src/main/rs
-            ResDirectories:
-                ./nested1/src/main/res
-            ResourcesDirectories:
-                ./nested1/src/main/resources
-            ShadersDirectories:
-                ./nested1/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./nested1/src/main/AndroidManifest.xml
@@ -2966,29 +2851,6 @@ MODULE: nested1
                     file://./nested1/src/testDebug/shaders
 MODULE: nested1-deep
     by Facet:
-        main
-            Manifest:
-                ./nested1/deep/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./nested1/deep/src/main/aidl
-            AssetsDirectories:
-                ./nested1/deep/src/main/assets
-            CDirectories:
-                ./nested1/deep/src/main/jni
-            CppDirectories:
-                ./nested1/deep/src/main/jni
-            JavaDirectories:
-                ./nested1/deep/src/main/java
-            JniLibsDirectories:
-                ./nested1/deep/src/main/jniLibs
-            RenderscriptDirectories:
-                ./nested1/deep/src/main/rs
-            ResDirectories:
-                ./nested1/deep/src/main/res
-            ResourcesDirectories:
-                ./nested1/deep/src/main/resources
-            ShadersDirectories:
-                ./nested1/deep/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./nested1/deep/src/main/AndroidManifest.xml
@@ -3427,29 +3289,6 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/testDebug/shaders
 MODULE: nested2
     by Facet:
-        main
-            Manifest:
-                ./nested2/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./nested2/src/main/aidl
-            AssetsDirectories:
-                ./nested2/src/main/assets
-            CDirectories:
-                ./nested2/src/main/jni
-            CppDirectories:
-                ./nested2/src/main/jni
-            JavaDirectories:
-                ./nested2/src/main/java
-            JniLibsDirectories:
-                ./nested2/src/main/jniLibs
-            RenderscriptDirectories:
-                ./nested2/src/main/rs
-            ResDirectories:
-                ./nested2/src/main/res
-            ResourcesDirectories:
-                ./nested2/src/main/resources
-            ShadersDirectories:
-                ./nested2/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./nested2/src/main/AndroidManifest.xml
@@ -4182,29 +4021,6 @@ MODULE: nested2
                     file://./nested2/src/testDebug/shaders
 MODULE: nested2-deep
     by Facet:
-        main
-            Manifest:
-                ./nested2/deep/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./nested2/deep/src/main/aidl
-            AssetsDirectories:
-                ./nested2/deep/src/main/assets
-            CDirectories:
-                ./nested2/deep/src/main/jni
-            CppDirectories:
-                ./nested2/deep/src/main/jni
-            JavaDirectories:
-                ./nested2/deep/src/main/java
-            JniLibsDirectories:
-                ./nested2/deep/src/main/jniLibs
-            RenderscriptDirectories:
-                ./nested2/deep/src/main/rs
-            ResDirectories:
-                ./nested2/deep/src/main/res
-            ResourcesDirectories:
-                ./nested2/deep/src/main/resources
-            ShadersDirectories:
-                ./nested2/deep/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./nested2/deep/src/main/AndroidManifest.xml

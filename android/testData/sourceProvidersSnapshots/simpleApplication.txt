@@ -1,28 +1,5 @@
 MODULE: app
     by Facet:
-        main
-            Manifest:
-                ./app/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./app/src/main/aidl
-            AssetsDirectories:
-                ./app/src/main/assets
-            CDirectories:
-                ./app/src/main/jni
-            CppDirectories:
-                ./app/src/main/jni
-            JavaDirectories:
-                ./app/src/main/java
-            JniLibsDirectories:
-                ./app/src/main/jniLibs
-            RenderscriptDirectories:
-                ./app/src/main/rs
-            ResDirectories:
-                ./app/src/main/res
-            ResourcesDirectories:
-                ./app/src/main/resources
-            ShadersDirectories:
-                ./app/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./app/src/main/AndroidManifest.xml

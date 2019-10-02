@@ -41,12 +41,6 @@ interface SourceProviderManager {
     }
   }
 
-  /**
-   * Returns the main source provider for the project. For projects that are not backed by a Gradle model, this method returns a
-   * [SourceProvider] wrapper which provides information about the old project.
-   */
-  val mainSourceProvider: SourceProvider
-
   val mainIdeaSourceProvider: IdeaSourceProvider
 
   val mainManifestFile: VirtualFile?
@@ -62,7 +56,7 @@ private class SourceProviderManagerImpl(val facet: AndroidFacet) : SourceProvide
    * Returns the main source provider for the project. For projects that are not backed by a Gradle model, this method returns a
    * [SourceProvider] wrapper which provides information about the old project.
    */
-  override val mainSourceProvider: SourceProvider
+  private val mainSourceProvider: SourceProvider
     get() {
       return facet.configuration.model?.defaultSourceProvider
              ?: mainSourceSet

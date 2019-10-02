@@ -1,29 +1,6 @@
 MODULE: TestCompositeLib1
 MODULE: TestCompositeLib1-app
     by Facet:
-        main
-            Manifest:
-                ./TestCompositeLib1/app/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./TestCompositeLib1/app/src/main/aidl
-            AssetsDirectories:
-                ./TestCompositeLib1/app/src/main/assets
-            CDirectories:
-                ./TestCompositeLib1/app/src/main/jni
-            CppDirectories:
-                ./TestCompositeLib1/app/src/main/jni
-            JavaDirectories:
-                ./TestCompositeLib1/app/src/main/java
-            JniLibsDirectories:
-                ./TestCompositeLib1/app/src/main/jniLibs
-            RenderscriptDirectories:
-                ./TestCompositeLib1/app/src/main/rs
-            ResDirectories:
-                ./TestCompositeLib1/app/src/main/res
-            ResourcesDirectories:
-                ./TestCompositeLib1/app/src/main/resources
-            ShadersDirectories:
-                ./TestCompositeLib1/app/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
@@ -478,29 +455,6 @@ MODULE: TestCompositeLib1-app
                     file://./TestCompositeLib1/app/src/testDebug/shaders
 MODULE: TestCompositeLib1-lib
     by Facet:
-        main
-            Manifest:
-                ./TestCompositeLib1/lib/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./TestCompositeLib1/lib/src/main/aidl
-            AssetsDirectories:
-                ./TestCompositeLib1/lib/src/main/assets
-            CDirectories:
-                ./TestCompositeLib1/lib/src/main/jni
-            CppDirectories:
-                ./TestCompositeLib1/lib/src/main/jni
-            JavaDirectories:
-                ./TestCompositeLib1/lib/src/main/java
-            JniLibsDirectories:
-                ./TestCompositeLib1/lib/src/main/jniLibs
-            RenderscriptDirectories:
-                ./TestCompositeLib1/lib/src/main/rs
-            ResDirectories:
-                ./TestCompositeLib1/lib/src/main/res
-            ResourcesDirectories:
-                ./TestCompositeLib1/lib/src/main/resources
-            ShadersDirectories:
-                ./TestCompositeLib1/lib/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
@@ -956,29 +910,6 @@ MODULE: TestCompositeLib1-lib
 MODULE: TestCompositeLib3
 MODULE: TestCompositeLib3-app
     by Facet:
-        main
-            Manifest:
-                ./TestCompositeLib3/app/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./TestCompositeLib3/app/src/main/aidl
-            AssetsDirectories:
-                ./TestCompositeLib3/app/src/main/assets
-            CDirectories:
-                ./TestCompositeLib3/app/src/main/jni
-            CppDirectories:
-                ./TestCompositeLib3/app/src/main/jni
-            JavaDirectories:
-                ./TestCompositeLib3/app/src/main/java
-            JniLibsDirectories:
-                ./TestCompositeLib3/app/src/main/jniLibs
-            RenderscriptDirectories:
-                ./TestCompositeLib3/app/src/main/rs
-            ResDirectories:
-                ./TestCompositeLib3/app/src/main/res
-            ResourcesDirectories:
-                ./TestCompositeLib3/app/src/main/resources
-            ShadersDirectories:
-                ./TestCompositeLib3/app/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
@@ -1433,29 +1364,6 @@ MODULE: TestCompositeLib3-app
                     file://./TestCompositeLib3/app/src/testDebug/shaders
 MODULE: TestCompositeLib3-lib
     by Facet:
-        main
-            Manifest:
-                ./TestCompositeLib3/lib/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./TestCompositeLib3/lib/src/main/aidl
-            AssetsDirectories:
-                ./TestCompositeLib3/lib/src/main/assets
-            CDirectories:
-                ./TestCompositeLib3/lib/src/main/jni
-            CppDirectories:
-                ./TestCompositeLib3/lib/src/main/jni
-            JavaDirectories:
-                ./TestCompositeLib3/lib/src/main/java
-            JniLibsDirectories:
-                ./TestCompositeLib3/lib/src/main/jniLibs
-            RenderscriptDirectories:
-                ./TestCompositeLib3/lib/src/main/rs
-            ResDirectories:
-                ./TestCompositeLib3/lib/src/main/res
-            ResourcesDirectories:
-                ./TestCompositeLib3/lib/src/main/resources
-            ShadersDirectories:
-                ./TestCompositeLib3/lib/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
@@ -1913,29 +1821,6 @@ MODULE: composite4
 MODULE: testCompositeBuild
 MODULE: testCompositeBuild-app
     by Facet:
-        main
-            Manifest:
-                ./app/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./app/src/main/aidl
-            AssetsDirectories:
-                ./app/src/main/assets
-            CDirectories:
-                ./app/src/main/jni
-            CppDirectories:
-                ./app/src/main/jni
-            JavaDirectories:
-                ./app/src/main/java
-            JniLibsDirectories:
-                ./app/src/main/jniLibs
-            RenderscriptDirectories:
-                ./app/src/main/rs
-            ResDirectories:
-                ./app/src/main/res
-            ResourcesDirectories:
-                ./app/src/main/resources
-            ShadersDirectories:
-                ./app/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./app/src/main/AndroidManifest.xml
@@ -2390,29 +2275,6 @@ MODULE: testCompositeBuild-app
                     file://./app/src/testDebug/shaders
 MODULE: testCompositeBuild-lib
     by Facet:
-        main
-            Manifest:
-                ./lib/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./lib/src/main/aidl
-            AssetsDirectories:
-                ./lib/src/main/assets
-            CDirectories:
-                ./lib/src/main/jni
-            CppDirectories:
-                ./lib/src/main/jni
-            JavaDirectories:
-                ./lib/src/main/java
-            JniLibsDirectories:
-                ./lib/src/main/jniLibs
-            RenderscriptDirectories:
-                ./lib/src/main/rs
-            ResDirectories:
-                ./lib/src/main/res
-            ResourcesDirectories:
-                ./lib/src/main/resources
-            ShadersDirectories:
-                ./lib/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./lib/src/main/AndroidManifest.xml
