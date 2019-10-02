@@ -15,11 +15,15 @@
  */
 package com.android.tools.profilers.customevent;
 
-
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
+import com.android.tools.adtui.model.trackgroup.TrackModel;
+import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
+import com.google.common.annotations.VisibleForTesting;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -28,20 +32,28 @@ public class CustomEventProfilerStage extends Stage {
 
   private final EventMonitor myEventMonitor;
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
+  //TODO (b/139200794) Get a list of the registered events from the user
+  @NotNull private final List<String> myEventNames = new ArrayList<>();
+  @NotNull private final List<UserCounterModel> myUserCounterModels = new ArrayList<>();
 
   public CustomEventProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
     myEventMonitor = new EventMonitor(profilers);
-    initTrackGroupList();
   }
 
   @Override
   public void enter() {
     myEventMonitor.enter();
+    initTrackGroupList();
   }
 
   @Override
   public void exit() {
+    // Unregister all of the user counter models so that the updater does not hold a reference to them when the stage is deleted.
+    for (UserCounterModel model : myUserCounterModels) {
+      getStudioProfilers().getUpdater().unregister(model);
+    }
+
     myEventMonitor.exit();
   }
 
@@ -50,13 +62,33 @@ public class CustomEventProfilerStage extends Stage {
    */
   private void initTrackGroupList() {
     myTrackGroupModels.clear();
-    myTrackGroupModels.add(TrackGroupModel.newBuilder().setTitle("Custom Events").build());
+    TrackGroupModel eventTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Custom Events").build();
+    myTrackGroupModels.add(eventTrackGroupModel);
 
-    //TODO: add the user defined tracks to the custom events list model
+    for (String eventName : myEventNames) {
+      // Create a data model for the specific event name and register it.
+      UserCounterModel dataModel = new UserCounterModel(getStudioProfilers(), eventName);
+      getStudioProfilers().getUpdater().register(dataModel);
+      myUserCounterModels.add(dataModel);
+
+      // Create a track model with that has the data model for this event.
+      CustomEventTrackModel customEventTrackModel = new CustomEventTrackModel(dataModel);
+
+      eventTrackGroupModel.addTrackModel(
+        new TrackModel<>(customEventTrackModel,
+                         ProfilerTrackRendererType.CUSTOM_EVENTS,
+                         eventName));
+    }
   }
 
   @NotNull
   public List<TrackGroupModel> getTrackGroupModels() {
     return myTrackGroupModels;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  List<String> getEventNames() {
+    return myEventNames;
   }
 }

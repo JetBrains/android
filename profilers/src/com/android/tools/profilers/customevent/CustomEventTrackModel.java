@@ -17,18 +17,24 @@ package com.android.tools.profilers.customevent;
 
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
+import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Track model for the Custom Event Visualization.
  */
 public class CustomEventTrackModel {
-  @NotNull private final LineChartModel myLineChartModel;
+  @NotNull private final UserCounterModel myLineChartModel;
   @NotNull private final AxisComponentModel myAxisComponentModel;
 
-  public CustomEventTrackModel(LineChartModel lineChartModel, AxisComponentModel axisComponentModel) {
-    myLineChartModel = lineChartModel;
-    myAxisComponentModel = axisComponentModel;
+  public CustomEventTrackModel(UserCounterModel userCounterModel) {
+    myLineChartModel = userCounterModel;
+
+    // Resizable axis that will adjust to the range of the user's event.
+    myAxisComponentModel =
+      new ResizingAxisComponentModel.Builder(myLineChartModel.getUsageRange(), new SingleUnitAxisFormatter(1, 5, 5, ""))
+        .build();
 
     // TODO: add tooltip (b/139199653) and legend model (b/141710789)
   }

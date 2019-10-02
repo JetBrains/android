@@ -60,11 +60,8 @@ class CustomEventTrackRendererTest {
   fun testRendererComponents() {
     // Tests that the line chart and axis component are rendered in the track.
     val range = Range(0.0, 0.0)
-    val rangedContinuousSeries = RangedContinuousSeries("", range, range, FakeDataSeries())
-    val lineChartModel = LineChartModel()
-    lineChartModel.add(rangedContinuousSeries)
-    val fakeAxisComponent = ResizingAxisComponentModel.Builder(range, SingleUnitAxisFormatter(0, 0, 0, "")).build()
-    val customEventTrackModel = TrackModel(CustomEventTrackModel(lineChartModel, fakeAxisComponent),
+    val lineChartModel = UserCounterModel(profilers, "foo")
+    val customEventTrackModel = TrackModel(CustomEventTrackModel(lineChartModel),
                                            ProfilerTrackRendererType.CUSTOM_EVENTS,
                                            "Custom Events")
 
