@@ -188,7 +188,7 @@ class QrScanningCujTest {
           .chooseIcon()
           .filterByNameAndSelect("flash on")
           .clickOk()
-          .setName("ic_flash_on_white_24dp")
+          .setName("ic_baseline_flash_on_24")
           .setColor("FFFFFF")
           .clickNext()
           .clickFinish()
@@ -199,8 +199,8 @@ class QrScanningCujTest {
       .getLayoutEditor(false).run {
         dragComponentToSurface("Common", "ImageView")
         ResourceExplorerDialogFixture.find(robot()).run {
-          resourceExplorer.searchField.setText("ic_flash_on_white")
-          resourceExplorer.selectResource("ic_flash_on_white_24dp")
+          resourceExplorer.searchField.setText("ic_baseline_flash_on")
+          resourceExplorer.selectResource("ic_baseline_flash_on_24")
           clickOk()
         }
       }
