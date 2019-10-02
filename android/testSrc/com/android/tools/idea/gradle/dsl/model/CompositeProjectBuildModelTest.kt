@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJE
 import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS
 import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Before
 import org.junit.Test
@@ -84,7 +85,7 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
 
     // Check applied property in composite subModule
     val appName = compositeModel.getModuleBuildModel(compositeSub.findChild("build.gradle")!!).android().defaultConfig().applicationId()
-    verifyPropertyModel(appName, "android.defaultConfig.applicationId", "Super cool app", compositeSub.findChild("build.gradle")!!.path)
+    verifyPropertyModel(appName, "android.defaultConfig.${ProductFlavorModelImpl.APPLICATION_ID}", "Super cool app", compositeSub.findChild("build.gradle")!!.path)
 
     // Check included builds are correct in the main modules settings file
     val includedBuilds = mainModel.projectSettingsModel!!.includedBuilds()

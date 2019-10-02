@@ -16,9 +16,13 @@
 package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_MAP_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_AND_RESET_MAP_ELEMENTS
@@ -26,8 +30,10 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_M
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_MISSING_DIMENSION_STRATEGY_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_NATIVE_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_APPEND_MATCHING_FALLBACKS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_APPEND_MATCHING_FALLBACKS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_APPLICATION_STATEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_ASSIGNMENT_STATEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_APPEND_STATEMENTS
@@ -35,8 +41,11 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAU
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_OVERRIDE_STATEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DELETE_MATCHING_FALLBACKS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DELETE_MATCHING_FALLBACKS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ENSURE_SDK_VERSION_USES_APPLICATION_SYNTAX_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_FUNCTION_CALL_WITH_PARENTHESES
@@ -45,28 +54,34 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_NATIV
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_PARSE_MATCHING_FALLBACKS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_AND_APPLY_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_AND_RESET_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_AND_RESET_MAP_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_EXTERNAL_NATIVE_BLOCK_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_MISSING_DIMENSION_STRATEGY_EXEPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_MISSING_DIMENSION_STRATEGY_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_NATIVE_BLOCK_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_ONLY_NATIVE_ELEMENT_IN_THE_LIST
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_AND_APPLY_MAP_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_AND_APPLY_MAP_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_AND_RESET_MAP_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_CLEARS_PROGUARD_FILES
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_WITH_REFERENCE
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_WITH_REFERENCE_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_WRITE_MATCHING_FALLBACKS_EXPECTED
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -874,6 +889,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("versionName", defaultConfig.versionName())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, "") // the android/defaultConfig block is now empty and will be deleted
+
     checkForInValidPsiElement(android, AndroidModelImpl::class.java)
     checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
     assertMissingProperty("applicationId", defaultConfig.applicationId())
@@ -974,6 +991,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("versionName", "2.0", defaultConfig.versionName())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED)
+
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
@@ -1030,6 +1049,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("versionCode", 2, defaultConfig.versionCode())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED)
+
     assertEquals("minSdkVersion", 16, defaultConfig.minSdkVersion())
     assertEquals("targetSdkVersion", 23, defaultConfig.targetSdkVersion())
     assertEquals("versionCode", 2, defaultConfig.versionCode())
@@ -1096,6 +1117,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("versionName", "2.0", defaultConfig.versionName())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED)
+
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
@@ -1152,6 +1175,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("versionCode", 2, defaultConfig.versionCode())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED)
+
     assertEquals("minSdkVersion", 16, defaultConfig.minSdkVersion())
     assertEquals("targetSdkVersion", 23, defaultConfig.targetSdkVersion())
     assertEquals("versionCode", 2, defaultConfig.versionCode())
@@ -1193,6 +1218,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyFlavorType("resValues", listOf(listOf("abcd", "mnop", "qrst")), defaultConfig.resValues())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED)
+
     assertEquals("consumerProguardFiles", listOf("proguard-android-1.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles())
     assertEquals("proguardFiles", listOf("proguard-android-1.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
@@ -1237,6 +1264,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyFlavorType("resValues", listOf(listOf("mnop", "qrst", "uvwx")), defaultConfig.resValues())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED)
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
@@ -1284,6 +1312,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                      defaultConfig.resValues())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED)
+
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
                  defaultConfig.consumerProguardFiles())
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
@@ -1334,6 +1364,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl")), defaultConfig.resValues())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED)
+
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
     assertEquals("proguardFiles", listOf("proguard-android.txt"), defaultConfig.proguardFiles())
     assertEquals("resConfigs", listOf("abcd"), defaultConfig.resConfigs())
@@ -1352,6 +1384,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveFromAndApplyListElementsWithSingleElement() {
+    // TODO(b/72853928): see the comment regarding the analogous test in BuildTypeModelTest
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT)
 
     val buildModel = gradleBuildModel
@@ -1370,6 +1403,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertThat(defaultConfig.proguardFiles().getValue(LIST_TYPE)).named("proguardFiles").isEmpty()
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT_EXPECTED)
+
     assertThat(defaultConfig.consumerProguardFiles().getValue(LIST_TYPE)).named("consumerProguardFiles").isEmpty()
     assertThat(defaultConfig.proguardFiles().getValue(LIST_TYPE)).named("proguardFiles").isEmpty()
 
@@ -1405,6 +1440,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                  defaultConfig.testInstrumentationRunnerArguments())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_SET_AND_APPLY_MAP_ELEMENTS_EXPECTED)
+
     assertEquals("manifestPlaceholders", mapOf("key1" to 12345, "key2" to "value2", "key3" to true),
                  defaultConfig.manifestPlaceholders())
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "small", "foo" to "bar", "key" to "value"),
@@ -1444,6 +1481,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                  defaultConfig.testInstrumentationRunnerArguments())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED)
+
     assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "newName1", "activityLabel2" to "newName2"),
                  defaultConfig.manifestPlaceholders())
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "small", "key" to "value"),
@@ -1484,6 +1523,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                  defaultConfig.testInstrumentationRunnerArguments())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED)
+
     assertEquals("manifestPlaceholders", mapOf("activityLabel2" to "defaultName2"),
                  defaultConfig.manifestPlaceholders())
     assertEquals("testInstrumentationRunnerArguments", mapOf("foo" to "bar"),
@@ -1535,6 +1576,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     ndk.abiFilters().getListValue("abiFilter6")!!.setValue("abiFilterZ")
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/142114586)
+    //verifyFileContents(myBuildFile, "")
+
     android = buildModel.android()
     assertNotNull(android)
     defaultConfig = android.defaultConfig()
@@ -1587,6 +1631,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     ndk.abiFilters().addListValue().setValue("abiFilterZ")
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/142114586)
+    //verifyFileContents(myBuildFile, "")
+
     android = buildModel.android()
     assertNotNull(android)
     defaultConfig = android.defaultConfig()
@@ -1639,6 +1686,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     ndk.abiFilters().delete()
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, "")
+
     verifyNullNativeElements()
   }
 
@@ -1671,6 +1720,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     ndk.abiFilters().getListValue("abiFilter6")!!.delete()
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/142114586)
+    //verifyFileContents(myBuildFile, "")
+
     android = buildModel.android()
     assertNotNull(android)
     defaultConfig = android.defaultConfig()
@@ -1735,6 +1787,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     ndk.abiFilters().getListValue("abiFilterZ")!!.delete()
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, "")
+
     verifyNullNativeElements()
   }
 
@@ -1803,6 +1857,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     defaultConfig.removeNdk()
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, "")
+
     android = buildModel.android()
     assertNotNull(android)
     defaultConfig = android.defaultConfig()
@@ -1824,6 +1880,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     externalNativeBuild.removeNdkBuild()
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, "")
+
     android = buildModel.android()
     assertNotNull(android)
     externalNativeBuild = android.defaultConfig().externalNativeBuild()
@@ -1855,7 +1913,6 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     defaultConfig.targetSdkVersion().setValue(24)
 
     applyChangesAndReparse(buildModel)
-
     verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ENSURE_SDK_VERSION_USES_APPLICATION_SYNTAX_EXPECTED)
   }
 
@@ -1870,7 +1927,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testWriteMatchingFallbacks() {
-    assumeTrue(isGroovy())
+    //assumeTrue(isGroovy())
     val text = ""
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
@@ -1882,6 +1939,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyListProperty(resolvedPropertyModel, listOf("trial", "free"))
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_WRITE_MATCHING_FALLBACKS_EXPECTED)
+
     verifyListProperty(buildModel.android().productFlavors()[0].matchingFallbacks(), listOf("trial", "free"))
   }
 
@@ -1896,6 +1955,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     resolvedPropertyModel.addListValue().setValue("free")
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_APPEND_MATCHING_FALLBACKS_EXPECTED)
+
     verifyListProperty(buildModel.android().productFlavors()[0].matchingFallbacks(), listOf("trial", "free"))
   }
 
@@ -1910,6 +1971,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     resolvedPropertyModel.delete()
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_DELETE_MATCHING_FALLBACKS_EXPECTED)
+
     assertMissingProperty(buildModel.android().productFlavors()[0].matchingFallbacks())
   }
 
@@ -1940,7 +2003,6 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
       verifyListProperty(newDim, listOf("dim", "val1", "val2"))
     }
 
-    applyChangesAndReparse(buildModel)
     run {
       val newDim = buildModel.android().defaultConfig().missingDimensionStrategies()[0]
       verifyListProperty(newDim, listOf("dim", "val1", "val2"))
@@ -1950,12 +2012,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ADD_MISSING_DIMENSION_STRATEGY_EXPECTED)
+
     val strategies = buildModel.android().defaultConfig().missingDimensionStrategies()
     assertSize(2, strategies)
     verifyListProperty(strategies[0], listOf("dim", "val1", "val2"))
     verifyListProperty(strategies[1], listOf("otherDim", "boo"))
-
-    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ADD_MISSING_DIMENSION_STRATEGY_EXPECTED)
   }
 
   @Test
@@ -1979,6 +2041,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_REMOVE_MISSING_DIMENSION_STRATEGY_EXPECTED)
 
     run {
       val strategies = buildModel.android().defaultConfig().missingDimensionStrategies()
@@ -1988,8 +2051,6 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
       val freeStrategies = buildModel.android().productFlavors()[0].missingDimensionStrategies()
       assertEmpty(freeStrategies)
     }
-
-    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_REMOVE_MISSING_DIMENSION_STRATEGY_EXEPECTED)
   }
 
   @Test
@@ -2006,6 +2067,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/142114586)
+    //verifyFileContents(myBuildFile, "")
 
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
     buildModel.android().defaultConfig().missingDimensionStrategies()[0].toList()!![1].setValue("minApi17")
@@ -2034,6 +2097,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/142114586)
+    //verifyFileContents(myBuildFile, "")
 
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
     buildModel.android().defaultConfig().missingDimensionStrategies()[2].delete()
@@ -2063,6 +2128,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/142114586)
+    //verifyFileContents(myBuildFile, "")
 
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
     buildModel.android().defaultConfig().addMissingDimensionStrategy("abi", "x86")
@@ -2081,9 +2148,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyListProperty(resConfigs, listOf("en", "fr", "it"))
 
     applyChangesAndReparse(buildModel)
-    verifyListProperty(resConfigs, listOf("en", "fr", "it"))
-
     verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_RES_CONFIGS_IN_LIST_METHOD_CALL_EXPECTED)
+
+    verifyListProperty(resConfigs, listOf("en", "fr", "it"))
   }
 
   @Test
@@ -2098,9 +2165,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyListProperty(resConfigs, listOf("fr"))
 
     applyChangesAndReparse(buildModel)
-    verifyListProperty(resConfigs, listOf("fr"))
-
     verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL_EXPECTED)
+
+    verifyListProperty(resConfigs, listOf("fr"))
   }
 
   /**
@@ -2121,7 +2188,6 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
 
     applyChanges(buildModel)
-
     verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_EXPECTED)
   }
 
@@ -2144,7 +2210,6 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
 
     applyChanges(buildModel)
-
     verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_WITH_REFERENCE_EXPECTED)
   }
 
