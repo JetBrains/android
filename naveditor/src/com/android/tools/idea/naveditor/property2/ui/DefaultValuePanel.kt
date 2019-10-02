@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.naveditor.property.inspector.NAV_ACTION_ARGUMENTS_COMPONENT_NAME
 import com.android.tools.idea.naveditor.property.inspector.NAV_ARGUMENTS_ROW_HEIGHT
 import com.android.tools.property.ptable2.PFormTable
+import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBTextField
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -29,17 +30,22 @@ class DefaultValuePanel(model: DefaultValueTableModel) : AdtSecondaryPanel(Borde
   val table = PFormTable(model)
 
   init {
-    table.name = NAV_ACTION_ARGUMENTS_COMPONENT_NAME
-    table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
-    table.minimumSize = Dimension(0, 36)
-    table.isOpaque = false
-    table.emptyText.text = "No Arguments"
+    if (model.rowCount == 0) {
+      // For the empty status text
+      add(JBList<DefaultValueModel>(listOf()))
+    }
+    else {
+      table.name = NAV_ACTION_ARGUMENTS_COMPONENT_NAME
+      table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
+      table.minimumSize = Dimension(0, 36)
+      table.isOpaque = false
 
-    addCellRenderer(false, "name", 0)
-    addCellRenderer(false, "type", 1)
-    addCellRenderer(true, "default value", 2)
+      addCellRenderer(false, "name", 0)
+      addCellRenderer(false, "type", 1)
+      addCellRenderer(true, "default value", 2)
 
-    add(table)
+      add(table)
+    }
   }
 
   private fun addCellRenderer(enabled: Boolean, emptyText: String, column: Int) {
