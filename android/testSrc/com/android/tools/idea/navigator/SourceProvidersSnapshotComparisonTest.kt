@@ -198,7 +198,6 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
             nest {
               nest("by Facet:") {
                 val sourceProviderManager = SourceProviderManager.getInstance(androidFacet)
-                sourceProviderManager.mainSourceProvider.dump()
                 sourceProviderManager.mainIdeaSourceProvider.dump()
               }
               val model = AndroidModel.get(module)

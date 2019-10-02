@@ -1,28 +1,5 @@
 MODULE: app
     by Facet:
-        main
-            Manifest:
-                ./app/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./app/src/main/aidl
-            AssetsDirectories:
-                ./app/src/main/assets
-            CDirectories:
-                ./app/src/main/jni
-            CppDirectories:
-                ./app/src/main/jni
-            JavaDirectories:
-                ./app/src/main/java
-            JniLibsDirectories:
-                ./app/src/main/jniLibs
-            RenderscriptDirectories:
-                ./app/src/main/rs
-            ResDirectories:
-                ./app/src/main/res
-            ResourcesDirectories:
-                ./app/src/main/resources
-            ShadersDirectories:
-                ./app/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./app/src/main/AndroidManifest.xml
@@ -473,29 +450,6 @@ MODULE: app
                     file://./app/src/testDebug/shaders
 MODULE: lib1
     by Facet:
-        main
-            Manifest:
-                ./lib1/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./lib1/src/main/aidl
-            AssetsDirectories:
-                ./lib1/src/main/assets
-            CDirectories:
-                ./lib1/src/main/jni
-            CppDirectories:
-                ./lib1/src/main/jni
-            JavaDirectories:
-                ./lib1/src/main/java
-            JniLibsDirectories:
-                ./lib1/src/main/jniLibs
-            RenderscriptDirectories:
-                ./lib1/src/main/rs
-            ResDirectories:
-                ./lib1/src/main/res
-            ResourcesDirectories:
-                ./lib1/src/main/resources
-            ShadersDirectories:
-                ./lib1/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./lib1/src/main/AndroidManifest.xml
@@ -940,29 +894,6 @@ MODULE: lib1
                     file://./lib1/src/testDebug/shaders
 MODULE: lib2
     by Facet:
-        main
-            Manifest:
-                ./lib2/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./lib2/src/main/aidl
-            AssetsDirectories:
-                ./lib2/src/main/assets
-            CDirectories:
-                ./lib2/src/main/jni
-            CppDirectories:
-                ./lib2/src/main/jni
-            JavaDirectories:
-                ./lib2/src/main/java
-            JniLibsDirectories:
-                ./lib2/src/main/jniLibs
-            RenderscriptDirectories:
-                ./lib2/src/main/rs
-            ResDirectories:
-                ./lib2/src/main/res
-            ResourcesDirectories:
-                ./lib2/src/main/resources
-            ShadersDirectories:
-                ./lib2/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./lib2/src/main/AndroidManifest.xml
@@ -1407,29 +1338,6 @@ MODULE: lib2
                     file://./lib2/src/testDebug/shaders
 MODULE: lib3
     by Facet:
-        main
-            Manifest:
-                ./lib3/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./lib3/src/main/aidl
-            AssetsDirectories:
-                ./lib3/src/main/assets
-            CDirectories:
-                ./lib3/src/main/jni
-            CppDirectories:
-                ./lib3/src/main/jni
-            JavaDirectories:
-                ./lib3/src/main/java
-            JniLibsDirectories:
-                ./lib3/src/main/jniLibs
-            RenderscriptDirectories:
-                ./lib3/src/main/rs
-            ResDirectories:
-                ./lib3/src/main/res
-            ResourcesDirectories:
-                ./lib3/src/main/resources
-            ShadersDirectories:
-                ./lib3/src/main/shaders
         main (IDEA)
             ManifestUrl:
                 file://./lib3/src/main/AndroidManifest.xml
