@@ -339,14 +339,13 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         }
       }
     }
-    MTag selTag = mMotionEditor.getSelectedTag();
-    String selTagName = selTag.getTagName();
     String[] ids = new String[selection.size()];
     int count = 0;
     for (NlComponent component : selection) {
       ids[count++] = Utils.stripID(component.getId());
     }
     mMotionEditor.selectById(ids);
+
 
     fireSelectionChanged(selection);
   }

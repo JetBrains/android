@@ -129,6 +129,7 @@ class ConstraintSetPanel extends JPanel {
 
     }
   };
+  private String mConstraintSetId;
 
   ConstraintSetPanel() {
     super(new BorderLayout());
@@ -351,6 +352,9 @@ class ConstraintSetPanel extends JPanel {
 
   public void setMTag(@Nullable MTag constraintSet, @NotNull MeModel meModel) {
     if (DEBUG) {
+      if (constraintSet == null) {
+        Debug.logStack("setMTag constraintSet = null",4);
+      }
       Debug.log("ConstraintSetPanel.setMTag constraintSet = " + constraintSet);
       Debug.log("ConstraintSetPanel.setMTag motionScene = " + meModel.motionScene);
       Debug.log("ConstraintSetPanel.setMTag layout = " + meModel.layout);
@@ -375,7 +379,12 @@ class ConstraintSetPanel extends JPanel {
         MTag[] constraintSets = meModel.motionScene.getChildTags("ConstraintSet");
         mParent = getDerived(constraintSets, mDerived);
       }
-      mTitle.setText(Utils.stripID(mConstraintSet.getAttributeValue("id")));
+      mConstraintSetId = Utils.stripID(mConstraintSet.getAttributeValue("id"));
+      mTitle.setText( mConstraintSetId);
+    } else {
+      if (mConstraintSetId != null) {
+        mConstraintSet = mMeModel.getConstraintSet(mConstraintSetId);
+      }
     }
     buildTable();
 
@@ -427,6 +436,9 @@ class ConstraintSetPanel extends JPanel {
           return;
         }
         in = true;
+        if (DEBUG) {
+          Debug.log(" selectionChanged " + selection);
+        }
         if (selection == MotionEditorSelector.Type.CONSTRAINT) {
           HashSet<String> selectedSet = new HashSet<>();
 
@@ -450,6 +462,7 @@ class ConstraintSetPanel extends JPanel {
   }
 
   public void selectById(String[] ids) {
+    Debug.log(" selectById "+Arrays.toString(ids));
     HashSet<String> selectedSet = new HashSet<>(Arrays.asList(ids));
     mConstraintSetTable.clearSelection();
     for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {

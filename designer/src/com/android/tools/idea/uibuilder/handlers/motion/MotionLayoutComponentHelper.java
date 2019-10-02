@@ -45,6 +45,7 @@ public class MotionLayoutComponentHelper {
   private Method motionLayoutAccess;
   private Method mySetAttributesMethod;
   private Method myGetKeyframeMethod;
+  private Method myGetKeyFramePositionsMethod;
   private Method mySetKeyframeMethod;
   private Method myGetPositionKeyframeMethod;
   private Method myGetKeyframeAtLocationMethod;
@@ -122,6 +123,9 @@ public class MotionLayoutComponentHelper {
         return (Integer)RenderService.runRenderAction(() -> {
           try {
             ViewInfo info = NlComponentHelperKt.getViewInfo(nlComponent);
+            if (info == null) {
+              return -1;
+            }
             return myGetAnimationPathMethod.invoke(myDesignTool, info.getViewObject(), path, size);
           }
           catch (Exception e) {
@@ -784,5 +788,52 @@ public class MotionLayoutComponentHelper {
     }
 
     setAttributes(dpiValue, state, info.getViewObject(), attributes);
+  }
+
+  public int getKeyframePos(NlComponent component, int[] type, float[]pos) {
+    if (myDesignTool == null) {
+      return -1;
+    }
+    ViewInfo info = NlComponentHelperKt.getViewInfo(component);
+
+    if (info == null || (info != null && info.getViewObject() == null)) {
+      return -1;
+    }
+
+    if (myGetKeyFramePositionsMethod == null) {
+      try {
+        myGetKeyFramePositionsMethod = myDesignTool.getClass().getMethod("getKeyFramePositions",
+                                                                         Object.class, int[].class,float[].class);
+      }
+      catch (NoSuchMethodException e) {
+        if (true) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    if (myGetKeyFramePositionsMethod != null) {
+      try {
+        return RenderService.runRenderAction(() -> {
+          try {
+            return (Integer)myGetKeyFramePositionsMethod.invoke(myDesignTool, info.getViewObject(), type, pos);
+          }
+          catch (Exception e) {
+            myGetKeyFramePositionsMethod = null;
+            if (true) {
+              e.printStackTrace();
+            }
+          }
+          return null;
+        });
+      }
+      catch (Exception e) {
+        if (true) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    return -1;
   }
 }

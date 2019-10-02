@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MESceneP
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker.HitElementListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Drawing;
 import java.awt.BasicStroke;
@@ -34,6 +35,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 import javax.swing.JPanel;
 
 /**
@@ -48,6 +50,7 @@ class OverviewPanel extends JPanel {
   MTag[] mTransitions;
   int[] mTransitionStart;
   int[] mTransitionEnd;
+  int[] mOnActionSize;
   String[] mConstraintSetNames;
   int mTransitionSelected = -1;
   int mConstraintSetSelected = -1;
@@ -292,8 +295,19 @@ class OverviewPanel extends JPanel {
     int constraintSetY = CS_GAP + arrow_spacing + mTransitions.length * arrow_spacing;
     int yoffset = CS_GAP + arrow_spacing - ARROW_HEIGHT / 2;
     // --------  Draw Transitions lines -------------
-
+    Arrays.fill(mOnActionSize, 0);
     for (int i = 0; i < mTransitions.length; i++) {
+      int swipes = 0;
+      int clicks = 0;
+      for (MTag tag : mTransitions[i].getChildren()) {
+        String tagName = tag.getTagName();
+        if (MotionSceneAttrs.Tags.ON_SWIPE.equals(tagName)) {
+          swipes++;
+        }
+        if (MotionSceneAttrs.Tags.ON_CLICK.equals(tagName)) {
+          clicks++;
+        }
+      }
       int start = mTransitionStart[i];
       int end = mTransitionEnd[i];
       int x1 = getmConstraintSetX(start + 1) + csWidth / 2;
@@ -311,10 +325,27 @@ class OverviewPanel extends JPanel {
 
       boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
       drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i]);
+      if ((clicks > 0) || (swipes > 0)) {
+        mOnActionSize[i] = drawActions(g, swipes, clicks, x1, x2, y);
+      }
     }
     // --------  Draw Transitions lines -------------
+
+
     ((Graphics2D)g).setStroke(ourSelectedStroke);
     for (int i = 0; i < mTransitions.length; i++) {
+      int swipes = 0;
+      int clicks = 0;
+      for (MTag tag : mTransitions[i].getChildren()) {
+        String tagName = tag.getTagName();
+        if (MotionSceneAttrs.Tags.ON_SWIPE.equals(tagName)) {
+          swipes++;
+        }
+        if (MotionSceneAttrs.Tags.ON_CLICK.equals(tagName)) {
+          clicks++;
+        }
+      }
+
       int start = mTransitionStart[i];
       int end = mTransitionEnd[i];
       int x1 = getmConstraintSetX(start + 1) + csWidth / 2;
@@ -330,7 +361,11 @@ class OverviewPanel extends JPanel {
 
       boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
       drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i]);
+      if ((clicks > 0) || (swipes > 0)) {
+        drawActions(g, swipes, clicks, x1, x2, y);
+      }
     }
+
     // --------  Draw Transitions strings -------------
 
     for (int i = 0; i < mTransitions.length; i++) {
@@ -355,6 +390,7 @@ class OverviewPanel extends JPanel {
         FontMetrics fm = g.getFontMetrics();
         Rectangle2D bounds = fm.getStringBounds(str, g);
         int strX = (x1 > x2) ? x1 - (int)bounds.getWidth() - 20 : x1 + 4;
+        strX += mOnActionSize[i];
         Color tmp = g.getColor();
         g.setColor(getBackground());
         g.fillRect(strX, y - fm.getHeight(), (int)bounds.getWidth(), (int)bounds.getHeight());
@@ -572,6 +608,27 @@ class OverviewPanel extends JPanel {
     }
   }
 
+  private int drawActions(Graphics g, int swipes, int clicks, int x1, int x2, int y) {
+    int onSize = 4;
+    boolean backward = (x2 < x1);
+    int offset = MEUI.scale(6);
+    int gap = MEUI.scale(2);
+    int markx = x1 - MEUI.scale(2) - 1;
+    int totalSpace = 0;
+    int dir = (backward) ? -1 : 1;
+
+    if (clicks > 0) {
+      g.fillRoundRect(markx + (backward ? (-offset - onSize) : offset), y - onSize - 2, onSize, onSize, onSize, onSize);
+      markx += totalSpace = dir * (onSize + gap);
+    }
+    if (swipes > 0) {
+      int longpill = onSize * 3;
+      g.fillRoundRect(markx + (backward ? (-offset - longpill) : offset), y - onSize - 2, longpill, onSize, onSize, onSize);
+      totalSpace += dir * (longpill + gap);
+    }
+    return totalSpace;
+  }
+
   private void drawTransition(Graphics2D g, boolean hoverHighlight, int x1, int x2, int y, int constraintSetY, Object tag) {
     int tri_delta_y = 5;
     int tri_delta_x = 5;
@@ -742,6 +799,7 @@ class OverviewPanel extends JPanel {
     mTransitions = motionScene.getChildTags("Transition");
     mTransitionStart = new int[mTransitions.length];
     mTransitionEnd = new int[mTransitions.length];
+    mOnActionSize = new int[mTransitions.length];
     mConstraintSetNames = new String[mConstraintSet.length];
     for (int j = 0; j < mConstraintSet.length; j++) {
       mConstraintSetNames[j] = Utils.stripID(mConstraintSet[j].getAttributeValue("id"));
