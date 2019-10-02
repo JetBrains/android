@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import javaslang.collection.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,7 +57,7 @@ public class CreateNewMobileProjectTest {
   @Test
   public void createNewMobileProject() {
     IdeFrameFixture ideFrame = newProject("Test Application").create(guiTest);
-    assertThat(ideFrame.getModuleNames()).containsExactly("app", "Test Application");
+    assertThat(ideFrame.getModuleNames()).containsAllIn(List.of("app", "Test_Application"));
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
