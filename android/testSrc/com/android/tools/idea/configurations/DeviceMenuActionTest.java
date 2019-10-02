@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.adtui.actions.ActionTestUtils;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Separator;
 import org.jetbrains.android.AndroidTestCase;
 
 import static org.mockito.Mockito.mock;
@@ -35,9 +34,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
 
     DeviceMenuAction menuAction = new DeviceMenuAction(holder);
     menuAction.updateActions();
-    StringBuilder sb = new StringBuilder();
-    prettyPrintActions(menuAction, sb, 0);
-    String actual = sb.toString();
+    String actual = ActionTestUtils.prettyPrintActions(menuAction, action -> !isAvdAction(action));
     String expected =
       "\n" + // The selected device is empty because we use the mock configuration for testing.
       "    Phone\n" +
@@ -95,41 +92,6 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "        10.1\" WXGA (Tablet) (1280 \u00d7 800, mdpi)\n" +
       "    Add Device Definition...\n";
     Truth.assertThat(actual).isEqualTo(expected);
-  }
-
-  private static void prettyPrintActions(AnAction action, StringBuilder sb, int depth) {
-    String text;
-    if (action instanceof Separator) {
-      text = "------------------------------------------------------";
-    }
-    else {
-      text = action.getTemplatePresentation().getText();
-    }
-    if (text != null) {
-      for (int i = 0; i < depth; i++) {
-        sb.append("    ");
-      }
-      sb.append(text).append("\n");
-    }
-    DefaultActionGroup group = action instanceof DefaultActionGroup ? (DefaultActionGroup)action : null;
-    if (group != null) {
-      // for skipping the Separator of AVD section.
-      boolean skipNext = false;
-
-      for (AnAction child : group.getChildActionsOrStubs()) {
-        if (isAvdAction(child)) {
-          // Skip AVD items in tests - these tend to vary from build environment to build environment
-          skipNext = true;
-          continue;
-        }
-        if (skipNext) {
-          skipNext = false;
-          continue;
-        }
-        assert !skipNext;
-        prettyPrintActions(child, sb, depth + 1);
-      }
-    }
   }
 
   private static boolean isAvdAction(AnAction action) {

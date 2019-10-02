@@ -40,8 +40,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -54,7 +52,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.ui.EmptyIcon;
 import java.awt.BorderLayout;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -75,7 +72,7 @@ import org.jetbrains.annotations.Nullable;
  * Most of the codes are copied from {@link NlPreviewForm} instead of sharing, because {@link NlPreviewForm} is being
  * removed after we enable split editor.
  */
-public class VisualizationForm implements Disposable {
+public class VisualizationForm implements Disposable, ConfigurationSetListener {
 
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
 
@@ -96,6 +93,7 @@ public class VisualizationForm implements Disposable {
   private VirtualFile myFile;
   private boolean isActive = false;
   private JComponent myContentPanel;
+  private ActionToolbar myActionToolbar;
   private JLabel myFileNameLabel;
 
   @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
@@ -110,7 +108,7 @@ public class VisualizationForm implements Disposable {
 
   private FileEditor myEditor;
 
-  @NotNull private VisualizationModelsProvider myVisualizationModel = PixelDeviceModelsProvider.INSTANCE;
+  @NotNull private ConfigurationSet myCurrentConfigurationSet = ConfigurationSet.PIXEL_DEVICES;
 
   /**
    * {@link CompletableFuture} of the next model load. This is kept so the load can be cancelled.
@@ -143,27 +141,14 @@ public class VisualizationForm implements Disposable {
   private void createContentPanel() {
     myContentPanel = new JPanel(new BorderLayout());
     myFileNameLabel = new JLabel();
-    // Create an action group and fill a dummy action for now. This makes the height of toolbar same as layout editor's.
-    // TODO: Remove the dummy action when another action is added.
-    ActionGroup group = new DefaultActionGroup(new AnAction(EmptyIcon.create(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.width,
-                                                                             ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height)) {
-      @Override
-      public void update(@NotNull AnActionEvent e) {
-        e.getPresentation().setEnabled(false);
-        e.getPresentation().setVisible(true);
-      }
-
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent e) {
-      }
-    });
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("VisualizationBar", group, true);
+    ActionGroup group = new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet));
+    myActionToolbar = ActionManager.getInstance().createActionToolbar("VisualizationBar", group, true);
 
     JComponent fileNamePanel = new AdtPrimaryPanel(new BorderLayout());
     fileNamePanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
                                                              BorderFactory.createEmptyBorder(0, 6, 0, 0)));
     fileNamePanel.add(myFileNameLabel, BorderLayout.WEST);
-    fileNamePanel.add(toolbar.getComponent(), BorderLayout.CENTER);
+    fileNamePanel.add(myActionToolbar.getComponent(), BorderLayout.CENTER);
 
     myContentPanel.add(fileNamePanel, BorderLayout.NORTH);
     myContentPanel.add(mySurface, BorderLayout.CENTER);
@@ -301,7 +286,7 @@ public class VisualizationForm implements Disposable {
       .supplyAsync(() -> {
         // Hide the content while adding the models.
         myWorkBench.hideContent();
-        List<NlModel> models = myVisualizationModel.createNlModels(this, file, facet);
+        List<NlModel> models = myCurrentConfigurationSet.getModelsProvider().createNlModels(this, file, facet);
         if (models.isEmpty()) {
           myWorkBench.showLoading("No Device Found");
           return null;
@@ -427,6 +412,16 @@ public class VisualizationForm implements Disposable {
       setNoActiveModel();
     }
     getAnalyticsManager().trackVisualizationToolWindow(false);
+  }
+
+  @Override
+  public void onConfigurationSetChanged(@NotNull ConfigurationSet newConfigurationSet) {
+    if (myCurrentConfigurationSet != newConfigurationSet) {
+      myCurrentConfigurationSet = newConfigurationSet;
+      myActionToolbar.updateActionsImmediately();
+      // Dispose old models and create new models with new configuration set.
+      initNeleModel();
+    }
   }
 
   private NlAnalyticsManager getAnalyticsManager() {
