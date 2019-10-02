@@ -110,7 +110,9 @@ public class MotionLayoutDecorator extends SceneDecorator {
     {AnchorTarget.Type.LEFT, AnchorTarget.Type.RIGHT, AnchorTarget.Type.TOP, AnchorTarget.Type.BOTTOM}; // order matches
   private final static boolean[] isLeftRight = {true, true, false, false}; // order matches
   private final static int[] ourOppositeDirection = {1, 0, 3, 2}; // order matches
-  float[] mPathBuffer = new float[200];
+  private  float[] mPathBuffer = new float[200];
+  private int[] keyFrameTypes = new int[101];
+  private  float[] keyFramePos = new float[202];
 
   private static void convert(@NotNull SceneContext sceneContext, Rectangle rect) {
     rect.x = sceneContext.getSwingXDip(rect.x);
@@ -324,7 +326,12 @@ public class MotionLayoutDecorator extends SceneDecorator {
       for (SceneComponent child : children) {
         int len = helper.getPath(child.getNlComponent(), mPathBuffer, size);
         if (len > 0) {
-          DrawMotionPath.buildDisplayList(list, mPathBuffer, size * 2);
+          int x =  component.getDrawX();
+          int y =  component.getDrawY();
+          int w =  component.getDrawWidth();
+          int h =  component.getDrawHeight();
+          int keyFrameCount = helper.getKeyframePos(child.getNlComponent(), keyFrameTypes, keyFramePos);
+          DrawMotionPath.buildDisplayList(list, mPathBuffer, size * 2, keyFrameTypes,keyFramePos, keyFrameCount, x, y, w, h);
         }
       }
     }
