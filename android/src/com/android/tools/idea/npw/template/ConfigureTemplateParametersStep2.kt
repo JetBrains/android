@@ -48,7 +48,7 @@ import com.android.tools.idea.templates.validate
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.android.tools.idea.wizard.template.BooleanParameter
+import com.android.tools.idea.wizard.template.CheckBoxWidget
 import com.android.tools.idea.wizard.template.Constraint
 import com.android.tools.idea.wizard.template.Constraint.ACTIVITY
 import com.android.tools.idea.wizard.template.Constraint.API_LEVEL
@@ -62,11 +62,16 @@ import com.android.tools.idea.wizard.template.Constraint.PACKAGE
 import com.android.tools.idea.wizard.template.Constraint.SOURCE_SET_FOLDER
 import com.android.tools.idea.wizard.template.Constraint.STRING
 import com.android.tools.idea.wizard.template.Constraint.URI_AUTHORITY
-import com.android.tools.idea.wizard.template.EnumParameter
+import com.android.tools.idea.wizard.template.EnumWidget
+import com.android.tools.idea.wizard.template.LanguageWidget
+import com.android.tools.idea.wizard.template.PackageNameWidget
 import com.android.tools.idea.wizard.template.Parameter
+import com.android.tools.idea.wizard.template.ParameterWidget
 import com.android.tools.idea.wizard.template.Separator
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.TextFieldWidget
+import com.android.tools.idea.wizard.template.Widget
 import com.google.common.cache.CacheBuilder
 import com.google.common.base.Joiner
 import com.google.common.base.Strings
@@ -83,6 +88,7 @@ import com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL
 import com.intellij.uiDesigner.core.GridConstraints.FILL_NONE
 import com.intellij.uiDesigner.core.GridLayoutManager
 import com.intellij.util.ui.JBUI
+import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.awt.Dimension
 import java.awt.Font
@@ -161,6 +167,8 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   private val isNewModule: Boolean
     get() = model.module == null
 
+  private val widgets: Collection<Widget<*>> get() = model.newTemplate.widgets
+
   private val parameters: Collection<Parameter<*>> get() = model.newTemplate.parameters
 
   /**
@@ -209,9 +217,15 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       override fun get(): Boolean = parameterDescription.get().isNotEmpty()
     })
 
-    for (parameter in parameters) {
-      val row = createRowForParameter(model.module, parameter)
+    for (widget in widgets) {
+      val row = createRowForWidget(model.module, widget).apply { addToPanel(parametersPanel) }
+
+      if (widget !is ParameterWidget<*>) {
+        continue
+      }
+
       val property = row.property
+      val parameter = widget.parameter as Parameter<in Any>
       property?.addListener {
         // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
         if (evaluationState != EvaluationState.EVALUATING && rootPanel.isShowing) {
@@ -220,8 +234,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
           enqueueEvaluateParameters()
         }
       }
-      parameterRows[parameter as Parameter<in Any>] = row
-      row.addToPanel(parametersPanel)
+      parameterRows[parameter] = row
       row.setValue(parameter.defaultValue)
     }
 
@@ -240,7 +253,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
 
     // TODO do not deduplicate package name etc.
     // Also pass user value?
-    val parameterValues = parameters.filterIsInstance(StringParameter::class.java)
+    val parameterValues = parameters.filterIsInstance<StringParameter>()
       .associateWith { userValues[it] ?: deduplicate(it) }
 
     parameters.forEach {
@@ -259,38 +272,29 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
    * This method takes an input [Parameter] and returns a generated [RowEntry] for  it, which neatly encapsulates its UI.
    * The caller should use [RowEntry.addToPanel] after receiving it.
    */
-  private fun createRowForParameter(module: Module?, parameter: Parameter<*>): RowEntry<*> {
-    requireNotNull(parameter.name)
-    val name = parameter.name
-
-    // TODO(qumeric): Extract this logic into an extension point at some point, in order to be more friendly to third-party plugins with templates?
-    return when (parameter) {
-      is StringParameter -> when (parameter.type) {
-        StringParameter.Type.STRING -> RowEntry(name, TextFieldProvider2(parameter))
-        StringParameter.Type.LANGUAGE -> RowEntry(name, LanguageComboProvider()).also {
-          val language = (it.property as SelectedItemProperty<Language>)
-          // LanguageComboProvider always sets this
-          bindings.bindTwoWay(ObjectProperty.wrap(language), model.renderLanguage)
-        }
-        StringParameter.Type.PACKAGE_NAME -> {
-          val rowEntry = if (module != null)
-            RowEntry(name, PackageComboProvider2(module.project, parameter, model.packageName.get(), getRecentsKeyForParameter(parameter)))
-          else
-            RowEntry(name, LabelWithEditButtonProvider2(parameter))
-
-          // All ATTR_PACKAGE_NAME providers should be string types and provide StringProperties
-          val packageName = rowEntry.property as StringProperty
-          bindings.bindTwoWay(packageName, model.packageName)
-          // Model.packageName is used for parameter evaluation, but updated asynchronously. Do new evaluation when value changes.
-          listeners.listen(model.packageName) { enqueueEvaluateParameters() }
-          rowEntry
-        }
+  private fun createRowForWidget(module: Module?, widget: Widget<*>): RowEntry<*> = when (widget) {
+      is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider2(widget.parameter))
+      is LanguageWidget-> RowEntry(message("android.wizard.language.combo.header"), LanguageComboProvider()).also {
+        val language = (it.property as SelectedItemProperty<Language>)
+        bindings.bindTwoWay(ObjectProperty.wrap(language), model.renderLanguage)
       }
-      is BooleanParameter -> RowEntry(CheckboxProvider2(parameter))
-      is Separator -> RowEntry(SeparatorProvider())
-      is EnumParameter -> RowEntry(name, EnumComboProvider2(parameter))
-      else -> TODO("Only string and bool parameters are supported for now")
-    }
+      is PackageNameWidget -> {
+        val rowEntry = if (module != null)
+          RowEntry(widget.p.name, PackageComboProvider2(module.project, widget.p, model.packageName.get(), getRecentsKeyForParameter(widget.p)))
+        else
+          RowEntry(widget.p.name, LabelWithEditButtonProvider2(widget.p))
+
+        // All ATTR_PACKAGE_NAME providers should be string types and provide StringProperties
+        val packageName = rowEntry.property as StringProperty
+        bindings.bindTwoWay(packageName, model.packageName)
+        // Model.packageName is used for parameter evaluation, but updated asynchronously. Do new evaluation when value changes.
+        listeners.listen(model.packageName) { enqueueEvaluateParameters() }
+        rowEntry
+      }
+    is CheckBoxWidget -> RowEntry(CheckboxProvider2(widget.p))
+    is Separator -> RowEntry(SeparatorProvider())
+    is EnumWidget<*> -> RowEntry(widget.p.name, EnumComboProvider2(widget.p))
+    else -> TODO("Only string and bool parameters are supported for now")
   }
 
   /**
