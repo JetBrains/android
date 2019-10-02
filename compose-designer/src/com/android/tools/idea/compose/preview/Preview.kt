@@ -38,6 +38,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
+import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RefreshRenderAction.clearCacheAndRefreshSurface
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.run.util.StopWatch
@@ -55,6 +56,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorPolicy
@@ -66,6 +68,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
+import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -154,6 +157,14 @@ private fun PreviewElement.toPreviewXmlString(withBorder: Boolean = true) =
 val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
 
 /**
+ * [ComposePreviewManager.Status] result for when the preview is refreshing. Only [isRefreshing] will be true.
+ */
+private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = false,
+                                                             hasSyntaxErrors = false,
+                                                             isOutOfDate = false,
+                                                             isRefreshing = true)
+
+/**
  * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used as adapter
  * to be able to preview composable methods.
  * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
@@ -167,10 +178,27 @@ private class ComposeAdapterLightVirtualFile(name: String, content: String) : Li
  */
 interface ComposePreviewManager {
   /**
-   * Returns whether the preview needs a re-build to work. We detect this by looking into the rendering errors
-   * and checking if there are any classes missing.
+   * Status of the preview.
+   *
+   * @param hasRuntimeErrors true if the project has any runtime errors that prevent the preview being up to date.
+   *  For example missing classes.
+   * @param hasSyntaxErrors true if the preview is displaying content of a file that has syntax errors.
+   * @param isOutOfDate true if the preview needs a refresh to be up to date.
+   * @param isRefreshing true if the view is currently refreshing.
    */
-  fun needsBuild(): Boolean
+  data class Status(val hasRuntimeErrors: Boolean, val hasSyntaxErrors: Boolean, val isOutOfDate: Boolean, val isRefreshing: Boolean) {
+    /**
+     * True if the preview has errors that will need a refresh
+     */
+    val hasErrors = hasRuntimeErrors || hasSyntaxErrors
+
+    /**
+     * True if the Preview needs a refresh to display more up to date content.
+     */
+    val needsRefresh = hasErrors || isOutOfDate
+  }
+
+  fun status(): Status
 
   /**
    * Requests a refresh of the preview surfaces. This will retrieve all the Preview annotations and render those elements.
@@ -182,11 +210,6 @@ interface ComposePreviewManager {
    * Invalidates the last cached [PreviewElement]s and forces a refresh
    */
   fun invalidateAndRefresh()
-
-  /**
-   * Whether the preview is being refreshed.
-   */
-  fun isRefreshing(): Boolean
 }
 
 /**
@@ -288,16 +311,37 @@ private class PreviewEditor(private val psiFile: PsiFile,
     }, this)
   }
 
-  override fun needsBuild(): Boolean = surface.models.asSequence()
-    .mapNotNull { surface.getSceneManager(it) }
-    .filterIsInstance<LayoutlibSceneManager>()
-    .mapNotNull { it.renderResult?.logger?.brokenClasses?.values }
-    .flatten()
-    .any {
-      it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
+  private fun hasErrorsAndNeedsBuild(): Boolean = surface.models.asSequence()
+      .mapNotNull { surface.getSceneManager(it) }
+      .filterIsInstance<LayoutlibSceneManager>()
+      .mapNotNull { it.renderResult?.logger?.brokenClasses?.values }
+      .flatten()
+      .any {
+        it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
+      }
+
+  private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(file)
+
+  private fun isOutOfDate(): Boolean {
+    val isModified = FileDocumentManager.getInstance().isFileModified(file)
+    if (isModified) {
+      return true
     }
 
-  override fun isRefreshing(): Boolean = isRefreshingPreview
+    // The file was saved, check the compilation time
+    val modificationStamp = file.timeStamp
+    val lastBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).lastBuildTimestamp ?: -1
+    if (LOG.isDebugEnabled) {
+      LOG.debug("modificationStamp=${modificationStamp}, lastBuildTimestamp=${lastBuildTimestamp}")
+    }
+
+    return lastBuildTimestamp in 1 until modificationStamp;
+  }
+
+  override fun status(): ComposePreviewManager.Status = if (isRefreshingPreview)
+    REFRESHING_STATUS
+  else
+    ComposePreviewManager.Status(hasErrorsAndNeedsBuild(), hasSyntaxErrors(), isOutOfDate(), false)
 
   /**
    * Returns true if the surface has at least one correctly rendered preview.
@@ -502,7 +546,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
           presentation.icon = BLUE_REFRESH_BUTTON
           presentation.isEnabled = false
         }
-        findComposePreviewManagerForSurface(surface)?.needsBuild() == true -> presentation.icon = RED_REFRESH_BUTTON
+        findComposePreviewManagerForSurface(surface)?.status()?.hasErrors == true -> presentation.icon = RED_REFRESH_BUTTON
         else -> presentation.icon = GREEN_REFRESH_BUTTON
       }
     }
@@ -652,20 +696,19 @@ class ComposeFileEditorProvider : FileEditorProvider, DumbAware {
         }
 
         val currentPreviewElements = previewEditor.previewElements
-        // Check if the change was done to the code block
-        val isCodeChange = currentPreviewElements.mapNotNull {
-          TextRange.create(it.previewBodyPsi?.range ?: return@mapNotNull null)
+        val isPreviewElementChange = currentPreviewElements.mapNotNull {
+          TextRange.create(it.previewElementDefinitionPsi?.range ?: return@mapNotNull null)
         }.any {
           it.contains(event.offset)
         }
 
-        if (isCodeChange) {
-          // Source code was changed, trigger notification update
-          modificationQueue.queue(updateNotifications)
-        }
-        else {
+        if (isPreviewElementChange) {
           // The code has not changed so check if the preview definitions have changed
           modificationQueue.queue(refreshPreview)
+        }
+        else {
+          // Source code was changed, trigger notification update
+          modificationQueue.queue(updateNotifications)
         }
       }
     }, composeEditorWithPreview)
