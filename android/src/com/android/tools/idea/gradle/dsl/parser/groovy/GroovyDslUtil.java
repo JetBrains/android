@@ -715,11 +715,12 @@ public final class GroovyDslUtil {
 
   static void maybeUpdateName(@NotNull GradleDslElement element, GroovyDslWriter writer) {
     PsiElement oldName = element.getNameElement().getNamedPsiElement();
-    String newName = element.getNameElement().getLocalName();
+    if (oldName == null) return;
+    String localName = element.getNameElement().getLocalName();
+    if (localName == null) return;
+    String newName = writer.externalNameForParent(localName, element.getParent());
+
     PsiElement newElement;
-    if (newName == null || oldName == null) {
-      return;
-    }
     if (oldName instanceof PsiNamedElement) {
       PsiNamedElement namedElement = (PsiNamedElement)oldName;
       namedElement.setName(newName);
@@ -732,7 +733,7 @@ public final class GroovyDslUtil {
       }
       newElement = oldName.replace(psiElement);
     }
-    element.getNameElement().commitNameChange(newElement, writer);
+    element.getNameElement().commitNameChange(newElement, writer, element.getParent());
   }
 
   @Nullable

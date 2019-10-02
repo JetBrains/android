@@ -117,8 +117,11 @@ public class GradleNameElement {
    * Changes this element to be backed by the given PsiElement. This method should not be called outside of
    * GradleWriter subclasses.
    */
-  public void commitNameChange(@Nullable PsiElement nameElement, GradleDslNameConverter converter) {
+  public void commitNameChange(@Nullable PsiElement nameElement,
+                               GradleDslNameConverter converter,
+                               GradleDslElement context) {
     setUpFrom(nameElement, converter);
+    canonize(converter.modelNameForParent(fullName(), context));  // NOTYPO
   }
 
   @NotNull
