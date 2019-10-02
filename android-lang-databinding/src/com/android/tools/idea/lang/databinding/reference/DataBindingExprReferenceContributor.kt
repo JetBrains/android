@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
+import com.android.SdkConstants
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
@@ -30,6 +31,7 @@ import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.DbTokenTypes
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameter
 import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterList
@@ -42,6 +44,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.LambdaUtil
+import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPackage
@@ -87,36 +90,125 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
    */
   private inner class RefExprReferenceProvider : PsiReferenceProvider() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+      // Do not add similar references twice if the element is within a [PsiDbCallExpr]. e.g. "var.method" in "var.method()".
+      if (element.parent is PsiDbCallExpr) {
+        return PsiReference.EMPTY_ARRAY
+      }
+
       val refExpr = element as PsiDbRefExpr
 
       // If this expression is actually not qualified, e.g. "value" or "String", return references
       // to just the 'id' portion.
-      val prefixExpr = refExpr.expr ?: return getReferencesBySimpleName(element, refExpr.id.text)
+      val prefixExpr = refExpr.expr ?: return getReferencesFromSimpleRefExpr(element, refExpr.id.text)
 
+      return getReferencesFromQualRefExpr(element, prefixExpr, refExpr.id.text)
+    }
+
+    /**
+     * Returns the index entries that might have information about the target [element],
+     * or null if that isn't possible (e.g. databinding isn't enabled for this module).
+     */
+    private fun getBindingIndexEntries(module: Module, element: PsiElement): Iterable<BindingXmlIndex.Entry>? {
+      AndroidFacet.getInstance(module)?.takeIf { facet -> DataBindingUtil.isDataBindingEnabled(facet) } ?: return null
+      var topLevelFile = InjectedLanguageManager.getInstance(element.project).getTopLevelFile(element) ?: return null
+      if (topLevelFile === DbFileType.INSTANCE) {
+        // If this is a DbFileType file, it's probably contained in another (XML) file that's
+        // our real top-level file.
+        topLevelFile.context?.containingFile?.let { topLevelFile = it }
+      }
+
+      val fileNameWithoutExtension = topLevelFile.name.substringBefore('.')
+      return BindingXmlIndex.getEntriesForLayout(module, fileNameWithoutExtension).takeIf { it.isNotEmpty() }
+    }
+
+    /**
+     * Given a [PsiElement] and its [simpleName] (e.g. name without any qualified prefix), attempts to find
+     * a reference for it. In case of name collisions variable names take precedence over imported short type names.
+     */
+    private fun getReferencesFromSimpleRefExpr(element: PsiElement, simpleName: String): Array<PsiReference> {
+      val module = ModuleUtilCore.findModuleForPsiElement(element) ?: return PsiReference.EMPTY_ARRAY
+
+      run {
+        // Search potential layout files to find the identifier.
+        getBindingIndexEntries(module, element)?.forEach { entry ->
+          val xmlFile = DataBindingUtil.findXmlFile(element.project, entry.file) ?: return@forEach
+          val bindingData = entry.data
+          bindingData.findVariable(simpleName)?.let { variable ->
+            xmlFile.findVariableTag(variable.name)?.let { variableTag ->
+              return arrayOf(XmlVariableReference(element, variableTag, variable, bindingData, module))
+            }
+          }
+
+          bindingData.findImport(simpleName)?.let { import ->
+            xmlFile.findImportTag(simpleName)?.let { importTag ->
+              return arrayOf(XmlImportReference(element, importTag, import, module))
+            }
+          }
+
+          val attribute = bindingData.viewIds
+            .firstOrNull { simpleName == DataBindingUtil.convertToJavaFieldName(it.id) }
+            ?.let { xmlFile.findIdAttribute(it.id) }
+          if (attribute != null) {
+            return arrayOf(XmlAttributeReference(element, attribute))
+          }
+        }
+      }
+
+      // If we're here, we couldn't find a reference inside the XML file. Now, we have to search
+      // the user's codebase.
+      run {
+        val javaPsiFacade = JavaPsiFacade.getInstance(element.project)
+
+        // If the id is an unqualified java.lang class name (e.g. "String", "Integer"), handle it
+        // even if not explicitly imported
+        // Searching unqualified classes only; no packages!
+        val langClass = simpleName.takeUnless { name -> name.contains('.') }
+          ?.let { name -> javaPsiFacade.findClass(JAVA_LANG + name, GlobalSearchScope.moduleWithLibrariesScope(module)) }
+        if (langClass != null) {
+          return arrayOf(PsiClassReference(element, langClass, true))
+        }
+
+        val psiPackage = javaPsiFacade.findPackage(simpleName)
+        if (psiPackage != null) {
+          return arrayOf(PsiPackageReference(element, psiPackage))
+        }
+
+        // Add a reference to Context class for "context" when no other references can be found.
+        if (simpleName == "context") {
+          val contextClass = LayoutBindingTypeUtil.parsePsiType(SdkConstants.CLASS_CONTEXT, element)
+            ?.let { psiType -> (psiType as? PsiClassType)?.resolve() }
+          if (contextClass != null) {
+            return arrayOf(PsiClassReference(element, contextClass, false))
+          }
+        }
+      }
+
+      return PsiReference.EMPTY_ARRAY
+    }
+
+    private fun getReferencesFromQualRefExpr(refExpr: PsiDbRefExpr, prefixExpr: PsiDbExpr, fieldText: String): Array<PsiReference> {
       // If we don't find a resolved type, it means that the user is referencing a (fully
       // qualified) class in their expression without a corresponding <import> or <variable>
       // declaration. In that case, we search the current module to see if we can find it directly.
       val modelResolvable = prefixExpr.toModelClassResolvable()
-      val psiModelClass = modelResolvable?.resolvedType?.unwrapped ?: return findFullyQualifiedReference(refExpr)
+      val psiModelClass = modelResolvable?.resolvedType?.unwrapped ?: return findReferencesByFullyQualifiedClassName(refExpr)
 
-      val fieldText = refExpr.id.text
       if (fieldText.isBlank()) {
         return PsiReference.EMPTY_ARRAY
       }
 
       // Resolve fully qualified methods / fields, e.g. "variable.value" or "variable.method"
-      // TODO: Search for methods with args also. The following only searches for methods with no args.
-      //  This results in attributes like 'android:onClick="@{variable.method}"' being left unresolved.
       val psiClass = psiModelClass.psiClass ?: return PsiReference.EMPTY_ARRAY
+
+
+      // Find the reference to a field or its getter e.g. "var.field" may reference "var.field", "var.isField()" or "var.getField()".
       val getterOrField = psiModelClass.findGetterOrField(fieldText, modelResolvable.isStatic)
-
-
-      // TODO: If psiClass is ObservableField<Foo> or ObservablePrimitive, change it to Foo (by an implicit call to #get()).
       when (getterOrField?.type) {
         PsiCallable.Type.METHOD -> {
           val methodsByName = psiClass.findMethodsByName(getterOrField.name, true)
           if (methodsByName.isNotEmpty()) {
-            return arrayOf(PsiMethodReference(refExpr, PsiModelMethod(psiModelClass, methodsByName[0])))
+            return arrayOf(
+              PsiMethodReference(refExpr, PsiModelMethod(psiModelClass, methodsByName[0]), PsiMethodReference.Kind.METHOD_CALL))
           }
         }
         PsiCallable.Type.FIELD -> {
@@ -127,14 +219,30 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         }
       }
 
-      // Perhaps this field references an inner class?
-      val module = ModuleUtilCore.findModuleForPsiElement(element)
+      // Find the reference to a listener method without parentheses. e.g. "var.onClick".
+      val methods = psiModelClass.findMethods(fieldText, staticOnly = false)
+      if (methods.isNotEmpty()) {
+        return methods.map { modelMethod ->
+          PsiMethodReference(refExpr, modelMethod, PsiMethodReference.Kind.METHOD_REFERENCE)
+        }.toTypedArray()
+      }
+
+      // Find the reference to an inner class.
+      val module = ModuleUtilCore.findModuleForPsiElement(refExpr)
       if (module != null) {
         val innerName = "${psiClass.qualifiedName}.$fieldText"
-        val innerClass = JavaPsiFacade.getInstance(element.getProject()).findClass(innerName,
-                                                                                   module.getModuleWithDependenciesAndLibrariesScope(false))
+        val innerClass = JavaPsiFacade.getInstance(refExpr.project).findClass(innerName,
+                                                                              module.getModuleWithDependenciesAndLibrariesScope(false))
         if (innerClass != null) {
-          return arrayOf(PsiClassReference(element, innerClass))
+          return arrayOf(PsiClassReference(refExpr, innerClass, true))
+        }
+      }
+
+      // Find the reference to get() method if [psiModelClass] is an instance of [java.util.Map] and we can not find any other references.
+      if (LayoutBindingTypeUtil.parsePsiType("java.util.Map", refExpr)?.isAssignableFrom(psiModelClass.type) == true) {
+        val getMethod = psiClass.findMethodsByName("get", true).firstOrNull { it.parameterList.parametersCount == 1 }
+        if (getMethod != null) {
+          return arrayOf(PsiMethodReference(refExpr, PsiModelMethod(psiModelClass, getMethod), PsiMethodReference.Kind.METHOD_CALL))
         }
       }
       return PsiReference.EMPTY_ARRAY
@@ -143,7 +251,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     /**
      * Given an expression like `a.b.c.e.MyClass`, returns all matching references to it.
      */
-    private fun findFullyQualifiedReference(refExpr: PsiDbRefExpr): Array<PsiReference> {
+    private fun findReferencesByFullyQualifiedClassName(refExpr: PsiDbRefExpr): Array<PsiReference> {
       val qualifiedExpr = refExpr.expr!!
       val references = qualifiedExpr.references
       if (references.isEmpty()) {
@@ -170,7 +278,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
           val classes = aPackage.findClassByShortName(fieldText, scope)
           if (classes.isNotEmpty()) {
             return classes
-              .map { aClass -> PsiClassReference(refExpr, aClass) }
+              .map { aClass -> PsiClassReference(refExpr, aClass, true) }
               .toTypedArray()
           }
         }
@@ -339,71 +447,5 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       .firstOrNull()
       ?.resolvedType
       ?.takeIf { LambdaUtil.isFunctionalType(it.type) }
-  }
-
-  /**
-   * Returns the index entries that might have information about the target [element],
-   * or null if that isn't possible (e.g. databinding isn't enabled for this module).
-   */
-  private fun getBindingIndexEntries(module: Module, element: PsiElement): Iterable<BindingXmlIndex.Entry>? {
-    AndroidFacet.getInstance(module)?.takeIf { facet -> DataBindingUtil.isDataBindingEnabled(facet) } ?: return null
-    var topLevelFile = InjectedLanguageManager.getInstance(element.project).getTopLevelFile(element) ?: return null
-    if (topLevelFile === DbFileType.INSTANCE) {
-      // If this is a DbFileType file, it's probably contained in another (XML) file that's
-      // our real top-level file.
-      topLevelFile.context?.containingFile?.let { topLevelFile = it }
-    }
-
-    val fileNameWithoutExtension = topLevelFile.name.substringBefore('.')
-    return BindingXmlIndex.getEntriesForLayout(module, fileNameWithoutExtension).takeIf { it.isNotEmpty() }
-  }
-
-  /**
-   * Given a [PsiElement] and its [simpleName] (e.g. name without any qualified prefix), attempts to find
-   * a reference for it. In case of name collisions variable names take precedence over imported short type names.
-   */
-  private fun getReferencesBySimpleName(element: PsiElement, simpleName: String): Array<PsiReference> {
-    val module = ModuleUtilCore.findModuleForPsiElement(element) ?: return PsiReference.EMPTY_ARRAY
-
-    run {
-      // Search potential layout files to find the identifier.
-      getBindingIndexEntries(module, element)?.forEach { entry ->
-        val xmlFile = DataBindingUtil.findXmlFile(element.project, entry.file) ?: return@forEach
-        val bindingData = entry.data
-        bindingData.findVariable(simpleName)?.let { variable ->
-          xmlFile.findVariableTag(variable.name)?.let { variableTag ->
-            return arrayOf(XmlVariableReference(element, variableTag, variable, bindingData, module))
-          }
-        }
-
-        bindingData.findImport(simpleName)?.let { import ->
-          xmlFile.findImportTag(simpleName)?.let { importTag ->
-            return arrayOf(XmlImportReference(element, importTag, import, module))
-          }
-        }
-
-        bindingData.findViewId(simpleName)?.let { viewId ->
-          xmlFile.findIdAttribute(viewId.id)?.let { attribute ->
-            return arrayOf(XmlAttributeReference(element, attribute))
-          }
-        }
-      }
-    }
-
-    // If we're here, we couldn't find a reference inside the XML file. Now, we have to search
-    // the user's codebase.
-    run {
-      val javaPsiFacade = JavaPsiFacade.getInstance(element.project)
-
-      // If the id is an unqualified java.lang class name (e.g. "String", "Integer"), handle it
-      // even if not explicitly imported
-      simpleName
-        .takeUnless { it.contains('.') } // Searching unqualified classes only; no packages!
-        ?.let { name -> javaPsiFacade.findClass(JAVA_LANG + name, GlobalSearchScope.moduleWithLibrariesScope(module)) }
-        ?.let { langClass -> return arrayOf(PsiClassReference(element, langClass)) }
-
-      val aPackage = javaPsiFacade.findPackage(simpleName) ?: return PsiReference.EMPTY_ARRAY
-      return arrayOf(PsiPackageReference(element, aPackage))
-    }
   }
 }

@@ -130,16 +130,17 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     }
 
   /**
-   * Returns the [PsiSubstitutor] which can be used to resolve generic types.
+   * Returns the [PsiSubstitutor] which can be used to resolve generic types for fields and methods.
    */
   val substitutor: PsiSubstitutor
     get() {
       // Create the substitutor for this class
-      val localSubstitutor = (type as? PsiClassType)?.resolveGenerics()?.substitutor ?: PsiSubstitutor.EMPTY
-      // Find the superType for its base class
-      val superType = type.superTypes.firstOrNull { (it as? PsiClassType)?.resolve()?.isInterface == false } ?: return localSubstitutor
-      // Combine the substitutors for this class and its base class
-      return PsiModelClass(superType, mode).substitutor.putAll(localSubstitutor)
+      var substitutor = (type as? PsiClassType)?.resolveGenerics()?.substitutor ?: PsiSubstitutor.EMPTY
+      // Add substitutors from its super types
+      type.superTypes.forEach { superType ->
+        substitutor = substitutor.putAll(PsiModelClass(superType, mode).substitutor)
+      }
+      return substitutor
     }
 
   /**
@@ -272,8 +273,14 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
                              staticOnly = staticOnly,
                              allowProtected = allowProtected,
                              unwrapObservableFields = unwrapObservableFields)
-    // TODO: b/130429958 Choose method based on args matching
-    return if (methods.isEmpty()) null else methods[0]
+    if (methods.isEmpty()) {
+      return null
+    }
+    var bestMethod = methods[0]
+    for (i in 1 until methods.size) {
+      bestMethod = PsiModelMethod.betterMatchWithArguments(args, bestMethod, methods[i])
+    }
+    return bestMethod
   }
 
   private fun getField(name: String, allowPrivate: Boolean, isStatic: Boolean): PsiModelField? {
@@ -298,7 +305,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       return null
     }
     val capitalized = StringUtils.capitalize(name)!!
-    val methodNames = arrayOf("get" + capitalized, "is$capitalized", name)
+    val methodNames = arrayOf("get$capitalized", "is$capitalized")
     for (methodName in methodNames) {
       val methods = getMethods(methodName, ArrayList(), staticOnly, allowProtected = false, unwrapObservableFields = false)
       for (method in methods) {
@@ -317,6 +324,12 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     else null
   }
 
+  override fun equals(other: Any?): Boolean {
+    val otherClass = other as? PsiModelClass ?: return false
+    return type == otherClass.type && mode == otherClass.mode
+  }
+
+  override fun hashCode() = type.hashCode().xor(mode.hashCode())
 
   companion object {
 

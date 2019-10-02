@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom.layout;
+package com.android.tools.property.ptable2
 
-import com.intellij.util.xml.DefinesXml;
-import com.intellij.util.xml.SubTagList;
-import java.util.List;
+import com.android.tools.property.ptable2.impl.PFormTableImpl
+import javax.swing.table.TableModel
 
 /**
- * This is for the top level {@code <layout>} tag used for data-binding.
+ * A table where the <tab> order includes all the editors in the table.
+ *
+ * By default a Swing table will <tab> over the table and use arrow keys for
+ * navigation inside the table. Sometimes it is convenient to make the table
+ * feel like a form although the underlying implementation is still a table.
  */
-@DefinesXml
-public interface Layout extends LayoutElement, DataBindingElement {
-  @SubTagList("data")
-  List<Data> getDataElements();
-
-  @SubTagList("merge")
-  List<Merge> getMergeElements();
-
-  @SubTagList("fragment")
-  List<Fragment> getFragmentElements();
-}
+open class PFormTable(model: TableModel) : PFormTableImpl(model)

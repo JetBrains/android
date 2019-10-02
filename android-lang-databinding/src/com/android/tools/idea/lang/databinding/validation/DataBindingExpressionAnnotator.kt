@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lang.databinding.config.DbFile
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbId
@@ -40,6 +41,7 @@ import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.psi.util.MethodSignatureUtil
+import com.intellij.psi.util.TypeConversionUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
@@ -71,7 +73,8 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
           .forEach { annotatedMethod ->
             val parameters = annotatedMethod.parameterList.parameters
             val returnType = annotatedMethod.returnType ?: return@forEach
-            if (parameters.size == 1 && parameters[0].type.isAssignableFrom(dbExprType)) {
+            // Convert parameters[0] to its erasure to remove unwanted type parameter e.g. "T" in List<T> when assigned from List<String>.
+            if (parameters.size == 1 && TypeConversionUtil.erasure(parameters[0].type).isAssignableFrom(dbExprType)) {
               bindingConversionTypes.add(PsiModelClass(returnType, mode).unwrapped)
             }
           }
@@ -113,8 +116,13 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       return
     }
 
-    // Delegate attribute type check to visitInferredFormalParameterList and visitFunctionRefExpr.
-    if (rootExpression is PsiDbLambdaExpression || rootExpression is PsiDbFunctionRefExpr) {
+    // Delegate attribute type check to visitInferredFormalParameterList.
+    if (rootExpression is PsiDbLambdaExpression) {
+      return
+    }
+
+    if ((rootExpression.reference as? PsiMethodReference)?.kind == PsiMethodReference.Kind.METHOD_REFERENCE) {
+      annotateMethodsWithUnmatchedSignatures(rootExpression)
       return
     }
 
@@ -128,6 +136,31 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       val tagName = attribute.parentOfType<XmlTag>()?.references?.firstNotNullResult { it.resolve() as? PsiClass }?.name
                     ?: "View"
       annotateError(rootExpression, SETTER_NOT_FOUND, tagName, attribute.name, dbExprType.type.canonicalText)
+    }
+  }
+
+  /**
+   * Annotates method references when their signatures are not matched with the attribute.
+   *
+   * e.g. "var.onClick" in "android:onClick=@{var.OnClick}" or "var::onClick" in "android:onClick=@{var::OnClick}".
+   */
+  private fun annotateMethodsWithUnmatchedSignatures(rootExpression: PsiElement) {
+    val attribute = rootExpression.containingFile.context?.parent as? XmlAttribute ?: return
+    val attributeMethods = attribute.references
+      .filterIsInstance<PsiParameterReference>()
+      .mapNotNull { LambdaUtil.getFunctionalInterfaceMethod(it.resolvedType.type) }
+    if (attributeMethods.isEmpty()) {
+      return
+    }
+
+    val dbMethods = rootExpression.references
+      .filterIsInstance<PsiMethodReference>()
+      .mapNotNull { it.resolve() as? PsiMethod }
+    if (dbMethods.isNotEmpty() && dbMethods.none { method -> isMethodMatchingAttribute(method, attributeMethods) }) {
+      val listenerClassName = attribute.references
+                                .filterIsInstance<PsiParameterReference>()
+                                .firstNotNullResult { it.resolvedType.type.canonicalText } ?: "Listener"
+      annotateError(rootExpression, METHOD_SIGNATURE_MISMATCH, listenerClassName, attributeMethods[0].name, attribute.name)
     }
   }
 
@@ -209,9 +242,14 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
             return
           }
         }
-        // Don't annotate this id element because the container is unresolvable for
+        // Don't annotate this id element when the container is unresolvable for
         // its expr element.
         else if (expr.reference == null) {
+          return
+        }
+        // Don't annotate this id element when the container's expr element is resolved to an array whose references are not supported yet.
+        // TODO: (b/141703341) Add references to array types.
+        else if (expr.toModelClassResolvable()?.resolvedType?.isArray == true) {
           return
         }
       }
@@ -238,31 +276,6 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
       parameters.inferredFormalParameterList.count { it.text == parameter.text } > 1
     }.forEach {
       annotateError(it, DUPLICATE_CALLBACK_ARGUMENT, it.text)
-    }
-  }
-
-  /**
-   * Annotates function reference expressions if they are not matched by the attribute.
-   */
-  override fun visitFunctionRefExpr(psiDbFunctionRefExpr: PsiDbFunctionRefExpr) {
-    super.visitFunctionRefExpr(psiDbFunctionRefExpr)
-
-    val attribute = psiDbFunctionRefExpr.containingFile.context?.parent as? XmlAttribute ?: return
-    val attributeMethods = attribute.references
-      .filterIsInstance<PsiParameterReference>()
-      .mapNotNull { LambdaUtil.getFunctionalInterfaceMethod(it.resolvedType.type) }
-    if (attributeMethods.isEmpty()) {
-      return
-    }
-
-    val dbMethods = psiDbFunctionRefExpr.references
-      .filterIsInstance<PsiMethodReference>()
-      .mapNotNull { it.resolve() as? PsiMethod }
-    if (dbMethods.isNotEmpty() && dbMethods.none { method -> isMethodMatchingAttribute(method, attributeMethods) }) {
-      val listenerClassName = attribute.references
-                                .filterIsInstance<PsiParameterReference>()
-                                .firstNotNullResult { it.resolvedType.type.canonicalText } ?: "Listener"
-      annotateError(psiDbFunctionRefExpr, METHOD_SIGNATURE_MISMATCH, listenerClassName, attributeMethods[0].name, attribute.name)
     }
   }
 

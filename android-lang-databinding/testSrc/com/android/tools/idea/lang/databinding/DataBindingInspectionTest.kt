@@ -115,7 +115,7 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick2="@{view_id.getText()}"/>
+            android:onClick2="@{viewId.getText()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -390,6 +390,37 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
             android:layout_height="120dp"
             android:gravity="center"
             android:onClick="@{model::doSomething}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_validMethodReferenceWithDot() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public void doSomething(View view) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{model.doSomething}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -919,6 +950,75 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
             android:layout_height="120dp"
             android:gravity="center"
             android:text="@{model.number}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_genericClassMatchedWithBindingConversion() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${dataBindingMode.bindingAdapter};
+      import ${dataBindingMode.bindingConversion};
+      import java.util.ArrayList;
+
+      public class GenericConverter {
+        @BindingAdapter("android:text")
+        public void bindDummyValue(View view, String str) {}
+        @BindingConversion
+        public static <T> String convertArrayList(ArrayList<T> values) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <variable name="list" type="java.util.ArrayList&lt;Integer>"/>
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{list}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun testDataBindingInspection_resolvedArrayField() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public int[] array;
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model"/>
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{model.array.length}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
