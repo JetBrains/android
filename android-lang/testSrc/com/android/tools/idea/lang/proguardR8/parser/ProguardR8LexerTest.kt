@@ -24,7 +24,6 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.CLASS
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.CLOSE_BRACE
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.COLON
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.COMMA
-import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOLLAR
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOT
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.FILE_NAME
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.FILE_NAME_DOUBLE_QUOTED
@@ -247,18 +246,16 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
     )
   }
 
-  fun testSubclassName() {
+  fun testInnerClass() {
     assertTokenTypes(
-      "-keepclassmembers class **.R$*",
+      "-keepclassmembers class **.R${'$'}InnerClass",
       "-keepclassmembers" to FLAG,
       SPACE,
       "class" to CLASS,
       SPACE,
       "**" to JAVA_IDENTIFIER_WITH_WILDCARDS,
       "." to DOT,
-      "R" to JAVA_IDENTIFIER,
-      "$" to DOLLAR,
-      "*" to ASTERISK
+      "R${'$'}InnerClass" to JAVA_IDENTIFIER
     )
   }
 

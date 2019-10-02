@@ -35,12 +35,9 @@ LINE_CMT=#[^\n\r]*
 
 // jletter includes all characters for which the Java function Character.isJavaIdentifierStart returns true and
 // jletterdigit all characters for that Character.isJavaIdentifierPart returns true.
-// We exclude the $ symbol beacause we are using it to separate inner classes
-JAVA_LETTER = [[:jletter:]&&[^$]]
-JAVA_DIGIT = [[:jletterdigit:]&&[^$]]
-JAVA_IDENTIFIER={JAVA_LETTER}{JAVA_DIGIT}*
+JAVA_IDENTIFIER=[:jletter:][:jletterdigit:]*
 WILDCARD=(\?|\*{1,2})
-WILDCARD_FOLLOWED_BY_DIGITS_OR_LETTERS= {WILDCARD}{JAVA_DIGIT}+
+WILDCARD_FOLLOWED_BY_DIGITS_OR_LETTERS= {WILDCARD}[:jletterdigit:]+
 // Like JAVA_IDENTIFIER but contain the "?" symbol (no more than one in row) and the "*" (no more than two in row).
 JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGITS_OR_LETTERS}+{WILDCARD}?)|{WILDCARD})
 
@@ -56,7 +53,6 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "}"                                    { return CLOSE_BRACE; }
   "("                                    { return LPAREN; }
   ")"                                    { return RPAREN; }
-  "$"                                    { return DOLLAR; }
   ";"                                    { return SEMICOLON; }
   ":"                                    { return COLON; }
   ","                                    { return COMMA; }
@@ -92,7 +88,6 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "}"                                    { yybegin(YYINITIAL); return CLOSE_BRACE; }
   "("                                    { return LPAREN; }
   ")"                                    { return RPAREN; }
-  "$"                                    { return DOLLAR; }
   ";"                                    { return SEMICOLON; }
   ","                                    { return COMMA; }
   "."                                    { return DOT; }
@@ -123,7 +118,6 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "}"                                    { yybegin(YYINITIAL); return CLOSE_BRACE; }
   "("                                    { return LPAREN; }
   ")"                                    { return RPAREN; }
-  "$"                                    { return DOLLAR; }
   ";"                                    { return SEMICOLON; }
   ","                                    { return COMMA; }
   "."                                    { return DOT; }

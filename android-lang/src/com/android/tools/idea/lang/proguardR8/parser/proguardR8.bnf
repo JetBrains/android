@@ -45,7 +45,6 @@
     ANY_TYPE_AND_NUM_OF_ARGS='...'
     ANY_PRIMITIVE_TYPE_='%'
     ARRAY = '[]'
-    DOLLAR = '$'
 
     FLAG = 'regexp:-[a-z]+' // Anything that starts with @ or -
     FILE_NAME = 'regexp:[\w\-./<>*?]+'
@@ -78,7 +77,7 @@ keep_option_modifier ::= includedescriptorclasses|includecode|allowshrinking|all
 
 private java_identifier_ ::= JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK
 
-qualifiedName ::= java_identifier_ ("." java_identifier_)* ("$" java_identifier_)? {
+qualifiedName ::= java_identifier_ ("." java_identifier_)* {
   methods=[getReferences resolveToPsiClass]
   extraRoot=true
 }
@@ -115,15 +114,14 @@ class_specification_header ::= annotation_name? class_modifier* class_type class
 
 
 /**
- !('.'|'$') prevents parsing package/containing class part of fully qualified name as class_member_name
+ !'.' prevents parsing package part of fully qualified name as class_member_name
  Example:
   -keep MyClass {
     not.classMember
-    not$classMember
   }
-  without !('.'|'$') 'not' will be parsed as class_member_name
+  without !'.' 'not' will be parsed as class_member_name
  */
-private class_member_core ::= ((type class_member_name) | class_member_name) !('.'|'$')
+private class_member_core ::= ((type class_member_name) | class_member_name) !'.'
 access_modifier ::= "!"? (public|private|protected) {
   methods=[isNegated toPsiModifier]
 }

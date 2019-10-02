@@ -386,7 +386,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                       PsiElement(JAVA_IDENTIFIER)('lang')
                       PsiElement(dot)('.')
                       PsiElement(JAVA_IDENTIFIER)('StringBuilder')
-                  PsiErrorElement:${'$'}, <class member name>, '[]', dot or left parenthesis expected, got ';'
+                  PsiErrorElement:<class member name>, '[]', dot or left parenthesis expected, got ';'
                     <empty list>
             PsiElement(semicolon)(';')
             ProguardR8JavaRuleImpl(JAVA_RULE)
@@ -689,18 +689,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                       PsiElement(JAVA_IDENTIFIER)('not')
                       PsiElement(dot)('.')
                       PsiElement(JAVA_IDENTIFIER)('classMember')
-                  PsiErrorElement:${'$'}, <class member name>, '[]', dot or left parenthesis expected, got ';'
-                    <empty list>
-            PsiElement(semicolon)(';')
-            ProguardR8JavaRuleImpl(JAVA_RULE)
-              ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
-                ProguardR8FullyQualifiedNameConstructorImpl(FULLY_QUALIFIED_NAME_CONSTRUCTOR)
-                  ProguardR8ConstructorNameImpl(CONSTRUCTOR_NAME)
-                    ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
-                      PsiElement(JAVA_IDENTIFIER)('not')
-                      PsiElement(${'$'})('${'$'}')
-                      PsiElement(JAVA_IDENTIFIER)('classMember')
-                  PsiErrorElement:<class member name>, '[]' or left parenthesis expected, got ';'
+                  PsiErrorElement:<class member name>, '[]', dot or left parenthesis expected, got ';'
                     <empty list>
             PsiElement(semicolon)(';')
             PsiElement(closing brace)('}')
@@ -711,7 +700,6 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
             field;
             method();
             not.classMember;
-            not${'$'}classMember;
           }
         """.trimIndent()
       )
