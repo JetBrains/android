@@ -392,7 +392,7 @@ public class LightBindingClass extends AndroidLightClassBase {
       return null;
     }
     LightFieldBuilder field = new LightFieldBuilder(PsiManager.getInstance(getProject()), name, type);
-    field.setModifiers("public", "final");
+    field.setModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL);
     return new LightDataBindingField(myConfig.getTargetLayout(), viewIdData, getManager(), field, this);
   }
 
