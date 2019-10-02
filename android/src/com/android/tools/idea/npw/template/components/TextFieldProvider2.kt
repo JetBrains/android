@@ -24,7 +24,7 @@ import javax.swing.JTextField
 /**
  * Provides a textfield well suited for handling [StringParameter].
  */
-class TextFieldProvider2(parameter: StringParameter) : ParameterComponentProvider2<JTextField>(parameter) {
+class TextFieldProvider2(parameter: Parameter<String>) : ParameterComponentProvider2<JTextField>(parameter) {
   override fun createComponent(parameter: Parameter<*>): JTextField = JTextField()
   override fun createProperty(component: JTextField): AbstractProperty<*>? = TextProperty(component)
 }

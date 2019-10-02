@@ -27,7 +27,7 @@ import javax.swing.JComponent
  */
 abstract class ParameterComponentProvider2<T : JComponent> protected constructor(private val parameter: Parameter<*>) : ComponentProvider<T>() {
   override fun createComponent(): T = createComponent(parameter).apply {
-    toolTipText = WizardUtils.toHtmlString(Strings.nullToEmpty(parameter.help))
+    toolTipText = WizardUtils.toHtmlString(parameter.help ?: "")
   }
 
   protected abstract fun createComponent(parameter: Parameter<*>): T
