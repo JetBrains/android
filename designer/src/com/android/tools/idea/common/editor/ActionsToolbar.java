@@ -24,7 +24,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
-import com.android.tools.idea.common.surface.PanZoomListener;
+import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
@@ -269,7 +269,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @Override
-  public void zoomChanged(@NotNull DesignSurface surface) {
+  public void zoomChanged() {
     myNorthEastToolbar.updateActionsImmediately();
   }
 

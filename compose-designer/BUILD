@@ -45,6 +45,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
     ],
 )
 
