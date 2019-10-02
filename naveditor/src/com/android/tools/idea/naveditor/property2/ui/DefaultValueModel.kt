@@ -29,13 +29,15 @@ private const val ADD_ARGUMENT_GROUP_ID = "ADD_ARGUMENT_GROUP_ID"
 
 class DefaultValueModel(argument: NlComponent, private val parent: NlComponent) {
   val name = argument.argumentName
-
   val type = argument.typeAttr
-
   var defaultValue: String
     get() = getComponent()?.defaultValue ?: ""
     set(newValue) {
       val component = getComponent()
+
+      if (component == null && newValue.isBlank()) {
+        return
+      }
 
       WriteCommandAction.runWriteCommandAction(parent.model.project, ADD_ARGUMENT_COMMAND_NAME, ADD_ARGUMENT_GROUP_ID, Runnable {
         if (component == null) {

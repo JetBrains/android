@@ -89,7 +89,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(
     NPW, "show.fragment.gallery", "Show fragment gallery",
     "Show fragment gallery which contains fragment based templates",
-    false);
+    true);
   //endregion
 
   //region Profiler
@@ -350,7 +350,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_VISUALIZATION = Flag.create(
     NELE, "visualisation", "Layout Visualisation Tool",
     "Enable Visualisation Tool to preview layout in multiple devices at the same time",
-    true);
+    false);
   //endregion
 
   //region Navigation Editor

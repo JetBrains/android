@@ -30,11 +30,7 @@ internal class PsiFieldReference(refExpr: PsiDbRefExpr, field: PsiModelField)
 
   override val resolvedType = field.fieldType
 
-  override val isStatic: Boolean
-    get() {
-      val modifierList = (resolve() as PsiField).modifierList
-      return modifierList != null && modifierList.hasModifierProperty(PsiModifier.STATIC)
-    }
+  override val isStatic = false
 
   override fun handleElementRename(newElementName: String): PsiElement? {
     val identifier = element.findElementAt(rangeInElement.startOffset) as? LeafPsiElement

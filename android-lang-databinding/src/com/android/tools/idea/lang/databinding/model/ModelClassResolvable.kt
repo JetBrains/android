@@ -27,6 +27,7 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbExpr
  */
 interface ModelClassResolvable {
   val resolvedType: PsiModelClass?
+  // TODO (b/141383218): Revisit isStatic field in ModelClassResolvable.
   val isStatic: Boolean
 }
 

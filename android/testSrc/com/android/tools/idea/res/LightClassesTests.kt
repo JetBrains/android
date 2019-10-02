@@ -34,6 +34,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
+import com.intellij.psi.impl.ElementPresentationUtil
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.VfsTestUtil.createFile
@@ -824,7 +825,11 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
-      assertThat(resolveReferenceUnderCaret()).isInstanceOf(TransitiveAarRClass::class.java)
+      val aarRClass = resolveReferenceUnderCaret()
+      assertThat(aarRClass).isInstanceOf(TransitiveAarRClass::class.java)
+
+      // Regression test for b/141392340, make sure getResolveScope() doesn't throw when called on AAR classes that don't have a module.
+      assertThat(ElementPresentationUtil.getClassKind(aarRClass as PsiClass)).isEqualTo(ElementPresentationUtil.CLASS_KIND_CLASS)
     }
 
     fun testResourceNames_string() {

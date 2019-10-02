@@ -443,7 +443,11 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   @Override
   public GlobalSearchScope getResolveScope() {
     Module module = ModuleUtilCore.findModuleForPsiElement(this);
-    assert module != null;
+    if (module == null) {
+      // Some light classes come from libraries not modules.
+      return super.getResolveScope();
+    }
+
     ScopeType scopeType = getScopeType();
     GlobalSearchScope moduleResolveScope = ProjectSystemUtil.getModuleSystem(module).getResolveScope(scopeType);
     Ref<GlobalSearchScope> result = Ref.create(moduleResolveScope);
