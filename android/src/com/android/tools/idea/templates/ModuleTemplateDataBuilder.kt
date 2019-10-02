@@ -35,6 +35,7 @@ import com.intellij.openapi.module.Module
 import com.android.tools.idea.wizard.template.ThemeData
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.SourceProviderManager
@@ -125,15 +126,19 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
    * Used only by dynamic modules.
    */
   fun setBaseFeature(baseFeature: Module) {
+
+    fun String.toPath() = VfsUtilCore.urlToPath(this)
+
     val androidFacet = AndroidFacet.getInstance(baseFeature)!!
     val gradleFacet = GradleFacet.getInstance(baseFeature)!!
-    val resDirectories = SourceProviderManager.getInstance(androidFacet).mainSourceProvider.resDirectories
-    check(resDirectories.isNotEmpty())
+    val mainSourceProvider = SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider
+    val baseModuleResourceRootPath = mainSourceProvider.resDirectories.firstOrNull()?.path
+                                     ?: mainSourceProvider.resDirectoryUrls.first().toPath()
 
     this.baseFeature = BaseFeature(
       gradleFacet.gradleModuleModel?.moduleName.orEmpty(),
       AndroidRootUtil.findModuleRootFolderPath(baseFeature)!!,
-      resDirectories.iterator().next() // Put the new resources in any of the available res directories
+      File(baseModuleResourceRootPath) // Put the new resources in any of the available res directories
     )
   }
 
