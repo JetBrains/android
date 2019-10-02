@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_SYNC_ACTION;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -51,6 +52,12 @@ public class SyncProjectActionTest extends PlatformTestCase {
     when(myEvent.getPresentation()).thenReturn(myPresentation);
 
     myAction = new SyncProjectAction("Test", mySyncInvoker);
+  }
+
+  public void testTitleTextAndMnemonic() {
+    SyncProjectAction action = new SyncProjectAction();
+    assertThat(action.getTemplateText()).isEqualTo("Sync Project with Gradle Files");
+    assertThat(action.getTemplatePresentation().getMnemonic()).isEqualTo((int)'G');
   }
 
   public void testDoPerform() {
