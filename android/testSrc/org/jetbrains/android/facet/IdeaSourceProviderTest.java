@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.facet;
 
-
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -156,7 +155,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     VirtualFile javaMainSrcFile = moduleFile.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/");
     assertNotNull(javaMainSrcFile);
 
-    Collection<IdeaSourceProvider> providers = IdeaSourceProvider.getIdeaSourceProvidersForFile(myAppFacet, javaMainSrcFile, null);
+    Collection<IdeaSourceProvider> providers = IdeaSourceProvider.getSourceProvidersForFile(myAppFacet, javaMainSrcFile, null);
     assertEquals(1, providers.size());
     IdeaSourceProvider actualProvider = providers.iterator().next();
     assertEquals(mainFlavorSourceProvider.getManifestFile(),
@@ -172,7 +171,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);
 
-    providers = IdeaSourceProvider.getIdeaSourceProvidersForFile(myAppFacet, javaSrcFile, null);
+    providers = IdeaSourceProvider.getSourceProvidersForFile(myAppFacet, javaSrcFile, null);
     assertEquals(1, providers.size());
     actualProvider = providers.iterator().next();
     assertEquals(paidFlavorSourceProvider.getManifestFile(),
@@ -250,12 +249,12 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);
 
-    assertTrue(paidFlavorSourceProvider.containsFile(javaSrcFile));
+    assertTrue(IdeaSourceProvider.containsFile(paidFlavorSourceProvider, javaSrcFile));
 
     VirtualFile javaMainSrcFile = moduleFile.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/");
     assertNotNull(javaMainSrcFile);
 
-    assertFalse(paidFlavorSourceProvider.containsFile(javaMainSrcFile));
+    assertFalse(IdeaSourceProvider.containsFile(paidFlavorSourceProvider, javaMainSrcFile));
   }
 
 
@@ -271,16 +270,16 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);
 
-    assertFalse(IdeaSourceProviderKt.isContainedBy(paidFlavorSourceProvider, javaSrcFile));
+    assertFalse(IdeaSourceProvider.isContainedBy(paidFlavorSourceProvider, javaSrcFile));
 
     VirtualFile flavorRoot = moduleFile.findFileByRelativePath("src/paid");
     assertNotNull(flavorRoot);
 
-    assertTrue(IdeaSourceProviderKt.isContainedBy(paidFlavorSourceProvider, flavorRoot));
+    assertTrue(IdeaSourceProvider.isContainedBy(paidFlavorSourceProvider, flavorRoot));
 
     VirtualFile srcFile = moduleFile.findChild("src");
     assertNotNull(srcFile);
 
-    assertTrue(IdeaSourceProviderKt.isContainedBy(paidFlavorSourceProvider, srcFile));
+    assertTrue(IdeaSourceProvider.isContainedBy(paidFlavorSourceProvider, srcFile));
   }
 }
