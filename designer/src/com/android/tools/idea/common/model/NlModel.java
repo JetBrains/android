@@ -114,7 +114,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final Configuration myConfiguration;
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   /** Model name. This can be used when multiple models are displayed at the same time */
-  private final String myModelDisplayName;
+  private String myModelDisplayName;
   private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
@@ -876,6 +876,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public long getId() {
     return myId;
+  }
+
+  public void setModelDisplayName(@Nullable String name) {
+    myModelDisplayName = name;
   }
 
   @Nullable
