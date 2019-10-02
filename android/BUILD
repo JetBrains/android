@@ -228,7 +228,6 @@ iml_module(
         "cpu:3",
         "block-network",
         "no_test_mac",
-        "no_test_windows",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
