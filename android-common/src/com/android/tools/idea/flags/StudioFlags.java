@@ -708,7 +708,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
     COMPOSE, "preview.enabled", "Enable the Compose preview",
     "If enabled, a visual preview will be available for Compose.",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_ICONS = Flag.create(
     COMPOSE, "completion.icons",
