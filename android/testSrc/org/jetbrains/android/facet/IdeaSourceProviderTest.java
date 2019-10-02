@@ -18,11 +18,9 @@ package org.jetbrains.android.facet;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-import com.android.builder.model.ProductFlavorContainer;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModelTest;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Sdks;
+import com.google.common.collect.MoreCollectors;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -51,8 +49,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
     loadProject(PROJECT_WITH_APPAND_LIB);
     assertNotNull(myAndroidFacet);
-    AndroidModuleModel androidModel = AndroidModuleModel.get(myAndroidFacet);
-    assertNotNull(androidModel);
 
     // Set up modules
     for (Module m : ModuleManager.getInstance(getProject()).getModules()) {
@@ -79,9 +75,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(AndroidPlatform.getInstance(myLibModule));
   }
 
-  /**
-   * TODO: Move this test to {@link AndroidModuleModelTest}.
-   */
   public void testGetCurrentSourceProviders() throws Exception {
     StringBuilder sb = new StringBuilder();
     VirtualFile baseDir = getProject().getBaseDir();
@@ -162,11 +155,9 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  actualProvider.getManifestFile());
 
     // Try finding paid flavor
-    ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
-    assertNotNull(paidFlavor);
-    IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.toIdeaProvider(paidFlavor.getSourceProvider());
-    assertNotNull(paidFlavorSourceProvider);
-
+    IdeaSourceProvider paidFlavorSourceProvider =
+      IdeaSourceProvider.getAllIdeaSourceProviders(myAppFacet).stream()
+        .filter(it -> it.getName().equalsIgnoreCase("paid")).collect(MoreCollectors.onlyElement());
 
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);
@@ -239,10 +230,9 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
   public void testSourceProviderContainsFile() throws Exception {
     assertNotNull(myAppFacet.getConfiguration().getModel());
-    ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
-    assertNotNull(paidFlavor);
-    IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.toIdeaProvider(paidFlavor.getSourceProvider());
-    assertNotNull(paidFlavorSourceProvider);
+    IdeaSourceProvider paidFlavorSourceProvider =
+      IdeaSourceProvider.getAllIdeaSourceProviders(myAppFacet).stream()
+        .filter(it -> it.getName().equalsIgnoreCase("paid")).collect(MoreCollectors.onlyElement());
 
     VirtualFile moduleFile = findFileByIoFile(getProjectFolderPath(), true).findFileByRelativePath("app");
     assertNotNull(moduleFile);
@@ -260,10 +250,9 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
   public void testSourceProviderIsContainedByFolder() throws Exception {
     assertNotNull(myAppFacet.getConfiguration().getModel());
-    ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
-    assertNotNull(paidFlavor);
-    IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.toIdeaProvider(paidFlavor.getSourceProvider());
-    assertNotNull(paidFlavorSourceProvider);
+    IdeaSourceProvider paidFlavorSourceProvider =
+      IdeaSourceProvider.getAllIdeaSourceProviders(myAppFacet).stream()
+        .filter(it -> it.getName().equalsIgnoreCase("paid")).collect(MoreCollectors.onlyElement());
 
     VirtualFile moduleFile = findFileByIoFile(getProjectFolderPath(), true).findFileByRelativePath("app");
     assertNotNull(moduleFile);
