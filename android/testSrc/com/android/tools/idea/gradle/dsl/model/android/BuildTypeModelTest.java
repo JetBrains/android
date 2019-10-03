@@ -220,14 +220,9 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
     assertEquals("jniDebuggable", Boolean.FALSE, buildType.jniDebuggable());
     assertEquals("minifyEnabled", Boolean.TRUE, buildType.minifyEnabled());
-    // TODO(xof): this (and the test below) come from overriding the proguardFiles for a build type, which is straightforward to parse
-    //  in Groovy (simple assignment) but not straightforward in Kotlin (requires parsing and data flow analysis of .clear() or
-    //  .setProguardFiles()).
-    if (isGroovy()) {
-      assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"),
-                   buildType.consumerProguardFiles());
-      assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"), buildType.proguardFiles());
-    }
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"),
+                 buildType.consumerProguardFiles());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"), buildType.proguardFiles());
     assertEquals("pseudoLocalesEnabled", Boolean.TRUE, buildType.pseudoLocalesEnabled());
     assertEquals("renderscriptDebuggable", Boolean.FALSE, buildType.renderscriptDebuggable());
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
