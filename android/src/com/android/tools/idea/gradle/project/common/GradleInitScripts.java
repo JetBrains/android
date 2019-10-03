@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.gradle.AbstractKotlinGradleModelBuilder;
 import org.jetbrains.kotlin.kapt.idea.KaptModelBuilderService;
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService;
-import org.jetbrains.plugins.gradle.tooling.builder.ModelBuildScriptClasspathBuilderImpl;
+import org.jetbrains.plugins.gradle.tooling.builder.ModelBuildScriptClasspathBuilderImpl; // FIXME-ank: dependency on .impl
 
 public final class GradleInitScripts {
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
@@ -245,7 +245,14 @@ public final class GradleInitScripts {
       return "import javax.inject.Inject\n" +
              "import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry\n" +
              "import org.gradle.tooling.provider.model.ToolingModelBuilder\n" +
-             "initscript {\n" +
+             "import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext\n" + // FIXME-ank
+             "import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext.DataProvider\n" + // FIXME-ank
+             "import java.util.IdentityHashMap;\n" + // FIXME-ank
+             "import java.util.List;\n" + // FIXME-ank
+             "import java.util.Map;\n" + // FIXME-ank
+             "import java.util.ServiceLoader;\n" + // FIXME-ank
+             "\n" + // FIXME-ank
+             "initscript {\n" + // FIXME-ank
              "  dependencies {\n" +
              "      " +
              createClassPathString(paths) +
@@ -256,7 +263,8 @@ public final class GradleInitScripts {
              "  apply plugin: " + modelName + "ModelBuilderPlugin\n" +
              "}\n" +
              "class " + modelName + "ModelBuilder implements ToolingModelBuilder {\n" +
-             "  public " + modelBuilderClassName + " builder;" +
+             "  public MyModelBuilderContext context;\n" + // FIXME-ank
+             "  public " + modelBuilderClassName + " builder;\n" +
              "\n" +
              "  public " + modelName + "ModelBuilder() {\n" +
              "    builder = new " + modelBuilderClassName + "();\n" +
@@ -265,7 +273,7 @@ public final class GradleInitScripts {
              "    return builder.canBuild(modelName);\n" +
              "  }\n" +
              "  public Object buildAll(String modelName, Project project) {\n" +
-             "    return builder.buildAll(modelName, project);\n" +
+             (modelName.equals("Kapt") ? kapt() : classpath()) + // FIXME-ank
              "  }\n" +
              "}\n" +
              "class " + modelName + "ModelBuilderPlugin implements Plugin<Project>{ \n" +
@@ -278,7 +286,51 @@ public final class GradleInitScripts {
              "  void apply(Project project) {\n" +
              "    registry.register(new " + modelName + "ModelBuilder())\n" +
              "  }\n" +
-             "}";
+             "}\n" +
+             "\n" +
+
+
+             "  class MyModelBuilderContext implements ModelBuilderContext {\n" + // FIXME-ank
+             "    private final Map<DataProvider, Object> myMap = new IdentityHashMap<DataProvider, Object>();\n" + // FIXME-ank
+             "    private final Gradle myGradle;\n" + // FIXME-ank
+             "\n" + // FIXME-ank
+             "    private MyModelBuilderContext(Gradle gradle) {\n" + // FIXME-ank
+             "      myGradle = gradle;\n" + // FIXME-ank
+             "    }\n" + // FIXME-ank
+             "\n" + // FIXME-ank
+             "    @Override\n" + // FIXME-ank
+             "    public Gradle getRootGradle() {\n" + // FIXME-ank
+             "      return myGradle;\n" + // FIXME-ank
+             "    }\n" + // FIXME-ank
+             "\n" + // FIXME-ank
+             "    @Override\n" + // FIXME-ank
+             "    public <T> T getData(DataProvider<T> provider) {\n" + // FIXME-ank
+             "      Object data = myMap.get(provider);\n" + // FIXME-ank
+             "      if (data == null) {\n" + // FIXME-ank
+             "        T value = provider.create(myGradle);\n" + // FIXME-ank
+             "        myMap.put(provider, value);\n" + // FIXME-ank
+             "        return value;\n" + // FIXME-ank
+             "      }\n" + // FIXME-ank
+             "      else {\n" + // FIXME-ank
+             "        return (T)data;\n" + // FIXME-ank
+             "      }\n" + // FIXME-ank
+             "    }\n" + // FIXME-ank
+             "  }\n" + // FIXME-ank
+             "";
+    }
+
+    // FIXME-ank;
+    private String classpath() {
+      return
+        "    if (context == null){\n" + // FIXME-ank
+        "       context = new MyModelBuilderContext(project.getGradle())\n" + // FIXME-ank
+        "    }\n" + // FIXME-ank
+        "    return builder.buildAll(modelName, project, context);\n"; // FIXME-ank;
+    }
+
+    // FIXME-ank
+    private String kapt() {
+      return "    return builder.buildAll(modelName, project);\n";
     }
 
     @NotNull

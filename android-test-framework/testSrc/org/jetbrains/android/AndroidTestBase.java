@@ -76,6 +76,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     cleanupMockitoThreadLocals();
     myFixture = null;
     super.tearDown();
+    checkUndisposedAndroidRelatedObjects();
   }
 
   public static void cleanupMockitoThreadLocals() throws Exception {
@@ -90,7 +91,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     for (Future<Void> future : futures) {
       future.get();
     }
-    checkUndisposedAndroidRelatedObjects();
   }
 
   /**
