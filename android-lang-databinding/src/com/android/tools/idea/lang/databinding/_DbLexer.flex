@@ -43,17 +43,16 @@ DEC_EXPONENT = [Ee] [+-]? {DIGIT_OR_UNDERSCORE}*
 HEX_FP_LITERAL = {HEX_SIGNIFICAND} {HEX_EXPONENT}
 HEX_SIGNIFICAND = 0 [Xx] ({HEX_DIGIT_OR_UNDERSCORE}+ "."? | {HEX_DIGIT_OR_UNDERSCORE}* "." {HEX_DIGIT_OR_UNDERSCORE}+)
 HEX_EXPONENT = [Pp] [+-]? {DIGIT_OR_UNDERSCORE}*
-
-STRING_LITERAL=(\"([^\\\"\r\n]|{ESCAPE_SEQUENCE})*(\"|\\)?) | (`([^\\\"\r\n`]|{ESCAPE_SEQUENCE})*(`|\\)?)
 // copy ends.
-CHARACTER_LITERAL="'"([^\r\n\'\\]|{ESCAPE_SEQUENCE}|{UNICODE_ESCAPE})"'"
 
-ESCAPE_SEQUENCE=\\([btnfr\"\'\\]|{OCTAL_ESCAPE})
+STRING_LITERAL=(\"([^\"\\]|{ESCAPE_SEQUENCE})*\") | (`([^`\\]|{ESCAPE_SEQUENCE})*`)
+CHARACTER_LITERAL='([^`\\]|{ESCAPE_SEQUENCE})'
+ESCAPE_SEQUENCE=\\([btnfr`\"\'\\]|{OCTAL_ESCAPE}|{UNICODE_ESCAPE})
 OCTAL_ESCAPE=[0-3][0-7][0-7] | [0-7][0-7] | [0-7]
-UNICODE_ESCAPE=\\u[0-9A-Fa-f]{4}
+UNICODE_ESCAPE=u[0-9A-Fa-f]{4}
 
-RESOURCE_REFERENCE="@" (({IDENTIFIER} | "android") ":")? {RESOURCE_TYPE} "/" {IDENTIFIER}
-RESOURCE_TYPE=anim|animator|bool|color|colorStateList|dimen|dimenOffset|dimenSize|drawable|fraction|id|integer|intArray|interpolator|layout|plurals|stateListAnimator|string|stringArray|transition|typedArray
+RESOURCE_REFERENCE="@" (({IDENTIFIER} | "android") ":")? {RESOURCE_TYPE} "/" "android:"? {IDENTIFIER}
+RESOURCE_TYPE=anim|animator|bool|color|colorStateList|dimen|dimenOffset|dimenSize|drawable|fraction|id|integer|intArray|interpolator|layout|plurals|stateListAnimator|string|stringArray|text|transition|typedArray
 
 %%
 <YYINITIAL> {
@@ -98,7 +97,7 @@ RESOURCE_TYPE=anim|animator|bool|color|colorStateList|dimen|dimenOffset|dimenSiz
   "~"                     { return TILDE; }
   "??"                    { return QUESTQUEST; }
   "?"                     { return QUEST; }
-  "::"                     { return COLONCOLON; }
+  "::"                    { return COLONCOLON; }
   ":"                     { return COLON; }
   "+"                     { return PLUS; }
   "-"                     { return MINUS; }
