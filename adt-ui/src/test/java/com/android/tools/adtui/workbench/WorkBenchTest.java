@@ -137,9 +137,23 @@ public class WorkBenchTest extends WorkBenchTestCase {
     // Defaults are not automatically updated when setting a new workbench context, so all properties are false by default.
     assertThat(myToolWindow1.isLeft()).isFalse();
 
-    myWorkBench.setDefaultPropertiesForContext();
+    myWorkBench.setDefaultPropertiesForContext(false);
     // After updating defaults, tool window properties should work properly.
     assertThat(myToolWindow1.isLeft()).isTrue();
+  }
+
+  public void testWindowsMinimizedByDefault() {
+    // Workbench was initialized with MINIMIZED default set to false.
+    assertThat(myToolWindow1.isMinimized()).isFalse();
+
+    myWorkBench.setContext("testWindowsMinimizedByDefault1");
+    myWorkBench.setDefaultPropertiesForContext(true);
+    // After updating defaults, MINIMIZED property should have been set to true.
+    assertThat(myToolWindow1.isMinimized()).isTrue();
+
+    myWorkBench.setContext("testWindowsMinimizedByDefault2");
+    myWorkBench.setDefaultPropertiesForContext(false);
+    assertThat(myToolWindow1.isMinimized()).isFalse();
   }
 
 
