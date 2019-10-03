@@ -48,7 +48,6 @@ import com.intellij.openapi.util.UserDataHolder;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.Component;
-import java.nio.file.FileSystems;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -120,6 +119,10 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     presentation.setText("Open AVD Manager");
 
     myClock = clock;
+  }
+
+  boolean areSnapshotsEnabled() {
+    return mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get();
   }
 
   @NotNull
@@ -457,43 +460,8 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   @VisibleForTesting
   static String getText(@NotNull Device device, @NotNull Collection<Device> devices, boolean snapshotsEnabled) {
-    String key = device.getKey().getDeviceKey();
-    String name = device.getName();
-
-    boolean anotherDeviceHasSameName = devices.stream()
-      .filter(d -> !d.getKey().getDeviceKey().equals(key))
-      .map(Device::getName)
-      .anyMatch(name::equals);
-
-    StringBuilder builder = new StringBuilder(name);
-
-    if (anotherDeviceHasSameName) {
-      builder
-        .append(" [")
-        .append(key)
-        .append(']');
-    }
-
-    if (snapshotsEnabled) {
-      Object snapshot = device.getSnapshot();
-
-      if (snapshot != null && !snapshot.equals(Snapshot.quickboot(FileSystems.getDefault()))) {
-        builder
-          .append(" - ")
-          .append(snapshot);
-      }
-    }
-
-    String reason = device.getValidityReason();
-
-    if (reason != null) {
-      builder
-        .append(" (")
-        .append(reason)
-        .append(')');
-    }
-
-    return builder.toString();
+    boolean anotherDeviceHasSameName = Devices.containsAnotherDeviceWithSameName(devices, device);
+    return Devices.getText(device, anotherDeviceHasSameName ? device.getKey() : null, snapshotsEnabled ? device.getSnapshot() : null);
   }
 
   private static void updateExecutionTargetManager(@NotNull Project project, @Nullable Device device) {

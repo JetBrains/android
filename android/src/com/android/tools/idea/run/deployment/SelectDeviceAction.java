@@ -73,7 +73,11 @@ public final class SelectDeviceAction extends AnAction {
     }
 
     presentation.setIcon(device.getIcon());
-    presentation.setText(Devices.getText(device, comboBoxAction.getDevices(project)), false);
+
+    Key key = Devices.containsAnotherDeviceWithSameName(comboBoxAction.getDevices(project), device) ? device.getKey() : null;
+    Snapshot snapshot = comboBoxAction.areSnapshotsEnabled() ? device.getSnapshot() : null;
+
+    presentation.setText(Devices.getText(device, key, snapshot), false);
   }
 
   @NotNull

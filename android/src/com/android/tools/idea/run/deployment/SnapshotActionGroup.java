@@ -22,6 +22,7 @@ import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +37,7 @@ final class SnapshotActionGroup extends ActionGroup {
   private final Project myProject;
 
   SnapshotActionGroup(@NotNull List<Device> devices, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction, @NotNull Project project) {
-    super(getProperty(devices, Device::getName), null, getProperty(devices, Device::getIcon));
+    super(getText(devices), null, getProperty(devices, Device::getIcon));
     setPopup(true);
 
     myDevices = devices;
@@ -45,12 +46,20 @@ final class SnapshotActionGroup extends ActionGroup {
   }
 
   @NotNull
+  private static String getText(@NotNull List<Device> devices) {
+    String name = getProperty(devices, Device::getName);
+    assert name != null;
+
+    return Devices.getText(name, getProperty(devices, Device::getValidityReason));
+  }
+
+  @Nullable
   private static <P> P getProperty(@NotNull List<Device> devices, @NotNull Function<Device, P> accessor) {
     P property = accessor.apply(devices.get(0));
 
     assert devices.subList(1, devices.size()).stream()
       .map(accessor)
-      .allMatch(p -> p.equals(property));
+      .allMatch(Predicate.isEqual(property));
 
     return property;
   }
