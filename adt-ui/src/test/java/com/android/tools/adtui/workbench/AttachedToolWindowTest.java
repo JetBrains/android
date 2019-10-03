@@ -106,7 +106,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myWorkBench.getName()).thenReturn("DESIGNER");
     when(myWorkBench.getContext()).thenReturn("");
 
-    myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel);
+    myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, false);
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
   }
 
@@ -237,6 +237,15 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     assertThat(myPropertiesComponent.getBoolean(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING")).isTrue();
     assertThat(myToolWindow.getContent()).isNull();
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
+  }
+
+  public void testMinimizeDefaultSetInConstructor() {
+    assertThat(myToolWindow.isMinimized()).isFalse();
+
+    // Change the workbench context to ensure we're getting a different property, and reset the tool window
+    when(myWorkBench.getContext()).thenReturn("testMinimizeDefaultSetInConstructor");
+    myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, true);
+    assertThat(myToolWindow.isMinimized()).isTrue();
   }
 
   public void testMinimizeAutoHideIsNotGlobal() {
