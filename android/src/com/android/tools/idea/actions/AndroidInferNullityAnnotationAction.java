@@ -73,6 +73,7 @@ import com.intellij.usages.UsageViewManager;
 import com.intellij.usages.UsageViewPresentation;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -254,7 +255,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       public void onFailure(@Nullable Throwable t) {
         throw new RuntimeException(t);
       }
-    });
+    }, SameThreadExecutor.INSTANCE);
   }
 
   // Intellij code from InferNullityAnnotationsAction.
