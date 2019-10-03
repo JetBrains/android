@@ -216,7 +216,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myIsEditable = isEditable;
 
     setOpaque(true);
-    setFocusable(false);
+    setFocusable(true);
 
     myAnalyticsManager = new DesignerAnalyticsManager(this);
 
@@ -235,6 +235,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myInteractionManager = new InteractionManager(this);
 
     myLayeredPane = new MyLayeredPane();
+    myLayeredPane.setFocusable(false);
     myLayeredPane.setBounds(0, 0, 100, 100);
     myGlassPane = new GlassPane();
     myLayeredPane.add(myGlassPane, JLayeredPane.DRAG_LAYER);
@@ -292,7 +293,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myInteractionManager.startListening();
     //noinspection AbstractMethodCallInConstructor
     myActionManager = actionManagerProvider.apply(this);
-    myActionManager.registerActionsShortcuts(myLayeredPane, this);
+    myActionManager.registerActionsShortcuts(this, this);
 
     myVisibleSurfaceLayerPanel.add(myActionManager.createDesignSurfaceToolbar(), BorderLayout.EAST);
   }

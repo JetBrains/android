@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.common.editor;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.adtui.stdui.KeyBindingKt;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.ShortcutSet;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import java.awt.Component;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
@@ -43,39 +44,18 @@ public abstract class ActionManager<S extends DesignSurface> {
     mySurface = surface;
   }
 
-  private void registerAction(@NotNull AnAction action,
-                              @NotNull ShortcutSet shortcutSet,
-                              @NotNull JComponent component,
-                              @Nullable Disposable parentDisposable) {
-    Disposable disposable;
-    if (parentDisposable != null) {
-      disposable = parentDisposable;
-    }
-    else if (component instanceof Disposable) {
-      disposable = (Disposable)component;
-    }
-    else {
-      disposable = mySurface;
-    }
-    action.registerCustomShortcutSet(shortcutSet, component, disposable);
+  protected static void registerAction(@NotNull AnAction action,
+                                       @NonNls String actionId,
+                                       @NotNull JComponent component) {
+    Arrays.stream(com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionId).getShortcutSet().getShortcuts())
+      .filter(shortcut -> shortcut instanceof KeyboardShortcut && ((KeyboardShortcut)shortcut).getSecondKeyStroke() == null)
+      .forEach(shortcut -> registerAction(action, ((KeyboardShortcut)shortcut).getFirstKeyStroke(), component));
   }
 
-  protected final void registerAction(@NotNull AnAction action,
-                                      @NonNls String actionId,
-                                      @NotNull JComponent component,
-                                      @Nullable Disposable parentDisposable) {
-    registerAction(action,
-                   com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionId).getShortcutSet(),
-                   component,
-                   parentDisposable
-    );
-  }
-
-  protected final void registerAction(@NotNull AnAction action,
-                                      @NotNull KeyStroke keyStroke,
-                                      @NotNull JComponent component,
-                                      @Nullable Disposable parentDisposable) {
-    registerAction(action, new CustomShortcutSet(keyStroke), component, parentDisposable);
+  protected static void registerAction(@NotNull AnAction action,
+                                       @NotNull KeyStroke keyStroke,
+                                       @NotNull JComponent component) {
+    KeyBindingKt.registerAnActionKey(component, () -> action, keyStroke, action.getClass().getSimpleName(), JComponent.WHEN_FOCUSED);
   }
 
   @NotNull
