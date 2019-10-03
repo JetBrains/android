@@ -97,9 +97,7 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:nosyncbuilder" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="intellij.android.kotlin.idea" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
