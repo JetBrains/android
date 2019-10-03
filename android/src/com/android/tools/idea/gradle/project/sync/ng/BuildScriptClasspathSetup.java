@@ -33,6 +33,7 @@ import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashMap;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +112,7 @@ public class BuildScriptClasspathSetup {
         }
       }
     }
-    projectBuildClasspathPojo.setProjectBuildClasspath(ContainerUtil.newArrayList(gradleSdkLibraries));
+    projectBuildClasspathPojo.setProjectBuildClasspath(new ArrayList<>(gradleSdkLibraries));
   }
 
   private static void setModuleBuildClasspath(@NotNull String projectBaseDir,
