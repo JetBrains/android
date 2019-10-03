@@ -75,6 +75,8 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
   private val lastResponseTimePerGroup = mutableMapOf<Long, Long>()
   private var adb: ListenableFuture<AndroidDebugBridge>? = null
 
+  private var attachListener: TransportEventListener? = null
+
   override var isConnected = false
     private set
 
@@ -219,17 +221,18 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
   }
 
   override fun attach(stream: Common.Stream, process: Common.Process) {
+    // Remove existing listener if we're retrying
+    attachListener?.let { transportPoller.unregisterListener(it) }
+
     // TODO: Probably need to detach from an existing process here
-    selectedStream = stream
-    selectedProcess = process
     isConnected = false
     isCapturing = false
     processChangedListeners.forEach { it() }
 
     // The device daemon takes care of the case if and when the agent is previously attached already.
     val attachCommand = Command.newBuilder()
-      .setStreamId(selectedStream.streamId)
-      .setPid(selectedProcess.pid)
+      .setStreamId(stream.streamId)
+      .setPid(process.pid)
       .setType(Command.CommandType.ATTACH_AGENT)
       .setAttachAgent(
         Commands.AttachAgent.newBuilder()
@@ -237,8 +240,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
           .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
       .build()
 
-    lateinit var listener: TransportEventListener
-    listener = TransportEventListener(
+    attachListener = TransportEventListener(
       eventKind = Common.Event.Kind.AGENT,
       executor = MoreExecutors.directExecutor(),
       streamId = stream::getStreamId,
@@ -246,15 +248,18 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
       filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
     ) {
       isConnected = true
+      selectedStream = stream
+      selectedProcess = process
       processChangedListeners.forEach { it() }
       setDebugViewAttributes(selectedStream, true)
       execute(LayoutInspectorCommand.Type.START)
 
       // TODO: verify that capture started successfully
-      transportPoller.unregisterListener(listener)
+      attachListener?.let { transportPoller.unregisterListener(it) }
+      attachListener = null
       false
     }
-    transportPoller.registerListener(listener)
+    attachListener?.let { transportPoller.registerListener(it) }
 
     client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
   }
@@ -269,8 +274,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
   }
 
   private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
-    if (selectedStream != Common.Stream.getDefaultInstance() ||
-        selectedProcess != Common.Process.getDefaultInstance()) {
+    if (isConnected) {
       return
     }
     val processesMap = loadProcesses()
