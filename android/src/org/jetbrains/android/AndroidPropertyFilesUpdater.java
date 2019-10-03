@@ -385,7 +385,7 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
   @Nullable
   private static VirtualFile getBaseAndroidContentRoot(@NotNull Module module) {
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    final VirtualFile manifestFile = facet != null ? AndroidRootUtil.getManifestFile(facet) : null;
+    final VirtualFile manifestFile = facet != null ? AndroidRootUtil.getPrimaryManifestFile(facet) : null;
     final VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
     if (manifestFile != null) {
       for (VirtualFile contentRoot : contentRoots) {

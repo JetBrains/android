@@ -76,24 +76,6 @@ public class AndroidRootUtil {
   }
 
   /**
-   * Returns the main manifest file of the module.
-   *
-   * @deprecated Modules can have multiple manifests. If you really want the main manifest
-   * of the module, use {@link #getPrimaryManifestFile(AndroidFacet)}, but to test if
-   * a given file is a manifest, or to process all of them, use
-   * {@link IdeaSourceProvider#isManifestFile(AndroidFacet, VirtualFile)} or
-   * {@link IdeaSourceProvider#getManifestFiles(AndroidFacet)}.
-   */
-  @Nullable
-  @Deprecated
-  public static VirtualFile getManifestFile(@NotNull AndroidFacet facet) {
-    if (facet.requiresAndroidModel()) {
-      return SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFile();
-    }
-    return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
-  }
-
-  /**
    * Returns the main manifest file of the module. Note that a module can have multiple
    * manifests so only use this if you really know you need to only look at the main manifests.
    * To look at all manifests, use  {@link IdeaSourceProvider#getManifestFiles(AndroidFacet)}.
