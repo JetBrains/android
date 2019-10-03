@@ -200,9 +200,9 @@ public class GradleFilePsiMerger {
     });
 
     // Unfortunately the "from" and "to" dependencies may not have the same white space formatting
-    Set<String> originalSet = originalUnparsedDependencies.stream().map(CharMatcher.WHITESPACE::removeFrom).collect(Collectors.toSet());
+    Set<String> originalSet = originalUnparsedDependencies.stream().map(CharMatcher.whitespace()::removeFrom).collect(Collectors.toSet());
     for (String dependency : unparsedDependencies) {
-      if (!originalSet.contains(CharMatcher.WHITESPACE.removeFrom(dependency))) {
+      if (!originalSet.contains(CharMatcher.whitespace().removeFrom(dependency))) {
         PsiElement dependencyElement = factory.createStatementFromText(dependency);
         toRoot.addBefore(dependencyElement, toRoot.getLastChild());
       }
