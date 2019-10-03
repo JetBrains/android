@@ -28,7 +28,9 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo.isWindows
 import com.intellij.util.net.NetUtils
 import com.intellij.util.ui.UIUtil
@@ -48,6 +50,7 @@ import java.awt.image.PixelInterleavedSampleModel
 import java.awt.image.Raster
 import java.io.File
 import java.io.FileReader
+import java.util.concurrent.CompletableFuture
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.bind.annotation.XmlElement
@@ -159,16 +162,20 @@ object SkiaParser {
       return false
     }
 
-    // TODO: probably don't show dialog ever?
-    SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)?.show() ?: return false
+    val installResult = CompletableFuture<Boolean>()
+    ApplicationManager.getApplication().invokeAndWait {
+      // TODO: probably don't show dialog ever?
+      SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)?.show()
 
-    val newPackage = sdkManager.packages.consolidatedPkgs[maybeNewPackage] ?: return false
-    if (!newPackage.hasLocal() || newPackage.isUpdate) {
-      // update cancelled?
-      return false
+      val newPackage = sdkManager.packages.consolidatedPkgs[maybeNewPackage]
+      if (newPackage == null || !newPackage.hasLocal() || newPackage.isUpdate) {
+        // update cancelled?
+        installResult.complete(false)
+      }
+      readVersionMapping()
+      installResult.complete(true)
     }
-    readVersionMapping()
-    return supportedVersionMap != null
+    return installResult.get() && supportedVersionMap != null
   }
 
   private fun readVersionMapping() {
@@ -176,19 +183,24 @@ object SkiaParser {
       PARSER_PACKAGE_NAME, { true }, false, progressIndicator)
     if (latestPackage != null) {
       val mappingFile = File(latestPackage.location, VERSION_MAP_FILE_NAME)
-      val map = unmarshaller.unmarshal(FileReader(mappingFile)) as VersionMap
-      synchronized(mapLock) {
-        val newMap = mutableMapOf<Int?, ServerInfo>()
-        for (spec in map.servers) {
-          val existing = supportedVersionMap?.get(spec.version)
-          if (existing?.skpVersionRange?.start == spec.skpStart && existing.skpVersionRange.last == spec.skpEnd) {
-            newMap[spec.version] = existing
+      try {
+        val map = unmarshaller.unmarshal(FileReader(mappingFile)) as VersionMap
+        synchronized(mapLock) {
+          val newMap = mutableMapOf<Int?, ServerInfo>()
+          for (spec in map.servers) {
+            val existing = supportedVersionMap?.get(spec.version)
+            if (existing?.skpVersionRange?.start == spec.skpStart && existing.skpVersionRange.last == spec.skpEnd) {
+              newMap[spec.version] = existing
+            }
+            else {
+              newMap[spec.version] = ServerInfo(spec.version, spec.skpStart, spec.skpEnd)
+            }
           }
-          else {
-            newMap[spec.version] = ServerInfo(spec.version, spec.skpStart, spec.skpEnd)
-          }
+          supportedVersionMap = newMap
         }
-        supportedVersionMap = newMap
+      }
+      catch (e: Exception) {
+        Logger.getInstance(SkiaParser::class.java).warn("Failed to parse mapping file", e)
       }
     }
   }
@@ -205,10 +217,11 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   var client: SkiaParserServiceGrpc.SkiaParserServiceBlockingStub? = null
   var channel: ManagedChannel? = null
   var handler: OSProcessHandler? = null
-  private val serverPath: File? = findPath()
 
   private val progressIndicator = StudioLoggerProgressIndicator(ServerInfo::class.java)
   private val packagePath = "${PARSER_PACKAGE_NAME}${RepoPackage.PATH_SEPARATOR}$serverVersion"
+
+  private val serverPath: File? = findPath()
 
   private fun findPath(): File? {
     return if (serverVersion == null) {
