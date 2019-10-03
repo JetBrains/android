@@ -2157,6 +2157,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
     val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
+    val consumerProguardFiles = buildModel.android().defaultConfig().consumerProguardFiles()
     verifyListProperty(proguardFiles, listOf("val1", "val2"))
+    verifyListProperty(consumerProguardFiles, listOf("val3", "val4"))
   }
 }
