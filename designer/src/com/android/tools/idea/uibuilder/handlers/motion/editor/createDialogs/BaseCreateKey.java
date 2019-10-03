@@ -48,18 +48,21 @@ public class BaseCreateKey extends BaseCreatePanel {
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JSeparator(), gbc);
 
-    JRadioButton b1, b2;
+    JRadioButton tagButton, idButton;
     grid(gbc, 0, y, 1, 1);
     gbc.weighty = 0;
     gbc.anchor = GridBagConstraints.CENTER;
-    add(b1 = new JRadioButton("TAG"), gbc);
-    grid(gbc, 1, y++, 1, 1);
+    add(tagButton = new JRadioButton("TAG"), gbc);
+
+
+    grid(gbc, 1, y, 1, 1);
     gbc.weighty = 0;
     gbc.anchor = GridBagConstraints.CENTER;
-    add(b2 = new JRadioButton("ID"), gbc);
+    add(idButton = new JRadioButton("ID"), gbc);
+
     ButtonGroup group = new ButtonGroup();
-    group.add(b1);
-    group.add(b2);
+    group.add(tagButton);
+    group.add(idButton);
     CardLayout cardLayout = new CardLayout();
     JPanel cardpanel = new JPanel(cardLayout);
     cardpanel.add(mMatchTag = newTextField("tag or regex", 15), "tag");
@@ -68,19 +71,23 @@ public class BaseCreateKey extends BaseCreatePanel {
       "button1",
     };
     mViewList = MEUI.makeComboBox(opt);
-    b1.addActionListener((e) -> {
+    tagButton.addActionListener((e) -> {
       cardLayout.show(cardpanel, "tag");
       mUseTag = true;
     });
-    b2.addActionListener((e) -> {
+    idButton.addActionListener((e) -> {
       cardLayout.show(cardpanel, "id");
       mUseTag = false;
     });
     cardpanel.add(mMatchTag, "tag");
     cardpanel.add(mViewList, "id");
-    grid(gbc, 0, y++, 2, 1);
+    grid(gbc, 0, ++y, 2, 1);
     gbc.anchor = GridBagConstraints.CENTER;
     add(cardpanel, gbc);
+
+    cardLayout.show(cardpanel, "id");
+    idButton.setSelected(true);
+
     return y;
   }
 

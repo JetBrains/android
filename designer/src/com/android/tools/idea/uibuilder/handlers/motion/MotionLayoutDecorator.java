@@ -110,9 +110,11 @@ public class MotionLayoutDecorator extends SceneDecorator {
     {AnchorTarget.Type.LEFT, AnchorTarget.Type.RIGHT, AnchorTarget.Type.TOP, AnchorTarget.Type.BOTTOM}; // order matches
   private final static boolean[] isLeftRight = {true, true, false, false}; // order matches
   private final static int[] ourOppositeDirection = {1, 0, 3, 2}; // order matches
-  private  float[] mPathBuffer = new float[200];
-  private int[] keyFrameTypes = new int[101];
-  private  float[] keyFramePos = new float[202];
+  private final static int DRAWPATH_SIZE = 200;
+  private final static int MAX_KEY_POSITIONS = 101; // 0-100 inclusive key positions are allowed
+  private  float[] mPathBuffer = new float[DRAWPATH_SIZE];
+  private int[] keyFrameTypes = new int[MAX_KEY_POSITIONS];
+  private  float[] keyFramePos = new float[MAX_KEY_POSITIONS*2];
 
   private static void convert(@NotNull SceneContext sceneContext, Rectangle rect) {
     rect.x = sceneContext.getSwingXDip(rect.x);
@@ -217,7 +219,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
     ConnectionType type = ConnectionType.SAME;
 
     String state = motionLayout.getState();
-    if (state != null) {
+    if (state != null && !state.equals("motion_base")) {
       Object properties = child.getNlComponent().getClientProperty(MOTION_LAYOUT_PROPERTIES);
       if (properties != null && properties instanceof MotionAttributes) {
         MotionAttributes attrs = (MotionAttributes)properties;

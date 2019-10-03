@@ -84,7 +84,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private NlComponentDelegate myNlComponentDelegate = new MotionLayoutComponentDelegate(this);
 
   MotionLayoutComponentHelper myMotionHelper;
-  private String mSelectedConstraintId;
+  private String mSelectedStartConstraintId;
+  private String mSelectedEndConstraintId;
+  private float mLastProgress = 0;
 
   private final List<AccessorySelectionListener> myListeners;
   private NlComponent mySelection;
@@ -145,17 +147,18 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
               Debug.log("id of constraint set " + id);
             }
             if (id != null) {
-              mSelectedConstraintId = stripID(id);
-              myMotionHelper.setState(mSelectedConstraintId);
+              mSelectedStartConstraintId = stripID(id);
+              mSelectedEndConstraintId = null;
+              myMotionHelper.setState(mSelectedStartConstraintId);
             }
             if (TEMP_HACK_FORCE_APPLY) {
               applyMotionSceneValue(true);
             }
             break;
           case TRANSITION:
-            String start = stripID(tag[0].getAttributeValue("constraintSetStart"));
-            String end = stripID(tag[0].getAttributeValue("constraintSetEnd"));
-            myMotionHelper.setTransition(start, end);
+            mSelectedStartConstraintId = stripID(tag[0].getAttributeValue("constraintSetStart"));
+            mSelectedEndConstraintId = stripID(tag[0].getAttributeValue("constraintSetEnd"));
+            myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
             break;
           case LAYOUT:
             if (TEMP_HACK_FORCE_APPLY) {
@@ -163,7 +166,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             }
             selectOnDesignSurface(tag);
             myMotionHelper.setState(null);
-            mSelectedConstraintId = null;
+            mSelectedStartConstraintId = null;
             break;
           case CONSTRAINT:
             // TODO: This should always be a WrapMotionScene (remove this code when bug is fixed):
@@ -229,6 +232,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         switch (cmd) {
           case MOTION_PROGRESS:
             myMotionHelper.setProgress(pos);
+            mLastProgress = pos;
             break;
           case MOTION_PLAY:
             break;
@@ -444,10 +448,15 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     // Additionally we need to correctly reset the state of the motionhelper if we recreate it.
     if (mLastSelection == MotionEditorSelector.Type.LAYOUT) {
       myMotionHelper.setState(null);
-      mSelectedConstraintId = null;
+      mSelectedStartConstraintId = null;
     }
     else if (mLastSelection == MotionEditorSelector.Type.CONSTRAINT_SET) {
-      myMotionHelper.setState(mSelectedConstraintId);
+      myMotionHelper.setState(mSelectedStartConstraintId);
+    } else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId == null) {
+      myMotionHelper.setState(mSelectedStartConstraintId);
+    } else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId != null){
+      myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
+      myMotionHelper.setProgress(mLastProgress);
     }
 
     // Ok, so to handle the "layout" mode, we need a few things.
@@ -513,7 +522,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
   @Override
   public String getSelectedConstraintSet() {
-    return mSelectedConstraintId;
+    return mSelectedStartConstraintId;
   }
 
   // TODO: merge with the above parse function

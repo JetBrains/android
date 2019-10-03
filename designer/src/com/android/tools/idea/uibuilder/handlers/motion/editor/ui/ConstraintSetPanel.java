@@ -462,7 +462,6 @@ class ConstraintSetPanel extends JPanel {
   }
 
   public void selectById(String[] ids) {
-    Debug.log(" selectById "+Arrays.toString(ids));
     HashSet<String> selectedSet = new HashSet<>(Arrays.asList(ids));
     mConstraintSetTable.clearSelection();
     for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {

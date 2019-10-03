@@ -153,7 +153,6 @@ public class CreateOnClick extends BaseCreatePanel {
       writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.OnClick.ATTR_TARGET_ID, addIdPrefix(str));
     }
 
-    //writer.printFormal(" ", System.out);
     MTag ret = writer.commit("Create OnClick");
     Track.createOnClick();
     mMotionEditor.setMTag(model);
