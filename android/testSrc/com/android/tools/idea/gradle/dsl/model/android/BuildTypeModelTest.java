@@ -1192,8 +1192,11 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveFromAndApplyListElementsWithSingleElement() throws Exception {
-    // TODO(b/XXX): implementing setProguardFiles would allow us to do this test in Kotlin
+    // TODO(b/72853928): implementing setProguardFiles properly would allow us to do this test in Kotlin
     //  This test is groovy specific as it sets proguardFiles to a list which we cannot do in kotlin as it only accepts files parameters.
+    //  There is support for setProguardFiles in AbstractFlavorTypeDslElement at the interpreter level: it correctly clears previous
+    //  values stored there.  However, the model does not "know" that an empty setProguardFiles call has a side-effect; instead, we treat
+    //  it as a statement with no effect, and remove it.
     assumeTrue(isGroovy());
     writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT);
 
