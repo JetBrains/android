@@ -32,12 +32,15 @@
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.platform.jps.build" />
     <orderEntry type="module" module-name="intellij.spellchecker" />
+    <orderEntry type="module" module-name="android.sdktools.draw9patch" />
+    <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
     <orderEntry type="module" module-name="intellij.platform.images" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.eclipse" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="intellij.groovy" />
+    <orderEntry type="module" module-name="android.sdktools.perflib" />
     <orderEntry type="library" name="swingx" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.properties.psi" />
@@ -90,6 +93,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="android.sdktools.repository" />
     <orderEntry type="library" name="jna" level="project" />
     <orderEntry type="module" module-name="db-baseLibrary" />
     <orderEntry type="module" module-name="db-baseLibrarySupport" />
@@ -102,12 +106,22 @@
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
     <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="library" name="dexlib2" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.binary-resources" />
+    <orderEntry type="module" module-name="android.sdktools.analyzer" />
+    <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="analytics-shared" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.observable" />
-    <orderEntry type="module" module-name="intellij.gradle.toolingExtension" />
+    <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="module" module-name="intellij.android.smali" />
+    <orderEntry type="module" module-name="android.sdktools.java-lib-model" />
+    <orderEntry type="module" module-name="android.sdktools.java-lib-model-builder" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
@@ -125,7 +139,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="xml-apis-ext" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:crash" level="project" />
+    <orderEntry type="module" module-name="analytics-crash" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module-library">
       <library name="pepk">
@@ -137,133 +151,20 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:protos" level="project" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="org.jetbrains.intellij.deps.android.tools:nosyncbuilder" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" />
-    <orderEntry type="library" name="libtools.deployer" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.deployer" />
     <orderEntry type="library" name="HdrHistogram" level="project" />
-    <orderEntry type="library" name="KotlinPlugin" level="project" />
+    <orderEntry type="library" name="kotlin-plugin" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />
     <orderEntry type="module" module-name="android.sdktools.tracer" />
-    <orderEntry type="library" name="libtools.tracer" level="project" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
     <orderEntry type="module" module-name="intellij.android.resources-aar" />
     <orderEntry type="library" name="NanoXML" level="project" />
-    <orderEntry type="library" name="com.android.tools.pixelprobe:pixelprobe" level="project" />
-    <orderEntry type="module-library">
-      <library name="com.android.tools:draw9patch" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools:draw9patch:26.5.0" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/draw9patch/26.5.0/draw9patch-26.5.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="com.android.java.tools.build:java-lib-model-builder" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.java.tools.build:java-lib-model-builder:3.5.0" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/java/tools/build/java-lib-model-builder/3.5.0/java-lib-model-builder-3.5.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="com.android.java.tools.build:java-lib-model" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.java.tools.build:java-lib-model:3.5.0" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/java/tools/build/java-lib-model/3.5.0/java-lib-model-3.5.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="library" name="com.android.tools.apkparser:binary-resources" level="project" />
     <orderEntry type="library" name="batik-transcoder" level="project" />
-    <orderEntry type="module-library" scope="RUNTIME">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/aia-manifest-proto-1.0-jarjar.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module" module-name="intellij.platform.util.ui" />
-    <orderEntry type="library" name="org.jetbrains.intellij.deps.android.tools:perflib" level="project" />
-    <orderEntry type="module-library" scope="RUNTIME">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/d8-master.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="RUNTIME">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/libdeploy_java_proto.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="RUNTIME">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/libjava_version.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="org.jetbrains.intellij.deps.android.tools:instant-run-common" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:instant-run-common:26.3.0" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/instant-run-common/26.3.0/instant-run-common-26.3.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/instant-run-common/26.3.0/instant-run-common-26.3.0-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library name="org.jetbrains.intellij.deps.android.tools:instant-run-client" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:instant-run-client:26.3.0" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/instant-run-client/26.3.0/instant-run-client-26.3.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/instant-run-client/26.3.0/instant-run-client-26.3.0-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="library" name="com.android.tools:common" level="project" />
-    <orderEntry type="library" name="com.android.tools.build:builder-model" level="project" />
-    <orderEntry type="library" name="com.android.tools:sdk-common" level="project" />
-    <orderEntry type="library" name="nosyncbuilder-jarjar" level="project" />
-    <orderEntry type="library" name="com.android.tools:sdklib" level="project" />
-    <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="library" name="com.android.tools:annotations" level="project" />
-    <orderEntry type="library" name="com.android.tools:repository" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:tracker" level="project" />
-    <orderEntry type="library" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
-    <orderEntry type="library" name="com.android.tools.ddms:ddmlib" level="project" />
-    <orderEntry type="library" name="http-client" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:shared" level="project" />
-    <orderEntry type="library" name="com.android.tools.lint:lint-api" level="project" />
-    <orderEntry type="library" name="com.android.tools.lint:lint-checks" level="project" />
-    <orderEntry type="library" name="com.android.tools.apkparser:apkanalyzer" level="project" />
-    <orderEntry type="library" name="kxml2" level="project" />
-    <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
-    <orderEntry type="library" name="com.android.tools.build:manifest-merger" level="project" />
     <orderEntry type="module" module-name="intellij.android.lang-databinding" />
     <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
   </component>

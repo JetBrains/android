@@ -24,9 +24,5 @@
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="kotlin-plugin" level="project" />
-    <orderEntry type="library" name="KotlinPlugin" level="project" />
-    <orderEntry type="library" name="com.android.tools.build:builder-model" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:crash" level="project" />
-    <orderEntry type="module" module-name="intellij.java.psi" />
   </component>
 </module>
