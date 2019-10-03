@@ -146,9 +146,9 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       .addActionListener(new MyGenSourceFieldListener(myAidlGenPathField, AndroidRootUtil.getAidlGenSourceRootPath(facet)));
 
     Module module = myContext.getModule();
-    
+
     myManifestFileField.getButton().addActionListener(
-      new MyFolderFieldListener(myManifestFileField, AndroidRootUtil.getManifestFile(facet), true, new MyManifestFilter()));
+      new MyFolderFieldListener(myManifestFileField, AndroidRootUtil.getPrimaryManifestFile(facet), true, new MyManifestFilter()));
     
     myResFolderField.getButton().addActionListener(new MyFolderFieldListener(myResFolderField,
                                                                              AndroidRootUtil.getResourceDir(facet), false, null));
