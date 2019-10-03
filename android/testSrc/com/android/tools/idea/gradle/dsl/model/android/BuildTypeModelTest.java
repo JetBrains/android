@@ -1081,7 +1081,6 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     applyChanges(buildModel);
     // TODO(b/142061285): spurious new line in Kotlin version of this file
-    // TODO(xof): difference in syntax between consumerProguardFiles (assignment) and proguardFiles (method call) is suspicious
     verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED);
 
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), buildType.buildConfigFields());

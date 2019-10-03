@@ -129,7 +129,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @Override
   @NotNull
   public ResolvedPropertyModel consumerProguardFiles() {
-    return getModelForProperty(CONSUMER_PROGUARD_FILES);
+    return getModelForProperty(CONSUMER_PROGUARD_FILES, true);
   }
 
   @Override
