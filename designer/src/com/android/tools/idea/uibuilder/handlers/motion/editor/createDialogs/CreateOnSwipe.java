@@ -179,7 +179,6 @@ public class CreateOnSwipe extends BaseCreatePanel {
       writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.OnSwipe.ATTR_TOUCH_ANCHOR_SIDE, str);
     }
 
-    //writer.printFormal(" ", System.out);
     MTag ret = writer.commit("Create OnSwipe");
     Track.createOnSwipe();
     mMotionEditor.setMTag(model);

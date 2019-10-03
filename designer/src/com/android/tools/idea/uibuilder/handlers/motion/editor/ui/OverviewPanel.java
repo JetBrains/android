@@ -30,6 +30,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -109,6 +111,7 @@ class OverviewPanel extends JPanel {
     addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
+        requestFocusInWindow();
         updateFromMouse(e.getX(), e.getY(), false);
       }
 
@@ -138,12 +141,72 @@ class OverviewPanel extends JPanel {
         }
       }
     });
+
+    setFocusable(true);
+    setRequestFocusEnabled(true);
+
+    addKeyListener(new KeyAdapter() {
+
+                     @Override
+                     public void keyPressed(KeyEvent e) {
+                       if (mTransitionSelected >= 0) {
+                         switch (e.getKeyCode()) {
+                           case KeyEvent.VK_UP:
+                             break;
+                           case KeyEvent.VK_DOWN:
+                             setConstraintSetIndex(0);
+                             if (mListener != null) {
+                               mListener.select(mConstraintSet[0]);
+                             }
+                             break;
+                           case KeyEvent.VK_LEFT:
+                             setTransitionSetIndex((mTransitionSelected - 1 + mTransitions.length) % mTransitions.length);
+                             break;
+                           case KeyEvent.VK_RIGHT:
+                             setTransitionSetIndex((mTransitionSelected + 1) % mTransitions.length);
+                             break;
+                         }
+                         if (mTransitionSelected >= 0 && mListener != null) {
+                           mListener.select(mTransitions[mTransitionSelected]);
+                         }
+                       }
+                       else if (mConstraintSetSelected >= 0) {
+                         switch (e.getKeyCode()) {
+                           case KeyEvent.VK_UP:
+                             if (mTransitions.length > 0) {
+                               setTransitionSetIndex(0);
+                               if (mListener != null) {
+                                 mListener.select(mTransitions[0]);
+                               }
+                             }
+                             break;
+                           case KeyEvent.VK_DOWN:
+                             break;
+                           case KeyEvent.VK_LEFT:
+                             setConstraintSetIndex((mConstraintSetSelected - 1 + 1 + mConstraintSet.length) % (mConstraintSet.length + 1));
+                             break;
+                           case KeyEvent.VK_RIGHT:
+                             setConstraintSetIndex((mConstraintSetSelected + 1) % (mConstraintSet.length + 1));
+                             break;
+                         }
+                         if (mListener != null) {
+                           if (mConstraintSetSelected == 0) {
+                             mListener.select(mLayout);
+                           }
+                           else if (mConstraintSetSelected > 0) {
+                             mListener.select(mConstraintSet[mConstraintSetSelected - 1]);
+                           }
+                         }
+                       }
+                     }
+                   }
+    );
   }
 
   private void updateFromMouse(int x, int y, boolean select) {
     MTag[] objects = new MTag[1];
     DerivedSetLine[] line = new DerivedSetLine[1];
-    picker.setSelectListener(new HitElementListener() {
+    picker.setSelectListener(new HitElementListener() { // todo memory wasteful
       @Override
       public void over(Object over, double dist) {
         if (over instanceof MTag) {

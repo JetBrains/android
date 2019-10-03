@@ -37,6 +37,8 @@ public class DrawMotionPath implements DrawCommand {
   private int mViewY;
   private int mViewWidth;
   private int mViewHeight;
+  int[] xpath = new int[4];
+  int[] ypath = new int[4];
 
   DrawMotionPath(float[] path, int pathSize, int[] keyFramesType, float[] keyFramePos, int keyFramesSize, int vx, int vy, int vw, int vh) {
     mPath = Arrays.copyOf(path, pathSize);
@@ -100,8 +102,23 @@ public class DrawMotionPath implements DrawCommand {
       for (int i = 0; i < mkeyFramesPos.length; i += 2) {
         int posx = (int)mkeyFramesPos[i];
         int posy = (int)mkeyFramesPos[i + 1];
-        int[] xpath = new int[]{posx, posx + diamond, posx, posx - diamond};
-        int[] ypath = new int[]{posy - diamond, posy, posy + diamond, posy};
+        xpath[0] = posx;
+        xpath[1] = posx + diamond+1;
+        xpath[2] = posx;
+        xpath[3] = posx - diamond-1;
+
+        ypath[0] = posy - diamond-1;
+        ypath[1] = posy;
+        ypath[2] = posy + diamond+1;
+        ypath[3] = posy;
+
+        g2.setColor(Color.BLACK);
+        g2.fillPolygon(xpath, ypath, 4);
+        xpath[1]--;
+        ypath[2]--;
+        xpath[3]++;
+        ypath[0]++;
+        g2.setColor(Color.WHITE);
         g2.fillPolygon(xpath, ypath, 4);
       }
     }

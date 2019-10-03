@@ -41,28 +41,26 @@ public class MECreateKeyTimeCycleTest extends BaseMotionEditorTest {
 
   public void testCreateKeyTimeCycleLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,189,362\n" +
-      "1,JLabel,5,2,179,15\n" +
-      "1,JSeparator,5,20,179,2\n" +
-      "1,JRadioButton,5,25,52,23\n" +
-      "1,JRadioButton,67,25,117,23\n" +
-      "1,JPanel,5,51,179,24\n" +
-      "2,PromptedTextField,0,0,0,0\n" +
-      "2,MEComboBox,0,0,0,0\n" +
-      "1,JSeparator,5,78,179,2\n" +
-      "1,JLabel,5,83,179,15\n" +
-      "1,PromptedTextField,5,101,179,19\n" +
-      "1,JLabel,5,123,179,15\n" +
-      "1,PromptedTextField,5,141,179,19\n" +
-      "1,JLabel,5,163,179,15\n" +
-      "1,MEComboBox,5,181,179,24\n" +
-      "1,JLabel,5,208,179,15\n" +
-      "1,PromptedTextField,5,226,179,19\n" +
-      "1,JLabel,5,248,179,15\n" +
-      "1,PromptedTextField,5,266,179,19\n" +
-      "1,JLabel,5,288,179,15\n" +
-      "1,MEComboBox,5,306,179,24\n" +
-      "1,JButton,5,336,179,25\n";
+    String layout = "0,CreatorAccess,0,0,189,317\n" +
+                    "1,JLabel,5,2,179,15\n" +
+                    "1,JSeparator,5,20,179,2\n" +
+                    "1,JRadioButton,5,25,52,23\n" +
+                    "1,JRadioButton,67,25,117,23\n" +
+                    "1,JPanel,5,51,179,24\n" +
+                    "2,PromptedTextField,0,0,0,0\n" +
+                    "2,MEComboBox,0,0,0,0\n" +
+                    "1,JSeparator,5,62,179,2\n" +
+                    "1,JLabel,5,78,179,15\n" +
+                    "1,PromptedTextField,5,96,179,19\n" +
+                    "1,JLabel,5,118,179,15\n" +
+                    "1,MEComboBox,5,136,179,24\n" +
+                    "1,JLabel,5,163,179,15\n" +
+                    "1,PromptedTextField,5,181,179,19\n" +
+                    "1,JLabel,5,203,179,15\n" +
+                    "1,PromptedTextField,5,221,179,19\n" +
+                    "1,JLabel,5,243,179,15\n" +
+                    "1,MEComboBox,5,261,179,24\n" +
+                    "1,JButton,5,291,179,25\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
@@ -81,27 +79,25 @@ public class MECreateKeyTimeCycleTest extends BaseMotionEditorTest {
     panel.access_populateDialog();
 
     String info = "0,CreatorAccess,\n" +
-      "1,JLabel,CREATE KEY TIME CYCLE\n" +
-      "1,JSeparator,\n" +
-      "1,JRadioButton,\n" +
-      "1,JRadioButton,\n" +
-      "1,JPanel,\n" +
-      "2,PromptedTextField,tag or regex\n" +
-      "2,MEComboBox,number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
-      "1,JSeparator,\n" +
-      "1,JLabel,TAG/ID\n" +
-      "1,PromptedTextField,ID or constraintTag\n" +
-      "1,JLabel,Position\n" +
-      "1,PromptedTextField,0-100\n" +
-      "1,JLabel,Wave Shape\n" +
-      "1,MEComboBox,sin,square,triangle,sawtooth,reverseSawtooth,cos,bounce\n" +
-      "1,JLabel,Wave Period\n" +
-      "1,PromptedTextField,1\n" +
-      "1,JLabel,Wave Offset\n" +
-      "1,PromptedTextField,float\n" +
-      "1,JLabel,Attribute to cycle\n" +
-      "1,MEComboBox,alpha,elevation,rotation,rotationX,rotationY,scaleX,scaleY,translationX,translationY,translationZ,transitionPathRotate\n" +
-      "1,JButton,Add\n";
+                  "1,JLabel,CREATE KEY TIME CYCLE\n" +
+                  "1,JSeparator,\n" +
+                  "1,JRadioButton,\n" +
+                  "1,JRadioButton,\n" +
+                  "1,JPanel,\n" +
+                  "2,PromptedTextField,tag or regex\n" +
+                  "2,MEComboBox,number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
+                  "1,JSeparator,\n" +
+                  "1,JLabel,Position\n" +
+                  "1,PromptedTextField,0-100\n" +
+                  "1,JLabel,Wave Shape\n" +
+                  "1,MEComboBox,sin,square,triangle,sawtooth,reverseSawtooth,cos,bounce\n" +
+                  "1,JLabel,Wave Period\n" +
+                  "1,PromptedTextField,1\n" +
+                  "1,JLabel,Wave Offset\n" +
+                  "1,PromptedTextField,float\n" +
+                  "1,JLabel,Attribute to cycle\n" +
+                  "1,MEComboBox,alpha,elevation,rotation,rotationX,rotationY,scaleX,scaleY,translationX,translationY,translationZ,transitionPathRotate\n" +
+                  "1,JButton,Add\n";
     assertEquals(info, componentFieldsString(panel, 0));
     panel.fillAttributes();
     MTag tag = panel.create();
