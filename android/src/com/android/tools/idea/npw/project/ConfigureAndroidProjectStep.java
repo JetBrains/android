@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.npw.project;
 
+import static com.android.sdklib.AndroidVersion.VersionCodes.Q;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
+import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
 import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTLIN;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
@@ -48,6 +51,7 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
@@ -59,6 +63,8 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import java.io.File;
 import java.util.ArrayList;
@@ -67,10 +73,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
@@ -94,10 +98,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JTextField myAppName;
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
-  private JCheckBox myWearCheck;
-  private JCheckBox myTvCheck;
-  private JLabel myTemplateIconTitle;
-  private JLabel myTemplateIconDetail;
+  private JBCheckBox myAppCompatCheck;
+  private JBCheckBox myWearCheck;
+  private JBCheckBox myTvCheck;
+  private JBLabel myTemplateIconTitle;
+  private JBLabel myTemplateIconDetail;
   private JPanel myFormFactorSdkControlsPanel;
   private FormFactorSdkControls myFormFactorSdkControls;
 
@@ -149,7 +154,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.getLanguage());
-
+    myBindings.bindTwoWay(myProjectModel.getUseAppCompat(), new SelectedProperty(myAppCompatCheck));
 
     myValidatorPanel.registerValidator(myProjectModel.getApplicationName(), new ProjectNameValidator());
 
@@ -165,6 +170,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myValidatorPanel.registerValidator(androidSdkInfo, value ->
       value.isPresent() ? OK : new Validator.Result(ERROR, message("select.target.dialog.text")));
 
+    myValidatorPanel.registerTest(myProjectModel.getUseAppCompat().not(), WARNING, message("android.wizard.validate.select.appcompat"));
+
     myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
     myListeners.listenAll(getModel().formFactor, myProjectModel.getEnableCppSupport()).withAndFire(() -> {
@@ -174,6 +181,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myWearCheck.setVisible(formFactor == FormFactor.WEAR);
       myTvCheck.setVisible(formFactor == FormFactor.TV);
     });
+
+    myListeners.listenAndFire(androidSdkInfo, () -> updateAppCompatCheckBox());
   }
 
   @Override
@@ -190,6 +199,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     if (isKotlinOnly) {
       myProjectModel.getLanguage().setValue(Language.KOTLIN);
     }
+    updateAppCompatCheckBox();
   }
 
   @Override
@@ -258,6 +268,22 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     }
     myTemplateIconTitle.setVisible(icon != null);
     myTemplateIconDetail.setVisible(icon != null);
+  }
+
+  private void updateAppCompatCheckBox() {
+    VersionItem androidVersion = getModel().androidSdkInfo().getValueOrNull();
+    boolean isAndroidxApi = androidVersion != null && androidVersion.getMinApiLevel() >= Q; // No more app-compat after Q
+
+    TemplateHandle templateHandle = getModel().renderTemplateHandle.getValueOrNull();
+    boolean hasAndroidxConstraint = templateHandle != null && templateHandle.getMetadata().getConstraints().contains(ANDROIDX);
+
+    if (isAndroidxApi || hasAndroidxConstraint) {
+      myAppCompatCheck.setSelected(false);
+      myAppCompatCheck.setEnabled(false);
+    }
+    else {
+      myAppCompatCheck.setEnabled(true);
+    }
   }
 
   private void createUIComponents() {
