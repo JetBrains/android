@@ -5,14 +5,15 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" exported="">
-      <library name="layoutlib">
+      <library name="org.jetbrains.intellij.deps.android.tools:layoutlib:26.5.0" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:layoutlib:26.5.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../studio-master-dev/prebuilts/studio/layoutlib/data/layoutlib.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/layoutlib/26.5.0/layoutlib-26.5.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
   </component>
 </module>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" exported="" name="asm-tools" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
+    <orderEntry type="library" exported="" name="Guava" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.builder-model" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
+    <orderEntry type="module" module-name="intellij.java.psi" exported="" />
+    <orderEntry type="module" module-name="intellij.java.psi.impl" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.manifest-merger" exported="" />
+    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" name="kotlin-reflect" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.uast" exported="" />
+    <orderEntry type="module" module-name="intellij.java.uast" exported="" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlin-plugin" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library name="com.android.tools.lint:lint-api:26.5.0" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.tools.lint:lint-api:26.5.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/lint/lint-api/26.5.0/lint-api-26.5.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/lint/lint-api/26.5.0/lint-api-26.5.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+  </component>
+</module>

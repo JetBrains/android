@@ -13,7 +13,7 @@
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.lang-databinding" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="library" name="com.android.tools:testutils" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
@@ -22,13 +22,5 @@
     <orderEntry type="module" module-name="intellij.junit" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.build:builder-model" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.lint:lint-api" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:sdklib" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:common" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:sdk-common" level="project" />
-    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:annotations" level="project" />
   </component>
 </module>

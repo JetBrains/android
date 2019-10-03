@@ -15,7 +15,7 @@
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="usb-devices" />
     <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="library" name="com.android.tools.ddms:ddmlib" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.platform.ide" />

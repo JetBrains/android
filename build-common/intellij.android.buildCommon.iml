@@ -23,19 +23,16 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="NanoXML" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.common" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.dvlib" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.lint-api" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.lint-checks" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.ninepatch" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="library" name="com.android.tools:common" level="project" />
-    <orderEntry type="library" name="com.android.tools:sdk-common" level="project" />
-    <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="library" name="com.android.tools:annotations" level="project" />
-    <orderEntry type="library" name="com.android.tools:sdklib" level="project" />
-    <orderEntry type="library" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
-    <orderEntry type="library" name="com.android.tools:repository" level="project" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" name="com.android.tools.build:builder-model" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
-    <orderEntry type="library" name="com.android.tools:ninepatch" level="project" />
-    <orderEntry type="library" exported="" name="com.android.tools:dvlib" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="com.android.tools.build:builder-test-api" level="project" />
   </component>
 </module>

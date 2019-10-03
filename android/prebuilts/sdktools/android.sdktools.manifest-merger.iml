@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" name="gson" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" exported="" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library name="com.android.tools.build:manifest-merger:26.5.0" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.tools.build:manifest-merger:26.5.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/manifest-merger/26.5.0/manifest-merger-26.5.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/manifest-merger/26.5.0/manifest-merger-26.5.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+  </component>
+</module>
