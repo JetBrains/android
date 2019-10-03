@@ -180,7 +180,7 @@ object SkiaParser {
 
   private fun readVersionMapping() {
     val latestPackage = AndroidSdks.getInstance().tryToChooseSdkHandler().getLatestLocalPackageForPrefix(
-      PARSER_PACKAGE_NAME, { true }, false, progressIndicator)
+      PARSER_PACKAGE_NAME, { true }, true, progressIndicator)
     if (latestPackage != null) {
       val mappingFile = File(latestPackage.location, VERSION_MAP_FILE_NAME)
       try {
