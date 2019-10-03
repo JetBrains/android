@@ -128,7 +128,7 @@ import org.jetbrains.annotations.Nullable;
  * @author yole, coyote
  */
 public class AndroidUtils {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidUtils");
+  private static final Logger LOG = Logger.getInstance(AndroidUtils.class);
 
   @NonNls public static final String NAMESPACE_KEY = "android";
   @NonNls public static final String SYSTEM_RESOURCE_PACKAGE = "android";
@@ -516,11 +516,6 @@ public class AndroidUtils {
       .getResourceModuleDependencies()
       .stream()
       .map(AndroidFacet::getInstance)
-      .peek(facet -> {
-        if (facet == null) {
-          LOG.error("Null in result of getResourceModuleDependencies, module system: " + ProjectSystemUtil.getModuleSystem(module));
-        }
-      })
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
   }
