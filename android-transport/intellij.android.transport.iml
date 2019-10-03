@@ -12,6 +12,8 @@
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
@@ -27,13 +29,5 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="library" name="com.android.tools.ddms:ddmlib" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:protos" level="project" />
-    <orderEntry type="library" name="com.android.tools:annotations" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:tracker" level="project" />
-    <orderEntry type="library" name="com.android.tools:common" level="project" />
-    <orderEntry type="library" name="com.android.tools:sdklib" level="project" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
   </component>
 </module>

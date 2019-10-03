@@ -26,16 +26,5 @@
     <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.c" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="KotlinPlugin" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
-    <orderEntry type="library" scope="TEST" name="gson" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:common" level="project" />
-    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
-    <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:sdk-common" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:protos" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:testing" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.build:builder-model" level="project" />
   </component>
 </module>
