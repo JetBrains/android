@@ -143,7 +143,13 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     val platform = AndroidPlatform.getInstance(module)
     if (platform != null) {
       val target = platform.target
-      myTemplateValues[ATTR_BUILD_API] = target.version.featureLevel
+      if (module.project.hasAndroidxSupport(false)) {
+        myTemplateValues[ATTR_BUILD_API] = target.version.featureLevel
+      }
+      else {
+        // The highest supported/recommended appCompact version is P(28)
+        myTemplateValues[ATTR_BUILD_API] = target.version.featureLevel.coerceAtMost(P)
+      }
       myTemplateValues[ATTR_BUILD_API_STRING] = getBuildApiString(target.version)
       // For parity with the value set in #setBuildVersion, the revision is set to 0 if the
       // release is not a preview.
