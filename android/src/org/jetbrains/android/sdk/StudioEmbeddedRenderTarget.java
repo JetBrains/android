@@ -57,7 +57,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     // IDEA path.
     "/community/android/tools-base/layoutlib/",
     // IDEA community path.
-    "/android/tools-base/layoutlib/"
+    "/android/tools-base/layoutlib/" // FIXME-ank: added (large) binaries to the path
   };
   // Possible paths of framework_res.jar relative to the "layoutlib" directory.
   private static final String[] EMBEDDED_FRAMEWORK_RES_JAR_PATHS = {
