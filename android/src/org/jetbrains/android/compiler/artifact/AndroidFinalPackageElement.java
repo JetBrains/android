@@ -18,8 +18,8 @@ import com.intellij.packaging.impl.ui.DelegatedPackagingElementPresentation;
 import com.intellij.packaging.ui.ArtifactEditorContext;
 import com.intellij.packaging.ui.PackagingElementPresentation;
 import com.intellij.util.xmlb.annotations.Attribute;
+import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +63,7 @@ public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPac
       return null;
     }
 
-    final String apkPath = AndroidRootUtil.getApkPath(facet);
+    final String apkPath = AndroidCompileUtil.getUnsignedApkPath(facet);
     final String path = apkPath != null
                         ? AndroidBuildCommonUtils.addSuffixToFileName(apkPath, AndroidBuildCommonUtils.ANDROID_FINAL_PACKAGE_FOR_ARTIFACT_SUFFIX)
                         : null;
