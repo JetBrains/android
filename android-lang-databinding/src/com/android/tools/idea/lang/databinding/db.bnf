@@ -160,7 +160,7 @@ fake refExpr ::= expr? '.' id
 simpleRefExpr ::= id {extends=refExpr elementType=refExpr}
 qualRefExpr ::= expr '.' id {extends=refExpr elementType=refExpr}
 nullCoalesceExpr ::= expr '??' expr
-ternaryExpr ::= expr '?' expr ':' expr
+left ternaryExpr ::= expr '?' expr ':' expr
 logicalOrExpr ::= expr '||' expr
 logicalAndExpr ::= expr '&&' expr
 binaryOrExpr ::= expr '|' expr

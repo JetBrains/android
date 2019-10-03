@@ -1096,4 +1096,26 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.checkHighlighting()
   }
+
+  @Test
+  fun testDataBindingInspection_chainedTernaryOperation() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+    <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+      <data>
+        <variable name="cond1" type="boolean"/>
+        <variable name="cond2" type="boolean"/>
+      </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{cond1 ? cond2 ? `1` : `2` : `3`}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
 }
