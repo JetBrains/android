@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.compiler;
 
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.model.AndroidModel;
@@ -76,6 +78,7 @@ import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 import org.jetbrains.jps.model.java.JavaSourceRootProperties;
@@ -896,7 +899,12 @@ public class AndroidCompileUtil {
 
   @Nullable
   public static String getUnsignedApkPath(@NotNull AndroidFacet facet) {
-    return AndroidRootUtil.getApkPath(facet);
+    String path = facet.getProperties().APK_PATH;
+    if (path.isEmpty()) {
+      return getOutputPackage(facet.getModule());
+    }
+    @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(facet.getModule());
+    return moduleDirPath != null ? toSystemDependentName(moduleDirPath + path) : null;
   }
 
   public static void reportException(@NotNull CompileContext context, @NotNull String messagePrefix, @NotNull Exception e) {

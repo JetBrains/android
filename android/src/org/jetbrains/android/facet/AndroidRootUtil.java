@@ -17,8 +17,6 @@
 package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
@@ -51,16 +49,13 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getOutput;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.*;
-import static org.jetbrains.android.compiler.AndroidCompileUtil.getOutputPackage;
 import static org.jetbrains.android.maven.AndroidMavenUtil.isMavenizedModule;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.CLASSES_JAR_FILE_NAME;
@@ -502,29 +497,6 @@ public class AndroidRootUtil {
     if (path.isEmpty()) return null;
     @SystemIndependent String moduleDirPath = getModuleDirPath(facet.getModule());
     return moduleDirPath != null ? moduleDirPath + path : null;
-  }
-
-  @Nullable
-  @SystemDependent
-  public static String getApkPath(@NotNull AndroidFacet facet) {
-    if (AndroidModel.isRequired(facet)) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-      if (androidModuleModel != null) {
-        // For Android-Gradle projects, AndroidModel is not null.
-        AndroidArtifact mainArtifact = androidModuleModel.getMainArtifact();
-        AndroidArtifactOutput output = getOutput(mainArtifact);
-        File outputFile = output.getMainOutputFile().getOutputFile();
-        return outputFile.getAbsolutePath();
-      } else {
-        return null;
-      }
-    }
-    String path = facet.getProperties().APK_PATH;
-    if (path.isEmpty()) {
-      return getOutputPackage(facet.getModule());
-    }
-    @SystemIndependent String moduleDirPath = getModuleDirPath(facet.getModule());
-    return moduleDirPath != null ? toSystemDependentName(moduleDirPath + path) : null;
   }
 
   @Nullable

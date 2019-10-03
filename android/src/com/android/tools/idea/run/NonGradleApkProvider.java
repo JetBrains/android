@@ -25,9 +25,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.util.containers.HashMap;
+import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,7 +96,7 @@ public class NonGradleApkProvider implements ApkProvider {
       }
       localPath = FileUtil.toSystemDependentName(artifactOutPath);
     } else {
-      localPath = AndroidRootUtil.getApkPath(facet);
+      localPath = AndroidCompileUtil.getUnsignedApkPath(facet);
     }
     if (localPath == null) {
       throw new ApkProvisionException("ERROR: APK path is not specified for module \"" + module.getName() + '"');
