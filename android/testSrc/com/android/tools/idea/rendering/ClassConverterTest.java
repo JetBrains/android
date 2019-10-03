@@ -389,7 +389,7 @@ public class ClassConverterTest extends TestCase {
   private static class TestClassLoader extends RenderClassLoader {
     final byte[] myData;
     public TestClassLoader(byte[] data) {
-      super(null,Integer.MAX_VALUE);
+      super(null);
       myData = data;
     }
 

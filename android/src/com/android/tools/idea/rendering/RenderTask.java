@@ -20,7 +20,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.DrawableParams;
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.IImageFactory;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
@@ -91,7 +90,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -960,20 +958,15 @@ public class RenderTask {
                            myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
-    boolean supportsMultipleStates = myLayoutLib.supports(Features.RENDER_ALL_DRAWABLE_STATES);
-    if (supportsMultipleStates) {
-      params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
-    }
+    params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
 
     try {
       Result result = RenderService.runRenderAction(() -> myLayoutLib.renderDrawable(params));
 
       if (result != null && result.isSuccess()) {
         Object data = result.getData();
-        if (supportsMultipleStates && data instanceof List) {
+        if (data instanceof List) {
           return (List<BufferedImage>)data;
-        } else if (!supportsMultipleStates && data instanceof BufferedImage) {
-          return Collections.singletonList((BufferedImage) data);
         }
       }
     }
@@ -992,10 +985,6 @@ public class RenderTask {
   @NotNull
   public LayoutlibCallbackImpl getLayoutlibCallback() {
     return myLayoutlibCallback;
-  }
-
-  public boolean supportsCapability(@MagicConstant(flagsFromClass = Features.class) int capability) {
-    return myLayoutLib.supports(capability);
   }
 
   /** Returns true if this service can render a non-rectangular shape */
