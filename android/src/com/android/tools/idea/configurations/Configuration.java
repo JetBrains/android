@@ -31,9 +31,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_PROJECT_STATE;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
@@ -85,7 +83,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.List;
-import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
@@ -1141,22 +1138,6 @@ public class Configuration implements Disposable, ModificationTracker {
     }
 
     return null;
-  }
-
-  /**
-   * Returns true if this configuration supports the given rendering
-   * capability
-   *
-   * @param capability the capability to check
-   * @return true if the capability is supported
-   */
-  public boolean supports(@MagicConstant(flagsFromClass = Features.class) int capability) {
-    IAndroidTarget target = getTarget();
-    if (target != null) {
-      return RenderService.supportsCapability(getModule(), target, capability);
-    }
-
-    return false;
   }
 
   /**

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.rendering.api.Features;
 import com.android.resources.Density;
 import com.android.resources.NightMode;
 import com.android.resources.UiMode;
@@ -287,20 +286,12 @@ public class VaryingConfiguration extends NestedConfiguration {
         to = biggest + 0.1;
       }
 
-      boolean canScaleNinePatch = supports(Features.FIXED_SCALABLE_NINE_PATCH);
       for (Device d : devices) {
         if (isTv != isTv(d) || isWear != isWear(d)) {
           continue;
         }
         double size = getScreenSize(d);
         if (size >= from && size < to) {
-          if (!canScaleNinePatch) {
-            Density density = getDensity(d);
-            if (density == null || !density.isRecommended() || density == Density.LOW) {
-              continue;
-            }
-          }
-
           device = d;
           break;
         }

@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -64,13 +62,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -196,24 +192,6 @@ public class RenderService implements Disposable {
       }
     }
     return null;
-  }
-
-  public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target,
-                                           @MagicConstant(flagsFromClass = Features.class) int capability) {
-    Project project = module.getProject();
-    AndroidPlatform platform = AndroidPlatform.getInstance(module);
-    if (platform != null) {
-      try {
-        LayoutLibrary library = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
-        if (library != null) {
-          return library.supports(capability);
-        }
-      }
-      catch (RenderingException e) {
-        // Ignore: if service can't be found, that capability isn't available
-      }
-    }
-    return false;
   }
 
   /** Returns true if the given file can be rendered */
@@ -605,18 +583,6 @@ public class RenderService implements Disposable {
           String message = e.getPresentableMessage();
           message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
-          return null;
-        }
-
-        if (myPsiFile != null &&
-            TAG_PREFERENCE_SCREEN.equals(AndroidUtils.getRootTagName(myPsiFile)) &&
-            !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
-          // This means that user is using an outdated version of layoutlib. A warning to update has already been
-          // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
-          myLogger
-            .addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
-                                                         "Update it using the SDK Manager"));
-
           return null;
         }
 

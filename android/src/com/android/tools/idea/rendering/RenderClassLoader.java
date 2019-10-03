@@ -47,11 +47,9 @@ public abstract class RenderClassLoader extends ClassLoader {
 
   protected UrlClassLoader myJarClassLoader;
   protected boolean myInsideJarClassLoader;
-  protected final int myLayoutlibApiLevel;
 
-  public RenderClassLoader(@Nullable ClassLoader parent, int layoutlibApiLevel) {
+  public RenderClassLoader(@Nullable ClassLoader parent) {
     super(parent);
-    myLayoutlibApiLevel = layoutlibApiLevel;
   }
 
   protected abstract List<URL> getExternalJars();

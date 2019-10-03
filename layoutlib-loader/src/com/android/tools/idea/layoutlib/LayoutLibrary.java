@@ -18,31 +18,22 @@ package com.android.tools.idea.layoutlib;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.Bridge;
-import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.rendering.api.DrawableParams;
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.Result.Status;
 import com.android.ide.common.rendering.api.SessionParams;
-import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.sdk.LoadStatus;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.PluginId;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Map;
-
-import static com.android.ide.common.rendering.api.Result.Status.ERROR_REFLECTION;
 
 /**
  * Class to use the Layout library.
@@ -50,7 +41,7 @@ import static com.android.ide.common.rendering.api.Result.Status.ERROR_REFLECTIO
  * Use {@link #load(Bridge, ClassLoader)} to get an instance
  * <p>
  * Use the layout library with:
- * {@link #init}, {@link #supports(int)}, {@link #createSession(SessionParams)},
+ * {@link #init}, {@link #createSession(SessionParams)},
  * {@link #dispose()}, {@link #clearResourceCaches(Object)}.
  */
 public class LayoutLibrary implements Disposable {
@@ -60,14 +51,6 @@ public class LayoutLibrary implements Disposable {
     /** classloader used to load the jar file */
     private final ClassLoader mClassLoader;
 
-    // Reflection data for older Layout Libraries.
-    private Method mViewGetParentMethod;
-    private Method mViewGetBaselineMethod;
-    private Class<?> mMarginLayoutParamClass;
-    private Field mLeftMarginField;
-    private Field mTopMarginField;
-    private Field mRightMarginField;
-    private Field mBottomMarginField;
     private boolean mIsDisposed;
 
     /**
@@ -98,61 +81,6 @@ public class LayoutLibrary implements Disposable {
     }
 
     // ------ Layout Lib API proxy
-
-    /**
-     * Returns the API level of the layout library.
-     */
-    public int getApiLevel() {
-        if (mBridge != null) {
-            return mBridge.getApiLevel();
-        }
-
-        return 0;
-    }
-
-    /**
-     * Returns the revision of the library inside a given (layoutlib) API level.
-     * The true version number of the library is {@link #getApiLevel()}.{@link #getRevision()}
-     */
-    public int getRevision() {
-        if (mBridge != null) {
-            return mBridge.getRevision();
-        }
-
-        return 0;
-    }
-
-    /**
-     * Returns whether the LayoutLibrary supports a given {@link Capability}.
-     * @return true if it supports it.
-     *
-     * @see Bridge#getCapabilities()
-     *
-     * @deprecated use {@link #supports(int)}
-     */
-    @Deprecated
-    public boolean supports(Capability capability) {
-        return supports(capability.ordinal());
-    }
-
-    /**
-     * Returns whether the LayoutLibrary supports a given {@link Features}.
-     *
-     * @see Bridge#supports(int)
-     */
-    public boolean supports(int capability) {
-        if (mBridge != null) {
-            if (mBridge.getApiLevel() > 12) {
-                // Features were introduced in API level 13.
-                return mBridge.supports(capability);
-            } else {
-                return capability <= Features.LAST_CAPABILITY
-                        && mBridge.getCapabilities().contains(Capability.values()[capability]);
-            }
-        }
-
-        return false;
-    }
 
     /**
      * Initializes the Layout Library object. This must be called before any other action is taken
@@ -200,8 +128,6 @@ public class LayoutLibrary implements Disposable {
      * Starts a layout session by inflating and rendering it. The method returns a
      * {@link RenderSession} on which further actions can be taken.
      * <p>
-     * Before taking further actions on the scene, it is recommended to use
-     * {@link #supports(int)} to check what the scene can do.
      *
      * @return a new {@link RenderSession} object that contains the result of the scene creation and
      * first rendering or null if {@link #getStatus()} doesn't return {@link LoadStatus#LOADED}.
@@ -210,19 +136,7 @@ public class LayoutLibrary implements Disposable {
      */
     public RenderSession createSession(SessionParams params) {
         if (mBridge != null) {
-            RenderSession session = mBridge.createSession(params);
-            if (params.getExtendedViewInfoMode() && !supports(Features.EXTENDED_VIEWINFO)) {
-                // Extended view info was requested but the layoutlib does not support it.
-                // Add it manually.
-                List<ViewInfo> infoList = session.getRootViews();
-                if (infoList != null) {
-                    for (ViewInfo info : infoList) {
-                        addExtendedViewInfo(info);
-                    }
-                }
-            }
-
-            return session;
+            return mBridge.createSession(params);
         }
 
         return null;
@@ -291,13 +205,9 @@ public class LayoutLibrary implements Disposable {
      */
     public Result getViewParent(Object viewObject) {
         if (mBridge != null) {
-            Result r = mBridge.getViewParent(viewObject);
-            if (r.isSuccess()) {
-                return r;
-            }
+            return mBridge.getViewParent(viewObject);
         }
-
-        return getViewParentWithReflection(viewObject);
+        return Status.ERROR_UNKNOWN.createResult();
     }
 
     /**
@@ -306,102 +216,7 @@ public class LayoutLibrary implements Disposable {
      * @return true if the locale is right to left.
      */
     public boolean isRtl(String locale) {
-        return supports(Features.RTL) && mBridge != null && mBridge.isRtl(locale);
-    }
-
-    // ------ Implementation
-
-    private Result getViewParentWithReflection(Object viewObject) {
-        // default implementation using reflection.
-        try {
-            if (mViewGetParentMethod == null) {
-                Class<?> viewClass = Class.forName("android.view.View");
-                mViewGetParentMethod = viewClass.getMethod("getParent");
-            }
-
-            return Status.SUCCESS.createResult(mViewGetParentMethod.invoke(viewObject));
-        } catch (Exception e) {
-            // Catch all for the reflection calls.
-            return ERROR_REFLECTION.createResult(null, e);
-        }
-    }
-
-    private void addExtendedViewInfo(@NotNull ViewInfo info) {
-        computeExtendedViewInfo(info);
-
-        List<ViewInfo> children = info.getChildren();
-        for (ViewInfo child : children) {
-            addExtendedViewInfo(child);
-        }
-    }
-
-    private void computeExtendedViewInfo(@NotNull ViewInfo info) {
-        Object viewObject = info.getViewObject();
-        Object params = info.getLayoutParamsObject();
-
-        int baseLine = getViewBaselineReflection(viewObject);
-        int leftMargin = 0;
-        int topMargin = 0;
-        int rightMargin = 0;
-        int bottomMargin = 0;
-
-        try {
-            if (mMarginLayoutParamClass == null) {
-                mMarginLayoutParamClass = Class.forName(
-                        "android.view.ViewGroup$MarginLayoutParams");
-
-                mLeftMarginField = mMarginLayoutParamClass.getField("leftMargin");
-                mTopMarginField = mMarginLayoutParamClass.getField("topMargin");
-                mRightMarginField = mMarginLayoutParamClass.getField("rightMargin");
-                mBottomMarginField = mMarginLayoutParamClass.getField("bottomMargin");
-            }
-
-            if (mMarginLayoutParamClass.isAssignableFrom(params.getClass())) {
-
-                leftMargin = (Integer)mLeftMarginField.get(params);
-                topMargin = (Integer)mTopMarginField.get(params);
-                rightMargin = (Integer)mRightMarginField.get(params);
-                bottomMargin = (Integer)mBottomMarginField.get(params);
-            }
-
-        } catch (Exception e) {
-            // just use 'unknown' value.
-            leftMargin = Integer.MIN_VALUE;
-            topMargin = Integer.MIN_VALUE;
-            rightMargin = Integer.MIN_VALUE;
-            bottomMargin = Integer.MIN_VALUE;
-        }
-
-        info.setExtendedInfo(baseLine, leftMargin, topMargin, rightMargin, bottomMargin);
-    }
-
-    /**
-     * Utility method returning the baseline value for a given view object. This basically returns
-     * View.getBaseline().
-     *
-     * @param viewObject the object for which to return the index.
-     *
-     * @return the baseline value or -1 if not applicable to the view object or if this layout
-     *     library does not implement this method.
-     */
-    private int getViewBaselineReflection(Object viewObject) {
-        // default implementation using reflection.
-        try {
-            if (mViewGetBaselineMethod == null) {
-                Class<?> viewClass = Class.forName("android.view.View");
-                mViewGetBaselineMethod = viewClass.getMethod("getBaseline");
-            }
-
-            Object result = mViewGetBaselineMethod.invoke(viewObject);
-            if (result instanceof Integer) {
-                return ((Integer)result).intValue();
-            }
-
-        } catch (Exception e) {
-            // Catch all for the reflection calls.
-        }
-
-        return Integer.MIN_VALUE;
+        return mBridge != null && mBridge.isRtl(locale);
     }
 
     @VisibleForTesting
