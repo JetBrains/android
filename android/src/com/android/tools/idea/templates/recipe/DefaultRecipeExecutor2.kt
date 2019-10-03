@@ -261,6 +261,16 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     val newConfiguration = convertConfiguration(templateData.projectTemplateData.gradlePluginVersion, configuration)
     referencesExecutor.addDependency(newConfiguration, mavenCoordinate)
     context.dependencies.put(newConfiguration, mavenCoordinate)
+    return
+    // TODO(qumeric): use buildModel
+
+    val buildFile = getBuildFilePath(context)
+
+    val configuration = GradleUtil.mapConfigurationName(configuration, context.templateData.projectTemplateData.gradlePluginVersion, false)
+
+    val buildModel = getBuildModel(buildFile, project) ?: return
+    buildModel.dependencies().addArtifact(configuration, mavenCoordinate)
+    io.applyChanges(buildModel)
   }
 
   /**
