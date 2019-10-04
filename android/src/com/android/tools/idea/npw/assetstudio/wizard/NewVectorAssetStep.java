@@ -261,7 +261,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myListeners.listenAndFire(myActiveAsset, () -> {
       myActiveAssetBindings.releaseAll();
 
-      OptionalValueProperty<File> fileProperty = myActiveAsset.get().path();
+      VectorAsset activeAsset = myActiveAsset.get();
+      OptionalValueProperty<File> fileProperty = activeAsset.path();
       myActiveAssetBindings.bind(myOutputName, Expression.create(() -> {
         File file = fileProperty.getValueOrNull();
         if (file == null || !file.exists() || file.isDirectory()) {
@@ -276,7 +277,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       }, fileProperty));
 
       myListeners.release(drawableListener);
-      ObjectProperty<VectorAsset.VectorDrawableInfo> vectorDrawableInfo = myActiveAsset.get().getVectorDrawableInfo();
+      ObjectProperty<VectorAsset.VectorDrawableInfo> vectorDrawableInfo = activeAsset.getVectorDrawableInfo();
       myListeners.listenAndFire(vectorDrawableInfo, drawableListener);
 
       myValidatorPanel.registerValidator(myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name)));
@@ -291,16 +292,17 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       myValidatorPanel.registerValidator(heightForValidation, new SizeValidator("Height has to be a positive number"));
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
-        myActiveAssetBindings.bind(ObjectProperty.wrap(myActiveAsset.get().color()), myColor);
+        myActiveAssetBindings.bind(ObjectProperty.wrap(activeAsset.color()), myColor);
       }
-      myActiveAssetBindings.bind(myActiveAsset.get().opacityPercent(), myOpacityPercent);
-      myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), myAutoMirrored);
-      myActiveAssetBindings.bind(myActiveAsset.get().outputWidth(), Expression.create(() -> myWidth.get(), myWidth));
-      myActiveAssetBindings.bind(myActiveAsset.get().outputHeight(), Expression.create(() -> myHeight.get(), myHeight));
-    });
+      myActiveAssetBindings.bind(activeAsset.opacityPercent(), myOpacityPercent);
+      myActiveAssetBindings.bind(activeAsset.autoMirrored(), myAutoMirrored);
+      myActiveAssetBindings.bind(activeAsset.outputWidth(), Expression.create(() -> myWidth.get(), myWidth));
+      myActiveAssetBindings.bind(activeAsset.outputHeight(), Expression.create(() -> myHeight.get(), myHeight));
 
-    myListeners.listenAll(myActiveAsset, myWidth, myHeight, myColor, myOpacityPercent, myAutoMirrored)
-        .with(this::renderPreviews);
+      myListeners.listenAll(myActiveAsset, activeAsset.outputWidth(), activeAsset.outputHeight(), activeAsset.color(),
+                            activeAsset.opacityPercent(), activeAsset.autoMirrored())
+          .with(this::renderPreviews);
+    });
 
     myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myActiveAsset));
     myGeneralBindings.bind(myIconGenerator.outputName(), myOutputName);
@@ -447,64 +449,74 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       }
 
       if (myCurrentWorker == null) {
-        myCurrentWorker = createWorker(previewWidth);
+        myCurrentWorker = new Worker(previewWidth);
         myCurrentWorker.start();
       }
       else if (myEnqueuedWorker == null) {
-        myEnqueuedWorker = createWorker(previewWidth);
+        myEnqueuedWorker = new Worker(previewWidth);
       }
     }
 
-    private SwingWorker<VectorAsset.Preview> createWorker(int previewWidth) {
-      return new SwingWorker<VectorAsset.Preview>() {
-        @Nullable VectorAsset.Preview myPreview;
-        @NotNull final VectorAsset myAsset = myActiveAsset.get();
-        @Nullable final File myAssetFile = myAsset.path().getValueOrNull();
-        @NotNull final VectorAsset.VectorDrawableInfo myVectorDrawableInfo = myAsset.getVectorDrawableInfo().get();
-        @NotNull final VdOverrideInfo myOverrideInfo = myAsset.createOverrideInfo();
+    private class Worker extends SwingWorker<VectorAsset.Preview> {
+      @Nullable VectorAsset.Preview myPreview;
+      @NotNull final VectorAsset myAsset;
+      @Nullable final File myAssetFile;
+      // For some strange reason, possibly a JVM bug, changing "volatile" to "final" results in
+      // myVectorDrawableInfo being null inside the construct method.
+      // TODO: Investigate why this is happening.
+      @NotNull volatile VectorAsset.VectorDrawableInfo myVectorDrawableInfo;
+      @NotNull final VdOverrideInfo myOverrideInfo;
+      private int myPreviewWidth;
 
-        @WorkerThread
-        @Override
-        @NotNull
-        public VectorAsset.Preview construct() {
-          try {
-            if (myVectorDrawableInfo == null) {
-              myPreview = new VectorAsset.Preview("Preview not available");
-              return myPreview;
-            }
-            myPreview = VectorAsset.generatePreview(myVectorDrawableInfo, previewWidth, myOverrideInfo);
-          } catch (Throwable t) {
-            Logger.getInstance(getClass()).error(t);
-            String message = myAssetFile == null ?
-                "Internal error generating preview" :
-                "Internal error generating preview for " + myAssetFile.getName();
-            myPreview = new VectorAsset.Preview(message);
-          }
-          return myPreview;
+      @UiThread
+      Worker(int previewWidth) {
+        ApplicationManager.getApplication().assertIsDispatchThread();
+        myPreviewWidth = previewWidth;
+        myAsset = myActiveAsset.get();
+        myAssetFile = myAsset.path().getValueOrNull();
+        myVectorDrawableInfo = myAsset.getVectorDrawableInfo().get();
+        myOverrideInfo = myAsset.createOverrideInfo();
+      }
+
+      @WorkerThread
+      @Override
+      @NotNull
+      public VectorAsset.Preview construct() {
+        try {
+          myPreview = VectorAsset.generatePreview(myVectorDrawableInfo, myPreviewWidth, myOverrideInfo);
+        } catch (Throwable t) {
+          Logger.getInstance(getClass()).error(t);
+          String message = myAssetFile == null ?
+                           "Internal error generating preview" :
+                           "Internal error generating preview for " + myAssetFile.getName();
+          myPreview = new VectorAsset.Preview(message);
+        }
+        return myPreview;
+      }
+
+      @UiThread
+      @Override
+      public void finished() {
+        ApplicationManager.getApplication().assertIsDispatchThread();
+        assert myPreview != null;
+
+        // Update the preview image if it corresponds to the current state.
+        if (myAsset.equals(myActiveAsset.get()) &&
+            myAsset.isCurrentFile(myAssetFile) &&
+            myVectorDrawableInfo.equals(myAsset.getVectorDrawableInfo().get()) &&
+            myOverrideInfo.equals(myAsset.createOverrideInfo())) {
+          myAssetValidityState.set(myPreview.getValidityState());
+          BufferedImage image = myPreview.getImage();
+          myImagePreview.setIcon(image == null ? null : new ImageIcon(image));
         }
 
-        @UiThread
-        @Override
-        public void finished() {
-          assert myPreview != null;
-          // Update the preview image if it corresponds to the current state.
-          if (myAsset.equals(myActiveAsset.get()) &&
-              myAsset.isCurrentFile(myAssetFile) &&
-              myVectorDrawableInfo.equals(myAsset.getVectorDrawableInfo().get()) &&
-              myOverrideInfo.equals(myAsset.createOverrideInfo())) {
-            myAssetValidityState.set(myPreview.getValidityState());
-            BufferedImage image = myPreview.getImage();
-            myImagePreview.setIcon(image == null ? null : new ImageIcon(image));
-          }
-
-          myCurrentWorker = null;
-          if (myEnqueuedWorker != null) {
-            myCurrentWorker = myEnqueuedWorker;
-            myEnqueuedWorker = null;
-            myCurrentWorker.start();
-          }
+        myCurrentWorker = null;
+        if (myEnqueuedWorker != null) {
+          myCurrentWorker = myEnqueuedWorker;
+          myEnqueuedWorker = null;
+          myCurrentWorker.start();
         }
-      };
+      }
     }
   }
 
