@@ -262,7 +262,7 @@ public class VisualizationForm implements Disposable {
     }
     if (myContentPanel == null) {
       createContentPanel();
-      myWorkBench.init(myContentPanel, mySurface, ImmutableList.of());
+      myWorkBench.init(myContentPanel, mySurface, ImmutableList.of(), false);
     }
     initNeleModel();
   }

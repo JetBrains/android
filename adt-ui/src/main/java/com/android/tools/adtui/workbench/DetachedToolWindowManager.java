@@ -45,8 +45,8 @@ public class DetachedToolWindowManager implements ProjectComponent {
   private final Project myProject;
   private final FileEditorManager myEditorManager;
   private final MyFileEditorManagerListener myEditorManagerListener;
-  private final Map<FileEditor, WorkBench> myWorkBenchMap;
-  private final HashMap<String, DetachedToolWindow> myToolWindowMap;
+  private final Map<FileEditor, WorkBench<?>> myWorkBenchMap;
+  private final HashMap<String, DetachedToolWindow<?>> myToolWindowMap;
   private DetachedToolWindowFactory myDetachedToolWindowFactory;
   private FileEditor myLastSelectedEditor;
 
@@ -77,7 +77,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
     return myEditorManagerListener;
   }
 
-  public void register(@Nullable FileEditor fileEditor, @NotNull WorkBench workBench) {
+  public void register(@Nullable FileEditor fileEditor, @NotNull WorkBench<?> workBench) {
     if (fileEditor != null) {
       myWorkBenchMap.put(fileEditor, workBench);
       if (fileEditor == myLastSelectedEditor) {

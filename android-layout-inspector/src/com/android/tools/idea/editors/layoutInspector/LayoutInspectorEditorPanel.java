@@ -41,7 +41,7 @@ public class LayoutInspectorEditorPanel extends WorkBench<LayoutInspectorContext
     tools.add(new LayoutTreeDefinition(Side.LEFT, Split.TOP, AutoHide.DOCKED));
     tools.add(new PropertiesDefinition(Side.RIGHT, Split.TOP, AutoHide.DOCKED));
 
-    init(new LayoutInspectorPanel(context), context, tools);
+    init(new LayoutInspectorPanel(context), context, tools, false);
 
     UsageTracker.log(UsageTrackerUtils.withProjectId(
        AndroidStudioEvent.newBuilder()

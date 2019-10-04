@@ -93,7 +93,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
     List<ToolWindowDefinition<String>> definitions = ImmutableList.of(PalettePanelToolContent.getDefinition(),
                                                                       PalettePanelToolContent.getOtherDefinition(),
                                                                       PalettePanelToolContent.getThirdDefinition());
-    myWorkBench.init(myContent, "CONTEXT", definitions);
+    myWorkBench.init(myContent, "CONTEXT", definitions, false);
     myToolWindow1 = myModel.getAllTools().get(0);
     myToolWindow2 = myModel.getAllTools().get(1);
     myToolWindow3 = myModel.getAllTools().get(2);

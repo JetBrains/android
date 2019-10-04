@@ -351,7 +351,7 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
    * [WorkBench] used to contain all the preview elements.
    */
   override val workbench = WorkBench<DesignSurface>(project, "Main Preview", this, this).apply {
-    init(editorPanel, surface, listOf())
+    init(editorPanel, surface, listOf(), false)
     showLoading("Waiting for build to finish...")
   }
 
