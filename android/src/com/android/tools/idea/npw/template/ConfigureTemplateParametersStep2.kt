@@ -78,8 +78,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.ui.RecentsManager
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
-import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTHWEST
-import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST
 import com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH
 import com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL
 import com.intellij.uiDesigner.core.GridConstraints.FILL_NONE
@@ -130,11 +128,13 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   private val invalidParameterMessage = StringValueProperty()
 
   private val templateDescriptionLabel = JLabel().apply {
-    font = Font("Default", Font.BOLD, 18)
+    font = Font("Default", Font.PLAIN, 11)
   }
   private val templateThumbLabel = JLabel().apply {
     horizontalTextPosition = SwingConstants.CENTER
     verticalAlignment = SwingConstants.TOP
+    verticalTextPosition = SwingConstants.BOTTOM
+    font = Font("Default", Font.PLAIN, 16)
   }
   private var parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(10))
   private val footerSeparator = JSeparator()
@@ -144,13 +144,14 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     border = JBUI.Borders.emptyBottom(templateDescriptionLabel.font.size)
   }
 
-  private val rootPanel = JPanel(GridLayoutManager(4, 3)).apply {
+  // TODO(b/142107543) Replace it with TabularLayout for more readability
+  private val rootPanel = JPanel(GridLayoutManager(2, 2)).apply {
     val anySize = Dimension(-1, -1)
-    add(templateDescriptionLabel, GridConstraints(0, 1, 1, 1, ANCHOR_WEST, FILL_BOTH, 3, 0, anySize, anySize, anySize, 0, false))
-    add(templateThumbLabel, GridConstraints(1, 0, 1, 1, ANCHOR_NORTHWEST, FILL_NONE, 0, 0, anySize, anySize, anySize, 0, false))
-    add(parametersPanel, GridConstraints(1, 1, 1, 2, ANCHOR_CENTER, FILL_BOTH, 3, 7, anySize, anySize, anySize, 0, false))
-    add(footerSeparator, GridConstraints(2, 1, 1, 1, ANCHOR_CENTER, FILL_HORIZONTAL, 3, 0, anySize, anySize, anySize, 0, false))
-    add(parameterDescriptionLabel, GridConstraints(3, 1, 1, 1, ANCHOR_WEST, FILL_NONE, 1, 2, anySize, anySize, anySize, 0, false))
+    val defaultSizePolicy = GridConstraints.SIZEPOLICY_CAN_GROW or GridConstraints.SIZEPOLICY_CAN_SHRINK
+    add(templateThumbLabel, GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, 0, 0, anySize, anySize, anySize))
+    add(parametersPanel, GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_BOTH, defaultSizePolicy, defaultSizePolicy or GridConstraints.SIZEPOLICY_WANT_GROW, anySize, anySize, anySize))
+    add(templateDescriptionLabel, GridConstraints(1, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, defaultSizePolicy, 0, anySize, anySize, anySize))
+    add(footerSeparator, GridConstraints(1, 1, 1, 1, ANCHOR_CENTER, FILL_HORIZONTAL, defaultSizePolicy, 0, anySize, anySize, anySize))
   }
 
   private val validatorPanel: ValidatorPanel = ValidatorPanel(this, wrappedWithVScroll(rootPanel))
@@ -199,6 +200,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       override fun get(): Boolean = thumb.get().isPresent
     })
     thumbPath.set(thumbnailPath)
+    templateThumbLabel.text = newTemplate.name
 
     val parameterDescription = TextProperty(parameterDescriptionLabel)
     bindings.bind(VisibleProperty(footerSeparator), object : Expression<Boolean>(parameterDescription) {
@@ -282,8 +284,8 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
           rowEntry
         }
       }
-      is BooleanParameter -> RowEntry(CheckboxProvider2(parameter), false)
-      is Separator -> RowEntry(SeparatorProvider(), true)
+      is BooleanParameter -> RowEntry(CheckboxProvider2(parameter))
+      is Separator -> RowEntry(SeparatorProvider())
       is EnumParameter -> RowEntry(name, EnumComboProvider2(parameter))
       else -> TODO("Only string and bool parameters are supported for now")
     }

@@ -69,11 +69,12 @@ import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
-import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTHWEST
-import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST
 import com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH
 import com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL
 import com.intellij.uiDesigner.core.GridConstraints.FILL_NONE
+import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW
+import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK
+import com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW
 import com.intellij.uiDesigner.core.GridLayoutManager
 import com.intellij.util.ui.JBUI
 import java.awt.Dimension
@@ -82,6 +83,7 @@ import java.awt.Font
 import java.io.File
 import java.util.Optional
 import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -116,13 +118,15 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   private val invalidParameterMessage = StringValueProperty()
 
   private val templateDescriptionLabel = JLabel().apply {
-    font = Font("Default", Font.BOLD, 18)
+    font = Font("Default", Font.PLAIN, 11)
   }
   private val templateThumbLabel = JLabel().apply {
     horizontalTextPosition = SwingConstants.CENTER
     verticalAlignment = SwingConstants.TOP
+    verticalTextPosition = SwingConstants.BOTTOM
+    font = Font("Default", Font.PLAIN, 16)
   }
-  private val parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(10))
+  private val parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(14))
   private val footerSeparator = JSeparator()
   private val parameterDescriptionLabel = TooltipLabel().apply {
     setScope(parametersPanel)
@@ -130,13 +134,14 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     border = JBUI.Borders.emptyBottom(templateDescriptionLabel.font.size)
   }
 
-  private val rootPanel = JPanel(GridLayoutManager(4, 3)).apply {
+  // TODO(b/142107543) Replace it with TabularLayout for more readability
+  private val rootPanel = JPanel(GridLayoutManager(2, 2)).apply {
     val anySize = Dimension(-1, -1)
-    add(templateDescriptionLabel, GridConstraints(0, 1, 1, 1, ANCHOR_WEST, FILL_BOTH, 3, 0, anySize, anySize, anySize))
-    add(templateThumbLabel, GridConstraints(1, 0, 1, 1, ANCHOR_NORTHWEST, FILL_NONE, 0, 0, anySize, anySize, anySize))
-    add(parametersPanel, GridConstraints(1, 1, 1, 2, ANCHOR_CENTER, FILL_BOTH, 3, 7, anySize, anySize, anySize))
-    add(footerSeparator, GridConstraints(2, 1, 1, 1, ANCHOR_CENTER, FILL_HORIZONTAL, 3, 0, anySize, anySize, anySize))
-    add(parameterDescriptionLabel, GridConstraints(3, 1, 1, 1, ANCHOR_WEST, FILL_NONE, 1, 2, anySize, anySize, anySize))
+    val defaultSizePolicy = SIZEPOLICY_CAN_GROW or SIZEPOLICY_CAN_SHRINK
+    add(templateThumbLabel, GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, 0, 0, anySize, anySize, anySize))
+    add(parametersPanel, GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_BOTH, defaultSizePolicy, defaultSizePolicy or SIZEPOLICY_WANT_GROW, anySize, anySize, anySize))
+    add(templateDescriptionLabel, GridConstraints(1, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, defaultSizePolicy, 0, anySize, anySize, anySize))
+    add(footerSeparator, GridConstraints(1, 1, 1, 1, ANCHOR_CENTER, FILL_HORIZONTAL, defaultSizePolicy, 0, anySize, anySize, anySize))
   }
 
   private val validatorPanel: ValidatorPanel = ValidatorPanel(this, wrappedWithVScroll(rootPanel))
@@ -195,6 +200,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       bindings.bind(thumbVisibility, object : Expression<Boolean>(thumb) {
         override fun get() = thumb.get().isPresent
       })
+      templateThumbLabel.text = templateHandle.metadata.title
       thumbPath.set(defaultThumbnailPath)
     }
 
@@ -309,8 +315,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
     return when (parameter.type) {
       Parameter.Type.STRING -> RowEntry(name, TextFieldProvider(parameter))
-      Parameter.Type.BOOLEAN -> RowEntry(CheckboxProvider(parameter), false)
-      Parameter.Type.SEPARATOR -> RowEntry(SeparatorProvider(), true)
+      Parameter.Type.BOOLEAN -> RowEntry(CheckboxProvider(parameter))
+      Parameter.Type.SEPARATOR -> RowEntry(SeparatorProvider())
       Parameter.Type.ENUM -> RowEntry(name, EnumComboProvider(parameter))
     }
   }
@@ -482,42 +488,39 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
     private val header: JPanel?
     private val componentProvider: ComponentProvider<T>
-    /** A row is usually broken into two columns, but the item can optionally grow into both columns if it doesn't have a header. */
-    private val wantGrow: Boolean
+    private val container: JPanel = JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    }
 
     constructor(headerText: String, componentProvider: ComponentProvider<T>) {
-      val headerLabel = JBLabel("$headerText:")
+      val headerLabel = JBLabel(headerText)
       header = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
         add(headerLabel)
         add(Box.createHorizontalStrut(20))
       }
-      wantGrow = false
       this.componentProvider = componentProvider
       component = componentProvider.createComponent()
       property = componentProvider.createProperty(component)
 
       headerLabel.labelFor = component
+      container.apply {
+        add(header)
+        add(component)
+      }
     }
 
-    constructor(componentProvider: ComponentProvider<T>, stretch: Boolean) {
+    constructor(componentProvider: ComponentProvider<T>) {
       header = null
-      wantGrow = stretch
       this.componentProvider = componentProvider
       component = componentProvider.createComponent()
       property = componentProvider.createProperty(component)
+      container.add(component)
     }
 
     fun addToPanel(panel: JPanel) {
       require(panel.layout is TabularLayout)
       val row = panel.componentCount
-
-      if (header != null) {
-        panel.add(header, TabularLayout.Constraint(row, 0))
-        assert(!wantGrow)
-      }
-
-      val colSpan = if (wantGrow) 2 else 1
-      panel.add(component, TabularLayout.Constraint(row, 1, colSpan))
+      panel.add(container, TabularLayout.Constraint(row, 1, 1))
     }
 
     fun setEnabled(enabled: Boolean) {
