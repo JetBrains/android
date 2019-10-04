@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
@@ -381,5 +382,38 @@ class LightBindingClassTest {
     assertThat(fields).hasLength(1)
     assertThat(fields[0].name).isEqualTo("included")
     assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.TextView", context))
+  }
+
+  @Test
+  fun expectedStaticMethodsAreGenerated() {
+    fixture.addFileToProject("res/layout/view_root_activity.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <view />
+      </layout>
+    """.trimIndent())
+    fixture.addFileToProject("res/layout/merge_root_activity.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <merge />
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class ViewRootActivity {}")
+
+    // Same API for regardless of view root or merge root
+    // Compare with LightViewBindingClassTest#expectedStaticMethodsAreGenerated
+    listOf("test.db.databinding.ViewRootActivityBinding", "test.db.databinding.MergeRootActivityBinding").forEach { classPath ->
+      (fixture.findClass(classPath, context) as LightBindingClass).let { binding ->
+        val methods = binding.methods.filter { it.hasModifier(JvmModifier.STATIC) }
+        assertThat(methods.map { it.presentation!!.presentableText }).containsExactly(
+          "inflate(LayoutInflater)",
+          "inflate(LayoutInflater, Object)",
+          "inflate(LayoutInflater, ViewGroup, boolean)",
+          "inflate(LayoutInflater, ViewGroup, boolean, Object)",
+          "bind(View)",
+          "bind(View, Object)"
+        )
+      }
+    }
   }
 }
