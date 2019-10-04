@@ -142,10 +142,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
-  public void init(@NotNull JComponent content, @NotNull T context, @NotNull List<ToolWindowDefinition<T>> definitions) {
-    init(content, context, definitions, false);
-  }
-
   public void setLoadingText(@NotNull String loadingText) {
     myLoadingPanel.setLoadingText(loadingText);
   }

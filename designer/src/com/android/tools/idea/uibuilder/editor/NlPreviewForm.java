@@ -325,7 +325,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       createContentPanel();
       List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
       tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE));
-      myWorkBench.init(myContentPanel, mySurface, tools);
+      myWorkBench.init(myContentPanel, mySurface, tools, false);
     }
     initNeleModel();
   }

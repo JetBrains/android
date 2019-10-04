@@ -290,7 +290,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
     }
     val issueErrorSplitter = IssuePanelSplitter(surface, surfacePanel)
 
-    init(issueErrorSplitter, surface, listOf())
+    init(issueErrorSplitter, surface, listOf(), false)
     showLoading(message("panel.building"))
   }
 
