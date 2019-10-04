@@ -162,11 +162,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      // TODO(b/117274283): Remove when upgrading to Kotlin 1.3.30, or whichever version fixes KT-30076
-      if ("syncWithKotlinDsl".equals(getTestName(true))) {
-        return;
-      }
-
       // Regression test: check the model doesn't hold on to dynamic proxies for Gradle Tooling API classes.
       Object model = DataNodeCaches.getInstance(getProject()).getCachedProjectData();
       if (model != null) {
