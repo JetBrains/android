@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.logcat;
 
+import com.intellij.execution.actions.ClearConsoleAction;
 import com.intellij.execution.actions.ConsoleActionsPostProcessor;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
@@ -82,7 +83,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     // remove actions that don't make sense for logcat
     for (AnAction a : actions) {
       // remove the existing clear all action
-      if (a instanceof ConsoleViewImpl.ClearAllAction) {
+      if (a instanceof ClearConsoleAction) {
         continue;
       }
 
@@ -115,7 +116,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
   private static AnAction[] processPopupActions(@NotNull AndroidLogConsole console, @NotNull AnAction[] actions) {
     AnAction[] resultActions = new AnAction[actions.length];
     for (int i = 0; i < actions.length; ++i) {
-      if (actions[i] instanceof ConsoleViewImpl.ClearAllAction) {
+      if (actions[i] instanceof ClearConsoleAction) {
         resultActions[i] = new ClearLogCatAction(console);
       }
       else {
