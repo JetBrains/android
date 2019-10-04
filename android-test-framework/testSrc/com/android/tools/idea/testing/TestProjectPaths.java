@@ -26,6 +26,7 @@ public final class TestProjectPaths {
   public static final String JPS_WITH_QUALIFIED_NAMES = "projects/jpsWithQualifiedNames";
   public static final String KOTLIN_GRADLE_DSL = "projects/kotlinGradleDsl";
   public static final String KOTLIN_KAPT = "projects/kotlinKapt";
+  public static final String KOTLIN_MPP = "projects/kotlinMpp";
   public static final String LINT_CUSTOM_CHECKS = "projects/lintCustomChecks";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
   public static final String LOCAL_JARS_AS_MODULES = "projects/localJarsAsModules";
