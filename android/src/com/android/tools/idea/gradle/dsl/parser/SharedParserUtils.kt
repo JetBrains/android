@@ -48,6 +48,8 @@ import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement
@@ -185,6 +187,7 @@ fun GradleDslFile.getBlockElement(
         PACKAGING_OPTIONS_BLOCK_NAME -> PackagingOptionsDslElement(resultElement)
         SPLITS_BLOCK_NAME -> SplitsDslElement(resultElement)
         TEST_OPTIONS_BLOCK_NAME -> TestOptionsDslElement(resultElement)
+        VIEW_BINDING_BLOCK_NAME -> ViewBindingDslElement(resultElement)
         else -> return null
       }
       is ExternalNativeBuildDslElement -> when (nestedElementName) {

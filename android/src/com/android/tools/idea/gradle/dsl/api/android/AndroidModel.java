@@ -115,4 +115,7 @@ public interface AndroidModel extends GradleDslModel {
 
   @NotNull
   ResolvedPropertyModel resourcePrefix();
+
+  @NotNull
+  ViewBindingModel viewBinding();
 }
