@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor
 
+import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.flags.StudioFlags
 import org.jetbrains.android.AndroidTestCase
 
@@ -31,6 +32,7 @@ class CustomViewEditorProviderTest : AndroidTestCase() {
     // return to default
     StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.override(false)
     super.tearDown()
+    DesignerTypeRegistrar.clearRegisteredTypes()
   }
 
   fun testDoNotAcceptKotlinWhenFlagDisabled() {

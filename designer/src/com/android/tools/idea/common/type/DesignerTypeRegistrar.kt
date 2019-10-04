@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.type
 
+import org.jetbrains.annotations.TestOnly
+
 /**
  * Responsible for registering supported [DesignerEditorFileType]s. Types should be registered using the [register] method, as the list
  * returned when fetching the registered types is immutable.
@@ -28,5 +30,13 @@ object DesignerTypeRegistrar {
 
   fun register(type: DesignerEditorFileType) {
     types.add(type)
+  }
+
+  /**
+   * Use this function to clear the registered types during testing.
+   */
+  @TestOnly
+  fun clearRegisteredTypes() {
+    types.clear()
   }
 }

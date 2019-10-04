@@ -31,6 +31,11 @@ class LayoutlibSceneManagerTest: SceneTest() {
     super.setUp()
   }
 
+  override fun tearDown() {
+    super.tearDown()
+    DesignerTypeRegistrar.clearRegisteredTypes()
+  }
+
   fun testSceneModeWithPreferenceFile() {
     // Regression test for b/122673792
     val nlSurface = myScene.designSurface as NlDesignSurface
