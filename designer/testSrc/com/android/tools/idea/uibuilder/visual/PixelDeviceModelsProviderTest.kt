@@ -28,6 +28,11 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
     super.setUp()
   }
 
+  override fun tearDown() {
+    super.tearDown()
+    DesignerTypeRegistrar.clearRegisteredTypes()
+  }
+
   fun testCreatePixelModels() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
 
