@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.util;
 
+import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -22,17 +23,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface LaunchStatus {
   /**
-   * Returns true if the master process of this launch has been terminated.
+   * Returns true if all termination conditions registered by {@link #addLaunchTerminationCondition} are met, or when the launch is
+   * Forcefully terminated by {@link #terminateLaunch}. Otherwise returns false.
    */
   boolean isLaunchTerminated();
 
   /**
+   * Adds a launch termination condition to the status.
+   *
+   * @param launchTerminatedCondition a function which returns true when the launch should consider be terminated otherwise false.
+   */
+  void addLaunchTerminationCondition(BooleanSupplier launchTerminatedCondition);
+
+  /**
    * Forcefully terminates this launch regardless of {@link #isLaunchTerminated()} value.
    *
-   * This method is used when the launch has to be stopped by unforeseen reasons such as cancellation by a user.
-   *
-   * @param reason an optional message to be shown to users to explain why the launch is terminated.
+   * @param errorMessage an optional error message to be shown to users to explain why the launch is terminated. Set null or
+   *                     empty string if this termination is not an error.
    * @param destroyProcess if this is true, the underlying processes (if any) will be destroyed as well.
    */
-  void terminateLaunch(@Nullable String reason, boolean destroyProcess);
+  void terminateLaunch(@Nullable String errorMessage, boolean destroyProcess);
 }

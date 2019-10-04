@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.run.util;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
+import java.util.List;
+import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * When an associated process handler's state becomes terminated, {@link #isLaunchTerminated()} also starts returning true.
  */
-public class ProcessHandlerLaunchStatus implements LaunchStatus {
+final public class ProcessHandlerLaunchStatus implements LaunchStatus {
 
   /**
    * A process handler of this launch. When this handler is terminated, the launch should be considered as terminated.
@@ -40,6 +44,8 @@ public class ProcessHandlerLaunchStatus implements LaunchStatus {
    * process to terminate never have any effect until after the process is started.
    */
   private boolean myTerminated;
+
+  private List<BooleanSupplier> launchTerminationConditions = Lists.newCopyOnWriteArrayList();
 
   /**
    * Constructs with a given process handler.
@@ -69,13 +75,26 @@ public class ProcessHandlerLaunchStatus implements LaunchStatus {
 
   @Override
   public boolean isLaunchTerminated() {
-    return myTerminated || myProcessHandler.isProcessTerminated() || myProcessHandler.isProcessTerminating();
+    if (myTerminated) {
+      return true;
+    }
+    if (launchTerminationConditions.stream().anyMatch((condition) -> !condition.getAsBoolean())) {
+      return false;
+    }
+    return myProcessHandler.isProcessTerminated() || myProcessHandler.isProcessTerminating();
   }
 
   @Override
-  public void terminateLaunch(@Nullable String reason, boolean destroyProcess) {
+  public void addLaunchTerminationCondition(BooleanSupplier launchTerminatedCondition) {
+    launchTerminationConditions.add(launchTerminatedCondition);
+  }
+
+  @Override
+  public void terminateLaunch(@Nullable String errorMessage, boolean destroyProcess) {
     myTerminated = true;
-    myProcessHandler.notifyTextAvailable(reason + "\n", ProcessOutputTypes.STDERR);
+    if (!Strings.isNullOrEmpty(errorMessage)) {
+      myProcessHandler.notifyTextAvailable(errorMessage + "\n", ProcessOutputTypes.STDERR);
+    }
     if (destroyProcess) {
       myProcessHandler.destroyProcess();
     }
