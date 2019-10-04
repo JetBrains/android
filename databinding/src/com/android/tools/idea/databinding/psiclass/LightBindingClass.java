@@ -22,11 +22,14 @@ import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 import com.android.SdkConstants;
 import com.android.tools.idea.databinding.BindingLayout;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
+import com.android.tools.idea.databinding.index.BindingLayoutType;
+import com.android.tools.idea.databinding.index.BindingXmlData;
 import com.android.tools.idea.databinding.index.ImportData;
 import com.android.tools.idea.databinding.index.VariableData;
 import com.android.tools.idea.databinding.index.ViewIdData;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil;
+import com.android.tools.idea.databinding.util.ViewBindingUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.lang.Language;
@@ -329,40 +332,82 @@ public class LightBindingClass extends AndroidLightClassBase {
     PsiClassType viewType =
         PsiType.getTypeByName(SdkConstants.CLASS_VIEW, project, module.getModuleWithDependenciesAndLibrariesScope(true));
 
-    DeprecatableLightMethodBuilder inflate4Arg = createPublicStaticMethod("inflate", ownerType);
-    inflate4Arg.addParameter("inflater", layoutInflaterType);
-    inflate4Arg.addParameter("root", viewGroupType);
-    inflate4Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
-    inflate4Arg.addParameter("bindingComponent", dataBindingComponent);
-    // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
-    inflate4Arg.setDeprecated(true);
+    List<PsiMethod> methods = new ArrayList<>();
 
-    LightMethodBuilder inflate3Arg = createPublicStaticMethod("inflate", ownerType);
-    inflate3Arg.addParameter("inflater", layoutInflaterType);
-    inflate3Arg.addParameter("root", viewGroupType);
-    inflate3Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
+    BindingXmlData xmlData = myConfig.getTargetLayout().getData();
 
-    DeprecatableLightMethodBuilder inflate2Arg = createPublicStaticMethod("inflate", ownerType);
-    inflate2Arg.addParameter("inflater", layoutInflaterType);
-    inflate2Arg.addParameter("bindingComponent", dataBindingComponent);
-    // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
-    inflate2Arg.setDeprecated(true);
+    // Methods generated for data binding and view binding diverge a little
+    if (xmlData.getLayoutType() == BindingLayoutType.DATA_BINDING_LAYOUT) {
+      DeprecatableLightMethodBuilder inflate4Arg = createPublicStaticMethod("inflate", ownerType);
+      inflate4Arg.addParameter("inflater", layoutInflaterType);
+      inflate4Arg.addParameter("root", viewGroupType);
+      inflate4Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
+      inflate4Arg.addParameter("bindingComponent", dataBindingComponent);
+      // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
+      inflate4Arg.setDeprecated(true);
 
-    LightMethodBuilder inflate1Arg = createPublicStaticMethod("inflate", ownerType);
-    inflate1Arg.addParameter("inflater", layoutInflaterType);
+      LightMethodBuilder inflate3Arg = createPublicStaticMethod("inflate", ownerType);
+      inflate3Arg.addParameter("inflater", layoutInflaterType);
+      inflate3Arg.addParameter("root", viewGroupType);
+      inflate3Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
 
-    LightMethodBuilder bind = createPublicStaticMethod("bind", ownerType);
-    bind.addParameter("view", viewType);
+      DeprecatableLightMethodBuilder inflate2Arg = createPublicStaticMethod("inflate", ownerType);
+      inflate2Arg.addParameter("inflater", layoutInflaterType);
+      inflate2Arg.addParameter("bindingComponent", dataBindingComponent);
+      // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
+      inflate2Arg.setDeprecated(true);
 
-    DeprecatableLightMethodBuilder bindWithComponent = createPublicStaticMethod("bind", ownerType);
-    bindWithComponent.addParameter("view", viewType);
-    bindWithComponent.addParameter("bindingComponent", dataBindingComponent);
-    // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
-    bindWithComponent.setDeprecated(true);
+      LightMethodBuilder inflate1Arg = createPublicStaticMethod("inflate", ownerType);
+      inflate1Arg.addParameter("inflater", layoutInflaterType);
+
+      LightMethodBuilder bind = createPublicStaticMethod("bind", ownerType);
+      bind.addParameter("view", viewType);
+
+      DeprecatableLightMethodBuilder bindWithComponent = createPublicStaticMethod("bind", ownerType);
+      bindWithComponent.addParameter("view", viewType);
+      bindWithComponent.addParameter("bindingComponent", dataBindingComponent);
+      // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
+      bindWithComponent.setDeprecated(true);
+
+      methods.add(inflate1Arg);
+      methods.add(inflate2Arg);
+      methods.add(inflate3Arg);
+      methods.add(inflate4Arg);
+      methods.add(bind);
+      methods.add(bindWithComponent);
+    }
+    else {
+      // Expected: If not a data binding layout, this is a view binding layout
+      assert (xmlData.getLayoutType() == BindingLayoutType.PLAIN_LAYOUT && ViewBindingUtil.isViewBindingEnabled(myConfig.getFacet()));
+
+      // View Binding is a fresh start - don't show the deprecated methods for them
+      if (!xmlData.getRootTag().equals(SdkConstants.VIEW_MERGE)) {
+        LightMethodBuilder inflate3Arg = createPublicStaticMethod("inflate", ownerType);
+        inflate3Arg.addParameter("inflater", layoutInflaterType);
+        inflate3Arg.addParameter("root", viewGroupType);
+        inflate3Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
+
+        LightMethodBuilder inflate1Arg = createPublicStaticMethod("inflate", ownerType);
+        inflate1Arg.addParameter("inflater", layoutInflaterType);
+
+        methods.add(inflate1Arg);
+        methods.add(inflate3Arg);
+      }
+      else {
+        // View Bindings with <merge> roots have a different set of inflate methods
+        LightMethodBuilder inflate2Arg = createPublicStaticMethod("inflate", ownerType);
+        inflate2Arg.addParameter("inflater", layoutInflaterType);
+        inflate2Arg.addParameter("root", viewGroupType);
+        methods.add(inflate2Arg);
+      }
+
+      LightMethodBuilder bind = createPublicStaticMethod("bind", ownerType);
+      bind.addParameter("view", viewType);
+      methods.add(bind);
+    }
 
     XmlFile xmlFile = myConfig.getTargetLayout().toXmlFile();
     PsiManager psiManager = getManager();
-    PsiMethod[] methods = new PsiMethod[]{inflate1Arg, inflate2Arg, inflate3Arg, inflate4Arg, bind, bindWithComponent};
     for (PsiMethod method : methods) {
       outPsiMethods.add(new LightDataBindingMethod(xmlFile, psiManager, method, this, JavaLanguage.INSTANCE));
     }
