@@ -55,7 +55,11 @@ fun androidModulePropertiesModel() =
       uiProperty(AndroidModuleDescriptors.sourceCompatibility, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_SOURCE_COMPATIBILITY),
       uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_TARGET_COMPATIBILITY)))
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_TARGET_COMPATIBILITY)
+      // TODO(b/142099752): Properly configure condition when it is available and enable.
+      /*,
+      uiProperty(AndroidModuleDescriptors.viewBindingEnabled, ::simplePropertyEditor,
+                 null)*/))
 
 fun defaultConfigPropertiesModel(isLibrary: Boolean) =
   PropertiesUiModel(
