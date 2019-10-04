@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import javax.swing.JPanel;
@@ -44,7 +45,8 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
   private NlModel myModel;
   private AccessoryPanelInterface myCachedPanel;
   private HashMap<NlComponent, AccessoryPanelInterface> myPanels =  new HashMap<>();
-  private Type myType = Type.SOUTH_PANEL;
+  private Type myType;
+  private boolean myInitialSelectionChangeFired;
 
   public AccessoryPanel(@NotNull Type type, boolean handlesVisibility) {
     super(new BorderLayout());
@@ -60,11 +62,13 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
     }
     removeCurrentPanel();
     mySurface = surface;
+    myInitialSelectionChangeFired = false;
     if (surface == null) {
       setModel(null);
     } else {
       setModel(mySurface.getModel());
       mySurface.addListener(this);
+      componentSelectionChanged(surface, Collections.emptyList());
     }
   }
 
@@ -78,7 +82,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
 
   @Override
   public void modelDerivedDataChanged(@NotNull NlModel model) {
-    updatePanel(model);
+    updatePanel();
     if (myCachedPanel != null) {
       myCachedPanel.updateAfterModelDerivedDataChanged();
     }
@@ -86,16 +90,19 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
 
   @Override
   public void modelActivated(@NotNull NlModel model) {
-    updatePanel(model);
+    updatePanel();
   }
 
-  private void updatePanel(@NotNull NlModel model) {
-    if (mySurface == null) {
+  private void updatePanel() {
+    if (mySurface == null || myInitialSelectionChangeFired) {
       return;
     }
-    //if (!mySurface.getSelectionModel().isEmpty()) {
-    //  componentSelectionChanged(mySurface, mySurface.getSelectionModel().getSelection()); //model.getComponents());
-    //}
+    NlComponent root = getSingleRootComponent(mySurface);
+    if (root == null) {
+      return;
+    }
+    componentSelectionChanged(mySurface, mySurface.getSelectionModel().getSelection());
+    myInitialSelectionChangeFired = true;
   }
 
   public void setModel(@Nullable NlModel model) {
@@ -127,13 +134,29 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
     return parent;
   }
 
+  @Nullable
+  private static NlComponent getSingleRootComponent(@NotNull DesignSurface surface) {
+    List<NlModel> models = surface.getModels();
+    if (models.isEmpty()) {
+      return null;
+    }
+    NlModel mainModel = models.get(0);
+    List<NlComponent> roots = mainModel.getComponents();
+    if (roots.size() != 1) {
+      return null;
+    }
+    return roots.get(0);
+  }
+
   @Override
   public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
-    if (newSelection.isEmpty()) {
-      removeCurrentPanel();
-      return;
-    }
     NlComponent parent = findSharedParent(newSelection);
+    if (parent == null && newSelection.isEmpty()) {
+      parent = getSingleRootComponent(surface);
+      if (parent != null) {
+        newSelection = Collections.singletonList(parent);
+      }
+    }
     if (parent == null) {
       removeCurrentPanel();
       return;
@@ -151,18 +174,20 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
         ViewGroupHandler.AccessoryPanelVisibility visibilityCallback = mySurface;
         panel = viewGroupHandler.createAccessoryPanel(surface, myType, parent, visibilityCallback);
         myPanels.put(parent, panel);
-      }
-
-      if (panel != myCachedPanel) {
         removeCurrentPanel();
-        myCachedPanel = panel;
-        add(myCachedPanel.getPanel());
-        notifyListeners();
       }
+      if (panel != null) {
+        if (panel != myCachedPanel) {
+          removeCurrentPanel();
+          myCachedPanel = panel;
+          add(myCachedPanel.getPanel());
+          notifyListeners();
+        }
 
-      panel.updateAccessoryPanelWithSelection(myType, newSelection);
-      if (myHandlesVisibility) {
-        setVisible(true);
+        panel.updateAccessoryPanelWithSelection(myType, newSelection);
+        if (myHandlesVisibility) {
+          setVisible(true);
+        }
       }
     }
   }

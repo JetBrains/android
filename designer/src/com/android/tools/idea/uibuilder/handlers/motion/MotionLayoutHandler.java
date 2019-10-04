@@ -252,7 +252,7 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
     CommonActions.getToolbarActions(actions);
   }
-  
+
   @Override
   @NotNull
   public CustomPanel getLayoutCustomPanel() {

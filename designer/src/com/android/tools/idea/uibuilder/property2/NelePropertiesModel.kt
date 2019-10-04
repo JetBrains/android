@@ -227,7 +227,9 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       (activeSceneView as? ScreenView)?.sceneManager?.addRenderListener(renderListener)
     }
     if (surface != null && wantComponentSelectionUpdate(surface, activeSurface, activePanel)) {
-      scheduleSelectionUpdate(surface, null, null, activeSceneView?.selectionModel?.selection ?: emptyList())
+      val newSelection: List<NlComponent> = activeSceneView?.selectionModel?.selection ?: emptyList()
+      val displayedComponents = if (newSelection.isNotEmpty()) newSelection else getRootComponent(surface)
+      scheduleSelectionUpdate(surface, null, null, displayedComponents)
     }
   }
 
@@ -268,6 +270,10 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     })
   }
 
+  private fun getRootComponent(surface: DesignSurface?): List<NlComponent> {
+    return surface?.models?.singleOrNull()?.components?.singleOrNull()?.let {listOf(it)} ?: return emptyList()
+  }
+
   protected open fun wantComponentSelectionUpdate(surface: DesignSurface?,
                                                   activeSurface: DesignSurface?,
                                                   accessoryPanel: AccessoryPanelInterface?): Boolean {
@@ -290,10 +296,18 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   }
 
   protected fun updateLiveListeners(components: List<NlComponent>) {
-    liveComponents.forEach { it.removeLiveChangeListener(liveChangeListener) }
-    liveComponents.clear()
-    liveComponents.addAll(components)
-    liveComponents.forEach { it.addLiveChangeListener(liveChangeListener) }
+    synchronized(liveComponents) {
+      liveComponents.forEach { it.removeLiveChangeListener(liveChangeListener) }
+      liveComponents.clear()
+      liveComponents.addAll(components)
+      liveComponents.forEach { it.addLiveChangeListener(liveChangeListener) }
+    }
+  }
+
+  private fun sameAsTheCurrentLiveListeners(components: List<NlComponent>): Boolean {
+    synchronized(liveComponents) {
+      return components == liveComponents
+    }
   }
 
   protected open fun wantPanelSelectionUpdate(panel: AccessoryPanelInterface, activePanel: AccessoryPanelInterface?): Boolean {
@@ -340,10 +354,11 @@ open class NelePropertiesModel(parentDisposable: Disposable,
 
   fun firePropertyValueChangeIfNeeded() {
     val components = activeSurface?.selectionModel?.selection ?: return
-    if (components.isEmpty() || components != liveComponents) {
+    if (components.isEmpty() || !sameAsTheCurrentLiveListeners(components)) {
       // If there are no components currently selected, there is nothing to update.
-      // If the currently selected components are different from the components being shown, there must be a pending selection update and
-      // therefore no need to update the property values.
+      // If the currently selected components are different from the components being shown,
+      // there must be a pending selection update and therefore no need to update the property
+      // values.
       return
     }
     listeners.toTypedArray().forEach { it.propertyValuesChanged(this) }
@@ -356,8 +371,9 @@ open class NelePropertiesModel(parentDisposable: Disposable,
 
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
     override fun componentSelectionChanged(surface: DesignSurface, newSelection: List<NlComponent>) {
-      if (liveComponents != newSelection) {
-        scheduleSelectionUpdate(surface, null, null, newSelection)
+      val displayedComponents = if (newSelection.isNotEmpty()) newSelection else getRootComponent(surface)
+      if (!sameAsTheCurrentLiveListeners(displayedComponents)) {
+        scheduleSelectionUpdate(surface, null, null, displayedComponents)
       }
     }
   }
