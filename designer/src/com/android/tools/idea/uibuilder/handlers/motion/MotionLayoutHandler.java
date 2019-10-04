@@ -39,10 +39,12 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
+import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintPlaceholder;
+import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
@@ -249,5 +251,11 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   @Override
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
     CommonActions.getToolbarActions(actions);
+  }
+  
+  @Override
+  @NotNull
+  public CustomPanel getLayoutCustomPanel() {
+    return new WidgetConstraintPanel(ImmutableList.of());
   }
 }
