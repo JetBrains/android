@@ -30,6 +30,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
+import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_MPP;
 import static com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE;
 import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -51,6 +52,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
@@ -597,6 +599,20 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
       ContentEntry[] entries = ModuleRootManager.getInstance(module).getContentEntries();
       assertThat(entries).named(module.getName() + " should have content entries").isNotEmpty();
     }
+  }
+
+  public void testWithKotlinMpp() throws Exception {
+    loadProject(KOTLIN_MPP);
+
+    // Verify that 7 modules are created.
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
+    assertSize(7, modules);
+
+    // Verify module names are as expected.
+    List<String> moduleNames = Arrays.stream(modules).map(Module::getName).collect(toList());
+    List<String> expectedModuleNames = asList("kotlinMpp", "app", "app_commonMain", "app_commonTest",
+                                              "shared", "shared_commonMain", "shared_commonTest");
+    assertThat(moduleNames).containsExactlyElementsIn(expectedModuleNames);
   }
 
   public void testSyncGetsGradlePluginModel() throws Exception {
