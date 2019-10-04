@@ -32,7 +32,7 @@ class VisualizationActionManager(surface: NlDesignSurface) : NlActionManager(sur
   private val zoomOutAction: AnAction = ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction, surface, surface)
   private val zoomToFitAction: AnAction = ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction, surface, surface)
 
-  override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) = Unit
+  override fun registerActionsShortcuts(component: JComponent) = Unit
 
   override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
     val group = DefaultActionGroup()

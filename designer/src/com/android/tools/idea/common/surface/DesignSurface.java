@@ -293,7 +293,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myInteractionManager.startListening();
     //noinspection AbstractMethodCallInConstructor
     myActionManager = actionManagerProvider.apply(this);
-    myActionManager.registerActionsShortcuts(this, this);
+    myActionManager.registerActionsShortcuts(this);
 
     myVisibleSurfaceLayerPanel.add(myActionManager.createDesignSurfaceToolbar(), BorderLayout.EAST);
   }

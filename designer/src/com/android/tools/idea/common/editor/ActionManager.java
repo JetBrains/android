@@ -19,7 +19,6 @@ import com.android.tools.adtui.stdui.KeyBindingKt;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -93,11 +92,8 @@ public abstract class ActionManager<S extends DesignSurface> {
    * Register keyboard shortcuts onto the provided component.
    *
    * @param component        The component onto which shortcut should be registered.
-   * @param parentDisposable A disposable used to unregister the actions. If the parameter is null but
-   *                         component is a {@link Disposable}, component will be used as the parent disposable.
    */
-  public abstract void registerActionsShortcuts(@NotNull JComponent component,
-                                                @Nullable Disposable parentDisposable);
+  public abstract void registerActionsShortcuts(@NotNull JComponent component);
 
   /**
    * Creates a pop-up menu for the given component
