@@ -52,6 +52,7 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
     val sourceCompatibility = AndroidModuleDescriptors.sourceCompatibility.bind(appModule).getValue()
     val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.bind(appModule).getValue()
+    val viewBindingEnabled = AndroidModuleDescriptors.viewBindingEnabled.bind(appModule).getValue()
 
     assertThat(buildToolsVersion.resolved.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
     assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
@@ -65,6 +66,9 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
     assertThat(targetCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_7))
     assertThat(targetCompatibility.parsedValue.asTestValue(), nullValue())
+
+    assertThat(viewBindingEnabled.resolved.asTestValue(), equalTo(false))
+    assertThat(viewBindingEnabled.parsedValue.asTestValue(), nullValue())
   }
 
   fun testSetProperties() {
@@ -78,11 +82,15 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     assertThat(appModule, notNullValue())
 
     appModule.compileSdkVersion = "25".asParsed()
+    appModule.viewBindingEnabled = true.asParsed()
 
     fun verifyValues(appModule: PsAndroidModule) {
       val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
+      val viewBindingEnabled = AndroidModuleDescriptors.viewBindingEnabled.bind(appModule).getValue()
       assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("25"))
+      assertThat(viewBindingEnabled.parsedValue.asTestValue(), equalTo(true))
       assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>(25))
+      assertThat(appModule.parsedModel?.android()?.viewBinding()?.enabled()?.getValue(OBJECT_TYPE), equalTo<Any>(true))
     }
 
     verifyValues(appModule)

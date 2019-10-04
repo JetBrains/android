@@ -81,9 +81,20 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
     knownValuesGetter = ::languageLevels
   )
 
+  val viewBindingEnabled: SimpleProperty<PsAndroidModule, Boolean> = property(
+    "Enable View Binding",
+    preferredVariableName = { "viewBindingEnabled" },
+    resolvedValueGetter = { viewBindingOptions?.isEnabled },
+    parsedPropertyGetter = { viewBinding().enabled() },
+    getter = { asBoolean() },
+    setter = { setValue(it) },
+    parser = ::parseBoolean,
+    knownValuesGetter = ::booleanValues
+  )
+
   override fun enumerateModels(model: PsAndroidModule): Collection<PsModel> =
     model.buildTypes + model.productFlavors + model.flavorDimensions + model.signingConfigs + model.dependencies.items + model.defaultConfig
 
   override val properties: Collection<ModelProperty<PsAndroidModule, *, *, *>> =
-    listOf(compileSdkVersion, buildToolsVersion, sourceCompatibility, targetCompatibility)
+    listOf(compileSdkVersion, buildToolsVersion, sourceCompatibility, targetCompatibility, viewBindingEnabled)
 }
