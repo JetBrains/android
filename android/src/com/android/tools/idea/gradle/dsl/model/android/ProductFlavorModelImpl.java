@@ -79,7 +79,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel dimension() {
-    return getModelForProperty(DIMENSION);
+    return getModelForProperty(DIMENSION, true);
   }
 
   @Override
@@ -219,13 +219,13 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel testFunctionalTest() {
-    return getModelForProperty(TEST_FUNCTIONAL_TEST);
+    return getModelForProperty(TEST_FUNCTIONAL_TEST, true);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel testHandleProfiling() {
-    return getModelForProperty(TEST_HANDLE_PROFILING);
+    return getModelForProperty(TEST_HANDLE_PROFILING, true);
   }
 
   @Override
