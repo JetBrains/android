@@ -237,6 +237,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     add(myLoadingPanel, JLayeredPane.DEFAULT_LAYER);
     myMainPanel.setVisible(false);
     myLoadingPanel.startLoading();
+    setFocusCycleRoot(true);
+    setFocusTraversalPolicyProvider(true);
+    setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
   }
 
   private boolean isCurrentEditor(@NotNull FileEditor fileEditor) {
@@ -273,6 +276,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     splitter.setFirstComponent(new SidePanel<>(Side.LEFT, myModel));
     splitter.setLastComponent(new SidePanel<>(Side.RIGHT, myModel));
     splitter.setShowDividerControls(true);
+    splitter.setFocusCycleRoot(false);
+    splitter.setFocusTraversalPolicyProvider(true);
+    splitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     return splitter;
   }
 

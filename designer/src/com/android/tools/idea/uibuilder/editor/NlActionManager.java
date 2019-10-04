@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.editor;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
 
 import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.editor.ActionToolbarUtil;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.common.actions.GotoComponentAction;
@@ -768,6 +769,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
         }
         ActionGroup group = new DefaultActionGroup(actions);
         ActionToolbar toolbar = actionManager.createActionToolbar("DynamicToolbar", group, true);
+        ActionToolbarUtil.makeToolbarNavigable(toolbar);
         panel.add(toolbar.getComponent());
       }
       return panel;

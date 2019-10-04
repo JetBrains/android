@@ -22,7 +22,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -217,14 +216,17 @@ private fun JComponent.wrapInDesignSurfaceUI(): JPanel {
   return DesignSurfaceToolbarUI.createPanel(this).apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
 }
 
-private fun createToolbar(actionManager: ActionManager, actionGroup: ActionGroup, target: JComponent): ActionToolbar =
+private fun createToolbar(actionManager: ActionManager, actionGroup: ActionGroup, target: JComponent): ActionToolbar {
   // Place must be "DesignSurface" to get the correct variation for zoom icons.
-  actionManager.createActionToolbar("DesignSurface", actionGroup, false).apply {
+  val toolbar = actionManager.createActionToolbar("DesignSurface", actionGroup, false).apply {
     layoutPolicy = ActionToolbar.WRAP_LAYOUT_POLICY
     setTargetComponent(target)
-    setMinimumButtonSize(JBDimension(22, 22))
+    setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
     component.apply {
       border = JBUI.Borders.empty(1)
       isOpaque = false
     }
   }
+  ActionToolbarUtil.makeToolbarNavigable(toolbar)
+  return toolbar
+}
