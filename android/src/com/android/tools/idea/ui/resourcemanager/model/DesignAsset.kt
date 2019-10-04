@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.model
 
+import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
@@ -23,6 +24,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.ui.resourcemanager.importer.QualifierMatcher
 import com.intellij.openapi.diagnostic.Logger
@@ -39,11 +41,38 @@ interface Asset {
   val name: String
   val resourceItem: ResourceItem
 
+  /**
+   * The [ResourceUrl] for this [Asset]. Eg: @color/my_resource.
+   *
+   * Returns the appropriate [ResourceUrl] according to its [ResourceNamespace] and whether this [Asset] represents a theme attribute.
+   */
+  val resourceUrl: ResourceUrl
+    get() = kotlin.run {
+      val resourceReference = resourceItem.referenceToSelf
+      val namespace = if (resourceReference.namespace == ResourceNamespace.TOOLS) {
+        SdkConstants.TOOLS_NS_NAME
+      }
+      else {
+        resourceReference.namespace.packageName
+      }
+      return if (type != ResourceType.ATTR && resourceItem.type == ResourceType.ATTR) {
+        // This Attribute resource is being used as a theme attribute
+        ResourceUrl.createThemeReference(namespace, resourceReference.resourceType, resourceReference.name)
+      }
+      else {
+        ResourceUrl.create(namespace, resourceReference.resourceType, resourceReference.name)
+      }
+    }
+
   companion object {
-
-    fun fromResourceItem(resourceItem: ResourceItem): Asset? = fromResourceItem(resourceItem, resourceItem.type)
-
-    fun fromResourceItem(resourceItem: ResourceItem, resourceType: ResourceType): Asset? {
+    /**
+     * Returns an [Asset] implementation for the given [ResourceItem].
+     *
+     * @param resourceItem The backing resource object for the [Asset] interface
+     * @param resourceType The [ResourceType] to return under [Asset.type], defaults to the type of [ResourceItem.getType], useful to
+     *  represent resources of a different [ResourceType]. Eg: Theme attributes and sample data.
+     */
+    fun fromResourceItem(resourceItem: ResourceItem, resourceType: ResourceType = resourceItem.type): Asset {
       val file = resourceItem.getSourceAsVirtualFile() ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
       return DesignAsset(
         file = file,
