@@ -17,15 +17,16 @@ package com.android.tools.idea.common.editor;
 
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.editor.ActionToolbarUtil;
+import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
-import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.google.common.collect.Iterables;
@@ -172,6 +173,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     if (group == ActionGroup.EMPTY_GROUP) {
       toolbar.getComponent().setVisible(false);
     }
+    ActionToolbarUtil.makeToolbarNavigable(toolbar);
     return (ActionToolbarImpl)toolbar;
   }
 

@@ -36,7 +36,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.accessibility.ScreenReader;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -108,9 +107,6 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = model;
     myPanel = new JPanel(new BorderLayout());
-    if (!ScreenReader.isActive()) {
-      myPanel.setFocusCycleRoot(true);
-    }
     myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myActionButtons = new ArrayList<>(4);
     myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
