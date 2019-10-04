@@ -441,7 +441,7 @@ public class GradleBuildInvoker {
 
         @Override
         public void onSuccess(@NotNull ExternalSystemTaskId id) {
-          FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "successful",
+          FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "finished",
                                                                 new SuccessResultImpl());
           myBuildEventDispatcher.onEvent(id, event);
         }
@@ -449,7 +449,7 @@ public class GradleBuildInvoker {
         @Override
         public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
           String title = executionName + " failed";
-          FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
+          FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject, buildViewManager);
           myBuildEventDispatcher.onEvent(id, new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult));
         }
 

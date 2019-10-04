@@ -21,6 +21,7 @@ import com.android.tools.idea.util.PositionInFile;
 import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
@@ -32,7 +33,9 @@ import org.mockito.Mock;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -75,7 +78,7 @@ public class SyncErrorHandlerManagerTest extends JavaProjectTestCase {
     Project project = getProject();
     when(myErrorHandler1.handleError(errorToReport, myNotificationData, project)).thenReturn(true);
 
-    myErrorHandlerManager.handleError(error);
+    myErrorHandlerManager.handleError(ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, project), error);
 
     // Verify that the second error handler was not invoked because the first one already handled the error.
     verify(myErrorHandler1, times(1)).handleError(errorToReport, myNotificationData, project);
@@ -95,7 +98,7 @@ public class SyncErrorHandlerManagerTest extends JavaProjectTestCase {
     myIdeComponents.replaceProjectService(StartupManager.class, startupManager);
 
     Throwable error = new Throwable("Test");
-    myErrorHandlerManager.handleError(error);
+    myErrorHandlerManager.handleError(ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, myProject), error);
 
     // Verify that the the handlers were not invoked.
     verify(myErrorHandler1, never()).handleError(any(), any(), any());
@@ -130,7 +133,7 @@ public class SyncErrorHandlerManagerTest extends JavaProjectTestCase {
     allExtensions.toArray(asArray);
 
     SyncErrorHandlerManager realErrorHandler = new SyncErrorHandlerManager(project, mySyncMessages, myCauseAndLocationFactory, asArray);
-    realErrorHandler.handleError(error);
+    realErrorHandler.handleError(ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, project), error);
 
     // Verify that only the first mock handler handled the error.
     verify(myErrorHandler1, times(1)).handleError(errorToReport, myNotificationData, project);

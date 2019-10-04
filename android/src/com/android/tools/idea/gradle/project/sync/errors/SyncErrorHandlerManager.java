@@ -18,9 +18,14 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.build.BuildView;
 import com.intellij.build.FilePosition;
+import com.intellij.build.SyncViewManager;
 import com.intellij.build.issue.BuildIssueQuickFix;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
@@ -59,7 +64,7 @@ public class SyncErrorHandlerManager {
   }
 
   // Create NotificationData and call sync error handlers
-  public void handleError(@NotNull Throwable error) {
+  public void handleError(@NotNull ExternalSystemTaskId id, @NotNull Throwable error) {
     Runnable runnable = () -> {
       ErrorAndLocation errorAndLocation = myCauseAndLocationFactory.create(error);
       ExternalSystemException errorToReport = errorAndLocation.getError();
@@ -88,7 +93,12 @@ public class SyncErrorHandlerManager {
           .findFirst().ifPresent(issue -> {
           notificationData.setMessage(issue.getDescription());
           for (BuildIssueQuickFix quickFix : issue.getQuickFixes()) {
-            notificationData.setListener(quickFix.getId(), (notification, event) -> quickFix.runQuickFix(myProject));
+            notificationData.setListener(quickFix.getId(), (notification, event) -> {
+              SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
+              BuildView buildView = syncViewManager.getBuildView(id);
+              DataProvider provider = buildView == null ? dataId -> null : buildView;
+              quickFix.runQuickFix(myProject, provider);
+            });
           }
         });
       }
