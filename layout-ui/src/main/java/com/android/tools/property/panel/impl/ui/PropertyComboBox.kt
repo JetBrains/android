@@ -135,7 +135,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   private fun tab() {
     enter()
-    transferFocus()
+    textField.transferFocus()
   }
 
   private fun backtab() {
