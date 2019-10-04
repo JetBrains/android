@@ -221,7 +221,7 @@ class CustomViewEditorProvider : FileEditorProvider, DumbAware {
  */
 private class CustomViewPreviewActionManager(
   designSurface: NlDesignSurface, private val previewEditor: CustomViewPreview) : ActionManager<NlDesignSurface>(designSurface) {
-  override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) {}
+  override fun registerActionsShortcuts(component: JComponent) {}
 
   override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
     return DefaultActionGroup()

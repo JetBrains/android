@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.editor;
 
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
@@ -49,9 +48,9 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -106,8 +105,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
    * </ul>
    */
   @Override
-  public void registerActionsShortcuts(@NotNull JComponent component,
-                                       @Nullable Disposable parentDisposable) {
+  public void registerActionsShortcuts(@NotNull JComponent component) {
     if (mySelectAllAction == null) {
       mySelectAllAction = new SelectAllAction(mySurface);
       myGotoComponentAction = new GotoComponentAction(mySurface);

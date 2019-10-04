@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.CONSTRAINT_LAYOUT
+import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
@@ -131,7 +131,7 @@ class DesignSurfaceTest : LayoutTestCase() {
 }
 
 private class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
-  override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) = Unit
+  override fun registerActionsShortcuts(component: JComponent) = Unit
 
   override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
 

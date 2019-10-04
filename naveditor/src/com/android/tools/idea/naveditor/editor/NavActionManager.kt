@@ -48,7 +48,6 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.uibuilder.actions.SelectAllAction
 import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
@@ -80,7 +79,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   // Open for testing only
   open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
 
-  override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) {
+  override fun registerActionsShortcuts(component: JComponent) {
     registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component)
     registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), mySurface)
     registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), mySurface)
