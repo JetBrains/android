@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
-import com.android.tools.idea.run.tasks.*;
+import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.execution.Executor;
@@ -29,14 +32,8 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.mockito.Mockito;
-
 import java.util.List;
-
-import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
 
@@ -97,39 +94,15 @@ public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
       apkProvider,
       launchOptions);
 
-    IDevice device = Mockito.mock(IDevice.class);
-    Mockito.when(device.getVersion()).thenReturn(new AndroidVersion(26, null));
-    LaunchStatus launchStatus = new MyLaunchStatus();
-    ConsolePrinter consolePrinter = new MyConsolePrinter();
+    IDevice device = mock(IDevice.class);
+    when(device.getVersion()).thenReturn(new AndroidVersion(26, null));
+    LaunchStatus launchStatus = mock(LaunchStatus.class);
+    ConsolePrinter consolePrinter = mock(ConsolePrinter.class);
 
     // Act
     List<LaunchTask> launchTasks = provider.getTasks(device, launchStatus, consolePrinter);
 
     // Assert
     launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));
-  }
-
-  private static class MyConsolePrinter implements ConsolePrinter {
-    @Override
-    public void stdout(@NotNull String message) {
-
-    }
-
-    @Override
-    public void stderr(@NotNull String message) {
-
-    }
-  }
-
-  private static class MyLaunchStatus implements LaunchStatus {
-    @Override
-    public boolean isLaunchTerminated() {
-      return false;
-    }
-
-    @Override
-    public void terminateLaunch(@Nullable String reason, boolean destroyProcess) {
-
-    }
   }
 }
