@@ -115,8 +115,8 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
   }
 }
 
-fun createTransferable(assetSet: Asset): Transferable {
-  val resourceUrl = assetSet.resourceItem.referenceToSelf.resourceUrl
+fun createTransferable(asset: Asset): Transferable {
+  val resourceUrl = asset.resourceUrl
 
   return object : Transferable {
     override fun getTransferData(flavor: DataFlavor?): Any? {

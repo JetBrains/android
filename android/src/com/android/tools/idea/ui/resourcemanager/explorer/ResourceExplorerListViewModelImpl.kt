@@ -320,11 +320,10 @@ class ResourceExplorerListViewModelImpl(
 
   override fun getResourceSummaryMap(resourceAssetSet: ResourceAssetSet): CompletableFuture<Map<String, String>> {
     val assetToPick = resourceAssetSet.getHighestDensityAsset()
-    val resourceToPick = assetToPick.resourceItem
 
     val valueMap = mutableMapOf(
       Pair("Name", resourceAssetSet.name),
-      Pair("Reference", resourceToPick.referenceToSelf.resourceUrl.toString())
+      Pair("Reference", assetToPick.resourceUrl.toString())
     )
 
     if (resourceAssetSet.assets.size > 1) {
