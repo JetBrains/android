@@ -103,6 +103,27 @@ class ResourceExplorerViewModelTest {
   }
 
   @Test
+  fun testResManagerViewModelSavedState() {
+    val viewModel = createViewModel(projectRule.module)
+    val oldResourceTypeIndex = viewModel.resourceTypeIndex
+    val newResourceTypeIndex = viewModel.resourceTypeIndex + 1
+    Truth.assertThat(oldResourceTypeIndex).isEqualTo(0)
+    Truth.assertThat(newResourceTypeIndex).isNotEqualTo(oldResourceTypeIndex)
+    viewModel.resourceTypeIndex = newResourceTypeIndex
+    Truth.assertThat(viewModel.resourceTypeIndex).isEqualTo(newResourceTypeIndex)
+
+    val oldThemeAttributesValue = viewModel.filterOptions.isShowThemeAttributes
+    val newThemeAttributesValue = !oldThemeAttributesValue
+    viewModel.filterOptions.isShowThemeAttributes = newThemeAttributesValue
+    Truth.assertThat(viewModel.filterOptions.isShowThemeAttributes).isEqualTo(newThemeAttributesValue)
+    Truth.assertThat(newThemeAttributesValue).isNotEqualTo(oldThemeAttributesValue)
+
+    val newViewModel = createViewModel(projectRule.module)
+    Truth.assertThat(newViewModel.resourceTypeIndex).isEqualTo(newResourceTypeIndex)
+    Truth.assertThat(newViewModel.filterOptions.isShowThemeAttributes).isEqualTo(newThemeAttributesValue)
+  }
+
+  @Test
   fun updateOnFileNameChanged() {
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
     val viewModel = createViewModel(projectRule.module)
