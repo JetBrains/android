@@ -29,9 +29,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
-import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.AtraceFrameFilterConfig;
@@ -44,7 +42,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -236,9 +233,7 @@ public class CpuCaptureStage extends Stage {
     myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture);
     myMinimapModel.setMaxRange(capture.getRange());
     initTrackGroupList(myMinimapModel.getRangeSelectionModel().getSelectionRange(), capture);
-    addCpuAnalysisModel(
-      new CpuFullTraceAnalysisModel(capture, myMinimapModel.getRangeSelectionModel().getSelectionRange()));
-    // TODO (b/138408053): Add new models based on selected items when we have that concept.
+    addCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, myMinimapModel.getRangeSelectionModel().getSelectionRange()));
   }
 
   /**
@@ -311,7 +306,7 @@ public class CpuCaptureStage extends Stage {
     for (CpuThreadInfo threadInfo : threadInfos) {
       threads.addTrackModel(
         TrackModel.newBuilder(
-          new CpuThreadTrackModel(getStudioProfilers(), selectionRange, capture, threadInfo.getId()),
+          new CpuThreadTrackModel(getStudioProfilers(), selectionRange, capture, threadInfo),
           ProfilerTrackRendererType.CPU_THREAD,
           threadInfo.getName()));
     }

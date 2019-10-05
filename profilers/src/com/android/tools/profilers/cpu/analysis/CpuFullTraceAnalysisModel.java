@@ -17,36 +17,35 @@ package com.android.tools.profilers.cpu.analysis;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CpuCapture;
-import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import org.jetbrains.annotations.NotNull;
 
-public class CpuFullTraceAnalysisModel extends CpuAnalysisModel {
+public class CpuFullTraceAnalysisModel extends CpuAnalysisModel<CpuCapture> {
   private static final String DEFAULT_ANALYSIS_NAME = "Full trace";
+
   public CpuFullTraceAnalysisModel(@NotNull CpuCapture capture, @NotNull Range selectionRange) {
     super(DEFAULT_ANALYSIS_NAME);
     init(capture, selectionRange);
   }
 
   private void init(@NotNull CpuCapture capture, @NotNull Range selectionRange) {
-    getTabs().add(new CpuAnalysisTabModel<>(SUMMARY_TITLE));
+    addTabModel(new CpuAnalysisTabModel<>(CpuAnalysisTabModel.Type.SUMMARY));
+
     // Flame Chart
-    CpuAnalysisChartModel
-      flameModel = new CpuAnalysisChartModel(FLAME_CHART_TITLE, CaptureDetails.Type.FLAME_CHART, selectionRange, capture);
-    getTabs().add(flameModel);
+    CpuAnalysisChartModel<CpuCapture> flameModel =
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.FLAME_CHART, selectionRange, capture, CpuCapture::getCaptureNodes);
+    flameModel.getDataSeries().add(capture);
+    addTabModel(flameModel);
 
     // Top Down
-    CpuAnalysisChartModel
-      topDown = new CpuAnalysisChartModel(TOP_DOWN_TITLE, CaptureDetails.Type.TOP_DOWN, selectionRange, capture);
-    getTabs().add(topDown);
+    CpuAnalysisChartModel<CpuCapture> topDown =
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.TOP_DOWN, selectionRange, capture, CpuCapture::getCaptureNodes);
+    topDown.getDataSeries().add(capture);
+    addTabModel(topDown);
 
     // Bottom up
-    CpuAnalysisChartModel
-      bottomUp = new CpuAnalysisChartModel(BOTTOM_UP_TITLE, CaptureDetails.Type.BOTTOM_UP, selectionRange, capture);
-    getTabs().add(bottomUp);
-    capture.getCaptureNodes().forEach(node -> {
-      flameModel.addData(node);
-      topDown.addData(node);
-      bottomUp.addData(node);
-    });
+    CpuAnalysisChartModel<CpuCapture> bottomUp =
+      new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.BOTTOM_UP, selectionRange, capture, CpuCapture::getCaptureNodes);
+    bottomUp.getDataSeries().add(capture);
+    addTabModel(bottomUp);
   }
 }

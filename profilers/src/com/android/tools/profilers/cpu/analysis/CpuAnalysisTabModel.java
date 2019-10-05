@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.analysis;
 
-import com.android.tools.adtui.model.Range;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -23,23 +22,51 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Model for {@link CpuAnalysisTab}. Each tab has unique rendering requirements as such this container holds a list of data that can be
  * used for the tab. An example of a tab that uses the list may be the Flame chart with multiselect or in the "Full Trace".
+ *
+ * @param <T> type of the analysis object, e.g. {@link com.android.tools.profilers.cpu.CpuThreadTrackModel}.
  */
 public class CpuAnalysisTabModel<T> {
-  private final String myTitle;
-  private final List<T> myDataSeries = new ArrayList<>();
+  public enum Type {
+    /**
+     * Summary tab used to display high level information about the current capture / selection.
+     */
+    SUMMARY("Summary"),
+    FLAME_CHART("Flame Chart"),
+    TOP_DOWN("Top Down"),
+    BOTTOM_UP("Bottom Up"),
+    EVENTS("Events"),
+    OCCURRENCES("Occurrences"),
+    LOGS("Logs");
 
-  public CpuAnalysisTabModel(@NotNull String title) {
-    myTitle = title;
+    /**
+     * The display name to show in the tab header.
+     */
+    @NotNull
+    public String getName() {
+      return myName;
+    }
+
+    private final String myName;
+
+    Type(@NotNull String name) {
+      myName = name;
+    }
   }
 
-  public String getTitle() {
-    return myTitle;
+  private final Type myTabType;
+  private final List<T> myDataSeries;
+
+  public CpuAnalysisTabModel(@NotNull Type tabType) {
+    myTabType = tabType;
+    myDataSeries = new ArrayList<>();
   }
 
-  public void addData(T data) {
-    myDataSeries.add(data);
+  @NotNull
+  public Type getTabType() {
+    return myTabType;
   }
 
+  @NotNull
   public List<T> getDataSeries() {
     return myDataSeries;
   }
