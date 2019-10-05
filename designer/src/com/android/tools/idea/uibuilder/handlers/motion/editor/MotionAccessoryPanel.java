@@ -75,6 +75,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   NlComponentTag myMotionLayoutTag;
   NlComponent myMotionLayoutNlComponent;
   MotionSceneTag myMotionScene;
+  VirtualFile myMotionSceneFile;
   HashSet<String> myLayoutSelectedId = new HashSet<>();
   ViewGroupHandler.AccessoryPanelVisibility mVisibility;
   MotionEditor mMotionEditor = new MotionEditor();
@@ -251,7 +252,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         }
       }
     });
-    myMotionScene = MotionUtils.getMotionScene(myMotionLayoutNlComponent);
+    MotionScenePair motionScene = getMotionScene(myMotionLayoutNlComponent);
+    myMotionScene = motionScene.myMotionSceneTag;
+    myMotionSceneFile = motionScene.myFile;
     mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
     MTag[] cSet = myMotionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET);
     if (DEBUG) {
@@ -270,11 +273,13 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
         mLastSelection = null;
         myLastSelectedTags = null;
-        myMotionScene = MotionUtils.getMotionScene(myMotionLayoutNlComponent);
+        MotionScenePair motionScene = getMotionScene(myMotionLayoutNlComponent);
+        myMotionScene = motionScene.myMotionSceneTag;
+        myMotionSceneFile = motionScene.myFile;
         mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
         fireSelectionChanged(Collections.singletonList(mySelection));
       }
-    }, facet, myMotionScene.getXmlTag().getContainingFile().getVirtualFile(), null);
+    }, facet, myMotionSceneFile, null);
     handleSelectionChanged(designSurfaceSelection, dsSelection);
   }
 
@@ -361,6 +366,32 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
 
     fireSelectionChanged(selection);
+  }
+
+  MotionScenePair getMotionScene(NlComponent motionLayout) {
+    String ref = motionLayout.getAttribute(SdkConstants.AUTO_URI, "layoutDescription");
+    int index = ref.lastIndexOf("@xml/");
+    String fileName = ref.substring(index + 5);
+    if (fileName == null || fileName.isEmpty()) {
+      return null;
+    }
+
+    // let's open the file
+    AndroidFacet facet = motionLayout.getModel().getFacet();
+
+    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+      .getModuleResources(facet).getResourceDirs());
+    if (resourcesXML.isEmpty()) {
+      return null;
+    }
+    VirtualFile directory = resourcesXML.get(0);
+    VirtualFile virtualFile = directory.findFileByRelativePath(fileName + ".xml");
+
+    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, virtualFile);
+
+    MotionSceneTag motionSceneModel = MotionSceneTag.parse(motionLayout, myProject, virtualFile, xmlFile);
+
+    return new MotionScenePair(motionSceneModel, virtualFile);
   }
 
   @NotNull
@@ -594,5 +625,15 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       }
     }
     return found;
+  }
+
+  private static class MotionScenePair {
+    private MotionSceneTag myMotionSceneTag;
+    private VirtualFile myFile;
+
+    private MotionScenePair(@NotNull MotionSceneTag motionSceneTag, @NotNull VirtualFile file) {
+      myMotionSceneTag = motionSceneTag;
+      myFile = file;
+    }
   }
 }
