@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -204,12 +203,6 @@ public class GradleSyncInvoker {
 
   @WorkerThread
   private void sync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
-    if (myIdeInfo.isAndroidStudio()) {
-      // See https://code.google.com/p/android/issues/detail?id=169743
-      // TODO move this method out of GradleUtil.
-      clearStoredGradleJvmArgs(project);
-    }
-
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeAllMessages());
     // Do not sync Sdk/Jdk when running from tests, these will be set up by the test infra.
     if (!request.skipPreSyncChecks) {
