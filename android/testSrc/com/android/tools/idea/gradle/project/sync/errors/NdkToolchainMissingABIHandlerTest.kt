@@ -57,6 +57,16 @@ class NdkToolchainMissingABIHandlerTest : AndroidGradleTestCase() {
     verifyNew("mips64el-linux-android");
   }
 
+  @Test
+  fun testIsArtifactVersionOver3dot0() {
+    assertThat(NdkToolchainMissingABIHandler.isVersionOver3dot0("4.1")).isTrue();
+    assertThat(NdkToolchainMissingABIHandler.isVersionOver3dot0("4.0")).isTrue();
+    assertThat(NdkToolchainMissingABIHandler.isVersionOver3dot0("3.1")).isTrue();
+    assertThat(NdkToolchainMissingABIHandler.isVersionOver3dot0("3.0")).isFalse();
+    assertThat(NdkToolchainMissingABIHandler.isVersionOver3dot0("2.1")).isFalse();
+    assertThat(NdkToolchainMissingABIHandler.isVersionOver3dot0("2.0")).isFalse();
+  }
+
   private fun verifyOld(ABI: String) {
     val errMsg = "No toolchains found in the NDK toolchains folder for ABI with prefix: $ABI"
     registerSyncErrorToSimulate(errMsg)
