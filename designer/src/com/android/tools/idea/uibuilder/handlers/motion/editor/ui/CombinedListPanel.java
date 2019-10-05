@@ -49,6 +49,8 @@ public class CombinedListPanel extends JPanel {
   MTag mMotionLayout;
   ListSelectionListener mListSelectionListener;
   private boolean mSplitView = false;
+  private static final int UNSCALED_LIST_MARGIN = 2;
+  private int mScaledListMargin = MEUI.scale(UNSCALED_LIST_MARGIN);
 
   static class Row {
     public int mCount = 0;
@@ -113,9 +115,11 @@ public class CombinedListPanel extends JPanel {
     JLabel label = new JLabel();
     JLabel title = new JLabel();
     JPanel panel = new JPanel(new BorderLayout());
-    Border b1 = BorderFactory.createMatteBorder(1, 0, 0, 0, Color.GRAY);
-    Border mChangeBorder = BorderFactory.createCompoundBorder(b1, BorderFactory.createEmptyBorder(1, 0, 0, 0));
-    Border mNoBorder = BorderFactory.createEmptyBorder(2, 0, 0, 0);
+    Border b1 = BorderFactory.createMatteBorder(1, 0, 0, 0, MEUI.ourBorder);
+    Border mChangeBorder = BorderFactory.createCompoundBorder(
+      b1,
+      BorderFactory.createEmptyBorder(mScaledListMargin - 1, mScaledListMargin, 0, mScaledListMargin));
+    Border mNoBorder = BorderFactory.createEmptyBorder(mScaledListMargin, mScaledListMargin, 0, mScaledListMargin);
     Color mUnselectedColor = MEUI.ourSecondaryPanelBackground;
     Color mSelectedColor = MEUI.ourMySelectedLineColor;
 
@@ -149,12 +153,13 @@ public class CombinedListPanel extends JPanel {
       if (mSplitView) {
         panel.remove(title);
         if (value.mCount == 0 && index != 0) {
-          panel.setBorder(mChangeBorder);
+          label.setBorder(mChangeBorder);
         } else {
-          panel.setBorder(mNoBorder);
+          label.setBorder(mNoBorder);
         }
       } else {
-        panel.setBorder(null);
+        label.setBorder(mNoBorder);
+        title.setBorder(mNoBorder);
         if (value.mCount == 0 && index != 0) {
           title.setText(titleString);
           panel.add(title, BorderLayout.NORTH);
@@ -174,10 +179,12 @@ public class CombinedListPanel extends JPanel {
     super(new BorderLayout());
     setBackground(MEUI.ourSecondaryPanelBackground);
 
-    mTransitionPane.setColumnHeaderView(new JLabel("Transitions"));
-    mTransitionPane.setBorder(BorderFactory.createEmptyBorder());
+    mConstraintSetPane.setColumnHeaderView(addHorizontalMargin(new JLabel("Constraint Sets")));
+    mConstraintSetPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 1, MEUI.ourBorder));
 
-    mConstraintSetPane.setColumnHeaderView(new JLabel("Constraint Sets"));
+    mTransitionPane.setColumnHeaderView(addHorizontalMargin(new JLabel("Transitions")));
+    mTransitionPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, MEUI.ourBorder));
+
     mMainList.setBackground(MEUI.ourSecondaryPanelBackground);
     mTransitionList.setBackground(MEUI.ourSecondaryPanelBackground);
     mConstraintSetList.setBackground(MEUI.ourSecondaryPanelBackground);
@@ -186,6 +193,7 @@ public class CombinedListPanel extends JPanel {
     mTransitionList.setCellRenderer(rowRenderer);
     mConstraintSetList.setCellRenderer(rowRenderer);
 
+    mTListPane.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, MEUI.ourBorder));
     add(mTListPane, BorderLayout.CENTER);
 
     ListSelectionListener listSelectionListener = e -> {
@@ -202,7 +210,12 @@ public class CombinedListPanel extends JPanel {
     mMainList.addListSelectionListener(listSelectionListener);
     mTransitionList.addListSelectionListener(listSelectionListener);
     mConstraintSetList.addListSelectionListener(listSelectionListener);
+  }
 
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    mScaledListMargin = MEUI.scale(UNSCALED_LIST_MARGIN);
   }
 
   public void setSplitView(boolean splitView) {
@@ -399,5 +412,10 @@ public class CombinedListPanel extends JPanel {
       return tag1 == tag2;
     }
     return tag1.getTreeId().equals(tag2.getTreeId());
+  }
+
+  private Component addHorizontalMargin(JLabel component) {
+    component.setBorder(BorderFactory.createEmptyBorder(mScaledListMargin, mScaledListMargin, mScaledListMargin, mScaledListMargin));
+    return component;
   }
 }

@@ -190,6 +190,7 @@ public class MotionEditor extends JPanel {
     ui.setBackground(MEUI.ourPrimaryPanelBackground);
     mCombinedListPanel.setPreferredSize(new Dimension(10, 100));
     mTopPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mCombinedListPanel, mOverviewScrollPane);
+    mTopPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, MEUI.ourBorder));
     //  layoutTop(LayoutMode.HORIZONTAL_LAYOUT);
 
     ui.add(mTopPanel);
