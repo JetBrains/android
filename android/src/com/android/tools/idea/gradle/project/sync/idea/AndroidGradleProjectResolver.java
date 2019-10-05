@@ -131,7 +131,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private static final Logger LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
-  @NotNull private final ProjectImportErrorHandler myErrorHandler;
   @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final VariantSelector myVariantSelector;
   @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
@@ -142,21 +141,18 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(), new ProjectImportErrorHandler(), new ProjectFinder(),
-         new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(), new IdeaJavaModuleModelFactory(),
-         new IdeDependenciesFactory());
+    this(new CommandLineArgs(), new ProjectFinder(), new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(),
+         new IdeaJavaModuleModelFactory(), new IdeDependenciesFactory());
   }
 
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
-                               @NotNull ProjectImportErrorHandler errorHandler,
                                @NotNull ProjectFinder projectFinder,
                                @NotNull VariantSelector variantSelector,
                                @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                                @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory,
                                @NotNull IdeDependenciesFactory dependenciesFactory) {
     myCommandLineArgs = commandLineArgs;
-    myErrorHandler = errorHandler;
     myProjectFinder = projectFinder;
     myVariantSelector = variantSelector;
     myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
@@ -598,9 +594,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         }
       }
     }
-    ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(null, error, projectPath, buildFilePath);
-    assert userFriendlyError != null;
-    return userFriendlyError;
+    return super.getUserFriendlyError(buildEnvironment, error, projectPath, buildFilePath);
   }
 
   private static boolean isUsingUnsupportedGradleVersion(@Nullable String errorMessage) {
