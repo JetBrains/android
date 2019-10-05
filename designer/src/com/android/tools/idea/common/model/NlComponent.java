@@ -84,7 +84,6 @@ public class NlComponent implements NlAttributesHolder {
   private final HashMap<Object, Object> myClientProperties = new HashMap<>();
   private final ListenerCollection<ChangeListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final ChangeEvent myChangeEvent = new ChangeEvent(this);
-  private NlComponentDelegate myDelegate;
   private NlComponentModificationDelegate myComponentModificationDelegate;
 
   /**
@@ -102,18 +101,6 @@ public class NlComponent implements NlAttributesHolder {
     myModel = model;
     myBackend = new NlComponentBackendXml(model.getProject(), tag, tagPointer);
   }
-
-  @Nullable
-  public NlComponentDelegate getDelegate() {
-    return myDelegate;
-  }
-
-  /** @Deprecated Please dont use this anymore. */
-  // TODO(b/140254908) Remove the NlComponentDelegate completely.
-  public void setDelegate(@Nullable NlComponentDelegate delegate) {
-    myDelegate = delegate;
-  }
-
 
   public void setComponentModificationDelegate(@Nullable NlComponentModificationDelegate delegate) {
     myComponentModificationDelegate = delegate;
@@ -222,9 +209,6 @@ public class NlComponent implements NlAttributesHolder {
   public void removeChild(@NotNull NlComponent component) {
     if (component == this) {
       throw new IllegalArgumentException();
-    }
-    if (myDelegate != null) {
-      myDelegate.willRemoveChild(component);
     }
     synchronized (children) {
       cachedChildrenCopy = null;
@@ -385,10 +369,6 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Override
   public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
-    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
-      myDelegate.setAttribute(this, namespace, attribute, value);
-      return;
-    }
     XmlTag tag = getTagDeprecated();
     if (!tag.isValid()) {
       // This could happen when trying to set an attribute in a component that has been already deleted
@@ -436,18 +416,12 @@ public class NlComponent implements NlAttributesHolder {
     if (myCurrentTransaction != null) {
       return myCurrentTransaction.getAttribute(namespace, attribute);
     }
-    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
-      return myDelegate.getAttribute(this, namespace, attribute);
-    }
     return getAttribute(namespace, attribute);
   }
 
   @Override
   @Nullable
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
-    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
-      return myDelegate.getAttribute(this, namespace, attribute);
-    }
     return getAttributeImpl(namespace, attribute);
   }
 
@@ -475,14 +449,6 @@ public class NlComponent implements NlAttributesHolder {
 
   @NotNull
   public List<AttributeSnapshot> getAttributes() {
-    if (myDelegate != null && myDelegate.handlesAttributes(this)) {
-      List<AttributeSnapshot> attributes = myDelegate.getAttributes(this);
-      if (attributes != null) {
-        return attributes;
-      } else {
-        return Collections.emptyList();
-      }
-    }
     return getAttributesImpl();
   }
 

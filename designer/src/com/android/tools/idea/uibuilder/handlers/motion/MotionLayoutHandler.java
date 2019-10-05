@@ -74,7 +74,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MotionLayoutHandler extends ViewGroupHandler /* implements NlComponentDelegate */ {
+public class MotionLayoutHandler extends ViewGroupHandler {
   private static final boolean DEBUG = false;
 
   // This is used to efficiently test if they are horizontal or vertical.

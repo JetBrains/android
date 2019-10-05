@@ -20,16 +20,13 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.model.NlComponentModificationDelegate;
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.utils.Pair;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Encapsulate write operations on components
@@ -38,14 +35,12 @@ import java.util.List;
 public class ComponentModification implements NlAttributesHolder {
 
   private final NlComponent myComponent;
-  private final NlComponentDelegate myComponentDelegate;
   private final NlComponentModificationDelegate myDelegate;
   private final String myLabel;
 
   public ComponentModification(@NotNull NlComponent component, @NotNull String label) {
     myComponent = component;
     myLabel = label;
-    myComponentDelegate = myComponent.getDelegate();
     myDelegate = myComponent.getComponentModificationDelegate();
 
     if (myDelegate != null) {
@@ -121,13 +116,11 @@ public class ComponentModification implements NlAttributesHolder {
   public void commitTo(XmlTag view) {
     for (Pair<String, String> key : myAttributes.keySet()) {
       String value = myAttributes.get(key);
-      if (myComponentDelegate == null || myComponentDelegate.commitToMotionScene(key)) {
-        String namespace = key.getFirst();
-        if (namespace.equalsIgnoreCase(SdkConstants.TOOLS_URI)) {
-          namespace = SdkConstants.AUTO_URI;
-        }
-        view.setAttribute(key.getSecond(), namespace, value);
+      String namespace = key.getFirst();
+      if (namespace.equalsIgnoreCase(SdkConstants.TOOLS_URI)) {
+        namespace = SdkConstants.AUTO_URI;
       }
+      view.setAttribute(key.getSecond(), namespace, value);
     }
   }
 }
