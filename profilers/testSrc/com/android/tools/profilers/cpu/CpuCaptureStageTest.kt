@@ -25,7 +25,6 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel
 import com.google.common.truth.Truth.assertThat
@@ -174,7 +173,7 @@ class CpuCaptureStageTest {
     profilers.stage = stage
     assertThat(stage.analysisModels.size).isEqualTo(1)
     assertThat(stage.analysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)
-    assertThat(stage.analysisModels[0].tabs).isNotEmpty()
+    assertThat(stage.analysisModels[0].tabModels).isNotEmpty()
   }
 
   @Test
@@ -235,11 +234,12 @@ class CpuCaptureStageTest {
     profilers.stage = stage
     assertThat(stage.analysisModels.size).isEqualTo(1)
     assertThat(stage.analysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)
-    assertThat(stage.analysisModels[0].tabs).hasSize(4)
-    assertThat(stage.analysisModels[0].tabs[0]).isInstanceOf(CpuAnalysisTabModel::class.java)
-    assertThat(stage.analysisModels[0].tabs[1]).isInstanceOf(CpuAnalysisChartModel::class.java)
-    assertThat(stage.analysisModels[0].tabs[2]).isInstanceOf(CpuAnalysisChartModel::class.java)
-    assertThat(stage.analysisModels[0].tabs[3]).isInstanceOf(CpuAnalysisChartModel::class.java)
+    assertThat(stage.analysisModels[0].tabSize).isEqualTo(4)
+    val tabs = stage.analysisModels[0].tabModels.toList()
+    assertThat(tabs[0].tabType).isEqualTo(CpuAnalysisTabModel.Type.SUMMARY)
+    assertThat(tabs[1].tabType).isEqualTo(CpuAnalysisTabModel.Type.FLAME_CHART)
+    assertThat(tabs[2].tabType).isEqualTo(CpuAnalysisTabModel.Type.TOP_DOWN)
+    assertThat(tabs[3].tabType).isEqualTo(CpuAnalysisTabModel.Type.BOTTOM_UP)
   }
 
 }

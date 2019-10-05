@@ -15,11 +15,15 @@
  */
 package com.android.tools.profilers.cpu.analysis;
 
-import com.android.tools.profilers.StudioProfilersView;
 import org.jetbrains.annotations.NotNull;
 
-public class CpuAnalysisSummaryTab<T> extends CpuAnalysisTab<CpuAnalysisTabModel<T>> {
-  public CpuAnalysisSummaryTab(@NotNull StudioProfilersView view, @NotNull CpuAnalysisTabModel<T> model) {
-    super(model);
-  }
+/**
+ * Represents something that can generate a {@link CpuAnalysisModel}. Implementations can be a CPU capture trace, a thread or a trace event.
+ */
+public interface CpuAnalyzable<T extends CpuAnalyzable> {
+  /**
+   * @return a model that contains analysis data.
+   */
+  @NotNull
+  CpuAnalysisModel<T> getAnalysisModel();
 }

@@ -33,8 +33,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.lang.Thread.sleep
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -74,10 +72,10 @@ class CpuAnalysisPanelTest {
   @Test
   fun newAnalysisIsAutoSelected() {
     stage.enter()
-    val selectionModel = CpuAnalysisModel("TEST")
-    selectionModel.tabs.add(CpuAnalysisTabModel<CpuCapture>("Summary"))
-    selectionModel.tabs.add(CpuAnalysisTabModel<CpuCapture>("Summary2"))
-    stage.addCpuAnalysisModel(selectionModel)
+    val selectedModel = CpuAnalysisModel<CpuCapture>("TEST")
+    selectedModel.addTabModel(CpuAnalysisTabModel(CpuAnalysisTabModel.Type.SUMMARY))
+    selectedModel.addTabModel(CpuAnalysisTabModel(CpuAnalysisTabModel.Type.LOGS))
+    stage.addCpuAnalysisModel(selectedModel)
     assertThat(panel.tabView.tabCount).isEqualTo(2)
   }
 
