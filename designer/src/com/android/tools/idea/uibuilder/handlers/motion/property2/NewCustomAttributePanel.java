@@ -16,10 +16,13 @@
 package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
 import com.intellij.openapi.ui.DialogWrapper;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.Arrays;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NewCustomAttributePanel extends DialogWrapper {
@@ -38,6 +41,11 @@ public class NewCustomAttributePanel extends DialogWrapper {
     myDataType.setModel(myModel);
     myDataType.setEditable(false);
     init();
+  }
+
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myAttributeNameEditor;
   }
 
   @NotNull
