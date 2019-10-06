@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.scene.NavColors.FRAME
@@ -43,7 +43,6 @@ val REGULAR_FRAME_STROKE = BasicStroke(REGULAR_FRAME_THICKNESS)
 val HIGHLIGHTED_FRAME_THICKNESS = JBUI.scale(2f)
 val HIGHLIGHTED_FRAME_STROKE = BasicStroke(HIGHLIGHTED_FRAME_THICKNESS)
 
-
 abstract class NavBaseDecorator : SceneDecorator() {
   override fun addFrame(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
   }
@@ -51,9 +50,9 @@ abstract class NavBaseDecorator : SceneDecorator() {
   override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
   }
 
-  protected fun addHeader(list: DisplayList, sceneView: SceneView, rectangle: Rectangle2D.Float, component: SceneComponent) {
-    val headerRect = getHeaderRect(sceneView, rectangle)
-    val scale = sceneView.scale.toFloat()
+  protected fun addHeader(list: DisplayList, sceneContext: SceneContext, rectangle: Rectangle2D.Float, component: SceneComponent) {
+    val headerRect = getHeaderRect(sceneContext, rectangle)
+    val scale = sceneContext.inlineScale
     val text = component.nlComponent.uiName
     val isStart = component.nlComponent.isStartDestination
     val hasDeepLink = component.nlComponent.children.any { it.tagName == SdkConstants.TAG_DEEP_LINK }
@@ -70,7 +69,6 @@ abstract class NavBaseDecorator : SceneDecorator() {
       SceneComponent.DrawState.DRAG -> HIGHLIGHTED_FRAME
       else -> FRAME
     }
-
 
   fun textColor(component: SceneComponent): Color = if (component.isSelected) SELECTED else TEXT
 

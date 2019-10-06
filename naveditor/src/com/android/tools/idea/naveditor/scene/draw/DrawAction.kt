@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.Scale
+import com.android.tools.idea.common.model.toScale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawShape
@@ -43,12 +45,12 @@ import java.awt.geom.Rectangle2D
  */
 class DrawAction(@VisibleForTesting @SwingCoordinate val source: Rectangle2D.Float,
                  @VisibleForTesting @SwingCoordinate val dest: Rectangle2D.Float,
-                 @VisibleForTesting val scale: Float,
+                 @VisibleForTesting val scale: Scale,
                  @VisibleForTesting val color: Color,
                  @VisibleForTesting val isPopAction: Boolean) : CompositeDrawCommand() {
 
   private constructor(tokens: Array<String>)
-    : this(stringToRect2D(tokens[0]), stringToRect2D(tokens[1]), tokens[2].toFloat(), stringToColor(tokens[3]), tokens[4].toBoolean())
+    : this(stringToRect2D(tokens[0]), stringToRect2D(tokens[1]), tokens[2].toScale(), stringToColor(tokens[3]), tokens[4].toBoolean())
 
   constructor(serialized: String) : this(parse(serialized, 5))
 
@@ -83,8 +85,8 @@ class DrawAction(@VisibleForTesting @SwingCoordinate val source: Rectangle2D.Flo
     val p = getArrowPoint(scale, dest, direction)
 
     val rectangle = Rectangle2D.Float()
-    val parallel = NavSceneManager.ACTION_ARROW_PARALLEL * scale
-    val perpendicular = NavSceneManager.ACTION_ARROW_PERPENDICULAR * scale
+    val parallel = NavSceneManager.ACTION_ARROW_PARALLEL * scale.value.toFloat()
+    val perpendicular = NavSceneManager.ACTION_ARROW_PERPENDICULAR * scale.value.toFloat()
     val deltaX = direction.deltaX.toFloat()
     val deltaY = direction.deltaY.toFloat()
 

@@ -34,11 +34,11 @@ class NavActionSourceHitProvider : NavDestinationHitProvider() {
 
     @SwingCoordinate var x = drawRectangle.x + drawRectangle.width
     if (component.nlComponent.isFragment) {
-      x += sceneTransform.getSwingDimension(ACTION_HANDLE_OFFSET)
+      x += sceneTransform.getSwingDimension(ACTION_HANDLE_OFFSET.toInt())
     }
 
     @SwingCoordinate val y = drawRectangle.y + drawRectangle.height / 2
-    @SwingCoordinate val r = sceneTransform.getSwingDimensionDip(OUTER_RADIUS_LARGE)
+    @SwingCoordinate val r = sceneTransform.getSwingDimensionDip(OUTER_RADIUS_LARGE.value)
     picker.addCircle(component, 0, x.toInt(), y.toInt(), r)
   }
 }

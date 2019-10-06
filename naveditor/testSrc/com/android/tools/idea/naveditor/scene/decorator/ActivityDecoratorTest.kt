@@ -19,6 +19,7 @@ import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.draw.DrawActivity
@@ -60,8 +61,8 @@ class ActivityDecoratorTest : NavTestCase() {
     ActivityDecorator.buildListComponent(displayList, 0, context, sceneComponent)
 
     assertEquals(2, displayList.commands.size)
-    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.scale.toFloat(), "f1", false, false), displayList.commands[0])
-    assertDrawCommandsEqual(DrawActivity(RECT, IMAGE_RECT, context.scale.toFloat(), FRAME_COLOR, REGULAR_FRAME_THICKNESS, TEXT_COLOR),
+    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.inlineScale, "f1", false, false), displayList.commands[0])
+    assertDrawCommandsEqual(DrawActivity(RECT, IMAGE_RECT, context.inlineScale, FRAME_COLOR, REGULAR_FRAME_THICKNESS, TEXT_COLOR),
                             displayList.commands[1])
   }
 
@@ -84,9 +85,9 @@ class ActivityDecoratorTest : NavTestCase() {
     ActivityDecorator.buildListComponent(displayList, 0, context, sceneComponent)
 
     assertEquals(2, displayList.commands.size)
-    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.scale.toFloat(), "f1", false, false), displayList.commands[0])
+    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.inlineScale, "f1", false, false), displayList.commands[0])
     assertDrawCommandsEqual(
-      DrawActivity(RECT, IMAGE_RECT, context.scale.toFloat(), SELECTED_COLOR, HIGHLIGHTED_FRAME_THICKNESS, TEXT_COLOR),
+      DrawActivity(RECT, IMAGE_RECT, context.inlineScale, SELECTED_COLOR, HIGHLIGHTED_FRAME_THICKNESS, TEXT_COLOR),
       displayList.commands[1])
   }
 }

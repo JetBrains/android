@@ -19,6 +19,7 @@ import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.draw.DrawFragment
@@ -54,8 +55,8 @@ class FragmentDecoratorTest : NavTestCase() {
 
     FragmentDecorator.buildListComponent(displayList, 0, context, sceneComponent)
     assertEquals(2, displayList.commands.size)
-    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.scale.toFloat(), "f1", false, false), displayList.commands[0])
-    assertDrawCommandsEqual(DrawFragment(RECT, context.scale.toFloat(), null), displayList.commands[1])
+    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.inlineScale, "f1", false, false), displayList.commands[0])
+    assertDrawCommandsEqual(DrawFragment(RECT, context.inlineScale, null), displayList.commands[1])
   }
 
   fun testHighlightedContent() {
@@ -76,7 +77,7 @@ class FragmentDecoratorTest : NavTestCase() {
 
     FragmentDecorator.buildListComponent(displayList, 0, context, sceneComponent)
     assertEquals(2, displayList.commands.size)
-    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.scale.toFloat(), "f1", false, false), displayList.commands[0])
-    assertDrawCommandsEqual(DrawFragment(RECT, context.scale.toFloat(), COLOR), displayList.commands[1])
+    assertDrawCommandsEqual(DrawHeader(HEADER_RECT, context.inlineScale, "f1", false, false), displayList.commands[0])
+    assertDrawCommandsEqual(DrawFragment(RECT, context.inlineScale, COLOR), displayList.commands[1])
   }
 }
