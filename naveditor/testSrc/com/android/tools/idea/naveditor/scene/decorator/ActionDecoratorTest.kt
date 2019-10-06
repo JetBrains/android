@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
+import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
@@ -26,6 +27,8 @@ import com.android.tools.idea.naveditor.scene.draw.assertDrawCommandsEqual
 import org.mockito.Mockito
 import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
+
+private val SCALE = Scale(0.5)
 
 class ActionDecoratorTest : NavTestCase() {
   fun testRegularPopAction() {
@@ -55,7 +58,7 @@ class ActionDecoratorTest : NavTestCase() {
 
     assertDrawCommandsEqual(DrawAction(Rectangle2D.Float(419f, 619f, 50f, 100f),
                                        Rectangle2D.Float(526.5f, 400f, 76.5f, 128f),
-                                       0.5f, ACTION, true), displayList.commands[0])
+                                       SCALE, ACTION, true), displayList.commands[0])
   }
 
   fun testSelfPopAction() {
@@ -78,7 +81,7 @@ class ActionDecoratorTest : NavTestCase() {
 
     ActionDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), f1_to_f1)
 
-    assertDrawCommandsEqual(DrawSelfAction(Rectangle2D.Float(409f, 469.0f, 50.0f, 100.0f), 0.5f, ACTION, true),
+    assertDrawCommandsEqual(DrawSelfAction(Rectangle2D.Float(409f, 469.0f, 50.0f, 100.0f), SCALE, ACTION, true),
                             displayList.commands[0])
   }
 

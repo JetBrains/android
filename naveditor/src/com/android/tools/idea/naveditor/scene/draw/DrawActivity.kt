@@ -16,6 +16,10 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.scaledSwingLength
+import com.android.tools.idea.common.model.Scale
+import com.android.tools.idea.common.model.scaledAndroidLength
+import com.android.tools.idea.common.model.toScale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
@@ -28,7 +32,6 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
-import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavColors.ACTIVITY_BORDER
 import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.RefinableImage
@@ -36,23 +39,20 @@ import com.android.tools.idea.naveditor.scene.createDrawImageCommand
 import com.android.tools.idea.naveditor.scene.growRectangle
 import com.android.tools.idea.naveditor.scene.scaledFont
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Font
 import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 
-@NavCoordinate
-private val ACTIVITY_ARC_SIZE = JBUI.scale(12f)
-@SwingCoordinate
-private val ACTIVITY_BORDER_WIDTH = JBUI.scale(1f)
+private val ACTIVITY_ARC_SIZE = scaledAndroidLength(12f)
+private val ACTIVITY_BORDER_WIDTH = scaledSwingLength(1f)
 @VisibleForTesting
-val ACTIVITY_BORDER_STROKE = BasicStroke(ACTIVITY_BORDER_WIDTH)
+val ACTIVITY_BORDER_STROKE = BasicStroke(ACTIVITY_BORDER_WIDTH.value)
 
 class DrawActivity(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float,
                    @VisibleForTesting @SwingCoordinate val imageRectangle: Rectangle2D.Float,
-                   @VisibleForTesting val scale: Float,
+                   @VisibleForTesting val scale: Scale,
                    @VisibleForTesting val frameColor: Color,
                    @VisibleForTesting val frameThickness: Float,
                    @VisibleForTesting val textColor: Color,
@@ -61,7 +61,7 @@ class DrawActivity(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2
   constructor(serialized: String) : this(parse(serialized, 6))
 
   private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), stringToRect2D(tokens[1]),
-                                                    tokens[2].toFloat(), stringToColor(tokens[3]),
+                                                    tokens[2].toScale(), stringToColor(tokens[3]),
                                                     tokens[4].toFloat(), stringToColor(tokens[5]))
 
   override fun serialize() = buildString(javaClass.simpleName, rect2DToString(rectangle),
@@ -71,7 +71,7 @@ class DrawActivity(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2
   override fun buildCommands(): List<DrawCommand> {
     val list = mutableListOf<DrawCommand>()
 
-    val arcSize = scale * ACTIVITY_ARC_SIZE
+    val arcSize = (scale * ACTIVITY_ARC_SIZE).value
     @SwingCoordinate val roundRectangle = rectangle.let {
       RoundRectangle2D.Float(it.x, it.y, it.width, it.height, arcSize, arcSize)
     }
@@ -81,14 +81,14 @@ class DrawActivity(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2
     list.add(createDrawImageCommand(imageRectangle, image))
 
     val imageBorder = imageRectangle.let { Rectangle2D.Float(it.x, it.y, it.width, it.height) }
-    growRectangle(imageBorder, ACTIVITY_BORDER_WIDTH, ACTIVITY_BORDER_WIDTH)
+    growRectangle(imageBorder, ACTIVITY_BORDER_WIDTH.value, ACTIVITY_BORDER_WIDTH.value)
     list.add(DrawShape(imageRectangle, ACTIVITY_BORDER, ACTIVITY_BORDER_STROKE))
 
     val textHeight = rectangle.height - imageRectangle.height - (imageRectangle.x - rectangle.x)
     val textRectangle = Rectangle2D.Float(rectangle.x, imageRectangle.y + imageRectangle.height,
                                           rectangle.width, textHeight)
     list.add(DrawTruncatedText(4, "Activity", textRectangle, textColor,
-                               scaledFont(scale, Font.BOLD), true))
+                               scaledFont(scale.value.toFloat(), Font.BOLD), true))
 
     return list
   }

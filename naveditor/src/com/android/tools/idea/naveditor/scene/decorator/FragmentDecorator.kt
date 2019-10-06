@@ -21,6 +21,7 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.scene.draw.DrawFragment
 
 /**
@@ -33,9 +34,9 @@ object FragmentDecorator : NavScreenDecorator() {
 
     val sceneView = sceneContext.surface?.focusedSceneView ?: return
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
-    addHeader(list, sceneView, drawRectangle, component)
+    addHeader(list, sceneContext, drawRectangle, component)
 
-    val scale = sceneContext.scale.toFloat()
+    val scale = sceneContext.inlineScale
     val highlightColor = if (isHighlighted(component)) frameColor(component) else null
     val image = buildImage(sceneContext, component, drawRectangle)
 

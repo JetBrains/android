@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.idea.common.model.Scale
+import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.common.scene.draw.FillShape
@@ -30,7 +32,7 @@ import java.awt.geom.RoundRectangle2D
 class DrawNestedGraphTest : NavTestCase() {
   fun testDrawNestedGraph() {
     val rect = Rectangle2D.Float(10f, 20f, 30f, 40f)
-    val scale = 1.5f
+    val scale = Scale(1.5)
     val frameColor = Color.RED
     val frameThickness = 1f
     val text = "text"
@@ -39,9 +41,9 @@ class DrawNestedGraphTest : NavTestCase() {
     val drawNestedNavigation = DrawNestedGraph(rect, scale, frameColor, frameThickness, text, textColor)
 
     val rectangle = Rectangle2D.Float(rect.x, rect.y, rect.width, rect.height)
-    val arcSize = NAVIGATION_ARC_SIZE * scale
+    val arcSize = (NAVIGATION_ARC_SIZE * scale).value
     val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
-    val font = regularFont(scale, Font.BOLD)
+    val font = regularFont(scale.value.toFloat(), Font.BOLD)
 
     assertEquals(3, drawNestedNavigation.commands.size)
     assertDrawCommandsEqual(FillShape(roundRectangle, COMPONENT_BACKGROUND), drawNestedNavigation.commands[0])

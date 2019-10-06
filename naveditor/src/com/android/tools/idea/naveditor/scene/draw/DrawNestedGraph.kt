@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.idea.common.model.Scale
+import com.android.tools.idea.common.model.scaledAndroidLength
+import com.android.tools.idea.common.model.times
+import com.android.tools.idea.common.model.toScale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
@@ -27,11 +31,9 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
-import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.regularFont
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Font
@@ -39,12 +41,11 @@ import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 
 // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
-@NavCoordinate
 @VisibleForTesting
-val NAVIGATION_ARC_SIZE = JBUI.scale(12f)
+val NAVIGATION_ARC_SIZE = scaledAndroidLength(12f)
 
 data class DrawNestedGraph(private val rectangle: Rectangle2D.Float,
-                           private val scale: Float,
+                           private val scale: Scale,
                            private val frameColor: Color,
                            private val frameThickness: Float,
                            private val text: String,
@@ -52,7 +53,7 @@ data class DrawNestedGraph(private val rectangle: Rectangle2D.Float,
 
   constructor(serialized: String) : this(parse(serialized, 6))
 
-  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toFloat(),
+  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toScale(),
                                                     stringToColor(tokens[2]), tokens[3].toFloat(),
                                                     tokens[4], stringToColor(tokens[5]))
 
@@ -60,13 +61,13 @@ data class DrawNestedGraph(private val rectangle: Rectangle2D.Float,
                                          frameThickness.toString(), text, colorToString(textColor))
 
   override fun buildCommands(): List<DrawCommand> {
-    val arcSize = NAVIGATION_ARC_SIZE * scale
+    val arcSize = (NAVIGATION_ARC_SIZE * scale).value
     val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
 
     val fillRectangle = FillShape(roundRectangle, COMPONENT_BACKGROUND)
     val drawRectangle = DrawShape(roundRectangle, frameColor, BasicStroke(frameThickness))
 
-    val font = regularFont(scale, Font.BOLD)
+    val font = regularFont(scale.value.toFloat(), Font.BOLD)
     val rectangle = Rectangle2D.Float(roundRectangle.x, roundRectangle.y, roundRectangle.width, roundRectangle.height)
     val drawText = DrawTruncatedText(2, text, rectangle, textColor, font, true)
 

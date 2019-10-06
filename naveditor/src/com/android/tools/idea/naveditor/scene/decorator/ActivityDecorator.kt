@@ -21,6 +21,7 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.draw.DrawActivity
 import com.android.tools.idea.naveditor.scene.growRectangle
@@ -42,7 +43,7 @@ object ActivityDecorator : NavScreenDecorator() {
 
     val sceneView = sceneContext.surface?.focusedSceneView ?: return
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
-    addHeader(list, sceneView, drawRectangle, component)
+    addHeader(list, sceneContext, drawRectangle, component)
 
     @SwingCoordinate val imageRectangle = drawRectangle.let { Rectangle2D.Float(it.x, it.y, it.width, it.height) }
 
@@ -52,7 +53,7 @@ object ActivityDecorator : NavScreenDecorator() {
     @SwingCoordinate val textHeight = Coordinates.getSwingDimension(sceneView, ACTIVITY_TEXT_HEIGHT)
     imageRectangle.height -= (textHeight - padding)
 
-    val scale = sceneContext.scale.toFloat()
+    val scale = sceneContext.inlineScale
     val frameColor = frameColor(component)
     val frameThickness = frameThickness(component)
     val textColor = textColor(component)

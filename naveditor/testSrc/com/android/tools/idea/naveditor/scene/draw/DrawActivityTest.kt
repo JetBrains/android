@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.common.scene.draw.FillShape
@@ -31,7 +32,7 @@ private val FRAME_RECT = Rectangle2D.Float(10f, 20f, 100f, 300f)
 private val FRAME_COLOR = Color.RED
 private const val FRAME_THICKNESS = 1f
 private val FRAME_STROKE = BasicStroke(FRAME_THICKNESS)
-private const val SCALE = 1.5f
+private val SCALE = Scale(1.5)
 private val BORDER_RECT = RoundRectangle2D.Float(10f, 20f, 100f, 300f, 18f, 18f)
 private val BACKGROUND_COLOR = JBColor(0xfafafa, 0x515658)
 private val IMAGE_RECT = Rectangle2D.Float(22f, 32f, 76f, 249f)
