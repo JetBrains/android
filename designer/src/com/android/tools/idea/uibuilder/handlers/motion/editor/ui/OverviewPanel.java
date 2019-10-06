@@ -28,6 +28,8 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.LinearGradientPaint;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.KeyAdapter;
@@ -77,9 +79,23 @@ class OverviewPanel extends JPanel {
   private static final Stroke ourFatStroke = new BasicStroke(5f);
   private static final Stroke ourSelectedStroke = new BasicStroke(2f);
   private MTag mMouseOverDerived;
+  private float mTransitionProgress = Float.NaN;
+
+  /**
+   * Defines the progress along the selected Transition
+   *
+   * @param pos
+   */
+  public void setTransitionProgress(float pos) {
+    mTransitionProgress = pos;
+    repaint();
+  }
+
 
   interface Listener {
     void select(MTag selected);
+
+    void delete(MTag[] tags);
   }
 
   static class DerivedSetLine {
@@ -100,7 +116,7 @@ class OverviewPanel extends JPanel {
 
   int mTotalDerivedLines = 0;
 
-  public void setSelectionListener(Listener l) {
+  public void setListener(Listener l) {
     mListener = l;
   }
 
@@ -151,7 +167,11 @@ class OverviewPanel extends JPanel {
                      public void keyPressed(KeyEvent e) {
                        if (mTransitionSelected >= 0) {
                          switch (e.getKeyCode()) {
+                           case KeyEvent.VK_DELETE:
+                             mListener.delete(new MTag[]{mTransitions[mTransitionSelected]});
+                             return;
                            case KeyEvent.VK_UP:
+                             setTransitionSetIndex((mTransitionSelected - 1 + mTransitions.length) % mTransitions.length);
                              break;
                            case KeyEvent.VK_DOWN:
                              setConstraintSetIndex(0);
@@ -172,6 +192,12 @@ class OverviewPanel extends JPanel {
                        }
                        else if (mConstraintSetSelected >= 0) {
                          switch (e.getKeyCode()) {
+                           case KeyEvent.VK_DELETE:
+                             if (mConstraintSetSelected > 0) {
+                               Debug.log("Delete !");
+                               mListener.delete(new MTag[]{mConstraintSet[mConstraintSetSelected - 1]});
+                             }
+                             return;
                            case KeyEvent.VK_UP:
                              if (mTransitions.length > 0) {
                                setTransitionSetIndex(0);
@@ -181,6 +207,7 @@ class OverviewPanel extends JPanel {
                              }
                              break;
                            case KeyEvent.VK_DOWN:
+                             setConstraintSetIndex((mConstraintSetSelected + 1) % (mConstraintSet.length + 1));
                              break;
                            case KeyEvent.VK_LEFT:
                              setConstraintSetIndex((mConstraintSetSelected - 1 + 1 + mConstraintSet.length) % (mConstraintSet.length + 1));
@@ -387,7 +414,7 @@ class OverviewPanel extends JPanel {
       }
 
       boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
-      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i]);
+      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], Float.NaN);
       if ((clicks > 0) || (swipes > 0)) {
         mOnActionSize[i] = drawActions(g, swipes, clicks, x1, x2, y);
       }
@@ -423,7 +450,7 @@ class OverviewPanel extends JPanel {
       g.setColor(MEUI.Overview.ourSelectedLineColor);
 
       boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
-      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i]);
+      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], mTransitionProgress);
       if ((clicks > 0) || (swipes > 0)) {
         drawActions(g, swipes, clicks, x1, x2, y);
       }
@@ -692,7 +719,7 @@ class OverviewPanel extends JPanel {
     return totalSpace;
   }
 
-  private void drawTransition(Graphics2D g, boolean hoverHighlight, int x1, int x2, int y, int constraintSetY, Object tag) {
+  private void drawTransition(Graphics2D g, boolean hoverHighlight, int x1, int x2, int y, int constraintSetY, Object tag, float progress) {
     int tri_delta_y = 5;
     int tri_delta_x = 5;
     mPath.reset();
@@ -710,6 +737,7 @@ class OverviewPanel extends JPanel {
     mPath.moveTo(mRectPathX[0], mRectPathY[0]);
     Drawing.drawRound(mPath, mRectPathX, mRectPathY, mRectPathLen, ROUND_SIZE);
     Drawing.drawPick(picker, tag, mRectPathX, mRectPathY, mRectPathLen, ROUND_SIZE);
+
     mPath.lineTo(mRectPathX[3] - tri_delta_x, mRectPathY[3]);
     mPath.lineTo(mRectPathX[3], mRectPathY[3] + tri_delta_y);
     mPath.lineTo(mRectPathX[3] + tri_delta_x, mRectPathY[3]);
@@ -723,6 +751,9 @@ class OverviewPanel extends JPanel {
       g.setColor(originalColor);
       g.setStroke(originalStroke);
     }
+    float startx = mRectPathX[0] + progress * (mRectPathX[3] - mRectPathX[0]) - 4;
+    float endx = mRectPathX[0] + progress * (mRectPathX[3] - mRectPathX[0]) + 4;
+    int clipy = (int)mRectPathY[3];
     g.draw(mPath);
     //fill triangle
     g.drawLine(mRectPathX[0] - tri_delta_x, mRectPathY[0], mRectPathX[0] + tri_delta_x, mRectPathY[0]);
@@ -737,6 +768,21 @@ class OverviewPanel extends JPanel {
     mRectPathY[2] = mRectPathY[3];
 
     g.fillPolygon(mRectPathX, mRectPathY, 4);
+    if (!Float.isNaN(progress)) {
+      Rectangle rect = g.getClipBounds();
+      g.clipRect(0, 0, getWidth(), clipy);
+      Color originalColor = g.getColor();
+      g.setPaint(new LinearGradientPaint(
+        startx,
+        0,
+        endx,
+        0,
+        new float[]{0, 0.1f, 0.9f, 1},
+        new Color[]{originalColor, Color.WHITE, Color.WHITE, originalColor}));
+      g.draw(mPath);
+      g.setClip(rect);
+      g.setColor(originalColor);
+    }
   }
 
   private void drawTransition_orig(Graphics2D g, boolean hoverHighlight, int x1, int x2, int y, int constraintSetY, Object tag) {

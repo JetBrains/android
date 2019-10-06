@@ -23,7 +23,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScroll
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.METabbedPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnClick;
@@ -40,6 +39,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -136,6 +137,16 @@ public class MotionEditor extends JPanel {
      case TRANSITION_PANEL:
    }
   }
+  List<Command> myCommandListeners = new ArrayList<>();
+  public void addCommandListener(Command command) {
+    myCommandListeners.add(command);
+  }
+
+  private void fireCommand(Command.Action action, MTag[]tags) {
+    for (Command listener : myCommandListeners) {
+      listener.perform(action,tags);
+    }
+  }
 
   enum LayoutMode {
     VERTICAL_LAYOUT,
@@ -195,9 +206,32 @@ public class MotionEditor extends JPanel {
     mConstraintSetPanel.setBackground(MEUI.ourPrimaryPanelBackground);
     mCombinedListPanel.setBackground(MEUI.ourPrimaryPanelBackground);
     mOverviewPanel.setBorder(BorderFactory.createEmptyBorder());
+    mTransitionPanel.addTimeLineListener(new TimeLineListener() {
+      @Override
+      public void command(MotionEditorSelector.TimeLineCmd cmd, float pos) {
+        switch (cmd) {
 
-    mOverviewPanel.setSelectionListener(e -> {
-      selectTag(e);
+          case MOTION_PROGRESS:
+            mOverviewPanel.setTransitionProgress(pos);
+            break;
+          case MOTION_PLAY:
+            break;
+          case MOTION_STOP:
+            mOverviewPanel.setTransitionProgress(Float.NaN);
+            break;
+        }
+      }
+    });
+    mOverviewPanel.setListener(new OverviewPanel.Listener() {
+      @Override
+      public void select(MTag selected) {
+          selectTag(selected);
+      }
+
+      @Override
+      public void delete(MTag[] tags) {
+        fireCommand(Command.Action.DELETE, tags);
+      }
     });
 
     mMainPanel.add(ui);
@@ -259,7 +293,9 @@ public class MotionEditor extends JPanel {
   public void selectTag(MTag tag) {
     if (tag != null && tag.equals(mSelectedTag)) {
       mConstraintSetPanel.clearSelection();
+      mLayoutPanel.clearSelection();
       mTransitionPanel.clearSelection();
+      mMeModel.setSelectedViewIDs(new ArrayList<>()); // clear out selections because of double click
       if ("Transition".equals(tag.getTagName())) {
         notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{tag});
       }
@@ -710,5 +746,13 @@ public class MotionEditor extends JPanel {
     public int getSelected() {
       return mConstraintSetList.getSelectedIndex();
     }
+  }
+
+  public interface Command {
+    enum Action {
+      DELETE,
+      COPY,
+    };
+    void perform(Action action, MTag []tag);
   }
 }

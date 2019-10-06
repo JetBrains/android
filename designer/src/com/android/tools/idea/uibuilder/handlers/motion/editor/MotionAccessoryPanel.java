@@ -129,7 +129,16 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     SelectionModel designSurfaceSelection = myDesignSurface.getSelectionModel();
     ImmutableList<NlComponent> dsSelection = designSurfaceSelection.getSelection();
     designSurfaceSelection.addListener((model, selection) -> handleSelectionChanged(model, selection));
+    mMotionEditor.addCommandListener(new MotionEditor.Command() {
 
+      @Override
+      public void perform(Action action, MTag[] tag) {
+        if (action.equals(Action.DELETE))
+           for (int i = 0; i < tag.length; i++) {
+           tag[i].getTagWriter().deleteTag();
+          }
+      }
+    });
     mMotionEditor.addSelectionListener(new MotionEditorSelector.Listener() {
       @Override
       public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
@@ -207,6 +216,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
               return;
             }
             // TODO: is that mSelectedConstraintTag still going to be useful now we don't try to derive from CL handler?
+
             mSelectedConstraintTag = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(xmlTag);
           }
           break;

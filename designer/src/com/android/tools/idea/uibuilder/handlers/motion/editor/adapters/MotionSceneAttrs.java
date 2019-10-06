@@ -444,7 +444,10 @@ public class MotionSceneAttrs {
   };
 
   public static boolean copyToConstraint(MTag.Attribute attr) {
-    return layout_tags.contains(attr.mAttribute) || MotionLayout.LAYOUT_ATTRS.contains(attr.mAttribute);
+    return layout_tags.contains(attr.mAttribute) ||
+           MotionLayout.LAYOUT_ATTRS.contains(attr.mAttribute) ||
+           ourTransform_tags.contains(attr.mAttribute) ||
+           ourPropertySet_tags.contains(attr.mAttribute);
   }
 
   public static boolean isLayoutAttribute(MTag.Attribute attr) {

@@ -15,12 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_BOOLEAN_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_COLOR_DRAWABLE_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_COLOR_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_DIMENSION_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_FLOAT_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_INTEGER_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_PIXEL_DIMENSION_VALUE;
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_STRING_VALUE;
+
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Provides a view within MotionLayout with all the basic information under the ConstraintSet.
@@ -182,6 +197,46 @@ public class MotionAttributes {
     newAttribute.name = name;
     newAttribute.value = value;
     definedAttributes.put(newAttribute.name , newAttribute);
+  }
+
+
+  static HashMap<String,HashSet<String>> validMap = new HashMap<>( );
+  static {
+    validMap.put(ATTR_CUSTOM_COLOR_VALUE, new HashSet<>(Arrays.asList("int")));
+    validMap.put(ATTR_CUSTOM_COLOR_DRAWABLE_VALUE, new HashSet<>(Arrays.asList("Drawable")));
+    validMap.put(ATTR_CUSTOM_INTEGER_VALUE, new HashSet<>(Arrays.asList("int")));
+    validMap.put(ATTR_CUSTOM_FLOAT_VALUE, new HashSet<>(Arrays.asList("float")));
+    validMap.put(ATTR_CUSTOM_STRING_VALUE, new HashSet<>(Arrays.asList( "CharSequence", "String")));
+    validMap.put(ATTR_CUSTOM_DIMENSION_VALUE, new HashSet<>(Arrays.asList("float" )));
+    validMap.put(ATTR_CUSTOM_PIXEL_DIMENSION_VALUE, new HashSet<>(Arrays.asList("float" )));
+    validMap.put(ATTR_CUSTOM_BOOLEAN_VALUE, new HashSet<>(Arrays.asList( "boolean")));
+  }
+
+  public static String[] getCustomAttributesFor(NlComponent nlComponent , String customAttributeType){
+    Object o =  NlComponentHelperKt.getViewInfo(nlComponent).getViewObject();
+    Method[] m = o.getClass().getMethods();
+    ArrayList<String> ret = new ArrayList<>();
+    HashSet<String> valid  = validMap.get(customAttributeType);
+    for (int i = 0; i < m.length; i++) {
+      Method method = m[i];
+      String name = method.getName();
+      if (!name.startsWith("set")) {
+        continue;
+      }
+      if (!Character.isUpperCase(name.charAt(3))) {
+        continue;
+      }
+      Class<?>[] types = method.getParameterTypes();
+      if (types.length != 1) {
+        continue;
+      }
+      String typeStr = types[0].getSimpleName();
+      if (valid.contains(typeStr)) {
+        name = Character.toLowerCase(name.charAt(3))+name.substring(4);
+        ret.add(name);
+      }
+    }
+    return ret.toArray(new String[0]);
   }
 
 
