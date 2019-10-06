@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSe
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineCmd;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -172,7 +173,6 @@ public class TimeLinePanel extends JPanel {
         groupSelected();
       }
     });
-    createTimer();
   }
 
   private static String buildKey(MTag keyFrame) {
@@ -243,12 +243,20 @@ public class TimeLinePanel extends JPanel {
         progress();
       });
       myTimer.setRepeats(true);
+      myTimer.start();
     }
     if (myPlayLimiter == null) {
       myPlayLimiter = new Timer(60000, e -> {
-        myPlayLimiterStop();
+        destroyTimer();
       });
       myPlayLimiter.setRepeats(false);
+      myPlayLimiter.start();
+    }
+  }
+
+  private void watchdog() {
+    if (myPlayLimiter != null) {
+      myPlayLimiter.restart();
     }
   }
 
@@ -257,16 +265,19 @@ public class TimeLinePanel extends JPanel {
       myTimer.stop();
       myTimer = null;
     }
+    if (myPlayLimiter != null) {
+      myPlayLimiter.stop();
+      myPlayLimiter = null;
+    }
   }
 
   private void performCommand(TimelineCommands e, int mode) {
-    myPlayLimiter.restart();
+    watchdog();
     switch (e) {
       case PLAY:
         Track.playAnimation();
-        myTimer.setRepeats(true);
+        createTimer();
         notifyTimeLineListeners(TimeLineCmd.MOTION_PLAY, mMotionProgress);
-        myTimer.start();
         mIsPlaying = true;
         break;
       case SPEED:
@@ -278,30 +289,22 @@ public class TimeLinePanel extends JPanel {
         break;
       case PAUSE:
         mIsPlaying = false;
-        myTimer.stop();
+        destroyTimer();
         notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
         break;
       case END:
         mIsPlaying = false;
-        myTimer.stop();
-        myPlayLimiter.stop();
+        destroyTimer();
         notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
         mMotionProgress = 1;
         break;
       case START:
         mIsPlaying = false;
-        myTimer.stop();
+        destroyTimer();
         notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
         mMotionProgress = 0;
         break;
     }
-  }
-
-  private void myPlayLimiterStop() {
-    if (!mIsPlaying) {
-      return;
-    }
-    destroyTimer();
   }
 
   private void progress() {

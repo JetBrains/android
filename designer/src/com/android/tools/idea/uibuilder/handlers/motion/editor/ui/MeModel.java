@@ -20,8 +20,10 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * The data model for all the information in the MotionScene and Layout file
@@ -35,6 +37,7 @@ public class MeModel {
   MotionEditorSelector.Type mSelectedType;
   public MTag[] mSelected;
   private float mProgress;
+  private String []mSelectedViewIDs = new String[0];
 
   void clearViewInfo() {
     MTag[] view = layout.getChildTags();
@@ -397,5 +400,17 @@ public class MeModel {
         }
     }
     return null;
+  }
+
+  /**
+   * This caches the selected view ids to allow them to be reselected from constraintSet to MotionLayout panel
+   * @param ids
+   */
+  public void setSelectedViewIDs(List<String> ids) {
+    mSelectedViewIDs = ids.toArray(new String[0]);
+  }
+
+  public String[] getSelectedViewIDs() {
+    return mSelectedViewIDs;
   }
 }

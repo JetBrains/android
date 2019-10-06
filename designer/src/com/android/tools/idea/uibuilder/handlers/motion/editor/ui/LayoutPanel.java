@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEJTable
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -81,8 +82,11 @@ class LayoutPanel extends JPanel {
     int index = mConstraintSetTable.getSelectedRow();
 
     MTag[] tag = (index == -1 || mDisplayedRows.size() == 0) ? new MTag[0] : new MTag[]{mDisplayedRows.get(index)};
+    if (tag.length != 0) {
+      mMeModel.setSelectedViewIDs(Arrays.asList(Utils.stripID(tag[0].getAttributeValue("id"))));
+    }
     mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.LAYOUT_VIEW, tag);
-  }
+   }
 
   String buildListString(MTag tag) {
     String cid = tag.getAttributeValue("id");
@@ -114,13 +118,12 @@ class LayoutPanel extends JPanel {
     } else {
       MTag[] sets = mMotionLayout.getChildTags();
       for (int i = 0; i < sets.length; i++) {
-        MTag constraint = sets[i];
+        MTag view = sets[i];
         String[] row = new String[3];
-        String id = Utils.stripID(constraint.getAttributeValue("id"));
-
-        row[0] = constraint.getTagName();
-        ArrayList<MTag> children = constraint.getChildren();
-        HashMap<String, Attribute> attrs = constraint.getAttrList();
+        String id = Utils.stripID(view.getAttributeValue("id"));
+        row[0] = view.getTagName();
+        ArrayList<MTag> children = view.getChildren();
+        HashMap<String, Attribute> attrs = view.getAttrList();
         row[1] = id;
         HashSet<String> constrained_sides = new HashSet<>();
         Set<String> alist = attrs.keySet();
@@ -135,41 +138,17 @@ class LayoutPanel extends JPanel {
           }
         }
         row[2] = Arrays.toString(constrained_sides.toArray(new String[0]));
-        mDisplayedRows.add(constraint);
+        mDisplayedRows.add(view);
         mConstraintSetModel.addRow(row);
       }
-      if (showAll) {
-        MTag[] allViews = mMeModel.layout.getChildTags();
-        for (int j = 0; j < allViews.length; j++) {
-          String[] row = new String[3];
-          MTag view = allViews[j];
-          String layoutId = view.getAttributeValue("id");
-          if (layoutId == null) {
-            row[0] = view.getTagName().substring(1 + view.getTagName().lastIndexOf("/"));
-            continue;
-          }
-
-          layoutId = Utils.stripID(layoutId);
-          if (found.contains(layoutId)) {
-            continue;
-          }
-
-          row[0] = "(" + layoutId + ")";
-          row[1] = "";
-          row[2] = getDerived(layoutId, row);
-          mDisplayedRows.add(view);
-          mConstraintSetModel.addRow(row);
-
-        }
-
-      }
-
     }
 
     mConstraintSetModel.fireTableDataChanged();
   }
 
   private String getDerived(String viewId, String[] row) {
+    if (DEBUG) Debug.log(". getDerived");
+
     if (mDerived != null && mParent != null && mParent.size() > 0) {
       for (MTag cSet : mParent) {
         for (MTag child : cSet.getChildren()) {
@@ -200,18 +179,11 @@ class LayoutPanel extends JPanel {
   }
 
   public void setMTag(MTag layout, MeModel meModel) {
-    if (DEBUG) {
-      System.out.println("constraintSet = " + layout);
-      System.out.println("motionScene = " + meModel.motionScene);
-      System.out.println("layout = " + meModel.layout);
-    }
     mMeModel = meModel;
     mMotionLayout = layout;
     mDerived = null;
     if (mMotionLayout != null) {
-
       MTag[] constraintSets = meModel.motionScene.getChildTags();
-
     }
     String label = "Layout " + (meModel.layoutFileName);
     if (layout != null) {
@@ -220,6 +192,8 @@ class LayoutPanel extends JPanel {
     mTitle.setText(label);
 
     buildTable();
+    String[] selectedViewIDs = meModel.getSelectedViewIDs();
+    selectByIds(selectedViewIDs);
   }
 
   public void setListeners(MotionEditorSelector listeners) {
@@ -235,5 +209,9 @@ class LayoutPanel extends JPanel {
         mConstraintSetTable.addRowSelectionInterval(i, i);
       }
     }
+  }
+
+  public void clearSelection(){
+    mConstraintSetTable.clearSelection();
   }
 }

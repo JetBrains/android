@@ -27,7 +27,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -227,10 +226,12 @@ class ConstraintSetPanel extends JPanel {
     right.add(mModifyMenu);
     mModifyMenu.setEnabled(false);
     myPopupMenu.add(createConstraint);
-    myPopupMenu.add(createSectionedConstraint);
-    myPopupMenu.add(moveConstraint);
     myPopupMenu.add(clearConstraint);
-    myPopupMenu.add(overrideConstraint);
+    if (DEBUG) {
+      myPopupMenu.add(moveConstraint);
+      myPopupMenu.add(createSectionedConstraint);
+      myPopupMenu.add(overrideConstraint);
+    }
     mModifyMenu.addActionListener(e -> {
       myPopupMenu.show(mModifyMenu, 0, 0);
     });
@@ -313,7 +314,6 @@ class ConstraintSetPanel extends JPanel {
   }
 
   private String findFirstDefOfView(String viewId, MTag constraintSet) {
-
     MTag[] sets = constraintSet.getChildTags("Constraint");
     for (int i = 0; i < sets.length; i++) {
       String cid = Utils.stripID(sets[i].getAttributeValue("id"));
@@ -353,21 +353,25 @@ class ConstraintSetPanel extends JPanel {
   public void setMTag(@Nullable MTag constraintSet, @NotNull MeModel meModel) {
     if (DEBUG) {
       if (constraintSet == null) {
-        Debug.logStack("setMTag constraintSet = null",4);
+        Debug.logStack("setMTag constraintSet = null", 4);
       }
       Debug.log("ConstraintSetPanel.setMTag constraintSet = " + constraintSet);
       Debug.log("ConstraintSetPanel.setMTag motionScene = " + meModel.motionScene);
       Debug.log("ConstraintSetPanel.setMTag layout = " + meModel.layout);
     }
-    int[] row = mConstraintSetTable.getSelectedRows();
-    String[] selected = new String[row.length];
-    for (int i = 0; i < row.length; i++) {
-      selected[i] = (String)mConstraintSetModel.getValueAt(row[i], 1);
-      if (DEBUG) {
-        Debug.log("ConstraintSetPanel.setMTag  selected "+ selected[i]);
+    String[] selected;
+    if (false) { // this approach gets the selected table
+      int[] row = mConstraintSetTable.getSelectedRows();
+      selected = new String[row.length];
+      for (int i = 0; i < row.length; i++) {
+        selected[i] = (String)mConstraintSetModel.getValueAt(row[i], 1);
       }
     }
+    else {
+      selected = meModel.getSelectedViewIDs();
+    }
     mMeModel = meModel;
+
     mConstraintSet = constraintSet;
     mDerived = null;
     if (mConstraintSet != null) {
@@ -380,8 +384,9 @@ class ConstraintSetPanel extends JPanel {
         mParent = getDerived(constraintSets, mDerived);
       }
       mConstraintSetId = Utils.stripID(mConstraintSet.getAttributeValue("id"));
-      mTitle.setText( mConstraintSetId);
-    } else {
+      mTitle.setText(mConstraintSetId);
+    }
+    else {
       if (mConstraintSetId != null) {
         mConstraintSet = mMeModel.getConstraintSet(mConstraintSetId);
       }
@@ -391,16 +396,13 @@ class ConstraintSetPanel extends JPanel {
     HashSet<String> selectedSet = new HashSet<>(Arrays.asList(selected));
     for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
       String id = (String)mConstraintSetModel.getValueAt(i, 1);
-      if (DEBUG) {
-        Debug.log("ConstraintSetPanel.setMTag id "+ id );
-      }
       if (selectedSet.contains(id)) {
         mConstraintSetTable.addRowSelectionInterval(i, i);
       }
     }
   }
 
-  public void clearSelection(){
+  public void clearSelection() {
     mConstraintSetTable.clearSelection();
   }
 
@@ -432,6 +434,7 @@ class ConstraintSetPanel extends JPanel {
 
       @Override
       public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
+        ArrayList<String> selectedIds = new ArrayList<>();
         if (in) { // simple block for selection triggering selection.
           return;
         }
@@ -452,9 +455,13 @@ class ConstraintSetPanel extends JPanel {
           for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
             String id = (String)mConstraintSetModel.getValueAt(i, 1);
             if (selectedSet.contains(id)) {
+              selectedIds.add(id);
               mConstraintSetTable.addRowSelectionInterval(i, i);
             }
           }
+        }
+        if (isVisible() && selection.equals(MotionEditorSelector.Type.CONSTRAINT)) {
+          mMeModel.setSelectedViewIDs(selectedIds);
         }
         in = false;
       }
