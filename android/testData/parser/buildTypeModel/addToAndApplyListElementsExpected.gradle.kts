@@ -7,8 +7,6 @@ android {
       resValue("mnop", "qrst", "uvwx")
       buildConfigField("cdef", "ghij", "klmn")
       resValue("opqr", "stuv", "wxyz")
-
-
     }
   }
 }
