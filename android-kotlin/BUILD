@@ -221,6 +221,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module, test]",
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl[module, test]",
+        "//tools/idea/.idea/libraries:truth[test]",
     ],
 )
 
