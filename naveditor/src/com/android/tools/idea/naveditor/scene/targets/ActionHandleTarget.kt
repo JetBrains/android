@@ -186,7 +186,9 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
     handleState = newState
   }
 
-  override fun addHit(transform: SceneContext, picker: ScenePicker) {
+  override fun addHit(transform: SceneContext,
+                      picker: ScenePicker,
+                      @JdkConstants.InputEventMask modifiersEx: Int) {
     @SwingCoordinate val centerX = transform.getSwingX(centerX.toInt())
     @SwingCoordinate val centerY = transform.getSwingY(centerY.toInt())
     picker.addCircle(this, 0, centerX, centerY, transform.getSwingDimension(OUTER_RADIUS_LARGE.toInt()))

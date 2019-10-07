@@ -29,8 +29,10 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import java.awt.Point;
+import java.awt.event.InputEvent;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import static com.android.SdkConstants.BUTTON;
@@ -215,7 +217,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     ScenePicker.HitElementListener hitListener = Mockito.mock(ScenePicker.HitElementListener.class);
     picker.setSelectListener(hitListener);
 
-    anchorTarget.addHit(SceneContext.get(myScene.getSceneManager().getSceneView()), picker);
+    anchorTarget.addHit(SceneContext.get(myScene.getSceneManager().getSceneView()), picker, 0);
 
     for (Point p : nonHitPoints) {
       picker.find(p.x, p.y);
@@ -400,6 +402,23 @@ public class ConstraintAnchorTargetTest extends SceneTest {
       }
     });
 
+  }
+
+  public void testCannotBeClickedByRightClickEvent() {
+    SceneComponent inner = myScene.getSceneComponent("inner");
+    ScenePicker picker = new ScenePicker();
+    ScenePicker.HitElementListener listener = Mockito.mock(ScenePicker.HitElementListener.class);
+    picker.setSelectListener(listener);
+
+    ConstraintAnchorTarget topEdge = new ConstraintAnchorTarget(AnchorTarget.Type.TOP, true);
+    topEdge.addHit(myScreen.getScreen().getContext(), picker, InputEvent.BUTTON3_DOWN_MASK);
+    picker.find(inner.getCenterX(), inner.getDrawY() - 200);
+    Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(topEdge), ArgumentMatchers.anyDouble());
+
+    ConstraintAnchorTarget leftEdge = new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, true);
+    leftEdge.addHit(myScreen.getScreen().getContext(), picker, InputEvent.BUTTON3_DOWN_MASK);
+    picker.find(inner.getDrawX() - 200, inner.getCenterY());
+    Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(leftEdge), ArgumentMatchers.anyDouble());
   }
 
   @Override
