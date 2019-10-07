@@ -20,7 +20,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import java.awt.Dimension
-import java.awt.Image
+import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -39,7 +39,7 @@ interface DesignAssetRenderer {
    * Implementing class should return an image corresponding to the [file] with
    * dimension optimized to be displayed at the provided [dimension] (this usually means equals or smaller)
    */
-  fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out Image?>
+  fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out BufferedImage?>
 
 }
 
@@ -80,6 +80,6 @@ class DesignAssetRendererManager private constructor() {
  */
 private object NullDesignAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile) = false
-  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out Image?> =
+  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out BufferedImage?> =
     CompletableFuture.completedFuture(null)
 }

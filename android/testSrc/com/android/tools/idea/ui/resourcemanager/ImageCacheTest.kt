@@ -21,17 +21,16 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Image
+import java.awt.image.BufferedImage
 import java.awt.image.ImageObserver
+import java.awt.image.IndexColorModel
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertTrue
 
-private class DebugFakeImage(private val identifier: String) : Image() {
-  override fun getHeight(observer: ImageObserver?) = 10
+private class DebugFakeImage(private val identifier: String) : BufferedImage(10, 10, IndexColorModel.OPAQUE) {
   override fun getSource() = throw NotImplementedError()
-  override fun getWidth(observer: ImageObserver?) = 10
   override fun getProperty(name: String?, observer: ImageObserver?) = throw NotImplementedError()
   override fun getGraphics() = throw NotImplementedError()
   override fun toString() = identifier
