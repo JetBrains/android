@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFile
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 import org.junit.Assert.assertEquals
@@ -30,3 +34,28 @@ internal fun UFile.method(name: String): UMethod? =
   declaredMethods()
     .filter { it.name == name }
     .singleOrNull()
+
+/**
+ * Extension to run operations on the [Document] associated to the given [PsiFile]
+ */
+internal fun PsiFile.runOnDocument(runnable: (PsiDocumentManager, Document) -> Unit) {
+  val documentManager = PsiDocumentManager.getInstance(project)
+  val document = documentManager.getDocument(this)!!
+
+  WriteCommandAction.runWriteCommandAction(project) {
+    runnable(documentManager, document)
+  }
+}
+
+/**
+ * Extension to replace the first occurrence of the [find] string to [replace]
+ */
+internal fun PsiFile.replaceStringOnce(find: String, replace: String) = runOnDocument { documentManager, document ->
+  documentManager.commitDocument(document)
+
+  val index = text.indexOf(find)
+  assert(index != -1) { "\"$find\" not found in the given file"}
+
+  document.replaceString(index, index + find.length, replace)
+  documentManager.commitDocument(document)
+}
