@@ -16,7 +16,7 @@ com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager.updateTrackingConfiguration
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.NlDesignSurface.isResizeAvailable
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.ScreenViewBase.getPreferredSize
-com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.SimplerCanvasResizeInteraction.<init>
+com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.uibuilder.surface.CanvasResizeInteraction.<init>
 com.android.tools.idea.configurations.ConfigurationManager.create|com.android.tools.idea.configurations.ConfigurationManager.getConfiguration
 com.android.tools.idea.configurations.ConfigurationManager.getConfiguration|com.android.tools.idea.configurations.ConfigurationAction.tryUpdateConfiguration
 com.android.tools.idea.configurations.ConfigurationManager.getConfiguration|com.android.tools.idea.editors.theme.ThemeEditorUtils.getConfigurationForModule

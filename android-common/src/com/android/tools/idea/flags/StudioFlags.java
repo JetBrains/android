@@ -317,11 +317,6 @@ public final class StudioFlags {
     "Enable the shadow rendering in Layout Editor",
     true);
 
-  public static final Flag<Boolean> NELE_SIMPLER_RESIZE = Flag.create(
-    NELE, "simpler.resize", "Simplify resize",
-    "Simplify design surface resize",
-    true);
-
   public static final Flag<Boolean> NELE_CONSTRAINT_SECTION = Flag.create(
     NELE, "constraint.section", "Constraint Section",
     "Show the constraint section for constraint widget in property panel",
