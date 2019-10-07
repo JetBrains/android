@@ -302,7 +302,7 @@ public class CpuCaptureStage extends Stage {
   private TrackGroupModel createThreadsTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
     List<CpuThreadInfo> threadInfos = capture.getThreads().stream().sorted().collect(Collectors.toList());
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
-    TrackGroupModel threads = TrackGroupModel.newBuilder().setTitle(threadsTitle).build();
+    TrackGroupModel threads = TrackGroupModel.newBuilder().setTitle(threadsTitle).setTrackSelectable(true).build();
     for (CpuThreadInfo threadInfo : threadInfos) {
       threads.addTrackModel(
         TrackModel.newBuilder(

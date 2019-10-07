@@ -16,12 +16,15 @@
 package com.android.tools.adtui.trackgroup;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -51,8 +54,8 @@ public class TrackGroupListPanel implements TrackGroupMover {
   /**
    * Loads a list of {@link TrackGroupModel} for display
    *
-   * @param trackGroupModels        the models to display
-   * @param enableTrackGroupMoving  true to enable moving up and down each track group
+   * @param trackGroupModels       the models to display
+   * @param enableTrackGroupMoving true to enable moving up and down each track group
    */
   public void loadTrackGroups(@NotNull List<TrackGroupModel> trackGroupModels, boolean enableTrackGroupMoving) {
     myTrackGroups.clear();
@@ -83,6 +86,12 @@ public class TrackGroupListPanel implements TrackGroupMover {
     }
   }
 
+  public <T> void registerMultiSelectionModel(@NotNull MultiSelectionModel<T> multiSelectionModel) {
+    myTrackGroups.forEach(
+      trackGroup -> trackGroup.getTrackList().addListSelectionListener(new TrackGroupSelectionListener<>(trackGroup, multiSelectionModel))
+    );
+  }
+
   @NotNull
   public JComponent getComponent() {
     return myPanel;
@@ -100,5 +109,28 @@ public class TrackGroupListPanel implements TrackGroupMover {
       myPanel.add(myTrackGroups.get(i).getComponent(), new TabularLayout.Constraint(i, 0), i);
     }
     myPanel.revalidate();
+  }
+
+  private static class TrackGroupSelectionListener<T> implements ListSelectionListener {
+    private final TrackGroup myTrackGroup;
+    private final MultiSelectionModel<T> myMultiSelectionModel;
+
+    TrackGroupSelectionListener(@NotNull TrackGroup trackGroup, @NotNull MultiSelectionModel<T> multiSelectionModel) {
+      myTrackGroup = trackGroup;
+      myMultiSelectionModel = multiSelectionModel;
+    }
+
+    @Override
+    public void valueChanged(ListSelectionEvent e) {
+      for (int i = e.getFirstIndex(); i <= e.getLastIndex(); ++i) {
+        T selectedModel = (T)myTrackGroup.getTrackList().getModel().getElementAt(i).getDataModel();
+        if (myTrackGroup.getTrackList().isSelectedIndex(i)) {
+          myMultiSelectionModel.addToSelection(selectedModel);
+        }
+        else {
+          myMultiSelectionModel.deselect(selectedModel);
+        }
+      }
+    }
   }
 }
