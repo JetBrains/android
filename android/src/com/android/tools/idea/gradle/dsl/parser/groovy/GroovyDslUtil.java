@@ -28,6 +28,7 @@ import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.escapeStri
 import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.removeQuotes;
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -355,8 +356,11 @@ public final class GroovyDslUtil {
     else if (unsavedValue instanceof Integer || unsavedValue instanceof Boolean || unsavedValue instanceof BigDecimal) {
       unsavedValueText = unsavedValue.toString();
     }
+    else if (unsavedValue instanceof ReferenceTo) {
+      unsavedValueText = ((ReferenceTo)unsavedValue).getText();
+    }
     else if (unsavedValue instanceof RawText) {
-      unsavedValueText = ((RawText)unsavedValue).getText();
+      unsavedValueText = ((RawText)unsavedValue).getGroovyText();
     }
 
     if (unsavedValueText == null) {
