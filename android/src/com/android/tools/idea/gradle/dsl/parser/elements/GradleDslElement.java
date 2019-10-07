@@ -212,5 +212,6 @@ public interface GradleDslElement extends AnchorProvider {
 
   boolean isNewEmptyBlockElement();
 
-  ImmutableMap<String, String> getExternalToModelMap(GradleDslNameConverter converter);
+  @NotNull
+  ImmutableMap<String, String> getExternalToModelMap(@NotNull GradleDslNameConverter converter);
 }

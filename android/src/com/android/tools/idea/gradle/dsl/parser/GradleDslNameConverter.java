@@ -56,7 +56,7 @@ public interface GradleDslNameConverter {
    * Converts a dotted-hierarchy name with hierarchy denoting external names to a dotted-hierarchy name of canonical model names for
    * properties.  Does not perform any syntactic transformations.
    *
-   *  @param externalName the external dotted-namestring for this name
+   * @param externalName the external dotted-namestring for this name
    * @param context the parent element of the element whose name this is (or will be after parsing)
    * @return a string containing a dotted-hierarchy of model names
    */

@@ -519,7 +519,8 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   }
 
   @Override
-  public ImmutableMap<String, String> getExternalToModelMap(GradleDslNameConverter converter) {
+  @NotNull
+  public ImmutableMap<String, String> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     return ImmutableMap.of();
   }
 }
