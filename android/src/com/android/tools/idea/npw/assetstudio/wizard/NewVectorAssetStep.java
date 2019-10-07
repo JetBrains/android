@@ -56,6 +56,7 @@ import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.ui.VectorImageComponent;
+import com.android.tools.idea.util.SwingWorker;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -66,7 +67,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.concurrency.SwingWorker;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.event.ActionListener;
@@ -461,10 +461,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       @Nullable VectorAsset.Preview myPreview;
       @NotNull final VectorAsset myAsset;
       @Nullable final File myAssetFile;
-      // For some strange reason, possibly a JVM bug, changing "volatile" to "final" results in
-      // myVectorDrawableInfo being null inside the construct method.
-      // TODO: Investigate why this is happening.
-      @NotNull volatile VectorAsset.VectorDrawableInfo myVectorDrawableInfo;
+      @NotNull final VectorAsset.VectorDrawableInfo myVectorDrawableInfo;
       @NotNull final VdOverrideInfo myOverrideInfo;
       private int myPreviewWidth;
 

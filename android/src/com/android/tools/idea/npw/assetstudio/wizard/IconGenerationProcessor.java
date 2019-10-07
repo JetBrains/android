@@ -17,11 +17,11 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
+import com.android.tools.idea.util.SwingWorker;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.Locale;
-import com.intellij.util.concurrency.SwingWorker;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
