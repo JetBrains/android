@@ -45,6 +45,7 @@ import java.util.*;
 /**
  * @author Eugene.Kudelevsky
  */
+@SuppressWarnings("deprecation")
 public class AndroidAutogenerator {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidAutogenerator");
 
@@ -124,6 +125,7 @@ public class AndroidAutogenerator {
 
     final BuildconfigAutogenerationItem item = ApplicationManager.getApplication().runReadAction(
       new Computable<BuildconfigAutogenerationItem>() {
+        @SuppressWarnings("deprecation")
         @Nullable
         @Override
         public BuildconfigAutogenerationItem compute() {
@@ -586,6 +588,7 @@ public class AndroidAutogenerator {
     for (final VirtualFile file : files) {
       final RenderscriptAutogenerationItem item =
         ApplicationManager.getApplication().runReadAction(new Computable<RenderscriptAutogenerationItem>() {
+          @SuppressWarnings("deprecation")
           @Nullable
           @Override
           public RenderscriptAutogenerationItem compute() {

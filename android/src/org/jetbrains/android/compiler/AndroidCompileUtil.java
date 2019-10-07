@@ -612,6 +612,7 @@ public class AndroidCompileUtil {
     compileScope.putUserData(RELEASE_BUILD_KEY, Boolean.TRUE);
   }
 
+  @SuppressWarnings("deprecation")
   public static boolean createGenModulesAndSourceRoots(@NotNull AndroidFacet facet, @NotNull ModifiableRootModel model) {
     if (AndroidModel.isRequired(facet) || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
       return false;
@@ -674,6 +675,7 @@ public class AndroidCompileUtil {
     }
   }
 
+  @SuppressWarnings("deprecation")
   private static void includeAaptGenSourceRootToCompilation(AndroidFacet facet) {
     final Project project = facet.getModule().getProject();
     final ExcludesConfiguration configuration =

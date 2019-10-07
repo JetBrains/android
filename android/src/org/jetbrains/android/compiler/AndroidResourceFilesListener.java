@@ -156,6 +156,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
       return result;
     }
 
+    @SuppressWarnings("deprecation")
     @NotNull
     private List<AndroidAutogeneratorMode> computeCompilersToRunAndInvalidateLocalAttributesMap(AndroidFacet facet, VirtualFile file) {
       VirtualFile parent = file.getParent();

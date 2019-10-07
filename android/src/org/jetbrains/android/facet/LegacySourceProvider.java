@@ -36,6 +36,7 @@ import static org.jetbrains.android.facet.AndroidRootUtil.*;
  * Compatibility bridge for old (non-AndroidProject-backed) projects. Also used in AndroidProject-backed projects before the module has
  * been synced and for testing.
  */
+@SuppressWarnings("deprecation")
 public class LegacySourceProvider implements SourceProvider {
   @NotNull private final AndroidFacet myAndroidFacet;
 
