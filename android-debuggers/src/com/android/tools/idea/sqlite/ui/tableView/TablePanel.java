@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 public class TablePanel {
   private JPanel myRoot;
   private JBTable myTable;
+  private JPanel myControlsPanel;
 
   public JPanel getRoot() {
     return myRoot;
@@ -28,5 +29,9 @@ public class TablePanel {
 
   public JBTable getTable() {
     return myTable;
+  }
+
+  public JPanel getControlsPanel() {
+    return myControlsPanel;
   }
 }

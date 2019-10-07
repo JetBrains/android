@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.sqlite.ui.tableView
 
+import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.android.tools.idea.sqlite.ui.setResultSetTableColumns
 import com.android.tools.idea.sqlite.ui.setupResultSetTable
+import com.intellij.icons.AllIcons
 import java.util.Vector
 import javax.swing.JComponent
+import javax.swing.JTextField
 import javax.swing.table.DefaultTableModel
 
 /**
@@ -36,14 +39,40 @@ class TableViewImpl : TableView {
     }
   }
 
-  private val panel = TablePanel()
+  private val listeners = mutableListOf<TableViewListener>()
 
+  private val panel = TablePanel()
   override val component: JComponent = panel.root
+
+  private val previousRowsPageButton = CommonButton("Previous", AllIcons.Actions.Back)
+  private val nextRowsPageButton = CommonButton("Next", AllIcons.Actions.Forward)
+  private val maxRowsCountTextFiled = JTextField()
+
+  init {
+    previousRowsPageButton.toolTipText = "Previous"
+    panel.controlsPanel.add(previousRowsPageButton)
+    previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() }}
+
+    panel.controlsPanel.add(maxRowsCountTextFiled)
+    maxRowsCountTextFiled.addActionListener { listeners.forEach { it.rowCountChanged(maxRowsCountTextFiled.text.toInt()) } }
+
+    nextRowsPageButton.toolTipText = "Next"
+    panel.controlsPanel.add(nextRowsPageButton)
+    nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() }}
+  }
+
+  override fun showRowCount(maxRowCount: Int) {
+    maxRowsCountTextFiled.text = maxRowCount.toString()
+  }
 
   override fun resetView() {
     tableModel.dataVector.clear()
-    tableModel.rowCount = 0
     tableModel.columnCount = 0
+    removeRows()
+  }
+
+  override fun removeRows() {
+    tableModel.rowCount = 0
   }
 
   override fun startTableLoading() {
@@ -72,5 +101,21 @@ class TableViewImpl : TableView {
 
   override fun reportError(message: String, t: Throwable) {
     notifyError(message, t)
+  }
+
+  override fun setFetchPreviousRowsButtonState(enable: Boolean) {
+    previousRowsPageButton.isEnabled = enable
+  }
+
+  override fun setFetchNextRowsButtonState(enable: Boolean) {
+    nextRowsPageButton.isEnabled = enable
+  }
+
+  override fun addListener(listener: TableViewListener) {
+    listeners.add(listener)
+  }
+
+  override fun removeListener(listener: TableViewListener) {
+    listeners.remove(listener)
   }
 }
