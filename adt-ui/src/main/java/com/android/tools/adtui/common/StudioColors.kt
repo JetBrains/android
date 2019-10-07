@@ -66,6 +66,13 @@ val canvasTooltipBackground = JBColor.namedColor("Canvas.Tooltip.background", JB
 val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(0xffffff, 0x2b2b2b))
 
 /**
+ * Background color for an active selection.
+ *
+ * Example: selected track in a track group.
+ */
+val activeSelection = JBColor.namedColor("Selection.active", JBColor(0x4874D7, 0x1E67CE))
+
+/**
  * Color of the underline when a intellij style tab is focused.
  *
  * Example: Analysis tab of a cpu profiling capture.
