@@ -30,11 +30,9 @@ import com.intellij.openapi.diagnostic.Logger
  * Finds the existing session and returns them as [ExistingSession] if present.
  *
  * If the session is applicable for hot-swap, it returns an existing [ProcessHandler] and optionally [ExecutionConsole] to be used.
- * Otherwise the session needs to cold-swap. This method may show a popup-window and asks a user to continue. If a user decides to
- * continue, it detaches the existing session and this method returns empty [ExistingSession]. If a user choose to cancel, it throws
- * [ApplyChangesCancelledException].
+ * Otherwise the session needs to cold-swap. In the case of cold-swap and if a matching existing session exists, it will terminate
+ * its [ProcessHandler] and detach its [com.intellij.ui.content.Content]
  */
-@Throws(ApplyChangesCancelledException::class)
 fun findExistingSessionAndMaybeDetachForColdSwap(env: ExecutionEnvironment, devices: DeviceFutures): ExistingSession {
   val prevHandler = env.findExistingProcessHandler(devices) ?: return ExistingSession()
   val manager = RunContentManager.getInstance(env.project)
@@ -57,17 +55,13 @@ data class ExistingSession(
 )
 
 /**
- * An exception thrown when a user decides to cancel apply-change execution.
- */
-class ApplyChangesCancelledException : Exception()
-
-/**
  * Detaches the existing session so that we don't end up with having 2 run tabs for the same launch (the existing one and the new one).
  */
-@Throws(ApplyChangesCancelledException::class)
 private fun detachExistingSessionForColdSwap(handler: ProcessHandler,
                                              descriptor: RunContentDescriptor?,
                                              manager: RunContentManager) {
+  // Detach the process first so that removeRunContent doesn't try to prompt the user to disconnect.
+  handler.detachProcess()
   if (descriptor != null) {
     val previousContent = descriptor.attachedContent
     if (previousContent == null) {
@@ -78,12 +72,11 @@ private fun detachExistingSessionForColdSwap(handler: ProcessHandler,
       if (previousExecutor == null) {
         Logger.getInstance(AndroidRunState::class.java).warn("No executor found for content")
       }
-      else if (!manager.removeRunContent(previousExecutor, descriptor)) {
-        // In case there's an existing handler, it could pop up a dialog prompting the user to confirm. If the user
-        // cancels, removeRunContent will return false. In such case, stop the run.
-        throw ApplyChangesCancelledException()
+      else {
+        // We ignore the return value because in most cases it should return true since we already detached the process above.
+        // In all other cases the Content isn't valid, in which case we just ignore it since it's already in the intended state.
+        manager.removeRunContent(previousExecutor, descriptor)
       }
     }
   }
-  handler.detachProcess()
 }
