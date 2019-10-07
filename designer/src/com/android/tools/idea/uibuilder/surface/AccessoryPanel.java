@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
@@ -82,15 +83,17 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
 
   @Override
   public void modelDerivedDataChanged(@NotNull NlModel model) {
-    updatePanel();
-    if (myCachedPanel != null) {
-      myCachedPanel.updateAfterModelDerivedDataChanged();
-    }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      updatePanel();
+      if (myCachedPanel != null) {
+        myCachedPanel.updateAfterModelDerivedDataChanged();
+      }
+    });
   }
 
   @Override
   public void modelActivated(@NotNull NlModel model) {
-    updatePanel();
+    ApplicationManager.getApplication().invokeLater(() -> updatePanel());
   }
 
   private void updatePanel() {
