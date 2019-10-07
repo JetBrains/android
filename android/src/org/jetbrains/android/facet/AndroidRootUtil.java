@@ -125,6 +125,10 @@ public class AndroidRootUtil {
     return root.getPath() + facet.getProperties().RES_FOLDER_RELATIVE_PATH;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static String getResourceDirPath(@NotNull AndroidFacet facet) {
     VirtualFile resourceDir = getResourceDir(facet);
@@ -160,34 +164,58 @@ public class AndroidRootUtil {
     return null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getAssetsDir(@NotNull AndroidFacet facet) {
     return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().ASSETS_FOLDER_RELATIVE_PATH, false);
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getLibsDir(@NotNull AndroidFacet facet) {
     return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().LIBS_FOLDER_RELATIVE_PATH, false);
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getAidlGenDir(@NotNull AndroidFacet facet) {
     String genPath = getAidlGenSourceRootPath(facet);
     return genPath != null ? LocalFileSystem.getInstance().findFileByPath(genPath) : null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getAaptGenDir(@NotNull AndroidFacet facet) {
     String genPath = getAptGenSourceRootPath(facet);
     return genPath != null ? LocalFileSystem.getInstance().findFileByPath(genPath) : null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getRenderscriptGenDir(@NotNull AndroidFacet facet) {
     String path = getRenderscriptGenSourceRootPath(facet);
     return path != null ? LocalFileSystem.getInstance().findFileByPath(path) : null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getBuildconfigGenDir(@NotNull AndroidFacet facet) {
     String path = getBuildconfigGenSourceRootPath(facet);
@@ -331,6 +359,10 @@ public class AndroidRootUtil {
     }
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @NotNull
   public static Set<VirtualFile> getDependentModules(@NotNull Module module, @NotNull VirtualFile moduleOutputDir) {
     Set<VirtualFile> files = new HashSet<>();
@@ -370,12 +402,20 @@ public class AndroidRootUtil {
     return new File(PathUtil.toSystemDependentName(path));
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static String getRenderscriptGenSourceRootPath(@NotNull AndroidFacet facet) {
     // todo: return correct path for mavenized module when it'll be supported
     return getAidlGenSourceRootPath(facet);
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static String getBuildconfigGenSourceRootPath(@NotNull AndroidFacet facet) {
     // todo: return correct path for mavenized module when it'll be supported
@@ -405,6 +445,10 @@ public class AndroidRootUtil {
     return contentRoots[0];
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static Pair<PropertiesFile, VirtualFile> findPropertyFile(@NotNull Module module, @NotNull String propertyFileName) {
     for (VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
@@ -419,6 +463,10 @@ public class AndroidRootUtil {
     return null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   @Nullable
   public static Pair<Properties, VirtualFile> readPropertyFile(@NotNull Module module, @NotNull String propertyFileName) {
@@ -431,12 +479,20 @@ public class AndroidRootUtil {
     return null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static Pair<Properties, VirtualFile> readProjectPropertyFile(@NotNull Module module) {
     Pair<Properties, VirtualFile> pair = readPropertyFile(module, SdkConstants.FN_PROJECT_PROPERTIES);
     return pair != null ? pair : readPropertyFile(module, DEFAULT_PROPERTIES_FILE_NAME);
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   @Nullable
   private static Pair<Properties, VirtualFile> readPropertyFile(@NotNull VirtualFile contentRoot, @NotNull String propertyFileName) {
@@ -454,6 +510,10 @@ public class AndroidRootUtil {
     return null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static Pair<Properties, VirtualFile> readProjectPropertyFile(@NotNull VirtualFile contentRoot) {
     Pair<Properties, VirtualFile> pair = readPropertyFile(contentRoot, SdkConstants.FN_PROJECT_PROPERTIES);
@@ -481,6 +541,10 @@ public class AndroidRootUtil {
     return result != null ? result : getPropertyValue(module, DEFAULT_PROPERTIES_FILE_NAME, propertyName);
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   @SystemIndependent
   public static String getAptGenSourceRootPath(@NotNull AndroidFacet facet) {
@@ -490,6 +554,10 @@ public class AndroidRootUtil {
     return moduleDirPath != null ? moduleDirPath + path : null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   @SystemIndependent
   public static String getAidlGenSourceRootPath(@NotNull AndroidFacet facet) {

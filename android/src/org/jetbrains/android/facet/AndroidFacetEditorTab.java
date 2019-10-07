@@ -73,6 +73,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 /**
  * @author yole
  */
+@SuppressWarnings("deprecation")
 public class AndroidFacetEditorTab extends FacetEditorTab {
   private final AndroidFacetConfiguration myConfiguration;
   private final FacetEditorContext myContext;

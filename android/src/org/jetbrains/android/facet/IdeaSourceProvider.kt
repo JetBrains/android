@@ -388,6 +388,7 @@ private class Delegate constructor(private val provider: SourceProvider) : IdeaS
 }
 
 /** [IdeaSourceProvider] for legacy Android projects without [SourceProvider].  */
+@Suppress("DEPRECATION")
 private class LegacyDelegate constructor(private val facet: AndroidFacet) : IdeaSourceProvider {
 
   override val name: String = ""
