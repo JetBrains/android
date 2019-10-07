@@ -1075,7 +1075,6 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
     applyChanges(buildModel);
-    // TODO(b/142061285): spurious new line in Kotlin version of this file
     verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED);
 
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
@@ -1119,7 +1118,6 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                      buildType.resValues());
 
     applyChanges(buildModel);
-    // TODO(b/142061285): multiple spurious new lines in Kotlin version
     verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED);
 
     verifyFlavorType("buildConfigFields",

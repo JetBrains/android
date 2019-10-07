@@ -380,7 +380,9 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       // We need to add empty lines if we're adding expressions to a file because IDEA doesn't handle formatting
       // in kotlin the same way as GROOVY.
       val lineTerminator = psiFactory.createNewLine()
-      parentPsiElement.addAfter(lineTerminator, addedElement)
+      if (addedElement.nextSibling != null && !isWhiteSpaceOrNls(addedElement.nextSibling)) {
+        parentPsiElement.addAfter(lineTerminator, addedElement)
+      }
       if (anchor != null && !hasNewLineBetween(anchor, addedElement)) {
         parentPsiElement.addBefore(lineTerminator, addedElement)
       }
