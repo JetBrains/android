@@ -16,13 +16,13 @@
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="com.android.tools.analytics-library:tracker:26.5.0" type="repository">
-        <properties include-transitive-deps="false" maven-id=" com.android.tools.analytics-library:tracker:26.5.0" />
+        <properties include-transitive-deps="false" maven-id="com.android.tools.analytics-library:tracker:26.5.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/ com/android/tools/analytics-library/tracker/26.5.0/tracker-26.5.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/analytics-library/tracker/26.5.0/tracker-26.5.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/ com/android/tools/analytics-library/tracker/26.5.0/tracker-26.5.0-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/analytics-library/tracker/26.5.0/tracker-26.5.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
