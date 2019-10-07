@@ -1,0 +1,1 @@
+include ':app', ':lib', ":jav", ':nested1', ':nested2', ':nested1:deep', ':nested2:deep', ':nested2:trans:deep2', ':dyn_feature'
