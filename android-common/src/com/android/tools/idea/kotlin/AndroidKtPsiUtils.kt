@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.kotlin
 
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.editor.fixers.range
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -27,13 +27,15 @@ import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 
 /** Checks if the given offset is within [KtClass.getBody] of this [KtClass]. */
-fun KtClass.insideBody(offset: Int): Boolean = body?.range?.contains(offset) ?: false
+fun KtClass.insideBody(offset: Int): Boolean = (body as? PsiElement)?.textRange?.contains(offset) ?: false
 
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
 fun KtProperty.hasBackingField(): Boolean {
@@ -74,4 +76,12 @@ fun KtExpression.tryEvaluateConstant(): String? {
 fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {
   val receiverExpression = getQualifiedExpressionForSelector()?.receiverExpression
   return (receiverExpression as? KtQualifiedExpression)?.selectorExpression ?: receiverExpression
+}
+
+fun KotlinType.getQualifiedName() = constructor.declarationDescriptor?.fqNameSafe
+
+fun KotlinType.isSubclassOf(className: String, strict: Boolean = false): Boolean {
+    return (!strict && getQualifiedName()?.asString() == className) || constructor.supertypes.any {
+      it.getQualifiedName()?.asString() == className || it.isSubclassOf(className, true)
+    }
 }
