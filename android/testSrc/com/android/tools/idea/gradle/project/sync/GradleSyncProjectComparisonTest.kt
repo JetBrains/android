@@ -378,6 +378,11 @@ b/137231583 */
     )
   }
 
+  fun testCompatibilityWithAndroidStudio36Project() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36)
+    assertIsEqualToSnapshot(text)
+  }
+
   private fun createEmptyGradleSettingsFile() {
     val settingsFilePath = File(projectFolderPath, FN_SETTINGS_GRADLE)
     assertTrue(delete(settingsFilePath))
