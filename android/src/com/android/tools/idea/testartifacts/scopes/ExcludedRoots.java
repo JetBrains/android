@@ -15,7 +15,16 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
+import static com.android.utils.FileUtils.toSystemDependentPath;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
+import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+
+import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.gradle.model.IdeVariant;
@@ -23,31 +32,24 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
-import java.util.Collection;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-
-import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
-import static com.android.utils.FileUtils.toSystemDependentPath;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
-import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class ExcludedRoots {
   @NotNull private final ExcludedModules myExcludedModules;
@@ -93,7 +95,8 @@ class ExcludedRoots {
 
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
       if (androidModuleModel != null) {
-        myExcludedRoots.add(androidModuleModel.getMainArtifact().getJavaResourcesFolder());
+        IdeAndroidArtifact artifact = androidModuleModel.getMainArtifact();
+        myExcludedRoots.addAll(getAdditionalClasspathFolders(artifact));
       }
     }
   }
@@ -153,6 +156,19 @@ class ExcludedRoots {
         action.accept(file);
       }
     }
+  }
+
+  /**
+   * Returns folders which are used for unit testing and stored in the model, but not represented in the IntelliJ project structure.
+   *
+   * <p>These folders are added to the classpath by {@link AndroidJunitPatcher} and potentially filtered out by this class via
+   * {@link GradleTestArtifactSearchScopes}.
+   */
+  public static List<File> getAdditionalClasspathFolders(@NotNull BaseArtifact artifact) {
+    return ImmutableList.<File>builder()
+      .add(artifact.getJavaResourcesFolder())
+      .addAll(artifact.getAdditionalClassesFolders())
+      .build();
   }
 
   private void addLibraryPaths(@NotNull DependencySet dependencies) {

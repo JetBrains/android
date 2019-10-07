@@ -163,10 +163,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
 
     if (testArtifact != null) {
-      classPath.add(testArtifact.getJavaResourcesFolder());
-      for (File additionalTestClasses : testArtifact.getAdditionalClassesFolders()) {
-        classPath.add(additionalTestClasses);
-      }
+      classPath.addAllFiles(ExcludedRoots.getAdditionalClasspathFolders(testArtifact));
     }
 
     TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
@@ -175,9 +172,8 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       AndroidModuleModel affectedAndroidModel = AndroidModuleModel.get(affectedModule);
       if (affectedAndroidModel != null) {
         AndroidArtifact mainArtifact = affectedAndroidModel.getMainArtifact();
-        addToClasspath(mainArtifact.getJavaResourcesFolder(), classPath, testScopes);
-        for (File additionalClassesFolder : mainArtifact.getAdditionalClassesFolders()) {
-          addToClasspath(additionalClassesFolder, classPath, testScopes);
+        for (File folder : ExcludedRoots.getAdditionalClasspathFolders(mainArtifact)) {
+          addToClasspath(folder, classPath, testScopes);
         }
       }
 

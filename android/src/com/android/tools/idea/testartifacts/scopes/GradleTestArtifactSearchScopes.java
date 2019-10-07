@@ -164,7 +164,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
       // When a file is shared by both tests, then the test should only access the dependencies that android test and unit test both
       // have. Since the API requires us return a excluding scope, we want to exclude all the dependencies android test doesn't
       // includes and the ones that unit test doesn't have.
-      mySharedTestsExcludeScope = getAndroidTestDependencyExcludeScope().add(getUnitTestDependencyExcludeScope());
+      mySharedTestsExcludeScope = getAndroidTestExcludeClasspathScope().add(getUnitTestExcludeClasspathScope());
     }
     return mySharedTestsExcludeScope;
   }
@@ -176,7 +176,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
       // Exclude all unit tests, unless some of them are also android tests (currently that's never the case).
       FileRootSearchScope exclude = getUnitTestSourceScope().subtract(getAndroidTestSourceScope());
       // Exclude all dependencies which are only for unit tests.
-      myAndroidTestExcludeScope = exclude.add(getAndroidTestDependencyExcludeScope());
+      myAndroidTestExcludeScope = exclude.add(getAndroidTestExcludeClasspathScope());
     }
     return myAndroidTestExcludeScope;
   }
@@ -188,7 +188,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
       // Exclude all android tests, unless some of them are also unit tests (currently that's never the case).
       FileRootSearchScope exclude = getAndroidTestSourceScope().subtract(getUnitTestSourceScope());
       // Exclude all dependencies which are only for android tests.
-      myUnitTestExcludeScope = exclude.add(getUnitTestDependencyExcludeScope());
+      myUnitTestExcludeScope = exclude.add(getUnitTestExcludeClasspathScope());
     }
     return myUnitTestExcludeScope;
   }
@@ -199,23 +199,23 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   }
 
   @NotNull
-  private FileRootSearchScope getAndroidTestDependencyExcludeScope() {
+  private FileRootSearchScope getAndroidTestExcludeClasspathScope() {
     if (myAndroidTestDependencyExcludeScope == null) {
-      myAndroidTestDependencyExcludeScope = getExcludedDependenciesScope(ARTIFACT_ANDROID_TEST);
+      myAndroidTestDependencyExcludeScope = getExcludeClasspathScope(ARTIFACT_ANDROID_TEST);
     }
     return myAndroidTestDependencyExcludeScope;
   }
 
   @NotNull
-  private FileRootSearchScope getUnitTestDependencyExcludeScope() {
+  private FileRootSearchScope getUnitTestExcludeClasspathScope() {
     if (myUnitTestDependencyExcludeScope == null) {
-      myUnitTestDependencyExcludeScope = getExcludedDependenciesScope(ARTIFACT_UNIT_TEST);
+      myUnitTestDependencyExcludeScope = getExcludeClasspathScope(ARTIFACT_UNIT_TEST);
     }
     return myUnitTestDependencyExcludeScope;
   }
 
   @NotNull
-  private FileRootSearchScope getExcludedDependenciesScope(@NotNull String artifactName) {
+  private FileRootSearchScope getExcludeClasspathScope(@NotNull String artifactName) {
     if (getAndroidModel() == null) {
       return new FileRootSearchScope(myModule.getProject(), Collections.emptyList());
     }
