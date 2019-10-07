@@ -27,7 +27,7 @@ import java.io.File
 class PsSigningConfigTest : AndroidGradleTestCase() {
 
   fun testDescriptor() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -43,7 +43,7 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
   }
 
   fun testProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -74,7 +74,7 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
   }
 
   fun testSetProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -123,7 +123,7 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
   }
 
   fun testSetProperties_undeclaredDebug() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }

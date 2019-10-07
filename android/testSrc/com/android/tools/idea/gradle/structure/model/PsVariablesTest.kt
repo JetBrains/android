@@ -38,7 +38,7 @@ import java.math.BigDecimal
 class PsVariablesTest : AndroidGradleTestCase() {
 
   fun testGetBuildScriptVariables() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val variables = psProject.buildScriptVariables
     assertThat(
@@ -53,7 +53,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testGetProjectVariables() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val variables = psProject.variables
     assertThat(
@@ -69,7 +69,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testGetModuleVariables() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables
@@ -89,7 +89,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testListVariables() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables
@@ -105,7 +105,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testAddingListVariables() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables
@@ -119,7 +119,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testAddingListVariables_viaEmptyItemState() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables
@@ -148,7 +148,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testAddingMapVariables() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables
@@ -163,7 +163,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testMapVariables() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables
@@ -179,7 +179,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testVariableWellKnownValues() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val rootVariables = psProject.variables
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
@@ -212,7 +212,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
       override fun getKnownValues(): ListenableFuture<KnownValues<String>> =
         throw UnsupportedOperationException()
     }
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     run {
@@ -234,7 +234,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testGetVariableScopes() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val scopes = psAppModule.variables.getVariableScopes()
@@ -249,14 +249,14 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testGetNewVariableName() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     assertThat(psProject.variables.getNewVariableName("someVar"), equalTo("someVar1"))
     assertThat(psProject.variables.getNewVariableName("otherVar"), equalTo("otherVar"))
   }
 
   fun testGetOrCreateVariable() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables
@@ -273,7 +273,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
   }
 
   fun testRefresh() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val psProject = PsProjectImpl(project)
     val variables = psProject.variables
     val otherVariables = PsVariables(psProject, "other", "other", null)

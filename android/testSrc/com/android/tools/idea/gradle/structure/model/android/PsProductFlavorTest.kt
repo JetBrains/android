@@ -34,7 +34,7 @@ import org.hamcrest.MatcherAssert.assertThat
 class PsProductFlavorTest : AndroidGradleTestCase() {
 
   fun testDescriptor() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -50,7 +50,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
   }
 
   fun testProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -181,7 +181,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
   }
 
   fun testDimensions() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -198,7 +198,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
   }
 
   fun testChangingDimensions() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -220,7 +220,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
   }
 
   fun testEffectiveDimensions() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
 
@@ -255,7 +255,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
   }
 
   fun testSetProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }

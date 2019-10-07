@@ -41,7 +41,7 @@ import org.hamcrest.MatcherAssert.assertThat
 class ExtractVariableWorkerTest : AndroidGradleTestCase() {
 
   fun testExtractVariable() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -83,7 +83,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testExtractVariable_projectLevel() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -114,7 +114,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testExtractEmptyValue() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -132,7 +132,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testExtractVariableWithBlankName() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -228,7 +228,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testPreferredVariableNames() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)

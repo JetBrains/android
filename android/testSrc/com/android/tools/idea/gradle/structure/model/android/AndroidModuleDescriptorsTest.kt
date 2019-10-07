@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
 import com.intellij.pom.java.LanguageLevel
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
@@ -30,7 +30,7 @@ import org.hamcrest.MatcherAssert.assertThat
 class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
   fun testDescriptor() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -40,7 +40,7 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
   }
 
   fun testProperties() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -73,7 +73,7 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
   fun testSetProperties() {
     // Note: this test does not attempt to sync because it won't succeed without installing older SDKs.
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }

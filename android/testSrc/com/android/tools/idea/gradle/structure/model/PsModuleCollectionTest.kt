@@ -59,7 +59,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
   }
 
   fun testNotSyncedModules() {
-    loadProject(TestProjectPaths.PSD_SAMPLE) {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY) {
       it.findFileByRelativePath("settings.gradle")!!.let {
         it.setBinaryContent("include ':app', ':lib', ':dyn_feature' ".toByteArray(it.charset))
       }
@@ -82,7 +82,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
   }
 
   fun testNonAndroidGradlePluginFirst() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     // Edit the settings file, but do not sync.
     val virtualFile = this.project.baseDir.findFileByRelativePath("app/build.gradle")!!
@@ -109,7 +109,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
   }
 
   fun testNestedModules() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -143,7 +143,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
   }
   
   fun testEmptyParentsInNestedModules() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
