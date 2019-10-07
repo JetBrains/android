@@ -88,7 +88,7 @@ public class BaseCreateKey extends BaseCreatePanel {
     cardLayout.show(cardpanel, "id");
     idButton.setSelected(true);
 
-    return y;
+    return ++y;
   }
 
   void populateTags(String[] layoutViewNames) {

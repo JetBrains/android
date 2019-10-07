@@ -136,10 +136,11 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
       @Override
       public void perform(Action action, MTag[] tag) {
-        if (action.equals(Action.DELETE))
-           for (int i = 0; i < tag.length; i++) {
-           tag[i].getTagWriter().deleteTag();
+        if (action.equals(Action.DELETE)) {
+          for (int i = 0; i < tag.length; i++) {
+            tag[i].getTagWriter().deleteTag().commit("delete " + tag[i].getTagName());
           }
+        }
       }
     });
     mMotionEditor.addSelectionListener(new MotionEditorSelector.Listener() {
@@ -170,6 +171,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             mSelectedStartConstraintId = stripID(tag[0].getAttributeValue("constraintSetStart"));
             mSelectedEndConstraintId = stripID(tag[0].getAttributeValue("constraintSetEnd"));
             myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
+            myMotionHelper.setProgress(mLastProgress);
             break;
           case LAYOUT:
             if (TEMP_HACK_FORCE_APPLY) {
@@ -475,9 +477,11 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
     else if (mLastSelection == MotionEditorSelector.Type.CONSTRAINT_SET) {
       myMotionHelper.setState(mSelectedStartConstraintId);
-    } else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId == null) {
+    }
+    else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId == null) {
       myMotionHelper.setState(mSelectedStartConstraintId);
-    } else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId != null){
+    }
+    else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId != null) {
       myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
       myMotionHelper.setProgress(mLastProgress);
     }

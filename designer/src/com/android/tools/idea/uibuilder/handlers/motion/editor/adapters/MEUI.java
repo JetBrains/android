@@ -115,6 +115,7 @@ public class MEUI {
     public static Color ourLineColor = makeColor("UIDesigner.motion.LineColor", 0xBEBEBE, 0x6D6D6E);
     public static Color ourSelectedLineColor = makeColor("UIDesigner.motion.SelectedLineColor", 0x1886F7, 0x9CCDFF);
     public static Color ourHoverLineColor = makeColor("UIDesigner.motion.LineColor", 0xBEBEBE, 0x6D6D6E);
+    public static Color ourPositionColor = makeColor("UIDesigner.motion.PositionMarkColor", 0xFFFFFF, 0x515658);
   }
 
   public static Color ourSelectedSetColor = new JBColor(0xE1E2E1, 0xF0F1F0);

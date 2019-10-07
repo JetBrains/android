@@ -59,7 +59,7 @@ class OverviewPanel extends JPanel {
   int mTransitionSelected = -1;
   int mConstraintSetSelected = -1;
   private MTag mLayout;
-  Listener mListener;
+  MTagActionListener mListener;
   private Stroke mThickStroke = new BasicStroke(2);
   private Stroke mDashStroke = new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 1, new float[]{5, 5}, 0);
   GeneralPath mPath = new GeneralPath();
@@ -69,7 +69,8 @@ class OverviewPanel extends JPanel {
   private boolean mComputedDerivedLines = false;
   private static int MIN_CS_WIDTH = MEUI.scale(50);
   private static int MAX_CS_WIDTH = MEUI.scale(60);
-
+  boolean mHighlightStart = false;
+  boolean mHighlightEnd = false;
   private static final String MAIN_TOOL_TIP = null;
 
   private static int CS_GAP = MEUI.scale(20);
@@ -91,13 +92,6 @@ class OverviewPanel extends JPanel {
     repaint();
   }
 
-
-  interface Listener {
-    void select(MTag selected);
-
-    void delete(MTag[] tags);
-  }
-
   static class DerivedSetLine {
     public MTag mConstraintSet;
     public String mDerivedFrom;
@@ -116,7 +110,7 @@ class OverviewPanel extends JPanel {
 
   int mTotalDerivedLines = 0;
 
-  public void setListener(Listener l) {
+  public void setActionListener(MTagActionListener l) {
     mListener = l;
   }
 
@@ -168,6 +162,7 @@ class OverviewPanel extends JPanel {
                        if (mTransitionSelected >= 0) {
                          switch (e.getKeyCode()) {
                            case KeyEvent.VK_DELETE:
+                           case KeyEvent.VK_BACK_SPACE:
                              mListener.delete(new MTag[]{mTransitions[mTransitionSelected]});
                              return;
                            case KeyEvent.VK_UP:
@@ -194,7 +189,6 @@ class OverviewPanel extends JPanel {
                          switch (e.getKeyCode()) {
                            case KeyEvent.VK_DELETE:
                              if (mConstraintSetSelected > 0) {
-                               Debug.log("Delete !");
                                mListener.delete(new MTag[]{mConstraintSet[mConstraintSetSelected - 1]});
                              }
                              return;
@@ -414,7 +408,7 @@ class OverviewPanel extends JPanel {
       }
 
       boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
-      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], Float.NaN);
+      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], Float.NaN,0);
       if ((clicks > 0) || (swipes > 0)) {
         mOnActionSize[i] = drawActions(g, swipes, clicks, x1, x2, y);
       }
@@ -448,9 +442,15 @@ class OverviewPanel extends JPanel {
       selectedStart = start;
       selectedEnd = end;
       g.setColor(MEUI.Overview.ourSelectedLineColor);
-
+      float stagger = 0;
+      if (mTransitionSelected == i && !Float.isNaN(mTransitionProgress)) {
+        String str = mTransitions[i].getAttributeValue("staggered");
+        if (str != null) {
+          stagger = Float.parseFloat(str);
+        }
+      }
       boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
-      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], mTransitionProgress);
+      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], mTransitionProgress, stagger);
       if ((clicks > 0) || (swipes > 0)) {
         drawActions(g, swipes, clicks, x1, x2, y);
       }
@@ -556,7 +556,14 @@ class OverviewPanel extends JPanel {
         g.setColor((hover) ? MEUI.Overview.ourCS_Hover : MEUI.Overview.ourCS);
         g.fillRoundRect(x, y, csWidth, csHeight, space, space);
         if (selectedEnd == setIndex || selectedStart == setIndex) {
-          g.setColor(MEUI.Overview.ourSelectedLineColor);
+          Color color = MEUI.Overview.ourSelectedLineColor;
+          if (selectedEnd == setIndex && mHighlightEnd) {
+            color = MEUI.Overview.ourPositionColor;
+          }
+          else if (selectedStart == setIndex && mHighlightStart) {
+            color = MEUI.Overview.ourPositionColor;
+          }
+          g.setColor(color);
         }
         else {
           g.setColor(MEUI.Overview.ourLineColor);
@@ -719,7 +726,9 @@ class OverviewPanel extends JPanel {
     return totalSpace;
   }
 
-  private void drawTransition(Graphics2D g, boolean hoverHighlight, int x1, int x2, int y, int constraintSetY, Object tag, float progress) {
+  private void drawTransition(Graphics2D g, boolean hoverHighlight, int x1, int x2, int y, int constraintSetY, Object tag,
+                              float progress,
+                              float stagger) {
     int tri_delta_y = 5;
     int tri_delta_x = 5;
     mPath.reset();
@@ -742,6 +751,7 @@ class OverviewPanel extends JPanel {
     mPath.lineTo(mRectPathX[3], mRectPathY[3] + tri_delta_y);
     mPath.lineTo(mRectPathX[3] + tri_delta_x, mRectPathY[3]);
     mPath.lineTo(mRectPathX[3], mRectPathY[3]);
+
     if (hoverHighlight) {
       Stroke originalStroke = ((Graphics2D)g).getStroke();
       Color originalColor = g.getColor();
@@ -751,12 +761,57 @@ class OverviewPanel extends JPanel {
       g.setColor(originalColor);
       g.setStroke(originalStroke);
     }
-    float startx = mRectPathX[0] + progress * (mRectPathX[3] - mRectPathX[0]) - 4;
-    float endx = mRectPathX[0] + progress * (mRectPathX[3] - mRectPathX[0]) + 4;
-    int clipy = (int)mRectPathY[3];
     g.draw(mPath);
+    mHighlightStart = false;
+    mHighlightEnd = false;
+
+    if (!Float.isNaN(progress)) {
+      if (progress > 1) {
+        progress = 1;
+      }
+      if (progress < 0) {
+        progress = 0;
+      }
+      stagger = Math.abs(stagger);
+      float scale = 1 / (1 - stagger);
+      float startProgress = progress * scale;
+      float endProgress = (progress- stagger ) * scale  ;
+      float startx = mRectPathX[0] + startProgress * (mRectPathX[3] - mRectPathX[0]) - 4;
+      float endx = mRectPathX[0] + endProgress * (mRectPathX[3] - mRectPathX[0]) + 4;
+      int clipy = (int)mRectPathY[3] + (progress < 0.3 ? 3 : 0);
+      Rectangle rect = g.getClipBounds();
+      g.clipRect(0, 0, getWidth(), clipy);
+      Color originalColor = g.getColor();
+      g.setPaint(new LinearGradientPaint(
+        startx,
+        0,
+        endx,
+        0,
+        new float[]{0, 0.01f, 0.99f, 1},
+        new Color[]{originalColor, MEUI.Overview.ourPositionColor, MEUI.Overview.ourPositionColor, originalColor}));
+      g.draw(mPath);
+      g.setClip(rect);
+      g.setColor(originalColor);
+      if (Math.abs(startx + 4 - mRectPathX[0]) < 2) {
+        mHighlightStart = true;
+      }
+      if (Math.abs(endx - 4 - mRectPathX[3]) < 2) {
+        mHighlightEnd = true;
+      }
+    }
+    Color originalColor = g.getColor();
+
+    if (mHighlightStart) {
+      g.setColor(MEUI.Overview.ourPositionColor);
+    }
     //fill triangle
     g.drawLine(mRectPathX[0] - tri_delta_x, mRectPathY[0], mRectPathX[0] + tri_delta_x, mRectPathY[0]);
+    if (mHighlightEnd) {
+      g.setColor(MEUI.Overview.ourPositionColor);
+    }
+    else {
+      g.setColor(originalColor);
+    }
 
     mRectPathX[0] = mRectPathX[3] - tri_delta_x;
     mRectPathY[0] = mRectPathY[3];
@@ -768,21 +823,8 @@ class OverviewPanel extends JPanel {
     mRectPathY[2] = mRectPathY[3];
 
     g.fillPolygon(mRectPathX, mRectPathY, 4);
-    if (!Float.isNaN(progress)) {
-      Rectangle rect = g.getClipBounds();
-      g.clipRect(0, 0, getWidth(), clipy);
-      Color originalColor = g.getColor();
-      g.setPaint(new LinearGradientPaint(
-        startx,
-        0,
-        endx,
-        0,
-        new float[]{0, 0.1f, 0.9f, 1},
-        new Color[]{originalColor, Color.WHITE, Color.WHITE, originalColor}));
-      g.draw(mPath);
-      g.setClip(rect);
-      g.setColor(originalColor);
-    }
+    g.drawPolygon(mRectPathX, mRectPathY, 4);
+    g.setColor(originalColor);
   }
 
   private void drawTransition_orig(Graphics2D g, boolean hoverHighlight, int x1, int x2, int y, int constraintSetY, Object tag) {

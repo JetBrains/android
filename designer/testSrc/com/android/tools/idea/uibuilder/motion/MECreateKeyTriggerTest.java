@@ -41,7 +41,7 @@ public class MECreateKeyTriggerTest extends BaseMotionEditorTest {
 
   public void testCreateKeyTriggerLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,152,254\n" +
+    String layout = "0,CreatorAccess,0,0,152,272\n" +
                     "1,JLabel,5,2,142,15\n" +
                     "1,JSeparator,5,20,142,2\n" +
                     "1,JRadioButton,5,25,52,23\n" +
@@ -49,15 +49,15 @@ public class MECreateKeyTriggerTest extends BaseMotionEditorTest {
                     "1,JPanel,5,51,142,24\n" +
                     "2,PromptedTextField,0,0,0,0\n" +
                     "2,MEComboBox,0,0,0,0\n" +
-                    "1,JLabel,5,55,142,15\n" +
-                    "1,MEComboBox,5,78,142,24\n" +
-                    "1,JLabel,5,105,142,15\n" +
-                    "1,PromptedTextField,5,123,142,19\n" +
-                    "1,JLabel,5,145,142,15\n" +
-                    "1,PromptedTextField,5,163,142,19\n" +
-                    "1,JLabel,5,185,142,15\n" +
-                    "1,PromptedTextField,5,203,142,19\n" +
-                    "1,JButton,5,228,142,25\n";
+                    "1,JLabel,5,78,142,15\n" +
+                    "1,MEComboBox,5,96,142,24\n" +
+                    "1,JLabel,5,123,142,15\n" +
+                    "1,PromptedTextField,5,141,142,19\n" +
+                    "1,JLabel,5,163,142,15\n" +
+                    "1,PromptedTextField,5,181,142,19\n" +
+                    "1,JLabel,5,203,142,15\n" +
+                    "1,PromptedTextField,5,221,142,19\n" +
+                    "1,JButton,5,246,142,25\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();

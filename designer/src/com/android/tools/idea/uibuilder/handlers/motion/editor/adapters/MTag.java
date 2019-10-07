@@ -16,7 +16,11 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -108,5 +112,12 @@ public interface MTag {
 
   interface CommitListener {
     void commit(MTag tag);
+  }
+
+  public static CharSequence serializeTag(MTag tag) {
+    ByteArrayOutputStream buff = new ByteArrayOutputStream();
+    PrintStream pout = new PrintStream(buff);
+    tag.printFormal("", new PrintStream(pout));
+    return  buff.toString();
   }
 }
