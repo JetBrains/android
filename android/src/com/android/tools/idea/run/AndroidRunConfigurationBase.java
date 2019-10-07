@@ -97,6 +97,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     myProfilerState = new ProfilerState();
     myAndroidTests = androidTests;
+    getOptions().setAllowRunningInParallel(true);
   }
 
   @Override
