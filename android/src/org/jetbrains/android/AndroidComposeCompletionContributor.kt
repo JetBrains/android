@@ -41,6 +41,8 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInsight.template.Template
 import com.intellij.codeInsight.template.TemplateEditingAdapter
 import com.intellij.codeInsight.template.TemplateManager
+import com.intellij.codeInspection.InspectionSuppressor
+import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.psi.PsiDocumentManager
@@ -59,7 +61,9 @@ import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
+import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
 import org.jetbrains.kotlin.idea.util.CallType
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
@@ -333,5 +337,18 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
         }
       }
     })
+  }
+}
+
+class AndroidComposeSuppressor : InspectionSuppressor {
+  override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean {
+    return toolId == "FunctionName" &&
+      element.language == KotlinLanguage.INSTANCE &&
+      element.node.elementType == KtTokens.IDENTIFIER &&
+      element.parent.isComposableFunction()
+  }
+
+  override fun getSuppressActions(element: PsiElement?, toolId: String): Array<SuppressQuickFix> {
+    return SuppressQuickFix.EMPTY_ARRAY
   }
 }
