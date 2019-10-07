@@ -301,7 +301,7 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
       val externalTextValue = convertToExternalTextValue(context, applyContext, value.text)
       return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(externalTextValue)
     }
-    is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.getText())
+    is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
     else -> error("Expression '${value}' not supported.")
   }
 }

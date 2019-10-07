@@ -16,9 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BIG_DECIMAL_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -119,7 +116,7 @@ fun ResolvedPropertyModel.setDslText(value: DslText) =
     when (value) {
       is DslText.Reference -> ReferenceTo(value.text)  // null text is invalid here.
       is DslText.InterpolatedString -> GradlePropertyModel.iStr(value.text)  // null text is invalid here.
-      is DslText.OtherUnparsedDslText -> RawText(value.text)  // null text is invalid here.
+      is DslText.OtherUnparsedDslText -> RawText(value.text, value.text)  // null text is invalid here.
       DslText.Literal -> throw IllegalArgumentException("Literal values should not be set via DslText.")
     })
 

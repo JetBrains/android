@@ -190,7 +190,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
             }
           }
         }
-        return literal.text
+        return ReferenceTo(literal.text)
       }
       is KtBinaryExpressionWithTypeRHS -> return when (val expressionInfo = literal.left) {
         is KtArrayAccessExpression -> this.extractValue(context, expressionInfo, resolve)
