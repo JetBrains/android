@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
-import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.module.ModuleManager
@@ -62,7 +61,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
   }
 
   fun testNestedProjects() {
-    val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE)
+    val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     assertIsEqualToSnapshot(text)
   }
 

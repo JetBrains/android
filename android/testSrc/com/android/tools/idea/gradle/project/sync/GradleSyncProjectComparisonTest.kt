@@ -33,7 +33,7 @@ import com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL
 import com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE
 import com.android.tools.idea.testing.TestProjectPaths.NEW_SYNC_KOTLIN_TEST
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
-import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
 import com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
@@ -271,12 +271,12 @@ b/137231583 */
   }
 
   open fun testPsdSample() {
-    val text = importSyncAndDumpProject(PSD_SAMPLE)
+    val text = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
     assertIsEqualToSnapshot(text)
   }
 
   open fun testPsdSampleRenamingModule() {
-    val beforeRename = importSyncAndDumpProject(PSD_SAMPLE)
+    val beforeRename = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
     PsProjectImpl(project).let { projectModel ->
       projectModel.removeModule(":nested1")
       projectModel.removeModule(":nested1:deep")

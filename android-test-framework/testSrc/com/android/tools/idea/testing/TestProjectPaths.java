@@ -64,7 +64,7 @@ public final class TestProjectPaths {
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PSD_DEPENDENCY = "projects/psdDependency";
   public static final String PSD_PROJECT_DIR = "projects/psdProjectDir";
-  public static final String PSD_SAMPLE = "projects/psdSample";
+  public static final String PSD_SAMPLE_GROOVY = "projects/psdSample/Groovy";
   public static final String PSD_SAMPLE_REPO = "projects/psdSampleRepo";
   public static final String PSD_UPGRADE = "projects/psdUpgrade";
   public static final String PSD_VARIANT_COLLISIONS = "projects/psdVariantCollisions";
