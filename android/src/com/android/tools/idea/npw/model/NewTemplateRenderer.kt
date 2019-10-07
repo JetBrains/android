@@ -179,6 +179,7 @@ internal fun titleToTemplateRenderer(title: String): AndroidStudioEvent.Template
   "Instant App" -> AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_MODULE
   "Dynamic Feature (Instant App)" -> AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
   "Benchmark Module" -> AndroidStudioEvent.TemplateRenderer.BENCHMARK_LIBRARY_MODULE
+  "Compose Activity" -> AndroidStudioEvent.TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
   else -> AndroidStudioEvent.TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
 }
 

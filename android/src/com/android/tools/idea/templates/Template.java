@@ -352,6 +352,8 @@ public class Template {
         return TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE;
       case "Benchmark Module":
         return TemplateRenderer.BENCHMARK_LIBRARY_MODULE;
+      case "Compose Activity":
+        return TemplateRenderer.COMPOSE_EMPTY_ACTIVITY;
       default:
         return TemplateRenderer.CUSTOM_TEMPLATE_RENDERER;
     }
