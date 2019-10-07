@@ -44,6 +44,7 @@
                             implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8CompletionContributor"
                             order="before javaClassReference"
     />
+    <usageTypeProvider implementation="com.android.tools.idea.lang.proguardR8.psi.ProguardR8UsageTypeProvider"/>
     <typedHandler implementation="com.android.tools.idea.lang.proguardR8.ProguardR8TypedHandler" id="proguardR8CompletionAutoPopup"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName"
                              implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedNameManipulator"/>
