@@ -84,8 +84,9 @@ public class MotionEditor extends JPanel {
   private static final String TRANSITION_PANEL = "Transition";
   private static final String CONSTRAINTSET_PANEL = "ConstraintSet";
   private String mCurrentlyDisplaying = CONSTRAINTSET_PANEL;
+  private final List<Command> myCommandListeners = new ArrayList<>();
 
-    CreateConstraintSet mCreateConstraintSet = new CreateConstraintSet();
+  CreateConstraintSet mCreateConstraintSet = new CreateConstraintSet();
   CreateOnClick mCreateOnClick = new CreateOnClick();
   CreateOnSwipe mCreateOnSwipe = new CreateOnSwipe();
   CreateTransition mCreateTransition = new CreateTransition();
@@ -94,6 +95,7 @@ public class MotionEditor extends JPanel {
   JPopupMenu myPopupMenu = new JPopupMenu();
   private static final String MAIN_PANEL = "main";
   private static final String ERROR_PANEL = "error";
+
   @Override
   public void updateUI() {
     super.updateUI();
@@ -123,28 +125,29 @@ public class MotionEditor extends JPanel {
   }
 
   /**
-   * This will selected the ids views or ConstraintSets based on the ide
+   * This will selected the views or ConstraintSets based on the ids
+   *
    * @param ids
    */
   public void selectById(String[] ids) {
-   switch (mCurrentlyDisplaying) {
-     case LAYOUT_PANEL:
-       mLayoutPanel.selectByIds(ids);
-       break;
-     case CONSTRAINTSET_PANEL:
-       mConstraintSetPanel.selectById(ids);
-     break;
-     case TRANSITION_PANEL:
-   }
+    switch (mCurrentlyDisplaying) {
+      case LAYOUT_PANEL:
+        mLayoutPanel.selectByIds(ids);
+        break;
+      case CONSTRAINTSET_PANEL:
+        mConstraintSetPanel.selectById(ids);
+        break;
+      case TRANSITION_PANEL:
+    }
   }
-  List<Command> myCommandListeners = new ArrayList<>();
+
   public void addCommandListener(Command command) {
     myCommandListeners.add(command);
   }
 
-  private void fireCommand(Command.Action action, MTag[]tags) {
+  private void fireCommand(Command.Action action, MTag[] tags) {
     for (Command listener : myCommandListeners) {
-      listener.perform(action,tags);
+      listener.perform(action, tags);
     }
   }
 
@@ -164,7 +167,7 @@ public class MotionEditor extends JPanel {
 
   public MotionEditor() {
     super(new CardLayout());
-    mErrorSwitchCard = (CardLayout) getLayout();
+    mErrorSwitchCard = (CardLayout)getLayout();
     mMainPanel = new JPanel(new BorderLayout());
     add(mMainPanel, MAIN_PANEL);
     add(myErrorPanel, ERROR_PANEL);
@@ -191,7 +194,6 @@ public class MotionEditor extends JPanel {
     mCombinedListPanel.setPreferredSize(new Dimension(10, 100));
     mTopPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mCombinedListPanel, mOverviewScrollPane);
     mTopPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, MEUI.ourBorder));
-    //  layoutTop(LayoutMode.HORIZONTAL_LAYOUT);
 
     ui.add(mTopPanel);
     ui.add(mCenterPanel, BorderLayout.CENTER);
@@ -223,18 +225,19 @@ public class MotionEditor extends JPanel {
         }
       }
     });
-    mOverviewPanel.setListener(new OverviewPanel.Listener() {
+    MTagActionListener mTagActionListener = new MTagActionListener() {
       @Override
       public void select(MTag selected) {
-          selectTag(selected);
+        selectTag(selected);
       }
 
       @Override
       public void delete(MTag[] tags) {
         fireCommand(Command.Action.DELETE, tags);
       }
-    });
-
+    };
+    mOverviewPanel.setActionListener(mTagActionListener);
+    mTransitionPanel.setActionListener(mTagActionListener);
     mMainPanel.add(ui);
     JPanel toolbarLeft = new JPanel(new FlowLayout(FlowLayout.LEFT));
     JPanel toolbarRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -311,9 +314,9 @@ public class MotionEditor extends JPanel {
                       @Nullable String motionSceneFileName) {
     if (myErrorPanel.validateMotionScene(motionScene)) {
       mErrorSwitchCard.show(this, MAIN_PANEL);
-    } else {
+    }
+    else {
       mErrorSwitchCard.show(this, ERROR_PANEL);
-
     }
     setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
   }
@@ -753,7 +756,8 @@ public class MotionEditor extends JPanel {
     enum Action {
       DELETE,
       COPY,
-    };
-    void perform(Action action, MTag []tag);
+    }
+
+    void perform(Action action, MTag[] tag);
   }
 }

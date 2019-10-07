@@ -38,6 +38,9 @@ public class MotionLayoutComponentHelper {
   private Method myCallSetTransitionPosition;
   private Method myCallSetState;
   private Method myCallGetState;
+  private Method myCallGetStartState;
+  private Method myCallGetEndState;
+  private Method myCallDisableAutoTransition;
   private Method myCallGetProgress;
   private Method myCallSetTransition;
   private Method myGetMaxTimeMethod;
@@ -62,7 +65,7 @@ public class MotionLayoutComponentHelper {
 
   private final Object myDesignTool;
   private final NlComponent myMotionLayoutComponent;
-  private final boolean DEBUG = false;
+  private final boolean DEBUG = true;
 
   public MotionLayoutComponentHelper(@NotNull NlComponent component) {
     ViewInfo info = NlComponentHelperKt.getViewInfo(component);
@@ -445,6 +448,7 @@ public class MotionLayoutComponentHelper {
       return;
     }
     if (myCallSetTransition == null) {
+      disableAutoTransition(true);
       try {
         myCallSetTransition = myDesignTool.getClass().getMethod("setTransition", String.class, String.class);
       }
@@ -526,6 +530,45 @@ public class MotionLayoutComponentHelper {
     model.notifyLiveUpdate(false);
   }
 
+  public void disableAutoTransition(boolean disable) {
+    if (myDesignTool == null) {
+      return;
+    }
+    if (myCallDisableAutoTransition == null) {
+      try {
+
+        myCallDisableAutoTransition = myDesignTool.getClass().getMethod("disableAutoTransition", boolean.class);
+      }
+      catch (NoSuchMethodException e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+        myCallDisableAutoTransition = null;
+        return;
+      }
+    }
+    if (myCallDisableAutoTransition != null) {
+      try {
+        RenderService.runRenderAction(() -> {
+          try {
+            myCallDisableAutoTransition.invoke(myDesignTool, disable);
+          }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallDisableAutoTransition = null;
+            if (DEBUG) {
+              e.printStackTrace();
+            }
+          }
+        });
+      }
+      catch (Exception e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
   public String getState() {
     String state = null;
     if (myDesignTool == null) {
@@ -551,6 +594,88 @@ public class MotionLayoutComponentHelper {
           }
           catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
             myCallSetState = null;
+            if (DEBUG) {
+              e.printStackTrace();
+            }
+          }
+          return null;
+        });
+      }
+      catch (Exception e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+      }
+    }
+    return state;
+  }
+
+  public String getStartState() {
+    String state = null;
+    if (myDesignTool == null) {
+      return state;
+    }
+    if (myCallGetStartState == null) {
+      try {
+        myCallGetStartState = myDesignTool.getClass().getMethod("getStartState");
+      }
+      catch (NoSuchMethodException e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+        myCallGetStartState = null;
+        return state;
+      }
+    }
+    if (myCallGetStartState != null) {
+      try {
+        state = RenderService.runRenderAction(() -> {
+          try {
+            return (String)myCallGetStartState.invoke(myDesignTool);
+          }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallGetStartState = null;
+            if (DEBUG) {
+              e.printStackTrace();
+            }
+          }
+          return null;
+        });
+      }
+      catch (Exception e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+      }
+    }
+    return state;
+  }
+
+  public String getEndState() {
+    String state = null;
+    if (myDesignTool == null) {
+      return state;
+    }
+    if (myCallGetEndState == null) {
+      try {
+        myCallGetEndState = myDesignTool.getClass().getMethod("getEndState");
+      }
+      catch (NoSuchMethodException e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+        myCallGetEndState = null;
+        return state;
+      }
+    }
+    if (myCallGetEndState != null) {
+      try {
+        state = RenderService.runRenderAction(() -> {
+          try {
+            return (String)myCallGetEndState.invoke(myDesignTool);
+          }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallGetEndState = null;
             if (DEBUG) {
               e.printStackTrace();
             }

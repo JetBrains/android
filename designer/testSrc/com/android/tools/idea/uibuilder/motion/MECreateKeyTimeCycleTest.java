@@ -41,7 +41,7 @@ public class MECreateKeyTimeCycleTest extends BaseMotionEditorTest {
 
   public void testCreateKeyTimeCycleLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,189,317\n" +
+    String layout = "0,CreatorAccess,0,0,189,322\n" +
                     "1,JLabel,5,2,179,15\n" +
                     "1,JSeparator,5,20,179,2\n" +
                     "1,JRadioButton,5,25,52,23\n" +
@@ -49,18 +49,18 @@ public class MECreateKeyTimeCycleTest extends BaseMotionEditorTest {
                     "1,JPanel,5,51,179,24\n" +
                     "2,PromptedTextField,0,0,0,0\n" +
                     "2,MEComboBox,0,0,0,0\n" +
-                    "1,JSeparator,5,62,179,2\n" +
-                    "1,JLabel,5,78,179,15\n" +
-                    "1,PromptedTextField,5,96,179,19\n" +
-                    "1,JLabel,5,118,179,15\n" +
-                    "1,MEComboBox,5,136,179,24\n" +
-                    "1,JLabel,5,163,179,15\n" +
-                    "1,PromptedTextField,5,181,179,19\n" +
-                    "1,JLabel,5,203,179,15\n" +
-                    "1,PromptedTextField,5,221,179,19\n" +
-                    "1,JLabel,5,243,179,15\n" +
-                    "1,MEComboBox,5,261,179,24\n" +
-                    "1,JButton,5,291,179,25\n";
+                    "1,JSeparator,5,78,179,2\n" +
+                    "1,JLabel,5,83,179,15\n" +
+                    "1,PromptedTextField,5,101,179,19\n" +
+                    "1,JLabel,5,123,179,15\n" +
+                    "1,MEComboBox,5,141,179,24\n" +
+                    "1,JLabel,5,168,179,15\n" +
+                    "1,PromptedTextField,5,186,179,19\n" +
+                    "1,JLabel,5,208,179,15\n" +
+                    "1,PromptedTextField,5,226,179,19\n" +
+                    "1,JLabel,5,248,179,15\n" +
+                    "1,MEComboBox,5,266,179,24\n" +
+                    "1,JButton,5,296,179,25\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();

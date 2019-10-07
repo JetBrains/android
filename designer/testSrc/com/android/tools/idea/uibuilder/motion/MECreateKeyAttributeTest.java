@@ -43,7 +43,7 @@ public class MECreateKeyAttributeTest extends BaseMotionEditorTest {
 
   public void testCreateKeyAttributeLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,189,174\n" +
+    String layout = "0,CreatorAccess,0,0,189,192\n" +
                     "1,JLabel,5,2,179,15\n" +
                     "1,JSeparator,5,20,179,2\n" +
                     "1,JRadioButton,5,25,52,23\n" +
@@ -51,11 +51,11 @@ public class MECreateKeyAttributeTest extends BaseMotionEditorTest {
                     "1,JPanel,5,51,179,24\n" +
                     "2,PromptedTextField,0,0,0,0\n" +
                     "2,MEComboBox,0,0,0,0\n" +
-                    "1,JLabel,5,55,179,15\n" +
-                    "1,PromptedTextField,5,78,179,19\n" +
-                    "1,JLabel,5,100,179,15\n" +
-                    "1,MEComboBox,5,118,179,24\n" +
-                    "1,JButton,5,148,179,25\n";
+                    "1,JLabel,5,78,179,15\n" +
+                    "1,PromptedTextField,5,96,179,19\n" +
+                    "1,JLabel,5,118,179,15\n" +
+                    "1,MEComboBox,5,136,179,24\n" +
+                    "1,JButton,5,166,179,25\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
