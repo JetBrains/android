@@ -32,9 +32,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
-  fun testDescriptor() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-
+  private fun doTestDescriptor() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -44,6 +42,16 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
     assertThat(defaultConfig.descriptor.testEnumerateProperties(),
                equalTo(PsAndroidModuleDefaultConfigDescriptors.testEnumerateProperties()))
+  }
+
+  fun testDescriptorGroovy() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestDescriptor()
+  }
+
+  fun testDescriptorKt() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestDescriptor()
   }
 
   fun testProperties() {

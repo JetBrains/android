@@ -32,6 +32,7 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -133,6 +134,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   public void setUp() throws Exception {
     super.setUp();
 
+    StudioFlags.KOTLIN_DSL_PARSING.override(true);
     IdeaTestApplication.getInstance();
     ensureSdkManagerAvailable();
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
@@ -192,6 +194,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
+    StudioFlags.KOTLIN_DSL_PARSING.clearOverride();
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
       tearDownFixture();
