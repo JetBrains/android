@@ -154,7 +154,7 @@ object SkiaParser {
                                  StudioDownloader(), StudioSettingsController.getInstance())
 
     val latestRemote = sdkHandler.getLatestRemotePackageForPrefix(
-      PARSER_PACKAGE_NAME, false, progressIndicator) ?: return false
+      PARSER_PACKAGE_NAME, true, progressIndicator) ?: return false
     val maybeNewPackage = latestRemote.path
     val updatablePackage = sdkManager.packages.consolidatedPkgs[maybeNewPackage] ?: return false
     if (updatablePackage.hasLocal() && !updatablePackage.isUpdate) {
