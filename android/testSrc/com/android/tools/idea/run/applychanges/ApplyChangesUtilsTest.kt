@@ -30,6 +30,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ExecutionConsole
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
+import com.intellij.execution.ui.RunContentManagerImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.ui.content.Content
@@ -46,7 +47,6 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.picocontainer.PicoContainer
-import kotlin.test.fail
 
 /**
  * Unit tests for utility functions of apply-changes run pipeline.
@@ -146,6 +146,15 @@ class ApplyChangesUtilsTest {
     `when`(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockSessionInfo)
     `when`(mockSessionInfo.runConfiguration).thenReturn(mockRunProfile)
     `when`(mockSessionInfo.processHandler).thenReturn(mockProcessHandler)
+    val executorField = RunContentManagerImpl::class.java.getDeclaredField("EXECUTOR_KEY")
+    executorField.isAccessible = true
+    val mockExecutor = mock(Executor::class.java)
+    val mockContent = mock(Content::class.java)
+    `when`(mockContent.getUserData(eq(executorField.get(null) as Key<*>))).thenReturn(mockExecutor)
+    val mockContentDescriptor = mock(RunContentDescriptor::class.java)
+    `when`(mockContentDescriptor.processHandler).thenReturn(mockProcessHandler)
+    `when`(mockContentDescriptor.attachedContent).thenReturn(mockContent)
+    `when`(mockRunContentManager.allDescriptors).thenReturn(listOf(mockContentDescriptor))
 
     val prevHandler = findExistingSessionAndMaybeDetachForColdSwap(mockEnv, mockDevices)
 
@@ -154,33 +163,6 @@ class ApplyChangesUtilsTest {
 
     // Make sure that the previous process handler is detached when the swap info is missing.
     verify(mockProcessHandler).detachProcess()
-  }
-
-  @Test
-  fun findExistingSessionAndMaybeDetachForColdSwap_previousHandlerWithoutSwapInfo_coldSwapCancelledByUser() {
-    val mockProcessHandler = mock(ProcessHandler::class.java)
-    `when`(mockExecutionManager.runningProcesses).thenReturn(arrayOf(mockProcessHandler))
-    val mockSessionInfo = mock(AndroidSessionInfo::class.java)
-    `when`(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockSessionInfo)
-    `when`(mockSessionInfo.runConfiguration).thenReturn(mockRunProfile)
-    `when`(mockSessionInfo.processHandler).thenReturn(mockProcessHandler)
-    val mockRunContentDescriptor = mock(RunContentDescriptor::class.java)
-    `when`(mockRunContentDescriptor.processHandler).thenReturn(mockProcessHandler)
-    `when`(mockRunContentManager.allDescriptors).thenReturn(listOf(mockRunContentDescriptor))
-    val mockContent = mock(Content::class.java)
-    `when`(mockRunContentDescriptor.attachedContent).thenReturn(mockContent)
-    val mockExecutor = mock(Executor::class.java)
-    `when`(mockContent.getUserData(any(Key::class.java))).thenReturn(mockExecutor)
-
-    try {
-      findExistingSessionAndMaybeDetachForColdSwap(mockEnv, mockDevices)
-      fail("Expected ApplyChangesCancelledException but did not happen")
-    }
-    catch (expected: ApplyChangesCancelledException) {
-      // pass.
-    }
-
-    // Make sure that the previous process handler is not detached when cancellation.
-    verify(mockProcessHandler, never()).detachProcess()
+    verify(mockRunContentManager).removeRunContent(any(), any())
   }
 }

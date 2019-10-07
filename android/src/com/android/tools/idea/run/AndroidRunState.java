@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.run.applychanges.ApplyChangesCancelledException;
 import com.android.tools.idea.run.applychanges.ApplyChangesUtilsKt;
 import com.android.tools.idea.run.applychanges.ExistingSession;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
@@ -65,17 +64,9 @@ public class AndroidRunState implements RunProfileState {
   @Nullable
   @Override
   public ExecutionResult execute(Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
-    ProcessHandler processHandler;
-    ExecutionConsole console;
-
-    try {
-      ExistingSession prevHandler = ApplyChangesUtilsKt.findExistingSessionAndMaybeDetachForColdSwap(myEnv, myDeviceFutures);
-      processHandler = prevHandler.getProcessHandler();
-      console = prevHandler.getExecutionConsole();
-    }
-    catch (ApplyChangesCancelledException e) {
-      return null;
-    }
+    ExistingSession prevHandler = ApplyChangesUtilsKt.findExistingSessionAndMaybeDetachForColdSwap(myEnv, myDeviceFutures);
+    ProcessHandler processHandler = prevHandler.getProcessHandler();
+    ExecutionConsole console = prevHandler.getExecutionConsole();
 
     if (processHandler == null) {
       processHandler = new AndroidProcessHandler(myEnv.getProject(), getApplicationId());
