@@ -93,6 +93,11 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
     assertIsEqualToSnapshot(text)
   }
 
+  fun testCompatibilityWithAndroidStudio36Project() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36)
+    assertIsEqualToSnapshot(text)
+  }
+
   private fun importSyncAndDumpProject(
     projectDir: String,
     patch: ((projectRootPath: File) -> Unit)? = null
