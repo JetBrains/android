@@ -1034,7 +1034,8 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     while (currentClass.isAnonymousClass()) {
       currentClass = currentClass.getEnclosingClass();
     }
-    String packageName = currentClass.getPackage().getName();
+    Package classPackage = currentClass.getPackage();
+    String packageName = classPackage != null ? classPackage.getName() : "";
     if (packageName.startsWith("com.android.") || packageName.startsWith("com.intellij.") || packageName.startsWith("org.jetbrains.") ||
         packageName.startsWith("or.intellij.") || packageName.startsWith("com.jetbrains.") || packageName.startsWith("git4idea.")) {
 
