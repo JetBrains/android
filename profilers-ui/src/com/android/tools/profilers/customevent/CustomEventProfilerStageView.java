@@ -109,13 +109,13 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
     JComponent eventsComponent = eventsView.getComponent();
 
     mainPanel.add(eventsComponent, new TabularLayout.Constraint(0, 0));
-    mainPanel.add(new JBScrollPane(myTrackGroupList), new TabularLayout.Constraint(1, 0));
+    mainPanel.add(myTrackGroupList, new TabularLayout.Constraint(1, 0));
 
     JComponent timeAxis = buildTimeAxis(myStudioProfilers);
 
     // Add all components to the main panel.
     container.add(tooltip, new TabularLayout.Constraint(0, 0));
-    container.add(mainPanel, new TabularLayout.Constraint(0, 0));
+    container.add(new JBScrollPane(mainPanel), new TabularLayout.Constraint(0, 0));
     container.add(timeAxis, new TabularLayout.Constraint(1, 0));
 
     getComponent().add(container, BorderLayout.CENTER);
