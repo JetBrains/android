@@ -45,6 +45,9 @@ import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.Nd
 import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME;
 
 public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements ProductFlavorModel {
+  /**
+   * These are used here and in the construction of Dsl by {@link ProductFlavorDslElement}.
+   */
   @NonNls public static final String APPLICATION_ID = "mApplicationId";
   @NonNls public static final String DIMENSION = "mDimension";
   @NonNls public static final String MAX_SDK_VERSION = "mMaxSdkVersion";

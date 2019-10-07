@@ -20,10 +20,12 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.groovy.GroovyLanguage;
 
 public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildTypeModel {
-
+  /**
+   * these names are used within the implementation below, and also in the construction of Dsl elements
+   * representing the state of {@link BuildTypeDslElement}s.
+   */
   @NonNls public static final String DEBUGGABLE = "mDebuggable";
   @NonNls public static final String EMBED_MICRO_APP = "mEmbedMicroApp";
   @NonNls public static final String JNI_DEBUGGABLE = "mJniDebuggable";

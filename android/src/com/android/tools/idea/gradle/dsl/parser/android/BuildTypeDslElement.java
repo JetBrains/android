@@ -60,7 +60,8 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
   }).collect(toImmutableMap(data -> data[0], data -> data[1]));
 
   @Override
-  public ImmutableMap<String, String> getExternalToModelMap(GradleDslNameConverter converter) {
+  @NotNull
+  public ImmutableMap<String, String> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }
