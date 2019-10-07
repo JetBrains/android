@@ -56,8 +56,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.event.DocumentEvent
-import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -67,11 +65,9 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
 import com.intellij.problems.WolfTheProblemSolver
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
@@ -706,30 +702,13 @@ class ComposeFileEditorProvider(
       composeEditorWithPreview.isPureTextEditor = previewEditor.previewElements.isEmpty()
     }
 
-    PsiDocumentManager.getInstance(project).getDocument(psiFile)!!.addDocumentListener(object : DocumentListener {
-      override fun documentChanged(event: DocumentEvent) {
-        if (event.isWholeTextReplaced) {
-          modificationQueue.queue(refreshPreview)
-          return
-        }
-
-        val currentPreviewElements = previewEditor.previewElements
-        val isPreviewElementChange = currentPreviewElements.mapNotNull {
-          TextRange.create(it.previewElementDefinitionPsi?.range ?: return@mapNotNull null)
-        }.any {
-          it.contains(event.offset)
-        }
-
-        if (isPreviewElementChange) {
-          // The code has not changed so check if the preview definitions have changed
-          modificationQueue.queue(refreshPreview)
-        }
-        else {
-          // Source code was changed, trigger notification update
-          modificationQueue.queue(updateNotifications)
-        }
-      }
-    }, composeEditorWithPreview)
+    setupChangeListener(
+      project,
+      psiFile,
+      { previewEditor.previewElements },
+      { modificationQueue.queue(refreshPreview) },
+      { modificationQueue.queue(updateNotifications) },
+      composeEditorWithPreview)
 
     return composeEditorWithPreview
   }
