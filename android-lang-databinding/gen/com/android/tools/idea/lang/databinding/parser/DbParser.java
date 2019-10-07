@@ -677,7 +677,7 @@ public class DbParser implements PsiParser, LightPsiParser {
         exit_section_(b, l, m, NULL_COALESCE_EXPR, r, true, null);
       }
       else if (g < 1 && consumeTokenSmart(b, QUEST)) {
-        r = report_error_(b, expr(b, l, 1));
+        r = report_error_(b, expr(b, l, 0));
         r = ternaryExpr_1(b, l + 1) && r;
         exit_section_(b, l, m, TERNARY_EXPR, r, true, null);
       }
