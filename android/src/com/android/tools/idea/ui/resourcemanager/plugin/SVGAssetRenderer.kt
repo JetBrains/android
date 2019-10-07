@@ -27,7 +27,6 @@ import org.apache.batik.transcoder.image.ImageTranscoder
 import org.apache.batik.util.XMLResourceDescriptor
 import org.xml.sax.SAXParseException
 import java.awt.Dimension
-import java.awt.Image
 import java.awt.image.BufferedImage
 import java.io.IOException
 import java.io.InputStream
@@ -39,7 +38,7 @@ import java.util.concurrent.CompletableFuture
 class SVGAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile): Boolean = "svg".equals(file.extension, true)
 
-  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out Image?> =
+  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out BufferedImage?> =
     CompletableFuture.supplyAsync {
       try {
         SVGLoader(file.inputStream, dimension.height, dimension.width).createImage()

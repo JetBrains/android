@@ -24,7 +24,6 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.annotations.Async
-import java.awt.Image
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
@@ -35,14 +34,14 @@ private val SMALL_MAXIMUM_CACHE_WEIGHT_BYTES = (10 * 1024.0.pow(2)).toLong() // 
 private val LARGE_MAXIMUM_CACHE_WEIGHT_BYTES = (100 * 1024.0.pow(2)).toLong() // 100 MB
 
 /**
- * Helper class that caches the result of a computation of an [Image].
+ * Helper class that caches the result of a computation of [BufferedImage].
  *
  * The keys of the cache are strong references to let
  * @see Cache
  * @see CacheBuilder.softValues
  */
 class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
-                                     private val objectToImage: Cache<DesignAsset, Image>
+                                     private val objectToImage: Cache<DesignAsset, BufferedImage>
 ) : Disposable {
   companion object {
     private val largeObjectToImage by lazy { createObjectToImageCache(5, LARGE_MAXIMUM_CACHE_WEIGHT_BYTES) }
@@ -108,18 +107,18 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
    *
    * If [forceComputation] is true, the [CompletableFuture] will be ran even if a value is present in the cache.
    *
-   * Note that if a value is present in the cache and [forceComputation] is true, the returned [Image] will be the value from
+   * Note that if a value is present in the cache and [forceComputation] is true, the returned [BufferedImage] will be the value from
    * the cache.
    *
    * Once the image is cached, [onImageCached] is invoked on [executor] (or the EDT if none is provided)
    */
   fun computeAndGet(@Async.Schedule key: DesignAsset,
-                    placeholder: Image,
+                    placeholder: BufferedImage,
                     forceComputation: Boolean,
                     onImageCached: () -> Unit = {},
                     executor: Executor = EdtExecutorService.getInstance(),
-                    computationFutureProvider: (() -> CompletableFuture<out Image?>))
-    : Image {
+                    computationFutureProvider: (() -> CompletableFuture<out BufferedImage?>))
+    : BufferedImage {
     val cachedImage = objectToImage.getIfPresent(key)
     if ((cachedImage == null || forceComputation) && !pendingFutures.containsKey(key)) {
       val executeImmediately = cachedImage == null // If we don't have any image, no need to wait.
@@ -131,12 +130,12 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
   }
 
 
-  private fun startComputation(computationFutureProvider: () -> CompletableFuture<out Image?>,
+  private fun startComputation(computationFutureProvider: () -> CompletableFuture<out BufferedImage?>,
                                @Async.Execute key: DesignAsset,
                                onImageCached: () -> Unit,
                                executor: Executor) {
     val future = computationFutureProvider()
-      .thenAccept { image: Image? ->
+      .thenAccept { image: BufferedImage? ->
         synchronized(pendingFutures) {
           pendingFutures.remove(key)
         }
@@ -153,17 +152,10 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
   }
 }
 
-private fun createObjectToImageCache(duration: Long, size: Long): Cache<DesignAsset, Image> =
+private fun createObjectToImageCache(duration: Long, size: Long): Cache<DesignAsset, BufferedImage> =
   CacheBuilder.newBuilder()
     .expireAfterAccess(duration, TimeUnit.MINUTES)
     .softValues()
-    .weigher<DesignAsset, Image> { _, image -> imageWeigher(image) }
+    .weigher<DesignAsset, BufferedImage> { _, image -> image.raster.dataBuffer.size * Integer.BYTES }
     .maximumWeight(size)
-    .build<DesignAsset, Image>()
-
-private fun imageWeigher(image: Image): Int {
-  if (image is BufferedImage) {
-    return image.raster.dataBuffer.size * Integer.BYTES
-  }
-  return image.getWidth(null) * image.getHeight(null) * Integer.BYTES
-}
+    .build<DesignAsset, BufferedImage>()
