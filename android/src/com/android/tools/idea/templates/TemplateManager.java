@@ -479,9 +479,6 @@ public class TemplateManager {
         if (EXCLUDED_CATEGORIES.contains(category)) {
           continue;
         }
-        if (CATEGORY_COMPOSE.equals(category) && !COMPOSE_WIZARD_TEMPLATES.get()) {
-          continue;
-        }
         // Create the menu group item
         NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
           @Override
@@ -683,6 +680,9 @@ public class TemplateManager {
         return;
       }
       String category = newMetadata.getCategory() != null ? newMetadata.getCategory() : CATEGORY_OTHER;
+      if (CATEGORY_COMPOSE.equals(category) && !COMPOSE_WIZARD_TEMPLATES.get()) {
+        return;
+      }
       File existingTemplate = myCategoryTable.get(category, title);
       if (existingTemplate == null || compareTemplates(existingTemplate, newTemplate) > 0) {
         myCategoryTable.put(category, title, newTemplate);
