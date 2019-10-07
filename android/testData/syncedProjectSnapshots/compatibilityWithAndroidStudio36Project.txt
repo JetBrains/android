@@ -1,0 +1,1268 @@
+PROJECT             : testCompatibilityWithAndroidStudio36Project
+    MODULE              : AS36
+        - ModuleGroupPath   : AS36
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : AS36
+        LinkedProjectPath   : <PROJECT>
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/.idea/modules/AS36.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     : <PROJECT>/build [-]
+        CONENT_ENTRY        : file://<PROJECT>
+            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : android_library
+        - ModuleGroupPath   : AS36
+        - ModuleGroupPath   : libs
+        - ModuleGroupPath   : android_library
+        ExternalModuleGroup : AS36.libs
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :libs:android_library
+        LinkedProjectPath   : <PROJECT>/libs/android_library
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/.idea/modules/libs/android_library/android_library.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android
+            TypeId              : android
+            SelectedBuildVariant          : debug
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : generateDebugSources
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/build/generated/res/rs/androidTest/debug [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType         : 1
+            RunProcessResourcesMavenTask  : true
+            PackTestCode        : false
+            RunProguard         : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing     : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex      : false
+            MinimalMainDex      : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :libs:android_library
+        CONENT_ENTRY        : file://<PROJECT>/libs/android_library
+            JavaSource          : file://<PROJECT>/libs/android_library/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            JavaSource          : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            JavaSource          : file://<PROJECT>/libs/android_library/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            JavaResource (test) : file://<PROJECT>/libs/android_library/build/generated/res/rs/androidTest/debug [-]
+            JavaResource        : file://<PROJECT>/libs/android_library/build/generated/res/rs/debug [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/build/generated/source/buildConfig/androidTest/debug [-]
+            JavaSource          : file://<PROJECT>/libs/android_library/build/generated/source/buildConfig/debug [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTest/aidl [-]
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTest/assets [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTest/java
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTest/res [-]
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTest/resources [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTest/rs [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTest/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTestDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTestDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTestDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTestDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTestDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTestDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTestDebug/shaders [-]
+            JavaSource          : file://<PROJECT>/libs/android_library/src/debug/aidl [-]
+            JavaResource        : file://<PROJECT>/libs/android_library/src/debug/assets [-]
+            JavaSource          : file://<PROJECT>/libs/android_library/src/debug/java [-]
+            JavaResource        : file://<PROJECT>/libs/android_library/src/debug/res [-]
+            JavaResource        : file://<PROJECT>/libs/android_library/src/debug/resources [-]
+            JavaSource          : file://<PROJECT>/libs/android_library/src/debug/rs [-]
+            JavaSource          : file://<PROJECT>/libs/android_library/src/debug/shaders [-]
+            JavaSource          : file://<PROJECT>/libs/android_library/src/main/aidl [-]
+            JavaResource        : file://<PROJECT>/libs/android_library/src/main/assets [-]
+            JavaSource          : file://<PROJECT>/libs/android_library/src/main/java
+            JavaResource        : file://<PROJECT>/libs/android_library/src/main/res
+            JavaResource        : file://<PROJECT>/libs/android_library/src/main/resources [-]
+            JavaSource          : file://<PROJECT>/libs/android_library/src/main/rs [-]
+            JavaSource          : file://<PROJECT>/libs/android_library/src/main/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/test/aidl [-]
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/test/assets [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/test/java
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/test/res [-]
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/test/resources [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/test/rs [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/test/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/testDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/testDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/testDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/testDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/testDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/testDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/libs/android_library/src/testDebug/shaders [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/libs/android_library/build [-]
+        JDK                 : <NAME_CUT> Android SDK
+        *isInherited        : false
+            SdkType             : Android SDK
+            HomePath            : <ANDROID_SDK>
+            VersionString       : java version "<JDK_VERSION>"
+        ORDER_ENTRY         : <Module source>
+        LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.annotation:annotation:1.0.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/
+        LIBRARY             : Gradle: androidx.appcompat:appcompat:1.0.2@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/res
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/annotations.zip!/
+        LIBRARY             : Gradle: androidx.arch.core:core-common:2.0.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.arch.core:core-common:2.0.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar!/
+        LIBRARY             : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.collection:collection:1.0.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.collection:collection:1.0.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar!/
+        LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3@jar [=]
+            *CLASSES            : jar://<M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar!/
+        LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/res
+        LIBRARY             : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/res
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.core:core:1.0.1@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.core:core:1.0.1@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/res
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/annotations.zip!/
+        LIBRARY             : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.customview:customview:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.customview:customview:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.documentfile:documentfile:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.documentfile:documentfile:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/res [-]
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.fragment:fragment:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.fragment:fragment:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/res [-]
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.interpolator:interpolator:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar!/
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.loader:loader:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.loader:loader:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.print:print:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.print:print:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/res [-]
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/res [-]
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test.ext:junit:1.1.1@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/res [-]
+        LIBRARY             : Gradle: androidx.test:core:1.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test:core:1.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test:monitor:1.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test:monitor:1.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test:runner:1.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test:runner:1.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/res [-]
+        LIBRARY             : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.0.1/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.0.1/res [-]
+        LIBRARY             : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.viewpager:viewpager:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/res [-]
+        LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar [=]
+            *CLASSES            : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
+        LIBRARY             : Gradle: com.squareup:javawriter:2.1.1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: com.squareup:javawriter:2.1.1@jar [=]
+            *CLASSES            : jar://<M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar!/
+        LIBRARY             : Gradle: javax.inject:javax.inject:1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: javax.inject:javax.inject:1@jar [=]
+            *CLASSES            : jar://<M2>/javax/inject/javax.inject/1/javax.inject-1.jar!/
+        LIBRARY             : Gradle: junit:junit:4.12@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: junit:junit:4.12@jar [=]
+            *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
+        LIBRARY             : Gradle: net.sf.kxml:kxml2:2.3.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: net.sf.kxml:kxml2:2.3.0@jar [=]
+            *CLASSES            : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-core:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-integration:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-integration:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-library:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
+        ORDER_ENTRY         : java_lib
+    MODULE              : app
+        - ModuleGroupPath   : AS36
+        - ModuleGroupPath   : app
+        ExternalModuleGroup : AS36
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :app
+        LinkedProjectPath   : <PROJECT>/app
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android
+            TypeId              : android
+            SelectedBuildVariant          : debug
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : generateDebugSources
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType         : 0
+            RunProcessResourcesMavenTask  : true
+            PackTestCode        : false
+            RunProguard         : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing     : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex      : false
+            MinimalMainDex      : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :app
+        CONENT_ENTRY        : file://<PROJECT>/app
+            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+            JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/aidl [-]
+            JavaResource        : file://<PROJECT>/app/src/debug/assets [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/java [-]
+            JavaResource        : file://<PROJECT>/app/src/debug/res [-]
+            JavaResource        : file://<PROJECT>/app/src/debug/resources [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/rs [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/shaders [-]
+            JavaSource          : file://<PROJECT>/app/src/main/aidl [-]
+            JavaResource        : file://<PROJECT>/app/src/main/assets [-]
+            JavaSource          : file://<PROJECT>/app/src/main/java
+            JavaResource        : file://<PROJECT>/app/src/main/res
+            JavaResource        : file://<PROJECT>/app/src/main/resources [-]
+            JavaSource          : file://<PROJECT>/app/src/main/rs [-]
+            JavaSource          : file://<PROJECT>/app/src/main/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/test/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/java
+            JavaResource (test) : file://<PROJECT>/app/src/test/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/test/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
+        JDK                 : <NAME_CUT> Android SDK
+        *isInherited        : false
+            SdkType             : Android SDK
+            HomePath            : <ANDROID_SDK>
+            VersionString       : java version "<JDK_VERSION>"
+        ORDER_ENTRY         : <Module source>
+        LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.annotation:annotation:1.0.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/
+        LIBRARY             : Gradle: androidx.appcompat:appcompat:1.0.2@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/res
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/annotations.zip!/
+        LIBRARY             : Gradle: androidx.arch.core:core-common:2.0.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.arch.core:core-common:2.0.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar!/
+        LIBRARY             : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.collection:collection:1.0.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.collection:collection:1.0.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar!/
+        LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3@jar [=]
+            *CLASSES            : jar://<M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar!/
+        LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/res
+        LIBRARY             : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/res
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.core:core:1.0.1@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.core:core:1.0.1@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/res
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/annotations.zip!/
+        LIBRARY             : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.customview:customview:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.customview:customview:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.documentfile:documentfile:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.documentfile:documentfile:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/res [-]
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.fragment:fragment:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.fragment:fragment:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/res [-]
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.interpolator:interpolator:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar!/
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.loader:loader:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.loader:loader:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.print:print:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.print:print:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/res [-]
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/res [-]
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test.ext:junit:1.1.1@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/res [-]
+        LIBRARY             : Gradle: androidx.test:core:1.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test:core:1.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test:monitor:1.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test:monitor:1.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/res [-]
+        LIBRARY             : Gradle: androidx.test:runner:1.2.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: androidx.test:runner:1.2.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/res [-]
+        LIBRARY             : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.0.1/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.0.1/res [-]
+        LIBRARY             : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.viewpager:viewpager:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/res [-]
+        LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar [=]
+            *CLASSES            : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
+        LIBRARY             : Gradle: com.squareup:javawriter:2.1.1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: com.squareup:javawriter:2.1.1@jar [=]
+            *CLASSES            : jar://<M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar!/
+        LIBRARY             : Gradle: javax.inject:javax.inject:1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: javax.inject:javax.inject:1@jar [=]
+            *CLASSES            : jar://<M2>/javax/inject/javax.inject/1/javax.inject-1.jar!/
+        LIBRARY             : Gradle: junit:junit:4.12@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: junit:junit:4.12@jar [=]
+            *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
+        LIBRARY             : Gradle: net.sf.kxml:kxml2:2.3.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: net.sf.kxml:kxml2:2.3.0@jar [=]
+            *CLASSES            : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-core:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-integration:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-integration:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-library:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
+        ORDER_ENTRY         : android_library
+    MODULE              : dynamicfeature
+        - ModuleGroupPath   : AS36
+        - ModuleGroupPath   : features
+        - ModuleGroupPath   : dynamicfeature
+        ExternalModuleGroup : AS36.features
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :features:dynamicfeature
+        LinkedProjectPath   : <PROJECT>/features/dynamicfeature
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature/dynamicfeature.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android
+            TypeId              : android
+            SelectedBuildVariant          : debug
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : generateDebugSources
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/androidTest/debug [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType         : 6
+            RunProcessResourcesMavenTask  : true
+            PackTestCode        : false
+            RunProguard         : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing     : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex      : false
+            MinimalMainDex      : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :features:dynamicfeature
+        CONENT_ENTRY        : file://<PROJECT>/features/dynamicfeature
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/androidTest/debug [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/debug [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/build/generated/source/buildConfig/androidTest/debug [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/build/generated/source/buildConfig/debug [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTest/aidl [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTest/assets [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTest/java [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTest/res [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTest/resources [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTest/rs [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTest/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/shaders [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/src/debug/aidl [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature/src/debug/assets [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/src/debug/java [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature/src/debug/res [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature/src/debug/resources [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/src/debug/rs [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/src/debug/shaders [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/src/main/aidl [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature/src/main/assets [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/src/main/java [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature/src/main/res [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature/src/main/resources [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/src/main/rs [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature/src/main/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/test/aidl [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/test/assets [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/test/java [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/test/res [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/test/resources [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/test/rs [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/test/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/testDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/testDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/testDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/testDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/testDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/testDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/testDebug/shaders [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/features/dynamicfeature/build [-]
+        JDK                 : <NAME_CUT> Android SDK
+        *isInherited        : false
+            SdkType             : Android SDK
+            HomePath            : <ANDROID_SDK>
+            VersionString       : java version "<JDK_VERSION>"
+        ORDER_ENTRY         : <Module source>
+        ORDER_ENTRY         : app
+    MODULE              : dynamicfeature2
+        - ModuleGroupPath   : AS36
+        - ModuleGroupPath   : features
+        - ModuleGroupPath   : dynamicfeature2
+        ExternalModuleGroup : AS36.features
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :features:dynamicfeature2
+        LinkedProjectPath   : <PROJECT>/features/dynamicfeature2
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature2/dynamicfeature2.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android
+            TypeId              : android
+            SelectedBuildVariant          : debug
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : generateDebugSources
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/test/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/testDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/androidTest/debug [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType         : 6
+            RunProcessResourcesMavenTask  : true
+            PackTestCode        : false
+            RunProguard         : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing     : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex      : false
+            MinimalMainDex      : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :features:dynamicfeature2
+        CONENT_ENTRY        : file://<PROJECT>/features/dynamicfeature2
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/androidTest/debug [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/debug [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/build/generated/source/buildConfig/androidTest/debug [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/build/generated/source/buildConfig/debug [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTest/aidl [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTest/assets [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTest/java [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTest/res [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTest/resources [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTest/rs [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTest/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/shaders [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/debug/aidl [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/debug/assets [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/debug/java [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/debug/res [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/debug/resources [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/debug/rs [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/debug/shaders [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/main/aidl [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/main/assets [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/main/java [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/main/res [-]
+            JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/main/resources [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/main/rs [-]
+            JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/main/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/test/aidl [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/test/assets [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/test/java [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/test/res [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/test/resources [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/test/rs [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/test/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/testDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/testDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/testDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/testDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/testDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/testDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/testDebug/shaders [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/features/dynamicfeature2/build [-]
+        JDK                 : <NAME_CUT> Android SDK
+        *isInherited        : false
+            SdkType             : Android SDK
+            HomePath            : <ANDROID_SDK>
+            VersionString       : java version "<JDK_VERSION>"
+        ORDER_ENTRY         : <Module source>
+        ORDER_ENTRY         : app
+    MODULE              : features
+        - ModuleGroupPath   : AS36
+        - ModuleGroupPath   : features
+        ExternalModuleGroup : AS36
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :features
+        LinkedProjectPath   : <PROJECT>/features
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/.idea/modules/features/features.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :features
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     : <PROJECT>/features/build [-]
+        CONENT_ENTRY        : file://<PROJECT>/features
+            EXCLUDE_FOLDER      : file://<PROJECT>/features/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/features/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : java_lib
+        - ModuleGroupPath   : AS36
+        - ModuleGroupPath   : libs
+        - ModuleGroupPath   : java_lib
+        ExternalModuleGroup : AS36.libs
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :libs:java_lib
+        LinkedProjectPath   : <PROJECT>/libs/java_lib
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/.idea/modules/libs/java_lib/java_lib.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :libs:java_lib
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/libs/java_lib/build [-]
+        CONENT_ENTRY        : file://<PROJECT>/libs/java_lib
+            JavaSource          : file://<PROJECT>/libs/java_lib/src/main/java
+            JavaResource        : file://<PROJECT>/libs/java_lib/src/main/resources [-]
+            JavaSource (test)   : file://<PROJECT>/libs/java_lib/src/test/java [-]
+            JavaResource (test) : file://<PROJECT>/libs/java_lib/src/test/resources [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/libs/java_lib/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/libs/java_lib/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : libs
+        - ModuleGroupPath   : AS36
+        - ModuleGroupPath   : libs
+        ExternalModuleGroup : AS36
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :libs
+        LinkedProjectPath   : <PROJECT>/libs
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/.idea/modules/libs/libs.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :libs
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     : <PROJECT>/libs/build [-]
+        CONENT_ENTRY        : file://<PROJECT>/libs
+            EXCLUDE_FOLDER      : file://<PROJECT>/libs/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/libs/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
