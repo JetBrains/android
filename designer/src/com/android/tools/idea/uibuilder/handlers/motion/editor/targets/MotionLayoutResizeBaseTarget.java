@@ -29,7 +29,6 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
@@ -171,7 +170,9 @@ public abstract class MotionLayoutResizeBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+  public void addHit(@NotNull SceneContext transform,
+                     @NotNull ScenePicker picker,
+                     @JdkConstants.InputEventMask int modifiersEx) {
     if (isHittable()) {
       int halfSize = DrawResize.SIZE / 2;
       picker.addRect(this, 0, transform.getSwingXDip(myLeft) - halfSize,

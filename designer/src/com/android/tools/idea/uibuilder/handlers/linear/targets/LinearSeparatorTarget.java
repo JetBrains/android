@@ -29,6 +29,7 @@ import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBColor;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,7 +126,9 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider,
   }
 
   @Override
-  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+  public void addHit(@NotNull SceneContext transform,
+                     @NotNull ScenePicker picker,
+                     @JdkConstants.InputEventMask int modifiersEx) {
     picker.addRect(this, 10,
                    transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
                    transform.getSwingXDip(myRight) + 1, transform.getSwingYDip(myBottom) + 1);

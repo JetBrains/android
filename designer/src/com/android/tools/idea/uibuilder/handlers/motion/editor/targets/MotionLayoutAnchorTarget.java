@@ -70,6 +70,7 @@ import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.PopupMenuEvent;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1001,10 +1002,12 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
   }
 
   @Override
-  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+  public void addHit(@NotNull SceneContext transform,
+                     @NotNull ScenePicker picker,
+                     @JdkConstants.InputEventMask int modifiersEx) {
     if (!myIsEdge || this instanceof MotionLayoutGuidelineAnchorTarget) {
       // This anchor is not the edge of root ConstraintLayout. Consider as normal size.
-      super.addHit(transform, picker);
+      super.addHit(transform, picker, modifiersEx);
       return;
     }
 

@@ -20,7 +20,6 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
 import java.awt.Cursor;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +71,9 @@ public class MotionLayoutGuidelineAnchorTarget extends MotionLayoutAnchorTarget 
   }
 
   @Override
-  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+  public void addHit(@NotNull SceneContext transform,
+                     @NotNull ScenePicker picker,
+                     @JdkConstants.InputEventMask int modifiersEx) {
     picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
                    transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
   }
