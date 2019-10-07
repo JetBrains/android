@@ -62,6 +62,8 @@ import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
@@ -101,6 +103,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JBCheckBox myAppCompatCheck;
   private JBCheckBox myWearCheck;
   private JBCheckBox myTvCheck;
+  private JBLabel myAppCompatHelp;
   private JBLabel myTemplateIconTitle;
   private JBLabel myTemplateIconDetail;
   private JPanel myFormFactorSdkControlsPanel;
@@ -111,6 +114,13 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myProjectModel = projectModel;
     myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myPanel));
+
+    myAppCompatHelp.setIcon(AllIcons.General.ContextHelp);
+    HelpTooltip helpTooltip = new HelpTooltip()
+      .setDescription(message("android.wizard.project.help.appcompat"));
+    helpTooltip.installOn(myAppCompatCheck);
+    helpTooltip.installOn(myAppCompatHelp);
+
     FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
   }
 
