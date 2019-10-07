@@ -18,7 +18,9 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteResultSet
+import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.sqlite.ui.tableView.TableViewListener
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
@@ -36,15 +38,13 @@ import com.intellij.openapi.util.Disposer
 @UiThread
 class ResultSetController(
   parentDisposable: Disposable,
+  private var rowBatchSize: Int = 50,
   private val view: TableView,
   private val tableName: String?,
   private val resultSet: SqliteResultSet,
   private val edtExecutor: FutureCallbackExecutor
 ) : Disposable {
-  /** The number of rows to retrieve per service invocation (to prevent too many round trip per row) */
-  private val rowBatchSize = 50     //TODO(b/131589065)
-  /** The maximum number of rows to retrieve (to prevent unbounded memory/cpu usage) */
-  private val maxRowCount = 1_000   //TODO(b/131589065)
+  private val listener = TableViewListenerImpl()
 
   init {
     Disposer.register(parentDisposable, this)
@@ -52,64 +52,91 @@ class ResultSetController(
   }
 
   fun setUp() {
+    if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+
+    view.addListener(listener)
+
+    view.showRowCount(rowBatchSize)
     view.startTableLoading()
 
     val futureDisplayRows = edtExecutor.transformAsync(resultSet.columns) { columns ->
-      guardDisposed {
-        view.showTableColumns(columns!!)
+      if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+      view.showTableColumns(columns!!)
 
-        // Start fetching rows
-        fetchRows()
-      }
+      fetchNextRows()
     }
 
-    val futureCatching = edtExecutor.catching(futureDisplayRows, Throwable::class.java) { error ->
-      guardDisposed {
-        val message = "Error retrieving rows ${if(tableName != null) "for table \"$tableName\"" else ""}"
-        view.reportError(message, error)
-      }
-    }
+    val futureCatching = handleFetchRowsError(futureDisplayRows)
 
     edtExecutor.finallySync(futureCatching) {
-      guardDisposed {
-        view.stopTableLoading()
-      }
+      if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+      view.stopTableLoading()
     }
   }
 
-  override fun dispose() { }
-
-  private fun fetchRows() : ListenableFuture<Unit> {
-    resultSet.rowBatchSize = rowBatchSize
-    return fetchRowBatch(0)
+  override fun dispose() {
+    view.removeListener(listener)
   }
 
-  private fun fetchRowBatch(currentRowCount: Int) : ListenableFuture<Unit> {
-    return guardDisposedFuture {
-      if (currentRowCount >= maxRowCount) {
-        Futures.immediateFuture(Unit)
-      }
-      else {
-        edtExecutor.transformAsync(resultSet.nextRowBatch()) { rows ->
-          guardDisposed {
-            if (rows!!.isEmpty()) {
-              Futures.immediateFuture(Unit)
-            }
-            else {
-              view.showTableRowBatch(rows)
-              fetchRowBatch(currentRowCount + rows.size)
-            }
-          }
+  private fun fetchNextRows() : ListenableFuture<Unit> {
+    view.removeRows()
+
+    resultSet.rowBatchSize = rowBatchSize
+    val future = fetchRowBatch(0) { resultSet.nextRowBatch() }
+
+    return edtExecutor.transform(future) { hasMoreRows ->
+      if (!hasMoreRows) view.setFetchNextRowsButtonState(false)
+      return@transform
+    }
+  }
+
+  /**
+   * Fetches rows through the [SqliteResultSet].
+   *
+   * The future returned by this function resolves to true if there are more rows to be fetched, false otherwise.
+   */
+  private fun fetchRowBatch(fetchedRowsCount: Int, rowsProvider: () -> ListenableFuture<List<SqliteRow>>) : ListenableFuture<Boolean> {
+    if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+
+    return if (fetchedRowsCount >= rowBatchSize) {
+      Futures.immediateFuture(true)
+    }
+    else {
+      edtExecutor.transformAsync(rowsProvider()) { rows ->
+        if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+        if (rows!!.isEmpty()) {
+          Futures.immediateFuture(false)
+        }
+        else {
+          view.showTableRowBatch(rows)
+          fetchRowBatch(fetchedRowsCount + rows.size, rowsProvider)
         }
       }
     }
   }
 
-  private fun <V> guardDisposed(block: () -> V): V {
-    return if (Disposer.isDisposed(this)) throw ProcessCanceledException() else block.invoke()
+  private fun handleFetchRowsError(future: ListenableFuture<Unit>): ListenableFuture<Any> {
+    return edtExecutor.catching(future, Throwable::class.java) { error ->
+      if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+
+      val message = "Error retrieving rows ${if (tableName != null) "for table \"$tableName\"" else ""}"
+      view.reportError(message, error)
+    }
   }
 
-  private fun <V> guardDisposedFuture(block: () -> ListenableFuture<V>): ListenableFuture<V> {
-    return if (Disposer.isDisposed(this)) throw ProcessCanceledException() else block.invoke()
+  private inner class TableViewListenerImpl : TableViewListener {
+    override fun rowCountChanged(rowCount: Int) {
+      // TODO(next CL) update UI
+      rowBatchSize = rowCount
+    }
+
+    override fun loadPreviousRowsInvoked() {
+      // TODO(next CL)
+    }
+
+    override fun loadNextRowsInvoked() {
+      val future = fetchNextRows()
+      handleFetchRowsError(future)
+    }
   }
 }

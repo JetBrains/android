@@ -29,12 +29,44 @@ interface TableView {
   val component: JComponent
 
   /**
-   * Clears the data from the UI and updates the view.
+   * Removes data for both columns and rows and updates the view.
    */
   fun resetView()
+  /**
+   * Removes data for rows and updates the view.
+   */
+  fun removeRows()
+
+  /**
+   * Updates the UI to show the number of rows loaded per page.
+   */
+  fun showRowCount(maxRowCount: Int)
   fun startTableLoading()
   fun showTableColumns(columns: List<SqliteColumn>)
   fun showTableRowBatch(rows: List<SqliteRow>)
   fun stopTableLoading()
   fun reportError(message: String, t: Throwable)
+
+  /**
+   * Enables or disables the button to fetch the previous page of rows.
+   */
+  fun setFetchPreviousRowsButtonState(enable: Boolean)
+
+  /**
+   * Enables or disables the button to fetch the next page of rows.
+   */
+  fun setFetchNextRowsButtonState(enable: Boolean)
+
+  fun addListener(listener: TableViewListener)
+  fun removeListener(listener: TableViewListener)
+}
+
+interface TableViewListener {
+  fun loadPreviousRowsInvoked()
+  fun loadNextRowsInvoked()
+
+  /**
+   * Invoked when the user changes the number of rows to display per page.
+   */
+  fun rowCountChanged(rowCount: Int)
 }

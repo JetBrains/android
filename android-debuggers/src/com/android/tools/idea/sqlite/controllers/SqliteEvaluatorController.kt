@@ -113,9 +113,11 @@ class SqliteEvaluatorController(
         if (sqliteResultSet == null) return
 
         currentQueryResultSetController = ResultSetController(
-          this@SqliteEvaluatorController,
-          view.tableView, null, sqliteResultSet,
-          edtExecutor
+          parentDisposable = this@SqliteEvaluatorController,
+          view = view.tableView,
+          tableName = null,
+          resultSet = sqliteResultSet,
+          edtExecutor = edtExecutor
         ).also { it.setUp() }
         currentQueryResultSetController
       }

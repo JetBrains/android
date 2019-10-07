@@ -257,9 +257,11 @@ class SqliteController(
             sqliteView.displayResultSet(tableId, table.name, tableView.component)
 
             val resultSetController = ResultSetController(
-              this@SqliteController,
-              tableView, table.name, sqliteResultSet,
-              edtExecutor
+              parentDisposable = this@SqliteController,
+              view = tableView,
+              tableName = table.name,
+              resultSet = sqliteResultSet,
+              edtExecutor = edtExecutor
             ).also { it.setUp() }
 
             resultSetControllers[tableId] = resultSetController
