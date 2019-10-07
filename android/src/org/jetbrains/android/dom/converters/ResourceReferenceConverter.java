@@ -80,6 +80,7 @@ import java.util.regex.Pattern;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.drawable.DrawableStateListItem;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
@@ -384,6 +385,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
     else if (types.contains(ResourceType.DRAWABLE)) {
       types.add(ResourceType.COLOR);
+      if (element.getParent() instanceof DrawableStateListItem) {
+        types.add(ResourceType.MIPMAP);
+      }
     }
     if (TOOLS_URI.equals(element.getXmlElementNamespace())) {
       // For tools: attributes, we also add the mock types
