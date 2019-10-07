@@ -114,7 +114,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
         PsProductFlavor.ProductFlavorDescriptors.getParsed(productFlavor)?.targetSdkVersion()?.valueType,
         equalTo(GradlePropertyModel.ValueType.INTEGER))
       assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("20"))
-      // TODO(b/71988818) assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("19"))
+      assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("20"))
 
       assertThat(testApplicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))
@@ -329,7 +329,6 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(
         signingConfig.parsedValue,
         equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.myConfig")).annotated()))
-      // TODO(b/71988818)
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
       assertThat(matchingFallbacks.parsedValue.asTestValue(), equalTo(listOf("free")))
@@ -351,7 +350,6 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
         assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(minSdkVersion.resolved.asTestValue()))
         assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))
         // TODO(b/79142681) signingConfig resolved value is always null.
-        // TODO(b/71988818)
         assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(targetSdkVersion.resolved.asTestValue()))
         assertThat(testApplicationId.parsedValue.asTestValue(), equalTo(testApplicationId.resolved.asTestValue()))
         // Note: Resolved values of matchingFallbacks property are not available.
