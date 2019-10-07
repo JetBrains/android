@@ -18,11 +18,10 @@ package org.jetbrains.kotlin.android.intention
 
 import com.android.SdkConstants
 import org.jetbrains.android.dom.manifest.Manifest
-import org.jetbrains.kotlin.android.isSubclassOf
+import com.android.tools.idea.kotlin.isSubclassOf
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.asJava.toLightClass
 
