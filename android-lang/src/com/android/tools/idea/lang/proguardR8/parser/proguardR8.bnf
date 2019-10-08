@@ -75,7 +75,10 @@ flag_argument ::= file_list ('(' file_filter ')')?
 
 keep_option_modifier ::= includedescriptorclasses|includecode|allowshrinking|allowoptimization|allowobfuscation
 
-private java_identifier_ ::= JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK
+private java_keywords_ ::= interface|class|enum|public|final|abstract|static|volatile|transient|synchronized|native|strictfp|boolean|byte|
+  char|short|int|long|float|double|void|extends|implements|private|protected
+
+private java_identifier_ ::= (JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK|java_keywords_)
 
 qualifiedName ::= java_identifier_ ("." java_identifier_)* {
   methods=[getReferences resolveToPsiClass]
@@ -93,7 +96,7 @@ java_primitive ::= boolean|byte|char|short|int|long|float|double|void {
 }
 any_type ::= ANY_TYPE_
 any_primitive_type ::=ANY_PRIMITIVE_TYPE_
-type ::= any_type|any_primitive_type|((qualifiedName|java_primitive) "[]"?) {
+type ::= any_type|any_primitive_type|((java_primitive|qualifiedName) "[]"?) {
   methods=[matchesPsiType isArray]
 }
 
@@ -121,7 +124,7 @@ class_specification_header ::= annotation_name? class_modifier* class_type class
   }
   without !'.' 'not' will be parsed as class_member_name
  */
-private class_member_core ::= ((type class_member_name) | class_member_name) !'.'
+private class_member_core ::= ((type class_member_name) | class_member_name !(java_identifier_|<fields>|<methods>)) !'.'
 access_modifier ::= "!"? (public|private|protected) {
   methods=[isNegated toPsiModifier]
 }
