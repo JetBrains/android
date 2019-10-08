@@ -144,9 +144,11 @@ public class DeploymentTest {
     IdeFrameFixture ideFrameFixture = myGuiTest.ideFrame();
     List<DeviceState> deviceStates = myAdbServer.getDeviceListCopy().get();
     List<DeviceBinder> deviceBinders = new ArrayList<>(deviceStates.size());
-    DeviceSelectorFixture deviceSelector = new DeviceSelectorFixture(myGuiTest.robot());
+    DeviceSelectorFixture deviceSelector = new DeviceSelectorFixture(myGuiTest.robot(), ideFrameFixture);
     for (DeviceState state : deviceStates) {
-      deviceBinders.add(new DeviceBinder(state));
+      DeviceBinder binder = new DeviceBinder(state);
+      deviceBinders.add(binder);
+      deviceSelector.selectDevice(binder.getIDevice()); // Ensure that the combo box has the device.
     }
 
     for (DeviceBinder deviceBinder : deviceBinders) {
