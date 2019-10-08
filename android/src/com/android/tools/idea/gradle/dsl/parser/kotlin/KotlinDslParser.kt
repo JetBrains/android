@@ -588,14 +588,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // Ex: extra["COMPILE_SDK_VERSION"]
       is KtArrayAccessExpression -> GradleDslLiteral(
         parentElement, psiElement, propertyName, propertyExpression, true)
-      // Ex: extra["COMPILE_SDK_VERSION"]!!
-      is KtPostfixExpression -> GradleDslLiteral(
-        parentElement, psiElement, propertyName, propertyExpression.baseExpression as PsiElement, true
-      )
-      // Ex: extra["foo"] as Boolean
-      is KtBinaryExpressionWithTypeRHS -> GradleDslLiteral(
-        parentElement, psiElement, propertyName, propertyExpression.left as PsiElement, true
-      )
+      // Ex: extra["COMPILE_SDK_VERSION"]!!, false!!
+      is KtPostfixExpression -> getExpressionElement(parentElement, psiElement, propertyName, propertyExpression.baseExpression!!)
+      // Ex: extra["foo"] as Boolean, false as Boolean
+      is KtBinaryExpressionWithTypeRHS -> getExpressionElement(parentElement, psiElement, propertyName, propertyExpression.left)
       else -> {
         // The expression is not supported.
         parentElement.notification(NotificationTypeReference.INCOMPLETE_PARSING).addUnknownElement(propertyExpression)
