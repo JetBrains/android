@@ -370,7 +370,7 @@ public abstract class IconGenerator implements Disposable {
         icons.add(future.get());
       }
       catch (InterruptedException | ExecutionException e) {
-        taskCanceler.dispose();
+        Disposer.dispose(taskCanceler);
       }
     }
 
