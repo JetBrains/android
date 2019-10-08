@@ -814,6 +814,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_GUTTER_ICON_COLOR = Flag.create(
+    COMPOSE, "completion.gutter.icon.color",
+    "Show color icon in the gutter when declaring colors",
+    "If enabled, in the editor, a color icon will be shown matching the color described.",
+    true
+  );
+
   //endregion
 
   //region Binding

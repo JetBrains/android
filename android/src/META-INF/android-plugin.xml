@@ -562,6 +562,7 @@
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidModuleToJavaModuleConverterProvider"/>
     <project.converterProvider implementation="org.jetbrains.android.converter.AndroidProguardOptionsConverterProvider"/>
     <externalAnnotator language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaResourceExternalAnnotator"/>
+    <annotator language="kotlin" implementationClass="org.jetbrains.android.ComposeColorAnnotator"/>
 
     <facet.toolWindow id="Logcat"
                       facetIdList="android,apk"
