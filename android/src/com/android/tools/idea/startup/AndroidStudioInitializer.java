@@ -17,6 +17,7 @@ package com.android.tools.idea.startup;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.Actions.hideAction;
+import static com.android.tools.idea.startup.Actions.hideProgrammaticallyAddedAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE_PROJECT;
@@ -43,6 +44,7 @@ import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.ide.ui.customization.CustomActionsSchema;
 import com.intellij.internal.statistic.persistence.UsageStatisticsPersistenceComponent;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -270,6 +272,13 @@ public class AndroidStudioInitializer implements Runnable {
   private static void hideRarelyUsedIntellijActions() {
     // Hide the Save File as Template action due to its rare use in Studio.
     hideAction("SaveFileAsTemplate");
+
+    // Hide the Run with Coverage action (from "MainToolBar", "NavBarToolBar") due to its rare use in Studio.
+    hideProgrammaticallyAddedAction(
+      CustomActionsSchema.getInstance(), "Coverage", 4, "root", "Main Toolbar", "Toolbar Run Actions", "Run/Debug");
+
+    // Hide the Run Anything action due to its rare use in Studio.
+    hideAction("RunAnything");
   }
 
   private static void renameSynchronizeAction() {

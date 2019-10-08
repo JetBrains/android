@@ -15,11 +15,53 @@
  */
 package com.android.tools.idea.startup;
 
-import com.intellij.openapi.actionSystem.*;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.ui.customization.ActionUrl;
+import com.intellij.ide.ui.customization.CustomActionsSchema;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.Constraints;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.EmptyAction;
+import com.intellij.openapi.util.Pair;
+import java.util.ArrayList;
+import java.util.Arrays;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class Actions {
   private Actions() {
+  }
+
+  public static void hideProgrammaticallyAddedAction(
+    @NotNull CustomActionsSchema schema, @NotNull String actionId, int absolutePosition, @NotNull String... groupPaths) {
+    ActionUrl actionUrl = createActionUrl(actionId, null, ActionUrl.DELETED, absolutePosition, groupPaths);
+    if (!schema.getActions().contains(actionUrl)) {
+      schema.addAction(actionUrl);
+    }
+  }
+
+  @NotNull
+  @VisibleForTesting
+  static ActionUrl createActionUrl(
+    @NotNull String actionId, @Nullable Icon actionIcon, int actionType, int absolutePosition, @NotNull String[] groupPaths) {
+    // For a list of types that the component property of ActionUrl can hold, please refer to MyTreeCellRenderer#customizeCellRenderer in
+    // CustomizableActionsPanel.java.
+    Object component;
+    if (actionIcon == null) {
+      component = actionId;
+    }
+    else {
+      component = Pair.create(actionId, actionIcon);
+    }
+
+    ActionUrl actionUrl = new ActionUrl();
+    actionUrl.setComponent(component);
+    actionUrl.setActionType(actionType);
+    actionUrl.setGroupPath(new ArrayList<>(Arrays.asList(groupPaths)));
+    actionUrl.setAbsolutePosition(absolutePosition);
+    return actionUrl;
   }
 
   public static void hideAction(@NotNull String actionId) {
