@@ -50,7 +50,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     doTestDescriptor()
   }
 
-  fun testDescriptorKt() {
+  fun testDescriptorKotlin() {
     loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
     doTestDescriptor()
   }
@@ -171,7 +171,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     doTestProperties()
   }
 
-  fun testPropertiesKt() {
+  fun testPropertiesKotlin() {
     loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
     doTestProperties()
   }
