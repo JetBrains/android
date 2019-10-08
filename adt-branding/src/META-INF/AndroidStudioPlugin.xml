@@ -2,6 +2,7 @@
   <module value="com.intellij.modules.androidstudio"/>
   <module value="com.intellij.modules.java-capable"/>
   <module value="com.intellij.modules.android-capable"/>
+  <module value="com.intellij.modules.python-core-capable"/>
 
   <xi:include href="/META-INF/JavaIdePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
