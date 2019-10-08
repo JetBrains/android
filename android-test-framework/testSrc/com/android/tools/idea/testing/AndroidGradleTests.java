@@ -21,7 +21,9 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
+import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.write;
@@ -415,5 +417,16 @@ public class AndroidGradleTests {
         !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
       TestCase.fail(cause);
     }
+  }
+
+  public static void defaultPatchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion,
+                                                 @Nullable String gradlePluginVersion) throws IOException {
+    // Override settings just for tests (e.g. sdk.dir)
+    updateLocalProperties(projectRoot, getSdk());
+    // We need the wrapper for import to succeed
+    createGradleWrapper(projectRoot, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
+
+    // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
+    updateGradleVersions(projectRoot, gradlePluginVersion);
   }
 }

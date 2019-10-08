@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -38,7 +39,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
   private var patchProject: ((VirtualFile) -> Unit)? = null
 
   override fun patchPreparedProject(projectRoot: File, gradleVersion: String?, graldePluginVersion: String?) {
-    defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion)
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion)
     synchronizeTempDirVfs(project.baseDir)
     patchProject?.run {
       ApplicationManager.getApplication().runWriteAction {

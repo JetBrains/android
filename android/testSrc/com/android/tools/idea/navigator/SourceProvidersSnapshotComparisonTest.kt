@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator
 
 import com.android.builder.model.SourceProvider
+import com.android.testutils.TestUtils
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
@@ -82,7 +83,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
 
     AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
       // Override settings just for tests (e.g. sdk.dir)
-      AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath())
+      AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
     }
 
     val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
