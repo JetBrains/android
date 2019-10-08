@@ -22,7 +22,6 @@ import com.android.tools.idea.databinding.index.BindingXmlData
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
@@ -31,6 +30,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.IncorrectOperationException
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -63,7 +63,7 @@ class BindingLayout private constructor(
      * in production, so the following plays it safe to avoid crashing. See: b/140308533
      */
     fun tryCreate(facet: AndroidFacet, resource: ResourceItem): BindingLayout? {
-      val modulePackage = MergedManifestManager.getSnapshot(facet).getPackage() ?: return null
+      val modulePackage = getPackageName(facet) ?: return null
       val file = resource.getSourceAsVirtualFile() ?: return null
       val data = BindingXmlIndex.getDataForFile(facet.module.project, file) ?: return null
       if (data.viewBindingIgnore || (data.layoutType == BindingLayoutType.PLAIN_LAYOUT && !facet.isViewBindingEnabled())) return null
