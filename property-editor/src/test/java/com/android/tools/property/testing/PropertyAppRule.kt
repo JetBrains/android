@@ -29,8 +29,13 @@ class PropertyAppRule : ApplicationRule() {
    */
   override fun before() {
     super.before()
-    testApplication.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock())
-    testApplication.registerServiceInstance(ActionManager::class.java, mock(ActionManager::class.java))
-    testApplication.registerService(UISettings::class.java, UISettings())
+    try {
+      testApplication.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock())
+      testApplication.registerServiceInstance(ActionManager::class.java, mock(ActionManager::class.java))
+      testApplication.registerService(UISettings::class.java, UISettings())
+    } catch (e: Exception) {
+      super.after()
+      throw e
+    }
   }
 }
