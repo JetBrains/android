@@ -295,7 +295,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       // do not be fooled by the literal 9 in psdSample/app/build.gradle: it gets overwritten on project setup
       // (see AndroidGradleTests.updateMinSdkVersion)
       checkPreferredName(minSdkVersion, "defaultMinSdkVersion", SdkVersionInfo.LOWEST_ACTIVE_API.toString())
-      checkPreferredName(targetSdkVersion, "defaultTargetSdkVersion", "19")
+      checkPreferredName(targetSdkVersion, "defaultTargetSdkVersion", SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
     }
     run {
       val paidProductFlavor = appModule.productFlavors.find { it.name == "paid" }!!

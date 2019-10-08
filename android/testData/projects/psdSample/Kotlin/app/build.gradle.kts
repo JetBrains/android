@@ -76,7 +76,7 @@ android {
         }
         create("bar") {
             setDimension("bar")
-            setApplicationIdSuffix("barSuffix")
+            applicationIdSuffix = "barSuffix"
         }
         create("otherBar") {
             setDimension("bar")
