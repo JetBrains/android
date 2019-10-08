@@ -96,7 +96,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
@@ -689,18 +688,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public DialogFixture waitForDialog(@NotNull String title, long secondsToWait) {
     return new DialogFixture(robot(), GuiTests.waitUntilShowing(robot(), null, Matchers.byTitle(JDialog.class, title), secondsToWait));
-  }
-
-  @NotNull
-  public IdeFrameFixture setGradleJvmArgs(@NotNull String jvmArgs) {
-    Project project = getProject();
-
-    GradleSettings settings = GradleSettings.getInstance(project);
-    settings.setGradleVmOptions(jvmArgs);
-
-    Wait.seconds(1).expecting("Gradle settings to be set").until(() -> jvmArgs.equals(settings.getGradleVmOptions()));
-
-    return this;
   }
 
   @NotNull
