@@ -17,8 +17,8 @@ package com.android.tools.idea.ui.resourcemanager
 
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_URL_FLAVOR
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_URL_FLAVOR
 import com.android.tools.idea.ui.resourcemanager.model.ResourcePasteProvider
 import com.google.common.truth.Truth
 import com.intellij.mock.MockVirtualFileSystem
@@ -200,6 +200,37 @@ internal class ResourcePasteProviderTest {
                android:layout_height="wrap_content"
                android:src="@namespace:drawable/my_resource" />
        </Tag2>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/resource3" />
+    </Tag1>
+    """.trimIndent())
+
+    runInEdtAndWait { editor.caretModel.moveToOffset(tagIndex2) }
+
+    resourcePasteProvider.paste(createDataContext(editor, psiFile, ResourceUrl.parse("@layout/my_layout")!!))
+
+    Truth.assertThat(editor.document.text).isEqualTo("""
+    <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
+       <Tag2>
+
+           <ImageView
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:src="@drawable/resource2" />
+
+           <ImageView
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:src="@namespace:drawable/my_resource" />
+       </Tag2>
+
+        <include
+            layout="@layout/my_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
         <ImageView
             android:layout_width="wrap_content"
