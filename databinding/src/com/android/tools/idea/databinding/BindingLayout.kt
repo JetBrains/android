@@ -17,9 +17,11 @@ package com.android.tools.idea.databinding
 
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.databinding.BindingLayout.Companion.tryCreate
+import com.android.tools.idea.databinding.index.BindingLayoutType
 import com.android.tools.idea.databinding.index.BindingXmlData
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
@@ -54,15 +56,17 @@ class BindingLayout private constructor(
   companion object {
     /**
      * Tries to create a [BindingLayout] instance corresponding to a target resource file,
-     * returning null if unable to do so.
+     * returning null if unable to do so or if the target layout should not have a binding created
+     * for it.
      *
-     * Most logic in here is not expected to return null, but it has been reported in production,
-     * so the following plays it safe to avoid crashing. See: b/140308533
+     * Most initialization logic in here is not expected to return null, but it has been reported
+     * in production, so the following plays it safe to avoid crashing. See: b/140308533
      */
     fun tryCreate(facet: AndroidFacet, resource: ResourceItem): BindingLayout? {
       val modulePackage = MergedManifestManager.getSnapshot(facet).getPackage() ?: return null
       val file = resource.getSourceAsVirtualFile() ?: return null
       val data = BindingXmlIndex.getDataForFile(facet.module.project, file) ?: return null
+      if (data.viewBindingIgnore || (data.layoutType == BindingLayoutType.PLAIN_LAYOUT && !facet.isViewBindingEnabled())) return null
       return BindingLayout(facet, modulePackage, file, data, resource)
     }
   }
