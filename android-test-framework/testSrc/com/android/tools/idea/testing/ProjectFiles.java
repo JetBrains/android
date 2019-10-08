@@ -15,14 +15,28 @@
  */
 package com.android.tools.idea.testing;
 
+import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.module.EmptyModuleType;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import org.jetbrains.annotations.SystemIndependent;
 
+import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.junit.Assert.assertNotNull;
 
 public final class ProjectFiles {
@@ -62,5 +76,35 @@ public final class ProjectFiles {
     });
     assertNotNull(file);
     return file;
+  }
+
+  @NotNull
+  public static Module createModule(@NotNull Project project, @NotNull String name) {
+    @SystemIndependent String projectRootFolder = project.getBasePath();
+    File moduleFile = new File(toSystemDependentName(projectRootFolder), name + ModuleFileType.DOT_DEFAULT_EXTENSION);
+    createIfDoesntExist(moduleFile);
+
+    VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
+    return createModule(project, virtualFile, EmptyModuleType.getInstance());
+  }
+
+  @NotNull
+  public static Module createModule(@NotNull Project project, @NotNull File modulePath, @NotNull ModuleType<?> type) {
+    VirtualFile moduleFolder = findFileByIoFile(modulePath, true);
+    TestCase.assertNotNull(moduleFolder);
+    return createModule(project, moduleFolder, type);
+  }
+
+  @NotNull
+  private static Module createModule(@NotNull Project project, @NotNull VirtualFile file, @NotNull ModuleType<?> type) {
+    return new WriteAction<Module>() {
+      @Override
+      protected void run(@NotNull Result<Module> result) {
+        ModuleManager moduleManager = ModuleManager.getInstance(project);
+        Module module = moduleManager.newModule(file.getPath(), type.getId());
+        module.getModuleFile();
+        result.setResult(module);
+      }
+    }.execute().getResultObject();
   }
 }
