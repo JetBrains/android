@@ -236,16 +236,16 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     loadProject(SIMPLE_APPLICATION);
   }
 
-  protected void loadProject(@NotNull String relativePath) throws Exception {
+  protected final void loadProject(@NotNull String relativePath) throws Exception {
     loadProject(relativePath, null);
   }
 
-  protected void loadProject(@NotNull String relativePath,
+  protected final void loadProject(@NotNull String relativePath,
                              @Nullable String chosenModuleName) throws Exception {
     loadProject(relativePath, chosenModuleName, null, null);
   }
 
-  protected void loadProject(@NotNull String relativePath,
+  protected final void loadProject(@NotNull String relativePath,
                              @Nullable String chosenModuleName,
                              @Nullable String gradleVersion,
                              @Nullable String gradlePluginVersion) throws Exception {
