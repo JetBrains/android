@@ -72,16 +72,7 @@ public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
   }
 
   public void testErrorIfGradlePluginVersionIsOutdated() throws Exception {
-    File projectSourceRoot = resolveTestDataPath(SIMPLE_APPLICATION_PRE30);
-    File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
-
-    AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectRoot, root -> {
-      AndroidGradleTests.updateLocalProperties(projectRoot, getSdk());
-      AndroidGradleTests.createGradleWrapper(projectRoot, "4.5");
-      AndroidGradleTests.updateGradleVersions(root, "3.0.0");
-    });
-    importProject();
-    prepareProjectForTest(getProject(), "app");
+    loadProject(SIMPLE_APPLICATION_PRE30, "app", "4.5", "3.0.0");
 
     // Verifies there is a validation error (since bundle tasks are not available)
     myRunConfiguration.DEPLOY = true;
