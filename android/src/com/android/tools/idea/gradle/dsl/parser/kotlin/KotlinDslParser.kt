@@ -52,6 +52,7 @@ import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClassLiteralExpression
@@ -590,6 +591,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // Ex: extra["COMPILE_SDK_VERSION"]!!
       is KtPostfixExpression -> GradleDslLiteral(
         parentElement, psiElement, propertyName, propertyExpression.baseExpression as PsiElement, true
+      )
+      // Ex: extra["foo"] as Boolean
+      is KtBinaryExpressionWithTypeRHS -> GradleDslLiteral(
+        parentElement, psiElement, propertyName, propertyExpression.left as PsiElement, true
       )
       else -> {
         // The expression is not supported.
