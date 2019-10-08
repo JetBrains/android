@@ -751,4 +751,50 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       )
     )
   }
+
+  fun testClassPathWithKeyWord() {
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+            PsiElement(FLAG)('-keep')
+            ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+              ProguardR8ClassTypeImpl(CLASS_TYPE)
+                PsiElement(class)('class')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(class)('class')
+                  PsiElement(dot)('.')
+                  PsiElement(interface)('interface')
+                  PsiElement(dot)('.')
+                  PsiElement(JAVA_IDENTIFIER)('myClass')
+            ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+              PsiElement(opening brace)('{')
+              ProguardR8JavaRuleImpl(JAVA_RULE)
+                ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
+                  ProguardR8FullyQualifiedNameConstructorImpl(FULLY_QUALIFIED_NAME_CONSTRUCTOR)
+                    ProguardR8ConstructorNameImpl(CONSTRUCTOR_NAME)
+                      ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                        PsiElement(void)('void')
+                        PsiElement(dot)('.')
+                        PsiElement(int)('int')
+                        PsiElement(dot)('.')
+                        PsiElement(JAVA_IDENTIFIER)('myClass')
+                    ProguardR8ParametersImpl(PARAMETERS)
+                      PsiElement(left parenthesis)('(')
+                      ProguardR8TypeListImpl(TYPE_LIST)
+                        <empty list>
+                      PsiElement(right parenthesis)(')')
+              PsiElement(semicolon)(';')
+              PsiElement(closing brace)('}')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        -keep class class.interface.myClass {
+            void.int.myClass();
+          }
+        """.trimIndent()
+      )
+    )
+  }
 }
