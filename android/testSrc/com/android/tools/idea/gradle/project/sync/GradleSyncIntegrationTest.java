@@ -463,26 +463,19 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertThat(sourceFolderPaths).isNotEmpty();
   }
 
-  public void testGradleSyncActionAfterFailedSync() {
-    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
-    when(ideInfo.isAndroidStudio()).thenReturn(true);
+  public void testGradleSyncActionAfterFailedSync() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
+
+    File appBuildFile = getBuildFilePath("app");
+    appendToFile(appBuildFile, "**error***");
+    requestSyncAndGetExpectedFailure();
 
     SyncProjectAction action = new SyncProjectAction();
-
     Presentation presentation = new Presentation();
     presentation.setEnabledAndVisible(false);
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getPresentation()).thenReturn(presentation);
     when(event.getProject()).thenReturn(getProject());
-
-    assertFalse(GradleProjectInfo.getInstance(getProject()).isBuildWithGradle());
-    action.update(event);
-    assertFalse(presentation.isEnabledAndVisible());
-
-    Module app = createModule("app");
-    createAndAddGradleFacet(app);
-
-    assertTrue(GradleProjectInfo.getInstance(getProject()).isBuildWithGradle());
     action.update(event);
     assertTrue(presentation.isEnabledAndVisible());
   }
