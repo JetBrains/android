@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRo
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.ProjectFiles;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -86,7 +87,7 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
   }
 
   public void testImportDataWithoutModels() {
-    Module appModule = createModule("app");
+    Module appModule = ProjectFiles.createModule(getProject(), "app");
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
 
     myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
@@ -94,7 +95,7 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
   }
 
   public void testOnModelsNotFound() {
-    Module appModule = createModule("app");
+    Module appModule = ProjectFiles.createModule(getProject(), "app");
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     myService.onModelsNotFound(modelsProvider);
     verify(myCleanupStep).cleanUpModule(appModule, modelsProvider);
