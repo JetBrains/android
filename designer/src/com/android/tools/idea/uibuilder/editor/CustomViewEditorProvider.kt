@@ -246,7 +246,7 @@ private class CustomViewPreviewActionManager(
       })
     }
 
-    val wrapWidth = object : ToggleAction(null, null, WRAP_WIDTH) {
+    val wrapWidth = object : ToggleAction(null, "Set preview width to wrap content", WRAP_WIDTH) {
       override fun isSelected(e: AnActionEvent) = previewEditor.shrinkWidth
 
       override fun setSelected(e: AnActionEvent, state: Boolean) {
@@ -254,7 +254,7 @@ private class CustomViewPreviewActionManager(
       }
     }
 
-    val wrapHeight = object : ToggleAction(null, null, WRAP_HEIGHT) {
+    val wrapHeight = object : ToggleAction(null, "Set preview height to wrap content", WRAP_HEIGHT) {
       override fun isSelected(e: AnActionEvent) = previewEditor.shrinkHeight
 
       override fun setSelected(e: AnActionEvent, state: Boolean) {
