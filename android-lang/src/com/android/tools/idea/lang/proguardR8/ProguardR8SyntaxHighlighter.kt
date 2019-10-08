@@ -82,7 +82,7 @@ val PATHS = TokenSet.create(FILE_NAME, FILE_NAME_SINGLE_QUOTED, FILE_NAME_DOUBLE
 
 val METHOD_FIELD_WILDCARDS = TokenSet.create(_INIT_, _CLINIT_, _FIELDS_, _METHODS_)
 
-private enum class ProguardR8TextAttributes(fallback: TextAttributesKey) {
+enum class ProguardR8TextAttributes(fallback: TextAttributesKey) {
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
   KEYWORD(DefaultLanguageHighlighterColors.KEYWORD),
   PARAMETER(DefaultLanguageHighlighterColors.INSTANCE_FIELD),
@@ -113,7 +113,6 @@ class ProguardR8SyntaxHighlighter : SyntaxHighlighterBase() {
     when (tokenType) {
       LINE_CMT -> return ProguardR8TextAttributes.LINE_COMMENT.keys
       TokenType.BAD_CHARACTER -> return ProguardR8TextAttributes.BAD_CHARACTER.keys
-      in JAVA_KEY_WORDS, in JAVA_PRIMITIVE -> return ProguardR8TextAttributes.KEYWORD.keys
       in JAVA_IDENTIFIER_TOKENS -> return ProguardR8TextAttributes.IDENTIFIER.keys
       in METHOD_FIELD_WILDCARDS -> return ProguardR8TextAttributes.METHOD_FIELD_WILDCARDS.keys
       in PATHS -> return ProguardR8TextAttributes.STRING.keys
