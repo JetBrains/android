@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.impl.model.InspectorPanelModel
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPaneUtil
@@ -45,7 +46,7 @@ typealias ComponentBounds = com.intellij.openapi.util.Pair<Component, Rectangle>
  * Implementation of [InspectorPanel].
  */
 class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Disposable) :
-  AdtSecondaryPanel(InspectorLayoutManager()), Disposable, ValueChangedListener {
+  AdtSecondaryPanel(InspectorLayoutManager()), Disposable, ValueChangedListener, DataProvider {
 
   private val expandableLabelHandler = ExpandableLabelHandler(this)
 
@@ -54,6 +55,8 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
     border = JBUI.Borders.empty()
     model.addValueChangedListener(this)
   }
+
+  override fun getData(dataId: String) = model.dataProviderDelegate?.getData(dataId)
 
   override fun addNotify() {
     super.addNotify()

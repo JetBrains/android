@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.TableLineModel
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.psi.codeStyle.NameUtil
 
 /**
@@ -30,8 +31,11 @@ import com.intellij.psi.codeStyle.NameUtil
  */
 class InspectorPanelModel {
   private var listeners = mutableListOf<ValueChangedListener>()
+
   @VisibleForTesting
   val lines = mutableListOf<InspectorLineModel>()
+
+  var dataProviderDelegate: DataProvider? = null
 
   var filter: String = ""
     set(value) {

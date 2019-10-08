@@ -31,7 +31,6 @@ import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
-import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
@@ -43,6 +42,8 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -67,7 +68,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * This provides the main MotionEditor Panel and interfaces it with the rest of the system.
  */
-public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayoutInterface, MotionDesignSurfaceEdits {
+public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayoutInterface, MotionDesignSurfaceEdits, DataProvider {
   private static final boolean DEBUG = false;
   private static final boolean TEMP_HACK_FORCE_APPLY = false;
   private final Project myProject;
@@ -81,6 +82,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   MotionEditor mMotionEditor = new MotionEditor();
   public static final String TIMELINE = "Timeline";
   private SmartPsiElementPointer<XmlTag> mSelectedConstraintTag;
+  private MotionFileEditor myFileEditor;
 
   MotionLayoutComponentHelper myMotionHelper;
   private String mSelectedStartConstraintId;
@@ -255,6 +257,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     MotionScenePair motionScene = getMotionScene(myMotionLayoutNlComponent);
     myMotionScene = motionScene.myMotionSceneTag;
     myMotionSceneFile = motionScene.myFile;
+    myFileEditor = new MotionFileEditor(mMotionEditor, myMotionSceneFile);
     mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
     MTag[] cSet = myMotionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET);
     if (DEBUG) {
@@ -276,11 +279,20 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         MotionScenePair motionScene = getMotionScene(myMotionLayoutNlComponent);
         myMotionScene = motionScene.myMotionSceneTag;
         myMotionSceneFile = motionScene.myFile;
+        myFileEditor = new MotionFileEditor(mMotionEditor, myMotionSceneFile);
         mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
         fireSelectionChanged(Collections.singletonList(mySelection));
       }
     }, facet, myMotionSceneFile, null);
     handleSelectionChanged(designSurfaceSelection, dsSelection);
+  }
+
+  @Override
+  public Object getData(@NotNull String dataId) {
+    if (PlatformDataKeys.FILE_EDITOR.is(dataId)) {
+      return myFileEditor;
+    }
+    return null;
   }
 
   @NotNull
