@@ -29,7 +29,7 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tests for {@link Jdks}.
  */
-public class JdksTest extends IdeaTestCase {
+public class JdksTest extends JavaProjectTestCase {
   private IdeSdks mySpyIdeSdks;
   private EmbeddedDistributionPaths mySpyEmbeddedDistributionPaths;
 
