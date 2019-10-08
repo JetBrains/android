@@ -147,10 +147,13 @@ public class IconPickerDialogTest extends PlatformTestCase {
         try {
           PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
         }
-        catch (InterruptedException e) {
+        catch (InterruptedException ignored) {
         }
         JTable table = UIUtil.findComponentOfType(pickerPanel, JTable.class);
-        return table != null && table.getValueAt(0, 0) != null;
+        JComboBox box = UIUtil.findComponentOfType(pickerPanel, JComboBox.class);
+        boolean populatedTable = table != null && table.getValueAt(0, 0) != null;
+        boolean populatedComboBox = box != null && box.isEnabled() && box.getItemCount() >= 1;
+        return populatedComboBox && populatedTable;
       }
     };
     assertTrue(wait.isConditionRealized());

@@ -37,85 +37,84 @@ class MaterialVdIconsLoader(
   private val urlProvider: MaterialIconsUrlProvider = MaterialIconsUrlProviderImpl()
 ) {
 
+  private val styleCategoryToSortedIcons: HashMap<String, Map<String, Array<VdIcon>>> = HashMap()
+  private val styleToSortedIcons = HashMap<String, Array<VdIcon>>()
+
+  // Helper map to quickly verify the icon file exists in the metadata and get the icon's metadata.
+  private val iconNameToIconMetadata = HashMap<String, MaterialMetadataIcon>().apply {
+    metadata.icons.forEach { iconMetadata ->
+      this[iconMetadata.name] = iconMetadata
+    }
+  }
+
   /**
-   * Based on the given [MaterialIconsMetadata], gets the [VdIcon]s bundled with Android Studio.
+   * Loads the icons bundled with AndroidStudio that correspond to the given [style], returns an updated [MaterialVdIcons].
    *
-   * TODO: Return/load & update icons by style, instead of loading them all in one call.
+   * Every call to this method will update the backing model of all the icons loaded by this instance, so the returned [MaterialVdIcons]
+   * will also include icons loaded in previous calls.
    */
   @Slow
-  fun getMaterialVdIcons(): MaterialVdIcons {
-    val styles = metadata.families
-    val styleCategoryToSortedIcons: HashMap<String, Map<String, Array<VdIcon>>> = HashMap()
-    val styleToSortedIcons = HashMap<String, Array<VdIcon>>()
-
-    // Helper map to quickly verify the icon file exists in the metadata and get the icon's metadata.
-    val iconNameToIconMetadata = HashMap<String, MaterialMetadataIcon>()
-    metadata.icons.forEach { iconMetadata ->
-      iconNameToIconMetadata[iconMetadata.name] = iconMetadata
-    }
+  fun loadMaterialVdIcons(style: String): MaterialVdIcons {
+    require(metadata.families.contains(style)) { "Style: $style not part of the metadata." }
 
     val styleToIcons: MultiMap<String, VdIcon> = MultiMap()
-    styles.forEach { style ->
-      // Map where the categories are extracted from existing icon's metadata and mapped to their files.
-      val categoriesToIcons: MultiMap<String, VdIcon> = MultiMap()
+    // Map where the categories are extracted from existing icon's metadata and mapped to their files.
+    val categoriesToIcons: MultiMap<String, VdIcon> = MultiMap()
 
-      // Visitor callback to traverse ZipEntrys and load the VectorDrawable files into VdIcon.
-      val iconZipVisitor: (ZipEntry) -> Unit = { entry ->
-        val entrySplitName = entry.name.split(File.separatorChar)
-        // Expected format for a 'bar' icon under the 'foo' style is: "foo/bar/any.xml"
-        val entryFileName = entrySplitName.getOrElse(entrySplitName.lastIndex) { "" }
-        val entryFileParent = entrySplitName.getOrElse(entrySplitName.lastIndex - 1) { "" }
-        val entryStyleName = entrySplitName.getOrElse(entrySplitName.lastIndex - 2) { "" }
-        if (style.toDirFormat() == entryStyleName && iconNameToIconMetadata.contains(
-            entryFileParent) && entryFileName.isNotEmpty() && entryFileName.endsWith(SdkConstants.DOT_XML, true)) {
-          // Verify that the ZipEntry is for an existing icon in the metadata.
-          val iconMetadata = iconNameToIconMetadata[entryFileParent]!!
-          getIcon(style, iconMetadata.name, entryFileName)?.let { url ->
-            // Load the icon file (XML) into VdIcon and map it with help of the metadata.
-            val vdIcon = VdIcon(url).apply { setShowName(true) }
-            styleToIcons.putValue(style, vdIcon)
-            iconMetadata.categories.forEach { category ->
-              categoriesToIcons.putValue(category, vdIcon)
-            }
+    // Visitor callback to traverse ZipEntrys and load the VectorDrawable files into VdIcon.
+    val iconZipVisitor: (ZipEntry) -> Unit = { entry ->
+      val entrySplitName = entry.name.split(File.separatorChar)
+      // Expected format for a 'bar' icon under the 'foo' style is: "foo/bar/any.xml"
+      val entryFileName = entrySplitName.getOrElse(entrySplitName.lastIndex) { "" }
+      val entryFileParent = entrySplitName.getOrElse(entrySplitName.lastIndex - 1) { "" }
+      val entryStyleName = entrySplitName.getOrElse(entrySplitName.lastIndex - 2) { "" }
+      if (style.toDirFormat() == entryStyleName && iconNameToIconMetadata.contains(entryFileParent) && entryFileName.isNotEmpty()
+        && entryFileName.endsWith(SdkConstants.DOT_XML, true)) {
+        // Verify that the ZipEntry is for an existing icon in the metadata.
+        val iconMetadata = iconNameToIconMetadata[entryFileParent]!!
+        loadIcon(style, iconMetadata.name, entryFileName)?.let { url ->
+          // Load the icon file (XML) into VdIcon and map it with help of the metadata.
+          val vdIcon = VdIcon(url).apply { setShowName(true) }
+          styleToIcons.putValue(style, vdIcon)
+          iconMetadata.categories.forEach { category ->
+            categoriesToIcons.putValue(category, vdIcon)
           }
         }
       }
-      // Visitor callback to traverse Files and load the VectorDrawable files into VdIcon.
-      val iconFileVisitor: (File) -> Unit = { iconFile ->
-        val iconFolderName = iconFile.parentFile.name
-        if (iconNameToIconMetadata.containsKey(iconFolderName)) {
-          // Verify that the File is for an existing icon in the metadata.
-          val iconMetadata = iconNameToIconMetadata[iconFolderName]!!
-          getIcon(style, iconMetadata.name, iconFile.name)?.let { url ->
-            // Load the icon file (XML) into VdIcon and map it with help of the metadata.
-            val vdIcon = VdIcon(url).apply { setShowName(true) }
-            styleToIcons.putValue(style, vdIcon)
-            iconMetadata.categories.forEach { category ->
-              categoriesToIcons.putValue(category, vdIcon)
-            }
-          }
-        }
-      }
-      // Open the url and traverse the files through the visitor callbacks.
-      openAndVisitIconFiles(urlProvider.getStyleUrl(style), iconZipVisitor, iconFileVisitor)
-
-      val categoriesToSortedIcons = HashMap<String, Array<VdIcon>>()
-      categoriesToIcons.keySet().forEach { category ->
-        // Ensure the icon files are sorted by their display name.
-        val sortedIcons = categoriesToIcons[category].sortedBy { it.displayName }.toTypedArray()
-        categoriesToSortedIcons[category] = sortedIcons
-      }
-      styleCategoryToSortedIcons[style] = categoriesToSortedIcons
     }
-    styleToIcons.keySet().forEach { style ->
+    // Visitor callback to traverse Files and load the VectorDrawable files into VdIcon.
+    val iconFileVisitor: (File) -> Unit = { iconFile ->
+      val iconFolderName = iconFile.parentFile.name
+      if (iconNameToIconMetadata.containsKey(iconFolderName)) {
+        // Verify that the File is for an existing icon in the metadata.
+        val iconMetadata = iconNameToIconMetadata[iconFolderName]!!
+        loadIcon(style, iconMetadata.name, iconFile.name)?.let { url ->
+          // Load the icon file (XML) into VdIcon and map it with help of the metadata.
+          val vdIcon = VdIcon(url).apply { setShowName(true) }
+          styleToIcons.putValue(style, vdIcon)
+          iconMetadata.categories.forEach { category ->
+            categoriesToIcons.putValue(category, vdIcon)
+          }
+        }
+      }
+    }
+    // Open the url and traverse the files through the visitor callbacks.
+    openAndVisitIconFiles(urlProvider.getStyleUrl(style), iconZipVisitor, iconFileVisitor)
+
+    val categoriesToSortedIcons = HashMap<String, Array<VdIcon>>()
+    categoriesToIcons.keySet().forEach { category ->
       // Ensure the icon files are sorted by their display name.
-      val sortedIcons = styleToIcons[style].sortedBy { it.displayName }
-      styleToSortedIcons[style] = sortedIcons.toTypedArray()
+      val sortedIcons = categoriesToIcons[category].sortedBy { it.displayName }.toTypedArray()
+      categoriesToSortedIcons[category] = sortedIcons
     }
+    styleCategoryToSortedIcons[style] = categoriesToSortedIcons
+    // Ensure the icon files are sorted by their display name.
+    val sortedIcons = styleToIcons[style].sortedBy { it.displayName }
+    styleToSortedIcons[style] = sortedIcons.toTypedArray()
     return MaterialVdIcons(styleCategoryToSortedIcons, styleToSortedIcons)
   }
 
-  private fun getIcon(style: String, iconName: String, iconFileName: String): URL? {
+  private fun loadIcon(style: String, iconName: String, iconFileName: String): URL? {
     return urlProvider.getIconUrl(style, iconName, iconFileName)
   }
 
@@ -128,8 +127,7 @@ class MaterialVdIconsLoader(
         try {
           val connection = url.openConnection() as JarURLConnection
           connection.jarFile.stream().forEach(iconZipVisitor)
-        }
-        catch (e: IOException) {
+        } catch (e: IOException) {
           LOG.error("Error reading material icon files.", e)
           return
         }
@@ -171,6 +169,10 @@ class MaterialVdIcons(
   }
 
   companion object {
+    /**
+     * The default empty instance. Returns empty arrays for every method.
+     */
+    @JvmField
     val EMPTY = MaterialVdIcons(emptyMap(), emptyMap())
   }
 }
