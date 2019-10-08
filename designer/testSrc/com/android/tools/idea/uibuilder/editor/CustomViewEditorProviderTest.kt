@@ -29,23 +29,25 @@ class CustomViewEditorProviderTest : AndroidTestCase() {
   }
 
   override fun tearDown() {
-    // return to default
-    StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.override(false)
     super.tearDown()
     DesignerTypeRegistrar.clearRegisteredTypes()
+    StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.clearOverride()
   }
 
   fun testDoNotAcceptKotlinWhenFlagDisabled() {
+    StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.override(false)
     val file = myFixture.addFileToProject("src/SomeFile.kt", "")
     assertFalse(provider.accept(project, file.virtualFile))
   }
 
   fun testDoNotAcceptJavaWhenFlagDisabled() {
+    StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.override(false)
     val file = myFixture.addFileToProject("src/SomeFile.java", "")
     assertFalse(provider.accept(project, file.virtualFile))
   }
 
   fun testDoNotAcceptResWhenFlagDisabled() {
+    StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.override(false)
     val file = myFixture.addFileToProject("res/layout/some_layout.xml", "")
     assertFalse(provider.accept(project, file.virtualFile))
   }
