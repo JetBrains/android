@@ -34,11 +34,9 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.createIfNotExists;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import com.android.SdkConstants;
@@ -47,7 +45,6 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -100,7 +97,6 @@ import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.junit.After;
 import org.junit.Before;
@@ -282,41 +278,6 @@ public class GradleSyncTest {
     // Verify that the library still has the Javadoc attachment after sync.
     library = propertiesDialog.getLibrary();
     library.requireJavadocUrls(javadocJarUrl);
-  }
-
-  // See https://code.google.com/p/android/issues/detail?id=169743
-  // JVM settings for Gradle should be cleared before any invocation to Gradle.
-  @Test
-  public void shouldClearJvmArgsOnSyncAndBuild() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    Project project = ideFrame.getProject();
-
-    GradleProperties gradleProperties = new GradleProperties(project);
-    gradleProperties.clear();
-    gradleProperties.save();
-
-    VirtualFile gradlePropertiesFile = findFileByIoFile(gradleProperties.getPath(), true);
-    ideFrame.getEditor().open(gradlePropertiesFile, Tab.DEFAULT);
-
-    String jvmArgs = "-Xmx2048m";
-    ideFrame.setGradleJvmArgs(jvmArgs);
-
-    ideFrame.requestProjectSync();
-
-    // Copy JVM args to gradle.properties file.
-    ideFrame.findMessageDialog(GRADLE_SETTINGS_DIALOG_TITLE).clickYes();
-
-    // Verify JVM args were removed from IDE's Gradle settings.
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(20));
-    assertNull(GradleSettings.getInstance(project).getGradleVmOptions());
-
-    // Verify JVM args were copied to gradle.properties file
-    refreshFiles();
-
-    gradleProperties = new GradleProperties(project);
-    assertEquals(jvmArgs, gradleProperties.getJvmArgs());
   }
 
   // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
