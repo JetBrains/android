@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -45,8 +46,15 @@ public class EmbeddedDistributionPaths {
     if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isInTestingMode()) {
       return ImmutableList.of();
     }
+    return doFindAndroidStudioLocalMavenRepoPaths();
+  }
 
+  @VisibleForTesting
+  @NotNull
+  static List<File> doFindAndroidStudioLocalMavenRepoPaths() {
     List<File> repoPaths = new ArrayList<>();
+    // Repo path candidates, the path should be relative to tools/idea.
+    List<String> repoCandidates = new ArrayList<>();
     // Add prebuilt offline repo
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
@@ -57,16 +65,19 @@ public class EmbeddedDistributionPaths {
       repoPaths.add(customRepoPath);
     }
     else {
-      File localGMaven = new File(PathManager.getHomePath() + toSystemDependentName("/../../out/repo"));
-      if (localGMaven.isDirectory()) {
-        repoPaths.add(localGMaven);
-      }
+      repoCandidates.add("/../../out/repo");
     }
 
     // Add locally published offline studio repo
-    File localOfflineRepoPath = new File(PathManager.getHomePath() + toSystemDependentName("/../../out/studio/repo"));
-    if (localOfflineRepoPath.isDirectory()) {
-      repoPaths.add(localOfflineRepoPath);
+    repoCandidates.add("/../../out/studio/repo");
+    // Add prebuilts repo.
+    repoCandidates.add("/../../prebuilts/tools/common/m2/repository");
+
+    for (String candidate : repoCandidates) {
+      File offlineRepo = new File(toCanonicalPath(PathManager.getHomePath() + toSystemDependentName(candidate)));
+      if (offlineRepo.isDirectory()) {
+        repoPaths.add(offlineRepo);
+      }
     }
 
     return ImmutableList.copyOf(repoPaths);
