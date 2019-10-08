@@ -57,9 +57,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     doTestDescriptor()
   }
 
-  fun testProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-
+  private fun doTestProperties() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -186,6 +184,16 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(resConfigs.resolved.asTestValue()?.toSet(), equalTo(setOf("en", "hdpi", "xhdpi")))
       assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(setOf("en", "hdpi", "xhdpi")))
     }
+  }
+
+  fun testPropertiesGroovy() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestProperties()
+  }
+
+  fun testPropertiesKt() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestProperties()
   }
 
   fun testDimensions() {
