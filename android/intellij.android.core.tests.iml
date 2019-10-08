@@ -104,5 +104,9 @@
     <orderEntry type="module" module-name="intellij.android.resources-aar" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-plugin" level="project" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
+    <orderEntry type="module" module-name="intellij.android.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.lang-databinding.tests" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.resources-aar.tests" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.databinding.tests" scope="RUNTIME" />
   </component>
 </module>

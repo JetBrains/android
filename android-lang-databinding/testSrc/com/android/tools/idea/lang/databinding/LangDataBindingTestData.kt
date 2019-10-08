@@ -26,5 +26,5 @@ object LangDataBindingTestData {
 
 fun getTestDataPath(): String {
   val adtPath = PathManager.getHomePath() + "/../adt/idea/android-lang-databinding/testData"
-  return if (File(adtPath).exists()) adtPath else PathManagerEx.findFileUnderCommunityHome("plugins/android").path
+  return if (File(adtPath).exists()) adtPath else PathManagerEx.findFileUnderCommunityHome("android/android-lang-databinding/testData").path
 }
