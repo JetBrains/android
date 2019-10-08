@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.editors.sqlite.SqliteTestUtil
+import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
 import com.android.tools.idea.sqlite.mocks.MockSqliteEditorViewFactory
@@ -29,8 +30,10 @@ import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
+import com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
@@ -100,7 +103,13 @@ class SqliteControllerTest : PlatformTestCase() {
     edtExecutor = EdtExecutorService.getInstance()
     taskExecutor = SameThreadExecutor.INSTANCE
     sqliteController = SqliteController(
-      project, sqliteServiceFactory, viewFactory, sqliteView, edtExecutor, taskExecutor
+      project,
+      SqliteExplorerProjectService.getInstance(project),
+      sqliteServiceFactory,
+      viewFactory,
+      sqliteView,
+      edtExecutor,
+      taskExecutor
     )
     sqliteController.setUp()
 
@@ -206,23 +215,6 @@ class SqliteControllerTest : PlatformTestCase() {
       .reportErrorRelatedToService(eq(mockSqliteService), eq("Error opening Sqlite database"), refEq(throwable))
   }
 
-  fun testHasOpenDatabaseSuccess() {
-    // Prepare
-    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-
-    // Act
-    sqliteController.openSqliteDatabase(sqliteFile1)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    assertTrue(sqliteController.hasOpenDatabase())
-  }
-
-  fun testHasNoOpenDatabase() {
-    // Assert
-    assertFalse(sqliteController.hasOpenDatabase())
-  }
-
   fun testDisplayResultSetIsCalledForTable() {
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
@@ -285,7 +277,7 @@ class SqliteControllerTest : PlatformTestCase() {
     sqliteView.viewListeners.single().closeTabActionInvoked(tabId!!)
 
     // Assert
-    verify(viewFactory).createEvaluatorView(myProject, sqliteController)
+    verify(viewFactory).createEvaluatorView(any(Project::class.java), any(SchemaProvider::class.java))
     verify(sqliteView).closeTab(eq(tabId))
   }
 
