@@ -43,6 +43,32 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("test.MyClass"))
   }
 
+  fun testFindUsagesOfNonPublicClass() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      class MyClass {}
+    """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
+        -keep class test.MyC${caret}lass {
+        }
+    """.trimIndent()
+    )
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
+    assertThat(presentation).contains(
+      """
+        Found usages (1 usage)
+          Referenced in Proguard/R8 files (1 usage)
+      """.trimIndent()
+    )
+  }
+
   fun testResolveToPackage() {
     myFixture.addClass(
       //language=JAVA
