@@ -98,7 +98,6 @@ class ModuleDataBinding private constructor(private val module: Module) {
     val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
     return layoutResources.values()
       .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
-      .filter { bindingLayout -> !bindingLayout.data.viewBindingIgnore }
       .groupBy { info -> info.file.name }
       .map { entry -> BindingLayoutGroup(entry.value) }
   }
