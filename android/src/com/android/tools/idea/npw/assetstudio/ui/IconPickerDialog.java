@@ -29,6 +29,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
@@ -38,7 +39,6 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
 import com.intellij.util.ui.UIUtil;
@@ -49,7 +49,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.DefaultComboBoxModel;
@@ -73,11 +72,12 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   private static final String MATERIAL_ICONS_PREFIX = "Material Icons";
   private static final int COLUMN_NUMBER = 6;
   private static final int ICON_ROW_HEIGHT = JBUI.scale(48 + 16);
-  /** Approximate number of icons bundled in images/material/icons/. */
+  /**
+   * Approximate number of icons bundled in images/material/icons/.
+   */
   private static final int EXPECTED_NUMBER_OF_ICONS = 1100;
 
-  private final MaterialVdIconsProvider myIconsProvider;
-  private MaterialVdIcons myIcons = new MaterialVdIcons(Collections.emptyMap(), Collections.emptyMap());
+  private MaterialVdIcons myIcons = MaterialVdIcons.EMPTY;
 
   /**
    * A list of all active icons (based on the currently selected category).
@@ -129,6 +129,29 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   @Nullable private VdIcon mySelectedIcon;
   @Nullable private VdIcon myIconToSelectInTable;
 
+  private ItemListener myStylesBoxListener = new ItemListener() {
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+      if (e.getStateChange() == ItemEvent.DESELECTED || e.getItem() == null) {
+        return;
+      }
+      int categoryCurrentIndex = myCategoriesBox.getSelectedIndex();
+      setCategoriesBoxModel(myStylesBox.getSelectedIndex());
+      if (categoryCurrentIndex >= 0 && categoryCurrentIndex < myCategoriesBox.getItemCount()) {
+        myCategoriesBox.setSelectedIndex(categoryCurrentIndex);
+      }
+    }
+  };
+  private ItemListener myCategoriesBoxListener = new ItemListener() {
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+      if (e.getStateChange() == ItemEvent.DESELECTED || e.getItem() == null) {
+        return;
+      }
+      updateIconList();
+    }
+  };
+
   public IconPickerDialog(@Nullable VdIcon selectedIcon) {
     this(selectedIcon, new MaterialIconsMetadataUrlProviderImpl(), new MaterialIconsUrlProviderImpl());
   }
@@ -138,7 +161,6 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
                    @NotNull MaterialIconsMetadataUrlProvider urlMetadataProvider,
                    @NotNull MaterialIconsUrlProvider urlLoaderProvider) {
     super(false);
-    myIconsProvider = new MaterialVdIconsProvider(urlMetadataProvider, urlLoaderProvider);
     myIconToSelectInTable = selectedIcon;
 
     setTitle("Select Icon");
@@ -207,7 +229,25 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     }
 
     init();
-    initializeIcons();
+
+    myIconTable.getEmptyText().setText("Loading icons...");
+    myIconTable.setPaintBusy(true);
+    myStylesBox.setEnabled(false);
+    myCategoriesBox.setEnabled(false);
+    new MaterialVdIconsProvider((materialVdIcons, status) -> {
+      assert ApplicationManager.getApplication().isDispatchThread();
+      myIconTable.getEmptyText().setText(StatusText.DEFAULT_EMPTY_TEXT);
+      populateIcons(materialVdIcons);
+      if (status == MaterialVdIconsProvider.Status.FINISHED) {
+        // Enable the combo boxes once it has finished loading all icons.
+        myIconTable.setPaintBusy(false);
+        myStylesBox.setEnabled(true);
+        myCategoriesBox.setEnabled(true);
+        myStylesBox.addItemListener(myStylesBoxListener);
+        myCategoriesBox.addItemListener(myCategoriesBoxListener);
+      }
+      return null;
+    }, urlMetadataProvider, urlLoaderProvider);
   }
 
   private void createUIComponents() {
@@ -251,57 +291,24 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   }
 
   /**
-   * Calls {@link MaterialVdIconsProvider#getMaterialIcons()} asynchronously and sets up the relevant ui elements when it finishes.
-   *
-   * Populates {@link #myStylesBox}, {@link #myCategoriesBox} and sets the appropriate listeners to update the visible icons.
+   * Updates {@link #myIcons} from the given {@link MaterialVdIcons}
+   * <p>
+   * Populates {@link #myStylesBox}, {@link #myCategoriesBox}.
+   * <p>
+   * Updates the icon table and sets the selected icon when appropriate.
    */
-  private void initializeIcons() {
-    myIconTable.getEmptyText().setText("Loading icons...");
-    myIconTable.setPaintBusy(true);
-    myIconsProvider.getMaterialIcons().whenCompleteAsync((icons, throwable) -> {
-      if (throwable != null) {
-        LOG.error("Error loading icons.", throwable);
-        return;
-      }
-      if (icons == null || icons.getStyles().length == 0) {
-        LOG.error("No icons loaded.");
-        return;
-      }
-      myIcons = icons;
-      // Set boxes, styles and categories model.
-      setStylesBoxModel();
-      setCategoriesBoxModel(0);
-      myStylesBox.setSelectedIndex(0);
-      myCategoriesBox.setSelectedIndex(0);
+  private void populateIcons(MaterialVdIcons icons) {
+    boolean shouldUpdateIconList = myIcons == null || myIcons == MaterialVdIcons.EMPTY;
+    myIcons = icons;
+    // Set boxes, styles and categories model.
+    setStylesBoxModel();
+    setCategoriesBoxModel(0);
+    myStylesBox.setSelectedIndex(0);
+    myCategoriesBox.setSelectedIndex(0);
 
-      myStylesBox.addItemListener(new ItemListener() {
-        @Override
-        public void itemStateChanged(ItemEvent e) {
-          if (e.getStateChange() == ItemEvent.DESELECTED || e.getItem() == null) {
-            return;
-          }
-          int categoryCurrentIndex = myCategoriesBox.getSelectedIndex();
-          setCategoriesBoxModel(myStylesBox.getSelectedIndex());
-          if (categoryCurrentIndex >=0 && categoryCurrentIndex < myCategoriesBox.getItemCount()) {
-            myCategoriesBox.setSelectedIndex(categoryCurrentIndex);
-          }
-        }
-      });
-      myCategoriesBox.addItemListener(new ItemListener() {
-        @Override
-        public void itemStateChanged(ItemEvent e) {
-          if (e.getStateChange() == ItemEvent.DESELECTED || e.getItem() == null) {
-            return;
-          }
-          updateIconList();
-        }
-      });
-
+    if (shouldUpdateIconList) {
       updateIconList();
-
-      myIconTable.getEmptyText().setText(StatusText.DEFAULT_EMPTY_TEXT);
-      myIconTable.setPaintBusy(false);
-    }, EdtExecutorService.getInstance());
+    }
   }
 
   private void setStylesBoxModel() {
@@ -357,7 +364,8 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     Object categoryItem = myCategoriesBox.getSelectedItem();
     if (categoryItem instanceof String && categoryItem.equals("All")) {
       myIconList.addAll(Arrays.asList(myIcons.getAllIcons(style)));
-    } else {
+    }
+    else {
       String category = myIcons.getCategories(style)[myCategoriesBox.getSelectedIndex() - 1];
       myIconList.addAll(Arrays.asList(myIcons.getIcons(style, category)));
     }
