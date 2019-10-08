@@ -31,6 +31,7 @@ import com.android.tools.property.ptable2.PTableModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
@@ -59,6 +60,10 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   private var lastTitleLine: CollapsibleLabelModel? = null
 
   val component = createScrollPane(inspector)
+
+  var dataProviderDelegate: DataProvider?
+    get() = inspectorModel.dataProviderDelegate
+    set(value) { inspectorModel.dataProviderDelegate = value }
 
   var filter
     get() = inspectorModel.filter

@@ -81,7 +81,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private val renderListener = RenderListener { handleRenderingCompleted() }
   private var activeSurface: DesignSurface? = null
   private var activeSceneView: SceneView? = null
-  private var activePanel: AccessoryPanelInterface? = null
+  protected var activePanel: AccessoryPanelInterface? = null
   protected var defaultValueProvider: DefaultPropertyValueProvider? = null
   private val liveComponents = mutableListOf<NlComponent>()
   private val liveChangeListener: ChangeListener = ChangeListener { firePropertyValueChangeIfNeeded() }
