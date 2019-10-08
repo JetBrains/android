@@ -39,7 +39,9 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElement
+import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.android.util.AndroidResourceUtil
 
 /**
  * Extension [PasteProvider] to handle paste of [java.awt.datatransfer.Transferable] providing [RESOURCE_URL_FLAVOR] in
@@ -216,6 +218,9 @@ class ResourcePasteProvider : PasteProvider {
 
   private fun setSrcAttribute(dependsOnAppCompat: Boolean, xmlTag: XmlTag, resourceReference: String) {
     if (dependsOnAppCompat) {
+      (xmlTag.containingFile as? XmlFile)?.let {
+        AndroidResourceUtil.ensureNamespaceImported(it, SdkConstants.AUTO_URI, null)
+      }
       xmlTag.setAttribute(SdkConstants.ATTR_SRC_COMPAT, SdkConstants.AUTO_URI, resourceReference)
       xmlTag.setAttribute(SdkConstants.ATTR_SRC, SdkConstants.ANDROID_URI, null)
     }
