@@ -52,7 +52,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     doTestDescriptor()
   }
 
-  fun testDescriptorKt() {
+  fun testDescriptorKotlin() {
     loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
     doTestDescriptor()
   }
@@ -191,14 +191,12 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     doTestProperties()
   }
 
-  fun testPropertiesKt() {
+  fun testPropertiesKotlin() {
     loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
     doTestProperties()
   }
 
-  fun testDimensions() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-
+  private fun doTestDimensions() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
 
@@ -213,9 +211,17 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       hasItems(ValueDescriptor("foo", "foo"), ValueDescriptor("bar", "bar")))
   }
 
-  fun testChangingDimensions() {
+  fun testDimensionsGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestDimensions()
+  }
 
+  fun testDimensionsKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestDimensions()
+  }
+
+  private fun doTestChangingDimensions() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
 
@@ -228,15 +234,24 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     assertThat(productFlavor.configuredDimension, equalTo("foo".asParsed()))
 
     var changed = false
-    appModule.productFlavors.onChange(testRootDisposable) { changed = true}
+    appModule.productFlavors.onChange(testRootDisposable) { changed = true }
 
     productFlavor.configuredDimension = "bar".asParsed()
     assertThat(productFlavor.configuredDimension, equalTo("bar".asParsed()))
     assertThat(changed, equalTo(true))
   }
 
-  fun testEffectiveDimensions() {
+  fun testChangingDimensionsGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestChangingDimensions()
+  }
+
+  fun testChangingDimensionsKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestChangingDimensions()
+  }
+
+  private fun doTestEffectiveDimensions() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
 
@@ -268,6 +283,16 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(productFlavor.configuredDimension, equalTo<ParsedValue<String>>("new_bad".asParsed()))
       assertThat(productFlavor.effectiveDimension, nullValue())
     }
+  }
+
+  fun testEffectiveDimensionsGroovy() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestEffectiveDimensions()
+  }
+
+  fun testEffectiveDimensionsKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestEffectiveDimensions()
   }
 
   fun testSetProperties() {
