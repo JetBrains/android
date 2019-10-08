@@ -416,4 +416,22 @@ class LightBindingClassTest {
       }
     }
   }
+
+  @Test
+  fun bindingsNotGeneratedForNonDataBindingLayouts() {
+    fixture.addFileToProject("res/layout/activity_view.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <view />
+      </layout>
+    """.trimIndent())
+    fixture.addFileToProject("res/layout/plain_view.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <view xmlns:android="http://schemas.android.com/apk/res/android" />
+    """.trimIndent())
+    val context = fixture.addClass("public class ViewActivity {}")
+
+    assertThat(fixture.findClass("test.db.databinding.ActivityViewBinding", context) as? LightBindingClass).isNotNull()
+    assertThat(fixture.findClass("test.db.databinding.PlainViewBinding", context) as? LightBindingClass).isNull()
+  }
 }
