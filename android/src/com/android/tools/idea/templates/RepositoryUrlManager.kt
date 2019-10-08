@@ -51,7 +51,8 @@ import java.util.function.Predicate
 class RepositoryUrlManager @VisibleForTesting constructor(
   private val googleMavenRepository: GoogleMavenRepository,
   private val cachedGoogleMavenRepository: GoogleMavenRepository,
-  private val forceRepositoryChecksInTests: Boolean) {
+  private val forceRepositoryChecksInTests: Boolean,
+  private val useEmbeddedStudioRepo: Boolean = true) {
   private val pendingNetworkRequests: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
   internal constructor() : this(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, false)
@@ -98,12 +99,15 @@ class RepositoryUrlManager @VisibleForTesting constructor(
       return version
     }
 
-    // Try the repo embedded in AS.
-    return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
-      .filter { it?.isDirectory == true }
-      .firstNotNullResult {
-        MavenRepositories.getHighestInstalledVersion(groupId, artifactId, it, filter, includePreviews, fileOp)
-      }?.version
+    if (useEmbeddedStudioRepo) {
+      // Try the repo embedded in AS.
+      return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
+        .filter { it?.isDirectory == true }
+        .firstNotNullResult {
+          MavenRepositories.getHighestInstalledVersion(groupId, artifactId, it, filter, includePreviews, fileOp)
+        }?.version
+    }
+    return null
   }
 
   fun findCompileDependencies(groupId: String,
