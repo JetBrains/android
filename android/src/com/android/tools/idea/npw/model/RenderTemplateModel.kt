@@ -143,11 +143,6 @@ class RenderTemplateModel private constructor(
         return
       }
 
-      if (StudioFlags.COMPOSE_WIZARD_TEMPLATES.get() && templateHandle?.metadata?.category == CATEGORY_COMPOSE) {
-        // TODO(parentej) ag/q/topic:kotlin-1.3.50-compose-20190920 - This should not be needed when the kotlin plugin is merged.
-        moduleTemplateValues["isCompose"] = true
-      }
-
       templateValues.putAll(moduleTemplateValues)
 
       if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && isNew) {
