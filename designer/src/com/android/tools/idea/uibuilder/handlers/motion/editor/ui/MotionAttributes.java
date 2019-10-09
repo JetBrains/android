@@ -24,6 +24,7 @@ import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.M
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_PIXEL_DIMENSION_VALUE;
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_CUSTOM_STRING_VALUE;
 
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
@@ -32,10 +33,11 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Provides a view within MotionLayout with all the basic information under the ConstraintSet.
@@ -212,10 +214,17 @@ public class MotionAttributes {
     validMap.put(ATTR_CUSTOM_BOOLEAN_VALUE, new HashSet<>(Arrays.asList( "boolean")));
   }
 
-  public static String[] getCustomAttributesFor(NlComponent nlComponent , String customAttributeType){
-    Object o =  NlComponentHelperKt.getViewInfo(nlComponent).getViewObject();
+  public static Set<String> getCustomAttributesFor(NlComponent nlComponent, String customAttributeType) {
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(nlComponent);
+    if (viewInfo == null) {
+      return Collections.emptySet();
+    }
+    Object o = viewInfo.getViewObject();
+    if (o == null) {
+      return Collections.emptySet();
+    }
     Method[] m = o.getClass().getMethods();
-    ArrayList<String> ret = new ArrayList<>();
+    HashSet<String> ret = new HashSet<>();
     HashSet<String> valid  = validMap.get(customAttributeType);
     for (int i = 0; i < m.length; i++) {
       Method method = m[i];
@@ -236,7 +245,7 @@ public class MotionAttributes {
         ret.add(name);
       }
     }
-    return ret.toArray(new String[0]);
+    return ret;
   }
 
 
