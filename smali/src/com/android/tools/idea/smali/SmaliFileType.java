@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class SmaliFileType extends LanguageFileType {
-  private static final SmaliFileType INSTANCE = new SmaliFileType();
+  public static final SmaliFileType INSTANCE = new SmaliFileType();
 
   @NonNls public static final String SMALI_EXTENSION = "smali";
 
