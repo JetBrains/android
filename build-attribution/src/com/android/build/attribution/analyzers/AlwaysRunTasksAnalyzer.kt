@@ -47,7 +47,9 @@ class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarnin
   }
 
   override fun onBuildSuccess() {
-    alwaysRunTasks = alwaysRunTasksSet.filter { warningsFilter.applyAlwaysRunTaskFilter(it.taskData) }
+    alwaysRunTasks = alwaysRunTasksSet.filter {
+      warningsFilter.applyAlwaysRunTaskFilter(it.taskData) && applyWhitelistedTasksFilter(it.taskData)
+    }
     alwaysRunTasksSet.clear()
   }
 
