@@ -54,6 +54,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   private final ListenerManager myListeners = new ListenerManager();
   private final List<Validator.Result> myResults = new ArrayList<>();
   private final BoolProperty myHasErrors = new BoolValueProperty();
+  private final BoolProperty myIsOK = new BoolValueProperty();
 
   private JPanel myRootPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
@@ -128,6 +129,10 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     });
   }
 
+  public void validateAll() {
+    myListeners.fireAll();
+  }
+
   /**
    * Registers a target observable boolean as a simple test which, if {@code false}, means
    * the {@code message} should be shown with the specified {@code severity}.
@@ -174,6 +179,14 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     return myHasErrors;
   }
 
+  /**
+   * Returns a property which indicates if none of the components in this panel are invalid or has warnings.
+   */
+  @NotNull
+  public ObservableBool isOK() {
+    return myIsOK;
+  }
+
   private void updateValidationText() {
     myValidationResult = Validator.Result.OK;
     for (Validator.Result result : myResults) {
@@ -205,6 +218,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     }
 
     myHasErrors.set(myValidationResult.getSeverity() == Validator.Severity.ERROR);
+    myIsOK.set(myValidationResult.getSeverity() == Validator.Severity.INFO || myValidationResult.getSeverity() == Validator.Severity.OK);
   }
 
   @NotNull

@@ -20,6 +20,8 @@ import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.intellij.ui.EditorComboBox;
 import com.intellij.ui.EditorTextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.AbstractButton;
@@ -34,7 +36,8 @@ import org.jetbrains.annotations.NotNull;
  * {@link AbstractProperty} that wraps a Swing component and exposes its text value.
  */
 public final class TextProperty extends StringProperty implements DocumentListener, PropertyChangeListener,
-                                                                  com.intellij.openapi.editor.event.DocumentListener {
+                                                                  com.intellij.openapi.editor.event.DocumentListener,
+                                                                  ActionListener {
   @NotNull private final JComponent myComponent;
 
   public TextProperty(@NotNull JTextComponent textComponent) {
@@ -60,6 +63,7 @@ public final class TextProperty extends StringProperty implements DocumentListen
   public TextProperty(@NotNull EditorComboBox editorComboBox) {
     myComponent = editorComboBox;
     editorComboBox.getDocument().addDocumentListener(this);
+    editorComboBox.addActionListener(this);
   }
 
   public TextProperty(@NotNull EditorTextField editorTextField) {
@@ -94,6 +98,11 @@ public final class TextProperty extends StringProperty implements DocumentListen
 
   @Override
   public void documentChanged(@NotNull com.intellij.openapi.editor.event.DocumentEvent event) {
+    notifyInvalidated();
+  }
+
+  @Override
+  public void actionPerformed(@NotNull ActionEvent event) {
     notifyInvalidated();
   }
 
