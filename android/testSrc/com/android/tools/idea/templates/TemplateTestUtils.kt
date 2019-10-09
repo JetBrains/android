@@ -22,7 +22,6 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.analytics.TestUsageTracker
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
 import com.android.tools.idea.lint.LintIdeClient
 import com.android.tools.idea.lint.LintIdeIssueRegistry
@@ -87,11 +86,6 @@ internal fun isBroken(templateName: String): Boolean {
   // See http://b.android.com/253296
   if (SystemInfo.isWindows) {
     if ("AidlFile" == templateName) return true
-  }
-
-  if ("ComposeActivity" == templateName && !StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()) {
-    // TODO(parentej) b/141304798 (needs dependencies in prebuilts + kotlin with compose)
-    return true
   }
 
   return false
