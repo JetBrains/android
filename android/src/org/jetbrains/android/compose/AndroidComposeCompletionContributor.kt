@@ -46,6 +46,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.LayeredIcon
 import com.intellij.util.castSafelyTo
@@ -62,6 +63,7 @@ import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
 import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
@@ -87,6 +89,15 @@ private val allFlags = signaturesFlags + listOf(
 )
 
 private fun CompletionParameters.isInsideComposableCode() = originalPosition?.isInsideComposableCode() == true
+
+/**
+ * Checks if this completion is for a statement (where Compose views usually called) and not part of another expression.
+ */
+private fun CompletionParameters.isForStatement(): Boolean {
+  return position is LeafPsiElement &&
+         position.node.elementType == KtTokens.IDENTIFIER &&
+         position.parent?.parent is KtBlockExpression
+}
 
 private fun LookupElement.getFunctionDescriptor(): FunctionDescriptor? {
   return this.`object`
@@ -261,18 +272,24 @@ private val SHORT_NAMES_WITH_DOTS = BasicLookupElementFactory.SHORT_NAMES_RENDER
  * to debug it.
  */
 class AndroidComposeCompletionWeigher : CompletionWeigher() {
-  override fun weigh(element: LookupElement, location: CompletionLocation): Boolean {
+  override fun weigh(element: LookupElement, location: CompletionLocation): Int {
     return when {
-      !StudioFlags.COMPOSE_COMPLETION_WEIGHER.get() -> false
-      !location.completionParameters.isInsideComposableCode() -> false // TODO: only change weights for statements.
-      else -> element.psiElement?.isComposableFunction() ?: false
+      !StudioFlags.COMPOSE_COMPLETION_WEIGHER.get() -> 0
+      !location.completionParameters.isInsideComposableCode() -> 0
+      element.isForNamedArgument() -> 2
+      location.completionParameters.isForStatement() -> {
+        if (element.psiElement?.isComposableFunction() == true) 1 else 0
+      }
+      else -> 0
     }
   }
+
+  private fun LookupElement.isForNamedArgument() = lookupString.endsWith(" =")
 }
 
 class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinCallableInsertHandler(CallType.DEFAULT) {
-  override fun handleInsert(context: InsertionContext, lookupElement: LookupElement) = with(context) {
-    super.handleInsert(context, lookupElement)
+  override fun handleInsert(context: InsertionContext, item: LookupElement) = with(context) {
+    super.handleInsert(context, item)
 
     // All Kotlin insertion handlers do this, possibly to post-process adding a new import in the call to super above.
     val psiDocumentManager = PsiDocumentManager.getInstance(project)
