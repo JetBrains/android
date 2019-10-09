@@ -58,12 +58,14 @@ public class AndroidProjectInfoTest extends PlatformTestCase {
 
   public void testRequiresAndroidModel() {
     AndroidFacet facet = createAndAddAndroidFacet(getModule());
+    //noinspection deprecation
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
     assertTrue(myProjectInfo.requiresAndroidModel());
   }
 
   public void testRequiresAndroidModelWithUserConfigurableAndroidFacet() {
     AndroidFacet facet = createAndAddAndroidFacet(getModule());
+    //noinspection deprecation
     facet.getProperties().ALLOW_USER_CONFIGURATION = true;
     assertFalse(myProjectInfo.requiresAndroidModel());
   }
@@ -75,6 +77,7 @@ public class AndroidProjectInfoTest extends PlatformTestCase {
   public void testRequiresAndroidModelWithApkFacet() {
     Module module = getModule();
     AndroidFacet facet = createAndAddAndroidFacet(module);
+    //noinspection deprecation
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     createAndAddApkFacet(module);

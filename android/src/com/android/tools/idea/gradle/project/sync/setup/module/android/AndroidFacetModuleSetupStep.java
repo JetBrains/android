@@ -67,6 +67,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
 
   private static void configureFacet(@NotNull AndroidFacet facet, @NotNull AndroidModuleModel androidModel) {
     JpsAndroidModuleProperties facetProperties = facet.getProperties();
+    //noinspection deprecation  This is one of legitimate assignments to this property.
     facetProperties.ALLOW_USER_CONFIGURATION = false;
 
     facetProperties.PROJECT_TYPE = androidModel.getAndroidProject().getProjectType();

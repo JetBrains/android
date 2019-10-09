@@ -102,6 +102,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
     JpsAndroidModuleProperties state = getState();
     assert state != null;
+    //noinspection deprecation  This is one of legitimate assignments to this property.
     if (state.ALLOW_USER_CONFIGURATION) {
       return new FacetEditorTab[]{new AndroidFacetEditorTab(editorContext, this)};
     }
