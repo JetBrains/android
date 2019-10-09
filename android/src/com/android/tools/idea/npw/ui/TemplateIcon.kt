@@ -22,42 +22,34 @@ import com.intellij.util.ui.JBScalableIcon
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Rectangle
-import java.awt.image.BufferedImage
 import javax.swing.Icon
 
-class TemplateIcon(private val myDelegateIcon: Icon) : JBScalableIcon() {
-  private var myScale = 1f
-  private var myCropRectangle: Rectangle = Rectangle(myDelegateIcon.iconWidth, myDelegateIcon.iconHeight)
+class TemplateIcon(private val delegateIcon: Icon) : JBScalableIcon() {
+  private var _scale = 1f
+  private var cropRectangle = Rectangle(delegateIcon.iconWidth, delegateIcon.iconHeight)
 
-  private fun setScale(scale: Float) {
-    myScale = scale
-    myCropRectangle = Rectangle((myCropRectangle.x * myScale).toInt(), (myCropRectangle.y * myScale).toInt(),
-                                (myCropRectangle.width * myScale).toInt(), (myCropRectangle.height * myScale).toInt())
-  }
-
-  fun setHeight(height: Int) {
-    setScale(height.toFloat() / myCropRectangle.height)
-  }
+  fun setHeight(height: Int) = scale(height.toFloat() / cropRectangle.height)
 
   fun cropBlankWidth() {
-    val image = ImageUtil.toBufferedImage(IconUtil.toImage(myDelegateIcon), true)
+    val image = ImageUtil.toBufferedImage(IconUtil.toImage(delegateIcon), true)
     ImageUtils.getCropBounds(image, ImageUtils.TRANSPARENCY_FILTER, null)?.run {
-      myCropRectangle.x = this.x
-      myCropRectangle.width = this.width
+      cropRectangle.x = x
+      cropRectangle.width = width
     }
   }
 
-  override fun scale(scale: Float): Icon {
-    setScale(scale)
-    return this
+  override fun scale(scale: Float): Icon = apply {
+    _scale = scale
+    cropRectangle = Rectangle((cropRectangle.x * scale).toInt(), (cropRectangle.y * scale).toInt(),
+                              (cropRectangle.width * scale).toInt(), (cropRectangle.height * scale).toInt())
   }
 
   override fun paintIcon(c: Component, g: Graphics, x: Int, y: Int) {
-    val icon = IconUtil.scale(myDelegateIcon, c, myScale)
-    icon.paintIcon(c, g, x - myCropRectangle.x, y)
+    val icon = IconUtil.scale(delegateIcon, c, _scale)
+    icon.paintIcon(c, g, x - cropRectangle.x, y)
   }
 
-  override fun getIconWidth(): Int = myCropRectangle.width
+  override fun getIconWidth() = cropRectangle.width
 
-  override fun getIconHeight(): Int = myCropRectangle.height
+  override fun getIconHeight() = cropRectangle.height
 }
