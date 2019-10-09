@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import kotlin.jvm.functions.Function2;
 
 /**
  * @author nik
@@ -55,7 +56,16 @@ public class JpsAndroidModuleProperties {
 
   /**
    * False when the Android project is Gradle-based, true otherwise.
+   *
+   * @deprecated Please do not use directly and do not configure in tests.
+   * See {@link com.android.tools.idea.project.AndroidProjectInfo#requiresAndroidModel} and
+   * {@link com.android.tools.idea.model.AndroidModel#isRequired}.
+   * <p>
+   * If you are looking for a way to configure a lightweight project
+   * with Android model, consider using
+   * {@link com.android.tools.idea.testing.AndroidProjectRule.Companion#withAndroidModel}
    */
+  @Deprecated
   public boolean ALLOW_USER_CONFIGURATION = true;
 
   public String GEN_FOLDER_RELATIVE_PATH_APT = "/" + SdkConstants.FD_GEN_SOURCES;

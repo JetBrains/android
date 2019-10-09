@@ -58,6 +58,7 @@ public interface AndroidModel {
   }
 
   static boolean isRequired(@NotNull AndroidFacet facet) {
+    //noinspection deprecation  This is one of legitimate usages of this property.
     return !facet.getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(facet.getModule()) == null;
   }
 

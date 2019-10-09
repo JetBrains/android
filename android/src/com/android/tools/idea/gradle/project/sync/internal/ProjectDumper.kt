@@ -311,7 +311,10 @@ private fun ProjectDumper.dump(androidFacetConfiguration: AndroidFacetConfigurat
     prop("CompileJavaTestTaskName") { COMPILE_JAVA_TEST_TASK_NAME.nullize() }
     prop("CompileJavaTestTaskName") { COMPILE_JAVA_TEST_TASK_NAME.nullize() }
     AFTER_SYNC_TASK_NAMES.sorted().forEach { prop("- AfterSyncTask") { it } }
-    prop("AllowUserConfiguration") { ALLOW_USER_CONFIGURATION.toString() }
+    prop("AllowUserConfiguration") {
+      @Suppress("DEPRECATION")
+      ALLOW_USER_CONFIGURATION.toString()
+    }
     prop("GenFolderRelativePathApt") { GEN_FOLDER_RELATIVE_PATH_APT.nullize() }
     prop("GenFolderRelativePathAidl") { GEN_FOLDER_RELATIVE_PATH_AIDL.nullize() }
     prop("ManifestFileRelativePath") { MANIFEST_FILE_RELATIVE_PATH.nullize() }
