@@ -1,9 +1,9 @@
-PROJECT             : LightSyncBasedTestsTest
-    MODULE              : LightSyncBasedTestsTest
-        LinkedProjectId     : LightSyncBasedTestsTest
+PROJECT             : LightSyncBasedTestsWithDefaultTestProjectStructureTest
+    MODULE              : LightSyncBasedTestsWithDefaultTestProjectStructureTest
+        LinkedProjectId     : LightSyncBasedTestsWithDefaultTestProjectStructureTest
         LinkedProjectPath   : <PROJECT>/unitTest
         RootProjectPath     : <PROJECT>/unitTest
-        ModuleFile          : <PROJECT>/unitTest/LightSyncBasedTestsTest.iml
+        ModuleFile          : <PROJECT>/unitTest/LightSyncBasedTestsWithDefaultTestProjectStructureTest.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -13,13 +13,11 @@ PROJECT             : LightSyncBasedTestsTest
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/unitTest/src/main/res [-]
+            ManifestFileRelativePath      : /AndroidManifest.xml
+            ResFolderRelativePath         : /res
+            - ResFoldersRelativePath      : file://<PROJECT>/unitTest/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/unitTest/src/debug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/src/test/res [-]
-            AssetsFolderRelativePath      : /src/main/assets
+            - TestResFoldersRelativePath  :  [-]
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
             UseCustomCompilerManifest     : false
@@ -41,13 +39,8 @@ PROJECT             : LightSyncBasedTestsTest
             TypeId              : android-gradle
             GradlePath          : :
         CONENT_ENTRY        : file://<PROJECT>/unitTest
-            JavaSource (test)   : file://<PROJECT>/unitTest/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/unitTest/src/androidTest/assets [-]
-            JavaSource (test)   : file://<PROJECT>/unitTest/src/androidTest/java [-]
-            JavaSource (test)   : file://<PROJECT>/unitTest/src/androidTest/renderscript [-]
-            JavaResource (test) : file://<PROJECT>/unitTest/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/unitTest/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/unitTest/src/androidTest/shaders [-]
+            JavaResource        : file://<PROJECT>/unitTest/res [-]
+            JavaSource          : file://<PROJECT>/unitTest/src [-]
             JavaSource          : file://<PROJECT>/unitTest/src/debug/aidl [-]
             JavaResource        : file://<PROJECT>/unitTest/src/debug/assets [-]
             JavaSource          : file://<PROJECT>/unitTest/src/debug/java [-]
@@ -55,20 +48,6 @@ PROJECT             : LightSyncBasedTestsTest
             JavaResource        : file://<PROJECT>/unitTest/src/debug/res [-]
             JavaResource        : file://<PROJECT>/unitTest/src/debug/resources [-]
             JavaSource          : file://<PROJECT>/unitTest/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/unitTest/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/unitTest/src/main/assets [-]
-            JavaSource          : file://<PROJECT>/unitTest/src/main/java [-]
-            JavaSource          : file://<PROJECT>/unitTest/src/main/renderscript [-]
-            JavaResource        : file://<PROJECT>/unitTest/src/main/res [-]
-            JavaResource        : file://<PROJECT>/unitTest/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/unitTest/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/unitTest/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/unitTest/src/test/assets [-]
-            JavaSource (test)   : file://<PROJECT>/unitTest/src/test/java [-]
-            JavaSource (test)   : file://<PROJECT>/unitTest/src/test/renderscript [-]
-            JavaResource (test) : file://<PROJECT>/unitTest/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/unitTest/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/unitTest/src/test/shaders [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/unitTest/build [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false

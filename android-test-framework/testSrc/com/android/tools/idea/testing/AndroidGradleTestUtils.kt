@@ -46,6 +46,7 @@ import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -140,6 +141,30 @@ fun createAndroidProjectBuilder(
     builder.androidProject
   }
 }
+
+fun createAndroidProjectBuilderForDefaultTestProjectStructure(): AndroidProjectBuilder =
+    createAndroidProjectBuilder(
+      minSdk = { AndroidVersion.MIN_RECOMMENDED_API },
+      targetSdk = { AndroidVersion.VersionCodes.O_MR1 },
+      mainSourceProvider = {
+        SourceProviderStub(
+          ARTIFACT_NAME_MAIN,
+          File(basePath, "AndroidManifest.xml"),
+          listOf(File(basePath, "src")),
+          emptyList(),
+          emptyList(),
+          emptyList(),
+          emptyList(),
+          emptyList(),
+          listOf(File(basePath, "res")),
+          emptyList(),
+          emptyList(),
+          emptyList())
+      },
+      androidTestSourceProvider = { null },
+      unitTestSourceProvider = { null },
+      releaseSourceProvider = { null }
+    )
 
 fun AndroidProjectStubBuilder.buildMainSourceProviderStub() =
   SourceProviderStub(ARTIFACT_NAME_MAIN, basePath.resolve("src/main"), "AndroidManifest.xml")
@@ -294,7 +319,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
 fun setupTestProjectFromAndroidModel(
   project: Project,
   basePath: File,
-  stubBuilder: AndroidProjectBuilder = createAndroidProjectBuilder()
+  stubBuilder: AndroidProjectBuilder
 ) {
 
   val moduleManager = ModuleManager.getInstance(project)
