@@ -19,8 +19,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 
 /**
- * Similar to JDBC result set, but simplified to match the abstraction required
- * by the SQLite viewer.
+ * Interface to access the result of a SQLite query.
  *
  * All operations, except [dispose], are asynchronous, where completion is communicated through
  * [ListenableFuture] return values.
@@ -28,8 +27,15 @@ import com.intellij.openapi.Disposable
  * The [dispose] method cancels all pending operations and releases all resources associated with
  * the result set.
  */
+// TODO(b/142708737) Sort by column
 interface SqliteResultSet : Disposable {
-  var rowBatchSize: Int
   val columns: ListenableFuture<List<SqliteColumn>>
-  fun nextRowBatch(): ListenableFuture<List<SqliteRow>>
+  val rowCount: ListenableFuture<Int>
+
+  /**
+   * Returns a list of [SqliteRow]s.
+   * @param rowOffset The row from which the returned list of rows should start. Must be >= 0
+   * @param rowBatchSize The maximum amount of rows returned. Must be > 0
+   */
+  fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
 }

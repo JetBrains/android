@@ -45,7 +45,7 @@ interface TableView {
   fun showTableColumns(columns: List<SqliteColumn>)
   fun showTableRowBatch(rows: List<SqliteRow>)
   fun stopTableLoading()
-  fun reportError(message: String, t: Throwable)
+  fun reportError(message: String, t: Throwable?)
 
   /**
    * Enables or disables the button to fetch the previous page of rows.
@@ -64,6 +64,8 @@ interface TableView {
 interface TableViewListener {
   fun loadPreviousRowsInvoked()
   fun loadNextRowsInvoked()
+  fun loadFirstRowsInvoked()
+  fun loadLastRowsInvoked()
 
   /**
    * Invoked when the user changes the number of rows to display per page.

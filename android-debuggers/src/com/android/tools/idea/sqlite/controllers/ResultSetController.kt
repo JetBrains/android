@@ -18,7 +18,6 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteResultSet
-import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewListener
 import com.google.common.util.concurrent.Futures
@@ -26,6 +25,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.containers.ComparatorUtil.max
 
 /**
  * Controller specialized in displaying rows and columns from a [SqliteResultSet].
@@ -38,13 +38,15 @@ import com.intellij.openapi.util.Disposer
 @UiThread
 class ResultSetController(
   parentDisposable: Disposable,
-  private var rowBatchSize: Int = 50,
+  private var rowBatchSize: Int = 10,
   private val view: TableView,
   private val tableName: String?,
   private val resultSet: SqliteResultSet,
   private val edtExecutor: FutureCallbackExecutor
 ) : Disposable {
   private val listener = TableViewListenerImpl()
+
+  private var start = 0
 
   init {
     Disposer.register(parentDisposable, this)
@@ -63,7 +65,7 @@ class ResultSetController(
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       view.showTableColumns(columns!!)
 
-      fetchNextRows()
+      updateDataAndButtons()
     }
 
     val futureCatching = handleFetchRowsError(futureDisplayRows)
@@ -78,39 +80,33 @@ class ResultSetController(
     view.removeListener(listener)
   }
 
-  private fun fetchNextRows() : ListenableFuture<Unit> {
-    view.removeRows()
+  private fun updateDataAndButtons(): ListenableFuture<Unit> {
+    view.setFetchPreviousRowsButtonState(false)
+    view.setFetchNextRowsButtonState(false)
 
-    resultSet.rowBatchSize = rowBatchSize
-    val future = fetchRowBatch(0) { resultSet.nextRowBatch() }
-
-    return edtExecutor.transform(future) { hasMoreRows ->
-      if (!hasMoreRows) view.setFetchNextRowsButtonState(false)
-      return@transform
+    return edtExecutor.transformAsync(fetchAndDisplayRows()) {
+      edtExecutor.transform(resultSet.rowCount) { rowCount ->
+        view.setFetchPreviousRowsButtonState(start > 0)
+        view.setFetchNextRowsButtonState(start+rowBatchSize < rowCount)
+        return@transform
+      }
     }
   }
 
   /**
    * Fetches rows through the [SqliteResultSet].
-   *
-   * The future returned by this function resolves to true if there are more rows to be fetched, false otherwise.
    */
-  private fun fetchRowBatch(fetchedRowsCount: Int, rowsProvider: () -> ListenableFuture<List<SqliteRow>>) : ListenableFuture<Boolean> {
-    if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+  private fun fetchAndDisplayRows() : ListenableFuture<Unit> {
+    return edtExecutor.transformAsync(resultSet.getRowBatch(start, rowBatchSize)) { rows ->
+      if (Disposer.isDisposed(this)) throw ProcessCanceledException()
 
-    return if (fetchedRowsCount >= rowBatchSize) {
-      Futures.immediateFuture(true)
-    }
-    else {
-      edtExecutor.transformAsync(rowsProvider()) { rows ->
-        if (Disposer.isDisposed(this)) throw ProcessCanceledException()
-        if (rows!!.isEmpty()) {
-          Futures.immediateFuture(false)
-        }
-        else {
-          view.showTableRowBatch(rows)
-          fetchRowBatch(fetchedRowsCount + rows.size, rowsProvider)
-        }
+      if (rows!!.isEmpty()) {
+        view.removeRows()
+        Futures.immediateFuture(Unit)
+      } else {
+        view.removeRows()
+        view.showTableRowBatch(rows)
+        Futures.immediateFuture(Unit)
       }
     }
   }
@@ -126,17 +122,47 @@ class ResultSetController(
 
   private inner class TableViewListenerImpl : TableViewListener {
     override fun rowCountChanged(rowCount: Int) {
-      // TODO(next CL) update UI
+      if (rowCount < 0) {
+        view.reportError("Row count must be non-negative", null)
+        return
+      }
+
       rowBatchSize = rowCount
+
+      val future = updateDataAndButtons()
+      handleFetchRowsError(future)
     }
 
     override fun loadPreviousRowsInvoked() {
-      // TODO(next CL)
+      start = max(0, start-rowBatchSize)
+
+      val future = updateDataAndButtons()
+      handleFetchRowsError(future)
     }
 
     override fun loadNextRowsInvoked() {
-      val future = fetchNextRows()
+      start += rowBatchSize
+
+      val future = updateDataAndButtons()
       handleFetchRowsError(future)
+    }
+
+    override fun loadFirstRowsInvoked() {
+      start = 0
+
+      val future = updateDataAndButtons()
+      handleFetchRowsError(future)
+    }
+
+    override fun loadLastRowsInvoked() {
+      edtExecutor.transformAsync(resultSet.rowCount) { rowCount ->
+        start = (rowCount!! / rowBatchSize) * rowBatchSize
+
+        if (start == rowCount) start -= rowBatchSize
+
+        val future = updateDataAndButtons()
+        handleFetchRowsError(future)
+      }
     }
   }
 }
