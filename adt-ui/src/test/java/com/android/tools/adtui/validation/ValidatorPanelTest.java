@@ -68,6 +68,7 @@ public class ValidatorPanelTest {
   public void newPanelHasNoErrors() {
     createPanel(panel -> {
       assertThat(panel.hasErrors().get()).isFalse();
+      assertThat(panel.getValidationResult().get()).isEqualTo(Validator.Result.OK);
       assertThatNoMessageIsVisible(panel);
     });
   }
@@ -99,6 +100,7 @@ public class ValidatorPanelTest {
 
       shouldBePositive.set(-100);
       assertThat(panel.hasErrors().get()).isTrue();
+      assertThat(panel.getValidationResult().get().getSeverity()).isEqualTo(Validator.Severity.ERROR);
       assertThat(getValidationText(panel)).isEqualTo("Negative value: -100");
 
       shouldBePositive.set(100);
@@ -161,20 +163,24 @@ public class ValidatorPanelTest {
       panel.registerTest(infoIfFalse, Validator.Severity.INFO, "Info");
 
       assertThat(panel.hasErrors().get()).isFalse();
+      assertThat(panel.getValidationResult().get().getSeverity()).isEqualTo(Validator.Severity.OK);
       assertThatNoMessageIsVisible(panel);
 
       infoIfFalse.set(false);
       assertThat(panel.hasErrors().get()).isFalse();
+      assertThat(panel.getValidationResult().get().getSeverity()).isEqualTo(Validator.Severity.INFO);
       assertThat(getValidationText(panel)).isEqualTo("Info");
 
       infoIfFalse.set(true);
       warningIfFalse.set(false);
       assertThat(panel.hasErrors().get()).isFalse();
+      assertThat(panel.getValidationResult().get().getSeverity()).isEqualTo(Validator.Severity.WARNING);
       assertThat(getValidationText(panel)).isEqualTo("Warning");
 
       warningIfFalse.set(true);
       errorIfFalse.set(false);
       assertThat(panel.hasErrors().get()).isTrue();
+      assertThat(panel.getValidationResult().get().getSeverity()).isEqualTo(Validator.Severity.ERROR);
       assertThat(getValidationText(panel)).isEqualTo("Error");
     });
   }
