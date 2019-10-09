@@ -528,7 +528,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   // Schedule a rescan to convert any map ResourceItems to PSI if needed, and return true if conversion
   // is needed (incremental updates which rely on PSI are not possible).
   private boolean convertToPsiIfNeeded(@NotNull PsiFile psiFile, @NotNull ResourceFolderType folderType) {
-    ResourceItemSource resFile = mySources.get(psiFile.getVirtualFile());
+    ResourceItemSource<? extends ResourceItem> resFile = mySources.get(psiFile.getVirtualFile());
     if (resFile instanceof PsiResourceFile) {
       return false;
     }
@@ -543,7 +543,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   /**
    * Returns true if the given element represents a resource folder
-   * (e.g. res/values-en-rUS or layout-land, *not* the root res/ folder)
+   * (e.g. res/values-en-rUS or layout-land, *not* the root res/ folder).
    */
   private boolean isResourceFolder(@NotNull VirtualFile virtualFile) {
     if (virtualFile.isDirectory()) {
