@@ -24,7 +24,6 @@ import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.workbench.WorkBench;
-import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.res.ResourceHelper;
@@ -135,22 +134,27 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     myWorkBench = new WorkBench<>(myProject, "Visualization", null, this);
     myWorkBench.setLoadingText("Loading...");
     myWorkBench.setToolContext(mySurface);
-    myRoot.add(new IssuePanelSplitter(mySurface, myWorkBench));
+
+    myRoot.add(createToolbarPanel(), BorderLayout.NORTH);
+    myRoot.add(myWorkBench, BorderLayout.CENTER);
   }
 
-  private void createContentPanel() {
-    myContentPanel = new JPanel(new BorderLayout());
+  @NotNull
+  private JComponent createToolbarPanel() {
     myFileNameLabel = new JLabel();
     ActionGroup group = new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet));
     myActionToolbar = ActionManager.getInstance().createActionToolbar("VisualizationBar", group, true);
 
-    JComponent fileNamePanel = new AdtPrimaryPanel(new BorderLayout());
-    fileNamePanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
-                                                             BorderFactory.createEmptyBorder(0, 6, 0, 0)));
-    fileNamePanel.add(myFileNameLabel, BorderLayout.WEST);
-    fileNamePanel.add(myActionToolbar.getComponent(), BorderLayout.CENTER);
+    JComponent toolbarPanel = new AdtPrimaryPanel(new BorderLayout());
+    toolbarPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
+                                                              BorderFactory.createEmptyBorder(0, 6, 0, 0)));
+    toolbarPanel.add(myFileNameLabel, BorderLayout.WEST);
+    toolbarPanel.add(myActionToolbar.getComponent(), BorderLayout.CENTER);
+    return toolbarPanel;
+  }
 
-    myContentPanel.add(fileNamePanel, BorderLayout.NORTH);
+  private void createContentPanel() {
+    myContentPanel = new JPanel(new BorderLayout());
     myContentPanel.add(mySurface, BorderLayout.CENTER);
   }
 
@@ -238,7 +242,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
 
   // Build was either cancelled or there was an error
   private void buildError() {
-    myWorkBench.loadingStopped("Preview is unavailable until after a successful project sync");
+    myWorkBench.loadingStopped("Previews are unavailable until after a successful project sync");
   }
 
   private void initPreviewFormAfterBuildOnEventDispatchThread() {
