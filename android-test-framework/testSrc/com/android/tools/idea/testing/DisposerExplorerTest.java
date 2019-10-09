@@ -15,19 +15,30 @@
  */
 package com.android.tools.idea.testing;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.testing.DisposerExplorer.VisitResult;
 import com.android.tools.idea.testing.DisposerExplorer.Visitor;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.junit.AfterClass;
 import org.junit.Test;
 
-/** Tests for the {@link DisposerExplorer} class. */
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
+
+/**
+ * Tests for the {@link DisposerExplorer} class.
+ */
 public class DisposerExplorerTest {
+  @AfterClass
+  public static void cleanupDisposer() {
+    final List<Disposable> roots = new ArrayList<>(DisposerExplorer.getTreeRoots());
+    roots.forEach(Disposer::dispose);
+    Disposer.assertIsEmpty(true);
+  }
+
   @Test
   public void testBasicMethods() {
     TestDisposable root1 = new TestDisposable("root1");
