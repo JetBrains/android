@@ -45,10 +45,10 @@ public abstract class AbstractProperty<T> extends AbstractObservableValue<T> imp
     for (Field field : object.getClass().getDeclaredFields()) {
       if (AbstractProperty.class.isAssignableFrom(field.getType())) {
         try {
-          // We change the access level of this field to avoid getting an IllegalAccessException
+          // We change the access level of this field to avoid getting an IllegalAccessException.
           boolean isFieldPrivate = !field.isAccessible();
           field.setAccessible(true);
-          properties.add((AbstractProperty)field.get(object));
+          properties.add((AbstractProperty<?>)field.get(object));
           if (isFieldPrivate) {
             field.setAccessible(false);
           }
