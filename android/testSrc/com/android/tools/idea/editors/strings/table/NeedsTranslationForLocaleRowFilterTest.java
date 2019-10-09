@@ -16,15 +16,15 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.StringResource;
+import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.editors.strings.StringResourceKey;
 import com.android.tools.idea.editors.strings.StringResourceRepository;
 import com.android.tools.idea.rendering.Locale;
+import java.util.Collections;
+import javax.swing.RowFilter.Entry;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
-
-import javax.swing.RowFilter.Entry;
-import java.util.Collections;
 
 public final class NeedsTranslationForLocaleRowFilterTest extends AndroidTestCase {
   public void testInclude() {
@@ -38,7 +38,7 @@ public final class NeedsTranslationForLocaleRowFilterTest extends AndroidTestCas
     StringResourceRepository repository = Mockito.mock(StringResourceRepository.class);
     Mockito.when(repository.getItems(key)).thenReturn(Collections.emptyList());
 
-    StringResource resource = new StringResource(key, repository, myFacet.getModule().getProject());
+    StringResource resource = new StringResource(key, StringResourceData.create(myModule.getProject(), repository));
     resource.setTranslatable(false);
 
     StringResourceTableModel model = Mockito.mock(StringResourceTableModel.class);

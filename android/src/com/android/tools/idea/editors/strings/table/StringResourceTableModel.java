@@ -22,13 +22,12 @@ import com.android.tools.idea.editors.strings.StringResourceKey;
 import com.android.tools.idea.editors.strings.StringResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.application.ApplicationManager;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.table.AbstractTableModel;
+import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.table.AbstractTableModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StringResourceTableModel extends AbstractTableModel {
   public static final int KEY_COLUMN = 0;
@@ -51,10 +50,10 @@ public class StringResourceTableModel extends AbstractTableModel {
     myLocales = Collections.emptyList();
   }
 
-  public StringResourceTableModel(@NotNull StringResourceRepository repository, @NotNull AndroidFacet facet) {
+  public StringResourceTableModel(@NotNull StringResourceRepository repository, @NotNull Project project) {
     myRepository = repository;
 
-    StringResourceData data = repository.getData(facet);
+    StringResourceData data = StringResourceData.create(project, repository);
     myData = data;
 
     myKeys = data.getKeys();

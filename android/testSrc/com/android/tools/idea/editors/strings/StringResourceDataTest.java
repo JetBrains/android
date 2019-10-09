@@ -60,7 +60,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     LocalResourceRepository moduleRepository =
         ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory), RES_AUTO, dynamicRepository);
 
-    data = StringResourceRepository.create(moduleRepository).getData(myFacet);
+    data = StringResourceData.create(myModule.getProject(), StringResourceRepository.create(moduleRepository));
   }
 
   public void testSummarizeLocales() {
