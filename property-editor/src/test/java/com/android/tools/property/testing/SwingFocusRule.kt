@@ -48,6 +48,7 @@ import java.awt.peer.ComponentPeer
 class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalResource() {
   private var afterCleanUp = false
   private var focusManager: MyKeyboardFocusManager? = null
+  private var oldFocusManager : KeyboardFocusManager? = null
   private val answer = Answer<Boolean> { invocation ->
     val componentToGainFocus = invocation.getArgument<Component>(0)
     val temporary = invocation.getArgument<Boolean>(1)
@@ -129,6 +130,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     focusManager = MyKeyboardFocusManager()
     ideFocusManager = MyIdeFocusManager(focusManager!!)
     appRule!!.testApplication.registerService(IdeFocusManager::class.java, ideFocusManager!!)
+    oldFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
   }
 
@@ -143,8 +145,9 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     focusManager = null
     ideFocusManager = null
     appRule = null
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(oldFocusManager)
     overrideGraphicsEnvironment(null)
+    oldFocusManager = null
   }
 
   private fun skipIfLinux(description: Description): Statement = object : Statement() {
