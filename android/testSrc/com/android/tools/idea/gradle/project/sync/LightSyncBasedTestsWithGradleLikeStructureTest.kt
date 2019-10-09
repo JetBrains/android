@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.createAndroidProjectBuilder
+import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
@@ -34,11 +36,11 @@ import org.junit.rules.TestName
  * See [AndroidProjectRule.withAndroidModel] for more details.
  */
 @RunsInEdt
-class LightSyncBasedTestsTest : SnapshotComparisonTest {
+class LightSyncBasedTestsWithGradleLikeStructureTest : SnapshotComparisonTest {
   @get:Rule
   var testName = TestName()
 
-  val projectRule = AndroidProjectRule.withAndroidModel()
+  val projectRule = AndroidProjectRule.withAndroidModel(createAndroidProjectBuilder())
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -48,7 +50,29 @@ class LightSyncBasedTestsTest : SnapshotComparisonTest {
   override val snapshotDirectoryName: String = "syncedProjectSnapshots"
 
   @Test
-  fun testLightTests() {
+  fun testLightTestsWithGradleLikeStructure() {
+    assertThat(ModuleManager.getInstance(projectRule.project).modules).asList().containsExactly(projectRule.module)
+    val dump = projectRule.project.saveAndDump()
+    assertIsEqualToSnapshot(dump)
+  }
+}
+
+@RunsInEdt
+class LightSyncBasedTestsWithDefaultTestProjectStructureTest : SnapshotComparisonTest {
+  @get:Rule
+  var testName = TestName()
+
+  val projectRule = AndroidProjectRule.withAndroidModel(createAndroidProjectBuilderForDefaultTestProjectStructure())
+
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  override fun getName(): String = testName.methodName
+
+  override val snapshotDirectoryName: String = "syncedProjectSnapshots"
+
+  @Test
+  fun testLightTestsWithDefaultTestProjectStructure() {
     assertThat(ModuleManager.getInstance(projectRule.project).modules).asList().containsExactly(projectRule.module)
     val dump = projectRule.project.saveAndDump()
     assertIsEqualToSnapshot(dump)
