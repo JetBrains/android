@@ -17,7 +17,6 @@ package com.android.tools.idea.actions
 
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.intellij.facet.FacetManager
 import com.intellij.ide.IdeView
 import com.intellij.openapi.vfs.VfsUtil
@@ -37,7 +36,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class CreateClassActionTest {
 
-  private val projectRule = AndroidProjectRule.withAndroidModel(createAndroidProjectBuilder())
+  private val projectRule = AndroidProjectRule.withAndroidModel()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
