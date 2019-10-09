@@ -96,7 +96,7 @@
       <implementation-class>com.android.tools.idea.stats.AnalyticsTestRunnerEventsListener</implementation-class>
     </component>
     <component>
-      <implementation-class>org.jetbrains.android.AndroidComposeAutoDocumentation</implementation-class>
+      <implementation-class>org.jetbrains.android.compose.AndroidComposeAutoDocumentation</implementation-class>
     </component>
   </project-components>
   <actions>
@@ -466,13 +466,13 @@
                             implementationClass="com.android.tools.idea.run.AndroidActivityAliasCompletionContributor"
                             order="first"/>
     <completion.contributor language="kotlin"
-                            implementationClass="org.jetbrains.android.AndroidComposeCompletionContributor"
+                            implementationClass="org.jetbrains.android.compose.AndroidComposeCompletionContributor"
                             order="first, before KotlinCompletionContributor"/>
     <weigher key="completion"
-             implementationClass="org.jetbrains.android.AndroidComposeCompletionWeigher"
+             implementationClass="org.jetbrains.android.compose.AndroidComposeCompletionWeigher"
              id="android.compose"
              order="first"/>
-    <lang.inspectionSuppressor language="kotlin" implementationClass="org.jetbrains.android.AndroidComposeSuppressor" />
+    <lang.inspectionSuppressor language="kotlin" implementationClass="org.jetbrains.android.compose.AndroidComposeSuppressor" />
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>
