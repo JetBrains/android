@@ -382,6 +382,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
   }
 
   override fun buildFailed() {
+    isRefreshingPreview = false
     updateSurfaceVisibility()
   }
 
