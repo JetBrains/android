@@ -81,16 +81,17 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   override fun registerActionsShortcuts(component: JComponent) {
     registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component)
-    registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), mySurface)
-    registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), mySurface)
-    registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), mySurface)
-    registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), mySurface)
     registerAction(selectAllAction, IdeActions.ACTION_SELECT_ALL, component)
     registerAction(activateSelectionAction, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), component)
+    val focusablePane = mySurface.layeredPane
+    registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), focusablePane)
+    registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), focusablePane)
+    registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), focusablePane)
+    registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), focusablePane)
 
     val keyEvent = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
-    registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), mySurface)
-    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), mySurface)
+    registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), focusablePane)
+    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), focusablePane)
   }
 
   override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {

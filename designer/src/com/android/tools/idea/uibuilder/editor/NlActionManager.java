@@ -117,10 +117,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     registerAction(mySelectAllAction, IdeActions.ACTION_SELECT_ALL, component);
     registerAction(myGotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component);
     registerAction(mySelectParent, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), component);
-    registerAction(mySelectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), mySurface);
-    registerAction(mySelectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), mySurface);
-    registerAction(mySelectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), mySurface);
-    registerAction(mySelectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), mySurface);
+    JComponent focusablePane = mySurface.getLayeredPane();
+    registerAction(mySelectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), focusablePane);
+    registerAction(mySelectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), focusablePane);
+    registerAction(mySelectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), focusablePane);
+    registerAction(mySelectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), focusablePane);
   }
 
   @NotNull
