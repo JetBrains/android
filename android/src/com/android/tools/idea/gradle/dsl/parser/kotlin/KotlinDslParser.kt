@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference
+import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
@@ -574,6 +575,11 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
                                    psiElement : PsiElement,
                                    propertyName: GradleNameElement,
                                    propertyExpression : KtElement) : GradleDslExpression {
+    fun unknownElement() : GradleDslExpression {
+      parentElement.notification(INCOMPLETE_PARSING).addUnknownElement(propertyExpression)
+      return GradleDslUnknownElement(parentElement, propertyExpression, propertyName)
+    }
+
     return when (propertyExpression) {
       // Ex: versionName = 1.0. isQualified = false.
       is KtStringTemplateExpression, is KtConstantExpression -> GradleDslLiteral(
@@ -583,20 +589,20 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // Ex: KotlinCompilerVersion.VERSION.
       is KtDotQualifiedExpression -> GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true)
       // Ex: Delete::class.
-      is KtClassLiteralExpression -> GradleDslLiteral(
-        parentElement, psiElement, propertyName, propertyExpression.receiverExpression as PsiElement, true)
+      is KtClassLiteralExpression -> when (val receiverExpression = propertyExpression.receiverExpression) {
+        null -> unknownElement()
+        else -> GradleDslLiteral(parentElement, psiElement, propertyName, receiverExpression, true)
+      }
       // Ex: extra["COMPILE_SDK_VERSION"]
-      is KtArrayAccessExpression -> GradleDslLiteral(
-        parentElement, psiElement, propertyName, propertyExpression, true)
+      is KtArrayAccessExpression -> GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true)
       // Ex: extra["COMPILE_SDK_VERSION"]!!, false!!
-      is KtPostfixExpression -> getExpressionElement(parentElement, psiElement, propertyName, propertyExpression.baseExpression!!)
+      is KtPostfixExpression -> when (val baseExpression = propertyExpression.baseExpression) {
+        null -> unknownElement()
+        else -> getExpressionElement(parentElement, psiElement, propertyName, baseExpression)
+      }
       // Ex: extra["foo"] as Boolean, false as Boolean
       is KtBinaryExpressionWithTypeRHS -> getExpressionElement(parentElement, psiElement, propertyName, propertyExpression.left)
-      else -> {
-        // The expression is not supported.
-        parentElement.notification(NotificationTypeReference.INCOMPLETE_PARSING).addUnknownElement(propertyExpression)
-        return GradleDslUnknownElement(parentElement, propertyExpression, propertyName)
-      }
+      else -> unknownElement()
     }
   }
 
