@@ -252,6 +252,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub() = AndroidProjectStub(
  */
 fun setupTestProjectFromAndroidModel(
   project: Project,
+  basePath: File,
   stubBuilder: AndroidProjectBuilder = createAndroidProjectBuilder()
 ) {
 
@@ -267,7 +268,6 @@ fun setupTestProjectFromAndroidModel(
     "org.gradle.plugins.ide.idea.IdeaPlugin"
   )
   val task = IdeaSyncPopulateProjectTask(project)
-  val basePath = File(project.basePath!!).absoluteFile
   val buildPath = basePath.resolve("build")
   val projectName = project.name
   val androidProjectStub = stubBuilder(projectName, basePath)

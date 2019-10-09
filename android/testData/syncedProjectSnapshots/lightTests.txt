@@ -1,9 +1,9 @@
 PROJECT             : LightSyncBasedTestsTest
     MODULE              : LightSyncBasedTestsTest
         LinkedProjectId     : LightSyncBasedTestsTest
-        LinkedProjectPath   : <PROJECT>
-        RootProjectPath     : <PROJECT>
-        ModuleFile          : <PROJECT>/LightSyncBasedTestsTest.iml
+        LinkedProjectPath   : <PROJECT>/unitTest
+        RootProjectPath     : <PROJECT>/unitTest
+        ModuleFile          : <PROJECT>/unitTest/LightSyncBasedTestsTest.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -13,13 +13,13 @@ PROJECT             : LightSyncBasedTestsTest
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /unitTest/src/main/AndroidManifest.xml
-            ResFolderRelativePath         : /unitTest/src/main/res
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/unitTest/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/unitTest/src/debug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/src/test/res [-]
-            AssetsFolderRelativePath      : /unitTest/src/main/assets
+            AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
             UseCustomCompilerManifest     : false
@@ -40,7 +40,7 @@ PROJECT             : LightSyncBasedTestsTest
         FACET               : Android-Gradle
             TypeId              : android-gradle
             GradlePath          : :
-        CONENT_ENTRY        : file://<PROJECT>
+        CONENT_ENTRY        : file://<PROJECT>/unitTest
             JavaSource (test)   : file://<PROJECT>/unitTest/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/unitTest/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/unitTest/src/androidTest/java [-]
