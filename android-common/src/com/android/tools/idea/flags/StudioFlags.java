@@ -443,7 +443,7 @@ public final class StudioFlags {
     "Enable build attribution.", false);
   public static final Flag<Boolean> KOTLIN_DSL_PARSING = Flag.create(
     GRADLE_IDE, "kotlin.dsl", "Enable parsing for Kotlin build files",
-    "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", false);
+    "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
 
   // REMOVE or change default to true after http://b/80245603 is fixed.
   public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(

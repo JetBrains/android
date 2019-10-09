@@ -27,7 +27,7 @@ import java.io.File
 
 class KotlinParserTest : PlatformTestCase() {
   @Test
-  fun testKotlinParserDisabledByDefault() {
+  fun testKotlinParserEnabledByDefault() {
     runWriteAction {
       val basePath = myProject.basePath
       TestCase.assertNotNull(basePath)
@@ -45,8 +45,8 @@ class KotlinParserTest : PlatformTestCase() {
     }
 
     val buildModel = ProjectBuildModel.get(myProject).getModuleBuildModel(myModule)
-    // Check nothing has been parsed.
+    // Check that something has been parsed
     val dependencies = buildModel!!.dependencies().all()
-    assertEmpty(dependencies)
+    assertNotEmpty(dependencies)
   }
 }
