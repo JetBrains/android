@@ -29,7 +29,6 @@ import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.ComposePreviewToolbar.ForceCompileAndRefreshAction
 import com.android.tools.idea.configurations.Configuration
@@ -65,7 +64,6 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
 import com.intellij.problems.WolfTheProblemSolver
@@ -228,7 +226,28 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, 
   sceneManager.apply {
     setTransparentRendering(!fullDeviceSize)
     setShrinkRendering(!fullDeviceSize)
+    forceReinflate()
   }
+
+/**
+ * Sets up the given [existingModel] with the right values to be used in the preview.
+ */
+private fun configureExistingModel(existingModel: NlModel,
+                                   displayName: String,
+                                   fileContents: String,
+                                   surface: NlDesignSurface): NlModel {
+  // Reconfigure the model by setting the new display name and applying the configuration values
+  existingModel.modelDisplayName = displayName
+  val file = existingModel.virtualFile as ComposeAdapterLightVirtualFile
+  // Update the contents of the VirtualFile associated to the NlModel. fireEvent value is currently ignored, just set to true in case
+  // that changes in the future.
+  file.setContent(null, fileContents, true)
+
+  configureLayoutlibSceneManager(surface.getSceneManager(existingModel) as LayoutlibSceneManager,
+                                 RenderSettings.getProjectSettings(existingModel.project).showDecorations)
+
+  return existingModel
+}
 
 /**
  * A [FileEditor] that displays a preview of composable elements defined in the given [psiFile].
@@ -417,14 +436,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
         val model = if (existingModels.isNotEmpty()) {
           LOG.debug("Re-using model")
-          val existingModel = existingModels.pop()
-
-          // Reconfigure the model by setting the new display name and applying the configuration values
-          existingModel.modelDisplayName = previewElement.displayName
-          val file = existingModel.virtualFile as ComposeAdapterLightVirtualFile
-          file.setContent(this, fileContents, true)
-
-          existingModel
+          configureExistingModel(existingModels.pop(), previewElement.displayName, fileContents, surface)
         }
         else {
           LOG.debug("No models to reuse were found. New model.")

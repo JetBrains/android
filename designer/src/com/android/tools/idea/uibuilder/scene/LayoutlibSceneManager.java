@@ -172,6 +172,12 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   private boolean useShrinkRendering = false;
 
+  /**
+   * When true, this will force the current {@link RenderTask} to be disposed and re-created on the next render. This will also
+   * re-inflate the model.
+   */
+  private final AtomicBoolean myForceInflate = new AtomicBoolean(false);
+
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
       return null;
@@ -429,7 +435,7 @@ public class LayoutlibSceneManager extends SceneManager {
         requestLayout(true);
       }
       else {
-        requestRender(getTriggerFromChangeType(model.getLastChangeType()), false)
+        requestRender(getTriggerFromChangeType(model.getLastChangeType()))
           .thenRunAsync(() ->
             // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
             mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
@@ -510,11 +516,10 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Adds a new render request to the queue.
    * @param trigger build trigger for reporting purposes
-   * @param forceInflate if true, the layout will be re-inflated
    * @return {@link CompletableFuture} that will be completed once the render has been done.
    */
   @NotNull
-  private CompletableFuture<Void> requestRender(@Nullable LayoutEditorRenderResult.Trigger trigger, boolean forceInflate) {
+  private CompletableFuture<Void> requestRender(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     CompletableFuture<Void> callback = new CompletableFuture<>();
     synchronized (myRenderFutures) {
       myRenderFutures.add(callback);
@@ -528,7 +533,7 @@ public class LayoutlibSceneManager extends SceneManager {
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
-        render(trigger, forceInflate);
+        render(trigger);
       }
 
       @Override
@@ -538,10 +543,6 @@ public class LayoutlibSceneManager extends SceneManager {
     });
 
     return callback;
-  }
-
-  private CompletableFuture<Void> requestRender(@Nullable LayoutEditorRenderResult.Trigger trigger) {
-    return requestRender(trigger, false);
   }
 
   private class ConfigurationChangeListener implements ConfigurationListener {
@@ -562,7 +563,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @Override
   @NotNull
   public CompletableFuture<Void> requestRender() {
-    return requestRender(getTriggerFromChangeType(getModel().getLastChangeType()), false);
+    return requestRender(getTriggerFromChangeType(getModel().getLastChangeType()));
   }
 
   /**
@@ -571,7 +572,8 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @NotNull
   public CompletableFuture<Void> requestUserInitiatedRender() {
-    return requestRender(LayoutEditorRenderResult.Trigger.USER, true);
+    forceReinflate();
+    return requestRender(LayoutEditorRenderResult.Trigger.USER);
   }
 
   @Override
@@ -586,7 +588,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   void doRequestLayoutAndRender(boolean animate) {
-    requestRender(getTriggerFromChangeType(getModel().getLastChangeType()), false)
+    requestRender(getTriggerFromChangeType(getModel().getLastChangeType()))
       .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), PooledThreadExecutor.INSTANCE);
   }
 
@@ -957,7 +959,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
    */
   @NotNull
-  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger, boolean forceInflate) {
+  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     myIsCurrentlyRendering.set(true);
     try {
       DesignSurface surface = getDesignSurface();
@@ -965,7 +967,7 @@ public class LayoutlibSceneManager extends SceneManager {
       getModel().resetLastChange();
 
       long renderStartTimeMs = System.currentTimeMillis();
-      return renderImpl(forceInflate)
+      return renderImpl()
         .thenApply(result -> {
           if (result == null) {
             completeRender();
@@ -1031,8 +1033,8 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @NotNull
-  private CompletableFuture<RenderResult> renderImpl(boolean forceInflate) {
-    return inflate(forceInflate)
+  private CompletableFuture<RenderResult> renderImpl() {
+    return inflate(myForceInflate.getAndSet(false))
       .whenCompleteAsync((result, ex) -> {
         if (result) {
           notifyListenersModelUpdateComplete();
@@ -1232,5 +1234,12 @@ public class LayoutlibSceneManager extends SceneManager {
 
   public void removeRenderListener(@NotNull RenderListener listener) {
     myRenderListeners.remove(listener);
+  }
+
+  /**
+   * This invalidates the current {@link RenderTask}. Next render call will be force to re-inflate the model.
+   */
+  public void forceReinflate() {
+    myForceInflate.set(true);
   }
 }
