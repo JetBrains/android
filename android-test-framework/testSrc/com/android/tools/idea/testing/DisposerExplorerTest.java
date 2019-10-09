@@ -32,12 +32,6 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for the {@link DisposerExplorer} class.
  */
 public class DisposerExplorerTest {
-  @AfterClass
-  public static void cleanupDisposer() {
-    final List<Disposable> roots = new ArrayList<>(DisposerExplorer.getTreeRoots());
-    roots.forEach(Disposer::dispose);
-    Disposer.assertIsEmpty(true);
-  }
 
   @Test
   public void testBasicMethods() {
@@ -100,6 +94,10 @@ public class DisposerExplorerTest {
 
     assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("a"))).isSameAs(a);
     assertThat(DisposerExplorer.findFirst(d -> d.toString().endsWith("x"))).isNull();
+
+    // cleanup shared Disposer
+    Disposer.dispose(root1);
+    Disposer.dispose(root2);
   }
 
   private static class TestDisposable implements Disposable {
