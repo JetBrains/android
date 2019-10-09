@@ -23,10 +23,13 @@ import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-const val COMPOSABLE = "androidx.compose.Composable"
+const val COMPOSABLE_SHORT_NAME = "Composable"
+const val COMPOSABLE_FQ_NAME = "androidx.compose.$COMPOSABLE_SHORT_NAME"
 
 fun PsiElement.isComposableFunction(): Boolean {
-  return this is KtNamedFunction && annotationEntries.any { it.getQualifiedName() == COMPOSABLE }
+  return this is KtNamedFunction && annotationEntries.any { annotation ->
+    annotation.shortName?.asString() == COMPOSABLE_SHORT_NAME && annotation.getQualifiedName() == COMPOSABLE_FQ_NAME
+  }
 }
 
 fun PsiElement.isInsideComposableCode(): Boolean {
