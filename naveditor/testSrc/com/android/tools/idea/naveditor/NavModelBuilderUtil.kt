@@ -27,6 +27,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.model.NavComponentHelper
 import com.android.tools.idea.naveditor.scene.NavSceneManager
+import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavInteractionProvider
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -83,7 +84,7 @@ object NavModelBuilderUtil {
     }
 
     return ModelBuilder(facet, fixture, name, f(), managerFactory,
-                        BiConsumer<NlModel, NlModel> { model, newModel -> NavSceneManager.updateHierarchy(model, newModel) }, path,
+                        BiConsumer<NlModel, NlModel> { model, newModel -> updateHierarchy(model, newModel) }, path,
                         NavDesignSurface::class.java, Function { NavInteractionProvider(it) },
                         Consumer<NlComponent> { NavComponentHelper.registerComponent(it) })
   }

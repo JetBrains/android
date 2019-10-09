@@ -23,7 +23,7 @@ import com.android.tools.idea.naveditor.model.effectiveDestinationId
 import com.android.tools.idea.naveditor.model.getActionType
 import com.android.tools.idea.naveditor.model.parentSequence
 
-class NavActionTargetProvider : TargetProvider {
+object NavActionTargetProvider : TargetProvider {
   override fun createTargets(sceneComponent: SceneComponent): List<Target> {
     val nlComponent = sceneComponent.nlComponent
     val rootSceneComponent = sceneComponent.scene.root ?: return listOf()

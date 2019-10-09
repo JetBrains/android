@@ -159,7 +159,7 @@ fun getEndPoint(scale: Scale, rectangle: Rectangle2D.Float, direction: Connectio
   return shiftPoint(
     getArrowPoint(scale, rectangle, direction),
     direction,
-    AndroidLength(NavSceneManager.ACTION_ARROW_PARALLEL) * scale - SwingLength(1f))
+    AndroidLength(ACTION_ARROW_PARALLEL) * scale - SwingLength(1f))
 }
 
 /**
@@ -275,7 +275,7 @@ fun getSelfActionIconRect(@SwingCoordinate start: Point2D.Float, scale: Scale): 
 @SwingCoordinate
 fun getHorizontalActionIconRect(@SwingCoordinate rectangle: Rectangle2D.Float): Rectangle2D.Float {
   val iconRect = Rectangle2D.Float()
-  val scale = rectangle.height / NavSceneManager.ACTION_ARROW_PERPENDICULAR
+  val scale = rectangle.height / ACTION_ARROW_PERPENDICULAR
 
   iconRect.x = rectangle.x + POP_ICON_HORIZONTAL_PADDING.value * scale
   iconRect.width = 2 * POP_ICON_RADIUS.value * scale

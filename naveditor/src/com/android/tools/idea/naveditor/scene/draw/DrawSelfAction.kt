@@ -28,9 +28,10 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
+import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PARALLEL
+import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PERPENDICULAR
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.ArrowDirection
-import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.SELF_ACTION_RADII
 import com.android.tools.idea.naveditor.scene.getSelfActionIconRect
 import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
@@ -68,8 +69,8 @@ class DrawSelfAction(@VisibleForTesting @SwingCoordinate val rectangle: Rectangl
                                   SELF_ACTION_RADII.map { (it * scale).toInt() }.toIntArray())
     list.add(DrawShape(path, color, ACTION_STROKE))
 
-    val width = NavSceneManager.ACTION_ARROW_PERPENDICULAR * scale.value.toFloat()
-    val height = NavSceneManager.ACTION_ARROW_PARALLEL * scale.value.toFloat()
+    val width = ACTION_ARROW_PERPENDICULAR * scale.value.toFloat()
+    val height = ACTION_ARROW_PARALLEL * scale.value.toFloat()
     val x = points[4].x - width / 2
     val y = points[4].y - height
     val drawArrow = makeDrawArrowCommand(Rectangle2D.Float(x, y, width, height), ArrowDirection.UP, color)
