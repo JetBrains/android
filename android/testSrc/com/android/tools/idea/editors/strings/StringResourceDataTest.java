@@ -55,10 +55,10 @@ public class StringResourceDataTest extends AndroidTestCase {
     DynamicResourceValue field = new DynamicResourceValue(ResourceType.STRING, "L\'Étranger");
 
     DynamicValueResourceRepository dynamicRepository =
-        DynamicValueResourceRepository.createForTest(myFacet, RES_AUTO, Collections.singletonMap("dynamic_key1", field));
+      DynamicValueResourceRepository.createForTest(myFacet, RES_AUTO, Collections.singletonMap("dynamic_key1", field));
 
     LocalResourceRepository moduleRepository =
-        ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory), RES_AUTO, dynamicRepository);
+      ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory), RES_AUTO, dynamicRepository);
 
     data = StringResourceData.create(myModule.getProject(), StringResourceRepository.create(moduleRepository));
   }
