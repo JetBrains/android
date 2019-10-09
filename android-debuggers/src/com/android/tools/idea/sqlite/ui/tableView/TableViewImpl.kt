@@ -44,11 +44,18 @@ class TableViewImpl : TableView {
   private val panel = TablePanel()
   override val component: JComponent = panel.root
 
-  private val previousRowsPageButton = CommonButton("Previous", AllIcons.Actions.Back)
-  private val nextRowsPageButton = CommonButton("Next", AllIcons.Actions.Forward)
+  private val firstRowsPageButton = CommonButton("First", AllIcons.Actions.Play_first)
+  private val lastRowsPageButton = CommonButton("Last", AllIcons.Actions.Play_last)
+
+  private val previousRowsPageButton = CommonButton("Previous", AllIcons.Actions.Play_back)
+  private val nextRowsPageButton = CommonButton("Next", AllIcons.Actions.Play_forward)
   private val maxRowsCountTextFiled = JTextField()
 
   init {
+    firstRowsPageButton.toolTipText = "First"
+    panel.controlsPanel.add(firstRowsPageButton)
+    firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() }}
+
     previousRowsPageButton.toolTipText = "Previous"
     panel.controlsPanel.add(previousRowsPageButton)
     previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() }}
@@ -59,6 +66,10 @@ class TableViewImpl : TableView {
     nextRowsPageButton.toolTipText = "Next"
     panel.controlsPanel.add(nextRowsPageButton)
     nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() }}
+
+    lastRowsPageButton.toolTipText = "Last"
+    panel.controlsPanel.add(lastRowsPageButton)
+    lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() }}
   }
 
   override fun showRowCount(maxRowCount: Int) {
@@ -99,16 +110,18 @@ class TableViewImpl : TableView {
     panel.table.setPaintBusy(false)
   }
 
-  override fun reportError(message: String, t: Throwable) {
+  override fun reportError(message: String, t: Throwable?) {
     notifyError(message, t)
   }
 
   override fun setFetchPreviousRowsButtonState(enable: Boolean) {
     previousRowsPageButton.isEnabled = enable
+    firstRowsPageButton.isEnabled = enable
   }
 
   override fun setFetchNextRowsButtonState(enable: Boolean) {
     nextRowsPageButton.isEnabled = enable
+    lastRowsPageButton.isEnabled = enable
   }
 
   override fun addListener(listener: TableViewListener) {

@@ -37,7 +37,7 @@ open class MockTableView : TableView {
 
   override fun stopTableLoading() { }
 
-  override fun reportError(message: String, t: Throwable) { }
+  override fun reportError(message: String, t: Throwable?) { }
 
   override fun setFetchPreviousRowsButtonState(enable: Boolean) { }
 

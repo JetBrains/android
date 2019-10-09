@@ -49,13 +49,13 @@ internal fun JBTable.setResultSetTableColumns() {
 }
 
 @AnyThread
-internal fun notifyError(message: String, t: Throwable) {
+internal fun notifyError(message: String, t: Throwable?) {
   if (t is CancellationException) {
     return
   }
 
   var errorMessage = message
-  t.message?.let { errorMessage += ": " + t.message }
+  t?.message?.let { errorMessage += ": " + t.message }
 
   val notification = Notification("Sqlite Viewer", "Sqlite Viewer", errorMessage, NotificationType.WARNING)
 

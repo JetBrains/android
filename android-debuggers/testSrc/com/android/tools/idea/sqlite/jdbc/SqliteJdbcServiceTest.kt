@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.sqlite.jdbc
 
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.editors.sqlite.SqliteTestUtil
 import com.android.tools.idea.editors.sqlite.SqliteViewer
 import com.android.tools.idea.sqlite.SqliteService
-import com.android.tools.idea.sqlite.Utils.pumpEventsAndWaitForFuture
-import com.android.tools.idea.sqlite.Utils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.truth.Truth.assertThat
@@ -63,7 +63,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     val error = pumpEventsAndWaitForFutureException(sqliteService.readSchema())
 
     // Assert
-    assertThat(error).isInstanceOf(IllegalStateException::class.java)
+    assertThat(error).isNotNull()
   }
 
   fun testReadSchemaReturnsTablesAndColumns() {
@@ -118,23 +118,16 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     assertThat(resultSet.hasColumn("author_id", JDBCType.INTEGER)).isTrue()
 
     // Act
-    resultSet.rowBatchSize = 3
-    var rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+    var rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 3))
 
     // Assert
     assertThat(rows.count()).isEqualTo(3)
 
     // Act
-    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+    rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
 
     // Assert
     assertThat(rows.count()).isEqualTo(1)
-
-    // Act
-    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
-
-    // Assert
-    assertThat(rows.count()).isEqualTo(0)
   }
 
   fun testExecuteQuerySelectAllReturnsResultSet() {
@@ -151,23 +144,16 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     assertThat(resultSet.hasColumn("author_id", JDBCType.INTEGER)).isTrue()
 
     // Act
-    resultSet.rowBatchSize = 3
-    var rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+    var rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 3))
 
     // Assert
     assertThat(rows.count()).isEqualTo(3)
 
     // Act
-    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+    rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0,1))
 
     // Assert
     assertThat(rows.count()).isEqualTo(1)
-
-    // Act
-    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
-
-    // Assert
-    assertThat(rows.count()).isEqualTo(0)
   }
 
   fun testExecuteQuerySelectColumnReturnsResultSet() {
@@ -184,23 +170,16 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     assertThat(resultSet.hasColumn("author_id", JDBCType.INTEGER)).isFalse()
 
     // Act
-    resultSet.rowBatchSize = 3
-    var rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+    var rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0,3))
 
     // Assert
     assertThat(rows.count()).isEqualTo(3)
 
     // Act
-    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
+    rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0,1))
 
     // Assert
     assertThat(rows.count()).isEqualTo(1)
-
-    // Act
-    rows = pumpEventsAndWaitForFuture(resultSet.nextRowBatch())
-
-    // Assert
-    assertThat(rows.count()).isEqualTo(0)
   }
 
   fun testExecuteUpdateDropTable() {
@@ -209,7 +188,8 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(sqliteService.executeUpdate("DROP TABLE Book"))
-    val error = pumpEventsAndWaitForFutureException(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
+    val error = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0, 1))
 
     // Assert
     assertThat(error).isNotNull()
@@ -222,7 +202,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     // Act
     val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
     Disposer.dispose(resultSet)
-    val error = pumpEventsAndWaitForFutureException(resultSet.nextRowBatch())
+    val error = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0,3))
 
     // Assert
     assertThat(error).isNotNull()
@@ -233,7 +213,9 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val error = pumpEventsAndWaitForFutureException(sqliteService.readTable(SqliteTable("IncorrectTableName", listOf(), false)))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("IncorrectTableName", listOf(), false)))
+    val future = resultSet.getRowBatch(0, 1)
+    val error = pumpEventsAndWaitForFutureException(future)
 
     // Assert
     assertThat(error).isNotNull()

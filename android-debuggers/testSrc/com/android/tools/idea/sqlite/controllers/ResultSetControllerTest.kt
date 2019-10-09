@@ -19,9 +19,8 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockTableView
-import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.ui.tableView.TableViewListener
@@ -32,9 +31,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import com.intellij.util.concurrency.EdtExecutorService
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.InOrder
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
@@ -42,45 +39,26 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
-import java.sql.JDBCType
 
-//TODO(b/131589065) write tests for listOfSqliteColumns of different sizes, to handle all paths of ResultSetController.fetchRowBatch()
 class ResultSetControllerTest : UsefulTestCase() {
 
   private lateinit var tableView: MockTableView
-  private lateinit var sqliteResultSet: SqliteResultSet
+  private lateinit var mockResultSet: MockSqliteResultSet
   private lateinit var edtExecutor: FutureCallbackExecutor
   private lateinit var resultSetController: ResultSetController
   private lateinit var orderVerifier: InOrder
 
-  private val listOfSqliteColumns = listOf(
-    SqliteColumn("col1", JDBCType.VARCHAR),
-    SqliteColumn("col2", JDBCType.INTEGER),
-    SqliteColumn("col2", JDBCType.CHAR)
-  )
-
-  private val listOfSqliteRows = listOf(
-    SqliteRow(listOf(
-      SqliteColumnValue(listOfSqliteColumns[0], "aString"),
-      SqliteColumnValue(listOfSqliteColumns[1], 0),
-      SqliteColumnValue(listOfSqliteColumns[2], 'c')
-    ))
-  )
-
   override fun setUp() {
     super.setUp()
     tableView = spy(MockTableView::class.java)
-    sqliteResultSet = mock(SqliteResultSet::class.java)
+    mockResultSet = MockSqliteResultSet()
     edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
-
-    orderVerifier = inOrder(sqliteResultSet, tableView)
+    orderVerifier = inOrder(tableView)
   }
 
   fun testSetUp() {
     // Prepare
-    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
-    `when`(sqliteResultSet.nextRowBatch()).thenReturn(Futures.immediateFuture(listOfSqliteRows))
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", sqliteResultSet, edtExecutor)
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
 
     // Act
     resultSetController.setUp()
@@ -88,20 +66,16 @@ class ResultSetControllerTest : UsefulTestCase() {
 
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
-    orderVerifier.verify(tableView).showTableColumns(listOfSqliteColumns)
-    orderVerifier.verify(tableView).showTableRowBatch(listOfSqliteRows)
+    orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns)
+    orderVerifier.verify(tableView).showTableRowBatch(mockResultSet.invocations[0])
     orderVerifier.verify(tableView).stopTableLoading()
 
-    verify(sqliteResultSet).rowBatchSize = anyInt()
-    verify(sqliteResultSet).columns
-
-    verify(tableView, Mockito.times(0)).reportError(any(String::class.java), any(Throwable::class.java))
+    verify(tableView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
   }
 
   fun testSetUpTableNameIsNull() {
     // Prepare
-    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, null, sqliteResultSet, edtExecutor)
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, null, mockResultSet, edtExecutor)
 
     // Act
     resultSetController.setUp()
@@ -112,9 +86,10 @@ class ResultSetControllerTest : UsefulTestCase() {
 
   fun testSetUpError() {
     // Prepare
+    val mockResultSet = mock(SqliteResultSet::class.java)
     val throwable = Throwable()
-    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFailedFuture(throwable))
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", sqliteResultSet, edtExecutor)
+    `when`(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(throwable))
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
 
     // Act
     resultSetController.setUp()
@@ -129,8 +104,7 @@ class ResultSetControllerTest : UsefulTestCase() {
 
   fun testSetUpIsDisposed() {
     // Prepare
-    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", sqliteResultSet, edtExecutor)
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
 
     // Act
     resultSetController.setUp()
@@ -147,8 +121,9 @@ class ResultSetControllerTest : UsefulTestCase() {
 
   fun testSetUpErrorIsDisposed() {
     // Prepare
-    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFailedFuture(Throwable()))
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", sqliteResultSet, edtExecutor)
+    val mockResultSet = mock(SqliteResultSet::class.java)
+    `when`(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(Throwable()))
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
 
     // Act/Assert
     Disposer.dispose(resultSetController)
@@ -156,40 +131,489 @@ class ResultSetControllerTest : UsefulTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
-  fun testFetchNextRowsUiIsDisabledWhenNoMoreRowsAvailableOnSetup() {
+  fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnSetup`() {
     // Prepare
-    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
-    `when`(sqliteResultSet.nextRowBatch())
-      .thenReturn(Futures.immediateFuture(listOfSqliteRows))
-      .thenReturn(Futures.immediateFuture(emptyList()))
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", sqliteResultSet, edtExecutor)
+    val mockResultSet = MockSqliteResultSet(10)
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
 
     // Act
     resultSetController.setUp()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(tableView).setFetchNextRowsButtonState(false)
+    verify(tableView, times(2)).setFetchNextRowsButtonState(false)
   }
 
-  fun testFetchNextRowsUiIsDisabledWhenNoMoreRowsAvailableOnFetchNextRows() {
+  fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnNext`() {
     // Prepare
-    `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(listOfSqliteColumns))
-    `when`(sqliteResultSet.nextRowBatch())
-      .thenReturn(Futures.immediateFuture(listOfSqliteRows))
-      .thenReturn(Futures.immediateFuture(listOfSqliteRows))
-      .thenReturn(Futures.immediateFuture(emptyList()))
-    resultSetController = ResultSetController(testRootDisposable, 1, tableView, "tableName", sqliteResultSet, edtExecutor)
+    val mockResultSet = MockSqliteResultSet(2)
+    resultSetController = ResultSetController(testRootDisposable, 1, tableView, "tableName", mockResultSet, edtExecutor)
 
     // Act
     resultSetController.setUp()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(tableView).showTableRowBatch(mockResultSet.invocations[0])
+    verify(tableView).showTableRowBatch(mockResultSet.invocations[1])
+    verify(tableView, times(3)).setFetchNextRowsButtonState(false)
+  }
+
+  fun `test Next`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(tableView, times(2)).showTableRowBatch(listOfSqliteRows)
-    verify(tableView).setFetchNextRowsButtonState(false)
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(10, 19),
+      listOf(20, 29)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test NextBatchOf5`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    resultSetController = ResultSetController(testRootDisposable, 5, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 4),
+      listOf(5, 9),
+      listOf(10, 14)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test Next Prev`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(10, 19),
+      listOf(20, 29),
+      listOf(10, 19),
+      listOf(0, 9)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test Next Prev Next`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(10, 19),
+      listOf(20, 29),
+      listOf(10, 19),
+      listOf(0, 9),
+      listOf(10, 19),
+      listOf(20, 29)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test ChangeBatchSize`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(5)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(10, 19),
+      listOf(20, 29),
+      listOf(20, 24)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test ChangeBatchSize At End`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet(20)
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(11)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(10, 19),
+      listOf(10, 19)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `testChangeBatchSize DisablesPreviousButton`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(0, 0)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+
+    verify(tableView, times(4)).setFetchPreviousRowsButtonState(false)
+  }
+
+  fun `test ChangeBatchSize DisablesNextButton`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet(50)
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(100)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(0, 49)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+
+    verify(tableView, times(3)).setFetchNextRowsButtonState(false)
+  }
+
+  fun `test ChangeBatchSize Max Min`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet(50)
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(100)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(0, 49),
+      listOf(0, 0)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+
+    verify(tableView, times(4)).setFetchNextRowsButtonState(false)
+  }
+
+  fun `test ChangeBatchSize Next`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(5)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(10, 19),
+      listOf(20, 29),
+      listOf(20, 24),
+      listOf(25, 29)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test ChangeBatchSize Prev`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(5)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(10, 19),
+      listOf(20, 29),
+      listOf(20, 24),
+      listOf(15, 19)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test ChangeBatchSize Prev ChangeBatchSize Prev Next`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(2)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(10)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(10, 19),
+      listOf(20, 29),
+      listOf(20, 21),
+      listOf(18, 19),
+      listOf(18, 27),
+      listOf(8, 17),
+      listOf(0, 9),
+      listOf(10, 19)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test First`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadFirstRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(10, 19),
+      listOf(20, 29),
+      listOf(0, 9)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test First ChangeBatchSize`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadFirstRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(5)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(10, 19),
+      listOf(0, 9),
+      listOf(0, 4)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test Last`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet(50)
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadLastRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(40, 49)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test Last LastPage Not Full`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet(61)
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadLastRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(60, 60)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test Last Prev ChangeBatchSize First`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet(50)
+    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+
+    // Act
+    resultSetController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadLastRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().rowCountChanged(5)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadFirstRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(40, 49),
+      listOf(30, 39),
+      listOf(30, 34),
+      listOf(0, 4)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  private fun assertRowSequence(invocations: List<List<SqliteRow>>, expectedInvocations: List<List<Int>>) {
+    assertTrue(invocations.size == expectedInvocations.size)
+    invocations.forEachIndexed { index, rows ->
+      assertEquals(expectedInvocations[index][0], rows.first().values[0].value)
+      assertEquals(expectedInvocations[index][1], rows.last().values[0].value)
+    }
   }
 }
