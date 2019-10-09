@@ -159,7 +159,7 @@ public class MotionSelection {
   }
 
   @Nullable
-  private NlComponent getComponent() {
+  public NlComponent getComponent() {
     NlComponentTag componentTag = getNlComponentTag();
     if (componentTag != null) {
       return componentTag.getComponent();

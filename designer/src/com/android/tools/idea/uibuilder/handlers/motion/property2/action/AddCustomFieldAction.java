@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.CustomAttributeType;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.NewCustomAttributePanel;
-import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.intellij.icons.AllIcons;
@@ -48,7 +48,15 @@ public class AddCustomFieldAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    NewCustomAttributePanel newAttributePanel = new NewCustomAttributePanel();
+    MotionSelection selection = MotionLayoutAttributesModel.getMotionSelection(myProperty);
+    if (selection == null) {
+      return;
+    }
+    NlComponent component = selection.getComponent();
+    if (component == null) {
+      return;
+    }
+    NewCustomAttributePanel newAttributePanel = new NewCustomAttributePanel(component);
     newAttributePanel.show();
     if (!newAttributePanel.isOK()) {
       return;
@@ -57,10 +65,6 @@ public class AddCustomFieldAction extends AnAction {
     String value = newAttributePanel.getInitialValue();
     CustomAttributeType type = newAttributePanel.getType();
     if (type == null || StringUtil.isEmpty(attributeName)) {
-      return;
-    }
-    MotionSelection selection = MotionLayoutAttributesModel.getMotionSelection(myProperty);
-    if (selection == null) {
       return;
     }
     Consumer<MotionSceneTag> applyToModel = newCustomTag -> {
