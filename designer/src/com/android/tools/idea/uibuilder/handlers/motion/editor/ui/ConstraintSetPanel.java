@@ -469,17 +469,7 @@ class ConstraintSetPanel extends JPanel {
       Debug.log("ConstraintSetPanel.setMTag motionScene = " + meModel.motionScene);
       Debug.log("ConstraintSetPanel.setMTag layout = " + meModel.layout);
     }
-    String[] selected;
-    if (false) { // this approach gets the selected table
-      int[] row = mConstraintSetTable.getSelectedRows();
-      selected = new String[row.length];
-      for (int i = 0; i < row.length; i++) {
-        selected[i] = (String)mConstraintSetModel.getValueAt(row[i], 1);
-      }
-    }
-    else {
-      selected = meModel.getSelectedViewIDs();
-    }
+    String[] selected = mMeModel != null ? mMeModel.getSelectedViewIDs() : new String[0];
     mMeModel = meModel;
 
     mConstraintSet = constraintSet;
