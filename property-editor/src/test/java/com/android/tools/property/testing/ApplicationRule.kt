@@ -55,21 +55,9 @@ open class ApplicationRule : ExternalResource() {
   }
 
   override fun after() {
-    Disposer.dispose(rootDisposable!!)
+    Disposer.dispose(rootDisposable!!) // This will recover previous instance of Application (see ApplicationManager::setApplication)
     rootDisposable = null
     application = null
-    resetApplication()
-  }
-
-  /**
-   * Null out the static reference in [ApplicationManager].
-   *
-   * Keeping a reference to a disposed object can cause problems for other tests.
-   */
-  private fun resetApplication() {
-    val field = ApplicationManager::class.java.getDeclaredField("ourApplication")
-    field.isAccessible = true
-    field.set(null, null)
   }
 
   private class TestApplication(disposable: Disposable): MockApplication(disposable) {
