@@ -92,13 +92,13 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
         if (PREVIEW_ANNOTATION_FQN == node.qualifiedName) {
           val uMethod = node.getContainingUMethod()
           uMethod?.let {
-            if (!it.parameterList.isEmpty) {
+            if (it.uastParameters.isNotEmpty()) {
               // We do not fail here. The ComposeViewAdapter will throw an exception that will be surfaced to the user
               Logger.getInstance(AnnotationPreviewElementFinder::class.java).debug("Preview methods must not have any parameters")
             }
 
             // The method must also be annotated with @Composable
-            if (it.annotations.any { COMPOSABLE_ANNOTATION_FQN == it.qualifiedName }) {
+            if (it.annotations.any { annotation -> COMPOSABLE_ANNOTATION_FQN == annotation.qualifiedName }) {
               visitPreviewAnnotation(node, it)
             }
           }

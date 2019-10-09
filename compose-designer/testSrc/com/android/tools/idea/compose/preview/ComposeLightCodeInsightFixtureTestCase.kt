@@ -26,7 +26,7 @@ open class ComposeLightJavaCodeInsightFixtureTestCase : LightJavaCodeInsightFixt
     StudioFlags.COMPOSE_PREVIEW.override(true)
 
     @Language("kotlin")
-    val previewAnnotation = myFixture.addFileToProject("src/com/android/tools/preview/Preview.kt", """
+    val previewAnnotationContent = """
       package androidx.ui.tooling.preview
 
       data class Configuration(private val apiLevel: Int? = null,
@@ -48,14 +48,16 @@ open class ComposeLightJavaCodeInsightFixtureTestCase : LightJavaCodeInsightFixt
                   children: () -> Unit) {
           children()
       }
-    """.trimIndent())
+    """.trimIndent()
+    myFixture.addFileToProject("src/com/android/tools/preview/Preview.kt", previewAnnotationContent)
 
     @Language("kotlin")
-    val composeAnnotation = myFixture.addFileToProject("src/android/compose/Composable.kt", """
+    val composeAnnotationContent = """
       package androidx.compose
 
       annotation class Composable()
-    """.trimIndent())
+    """.trimIndent()
+    myFixture.addFileToProject("src/android/compose/Composable.kt", composeAnnotationContent)
   }
 
   override fun tearDown() {

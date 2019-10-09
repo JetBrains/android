@@ -160,7 +160,7 @@ private fun PreviewElement.toPreviewXmlString(withBorder: Boolean = true) =
 val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
 
 /**
- * [ComposePreviewManager.Status] result for when the preview is refreshing. Only [isRefreshing] will be true.
+ * [ComposePreviewManager.Status] result for when the preview is refreshing. Only [ComposePreviewManager.Status.isRefreshing] will be true.
  */
 private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = false,
                                                              hasSyntaxErrors = false,
@@ -194,11 +194,6 @@ interface ComposePreviewManager {
      * True if the preview has errors that will need a refresh
      */
     val hasErrors = hasRuntimeErrors || hasSyntaxErrors
-
-    /**
-     * True if the Preview needs a refresh to display more up to date content.
-     */
-    val needsRefresh = hasErrors || isOutOfDate
   }
 
   fun status(): Status
@@ -320,12 +315,12 @@ private class PreviewEditor(private val psiFile: PsiFile,
     showLoading(message("panel.building"))
   }
 
-  /**
-   * Calls refresh method on the the successful gradle build
-   */
-  private val refresher = SmartAutoRefresher(psiFile, this) { isRefreshingPreview = true }
-
   init {
+    /**
+     * Calls refresh method on the successful gradle build
+     */
+    SmartAutoRefresher(psiFile, this) { isRefreshingPreview = true }
+
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       override fun buildStarted(context: BuildContext) {
         //  Show a loading message only if the content is not already displaying to avoid hiding it.
@@ -361,7 +356,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
       LOG.debug("modificationStamp=${modificationStamp}, lastBuildTimestamp=${lastBuildTimestamp}")
     }
 
-    return lastBuildTimestamp in 1 until modificationStamp;
+    return lastBuildTimestamp in 1 until modificationStamp
   }
 
   override fun status(): ComposePreviewManager.Status = if (isRefreshingPreview)
@@ -376,7 +371,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
     .mapNotNull { surface.getSceneManager(it) }
     .filterIsInstance<LayoutlibSceneManager>()
     .mapNotNull { it.renderResult }
-    .any { it.renderResult.isSuccess && it.logger?.brokenClasses?.values?.isEmpty() }
+    .any { it.renderResult.isSuccess && it.logger.brokenClasses.values.isEmpty() }
 
   /**
    * Hides the preview content and shows an error message on the surface.
