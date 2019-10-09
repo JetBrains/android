@@ -105,6 +105,20 @@ public class IdeSdksTest extends PlatformTestCase {
     assertEquals(myAndroidSdkPath.getPath(), androidHome.getPath());
   }
 
+  public void testGetAndroidNdkPath() {
+    myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
+
+    File ndkPath = myIdeSdks.getAndroidNdkPath();
+    assertThat(ndkPath.getAbsolutePath()).matches(myAndroidSdkPath.getPath() + "/ndk/[0-9.]+");
+  }
+
+  public void testGetAndroidNdkPathWithPredicate() {
+    myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
+
+    File ndkPath = myIdeSdks.getAndroidNdkPath(revision -> false);
+    assertThat(ndkPath).isNull();
+  }
+
   public void testGetEligibleAndroidSdks() {
     // Create default SDKs first.
     List<Sdk> sdks = myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
