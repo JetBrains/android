@@ -115,6 +115,7 @@ enum class NelePropertyType {
       DRAWABLE -> error(parseColor(literal) == null) { "Invalid color value: '$literal'" }
       ENUM -> "Invalid value: '$literal'"
       FONT_SIZE,
+      DIMENSION_PIXEL,
       DIMENSION -> error(DimensionConverter.INSTANCE.fromString(literal, null) == null) { getDimensionError(literal) }
       DIMENSION_UNIT_LESS -> checkUnitLessDimension(literal)
       FLOAT -> error(PsiLiteralUtil.parseDouble(literal) == null) { "Invalid float: '$literal'" }
