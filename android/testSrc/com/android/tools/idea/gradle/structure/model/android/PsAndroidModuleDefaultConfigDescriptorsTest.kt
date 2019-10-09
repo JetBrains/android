@@ -299,9 +299,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     doTestSetProperties()
   }
 
-  fun testMapProperties_delete() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-
+  private fun doTestDeleteMapProperties() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -335,9 +333,17 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     verifyValues(appModule.defaultConfig, afterSync = true)
   }
 
-  fun testMapProperties_editorInserting() {
+  fun testDeleteMapPropertiesGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestDeleteMapProperties()
+  }
 
+  fun testDeleteMapPropertiesKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestDeleteMapProperties()
+  }
+
+  private fun doTestEditorInsertMapProperties() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -370,6 +376,16 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.defaultConfig, afterSync = true)
+  }
+
+  fun testEditorInsertMapPropertiesGroovy() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestEditorInsertMapProperties()
+  }
+
+  fun testEditorInsertMapPropertiesKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestEditorInsertMapProperties()
   }
 
   fun testProGuardKnownValues() {
