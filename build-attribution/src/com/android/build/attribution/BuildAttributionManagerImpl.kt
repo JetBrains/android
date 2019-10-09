@@ -116,7 +116,7 @@ class BuildAttributionManagerImpl(
         it.forEach { alwaysRunTaskData ->
           stringBuilder.append(
             "Task ${alwaysRunTaskData.taskData.getTaskPath()} from ${alwaysRunTaskData.taskData.originPlugin} ")
-            .appendln("runs on every build because ${alwaysRunTaskData.reason}")
+            .appendln("runs on every build because ${alwaysRunTaskData.rerunReason.message}")
         }
       }
     }
