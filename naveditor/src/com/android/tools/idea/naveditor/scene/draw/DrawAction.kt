@@ -27,10 +27,11 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
+import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PARALLEL
+import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PERPENDICULAR
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.ArrowDirection
 import com.android.tools.idea.naveditor.scene.ConnectionDirection
-import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.getArrowPoint
 import com.android.tools.idea.naveditor.scene.getCurvePoints
 import com.android.tools.idea.naveditor.scene.getRegularActionIconRect
@@ -85,8 +86,8 @@ class DrawAction(@VisibleForTesting @SwingCoordinate val source: Rectangle2D.Flo
     val p = getArrowPoint(scale, dest, direction)
 
     val rectangle = Rectangle2D.Float()
-    val parallel = NavSceneManager.ACTION_ARROW_PARALLEL * scale.value.toFloat()
-    val perpendicular = NavSceneManager.ACTION_ARROW_PERPENDICULAR * scale.value.toFloat()
+    val parallel = ACTION_ARROW_PARALLEL * scale.value.toFloat()
+    val perpendicular = ACTION_ARROW_PERPENDICULAR * scale.value.toFloat()
     val deltaX = direction.deltaX.toFloat()
     val deltaY = direction.deltaY.toFloat()
 

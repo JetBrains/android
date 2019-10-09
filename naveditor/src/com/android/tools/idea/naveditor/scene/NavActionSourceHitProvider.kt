@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
@@ -25,9 +26,9 @@ import com.android.tools.idea.naveditor.model.isFragment
 /*
   Augments the hit region for destinations which support actions to include the action handle
  */
-class NavActionSourceHitProvider : NavDestinationHitProvider() {
+object NavActionSourceHitProvider : DefaultHitProvider() {
   override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
-    super.addHit(component, sceneTransform, picker)
+    NavDestinationHitProvider.addHit(component, sceneTransform, picker)
 
     val sceneView = sceneTransform.surface?.focusedSceneView ?: return
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))

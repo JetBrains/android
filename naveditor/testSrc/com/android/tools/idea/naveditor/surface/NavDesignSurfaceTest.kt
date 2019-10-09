@@ -39,6 +39,7 @@ import com.android.tools.idea.naveditor.editor.NAV_EDITOR_ID
 import com.android.tools.idea.naveditor.editor.NavEditor
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
+import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
@@ -439,7 +440,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       }
     }
 
-    NavSceneManager.updateHierarchy(model, model2)
+    updateHierarchy(model, model2)
     val newVersion = model.find("othersubnav")!!.getChild(0)!!
     assertNotEquals(orig, newVersion)
     surface.refreshRoot()
@@ -495,7 +496,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       manager.commitAllDocuments()
     }
 
-    NavSceneManager.updateHierarchy(model, model)
+    updateHierarchy(model, model)
 
     root = model.components[0]
     val component = surface.currentNavigation

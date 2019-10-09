@@ -58,6 +58,7 @@ import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.naveditor.scene.NavSceneManagerKt;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -489,7 +490,7 @@ public class NavDesignSurface extends DesignSurface {
       return new Dimension(0, 0);
     }
 
-    @NavCoordinate Rectangle boundingBox = NavSceneManager.getBoundingBox(root);
+    @NavCoordinate Rectangle boundingBox = NavSceneManagerKt.getBoundingBox(root);
     return boundingBox.getSize();
   }
 
@@ -625,7 +626,7 @@ public class NavDesignSurface extends DesignSurface {
     }
 
     @NavCoordinate Rectangle selectionBounds =
-      NavSceneManager.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent))
+      NavSceneManagerKt.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent))
                                          .filter(sceneComponent -> sceneComponent != null)
                                          .collect(Collectors.toList()));
     @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();

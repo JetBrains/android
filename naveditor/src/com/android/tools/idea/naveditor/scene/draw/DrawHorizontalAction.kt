@@ -28,9 +28,9 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
+import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PARALLEL
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.ArrowDirection
-import com.android.tools.idea.naveditor.scene.NavSceneManager.ACTION_ARROW_PARALLEL
 import com.android.tools.idea.naveditor.scene.getHorizontalActionIconRect
 import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
 import java.awt.Color
