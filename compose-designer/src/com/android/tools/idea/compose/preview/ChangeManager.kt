@@ -22,6 +22,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
+import com.intellij.util.ui.update.MergingUpdateQueue
+import com.intellij.util.ui.update.Update
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Sets up a change listener for the given [psiFile]. When the file changes, [refreshPreview] will be called if any [PreviewElement] has
@@ -38,27 +43,57 @@ fun setupChangeListener(
   previewElementProvider: () -> List<PreviewElement>,
   refreshPreview: () -> Unit,
   sourceCodeChanged: () -> Unit,
-  parentDisposable: Disposable) {
-  PsiDocumentManager.getInstance(project).getDocument(psiFile)!!.addDocumentListener(object : DocumentListener {
-    override fun documentChanged(event: DocumentEvent) {
-      if (event.isWholeTextReplaced) {
-        refreshPreview()
-        return
-      }
+  parentDisposable: Disposable,
+  mergeQueue: MergingUpdateQueue = MergingUpdateQueue("Document change queue",
+                                                      TimeUnit.SECONDS.toMillis(1).toInt(),
+                                                      true,
+                                                      null,
+                                                      parentDisposable).setRestartTimerOnAdd(true)) {
+  val documentManager = PsiDocumentManager.getInstance(project)
+  documentManager.getDocument(psiFile)!!.addDocumentListener(object : DocumentListener {
+    val aggregatedEventsLock = ReentrantLock()
+    val aggregatedEvents = mutableSetOf<DocumentEvent>()
+    var previousPreviewElements = previewElementProvider()
 
+    private fun onDocumentChanged(event: Set<DocumentEvent>) {
       val currentPreviewElements = previewElementProvider()
-      val isPreviewElementChange = currentPreviewElements.mapNotNull {
-        TextRange.create(it.previewElementDefinitionPsi?.range ?: return@mapNotNull null)
-      }.any {
-        it.contains(event.offset)
-      }
-
-      if (isPreviewElementChange) {
+      if (currentPreviewElements != previousPreviewElements) {
+        // The preview elements have changed so force refresh
         refreshPreview()
       }
       else {
         sourceCodeChanged()
       }
+
+      previousPreviewElements = currentPreviewElements
+    }
+
+    override fun documentChanged(event: DocumentEvent) {
+      // On documentChange, we simply save the event to be processed later when onDocumentChanged is called.
+      aggregatedEventsLock.withLock {
+        aggregatedEvents.add(event)
+      }
+
+      // We use the merge queue to avoid triggering unnecessary updates. All the changes are aggregated. We wait for the documents to be
+      // committed and then we evaluate the change.
+      mergeQueue.queue(object : Update("document change") {
+        override fun run() {
+          documentManager.performLaterWhenAllCommitted( Runnable {
+            mergeQueue.queue(object : Update("handle changes") {
+              override fun run() {
+                onDocumentChanged(aggregatedEventsLock.withLock {
+                  val aggregatedEventsCopy = aggregatedEvents.toSet()
+                  aggregatedEvents.clear()
+
+                  aggregatedEventsCopy
+                })
+              }
+            })
+          })
+        }
+      })
+
+
     }
   }, parentDisposable)
 }
