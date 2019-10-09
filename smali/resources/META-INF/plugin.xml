@@ -26,7 +26,8 @@
   <depends>com.intellij.modules.android-capable</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileTypeFactory implementation="com.android.tools.idea.smali.SmaliFileTypeFactory"/>
+    <fileType name="Smali" implementationClass="com.android.tools.idea.smali.SmaliFileType" fieldName="INSTANCE"
+              extensions="smali" language="Smali"/>
     <lang.parserDefinition language="Smali" implementationClass="com.android.tools.idea.smali.SmaliParserDefinition"/>
     <lang.syntaxHighlighterFactory language="Smali" implementationClass="com.android.tools.idea.smali.SmaliSyntaxHighlighterFactory"/>
     <annotator language="Smali" implementationClass="com.android.tools.idea.smali.SmaliAnnotator"/>
