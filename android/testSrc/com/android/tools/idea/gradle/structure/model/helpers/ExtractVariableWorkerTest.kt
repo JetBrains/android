@@ -78,7 +78,8 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
                                                                                 DslText.Reference("otherName"))
                                                            .annotated()))
       assertThat(appModule.variables.getOrCreateVariable("otherName").value,
-                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed(28, DslText.Reference("compileSdkVersion"))))
+                 equalTo<ParsedValue<Any>>(
+                   ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, DslText.Reference("compileSdkVersion"))))
     }
   }
 
