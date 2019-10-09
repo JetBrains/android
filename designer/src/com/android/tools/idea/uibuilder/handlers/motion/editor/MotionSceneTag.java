@@ -276,17 +276,10 @@ public class MotionSceneTag implements MTag {
     out.print("\n" + space + "<" + getTagName());
     for (XmlAttribute value : myXmlTag.getAttributes()) {
       out.print(
-        "\n" + space + "   " + value.getNamespacePrefix() + ":" + value.getName() + "=\"" + value.getValue()
+        "\n" + space + "   " + value.getName() + "=\"" + value.getValue()
         + "\"");
       String ret = "  ";
-      ret +=  " getValue() = "+value.getValue();
-      ret +=  " getNamespacePrefix() = "+value.getNamespacePrefix();
-      ret +=  " getNamespace() = "+value.getNamespace();
-      ret +=  " getName() = "+value.getName();
-      ret +=  " getValue() = "+value.getLocalName();
-      ret +=  " getValue() = "+value.getDisplayValue();
-      System.out.print(ret);
-    }
+     }
     out.println(" >");
 
     for (MTag child : myChildren) {
