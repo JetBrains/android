@@ -20,6 +20,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiFile
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Type
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8TypeList
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionInitializationContext
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -117,6 +118,18 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       "enum"
     )
 
+    private val PRIMITIVE_TYPE = setOf(
+      "boolean",
+      "byte",
+      "char",
+      "short",
+      "int",
+      "long",
+      "float",
+      "double",
+      "void"
+    )
+
     private val flagCompletionProvider = object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(
         parameters: CompletionParameters,
@@ -185,6 +198,16 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       }
     }
 
+    private val primitiveTypeCompletionProvider = object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(
+        parameters: CompletionParameters,
+        processingContext: ProcessingContext,
+        resultSet: CompletionResultSet
+      ) {
+        resultSet.addAllElements(PRIMITIVE_TYPE.map { LookupElementBuilder.create(it).bold() })
+      }
+    }
+
     private val anyProguardElement = psiElement().withLanguage(ProguardR8Language.INSTANCE)
 
     private val insideClassSpecification = psiElement().inside(psiElement(ProguardR8PsiTypes.CLASS_SPECIFICATION_BODY))
@@ -194,6 +217,10 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       psiElement().afterLeaf(or(psiElement(ProguardR8PsiTypes.SEMICOLON), psiElement(ProguardR8PsiTypes.OPEN_BRACE)))
     )
     private val afterFieldOrMethodModifier = psiElement().afterLeaf(psiElement().withText(string().oneOf(FIELD_METHOD_MODIFIERS)))
+
+    private val insideTypeList = psiElement().inside(ProguardR8TypeList::class.java)
+
+    private val type = psiElement().inside(ProguardR8Type::class.java)
   }
 
   init {
@@ -230,7 +257,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       CompletionType.BASIC,
       or(
         psiElement().inside(psiElement(ProguardR8ClassName::class.java)),
-        psiElement().inside(psiElement(ProguardR8Type::class.java)),
+        type,
         startOfNewJavaRule,
         afterFieldOrMethodModifier
       ),
@@ -249,6 +276,17 @@ class ProguardR8CompletionContributor : CompletionContributor() {
         )
       ),
       classTypeCompletionProvider
+    )
+
+    // Add completion for java primitive types.
+    extend(
+      CompletionType.BASIC,
+      or(
+        startOfNewJavaRule,
+        afterFieldOrMethodModifier,
+        insideTypeList.andNot(psiElement().afterLeaf(type))
+      ),
+      primitiveTypeCompletionProvider
     )
   }
 
