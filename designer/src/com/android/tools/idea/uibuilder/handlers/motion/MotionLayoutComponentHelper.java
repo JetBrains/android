@@ -65,7 +65,7 @@ public class MotionLayoutComponentHelper {
 
   private final Object myDesignTool;
   private final NlComponent myMotionLayoutComponent;
-  private final boolean DEBUG = true;
+  private final boolean DEBUG = false;
 
   public MotionLayoutComponentHelper(@NotNull NlComponent component) {
     ViewInfo info = NlComponentHelperKt.getViewInfo(component);

@@ -136,10 +136,19 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
       @Override
       public void perform(Action action, MTag[] tag) {
-        if (action.equals(Action.DELETE)) {
-          for (int i = 0; i < tag.length; i++) {
-            tag[i].getTagWriter().deleteTag().commit("delete " + tag[i].getTagName());
+        switch (action) {
+          case DELETE: {
+            for (int i = 0; i < tag.length; i++) {
+              tag[i].getTagWriter().deleteTag().commit("delete " + tag[i].getTagName());
+            }
           }
+          break;
+          case COPY:
+            CharSequence[]buff = new CharSequence[tag.length];
+            for (int i = 0; i < tag.length; i++) {
+              buff[i]  =  MTag.serializeTag(tag[i]);
+            }
+           break;
         }
       }
     });

@@ -114,10 +114,10 @@ public interface MTag {
     void commit(MTag tag);
   }
 
-  public static CharSequence serializeTag(MTag tag) {
+  public static String serializeTag(MTag tag) {
     ByteArrayOutputStream buff = new ByteArrayOutputStream();
     PrintStream pout = new PrintStream(buff);
-    tag.printFormal("", new PrintStream(pout));
+    tag.printFormal("",pout);
     return  buff.toString();
   }
 }

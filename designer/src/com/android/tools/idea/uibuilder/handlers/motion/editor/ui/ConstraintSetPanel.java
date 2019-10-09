@@ -23,11 +23,23 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScroll
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,6 +55,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
@@ -56,11 +69,8 @@ class ConstraintSetPanel extends JPanel {
   MotionEditorSelector mListeners;
   private static boolean DEBUG = false;
   ArrayList<MTag> mParent; // mParent.get(0) is the direct parent
-  MTag mConstraintSet;
+  MTag mConstraintSet; // The currently displayed constraintSet
   ArrayList<MTag> mDisplayedRows = new ArrayList<>();
-  boolean building = false;
-  Icon[] types = {MEIcons.LIST_STATE, MEIcons.LIST_GRAY_STATE, MEIcons.LIST_LAYOUT};
-  String[] mask = {"Value", "Layout", "Motion", "Transform", "PropertySet"};
   JPopupMenu myPopupMenu = new JPopupMenu();
 
   DefaultTableModel mConstraintSetModel = new DefaultTableModel(
@@ -140,6 +150,7 @@ class ConstraintSetPanel extends JPanel {
     mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(16));
     mConstraintSetTable.setShowHorizontalLines(false);
     JCheckBox cbox = new JCheckBox("All");
+
     cbox.setSelected(true);
     cbox.addActionListener(e -> {
                              showAll = cbox.isSelected();
@@ -152,7 +163,16 @@ class ConstraintSetPanel extends JPanel {
     left.add(label = new JLabel(")", SwingConstants.LEFT));
     makeRightMenu(right);
     right.add(cbox);
+    KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK, false);
 
+    KeyStroke paste = KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK, false);
+    ActionListener copyListener = e -> copy();
+    ActionListener pasteListener = e -> {
+      paste();
+    };
+    mConstraintSetTable.registerKeyboardAction(copyListener, "Copy", copy, JComponent.WHEN_FOCUSED);
+    mConstraintSetTable.registerKeyboardAction(pasteListener, "Paste", paste, JComponent.WHEN_FOCUSED);
+ 
     mConstraintSetTable.getSelectionModel().addListSelectionListener(
       e -> {
         if (mBuildingTable) {
@@ -218,6 +238,96 @@ class ConstraintSetPanel extends JPanel {
       moveConstraint.setEnabled(false);
       overrideConstraint.setEnabled(false);
       limitConstraint.setEnabled(false);
+    }
+  }
+
+  private void copy() {
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    clipboard.setContents(new StringSelection(MTag.serializeTag(mSelectedTag)), new ClipboardOwner() {
+      @Override
+      public void lostOwnership(Clipboard clipboard, Transferable contents) {
+
+      }
+    });
+  }
+
+  private void paste() {
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+    try {
+      String buff = (String)(clipboard.getContents(this).getTransferData(DataFlavor.stringFlavor));
+      StringMTag pastedTag = StringMTag.parse(buff);
+      HashMap<String, Attribute> attr = pastedTag.getAttrList();
+
+      if (mSelectedTag != null) {
+        String tagName = mSelectedTag.getTagName();
+
+        if ("Constraint".equals(tagName)) { // overwriting a constraint
+          HashMap<String, Attribute> toDel = new HashMap<>(mSelectedTag.getAttrList());
+
+          toDel.remove(MotionSceneAttrs.ATTR_ANDROID_ID);
+
+          MTag.TagWriter writer = mSelectedTag.getTagWriter();
+          if (writer == null) {
+            return;
+          }
+
+          for (String s : toDel.keySet()) {
+            Attribute a = toDel.get(s);
+            writer.setAttribute(a.mNamespace, a.mAttribute, null);
+          }
+          for (String s : attr.keySet()) {
+            Attribute a = attr.get(s);
+            if (a == null || a.mAttribute.equals("id")) {
+              continue;
+            }
+
+            writer.setAttribute(a.mNamespace, a.mAttribute, a.mValue);
+          }
+          MTag[] children = pastedTag.getChildTags();
+          for (int i = 0; i < children.length; i++) {
+            MTag child = children[i];
+            MTag.TagWriter cw = writer.getChildTagWriter(child.getTagName());
+            HashMap<String, Attribute> cwAttrMap = pastedTag.getAttrList();
+            for (String cwAttrStr : cwAttrMap.keySet()) {
+              Attribute cwAttr = cwAttrMap.get(cwAttrStr);
+              cw.setAttribute(cwAttr.mNamespace, cwAttr.mAttribute, cwAttr.mValue);
+            }
+          }
+          writer.commit("paste");
+        }
+        else if (!"Guideline".equals(tagName)) { // overwriting a
+          String id = mSelectedTag.getAttributeValue(MotionSceneAttrs.ATTR_ANDROID_ID);
+          MTag.TagWriter writer = mConstraintSet.getChildTagWriter("Constraint");
+          for (String s : attr.keySet()) {
+            Attribute a = attr.get(s);
+            if (a == null || a.mAttribute.equals(MotionSceneAttrs.ATTR_ANDROID_ID)) {
+              writer.setAttribute(a.mNamespace, a.mAttribute, "@+id/" + Utils.stripID(id));
+            }
+            else {
+
+              writer.setAttribute(a.mNamespace, a.mAttribute, a.mValue);
+            }
+          }
+          MTag[] children = pastedTag.getChildTags();
+          for (int i = 0; i < children.length; i++) {
+            MTag child = children[i];
+            MTag.TagWriter cw = writer.getChildTagWriter(child.getTagName());
+            HashMap<String, Attribute> cwAttrMap = pastedTag.getAttrList();
+            for (String cwAttrStr : cwAttrMap.keySet()) {
+              Attribute cwAttr = cwAttrMap.get(cwAttrStr);
+              cw.setAttribute(cwAttr.mNamespace, cwAttr.mAttribute, cwAttr.mValue);
+            }
+          }
+          writer.commit("paste");
+        }
+      }
+    }
+    catch (UnsupportedFlavorException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
     }
   }
 
