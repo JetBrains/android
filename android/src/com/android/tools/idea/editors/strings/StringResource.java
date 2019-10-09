@@ -157,7 +157,7 @@ public final class StringResource {
       return null;
     }
 
-    WriteCommandAction.runWriteCommandAction(project, () -> StringPsiUtils.addString(file, myKey, myTranslatable, value));
+    WriteCommandAction.runWriteCommandAction(project, null, null, () -> StringPsiUtils.addString(file, myKey, myTranslatable, value));
     return myData.getRepository().getDefaultValue(myKey);
   }
 
@@ -244,7 +244,7 @@ public final class StringResource {
       return null;
     }
 
-    WriteCommandAction.runWriteCommandAction(project, () -> StringPsiUtils.addString(file, myKey, myTranslatable, value));
+    WriteCommandAction.runWriteCommandAction(project, null, null, () -> StringPsiUtils.addString(file, myKey, myTranslatable, value));
     return myData.getRepository().getTranslation(myKey, locale);
   }
 
@@ -299,7 +299,7 @@ public final class StringResource {
 
     private final boolean myStringValid;
 
-    public ResourceItemEntry() {
+    private ResourceItemEntry() {
       myResourceItem = null;
       myString = "";
       myStringValid = true;
@@ -317,6 +317,8 @@ public final class StringResource {
       }
 
       String string = value.getRawXmlValue();
+      assert string != null;
+
       boolean stringValid;
 
       try {

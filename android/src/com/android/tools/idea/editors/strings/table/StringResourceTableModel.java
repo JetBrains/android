@@ -188,6 +188,7 @@ public class StringResourceTableModel extends AbstractTableModel {
   }
 
   @Override
+  @SuppressWarnings("DuplicateBranchesInSwitch")
   public boolean isCellEditable(int row, int column) {
     switch (column) {
       case KEY_COLUMN:

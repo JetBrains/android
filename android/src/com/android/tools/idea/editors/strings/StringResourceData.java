@@ -138,7 +138,7 @@ public class StringResourceData {
 
   @Nullable
   public String validateKey(@NotNull StringResourceKey key) {
-    if (!myKeyToResourceMap.keySet().contains(key)) {
+    if (!myKeyToResourceMap.containsKey(key)) {
       throw new IllegalArgumentException("Key " + key + " does not exist.");
     }
 
