@@ -26,17 +26,14 @@ import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.MultiResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,21 +97,18 @@ public class StringResourceRepository {
   }
 
   @NotNull
-  public final StringResourceData getData(@NotNull AndroidFacet facet) {
-    Map<StringResourceKey, StringResource> map = new LinkedHashMap<>();
-    Project project = facet.getModule().getProject();
+  final Stream<StringResourceKey> getKeys() {
+    Collection<Entry<VirtualFile, LocalResourceRepository>> entries = myResourceDirectoryRepositoryMap.entrySet();
+    Stream<StringResourceKey> resourceDirectoryKeys = entries.stream().flatMap(StringResourceRepository::getKeys);
 
-    myResourceDirectoryRepositoryMap.entrySet().stream()
-      .flatMap(StringResourceRepository::getKeys)
-      .forEach(key -> map.put(key, new StringResource(key, this, project)));
-
-    if (myDynamicResourceRepository != null) {
-      myDynamicResourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.STRING).keySet().stream()
-        .map(name -> new StringResourceKey(name, null))
-        .forEach(key -> map.put(key, new StringResource(key, this, project)));
+    if (myDynamicResourceRepository == null) {
+      return resourceDirectoryKeys;
     }
 
-    return new StringResourceData(facet, map, this);
+    Collection<String> names = myDynamicResourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.STRING).keySet();
+    Stream<StringResourceKey> dynamicResourceKeys = names.stream().map(name -> new StringResourceKey(name, null));
+
+    return Stream.concat(resourceDirectoryKeys, dynamicResourceKeys);
   }
 
   @NotNull

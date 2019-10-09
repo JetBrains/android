@@ -49,7 +49,9 @@ final class ResourceLoadingTask extends Task.Backgroundable {
 
   @Override
   public void onSuccess() {
-    myPanel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(myRepository), myPanel.getFacet()));
+    StringResourceRepository repository = StringResourceRepository.create(myRepository);
+
+    myPanel.getTable().setModel(new StringResourceTableModel(repository, myPanel.getFacet().getModule().getProject()));
     myPanel.getLoadingPanel().stopLoading();
   }
 

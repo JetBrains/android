@@ -50,7 +50,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     LocalResourceRepository parent =
       ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory));
 
-    myPanel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(parent), myFacet));
+    myPanel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(parent), myFacet.getModule().getProject()));
   }
 
   @Override
