@@ -349,7 +349,6 @@ public class MotionSceneTag implements MTag {
                                      XmlFile file) {
     NlModel model = motionLayout.getModel();
 
-    MotionSceneTag motionSceneModel = new Root(file.getRootTag(), project, virtualFile, file, model);
-    return motionSceneModel;
+    return new Root(file.getRootTag(), project, virtualFile, file, model);
   }
 }

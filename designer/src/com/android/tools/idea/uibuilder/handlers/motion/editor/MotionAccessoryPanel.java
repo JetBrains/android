@@ -266,6 +266,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       }
     });
     MotionScenePair motionScene = getMotionScene(myMotionLayoutNlComponent);
+    if (motionScene == null) {
+      return;
+    }
     myMotionScene = motionScene.myMotionSceneTag;
     myMotionSceneFile = motionScene.myFile;
     myFileEditor = new MotionFileEditor(mMotionEditor, myMotionSceneFile);
@@ -288,10 +291,12 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         mLastSelection = null;
         myLastSelectedTags = null;
         MotionScenePair motionScene = getMotionScene(myMotionLayoutNlComponent);
-        myMotionScene = motionScene.myMotionSceneTag;
-        myMotionSceneFile = motionScene.myFile;
-        myFileEditor = new MotionFileEditor(mMotionEditor, myMotionSceneFile);
-        mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
+        if (motionScene != null) {
+          myMotionScene = motionScene.myMotionSceneTag;
+          myMotionSceneFile = motionScene.myFile;
+          myFileEditor = new MotionFileEditor(mMotionEditor, myMotionSceneFile);
+          mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
+        }
         fireSelectionChanged(Collections.singletonList(mySelection));
       }
     }, facet, myMotionSceneFile, null);
@@ -391,11 +396,18 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     fireSelectionChanged(selection);
   }
 
+  @Nullable
   MotionScenePair getMotionScene(NlComponent motionLayout) {
     String ref = motionLayout.getAttribute(SdkConstants.AUTO_URI, "layoutDescription");
+    if (ref == null) {
+      return null;
+    }
     int index = ref.lastIndexOf("@xml/");
+    if (index < 0) {
+      return null;
+    }
     String fileName = ref.substring(index + 5);
-    if (fileName == null || fileName.isEmpty()) {
+    if (fileName.isEmpty()) {
       return null;
     }
 
@@ -409,6 +421,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
     VirtualFile directory = resourcesXML.get(0);
     VirtualFile virtualFile = directory.findFileByRelativePath(fileName + ".xml");
+    if (virtualFile == null) {
+      return null;
+    }
 
     XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, virtualFile);
 
