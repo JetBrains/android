@@ -148,6 +148,7 @@ class ProjectDumper(
   fun dump(project: Project) {
     currentRootDirectory = File(project.basePath!!)
     currentRootDirectoryName = "PROJECT"
+    println("<PROJECT>     <== ${currentRootDirectory}")
     head("PROJECT") { project.name }
     nest {
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { dump(it) }
