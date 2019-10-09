@@ -108,15 +108,6 @@ public final class ListenerManager {
   }
 
   /**
-   * Fire all listeners.
-   *
-   * Warning DO not use this method. This should only be used from the ValidatorPanel.
-   */
-  public void fireAll() {
-    myListeners.forEach(paring -> paring.myListener.onInvalidated());
-  }
-
-  /**
    * Listen to a collection of observable values, firing an event whenever one or more of them
    * change on any given frame.
    *
