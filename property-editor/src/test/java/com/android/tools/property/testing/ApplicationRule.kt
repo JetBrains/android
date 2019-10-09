@@ -17,6 +17,7 @@ package com.android.tools.property.testing
 
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
@@ -34,6 +35,7 @@ open class ApplicationRule : ExternalResource() {
 
   private var rootDisposable: Disposable? = Disposer.newDisposable()
   private var application: MockApplication? = TestApplication(rootDisposable!!)
+  private var oldApplication: Application? = null
 
   val testRootDisposable: Disposable
     get() = rootDisposable!!
@@ -51,13 +53,30 @@ open class ApplicationRule : ExternalResource() {
    * Setup a test Application instance with a few common services needed for property tests.
    */
   override fun before() {
+    oldApplication = ApplicationManager.getApplication()
     ApplicationManager.setApplication(application!!, rootDisposable!!)
   }
 
   override fun after() {
-    Disposer.dispose(rootDisposable!!) // This will recover previous instance of Application (see ApplicationManager::setApplication)
+    resetApplication()
     rootDisposable = null
     application = null
+    oldApplication = null;
+  }
+
+  /**
+   * Reverts static reference in [ApplicationManager] to the state it was before the rule started.
+   *
+   * Keeping a reference to a disposed object can cause problems for other tests.
+   */
+  private fun resetApplication() {
+    Disposer.dispose(rootDisposable!!)  // This will recover previous instance of Application (see ApplicationManager::setApplication) unless it is null
+    if (oldApplication == null) {
+      // in the case of null we reset Application to null explicitly
+      val field = ApplicationManager::class.java.getDeclaredField("ourApplication")
+      field.isAccessible = true
+      field.set(null, null)
+    }
   }
 
   private class TestApplication(disposable: Disposable): MockApplication(disposable) {
