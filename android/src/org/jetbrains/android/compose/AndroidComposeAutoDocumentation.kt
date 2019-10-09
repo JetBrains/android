@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android
+package org.jetbrains.android.compose
 
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_AUTO_DOCUMENTATION
 import com.intellij.codeInsight.completion.CompletionService

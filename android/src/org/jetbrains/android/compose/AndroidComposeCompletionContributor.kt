@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android
+package org.jetbrains.android.compose
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_BANNER
@@ -26,7 +26,6 @@ import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLE
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_LAYOUT_ICON
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_REQUIRED_ONLY
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_TRAILING_LAMBDA
-import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionLocation
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -61,15 +60,12 @@ import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
-import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
 import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.types.typeUtil.isUnit
-
-private const val COMPOSABLE = "androidx.compose.Composable"
 
 /** TODO: overlay android on some other icon? */
 private val COMPOSABLE_FUNCTION_ICON = LayeredIcon(AndroidIcons.Android)
@@ -90,14 +86,7 @@ private val allFlags = signaturesFlags + listOf(
   COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL
 )
 
-fun PsiElement.isComposableFunction(): Boolean {
-  return this is KtNamedFunction && annotationEntries.any { it.getQualifiedName() == COMPOSABLE }
-}
-
-private fun CompletionParameters.isInsideComposableCode(): Boolean {
-  // TODO: Figure this out.
-  return originalFile.language == KotlinLanguage.INSTANCE
-}
+private fun CompletionParameters.isInsideComposableCode() = originalPosition?.isInsideComposableCode() == true
 
 private fun LookupElement.getFunctionDescriptor(): FunctionDescriptor? {
   return this.`object`

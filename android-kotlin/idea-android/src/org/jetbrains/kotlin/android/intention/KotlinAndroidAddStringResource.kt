@@ -29,11 +29,10 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.parentOfType
 import org.jetbrains.android.actions.CreateXmlResourceDialog
+import org.jetbrains.android.compose.isInsideComposableCode
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.isComposableFunction
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
@@ -77,14 +76,10 @@ class KotlinAndroidAddStringResource :
 
         // Should not be available to strings with template expressions
         // only to strings with single KtLiteralStringTemplateEntry inside
-        return element.parent.children.size == 1 && !isInsideComposableFunction(element)
+        return element.parent.children.size == 1 && !element.isInsideComposableCode()
     }
 
-    private fun isInsideComposableFunction(element: PsiElement): Boolean {
-      return element.parentOfType<KtNamedFunction>()?.isComposableFunction() == true
-    }
-
-    override fun applyTo(element: KtLiteralStringTemplateEntry, editor: Editor?) {
+  override fun applyTo(element: KtLiteralStringTemplateEntry, editor: Editor?) {
         val facet = AndroidFacet.getInstance(element.containingFile)
         if (editor == null) {
             throw IllegalArgumentException("This intention requires an editor.")
