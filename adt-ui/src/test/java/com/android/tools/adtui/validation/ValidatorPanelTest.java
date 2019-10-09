@@ -110,6 +110,58 @@ public class ValidatorPanelTest {
   }
 
   @Test
+  public void registerValidatorWithDependenciesWorks() {
+    IntProperty shouldBePositive = new IntValueProperty(0);
+    BoolProperty toggleSign = new BoolValueProperty(false);
+    BoolProperty forceAbsolute = new BoolValueProperty(false);
+    createPanel(panel -> {
+      panel.registerValidator(shouldBePositive, new Validator<Integer>() {
+        @NotNull
+        @Override
+        public Result validate(@NotNull Integer value) {
+          int sign = toggleSign.get() ? -1 : 1;
+          int finalValue = (sign * value);
+          if (forceAbsolute.get()) {
+            finalValue = Math.abs(finalValue);
+          }
+
+          if (finalValue >= 0) {
+            return Result.OK;
+          }
+          else {
+            return new Result(Severity.ERROR, "Negative value: " + finalValue);
+          }
+        }
+      }, toggleSign, forceAbsolute);
+
+      shouldBePositive.set(100);
+      assertThat(panel.hasErrors().get()).isFalse();
+      assertThatNoMessageIsVisible(panel);
+
+      toggleSign.set(true);
+      assertThat(panel.hasErrors().get()).isTrue();
+      assertThat(getValidationText(panel)).isEqualTo("Negative value: -100");
+
+      forceAbsolute.set(true);
+      assertThat(panel.hasErrors().get()).isFalse();
+      assertThatNoMessageIsVisible(panel);
+
+      forceAbsolute.set(false);
+      shouldBePositive.set(-100); // toggleSign is still true so this will become "100"
+      assertThat(panel.hasErrors().get()).isFalse();
+      assertThatNoMessageIsVisible(panel);
+
+      toggleSign.set(false);
+      assertThat(panel.hasErrors().get()).isTrue();
+      assertThat(getValidationText(panel)).isEqualTo("Negative value: -100");
+
+      forceAbsolute.set(true);
+      assertThat(panel.hasErrors().get()).isFalse();
+      assertThatNoMessageIsVisible(panel);
+    });
+  }
+
+  @Test
   public void registerTestWorks() {
     createPanel(panel -> {
       BoolProperty shouldBeTrue = new BoolValueProperty(true);
