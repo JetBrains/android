@@ -725,14 +725,14 @@ public final class StudioFlags {
     COMPOSE, "completion.icons",
     "Custom icons in completion for Compose",
     "If enabled, code completion for composable functions uses different icons on the left.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_HIDE_RETURN_TYPES = Flag.create(
     COMPOSE, "completion.hide.return.types",
     "Hide return types in completion for Compose",
     "If enabled, code completion for composable functions that return Unit doesn't show return types.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_LAYOUT_ICON = Flag.create(
@@ -754,14 +754,14 @@ public final class StudioFlags {
     COMPOSE, "completion.hide.special",
     "Hide special LookupElements for composable functions",
     "If enabled, code completion for composable functions doesn't include duplicate suggestions for inserting lambdas.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_REQUIRED_ONLY = Flag.create(
     COMPOSE, "completion.required.only",
     "Show only required parameters in completion",
     "If enabled, code completion for composable functions shows only required parameters.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_DOTS_FOR_OPTIONAL = Flag.create(
@@ -769,35 +769,35 @@ public final class StudioFlags {
     "Show three dots when optional parameters are skipped in completion",
     "If enabled, code completion for composable functions will show three dots after required parameters if there are optional " +
     "parameters as well.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_TRAILING_LAMBDA = Flag.create(
     COMPOSE, "completion.lambda",
     "Show trailing function parameter as lambda",
     "If enabled, code completion for composable functions will use lambda syntax for trailing functional parameters.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_WEIGHER = Flag.create(
     COMPOSE, "completion.weigher",
     "Custom weigher for Compose",
     "If enabled, code completion puts composable functions above other completion suggestions. For now in every context.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER = Flag.create(
     COMPOSE, "completion.insert.handler",
     "Custom insert handler for composable functions",
     "If enabled, code completion for composable functions uses a custom InsertHandler that inserts required parameter names.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL = Flag.create(
     COMPOSE, "completion.insert.handler.optional",
     "Custom insert handler for composable functions adds a stop for optional parameters",
     "If enabled, custom InsertHandler adds an extra 'stop' for optional parameters.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_WIZARD_TEMPLATES = Flag.create(
@@ -811,7 +811,7 @@ public final class StudioFlags {
     COMPOSE, "completion.auto.documentation",
     "Show quick documentation automatically for Compose",
     "If enabled, during code completion popup with documentation shows automatically",
-    false
+    true
   );
 
   //endregion
