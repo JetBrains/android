@@ -77,8 +77,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
-import com.intellij.util.ui.update.MergingUpdateQueue
-import com.intellij.util.ui.update.Update
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
@@ -87,7 +85,6 @@ import org.jetbrains.kotlin.psi.KtImportDirective
 import java.awt.BorderLayout
 import java.lang.RuntimeException
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import javax.swing.JPanel
 
@@ -702,35 +699,11 @@ class ComposeFileEditorProvider(
     }
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = getInstance().createEditor(project, file) as TextEditor
-    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = { previewElementProvider.findPreviewMethods(project, file) })
+    val previewProvider = {
+      if (DumbService.isDumb(project)) emptyList() else previewElementProvider.findPreviewMethods(project, file)
+    }
+    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewProvider)
     val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor, previewEditor)
-
-    // Queue to avoid refreshing notifications on every key stroke
-    val modificationQueue = MergingUpdateQueue("Notifications Update queue",
-                                               TimeUnit.SECONDS.toMillis(1).toInt(),
-                                               true,
-                                               null,
-                                               composeEditorWithPreview)
-      .apply {
-        setRestartTimerOnAdd(true)
-      }
-
-    // Update that triggers a preview refresh. It does not trigger a recompile.
-    val refreshPreview = object : Update("refreshPreview") {
-      override fun run() {
-        LOG.debug("refreshPreview requested")
-        previewEditor.refresh()
-      }
-    }
-
-    val updateNotifications = object : Update("updateNotifications") {
-      override fun run() {
-        LOG.debug("updateNotifications requested")
-        if (composeEditorWithPreview.isModified) {
-          EditorNotifications.getInstance(project).updateNotifications(file)
-        }
-      }
-    }
 
     previewEditor.onRefresh = {
       composeEditorWithPreview.isPureTextEditor = previewEditor.previewElements.isEmpty()
@@ -739,9 +712,11 @@ class ComposeFileEditorProvider(
     setupChangeListener(
       project,
       psiFile,
-      { previewEditor.previewElements },
-      { modificationQueue.queue(refreshPreview) },
-      { modificationQueue.queue(updateNotifications) },
+      previewProvider,
+      { previewEditor.refresh() },
+      { if (composeEditorWithPreview.textEditor.isModified) {
+        EditorNotifications.getInstance(project).updateNotifications(file)
+      } },
       composeEditorWithPreview)
 
     return composeEditorWithPreview

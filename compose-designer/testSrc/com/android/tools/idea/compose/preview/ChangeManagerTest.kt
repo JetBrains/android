@@ -15,8 +15,15 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.update.MergingUpdateQueue
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * Helper class do test change tracking and asserting on specific types of changes.
@@ -47,6 +54,8 @@ private class ChangeTracker() {
   private fun assertWithCounters(refresh: Int, sourceCodeChanges: Int, runnable: () -> Unit) {
     reset()
     runnable()
+    // Dispatch any invokeLater actions that the runnable might have generated
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertEquals(refresh, refreshCounter)
     assertEquals(sourceCodeChanges, this.sourceCodeChanges)
   }
@@ -60,6 +69,11 @@ private class ChangeTracker() {
    * Asserts that the given [runnable] triggers only a non-code change notification.
    */
   fun assertNoCodeChange(runnable: () -> Unit) = assertWithCounters(refresh = 1, sourceCodeChanges = 0, runnable = runnable)
+
+  /**
+   * Asserts that the given [runnable] has triggered both a refresh and a source change notification.
+   */
+  fun assertCodeChangeAndRefresh(runnable: () -> Unit) = assertWithCounters(refresh = 1, sourceCodeChanges = 1, runnable = runnable)
 }
 
 class ChangeManagerTest : ComposeLightJavaCodeInsightFixtureTestCase() {
@@ -101,12 +115,20 @@ class ChangeManagerTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     val composeTest = myFixture.addFileToProject("src/Test.kt", startFileContent)
 
     val tracker = ChangeTracker()
+    val testMergeQueue = MergingUpdateQueue("Document change queue",
+                                            0,
+                                            true,
+                                            null,
+                                            project).apply {
+      isPassThrough = true
+    }
     setupChangeListener(project,
                         composeTest,
                         { AnnotationPreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile) },
                         tracker::onRefresh,
                         tracker::onSourceCodeChange,
-                        project)
+                        project,
+                        mergeQueue = testMergeQueue)
 
     // No code changes
     tracker.assertNoCodeChange {
@@ -114,6 +136,9 @@ class ChangeManagerTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     }
     tracker.assertNoCodeChange {
       composeTest.replaceStringOnce("heightDp = 2", "heightDp = 50")
+    }
+    tracker.assertNoCodeChange {
+      composeTest.replaceStringOnce("@Preview", "//@Preview")
     }
 
     // Code changes
@@ -127,6 +152,7 @@ class ChangeManagerTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       // This currently triggers a code change although we should be able to ignore it
       composeTest.runOnDocument { _, document ->
         document.insertString(0, "// Just a comment\n")
+        PsiDocumentManager.getInstance(project).commitDocument(document)
       }
     }
   }
