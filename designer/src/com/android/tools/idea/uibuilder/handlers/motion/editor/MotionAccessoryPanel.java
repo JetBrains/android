@@ -128,7 +128,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     myMotionHelper = new MotionLayoutComponentHelper(myMotionLayoutNlComponent);
     myListeners = new ArrayList<>();
 
-    Track.init(myDesignSurface.getAnalyticsManager());
+    Track.init(myDesignSurface);
     SelectionModel designSurfaceSelection = myDesignSurface.getSelectionModel();
     ImmutableList<NlComponent> dsSelection = designSurfaceSelection.getSelection();
     designSurfaceSelection.addListener((model, selection) -> handleSelectionChanged(model, selection));
