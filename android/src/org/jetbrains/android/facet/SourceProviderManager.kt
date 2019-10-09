@@ -25,11 +25,6 @@ import com.intellij.openapi.vfs.VirtualFile
 
 interface SourceProviderManager {
   companion object {
-    private val KEY: NotNullLazyKey<SourceProviderManager, AndroidFacet> = NotNullLazyKey.create(
-      ::KEY.qualifiedName,
-      ::SourceProviderManagerImpl
-    )
-
     @JvmStatic
     fun getInstance(facet: AndroidFacet) = KEY.getValue(facet)
 
@@ -90,3 +85,7 @@ private class SourceProviderManagerImpl(val facet: AndroidFacet) : SourceProvide
     return if (facet.isDisposed) null else return mainIdeaSourceProvider.manifestFile
   }
 }
+
+private val KEY: NotNullLazyKey<SourceProviderManager, AndroidFacet> = NotNullLazyKey.create(::KEY.qualifiedName, ::createSourceProviderFor)
+
+private fun createSourceProviderFor(facet: AndroidFacet) = SourceProviderManagerImpl(facet)
