@@ -33,7 +33,6 @@ import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
-import com.android.tools.idea.deploy.DeployActionsInitializer;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -100,7 +99,6 @@ public class GradleSpecificInitializer implements Runnable {
   @Override
   public void run() {
     setUpNewProjectActions();
-    DeployActionsInitializer.installActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
     // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
