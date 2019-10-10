@@ -113,7 +113,7 @@ private val List<ValueParameterDescriptor>.hasTrailingFunction: Boolean get() = 
  */
 class AndroidComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
-    if (allFlags.all { !it.isOverridden } || !parameters.isInsideComposableCode()) return
+    if (allFlags.all { !it.get() } || !parameters.isInsideComposableCode()) return
 
     if (COMPOSE_COMPLETION_BANNER.get()) {
       ApplicationManager.getApplication().invokeLater {
