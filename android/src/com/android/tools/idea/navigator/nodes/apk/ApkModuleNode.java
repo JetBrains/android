@@ -133,9 +133,9 @@ public class ApkModuleNode extends ProjectViewModuleNode {
       for (VirtualFile dexFile : myDexFiles) {
         DexGroupNode node = new DexGroupNode(myProject, settings, dexFile);
         myDexGroupNodes.add(node);
-        children.add(node);
       }
     }
+    children.addAll(myDexGroupNodes);
 
     // "Native libraries" folder
     VirtualFile found = LibraryFolder.findIn(myProject);
