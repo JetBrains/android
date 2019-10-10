@@ -14,7 +14,11 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPEND_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPLICATION_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS;
@@ -129,7 +133,10 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     android.addBuildType("typeA");
 
     assertTrue(buildModel.isModified());
+
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE_EXPECTED);
+
     android = buildModel.android();
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
@@ -170,6 +177,8 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE_EXPECTED);
+
     android = buildModel.android();
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
@@ -178,5 +187,29 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     BuildTypeModel buildType = buildTypes.get(0);
     assertEquals("name", "typeA", buildType.name());
     assertEquals("applicationIdSuffix", "suffixA", buildType.applicationIdSuffix());
+  }
+
+  @Test
+  public void testAddPropertyToImplicitBuildTypes() throws Exception {
+    writeToBuildFile(BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    BuildTypeModel debug = android.addBuildType("debug");
+    debug.applicationIdSuffix().setValue("-debug");
+    BuildTypeModel release = android.addBuildType("release");
+    release.applicationIdSuffix().setValue("-release");
+    assertTrue(buildModel.isModified());
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES_EXPECTED);
+
+    android = buildModel.android();
+    List<BuildTypeModel> buildTypes = android.buildTypes();
+    assertThat(buildTypes).hasSize(2);
+    assertEquals("debug.name", "debug", buildTypes.get(0).name());
+    assertEquals("debug.applicationIdSuffix", "-debug", buildTypes.get(0).applicationIdSuffix());
+    assertEquals("release.name", "release", buildTypes.get(1).name());
+    assertEquals("release.applicationIdSuffix","-release", buildTypes.get(1).applicationIdSuffix());
   }
 }
