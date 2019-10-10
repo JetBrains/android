@@ -352,6 +352,22 @@ public class Template {
         return TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE;
       case "Benchmark Module":
         return TemplateRenderer.BENCHMARK_LIBRARY_MODULE;
+      case "Fullscreen Fragment":
+        return TemplateRenderer.FRAGMENT_FULLSCREEN;
+      case "Google AdMob Ads Fragment":
+        return TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS;
+      case "Google Maps Fragment":
+        return TemplateRenderer.FRAGMENT_GOOGLE_MAPS;
+      case "Login Fragment":
+        return TemplateRenderer.FRAGMENT_LOGIN;
+      case "Modal Bottom Sheet":
+        return TemplateRenderer.FRAGMENT_MODAL_BOTTOM_SHEET;
+      case "Scrolling Fragment":
+        return TemplateRenderer.FRAGMENT_SCROLL;
+      case "Settings Fragment":
+        return TemplateRenderer.FRAGMENT_SETTINGS;
+      case "Fragment (with ViewModel)":
+        return TemplateRenderer.FRAGMENT_VIEWMODEL;
       case "Compose Activity":
         return TemplateRenderer.COMPOSE_EMPTY_ACTIVITY;
       default:
