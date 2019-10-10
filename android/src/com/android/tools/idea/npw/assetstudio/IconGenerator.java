@@ -37,7 +37,6 @@ import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.application.options.CodeStyle;
 import com.intellij.openapi.Disposable;
@@ -349,8 +348,8 @@ public abstract class IconGenerator implements Disposable {
   @NotNull
   public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
     List<Callable<GeneratedIcon>> tasks = createIconGenerationTasks(context, options, name);
-    List<Future<GeneratedIcon>> futures = Lists.newArrayListWithExpectedSize(tasks.size());
-    List<GeneratedIcon> icons = Lists.newArrayListWithExpectedSize(futures.size());
+    List<Future<GeneratedIcon>> futures = new ArrayList<>(tasks.size());
+    List<GeneratedIcon> icons = new ArrayList<>(futures.size());
 
     Disposable taskCanceler = () -> {
       for (Future<GeneratedIcon> f : futures) {
