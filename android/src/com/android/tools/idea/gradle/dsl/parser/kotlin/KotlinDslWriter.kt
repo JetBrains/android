@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -113,12 +114,17 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     // The text should be quoted if not followed by anything else,  otherwise it will create a reference expression.
     var statementText = maybeTrimForParent(element.nameElement, element.parent, this)
 
-    if (element is AbstractFlavorTypeDslElement) {
-      statementText = if (element.methodName != null) "${element.methodName}(\"${statementText}\")" else "create(\"${statementText}\")"
+    statementText = when (element) {
+      is BuildTypeDslElement -> when (statementText) {
+        // debug and release build types are automatically created by Gradle: never try to create them
+        "debug", "release" -> "${element.methodName ?: "getByName"}(\"$statementText\")"
+        else -> "${element.methodName ?: "create"}(\"$statementText\")"
+      }
+      is AbstractFlavorTypeDslElement -> "${element.methodName ?: "create"}(\"$statementText\")"
+      is SigningConfigDslElement -> "${element.methodName ?: "create"}(\"$statementText\")"
+      else -> statementText
     }
-    else if (element is SigningConfigDslElement) {
-      statementText = if (element.methodName != null) "${element.methodName}(\"${statementText}\")" else "create(\"${statementText}\")"
-    }
+
     if (element.isBlockElement) {
       statementText += " {\n}"  // Can't create expression with another new line after.
     }
