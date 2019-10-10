@@ -144,17 +144,17 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           }
           break;
           case COPY:
-            CharSequence[]buff = new CharSequence[tag.length];
+            CharSequence[] buff = new CharSequence[tag.length];
             for (int i = 0; i < tag.length; i++) {
-              buff[i]  =  MTag.serializeTag(tag[i]);
+              buff[i] = MTag.serializeTag(tag[i]);
             }
-           break;
+            break;
         }
       }
     });
     mMotionEditor.addSelectionListener(new MotionEditorSelector.Listener() {
       @Override
-      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
+      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag, int flags) {
         if (DEBUG) {
           Debug.log("Selection changed " + selection);
         }
@@ -181,6 +181,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             mSelectedEndConstraintId = stripID(tag[0].getAttributeValue("constraintSetEnd"));
             myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
             myMotionHelper.setProgress(mLastProgress);
+            myMotionHelper.setShowPaths(flags != MotionEditorSelector.Listener.CONTROL_FLAG);
             break;
           case LAYOUT:
             if (TEMP_HACK_FORCE_APPLY) {
@@ -267,20 +268,26 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         }
       }
     });
-    MotionScenePair motionScene = getMotionScene(myMotionLayoutNlComponent);
-    if (motionScene == null) {
+    MotionSceneTag.Root motionScene = getMotionScene(myMotionLayoutNlComponent);
+
+    myMotionScene = motionScene;
+
+    myMotionSceneFile = (motionScene == null) ? null : motionScene.mVirtualFile;
+    if (myMotionSceneFile != null) {
+      myFileEditor = new MotionFileEditor(mMotionEditor, myMotionSceneFile);
+    } else {
+      myFileEditor = null;
+    }
+    mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
+    if (myMotionScene == null) {
       return;
     }
-    myMotionScene = motionScene.myMotionSceneTag;
-    myMotionSceneFile = motionScene.myFile;
-    myFileEditor = new MotionFileEditor(mMotionEditor, myMotionSceneFile);
-    mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
     MTag[] cSet = myMotionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET);
     if (DEBUG) {
       Debug.log(" select constraint set " + cSet[0].getAttributeValue("id"));
     }
     if (cSet != null && cSet.length > 0) {
-      mMotionEditor.selectTag(cSet[0]);
+      mMotionEditor.selectTag(cSet[0], 0);
     }
     parent.putClientProperty(TIMELINE, this);
     if (DEBUG) {
@@ -292,11 +299,15 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
         mLastSelection = null;
         myLastSelectedTags = null;
-        MotionScenePair motionScene = getMotionScene(myMotionLayoutNlComponent);
+        MotionSceneTag.Root motionScene = getMotionScene(myMotionLayoutNlComponent);
         if (motionScene != null) {
-          myMotionScene = motionScene.myMotionSceneTag;
-          myMotionSceneFile = motionScene.myFile;
-          myFileEditor = new MotionFileEditor(mMotionEditor, myMotionSceneFile);
+          myMotionScene = motionScene;
+          myMotionSceneFile = (motionScene == null)? null: motionScene.mVirtualFile;
+          if (myMotionSceneFile != null) {
+            myFileEditor = new MotionFileEditor(mMotionEditor, myMotionSceneFile);
+          } else {
+            myFileEditor = null;
+          }
           mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "");
         }
         fireSelectionChanged(Collections.singletonList(mySelection));
@@ -379,10 +390,10 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         MTag tag = mMotionEditor.getMeModel().findTag(tagName, id);
         if (tag != null) {
           if (tag instanceof NlComponentTag) {
-            mMotionEditor.setSelection(MotionEditorSelector.Type.LAYOUT_VIEW, new MTag[]{tag});
+            mMotionEditor.setSelection(MotionEditorSelector.Type.LAYOUT_VIEW, new MTag[]{tag}, 0);
           }
           else {
-            mMotionEditor.setSelection(MotionEditorSelector.Type.CONSTRAINT, new MTag[]{tag});
+            mMotionEditor.setSelection(MotionEditorSelector.Type.CONSTRAINT, new MTag[]{tag}, 0);
           }
         }
       }
@@ -399,7 +410,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   @Nullable
-  MotionScenePair getMotionScene(NlComponent motionLayout) {
+  MotionSceneTag.Root getMotionScene(NlComponent motionLayout) {
     String ref = motionLayout.getAttribute(SdkConstants.AUTO_URI, "layoutDescription");
     if (ref == null) {
       return null;
@@ -428,10 +439,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
 
     XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, virtualFile);
-
-    MotionSceneTag motionSceneModel = MotionSceneTag.parse(motionLayout, myProject, virtualFile, xmlFile);
-
-    return new MotionScenePair(motionSceneModel, virtualFile);
+    return  MotionSceneTag.parse(motionLayout, myProject, virtualFile, xmlFile);
   }
 
   @NotNull
@@ -667,15 +675,5 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       }
     }
     return found;
-  }
-
-  private static class MotionScenePair {
-    private MotionSceneTag myMotionSceneTag;
-    private VirtualFile myFile;
-
-    private MotionScenePair(@NotNull MotionSceneTag motionSceneTag, @NotNull VirtualFile file) {
-      myMotionSceneTag = motionSceneTag;
-      myFile = file;
-    }
   }
 }
