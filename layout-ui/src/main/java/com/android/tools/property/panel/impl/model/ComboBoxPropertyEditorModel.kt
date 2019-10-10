@@ -58,6 +58,14 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   private var pendingValueChange = false
   private var pendingValue: String? = null
 
+  override var property: PropertyItem
+    get() = super.property
+    set(value) {
+      super.property = value
+      // Without this the outline validations are wrong in the EditorBaseedTableCellRenderer
+      updateValueFromProperty()
+    }
+
   override var text by Delegates.observable(property.value.orEmpty()) { _, _, _ -> resetPendingValue() }
 
   private fun setPendingValue(newValue: String?) {

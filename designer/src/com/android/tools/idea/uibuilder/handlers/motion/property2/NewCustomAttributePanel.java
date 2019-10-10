@@ -15,45 +15,34 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
-import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider.mapFromCustomType;
+import static com.android.tools.adtui.model.stdui.EditingSupportKt.EDITOR_IMMEDIATE_EXECUTION;
+import static com.android.tools.adtui.model.stdui.EditingSupportKt.EDITOR_NO_ERROR;
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel;
 import com.android.tools.adtui.model.stdui.EditingErrorCategory;
 import com.android.tools.adtui.model.stdui.EditingSupport;
-import com.android.tools.adtui.model.stdui.EditingSupportKt;
 import com.android.tools.adtui.model.stdui.ValueChangedListener;
 import com.android.tools.adtui.stdui.CommonTextField;
-import com.android.tools.adtui.stdui.CommonTextFieldKt;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.observable.BindingsManager;
-import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.EnumValueProperty;
-import com.android.tools.idea.observable.core.ObjectProperty;
-import com.android.tools.idea.observable.core.StringProperty;
-import com.android.tools.idea.observable.core.StringValueProperty;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
-import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.idea.observable.ui.SelectedProperty;
-import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertyType;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EditorComboBox;
+import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import kotlin.Pair;
@@ -68,41 +57,43 @@ public class NewCustomAttributePanel extends DialogWrapper {
   private JTextField myInitialValueEditor;
   private JPanel myContentPanel;
   private EditorComboBox myDataType;
-  private ValidatorPanel myValidatorPanel;
   private JCheckBox myAcceptAnyway;
-  @SuppressWarnings("unused")
-  private JPanel myErrorPanel;
-  private AttributeNameModel myNewAttributeNameModel;
+  private JLabel myError;
+  private MyTextFieldModel myNewAttributeNameModel;
+  private MyTextFieldModel myInitialValueModel;
+  private final NelePropertiesModel myPropertiesModel;
+  private final MotionSelection mySelection;
+  private final Supplier<CustomAttributeType> myTypeSupplier;
   private final DefaultComboBoxModel<CustomAttributeType> myModel;
-  private final NlComponent myComponent;
+  private NelePropertyItem myProperty;
 
-  private final StringProperty myAttributeNameProperty = new StringValueProperty();
-  private final StringProperty myAttributeValueProperty = new StringValueProperty();
-  private final ObjectProperty<CustomAttributeType> myAttributeTypeProperty = new EnumValueProperty<>(CustomAttributeType.class);
-
-  private String myLastLookupType;
-  private Set<String> myLastLookup = Collections.emptySet();
-
-  private final BindingsManager myBindings = new BindingsManager();
-  private final ListenerManager myListeners = new ListenerManager();
-
-  public NewCustomAttributePanel(@NotNull NlComponent component) {
+  public NewCustomAttributePanel(@NotNull NelePropertiesModel propertiesModel,
+                                 @NotNull MotionSelection selection,
+                                 @NotNull NlComponent component) {
     super(false);
+    myPropertiesModel = propertiesModel;
+    mySelection = selection;
     myModel = new DefaultComboBoxModel<>();
-    myComponent = component;
+    myTypeSupplier = () -> {
+      Object selectedType = myDataType.getSelectedItem();
+      if (selectedType instanceof CustomAttributeType) {
+        return (CustomAttributeType)selectedType;
+      }
+      return CustomAttributeType.CUSTOM_STRING;
+    };
+    myNewAttributeNameModel.setEditingSupport(new AttributeNameEditingSupport(component, myTypeSupplier));
     Arrays.stream(CustomAttributeType.values()).forEach(type -> myModel.addElement(type));
     myModel.setSelectedItem(CustomAttributeType.CUSTOM_STRING);
     //noinspection unchecked
     myDataType.setModel(myModel);
     myDataType.setEditable(false);
-    getLookup();
-    initializeBindingsAndValidators();
+    initValidations();
     init();
   }
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myAttributeNameEditor;
+    return myDataType;
   }
 
   @NotNull
@@ -117,108 +108,103 @@ public class NewCustomAttributePanel extends DialogWrapper {
   }
 
   @NotNull
+  public CustomAttributeType getType() {
+    return myTypeSupplier.get();
+  }
+
+  @NotNull
   public String getInitialValue() {
     return myInitialValueEditor.getText();
   }
 
-  @Nullable
-  public CustomAttributeType getType() {
-    return myAttributeTypeProperty.get();
+  private void initValidations() {
+    myDataType.addActionListener((event) -> updateAfterTypeChange());
+    myAcceptAnyway.addActionListener((event) -> updateErrorStatus());
+    updateAfterTypeChange();
   }
 
-  private void initializeBindingsAndValidators() {
-    myBindings.bind(myAttributeNameProperty, new TextProperty(myAttributeNameEditor));
-    myBindings.bind(myAttributeValueProperty, new TextProperty(myInitialValueEditor));
-    myBindings.bind(myAttributeTypeProperty, ObjectProperty.wrap(new SelectedItemProperty<>(myDataType)));
-
-    myBindings.bind(new VisibleProperty(myAcceptAnyway), new BooleanExpression(myValidatorPanel.getValidationResult()) {
-      @NotNull
-      @Override
-      public Boolean get() {
-        return myValidatorPanel.getValidationResult().get() != Validator.Result.OK;
-      }
-    });
-
-    SelectedProperty acceptErrorsProperty = new SelectedProperty(myAcceptAnyway);
-    myListeners.listen(myValidatorPanel.hasErrors().and(acceptErrorsProperty.not()),
-                       shouldNotProceed -> setOKActionEnabled(!shouldNotProceed));
-
-    myValidatorPanel.registerValidator(myAttributeNameProperty, this::checkAttributeName, myAttributeTypeProperty, acceptErrorsProperty);
-    myValidatorPanel.registerValidator(myAttributeValueProperty, this::checkAttributeValue, myAttributeTypeProperty, acceptErrorsProperty);
-  }
-
-  @NotNull
-  private Validator.Result checkAttributeName(@NotNull String attributeName) {
-    if (attributeName.isEmpty()) {
-      return new Validator.Result(Validator.Severity.ERROR,
-                                  "Please supply an attribute name");
+  private void updateAfterTypeChange() {
+    String typeTag = getType().getTagName();
+    NelePropertyType propertyType = MotionLayoutPropertyProvider.mapFromCustomType(typeTag);
+    if (myProperty == null || propertyType != myProperty.getType()) {
+      myProperty = MotionLayoutPropertyProvider.createCustomProperty("property", typeTag, mySelection, myPropertiesModel);
+      myInitialValueModel.setEditingSupport(myProperty.getEditingSupport());
     }
-    Set<String> lookup = getLookup();
-    String message = lookup.contains(attributeName) ? null : "Method not found: " + getMethodName(attributeName) + ";  check arguments";
-    return createResult(myAttributeNameEditor, message);
+    myNewAttributeNameModel.updateNow();
+    myInitialValueModel.updateNow();
+    updateErrorStatus();
   }
 
-  @NotNull
-  private Validator.Result checkAttributeValue(@SuppressWarnings("unused") @NotNull String value) {
-    CustomAttributeType customType = getType();
-    String tagName = customType != null ? customType.getTagName() : CustomAttributeType.CUSTOM_STRING.getTagName();
-    NelePropertyType type = mapFromCustomType(tagName);
-    String message = type.validateLiteral(value);
-    return createResult(myInitialValueEditor, message);
-  }
-
-  @NotNull
-  private Validator.Severity getErrorSeverity() {
-    return myAcceptAnyway.isSelected() ? Validator.Severity.WARNING : Validator.Severity.ERROR;
-  }
-
-  @NotNull
-  private Validator.Result createResult(@NotNull JComponent component, @Nullable String message) {
-    String outline = message == null ? null : myAcceptAnyway.isSelected() ? "warning" : "error";
-    component.putClientProperty(CommonTextFieldKt.OUTLINE_PROPERTY, outline);
-    component.repaint();
-    return message == null ? Validator.Result.OK : new Validator.Result(getErrorSeverity(), message);
-  }
-
-  @NotNull
-  private static String getMethodName(@NotNull String attributeName) {
-    return "set" + StringUtil.capitalize(attributeName);
-  }
-
-  @NotNull
-  private Set<String> getLookup() {
-    CustomAttributeType type = getType();
-    String tagName = type != null ? type.getTagName() : null;
-    if (!Objects.equals(tagName, myLastLookupType)) {
-      myLastLookup = MotionAttributes.getCustomAttributesFor(myComponent, tagName);
-      myLastLookupType = tagName;
-      List<String> completions = new ArrayList<>(myLastLookup);
-      completions.sort(String::compareTo);
-      myNewAttributeNameModel.setCompletions(completions);
+  private void updateErrorStatus() {
+    Pair<EditingErrorCategory, String> status = myNewAttributeNameModel.validate();
+    if (status == EDITOR_NO_ERROR) {
+      status = myInitialValueModel.validate();
     }
-    return myLastLookup;
+    myAcceptAnyway.setVisible(status.getFirst() == EditingErrorCategory.ERROR);
+    setOKActionEnabled(status.getFirst() != EditingErrorCategory.ERROR ||
+                       myAcceptAnyway.isSelected() && !myNewAttributeNameModel.getText().isEmpty());
+    switch (status.getFirst()) {
+      case ERROR:
+        myError.setVisible(true);
+        myError.setText(status.getSecond());
+        myError.setIcon(StudioIcons.Common.ERROR_INLINE);
+        break;
+      case WARNING:
+        myError.setVisible(true);
+        myError.setText(status.getSecond());
+        myError.setIcon(StudioIcons.Common.WARNING_INLINE);
+        break;
+      default:
+        myError.setVisible(false);
+        break;
+    }
   }
 
   private void createUIComponents() {
-    myNewAttributeNameModel = new AttributeNameModel();
+    myNewAttributeNameModel = new MyTextFieldModel(this::updateErrorStatus);
     myAttributeNameEditor = new CommonTextField<>(myNewAttributeNameModel);
-    myValidatorPanel = new ValidatorPanel(myDisposable, new JPanel());
-    myErrorPanel = (JPanel)myValidatorPanel.getComponent(0);
+    myInitialValueModel = new MyTextFieldModel(this::updateErrorStatus);
+    myInitialValueEditor = new CommonTextField<>(myInitialValueModel);
     myDataType = new EditorComboBox(CustomAttributeType.CUSTOM_STRING.getTagName());
   }
 
-  private static class AttributeNameModel implements CommonTextFieldModel {
+  private static class MyTextFieldModel implements CommonTextFieldModel {
+    private final List<ValueChangedListener> myListeners;
+    private final Runnable myTextChanged;
     private String myText = "";
-    private List<String> myCompletions = Collections.emptyList();
+    private EditingSupport myEditingSupport;
 
-    public void setCompletions(@NotNull List<String> completions) {
-      myCompletions = completions;
+    private MyTextFieldModel(@NotNull Runnable textChanged) {
+      myListeners = new ArrayList<>();
+      myEditingSupport = new DefaultEditingSupport();
+      myTextChanged = textChanged;
+    }
+
+    private void setEditingSupport(@NotNull EditingSupport editingSupport) {
+      // Avoid running on the pooled thread:
+      myEditingSupport = new DefaultEditingSupport() {
+        @NotNull
+        @Override
+        public Function1<String, Pair<EditingErrorCategory, String>> getValidation() {
+          return editingSupport.getValidation();
+        }
+
+        @NotNull
+        @Override
+        public Function0<List<String>> getCompletion() {
+          return editingSupport.getCompletion();
+        }
+      };
+    }
+
+    private Pair<EditingErrorCategory, String> validate() {
+      return myEditingSupport.getValidation().invoke(myText);
     }
 
     @NotNull
     @Override
     public String getValue() {
-      return "";
+      return myText;
     }
 
     @Override
@@ -246,50 +232,122 @@ public class NewCustomAttributePanel extends DialogWrapper {
     @Override
     public void setText(@NotNull String text) {
       myText = text;
+      myTextChanged.run();
+    }
+
+    public void updateNow() {
+      myListeners.forEach((listener) -> listener.valueChanged());
     }
 
     @NotNull
     @Override
     public EditingSupport getEditingSupport() {
-      return new EditingSupport() {
-        @NotNull
-        @Override
-        public Function1<Runnable, Unit> getUiExecution() {
-          return (runnable) -> {
-            runnable.run();
-            return Unit.INSTANCE;
-          };
-        }
-
-        @NotNull
-        @Override
-        public Function1<Runnable, Future<?>> getExecution() {
-          return (runnable) -> {
-            runnable.run();
-            return Futures.immediateFuture(Unit.INSTANCE);
-          };
-        }
-
-        @NotNull
-        @Override
-        public Function1<String, Pair<EditingErrorCategory, String>> getValidation() {
-          return (value) -> EditingSupportKt.EDITOR_NO_ERROR;
-        }
-
-        @NotNull
-        @Override
-        public Function0<List<String>> getCompletion() {
-          return () -> myCompletions;
-        }
-      };
+      return myEditingSupport;
     }
 
     @Override
     public void addListener(@NotNull ValueChangedListener listener) {
+      myListeners.add(listener);
     }
 
     @Override
     public void removeListener(@NotNull ValueChangedListener listener) {
+      myListeners.remove(listener);
+    }
+  }
+
+  private static class DefaultEditingSupport implements EditingSupport {
+    @NotNull
+    @Override
+    public Function1<Runnable, Unit> getUiExecution() {
+      return (runnable) -> { runnable.run(); return Unit.INSTANCE; };
+    }
+
+    @NotNull
+    @Override
+    public Function1<Runnable, Future<?>> getExecution() {
+      return EDITOR_IMMEDIATE_EXECUTION;
+    }
+
+    @NotNull
+    @Override
+    public Function1<String, Pair<EditingErrorCategory, String>> getValidation() {
+      return (value) -> EDITOR_NO_ERROR;
+    }
+
+    @NotNull
+    @Override
+    public Function0<List<String>> getCompletion() {
+      return () -> Collections.emptyList();
+    }
+  }
+
+  private static class AttributeNameEditingSupport implements EditingSupport {
+    private final NlComponent myComponent;
+    private final Supplier<CustomAttributeType> myType;
+    private CustomAttributeType myLastLookupType;
+    private Set<String> myLastLookup = Collections.emptySet();
+    private List<String> myCompletions = Collections.emptyList();
+
+    private AttributeNameEditingSupport(@NotNull NlComponent component, @NotNull Supplier<CustomAttributeType> type) {
+      myComponent = component;
+      myType = type;
+    }
+
+    @NotNull
+    @Override
+    public Function1<Runnable, Unit> getUiExecution() {
+      return (runnable) -> { runnable.run(); return Unit.INSTANCE; };
+    }
+
+    @NotNull
+    @Override
+    public Function1<Runnable, Future<?>> getExecution() {
+      return EDITOR_IMMEDIATE_EXECUTION;
+    }
+
+    @NotNull
+    @Override
+    public Function1<String, Pair<EditingErrorCategory, String>> getValidation() {
+      return (value) -> validate(value);
+    }
+
+    @NotNull
+    @Override
+    public Function0<List<String>> getCompletion() {
+      return () -> getCompletions();
+    }
+
+    private Pair<EditingErrorCategory, String> validate(@Nullable String value) {
+      if (value == null || value.isEmpty()) {
+        return new Pair<>(EditingErrorCategory.ERROR, "Please supply an attribute name");
+      }
+      updateLookups();
+      if (myLastLookup.contains(value)) {
+        return EDITOR_NO_ERROR;
+      }
+      String message = "Method not found: " + getMethodName(value) + ";  check arguments";
+      return new Pair<>(EditingErrorCategory.ERROR, message);
+    }
+
+    @NotNull
+    private static String getMethodName(@NotNull String attributeName) {
+      return "set" + StringUtil.capitalize(attributeName);
+    }
+
+    private List<String> getCompletions() {
+      updateLookups();
+      return myCompletions;
+    }
+
+    private void updateLookups() {
+      CustomAttributeType type = myType.get();
+      if (type != myLastLookupType) {
+        myLastLookup = MotionAttributes.getCustomAttributesFor(myComponent, type.getTagName());
+        myLastLookupType = type;
+        myCompletions = new ArrayList<>(myLastLookup);
+        myCompletions.sort(String::compareTo);
+      }
     }
   }
 }

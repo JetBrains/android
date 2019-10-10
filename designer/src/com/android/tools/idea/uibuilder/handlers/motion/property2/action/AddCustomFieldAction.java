@@ -56,7 +56,7 @@ public class AddCustomFieldAction extends AnAction {
     if (component == null) {
       return;
     }
-    NewCustomAttributePanel newAttributePanel = new NewCustomAttributePanel(component);
+    NewCustomAttributePanel newAttributePanel = new NewCustomAttributePanel(myProperty.getModel(), selection, component);
     newAttributePanel.show();
     if (!newAttributePanel.isOK()) {
       return;
