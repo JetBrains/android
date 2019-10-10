@@ -243,6 +243,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Nullable private final NavigationHandler myNavigationHandler;
 
+  private boolean myIsAnimationMode = false;
+
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
@@ -673,6 +675,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * has been rendered (possibly with errors)
    */
   public void updateErrorDisplay() {
+    if (myIsAnimationMode) {
+      // No errors update while we are in the middle of playing an animation
+      return;
+    }
+
     assert ApplicationManager.getApplication().isDispatchThread() ||
            !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock when calling updateErrorDisplay!";
 
@@ -937,5 +944,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     return root.flatten().collect(Collectors.toList());
+  }
+
+  /**
+   * When the surface is in "Animation Mode", the error display is not updated. This allows for the surface
+   * to render results faster without triggering updates of the issue panel per frame.
+   */
+  public void setAnimationMode(boolean enabled) {
+    myIsAnimationMode = enabled;
   }
 }

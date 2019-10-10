@@ -72,7 +72,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private static final boolean DEBUG = false;
   private static final boolean TEMP_HACK_FORCE_APPLY = false;
   private final Project myProject;
-  private final DesignSurface myDesignSurface;
+  private final NlDesignSurface myDesignSurface;
   NlComponentTag myMotionLayoutTag;
   NlComponent myMotionLayoutNlComponent;
   MotionSceneTag myMotionScene;
@@ -114,7 +114,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
   }
 
-  public MotionAccessoryPanel(@NotNull DesignSurface surface,
+  public MotionAccessoryPanel(@NotNull NlDesignSurface surface,
                               @NotNull NlComponent parent,
                               @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     if (DEBUG) {
@@ -259,8 +259,10 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             mLastProgress = pos;
             break;
           case MOTION_PLAY:
+            surface.setAnimationMode(true);
             break;
           case MOTION_STOP:
+            surface.setAnimationMode(false);
             break;
         }
       }
