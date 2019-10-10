@@ -28,7 +28,6 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirectoryDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
@@ -150,17 +149,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     return !myLoadingPanelFixture.hasError() && myDesignSurfaceFixture.target().isShowing();
   }
 
-  public NlEditorFixture assertCanInteractWithSurface() {
+  public void assertCanInteractWithSurface() {
     assertTrue(canInteractWithSurface());
-    return this;
-  }
-
-  public boolean hasRenderErrors() {
-    return myDesignSurfaceFixture.hasRenderErrors();
-  }
-
-  public void waitForErrorPanelToContain(@NotNull String errorText) {
-    myDesignSurfaceFixture.waitForErrorPanelToContain(errorText);
   }
 
   @NotNull
@@ -185,11 +175,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   @NotNull
-  public CreateResourceDirectoryDialogFixture getSelectResourceDirectoryDialog() {
-    return new CreateResourceDirectoryDialogFixture(robot());
-  }
-
-  @NotNull
   public NlPropertyInspectorFixture getPropertiesPanel() {
     if (myPropertyFixture == null) {
       myPropertyFixture = new NlPropertyInspectorFixture(robot(), NlPropertyInspectorFixture.create(robot()));
@@ -208,9 +193,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   public JTreeFixture getComponentTree() {
     JTreeFixture fixture = new JTreeFixture(robot(), (JTree)robot().finder().findByName(target(), "componentTree"));
 
-    fixture.replaceCellReader((tree, value) -> {
-      return ((NlComponent)value).getTagName();
-    });
+    fixture.replaceCellReader((tree, value) -> ((NlComponent)value).getTagName());
 
     Wait.seconds(10)
       .expecting("component tree to be populated")
