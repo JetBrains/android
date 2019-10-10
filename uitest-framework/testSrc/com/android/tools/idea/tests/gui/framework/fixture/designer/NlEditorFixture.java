@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import static junit.framework.TestCase.assertTrue;
+import static org.fest.swing.awt.AWT.translate;
 
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.editor.DesignerEditor;
@@ -43,6 +44,7 @@ import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import java.awt.AWTException;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -73,6 +75,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   private NlPaletteFixture myPaletteFixture;
   private WorkBenchLoadingPanelFixture myLoadingPanelFixture;
   private final ComponentDragAndDrop myDragAndDrop;
+  private java.awt.Robot myAwtRobot;
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull DesignerEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
@@ -341,6 +344,44 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     robot().moveMouse(surface, surface.getWidth() / 2 + dx, surface.getHeight() / 2 + dy);
     robot().releaseMouseButtons();
     robot().releaseKey(keyCode);
+  }
+
+  @NotNull
+  public Point getAdaptiveIconTopLeftCorner() {
+    DesignSurface surface = myDesignSurfaceFixture.target();
+
+    Dimension contentDimension = surface.getContentSize(null);
+    return new Point(surface.getContentOriginX(), surface.getContentOriginY() + (contentDimension.height - contentDimension.width + 1) / 2);
+  }
+
+  @NotNull
+  public String getAdaptiveIconPathDescription() {
+    DesignSurface surface = myDesignSurfaceFixture.target();
+    if (surface instanceof NlDesignSurface) {
+      return ((NlDesignSurface)surface).getAdaptiveIconShape().getPathDescription();
+    }
+    else {
+      throw new RuntimeException("Unsupported DesignSurface type " + surface.getClass().getName());
+    }
+  }
+
+  /**
+   * Returns an HEX string corresponding to the value of the color of the pixel at a given point in the design surface reference frame.
+   */
+  @NotNull
+  public String getPixelColor(@NotNull Point p) {
+    DesignSurface surface = myDesignSurfaceFixture.target();
+    Point centerLeftPoint = translate(surface, p.x, p.y);
+
+    if (myAwtRobot == null) {
+      try {
+        myAwtRobot = new java.awt.Robot();
+      }
+      catch (AWTException e) {
+        e.printStackTrace();
+      }
+    }
+    return Integer.toHexString(myAwtRobot.getPixelColor(centerLeftPoint.x, centerLeftPoint.y).getRGB());
   }
 
   @NotNull
