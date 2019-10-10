@@ -95,6 +95,7 @@ public class MotionEditor extends JPanel {
   JPopupMenu myPopupMenu = new JPopupMenu();
   private static final String MAIN_PANEL = "main";
   private static final String ERROR_PANEL = "error";
+  private int mFlags;
 
   @Override
   public void updateUI() {
@@ -119,9 +120,9 @@ public class MotionEditor extends JPanel {
     }
   }
 
-  public void setSelection(MotionEditorSelector.Type type, MTag[] tag) {
+  public void setSelection(MotionEditorSelector.Type type, MTag[] tag, int flags) {
     mSelectedTag = tag[0];
-    notifyListeners(type, tag);
+    notifyListeners(type, tag, flags);
   }
 
   /**
@@ -182,7 +183,7 @@ public class MotionEditor extends JPanel {
     });
     mMotionEditorSelector.addSelectionListener(new MotionEditorSelector.Listener() {
       @Override
-      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
+      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag, int flags) {
         if (DEBUG) {
           Debug.log(" selectionChanged  " + selection);
           Debug.logStack(" selectionChanged  " + selection, 5);
@@ -227,12 +228,12 @@ public class MotionEditor extends JPanel {
     });
     MTagActionListener mTagActionListener = new MTagActionListener() {
       @Override
-      public void select(MTag selected) {
-        selectTag(selected);
+      public void select(MTag selected, int flags) {
+        selectTag(selected, flags);
       }
 
       @Override
-      public void delete(MTag[] tags) {
+      public void delete(MTag[] tags, int flags) {
         fireCommand(Command.Action.DELETE, tags);
       }
     };
@@ -282,8 +283,8 @@ public class MotionEditor extends JPanel {
     mMotionEditorSelector.addSelectionListener(listener);
   }
 
-  private void notifyListeners(MotionEditorSelector.Type type, MTag[] tags) {
-    mMotionEditorSelector.notifyListeners(type, tags);
+  private void notifyListeners(MotionEditorSelector.Type type, MTag[] tags, int flags) {
+    mMotionEditorSelector.notifyListeners(type, tags, flags);
   }
 
   public MeModel getMeModel() {
@@ -294,14 +295,15 @@ public class MotionEditor extends JPanel {
     return mSelectedTag;
   }
 
-  public void selectTag(MTag tag) {
+  public void selectTag(MTag tag, int flags) {
+    mFlags = flags;
     if (tag != null && tag.equals(mSelectedTag)) {
       mConstraintSetPanel.clearSelection();
       mLayoutPanel.clearSelection();
       mTransitionPanel.clearSelection();
       mMeModel.setSelectedViewIDs(new ArrayList<>()); // clear out selections because of double click
       if ("Transition".equals(tag.getTagName())) {
-        notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{tag});
+        notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{tag}, flags);
       }
     }
     mSelectedTag = tag;
@@ -314,11 +316,11 @@ public class MotionEditor extends JPanel {
                       @Nullable String motionSceneFileName) {
     if (myErrorPanel.validateMotionScene(motionScene)) {
       mErrorSwitchCard.show(this, MAIN_PANEL);
+      setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
     }
     else {
       mErrorSwitchCard.show(this, ERROR_PANEL);
     }
-    setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
   }
 
   @Nullable
@@ -343,7 +345,7 @@ public class MotionEditor extends JPanel {
     mUpdatingModel = true;
     try {
       MTag newSelection = findSelectedTagInNewModel(model);
-      selectTag(newSelection);
+      selectTag(newSelection, 0);
       mMeModel = model;
       mMotionSceneTabb.setMTag(mMeModel.motionScene);
       mCombinedListPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
@@ -429,7 +431,7 @@ public class MotionEditor extends JPanel {
         mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = CONSTRAINTSET_PANEL);
         MTag selectedConstraintSet = c_sets[index - 1];
         notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET,
-                        new MTag[]{selectedConstraintSet});
+                        new MTag[]{selectedConstraintSet}, 0);
         mSelectedTag = selectedConstraintSet;
         mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
       }
@@ -438,7 +440,7 @@ public class MotionEditor extends JPanel {
         mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
         notifyListeners(MotionEditorSelector.Type.LAYOUT,
                         (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
-                        new MTag[]{mCombinedListPanel.mMotionLayout});
+                        new MTag[]{mCombinedListPanel.mMotionLayout}, 0);
         mSelectedTag = mCombinedListPanel.mMotionLayout;
       }
     }
@@ -455,7 +457,7 @@ public class MotionEditor extends JPanel {
     }
     MTag selectedTransition = transitions[index];
     mTransitionPanel.setMTag(selectedTransition, mMeModel);
-    notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{selectedTransition});
+    notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{selectedTransition}, mFlags);
     mSelectedTag = selectedTransition;
   }
 

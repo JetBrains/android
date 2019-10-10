@@ -343,7 +343,7 @@ public class MotionSceneTag implements MTag {
   }
 
 
-  public static MotionSceneTag parse(NlComponent motionLayout,
+  public static MotionSceneTag.Root parse(NlComponent motionLayout,
                                      Project project,
                                      VirtualFile virtualFile,
                                      XmlFile file) {

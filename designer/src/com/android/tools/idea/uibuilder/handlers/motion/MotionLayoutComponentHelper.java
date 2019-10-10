@@ -66,6 +66,7 @@ public class MotionLayoutComponentHelper {
   private final Object myDesignTool;
   private final NlComponent myMotionLayoutComponent;
   private final boolean DEBUG = false;
+  private static boolean mShowPaths = true;
 
   public MotionLayoutComponentHelper(@NotNull NlComponent component) {
     ViewInfo info = NlComponentHelperKt.getViewInfo(component);
@@ -915,7 +916,7 @@ public class MotionLayoutComponentHelper {
     setAttributes(dpiValue, state, info.getViewObject(), attributes);
   }
 
-  public int getKeyframePos(NlComponent component, int[] type, float[]pos) {
+  public int getKeyframePos(NlComponent component, int[] type, float[] pos) {
     if (myDesignTool == null) {
       return -1;
     }
@@ -928,7 +929,7 @@ public class MotionLayoutComponentHelper {
     if (myGetKeyFramePositionsMethod == null) {
       try {
         myGetKeyFramePositionsMethod = myDesignTool.getClass().getMethod("getKeyFramePositions",
-                                                                         Object.class, int[].class,float[].class);
+                                                                         Object.class, int[].class, float[].class);
       }
       catch (NoSuchMethodException e) {
         if (true) {
@@ -960,5 +961,13 @@ public class MotionLayoutComponentHelper {
     }
 
     return -1;
+  }
+
+  public void setShowPaths(boolean show) {
+    mShowPaths = show;
+  }
+
+  public boolean getShowPaths() {
+    return mShowPaths;
   }
 }

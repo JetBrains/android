@@ -112,9 +112,9 @@ public class MotionLayoutDecorator extends SceneDecorator {
   private final static int[] ourOppositeDirection = {1, 0, 3, 2}; // order matches
   private final static int DRAWPATH_SIZE = 200;
   private final static int MAX_KEY_POSITIONS = 101; // 0-100 inclusive key positions are allowed
-  private  float[] mPathBuffer = new float[DRAWPATH_SIZE];
+  private float[] mPathBuffer = new float[DRAWPATH_SIZE];
   private int[] keyFrameTypes = new int[MAX_KEY_POSITIONS];
-  private  float[] keyFramePos = new float[MAX_KEY_POSITIONS*2];
+  private float[] keyFramePos = new float[MAX_KEY_POSITIONS * 2];
 
   private static void convert(@NotNull SceneContext sceneContext, Rectangle rect) {
     rect.x = sceneContext.getSwingXDip(rect.x);
@@ -321,18 +321,19 @@ public class MotionLayoutDecorator extends SceneDecorator {
 
   private void buildListPaths(@NotNull SceneComponent component, @NotNull DisplayList list) {
     MotionLayoutComponentHelper helper = new MotionLayoutComponentHelper(component.getNlComponent());
-    if (helper.isInTransition()) {
+
+    if (helper.isInTransition() && helper.getShowPaths()) {
       List<SceneComponent> children = component.getChildren();
       int size = mPathBuffer.length / 2;
       for (SceneComponent child : children) {
         int len = helper.getPath(child.getNlComponent(), mPathBuffer, size);
         if (len > 0) {
-          int x =  component.getDrawX();
-          int y =  component.getDrawY();
-          int w =  component.getDrawWidth();
-          int h =  component.getDrawHeight();
+          int x = component.getDrawX();
+          int y = component.getDrawY();
+          int w = component.getDrawWidth();
+          int h = component.getDrawHeight();
           int keyFrameCount = helper.getKeyframePos(child.getNlComponent(), keyFrameTypes, keyFramePos);
-          DrawMotionPath.buildDisplayList(list, mPathBuffer, size * 2, keyFrameTypes,keyFramePos, keyFrameCount, x, y, w, h);
+          DrawMotionPath.buildDisplayList(list, mPathBuffer, size * 2, keyFrameTypes, keyFramePos, keyFrameCount, x, y, w, h);
         }
       }
     }

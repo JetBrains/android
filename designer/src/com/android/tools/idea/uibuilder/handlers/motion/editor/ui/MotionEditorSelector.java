@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
-
 import java.util.ArrayList;
 
 /**
@@ -36,8 +35,8 @@ public class MotionEditorSelector {
   }
 
   public interface Listener {
-
-    public void selectionChanged(Type selection, MTag[] tag);
+    int CONTROL_FLAG = MTagActionListener.CONTROL_FLAG;
+    public void selectionChanged(Type selection, MTag[] tag, int flags);
   }
 
   ArrayList<Listener> mListeners = new ArrayList<>();
@@ -46,9 +45,9 @@ public class MotionEditorSelector {
     mListeners.add(listener);
   }
 
-  public void notifyListeners(Type type, MTag[] tags) {
+  public void notifyListeners(Type type, MTag[] tags, int flags) {
     for (Listener listener : mListeners) {
-      listener.selectionChanged(type, tags);
+      listener.selectionChanged(type, tags, flags);
     }
   }
 

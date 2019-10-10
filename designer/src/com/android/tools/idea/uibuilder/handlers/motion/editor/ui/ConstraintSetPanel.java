@@ -172,7 +172,7 @@ class ConstraintSetPanel extends JPanel {
     };
     mConstraintSetTable.registerKeyboardAction(copyListener, "Copy", copy, JComponent.WHEN_FOCUSED);
     mConstraintSetTable.registerKeyboardAction(pasteListener, "Paste", paste, JComponent.WHEN_FOCUSED);
- 
+
     mConstraintSetTable.getSelectionModel().addListSelectionListener(
       e -> {
         if (mBuildingTable) {
@@ -188,7 +188,7 @@ class ConstraintSetPanel extends JPanel {
           mSelectedTag = null;
           if (mConstraintSet != null) {
             mListeners
-              .notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{mConstraintSet});
+              .notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{mConstraintSet}, 0);
           }
           return;
         }
@@ -198,7 +198,7 @@ class ConstraintSetPanel extends JPanel {
           mMultiSelectedTag[i] = mDisplayedRows.get(k);
         }
         MTag[] tag = mDisplayedRows.isEmpty() ? new MTag[0] : new MTag[]{mSelectedTag = mDisplayedRows.get(index)};
-        mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT, tag);
+        mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT, tag, 0);
         enableMenuItems(tag);
       }
     );
@@ -476,7 +476,7 @@ class ConstraintSetPanel extends JPanel {
     mDerived = null;
     if (mConstraintSet != null) {
       mMeModel.setSelected(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{constraintSet});
-      mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{constraintSet});
+      mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{constraintSet}, 0);
       String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
       if (derived != null) {
         mDerived = Utils.stripID(derived);
@@ -533,7 +533,7 @@ class ConstraintSetPanel extends JPanel {
       boolean in = false;
 
       @Override
-      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
+      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag, int flags) {
         ArrayList<String> selectedIds = new ArrayList<>();
         if (in) { // simple block for selection triggering selection.
           return;
