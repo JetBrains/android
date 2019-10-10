@@ -48,13 +48,10 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import icons.StudioIcons;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.util.Arrays;
 import javax.swing.JComponent;
-import javax.swing.LayoutFocusTraversalPolicy;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -119,9 +116,6 @@ public class VisualizationManager implements ProjectComponent {
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
     myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.MULTI_PREVIEW);
-
-    // Do not give focus to the preview when first opened:
-    myToolWindow.getComponent().setFocusTraversalPolicy(new NoDefaultFocusTraversalPolicy());
 
     myProject.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
@@ -400,35 +394,6 @@ public class VisualizationManager implements ProjectComponent {
         }
       }
       processFileEditorChange(editorForLayout);
-    }
-  }
-
-  /**
-   * A {@link LayoutFocusTraversalPolicy} without a default focusable component.
-   *
-   * When a tool window is created a list of commands are supplied and executed.
-   * One of these commands are
-   *   {@link com.intellij.openapi.wm.impl.commands.RequestFocusInToolWindowCmd}
-   * which starts a timer and for the next 10 secs will attempt to set focus to
-   * the component returned by {@link #getDefaultComponent}.
-   *
-   * This causes a problem if the user tries to open the palette within the
-   * first 10 seconds the preview is opened. The palette is designed to auto
-   * close when it looses focus. Thus a user may see the palette close
-   * immediately after opening it.
-   *
-   * When the preview is opened we probably should keep the focus in the text
-   * editor. There doesn't seem to be a way to avoid the request focus command
-   * to run for the tool window, but we can trick the focus command into
-   * believing that there is no component to give focus to.
-   */
-  private static class NoDefaultFocusTraversalPolicy extends LayoutFocusTraversalPolicy {
-
-    @Override
-    @Nullable
-    public Component getDefaultComponent(@Nullable Container aContainer) {
-      super.getDefaultComponent(aContainer);
-      return null;
     }
   }
 }
