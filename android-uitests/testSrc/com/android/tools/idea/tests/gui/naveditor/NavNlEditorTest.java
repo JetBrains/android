@@ -173,8 +173,8 @@ public class NavNlEditorTest {
         .chooseFragment("Fragment (Blank)")
         .clickNextFragment()
         .getConfigureTemplateParametersStep()
-        .enterTextFieldValue("Fragment Name:", "TestSingleVariantSync")
-        .selectComboBoxItem("Source Language:", "Java")
+        .enterTextFieldValue("Fragment Name", "TestSingleVariantSync")
+        .selectComboBoxItem("Source Language", "Java")
         .wizard()
         .clickFinish();
 
@@ -224,8 +224,8 @@ public class NavNlEditorTest {
         .chooseFragment("Fragment (Blank)")
         .clickNextFragment()
         .getConfigureTemplateParametersStep()
-        .enterTextFieldValue("Fragment Name:", "TestCreateAndCancelFragment")
-        .selectComboBoxItem("Source Language:", "Java")
+        .enterTextFieldValue("Fragment Name", "TestCreateAndCancelFragment")
+        .selectComboBoxItem("Source Language", "Java")
         .wizard()
         .clickFinish();
 
@@ -253,8 +253,8 @@ public class NavNlEditorTest {
         .chooseFragment("Fragment (Blank)")
         .clickNextFragment()
         .getConfigureTemplateParametersStep()
-        .enterTextFieldValue("Fragment Name:", "TestCreateAndCancelFragment2")
-        .selectComboBoxItem("Source Language:", "Java")
+        .enterTextFieldValue("Fragment Name", "TestCreateAndCancelFragment2")
+        .selectComboBoxItem("Source Language", "Java")
         .wizard()
         .clickCancel();
 
