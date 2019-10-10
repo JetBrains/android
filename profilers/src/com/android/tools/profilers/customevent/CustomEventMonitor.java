@@ -16,28 +16,29 @@
 package com.android.tools.profilers.customevent;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.TransportServiceGrpc;
+import com.android.tools.adtui.model.formatter.UserCounterAxisFormatter;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.UnifiedEventDataSeries;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class CustomEventMonitor extends ProfilerMonitor {
 
   @NotNull private final StateChartModel<Long> myEventModel;
+  @NotNull private final CustomEventMonitorLegend myLegend;
+
 
   public CustomEventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
 
-    myEventModel = createEventChartModel(profilers);
+    UserCounterDataSeries myDataSeries = new UserCounterDataSeries(profilers.getClient().getTransportClient(), profilers);
+    myEventModel = createEventChartModel(profilers, myDataSeries);
+    myLegend = new CustomEventMonitorLegend(getTimeline().getDataRange(), getTimeline().getViewRange(), myDataSeries);
   }
 
   @Override
@@ -69,15 +70,43 @@ public class CustomEventMonitor extends ProfilerMonitor {
     return myEventModel;
   }
 
-  private static StateChartModel<Long> createEventChartModel(StudioProfilers profilers) {
+  @NotNull
+  public CustomEventMonitorLegend getLegend() {
+    return myLegend;
+  }
+
+  private static StateChartModel<Long> createEventChartModel(StudioProfilers profilers, UserCounterDataSeries dataSeries) {
     StateChartModel<Long> stateChartModel = new StateChartModel<>();
     Range range = profilers.getTimeline().getViewRange();
     Range dataRange = profilers.getTimeline().getDataRange();
-    TransportServiceGrpc.TransportServiceBlockingStub transportClient = profilers.getClient().getTransportClient();
 
-    stateChartModel.addSeries(new RangedSeries<>(range, new UserCounterDataSeries(transportClient, profilers), dataRange));
+    stateChartModel.addSeries(new RangedSeries<>(range, dataSeries, dataRange));
 
     return stateChartModel;
+  }
+
+  /**
+   * Legend for Custom Event Monitor that displays whether the event count is: None, Light, Medium, or Heavy.
+   */
+  public static final class CustomEventMonitorLegend extends LegendComponentModel {
+
+    @NotNull
+    private final SeriesLegend myUsageLegend;
+
+    public CustomEventMonitorLegend(@NotNull Range dataRange,
+                                    @NotNull Range viewRange,
+                                    UserCounterDataSeries dataSeries) {
+      super(dataRange);
+      RangedContinuousSeries rangedContinuousSeries = new RangedContinuousSeries("", viewRange, new Range(0, 0), dataSeries, dataRange);
+      myUsageLegend = new SeriesLegend(rangedContinuousSeries, UserCounterAxisFormatter.DEFAULT, dataRange);
+
+      add(myUsageLegend);
+    }
+
+    @NotNull
+    public SeriesLegend getUsageLegend() {
+      return myUsageLegend;
+    }
   }
 }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.customevent
 
+import com.android.tools.adtui.LegendComponent
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 
 import com.android.tools.adtui.TreeWalker
@@ -52,6 +53,15 @@ class CustomEventMonitorViewTest {
     // Test that the state chart has been added to the monitor view.
     val treeWalker = TreeWalker(monitorView.component)
     val stateChartList = treeWalker.descendants().filterIsInstance(StateChart::class.java)
+    assertThat(stateChartList).isNotNull()
+    assertThat(stateChartList.size).isEqualTo(1)
+  }
+
+  @Test
+  fun testMonitorLegend() {
+    // Test that the legend component has been added to the monitor view.
+    val treeWalker = TreeWalker(monitorView.component)
+    val stateChartList = treeWalker.descendants().filterIsInstance(LegendComponent::class.java)
     assertThat(stateChartList).isNotNull()
     assertThat(stateChartList.size).isEqualTo(1)
   }
