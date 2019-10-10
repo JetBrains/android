@@ -22,11 +22,13 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ProguardR8AccessModifier extends PsiElement {
+public interface ProguardR8Modifier extends PsiElement {
 
   boolean isNegated();
 
   @NotNull
   String toPsiModifier();
+
+  boolean isAccessModifier();
 
 }

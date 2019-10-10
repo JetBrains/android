@@ -65,13 +65,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // "!"? (public|private|protected)
-  public static boolean access_modifier(PsiBuilder builder, int level) {
+  static boolean access_modifier(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "access_modifier")) return false;
     boolean result;
-    Marker marker = enter_section_(builder, level, _NONE_, ACCESS_MODIFIER, "<access modifier>");
+    Marker marker = enter_section_(builder);
     result = access_modifier_0(builder, level + 1);
     result = result && access_modifier_1(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, null);
+    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -424,13 +424,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // ("!"?(static|volatile|transient|final))|access_modifier
-  static boolean fields_modifier(PsiBuilder builder, int level) {
+  public static boolean fields_modifier(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "fields_modifier")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
+    Marker marker = enter_section_(builder, level, _NONE_, MODIFIER, "<fields modifier>");
     result = fields_modifier_0(builder, level + 1);
     if (!result) result = access_modifier(builder, level + 1);
-    exit_section_(builder, marker, null, result);
+    exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
@@ -925,13 +925,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // ("!"?(static|synchronized|native|abstract|strictfp|final))|access_modifier
-  static boolean method_modifier(PsiBuilder builder, int level) {
+  public static boolean method_modifier(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "method_modifier")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
+    Marker marker = enter_section_(builder, level, _NONE_, MODIFIER, "<method modifier>");
     result = method_modifier_0(builder, level + 1);
     if (!result) result = access_modifier(builder, level + 1);
-    exit_section_(builder, marker, null, result);
+    exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 

@@ -25,10 +25,10 @@ import com.intellij.psi.PsiElement;
 public interface ProguardR8FullyQualifiedNameConstructor extends ProguardR8ClassMember {
 
   @NotNull
-  List<ProguardR8AccessModifier> getAccessModifierList();
+  ProguardR8ConstructorName getConstructorName();
 
   @NotNull
-  ProguardR8ConstructorName getConstructorName();
+  List<ProguardR8Modifier> getModifierList();
 
   @Nullable
   ProguardR8Parameters getParameters();
