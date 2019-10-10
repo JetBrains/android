@@ -21,22 +21,10 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.DefaultExecutionTarget;
-import com.intellij.execution.ExecutionTarget;
-import com.intellij.execution.ExecutionTargetManager;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.*;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -50,27 +38,21 @@ import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import com.intellij.ui.popup.list.ListPopupImpl;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import java.awt.Component;
-import java.awt.Dimension;
+import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.GroupLayout.Group;
+import java.awt.*;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Group;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @VisibleForTesting
@@ -394,8 +376,11 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     Project project = event.getProject();
-
     if (project == null) {
+      return;
+    }
+    if (!AndroidUtils.hasAndroidFacets(project)) {
+      presentation.setVisible(false);
       return;
     }
 
