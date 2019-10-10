@@ -28,14 +28,14 @@ import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
 
-public class ProguardR8AccessModifierImpl extends ASTWrapperPsiElement implements ProguardR8AccessModifier {
+public class ProguardR8ModifierImpl extends ASTWrapperPsiElement implements ProguardR8Modifier {
 
-  public ProguardR8AccessModifierImpl(@NotNull ASTNode node) {
+  public ProguardR8ModifierImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ProguardR8Visitor visitor) {
-    visitor.visitAccessModifier(this);
+    visitor.visitModifier(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -52,6 +52,11 @@ public class ProguardR8AccessModifierImpl extends ASTWrapperPsiElement implement
   @NotNull
   public String toPsiModifier() {
     return ProguardR8PsiImplUtil.toPsiModifier(this);
+  }
+
+  @Override
+  public boolean isAccessModifier() {
+    return ProguardR8PsiImplUtil.isAccessModifier(this);
   }
 
 }

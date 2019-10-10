@@ -506,28 +506,33 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(classMemberName.containsWildcards()).isTrue()
   }
 
-  fun testisNegated() {
+  fun testIsNegated() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
     -keep class myClass {
       public int field1;
+      static int field1;
       !public int field2;
       ! public int field3;
+      ! final int field3;
     }
     """.trimIndent()
     )
 
-    myFixture.moveCaret("publ|ic int field1")
-    var accessModifier = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8AccessModifier::class)!!
-    assertThat(accessModifier.isNegated()).isFalse()
+    var accessModifier = myFixture.moveCaret("publ|ic int field1").parentOfType(ProguardR8Modifier::class)!!
+    assertThat(accessModifier.isNegated).isFalse()
 
-    myFixture.moveCaret("!publ|ic int field2")
-    accessModifier = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8AccessModifier::class)!!
-    assertThat(accessModifier.isNegated()).isTrue()
+    accessModifier = myFixture.moveCaret("stat|ic int field1").parentOfType(ProguardR8Modifier::class)!!
+    assertThat(accessModifier.isNegated).isFalse()
 
-    myFixture.moveCaret("! publ|ic int field3")
-    accessModifier = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8AccessModifier::class)!!
-    assertThat(accessModifier.isNegated()).isTrue()
+    accessModifier = myFixture.moveCaret("!publ|ic int field2").parentOfType(ProguardR8Modifier::class)!!
+    assertThat(accessModifier.isNegated).isTrue()
+
+    accessModifier = myFixture.moveCaret("! publ|ic int field3").parentOfType(ProguardR8Modifier::class)!!
+    assertThat(accessModifier.isNegated).isTrue()
+
+    accessModifier = myFixture.moveCaret("! fi|nal int field3").parentOfType(ProguardR8Modifier::class)!!
+    assertThat(accessModifier.isNegated).isTrue()
   }
 }

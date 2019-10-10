@@ -25,7 +25,6 @@ import com.android.tools.idea.lang.proguardR8.psi.impl.*;
 
 public interface ProguardR8PsiTypes {
 
-  IElementType ACCESS_MODIFIER = new ProguardR8AstNodeType("ACCESS_MODIFIER");
   IElementType ANNOTATION_NAME = new ProguardR8AstNodeType("ANNOTATION_NAME");
   IElementType ANY_FIELD_OR_METHOD = new ProguardR8AstNodeType("ANY_FIELD_OR_METHOD");
   IElementType ANY_PRIMITIVE_TYPE = new ProguardR8AstNodeType("ANY_PRIMITIVE_TYPE");
@@ -47,6 +46,7 @@ public interface ProguardR8PsiTypes {
   IElementType KEEP_OPTION_MODIFIER = new ProguardR8AstNodeType("KEEP_OPTION_MODIFIER");
   IElementType METHOD = new ProguardR8AstNodeType("METHOD");
   IElementType METHOD_SPECIFICATION = new ProguardR8AstNodeType("METHOD_SPECIFICATION");
+  IElementType MODIFIER = new ProguardR8AstNodeType("MODIFIER");
   IElementType PARAMETERS = new ProguardR8AstNodeType("PARAMETERS");
   IElementType QUALIFIED_NAME = new ProguardR8AstNodeType("QUALIFIED_NAME");
   IElementType RULE = new ProguardR8AstNodeType("RULE");
@@ -119,10 +119,7 @@ public interface ProguardR8PsiTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-      if (type == ACCESS_MODIFIER) {
-        return new ProguardR8AccessModifierImpl(node);
-      }
-      else if (type == ANNOTATION_NAME) {
+      if (type == ANNOTATION_NAME) {
         return new ProguardR8AnnotationNameImpl(node);
       }
       else if (type == ANY_FIELD_OR_METHOD) {
@@ -184,6 +181,9 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == METHOD_SPECIFICATION) {
         return new ProguardR8MethodSpecificationImpl(node);
+      }
+      else if (type == MODIFIER) {
+        return new ProguardR8ModifierImpl(node);
       }
       else if (type == PARAMETERS) {
         return new ProguardR8ParametersImpl(node);

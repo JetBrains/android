@@ -23,7 +23,7 @@ import com.intellij.psi.util.parentOfType
 interface ProguardR8ClassMember : PsiElement {
   val type: ProguardR8Type?
   val parameters: ProguardR8Parameters?
-  val accessModifierList: List<ProguardR8AccessModifier>
+  val modifierList:List<ProguardR8Modifier>
 }
 
 fun ProguardR8ClassMember.resolveParentClasses(): List<PsiClass> {

@@ -24,10 +24,6 @@ import com.intellij.psi.PsiElement;
 
 public class ProguardR8Visitor extends PsiElementVisitor {
 
-  public void visitAccessModifier(@NotNull ProguardR8AccessModifier o) {
-    visitPsiElement(o);
-  }
-
   public void visitAnnotationName(@NotNull ProguardR8AnnotationName o) {
     visitPsiElement(o);
   }
@@ -109,6 +105,10 @@ public class ProguardR8Visitor extends PsiElementVisitor {
   }
 
   public void visitMethodSpecification(@NotNull ProguardR8MethodSpecification o) {
+    visitPsiElement(o);
+  }
+
+  public void visitModifier(@NotNull ProguardR8Modifier o) {
     visitPsiElement(o);
   }
 

@@ -45,14 +45,14 @@ public class ProguardR8FullyQualifiedNameConstructorImpl extends ASTWrapperPsiEl
 
   @Override
   @NotNull
-  public List<ProguardR8AccessModifier> getAccessModifierList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8AccessModifier.class);
+  public ProguardR8ConstructorName getConstructorName() {
+    return findNotNullChildByClass(ProguardR8ConstructorName.class);
   }
 
   @Override
   @NotNull
-  public ProguardR8ConstructorName getConstructorName() {
-    return findNotNullChildByClass(ProguardR8ConstructorName.class);
+  public List<ProguardR8Modifier> getModifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8Modifier.class);
   }
 
   @Override

@@ -24,9 +24,6 @@ import com.intellij.psi.PsiElement;
 
 public interface ProguardR8MethodSpecification extends PsiElement {
 
-  @NotNull
-  List<ProguardR8AccessModifier> getAccessModifierList();
-
   @Nullable
   ProguardR8AnnotationName getAnnotationName();
 
@@ -38,6 +35,9 @@ public interface ProguardR8MethodSpecification extends PsiElement {
 
   @Nullable
   ProguardR8Method getMethod();
+
+  @NotNull
+  List<ProguardR8Modifier> getModifierList();
 
   @Nullable
   ProguardR8Parameters getParameters();

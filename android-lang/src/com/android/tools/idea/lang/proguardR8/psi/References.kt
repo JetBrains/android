@@ -37,8 +37,8 @@ class ProguardR8ClassMemberNameReference(
   private val containingMember = classMemberName.parentOfType(ProguardR8ClassMember::class)!!
   private val type = containingMember.type
   private val parameters = containingMember.parameters
-  private val accessModifiers = containingMember.accessModifierList.filter { !it.isNegated }.map(::toPsiModifier)
-  private val negatedAccessModifiers = containingMember.accessModifierList.filter { it.isNegated }.map(::toPsiModifier)
+  private val accessModifiers = containingMember.modifierList.filter { it.isAccessModifier && !it.isNegated }.map(::toPsiModifier)
+  private val negatedAccessModifiers = containingMember.modifierList.filter { it.isAccessModifier && it.isNegated }.map(::toPsiModifier)
 
   private fun List<String>.overlaps(psiModifierList: PsiModifierList): Boolean {
     return any { psiModifierList.hasModifierProperty(it) }

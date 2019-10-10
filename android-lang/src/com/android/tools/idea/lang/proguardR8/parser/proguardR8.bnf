@@ -115,6 +115,20 @@ class_specification_header ::= annotation_name? class_modifier* class_type class
   methods=[resolvePsiClasses]
 }
 
+private access_modifier ::= "!"? (public|private|protected)
+
+// Let fields_modifier and method_modifier have its elementType.
+fake modifier ::= ("!"?(static|volatile|transient|synchronized|native|abstract|strictfp|final))|access_modifier {
+    methods=[isNegated toPsiModifier isAccessModifier]
+}
+fields_modifier ::= ("!"?(static|volatile|transient|final))|access_modifier {
+  elementType=modifier
+  extends=modifier
+}
+method_modifier ::= ("!"?(static|synchronized|native|abstract|strictfp|final))|access_modifier  {
+   elementType=modifier
+   extends=modifier
+}
 
 /**
  !'.' prevents parsing package part of fully qualified name as class_member_name
@@ -125,16 +139,13 @@ class_specification_header ::= annotation_name? class_modifier* class_type class
   without !'.' 'not' will be parsed as class_member_name
  */
 private class_member_core ::= ((type class_member_name) | class_member_name !(java_identifier_|<fields>|<methods>)) !'.'
-access_modifier ::= "!"? (public|private|protected) {
-  methods=[isNegated toPsiModifier]
-}
+
 field ::= annotation_name? fields_modifier* class_member_core {
   methods=[getParameters]
 }
 method ::= annotation_name? method_modifier* class_member_core parameters (return values)?
 
 fields_specification ::= (field | (annotation_name? fields_modifier* (<fields>|any_field_or_method))) !parameters
-private fields_modifier ::= ("!"?(static|volatile|transient|final))|access_modifier
 
 any_field_or_method ::= ASTERISK
 parameters ::= LPAREN (ANY_TYPE_AND_NUM_OF_ARGS|type_list) RPAREN {
@@ -157,7 +168,6 @@ fully_qualified_name_constructor ::= method_modifier* constructor_name parameter
   pin=2
   methods=[getType]
 }
-private method_modifier ::= ("!"?(static|synchronized|native|abstract|strictfp|final))|access_modifier
 
 method_specification ::= method | fully_qualified_name_constructor | (annotation_name? method_modifier* (<methods> | init_description | any_field_or_method))
 

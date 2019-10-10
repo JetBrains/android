@@ -170,9 +170,13 @@ fun containsWildcards(member: ProguardR8ClassMemberName): Boolean {
 
 fun getReference(member: ProguardR8ClassMemberName) = if (member.containsWildcards()) null else ProguardR8ClassMemberNameReference(member)
 
-fun isNegated(modifier: ProguardR8AccessModifier) = modifier.firstChild.node.elementType == ProguardR8PsiTypes.EM
+private val accessModifiers = setOf(PsiModifier.PRIVATE, PsiModifier.PROTECTED, PsiModifier.PUBLIC)
 
-fun toPsiModifier(modifier: ProguardR8AccessModifier) = when {
+fun isNegated(modifier: ProguardR8Modifier) = modifier.firstChild.node.elementType == ProguardR8PsiTypes.EM
+
+fun isAccessModifier(modifier: ProguardR8Modifier) = accessModifiers.contains(modifier.toPsiModifier())
+
+fun toPsiModifier(modifier: ProguardR8Modifier) = when {
   modifier.node.findChildByType(ProguardR8PsiTypes.PRIVATE) != null -> PsiModifier.PRIVATE
   modifier.node.findChildByType(ProguardR8PsiTypes.PROTECTED) != null -> PsiModifier.PROTECTED
   modifier.node.findChildByType(ProguardR8PsiTypes.PUBLIC) != null -> PsiModifier.PUBLIC
