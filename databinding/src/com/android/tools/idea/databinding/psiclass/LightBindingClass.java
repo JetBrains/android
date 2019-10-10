@@ -338,27 +338,27 @@ public class LightBindingClass extends AndroidLightClassBase {
 
     // Methods generated for data binding and view binding diverge a little
     if (xmlData.getLayoutType() == BindingLayoutType.DATA_BINDING_LAYOUT) {
-      DeprecatableLightMethodBuilder inflate4Arg = createPublicStaticMethod("inflate", ownerType);
-      inflate4Arg.addParameter("inflater", layoutInflaterType);
-      inflate4Arg.addParameter("root", viewGroupType);
-      inflate4Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
-      inflate4Arg.addParameter("bindingComponent", dataBindingComponent);
+      DeprecatableLightMethodBuilder inflate4Params = createPublicStaticMethod("inflate", ownerType);
+      inflate4Params.addParameter("inflater", layoutInflaterType);
+      inflate4Params.addParameter("root", viewGroupType);
+      inflate4Params.addParameter("attachToRoot", PsiType.BOOLEAN);
+      inflate4Params.addParameter("bindingComponent", dataBindingComponent);
       // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
-      inflate4Arg.setDeprecated(true);
+      inflate4Params.setDeprecated(true);
 
-      LightMethodBuilder inflate3Arg = createPublicStaticMethod("inflate", ownerType);
-      inflate3Arg.addParameter("inflater", layoutInflaterType);
-      inflate3Arg.addParameter("root", viewGroupType);
-      inflate3Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
+      LightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", ownerType);
+      inflate3Params.addParameter("inflater", layoutInflaterType);
+      inflate3Params.addParameter("root", viewGroupType);
+      inflate3Params.addParameter("attachToRoot", PsiType.BOOLEAN);
 
-      DeprecatableLightMethodBuilder inflate2Arg = createPublicStaticMethod("inflate", ownerType);
-      inflate2Arg.addParameter("inflater", layoutInflaterType);
-      inflate2Arg.addParameter("bindingComponent", dataBindingComponent);
+      DeprecatableLightMethodBuilder inflate2Params = createPublicStaticMethod("inflate", ownerType);
+      inflate2Params.addParameter("inflater", layoutInflaterType);
+      inflate2Params.addParameter("bindingComponent", dataBindingComponent);
       // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
-      inflate2Arg.setDeprecated(true);
+      inflate2Params.setDeprecated(true);
 
-      LightMethodBuilder inflate1Arg = createPublicStaticMethod("inflate", ownerType);
-      inflate1Arg.addParameter("inflater", layoutInflaterType);
+      LightMethodBuilder inflate1Param = createPublicStaticMethod("inflate", ownerType);
+      inflate1Param.addParameter("inflater", layoutInflaterType);
 
       LightMethodBuilder bind = createPublicStaticMethod("bind", ownerType);
       bind.addParameter("view", viewType);
@@ -369,10 +369,10 @@ public class LightBindingClass extends AndroidLightClassBase {
       // Methods receiving DataBindingComponent are deprecated. see: b/116541301.
       bindWithComponent.setDeprecated(true);
 
-      methods.add(inflate1Arg);
-      methods.add(inflate2Arg);
-      methods.add(inflate3Arg);
-      methods.add(inflate4Arg);
+      methods.add(inflate1Param);
+      methods.add(inflate2Params);
+      methods.add(inflate3Params);
+      methods.add(inflate4Params);
       methods.add(bind);
       methods.add(bindWithComponent);
     }
@@ -382,23 +382,23 @@ public class LightBindingClass extends AndroidLightClassBase {
 
       // View Binding is a fresh start - don't show the deprecated methods for them
       if (!xmlData.getRootTag().equals(SdkConstants.VIEW_MERGE)) {
-        LightMethodBuilder inflate3Arg = createPublicStaticMethod("inflate", ownerType);
-        inflate3Arg.addParameter("inflater", layoutInflaterType);
-        inflate3Arg.addParameter("root", viewGroupType);
-        inflate3Arg.addParameter("attachToRoot", PsiType.BOOLEAN);
+        LightMethodBuilder inflate3Params = createPublicStaticMethod("inflate", ownerType);
+        inflate3Params.addParameter("inflater", layoutInflaterType);
+        inflate3Params.addParameter("root", viewGroupType);
+        inflate3Params.addParameter("attachToRoot", PsiType.BOOLEAN);
 
-        LightMethodBuilder inflate1Arg = createPublicStaticMethod("inflate", ownerType);
-        inflate1Arg.addParameter("inflater", layoutInflaterType);
+        LightMethodBuilder inflate1Param = createPublicStaticMethod("inflate", ownerType);
+        inflate1Param.addParameter("inflater", layoutInflaterType);
 
-        methods.add(inflate1Arg);
-        methods.add(inflate3Arg);
+        methods.add(inflate1Param);
+        methods.add(inflate3Params);
       }
       else {
         // View Bindings with <merge> roots have a different set of inflate methods
-        LightMethodBuilder inflate2Arg = createPublicStaticMethod("inflate", ownerType);
-        inflate2Arg.addParameter("inflater", layoutInflaterType);
-        inflate2Arg.addParameter("root", viewGroupType);
-        methods.add(inflate2Arg);
+        LightMethodBuilder inflate2Params = createPublicStaticMethod("inflate", ownerType);
+        inflate2Params.addParameter("inflater", layoutInflaterType);
+        inflate2Params.addParameter("root", viewGroupType);
+        methods.add(inflate2Params);
       }
 
       LightMethodBuilder bind = createPublicStaticMethod("bind", ownerType);
