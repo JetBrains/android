@@ -65,6 +65,7 @@ import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -553,6 +554,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     Presentation presentation = event.getPresentation();
+    if (!AndroidUtils.hasAndroidFacets(project)) {
+      presentation.setVisible(false);
+      return;
+    }
     updatePresentation(presentation, myGetRunManager.apply(project).getSelectedConfiguration());
 
     String place = event.getPlace();
