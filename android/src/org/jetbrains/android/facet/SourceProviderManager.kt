@@ -42,7 +42,16 @@ interface SourceProviderManager {
   val mainManifestFile: VirtualFile?
 }
 
-private class SourceProviderManagerImpl(val facet: AndroidFacet) : SourceProviderManager {
+private abstract class SourceProviderManagerBase(val facet: AndroidFacet) : SourceProviderManager {
+  override val mainManifestFile: VirtualFile? get() {
+    // When opening a project, many parts of the IDE will try to read information from the manifest. If we close the project before
+    // all of this finishes, we may end up creating disposable children of an already disposed facet. This is a rather hard problem in
+    // general, but pretending there was no manifest terminates many code paths early.
+    return if (facet.isDisposed) null else return mainIdeaSourceProvider.manifestFile
+  }
+}
+
+private class SourceProviderManagerImpl(facet: AndroidFacet) : SourceProviderManagerBase(facet) {
 
   private var mainSourceSet: SourceProvider? = null
   private var mainIdeaSourceSet: IdeaSourceProvider? = null
@@ -61,31 +70,31 @@ private class SourceProviderManagerImpl(val facet: AndroidFacet) : SourceProvide
 
   override val mainIdeaSourceProvider: IdeaSourceProvider
     get() {
-      if (!AndroidModel.isRequired(facet)) {
-        if (mainIdeaSourceSet == null) {
-          mainIdeaSourceSet = IdeaSourceProvider.createForLegacyProject(facet)
-          mainIdeaSourceSetCreatedFor = null
-        }
-      }
-      else {
-        val mainSourceSet = mainSourceProvider
-        if (mainIdeaSourceSet == null || mainIdeaSourceSetCreatedFor != mainSourceSet) {
-          mainIdeaSourceSet = IdeaSourceProvider.toIdeaProvider(mainSourceSet)
-          mainIdeaSourceSetCreatedFor = mainSourceSet
-        }
+      val mainSourceSet = mainSourceProvider
+      if (mainIdeaSourceSet == null || mainIdeaSourceSetCreatedFor != mainSourceSet) {
+        mainIdeaSourceSet = IdeaSourceProvider.toIdeaProvider(mainSourceSet)
+        mainIdeaSourceSetCreatedFor = mainSourceSet
       }
 
       return mainIdeaSourceSet!!
     }
+}
 
-  override val mainManifestFile: VirtualFile? get() {
-    // When opening a project, many parts of the IDE will try to read information from the manifest. If we close the project before
-    // all of this finishes, we may end up creating disposable children of an already disposed facet. This is a rather hard problem in
-    // general, but pretending there was no manifest terminates many code paths early.
-    return if (facet.isDisposed) null else return mainIdeaSourceProvider.manifestFile
-  }
+private class LegacySourceProviderManagerImpl(facet: AndroidFacet) : SourceProviderManagerBase(facet) {
+
+  private var mainIdeaSourceSet: IdeaSourceProvider? = null
+
+  override val mainIdeaSourceProvider: IdeaSourceProvider
+    get() {
+      if (mainIdeaSourceSet == null) {
+        mainIdeaSourceSet = IdeaSourceProvider.createForLegacyProject(facet)
+      }
+      return mainIdeaSourceSet!!
+    }
 }
 
 private val KEY: NotNullLazyKey<SourceProviderManager, AndroidFacet> = NotNullLazyKey.create(::KEY.qualifiedName, ::createSourceProviderFor)
 
-private fun createSourceProviderFor(facet: AndroidFacet) = SourceProviderManagerImpl(facet)
+private fun createSourceProviderFor(facet: AndroidFacet): SourceProviderManager {
+  return if (AndroidModel.isRequired(facet)) SourceProviderManagerImpl(facet) else LegacySourceProviderManagerImpl(facet)
+}
