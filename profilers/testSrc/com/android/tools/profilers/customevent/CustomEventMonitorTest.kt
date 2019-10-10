@@ -45,4 +45,13 @@ class CustomEventMonitorTest {
     // Test that exactly 1 series has been added to the state chart model in the monitor.
     assertThat(eventModel.series.size).isEqualTo(1)
   }
+
+  @Test
+  fun testLegend() {
+    val legend = monitor.legend
+
+    // Currently the UserCounterDataSeries returns a count of 0 for all data ranges.
+    // Test will change one the logic for counting events has been added.
+    assertThat(legend.usageLegend.value).isEqualTo("None")
+  }
 }
