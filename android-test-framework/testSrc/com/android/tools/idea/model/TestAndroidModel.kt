@@ -23,8 +23,6 @@ import com.android.tools.lint.detector.api.Desugaring
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.LegacySourceProvider
-import java.io.File
 
 open class TestAndroidModel @JvmOverloads constructor(
   private val applicationId: String = "com.example.test",
@@ -47,8 +45,7 @@ open class TestAndroidModel @JvmOverloads constructor(
 
   companion object {
     @JvmStatic fun namespaced(facet: AndroidFacet) = TestAndroidModel(
-      namespacing = AaptOptions.Namespacing.REQUIRED,
-      defaultSourceProvider = LegacySourceProvider(facet)
+      namespacing = AaptOptions.Namespacing.REQUIRED
     )
   }
 
