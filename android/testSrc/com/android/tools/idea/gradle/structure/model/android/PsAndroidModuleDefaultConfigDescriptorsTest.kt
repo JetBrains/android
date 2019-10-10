@@ -202,6 +202,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     // defaultConfig.versionCode = "3".asParsed()
     defaultConfig.versionName = "3.0".asParsed()
     defaultConfig.versionNameSuffix = "newVns".asParsed()
+    // TODO(b/142454204): DslText is not language-agnostic
     val mySigningConfigDslText = when (appModule.parsedModel?.psiFile?.language) {
       is GroovyLanguage -> "signingConfigs.myConfig"
       is KotlinLanguage -> "signingConfigs.getByName(\"myConfig\")"
@@ -388,6 +389,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     doTestEditorInsertMapProperties()
   }
 
+  // TODO(b/142454204): when we have a language-agnostic set of known values for proguardFiles, port this test to also apply to
+  //  PSD_SAMPLE_KOTLIN.
   fun testProGuardKnownValues() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
