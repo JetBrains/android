@@ -346,6 +346,11 @@ public final class StudioFlags {
     NELE, "visualisation", "Layout Visualisation Tool",
     "Enable Visualisation Tool to preview layout in multiple devices at the same time",
     true);
+
+  public static final Flag<Boolean> NELE_COLOR_BLIND_MODE = Flag.create(
+    NELE, "color.blind.mode", "Color Blind Mode",
+    "Enable Visualisation Tool to preview layouts in multiple color blind modes at the same time",
+    false);
   //endregion
 
   //region Navigation Editor
