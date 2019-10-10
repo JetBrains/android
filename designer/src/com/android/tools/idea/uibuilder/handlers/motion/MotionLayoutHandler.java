@@ -66,6 +66,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
@@ -203,13 +204,15 @@ public class MotionLayoutHandler extends ViewGroupHandler {
                                                       @NotNull AccessoryPanel.Type type,
                                                       @NotNull NlComponent parent,
                                                       @NotNull AccessoryPanelVisibility panelVisibility) {
+    assert surface instanceof NlDesignSurface : "MotionLayoutHandler needs an NlDesignSurface";
+
     if (true) {
       switch (type) {
         case SOUTH_PANEL:
           if (DEBUG) {
             Debug.println("SOUTH PANEL");
           }
-          return new MotionAccessoryPanel(surface, parent, panelVisibility);
+          return new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
         //return new MotionLayoutTimelinePanel(surface, parent, panelVisibility);
         case EAST_PANEL:
           if (DEBUG) {
@@ -222,9 +225,9 @@ public class MotionLayoutHandler extends ViewGroupHandler {
     else {
       switch (type) {
         case SOUTH_PANEL:
-          return new MotionAccessoryPanel(surface, parent, panelVisibility);
+          return new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
         case EAST_PANEL:
-          return new MotionAccessoryPanel(surface, parent, panelVisibility);
+          return new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
       }
     }
     throw new IllegalArgumentException("Unsupported type");
