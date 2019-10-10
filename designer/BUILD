@@ -64,8 +64,6 @@ iml_module(
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//prebuilts/studio/layoutlib/data:layoutlib_native",
-        "//tools/adt/idea/observable:intellij.android.observable[module]",
-        "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
     ],
 )
 
