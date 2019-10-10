@@ -30,8 +30,7 @@ class FmGetAppManifestDirMethod(private val myParamMap: Map<String, Any>) : Temp
   override fun exec(arguments: List<*>): Any? {
     val module = findAppModuleIfAny() ?: return null
     val facet = AndroidFacet.getInstance(module) ?: return null
-    val provider = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider
-    val file = provider.manifestFile ?: return null
+    val file = SourceProviderManager.getInstance(facet).mainManifestFile ?: return null
 
     return file.parent.canonicalPath
   }
