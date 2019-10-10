@@ -140,7 +140,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
                                                      HORIZONTAL_SCREEN_DELTA,
                                                      VERTICAL_SCREEN_DELTA))
       .build();
-    mySurface.setScreenMode(SceneMode.VISUALIZATION, false);
+    updateScreenMode();
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
     mySurface.setName(VISUALIZATION_DESIGN_SURFACE);
@@ -167,6 +167,17 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     myRoot.add(myWorkBench, BorderLayout.CENTER);
     myRoot.setFocusCycleRoot(true);
     myRoot.setFocusTraversalPolicy(new VisualizationTraversalPolicy(mySurface));
+  }
+
+  private void updateScreenMode() {
+    switch (myCurrentConfigurationSet) {
+      case COLOR_BLIND_MODE:
+        mySurface.setScreenMode(SceneMode.COLOR_BLIND_MODE, false);
+        break;
+      default:
+        mySurface.setScreenMode(SceneMode.VISUALIZATION, false);
+        break;
+    }
   }
 
   @NotNull
@@ -460,6 +471,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   public void onConfigurationSetChanged(@NotNull ConfigurationSet newConfigurationSet) {
     if (myCurrentConfigurationSet != newConfigurationSet) {
       myCurrentConfigurationSet = newConfigurationSet;
+      updateScreenMode();
       myActionToolbar.updateActionsImmediately();
       // Dispose old models and create new models with new configuration set.
       initNeleModel();
