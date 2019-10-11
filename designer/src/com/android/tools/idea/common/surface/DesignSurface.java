@@ -680,13 +680,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  /**
-   * @param dimension the Dimension object to reuse to avoid reallocation
-   * @return The total size of all the ScreenViews in the DesignSurface
-   */
-  @NotNull
-  public abstract Dimension getContentSize(@Nullable Dimension dimension);
-
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
     for (Layer layer : myLayers) {
       layer.hover(x, y);

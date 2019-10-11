@@ -463,17 +463,11 @@ public class NavDesignSurface extends DesignSurface {
   @Nullable
   @Override
   public Dimension getScrolledAreaSize() {
-    return getContentSize(null);
-  }
-
-  @NotNull
-  @Override
-  public Dimension getContentSize(@Nullable Dimension dimension) {
+    Dimension dimension = new Dimension();
     SceneView view = getFocusedSceneView();
     if (view == null) {
-      Dimension dim = dimension == null ? new Dimension() : dimension;
-      dim.setSize(0, 0);
-      return dim;
+      dimension.setSize(0, 0);
+      return dimension;
     }
     return view.getSize(dimension);
   }
