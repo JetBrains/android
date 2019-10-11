@@ -41,7 +41,6 @@ class DefaultValueInspectorBuilder : InspectorBuilder<NelePropertyItem> {
 
     val arguments = getArguments(component)
     val list = arguments.map { DefaultValueModel(it, component) }
-      .sortedBy { it.name }
 
     val tableModel = DefaultValueTableModel(list)
     val panel = DefaultValuePanel(tableModel)
