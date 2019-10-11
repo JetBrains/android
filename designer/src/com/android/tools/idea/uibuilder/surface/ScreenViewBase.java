@@ -74,7 +74,7 @@ abstract class ScreenViewBase extends SceneView {
     }
 
     Configuration configuration = getConfiguration();
-    Device device = configuration.getDevice();
+    Device device = configuration.getCachedDevice();
     State state = configuration.getDeviceState();
     if (device != null && state != null) {
       HardwareConfig config =

@@ -37,7 +37,7 @@ const val CUSTOM_DENSITY_ID: String = "Custom Density"
 
 // TODO: When appropriate move this static methods to appropriate file.
 fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordinate xDimension: Int, @AndroidCoordinate yDimension: Int) {
-  val original = configuration.device
+  val original = configuration.cachedDevice
   val deviceBuilder = Device.Builder(original) // doesn't copy tag id
   if (original != null) {
     deviceBuilder.setTagId(original.tagId)
@@ -75,7 +75,7 @@ fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordina
  * Changes the configuration to use a custom device with the provided density.
  */
 fun NlModel.overrideConfigurationDensity(density: Density) {
-  val original = configuration.device
+  val original = configuration.cachedDevice
   val deviceBuilder = Device.Builder(original) // doesn't copy tag id
   if (original != null) {
     deviceBuilder.setTagId(original.tagId)

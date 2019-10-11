@@ -792,7 +792,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (configuration == null) {
       return false;
     }
-    Device device = configuration.getDevice();
+    Device device = configuration.getCachedDevice();
     if (device == null) {
       return false;
     }

@@ -122,7 +122,7 @@ public class CanvasResizeInteraction extends Interaction {
     myUpdateQueue = new MergingUpdateQueue("layout.editor.canvas.resize", 100, true, null, myDesignSurface);
     myUpdateQueue.setRestartTimerOnAdd(true);
 
-    myOriginalDevice = configuration.getDevice();
+    myOriginalDevice = configuration.getCachedDevice();
     myOriginalDeviceState = configuration.getDeviceState();
 
     double currentDpi = configuration.getDensity().getDpiValue();
