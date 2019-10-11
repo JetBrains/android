@@ -165,6 +165,29 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           else -> unquoteString(literal.text)
         }
       }
+      is KtCallExpression -> {
+        if (literal.name() == "kotlin") {
+          val argumentList = literal.valueArgumentList ?: return literal.text
+          // If the method has two arguments then it should automatically resolve to a dependency.
+          if (argumentList.arguments.size == 2) {
+            val moduleName = argumentList.arguments[0]?.getArgumentExpression() ?: return null
+            val version = argumentList.arguments[1].getArgumentExpression() ?: return null
+            // TODO(b/142530879): fix version value injection from import statements.
+            return "org.jetbrains.kotlin:kotlin-${unquoteString(moduleName.text)}:${unquoteString(version.text)}"
+          }
+          // If the method has one argument, we should check if it's declared under a plugins block in order to resolve it to a plugin,
+          // to a dependency if declared under dependencies block, or not resolve it for other cases.
+          else if (argumentList.arguments.size == 1) {
+            val nameExpression = argumentList.arguments[0].getArgumentExpression() ?: return null
+            return when (context.parent?.fullName) {
+              "plugins" -> "kotlin-${unquoteString(nameExpression.text)}"
+              "dependencies" -> "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
+              else -> literal.text
+            }
+          }
+        }
+        return literal.text
+      }
       else -> return ReferenceTo(literal.text)
     }
   }
@@ -431,32 +454,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral)
     }
     else if (methodName == "kotlin") {
-      // If the method has one argument, we should check if it's declared under a dependency block in order to resolve it to a dependency,
-      // or to a plugin otherwise.
-      if (argumentsList.arguments.size == 1) {
-        val nameExpression = argumentsList.arguments[0].getArgumentExpression() ?: return null
-        if (parentElement.fullName == "plugins") {
-          val pluginName = "kotlin-${unquoteString(nameExpression.text)}"
-          val literalExpression = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
-          literalExpression.setValue(pluginName)
-          return literalExpression
-        }
-        else {
-          val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
-          val dependencyLiteral = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
-          dependencyLiteral.setValue(dependencyName)
-          return dependencyLiteral
-        }
-      }
-      // If the method has two arguments then it should automatically resolve to a dependency.
-      else if (argumentsList.arguments.size == 2) {
-        val moduleName = argumentsList.arguments[0].getArgumentExpression() ?: return null
-        val version = argumentsList.arguments[1].getArgumentExpression() ?: return null
-        val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(moduleName.text)}:${unquoteString(version.text)}"
-        val dependencyLiteral = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
-        dependencyLiteral.setValue(dependencyName)
-        return dependencyLiteral
-      }
+      return GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
     }
 
     // If the CallExpression has one argument only that is a callExpression, we skip the current CallExpression.
