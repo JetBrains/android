@@ -17,8 +17,16 @@ package com.android.tools.idea.lang.proguardR8.parser
 
 import com.android.tools.idea.lang.AndroidParsingTestCase
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
+import com.android.tools.idea.lang.proguardR8.ProguardR8Language
+import com.android.tools.idea.lang.proguardR8.ProguardR8PairedBraceMatcher
+import com.intellij.lang.LanguageBraceMatching
 
 class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.defaultExtension, ProguardR8ParserDefinition()) {
+
+  override fun setUp() {
+    super.setUp()
+    addExplicitExtension(LanguageBraceMatching.INSTANCE, ProguardR8Language.INSTANCE, ProguardR8PairedBraceMatcher())
+  }
 
   fun testParse() {
     assertEquals(
@@ -376,14 +384,15 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
           PsiElement(FILE_NAME)('error')
         PsiElement(DUMMY_BLOCK)
           PsiElement(opening brace)('{')
-          PsiElement(JAVA_IDENTIFIER)('java')
-          PsiElement(dot)('.')
-          PsiElement(JAVA_IDENTIFIER)('lang')
-          PsiElement(dot)('.')
-          PsiElement(JAVA_IDENTIFIER)('StringBuilder')
-          PsiElement(semicolon)(';')
-          PsiElement(<methods>)('<methods>')
-          PsiElement(semicolon)(';')
+          PsiElement(DUMMY_BLOCK)
+            PsiElement(JAVA_IDENTIFIER)('java')
+            PsiElement(dot)('.')
+            PsiElement(JAVA_IDENTIFIER)('lang')
+            PsiElement(dot)('.')
+            PsiElement(JAVA_IDENTIFIER)('StringBuilder')
+            PsiElement(semicolon)(';')
+            PsiElement(<methods>)('<methods>')
+            PsiElement(semicolon)(';')
           PsiElement(closing brace)('}')
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
           PsiElement(FLAG)('-keepclasseswithmembernames')
