@@ -799,4 +799,149 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       )
     )
   }
+
+  fun testDontParseModifierAsType() {
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+            PsiElement(FLAG)('-keep')
+            ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+              ProguardR8ClassTypeImpl(CLASS_TYPE)
+                PsiElement(class)('class')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER)('myClass')
+            ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+              PsiElement(opening brace)('{')
+              ProguardR8JavaRuleImpl(JAVA_RULE)
+                ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
+                  ProguardR8FullyQualifiedNameConstructorImpl(FULLY_QUALIFIED_NAME_CONSTRUCTOR)
+                    ProguardR8ModifierImpl(MODIFIER)
+                      PsiElement(strictfp)('strictfp')
+                    ProguardR8ConstructorNameImpl(CONSTRUCTOR_NAME)
+                      ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                        PsiElement(JAVA_IDENTIFIER)('my')
+                    PsiErrorElement:<class member name>, '[]', dot or left parenthesis expected, got '}'
+                      <empty list>
+                PsiElement(closing brace)('}')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        -keep class myClass {
+            strictfp my
+          }
+        """.trimIndent()
+      )
+    )
+
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+            PsiElement(FLAG)('-keep')
+            ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+              ProguardR8ClassTypeImpl(CLASS_TYPE)
+                PsiElement(class)('class')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER)('myClass')
+            ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+              PsiElement(opening brace)('{')
+              ProguardR8JavaRuleImpl(JAVA_RULE)
+                ProguardR8FieldsSpecificationImpl(FIELDS_SPECIFICATION)
+                  ProguardR8FieldImpl(FIELD)
+                    ProguardR8ModifierImpl(MODIFIER)
+                      PsiElement(public)('public')
+                    ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
+                      PsiElement(JAVA_IDENTIFIER)('my')
+                PsiErrorElement:<class member name>, '[]' or dot expected, got '}'
+                  PsiElement(closing brace)('}')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        -keep class myClass {
+            public my
+          }
+        """.trimIndent()
+      )
+    )
+
+
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+            PsiElement(FLAG)('-keep')
+            ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+              ProguardR8ClassTypeImpl(CLASS_TYPE)
+                PsiElement(class)('class')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER)('myClass')
+            ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+              PsiElement(opening brace)('{')
+              ProguardR8JavaRuleImpl(JAVA_RULE)
+                ProguardR8FieldsSpecificationImpl(FIELDS_SPECIFICATION)
+                  ProguardR8FieldImpl(FIELD)
+                    ProguardR8ModifierImpl(MODIFIER)
+                      PsiElement(volatile)('volatile')
+                    ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
+                      PsiElement(JAVA_IDENTIFIER)('my')
+                PsiErrorElement:<class member name>, '[]' or dot expected, got '}'
+                  PsiElement(closing brace)('}')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        -keep class myClass {
+            volatile my
+          }
+        """.trimIndent()
+      )
+    )
+  }
+
+  fun testParseModifierAsPartOfQualifiedName() {
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+            PsiElement(FLAG)('-keep')
+            ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+              ProguardR8ClassTypeImpl(CLASS_TYPE)
+                PsiElement(class)('class')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER)('myClass')
+            ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+              PsiElement(opening brace)('{')
+              ProguardR8JavaRuleImpl(JAVA_RULE)
+                ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
+                  ProguardR8FullyQualifiedNameConstructorImpl(FULLY_QUALIFIED_NAME_CONSTRUCTOR)
+                    ProguardR8ModifierImpl(MODIFIER)
+                      PsiElement(private)('private')
+                    ProguardR8ConstructorNameImpl(CONSTRUCTOR_NAME)
+                      ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                        PsiElement(private)('private')
+                        PsiElement(dot)('.')
+                        PsiElement(JAVA_IDENTIFIER)('not')
+                        PsiElement(dot)('.')
+                        PsiElement(JAVA_IDENTIFIER)('modifier')
+                    ProguardR8ParametersImpl(PARAMETERS)
+                      PsiElement(left parenthesis)('(')
+                      ProguardR8TypeListImpl(TYPE_LIST)
+                        <empty list>
+                      PsiElement(right parenthesis)(')')
+              PsiElement(semicolon)(';')
+              PsiElement(closing brace)('}')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        -keep class myClass {
+            private private.not.modifier();
+          }
+        """.trimIndent()
+      )
+    )
+  }
 }
