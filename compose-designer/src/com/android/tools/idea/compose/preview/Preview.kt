@@ -102,14 +102,8 @@ const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
 /** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
 const val COMPOSABLE_NAME_ATTR = "tools:composableName"
 
-private val WHITE_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
-                                                                            JBColor(0x6E6E6E, 0xAFB1B3))
-private val BLUE_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
-                                                                           JBColor(0x389FD6, 0x3592C4))
 private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                             JBColor(0x59A869, 0x499C54))
-private val RED_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
-                                                                          JBColor(0xDB5860, 0xC75450))
 
 /** Old FQN to lookup and throw a warning. This import should not be used anymore after migrating to using ui-tooling */
 const val OLD_PREVIEW_ANNOTATION_FQN = "com.android.tools.preview.Preview"
@@ -555,7 +549,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
    * of the surface.
    */
   private inner class ForceCompileAndRefreshAction :
-    AnAction(message("notification.action.build.and.refresh"), null, WHITE_REFRESH_BUTTON) {
+    AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
     override fun actionPerformed(e: AnActionEvent) {
       val module = surface.model?.module ?: return
       requestBuild(surface.project, module)
@@ -563,15 +557,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
 
     override fun update(e: AnActionEvent) {
       val presentation = e.presentation
-      presentation.isEnabled = true
-      when {
-        GradleBuildState.getInstance(surface.project).isBuildInProgress -> {
-          presentation.icon = BLUE_REFRESH_BUTTON
-          presentation.isEnabled = false
-        }
-        findComposePreviewManagerForSurface(surface)?.status()?.hasErrors == true -> presentation.icon = RED_REFRESH_BUTTON
-        else -> presentation.icon = GREEN_REFRESH_BUTTON
-      }
+      val isRefreshing = findComposePreviewManagerForSurface(surface)?.status()?.isRefreshing == true
+      presentation.isEnabled = !isRefreshing && !GradleBuildState.getInstance(surface.project).isBuildInProgress
     }
   }
 
