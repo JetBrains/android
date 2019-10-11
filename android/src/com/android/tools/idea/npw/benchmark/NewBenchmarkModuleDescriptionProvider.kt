@@ -19,7 +19,7 @@ import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon
+import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
@@ -34,7 +34,7 @@ class NewBenchmarkModuleDescriptionProvider : ModuleDescriptionProvider {
     private val templateHandle: TemplateHandle = TemplateHandle(
       TemplateManager.getInstance().getTemplateFile(Template.CATEGORY_APPLICATION, "Benchmark Module")!!)
 
-    override val icon: Icon? = getTemplateIcon(templateHandle, false)
+    override val icon: Icon? = getTemplateIcon(templateHandle)
     override val name: String = message("android.wizard.module.new.benchmark.module.app")
     override val description: String? = templateHandle.metadata.description
     override fun toString(): String = name

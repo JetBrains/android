@@ -23,8 +23,9 @@ import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getModuleTemplates
-import com.android.tools.idea.npw.ui.ActivityGallery
 import com.android.tools.idea.npw.ui.WizardGallery
+import com.android.tools.idea.npw.ui.getTemplateIcon
+import com.android.tools.idea.npw.ui.getTemplateImageLabel
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.StringValueProperty
@@ -167,10 +168,10 @@ abstract class ChooseGalleryItemStep(
 
   open class OldTemplateRenderer(internal val template: TemplateHandle?) : TemplateRenderer {
     override val label: String
-      get() = ActivityGallery.getTemplateImageLabel(template, false)
+      get() = getTemplateImageLabel(template)
 
     override val icon: Icon?
-      get() = ActivityGallery.getTemplateIcon(template, false)
+      get() = getTemplateIcon(template)
 
     override val exists: Boolean = template != null
 
@@ -179,10 +180,10 @@ abstract class ChooseGalleryItemStep(
 
   class NewTemplateRenderer(internal val template: Template) : TemplateRenderer {
     override val label: String
-      get() = ActivityGallery.getTemplateImageLabel(template, false)
+      get() = template.name
 
     override val icon: Icon?
-      get() = ActivityGallery.getTemplateIcon(template, false)
+      get() = getTemplateIcon(template)
 
     override val exists: Boolean = template != Template.NoActivity
 

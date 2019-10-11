@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry
 import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon
+import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
@@ -43,7 +43,7 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     override val templateFile: File = TemplateManager.getInstance().getTemplateFile(
       CATEGORY_APPLICATION, if (isInstant) INSTANT_DYNAMIC_FEATURE_TEMPLATE else DYNAMIC_FEATURE_TEMPLATE)!!
     private val templateHandle: TemplateHandle = TemplateHandle(templateFile)
-    override val icon: Icon? = getTemplateIcon(templateHandle, false)
+    override val icon: Icon? = getTemplateIcon(templateHandle)
     override val name: String = message(if (isInstant) "android.wizard.module.new.dynamic.module.instant" else "android.wizard.module.new.dynamic.module")
     override val description: String? = templateHandle.metadata.description
     override val formFactor = FormFactor.MOBILE

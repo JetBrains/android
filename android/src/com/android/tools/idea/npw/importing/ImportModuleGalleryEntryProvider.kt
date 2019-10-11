@@ -19,7 +19,7 @@ import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon
+import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
@@ -38,7 +38,7 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
   private class SourceImportModuleGalleryEntry(templateName: String) : ModuleGalleryEntry {
     private val templateHandle = TemplateHandle(TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, templateName)!!)
 
-    override val icon: Icon? = getTemplateIcon(templateHandle, false)
+    override val icon: Icon? = getTemplateIcon(templateHandle)
     override val name: String = templateHandle.metadata.title!!
     override val description: String? = templateHandle.metadata.description
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
@@ -49,7 +49,7 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
     override val icon: Icon?
       get() {
         val androidModuleTemplate = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE)
-        return getTemplateIcon(TemplateHandle(androidModuleTemplate!!), false)
+        return getTemplateIcon(TemplateHandle(androidModuleTemplate!!))
       }
 
     override val name: String = message("android.wizard.module.import.title")
