@@ -22,14 +22,7 @@
         <constraints border-constraint="North"/>
         <properties/>
         <border type="none"/>
-        <children>
-          <component id="494e7" class="javax.swing.JButton" binding="myRemoveDatabaseButton">
-            <constraints/>
-            <properties>
-              <text value="-"/>
-            </properties>
-          </component>
-        </children>
+        <children/>
       </grid>
     </children>
   </grid>
