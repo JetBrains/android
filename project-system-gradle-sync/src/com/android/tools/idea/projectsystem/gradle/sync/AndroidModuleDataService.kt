@@ -128,8 +128,10 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
     if (shouldRecommendPluginUpgrade(project)) recommendPluginUpgrade(project)
 
-    MemorySettingsPostSyncChecker
-      .checkSettings(project, TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)))
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      MemorySettingsPostSyncChecker
+        .checkSettings(project, TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)))
+    }
 
     ProjectStructureUsageTracker(project).trackProjectStructure()
 
