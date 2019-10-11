@@ -587,17 +587,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
   }
 
-  @Override
-  @NotNull
-  public Dimension getContentSize(@Nullable Dimension dimension) {
-    List<SceneView> sceneViews = getSceneViews();
-    dimension = myLayoutManager.getRequiredSize(sceneViews, myScrollPane.getWidth(), myScrollPane.getHeight(), dimension);
-    if (dimension.width == 0 && dimension.height == 0) {
-      dimension.setSize(0, 0);
-    }
-    return dimension;
-  }
-
   @SwingCoordinate
   @Override
   protected Dimension getDefaultOffset() {

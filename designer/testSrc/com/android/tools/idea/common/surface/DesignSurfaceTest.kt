@@ -174,8 +174,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable) :
 
   override fun getScrolledAreaSize(): Dimension? = null
 
-  override fun getContentSize(dimension: Dimension?) = Dimension()
-
   override fun getDefaultOffset() = Dimension()
 
   override fun getPreferredContentSize(availableWidth: Int, availableHeight: Int) = Dimension()
