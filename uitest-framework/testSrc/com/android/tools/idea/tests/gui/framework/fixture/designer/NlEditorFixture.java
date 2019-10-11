@@ -350,8 +350,10 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   public Point getAdaptiveIconTopLeftCorner() {
     DesignSurface surface = myDesignSurfaceFixture.target();
 
-    Dimension contentDimension = surface.getContentSize(null);
-    return new Point(surface.getContentOriginX(), surface.getContentOriginY() + (contentDimension.height - contentDimension.width + 1) / 2);
+    SceneView view = surface.getFocusedSceneView();
+    Dimension contentDimension = view.getSize();
+    // The square icon is placed in the center of a portrait ImageView, shift the y-axis to make the position same as icon's.
+    return new Point(view.getX(), view.getY() + (contentDimension.height - contentDimension.width + 1) / 2);
   }
 
   @NotNull

@@ -547,18 +547,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  @SwingCoordinate
-  public int getContentOriginX() {
-    return getSceneViews().stream().mapToInt(it -> it.getX()).min().orElse(0);
-  }
-
-  @Override
-  @SwingCoordinate
-  public int getContentOriginY() {
-    return getSceneViews().stream().mapToInt(it -> it.getY()).min().orElse(0);
-  }
-
-  @Override
   public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (isPreviewSurface()) {
       // Highlight the clicked widget but keep focus in DesignSurface.
