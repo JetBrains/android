@@ -1197,24 +1197,15 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // (rule_with_class_specification | rule )*
+  // rule_*
   static boolean root(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "root")) return false;
     while (true) {
       int pos = current_position_(builder);
-      if (!root_0(builder, level + 1)) break;
+      if (!rule_(builder, level + 1)) break;
       if (!empty_element_parsed_guard_(builder, "root", pos)) break;
     }
     return true;
-  }
-
-  // rule_with_class_specification | rule
-  private static boolean root_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "root_0")) return false;
-    boolean result;
-    result = rule_with_class_specification(builder, level + 1);
-    if (!result) result = rule(builder, level + 1);
-    return result;
   }
 
   /* ********************************************************** */
@@ -1267,6 +1258,18 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     result = consumeToken(builder, COMMA);
     result = result && flag_argument(builder, level + 1);
     exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  /* ********************************************************** */
+  // rule_with_class_specification | rule
+  static boolean rule_(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "rule_")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder, level, _NONE_);
+    result = rule_with_class_specification(builder, level + 1);
+    if (!result) result = rule(builder, level + 1);
+    exit_section_(builder, level, marker, result, false, ProguardR8Parser::not_flag);
     return result;
   }
 

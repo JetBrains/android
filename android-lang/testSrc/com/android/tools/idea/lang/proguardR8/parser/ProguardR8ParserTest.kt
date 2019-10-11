@@ -364,6 +364,65 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
     )
   }
 
+  fun testRecoveryClassSpecification() {
+    assertEquals(
+      """
+      FILE
+        ProguardR8RuleImpl(RULE)
+          PsiElement(FLAG)('-keepclasseswithmembernames')
+          ProguardR8FlagArgumentImpl(FLAG_ARGUMENT)
+            PsiElement(FILE_NAME)('error')
+        PsiErrorElement:colon, comma, left parenthesis or semicolon expected, got 'error'
+          PsiElement(FILE_NAME)('error')
+        PsiElement(DUMMY_BLOCK)
+          PsiElement(opening brace)('{')
+          PsiElement(JAVA_IDENTIFIER)('java')
+          PsiElement(dot)('.')
+          PsiElement(JAVA_IDENTIFIER)('lang')
+          PsiElement(dot)('.')
+          PsiElement(JAVA_IDENTIFIER)('StringBuilder')
+          PsiElement(semicolon)(';')
+          PsiElement(<methods>)('<methods>')
+          PsiElement(semicolon)(';')
+          PsiElement(closing brace)('}')
+        ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+          PsiElement(FLAG)('-keepclasseswithmembernames')
+          ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+            ProguardR8ClassTypeImpl(CLASS_TYPE)
+              PsiElement(class)('class')
+            ProguardR8ClassNameImpl(CLASS_NAME)
+              ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                PsiElement(JAVA_IDENTIFIER)('MyClass')
+          ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+            PsiElement(opening brace)('{')
+            ProguardR8JavaRuleImpl(JAVA_RULE)
+              ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
+                ProguardR8MethodImpl(METHOD)
+                  ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
+                    PsiElement(JAVA_IDENTIFIER)('validOne')
+                  ProguardR8ParametersImpl(PARAMETERS)
+                    PsiElement(left parenthesis)('(')
+                    ProguardR8TypeListImpl(TYPE_LIST)
+                      <empty list>
+                    PsiElement(right parenthesis)(')')
+            PsiElement(semicolon)(';')
+            PsiElement(closing brace)('}')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+          -keepclasseswithmembernames error error {
+            java.lang.StringBuilder;
+            <methods>;
+          }
+
+          -keepclasseswithmembernames class MyClass {
+            validOne();
+          }
+        """.trimIndent()
+      )
+    )
+  }
+
   fun testRecoveryJavaRule() {
     assertEquals(
       """
