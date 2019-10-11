@@ -31,12 +31,18 @@ import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPolyVariantReference
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.xml.XmlAttribute
+import com.intellij.psi.xml.XmlTag
 import com.intellij.spellchecker.inspections.SpellCheckingInspection
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.UsefulTestCase
+import com.intellij.util.xml.DomManager
 import junit.framework.TestCase
 import org.intellij.lang.annotations.Language
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter
+import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
@@ -278,6 +284,69 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   override fun getPathToCopy(testFileName: String): String {
     return "res/layout/$testFileName"
+  }
+
+  /**
+   * Regression test for http://b/136596952
+   * This test checks that an attribute eg. <attr name="defaultValue" format="color|string|boolean"\>, which has Boolean in the formats, but
+   * also has other [ResourceType] options, accepts literals which are not "true" or "false". See [testResourceLiteralWithBooleanFormat]
+   * where this validation is enforced.
+   */
+  fun testResourceLiteralWithMultipleFormats() {
+    //
+    val file = myFixture.addFileToProject(
+      "res/xml/preferences.xml",
+      //language=XML
+      """
+      <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+        <ListPreference android:defaultValue="he<caret>llo"/>
+      </PreferenceScreen>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val xmlAttribute = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttribute>()
+    val domElement = DomManager.getDomManager(myFixture.project).getDomElement(xmlAttribute)
+    assertThat(domElement!!.converter).isInstanceOf(ResourceReferenceConverter::class.java)
+    val value = domElement.value as ResourceValue
+    assertThat(value.isReference).isEqualTo(false)
+    assertThat(value.value).isEqualTo("hello")
+    assertThat(value.type).isNull()
+  }
+
+  /**
+   * This test checks that an attribute eg. <attr name="shouldDisableView" format="boolean"\>, which only has Boolean in the formats,
+   * accepts literals which are only "true" or "false".
+   */
+  fun testResourceLiteralWithBooleanFormat() {
+    val file = myFixture.addFileToProject(
+      "res/xml/preferences.xml",
+      //language=XML
+      """
+      <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+        <ListPreference android:shouldDisableView="t<caret>e"/>
+      </PreferenceScreen>
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val xmlAttribute = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttribute>()
+    val domElement = DomManager.getDomManager(myFixture.project).getDomElement(xmlAttribute)
+    assertThat(domElement!!.converter).isInstanceOf(ResourceReferenceConverter::class.java)
+    assertThat(domElement.value).isNull()
+
+    // With a valid literal for a boolean only attribute
+    val validFile = myFixture.addFileToProject(
+      "res/xml/preferences_valid.xml",
+      //language=XML
+      """
+      <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+        <ListPreference android:shouldDisableView="tr<caret>ue"/>
+      </PreferenceScreen>
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(validFile.virtualFile)
+    val newXmlAttribute = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttribute>()
+    val newDomElement = DomManager.getDomManager(myFixture.project).getDomElement(newXmlAttribute)
+    assertThat(newDomElement!!.converter).isInstanceOf(ResourceReferenceConverter::class.java)
+    val value = newDomElement.value as ResourceValue
+    assertThat(value.isReference).isEqualTo(false)
+    assertThat(value.value).isEqualTo("true")
+    assertThat(value.type).isNull()
   }
 
   fun testStylesItemReferenceAndroid() {
