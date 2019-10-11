@@ -125,36 +125,19 @@ else {
   "${dimension}dp"
 }
 
-const val BORDER_DEFINITION = """
-<aapt:attr name="android:background">
-  <shape
-    android:shape="rectangle">
-    <stroke
-        android:width="1dp"
-        android:color="#55AAAAAA" />
-  </shape>
-</aapt:attr>"""
-
 /**
  * Generates the XML string wrapper for one [PreviewElement]
  */
-private fun PreviewElement.toPreviewXmlString(withBorder: Boolean = true) =
+private fun PreviewElement.toPreviewXmlString() =
   """
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp">
-      <$COMPOSE_VIEW_ADAPTER
-        xmlns:tools="http://schemas.android.com/tools"
-        xmlns:aapt="http://schemas.android.com/aapt"
-        android:layout_width="${dimensionToString(configuration.width)}"
-        android:layout_height="${dimensionToString(configuration.height)}"
-        android:padding="5dp"
-        $COMPOSABLE_NAME_ATTR="$composableMethodFqn">
-        ${if (withBorder) BORDER_DEFINITION else ""}
-      </$COMPOSE_VIEW_ADAPTER>
-    </LinearLayout>
+    <$COMPOSE_VIEW_ADAPTER
+      xmlns:tools="http://schemas.android.com/tools"
+      xmlns:aapt="http://schemas.android.com/aapt"
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      android:layout_width="${dimensionToString(configuration.width)}"
+      android:layout_height="${dimensionToString(configuration.height)}"
+      android:padding="5dp"
+      $COMPOSABLE_NAME_ATTR="$composableMethodFqn" />
   """.trimIndent()
 
 val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
@@ -279,7 +262,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
       configureLayoutlibSceneManager(LayoutlibSceneManager(model, surface, settingsProvider),
                                      fullDeviceSize = currentRenderSettings.showDecorations)
     }
-    .setEditable(false)
+    .setEditable(true)
     .build()
     .apply {
       setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true)
@@ -421,11 +404,11 @@ private class PreviewEditor(private val psiFile: PsiFile,
         if (LOG.isDebugEnabled) {
           LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
 
-              ${it.toPreviewXmlString(withBorder = false)}
+              ${it.toPreviewXmlString()}
           """.trimIndent())
         }
       }
-      .map { Pair(it, it.toPreviewXmlString(withBorder = showBorder)) }
+      .map { Pair(it, it.toPreviewXmlString()) }
       .map {
         val (previewElement, fileContents) = it
 
