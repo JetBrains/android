@@ -28,5 +28,17 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-db-baseLibrary" type="repository">
+        <properties include-transitive-deps="false" maven-id="androidx.databinding:databinding-common:3.5.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/databinding/databinding-common/3.5.0/databinding-common-3.5.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/androidx/databinding/databinding-common/3.5.0/databinding-common-3.5.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

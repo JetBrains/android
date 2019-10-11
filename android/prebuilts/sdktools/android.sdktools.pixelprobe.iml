@@ -9,7 +9,7 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="com.android.tools.pixelprobe:pixelprobe:26.5.0" type="repository">
+      <library name="precompiled-pixelprobe" type="repository">
         <properties include-transitive-deps="false" maven-id="com.android.tools.pixelprobe:pixelprobe:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/pixelprobe/pixelprobe/26.5.0/pixelprobe-26.5.0.jar!/" />

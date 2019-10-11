@@ -6,7 +6,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="com.android.tools:annotations:26.5.0" type="repository">
+      <library name="precompiled-android-annotations" type="repository">
         <properties include-transitive-deps="false" maven-id="com.android.tools:annotations:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/annotations/26.5.0/annotations-26.5.0.jar!/" />

@@ -7,7 +7,7 @@
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="com.android.tools:dvlib:26.5.0" type="repository">
+      <library name="precompiled-dvlib" type="repository">
         <properties include-transitive-deps="false" maven-id="com.android.tools:dvlib:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/dvlib/26.5.0/dvlib-26.5.0.jar!/" />

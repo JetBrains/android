@@ -11,7 +11,7 @@
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="com.android.tools.apkparser:binary-resources:26.5.0" type="repository">
+      <library name="precompiled-binary-resources" type="repository">
         <properties include-transitive-deps="false" maven-id="com.android.tools.apkparser:binary-resources:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/apkparser/binary-resources/26.5.0/binary-resources-26.5.0.jar!/" />

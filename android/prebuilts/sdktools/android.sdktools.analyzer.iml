@@ -45,7 +45,7 @@
     <orderEntry type="module" module-name="android.sdktools.lint-checks" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module-library" exported="">
-      <library name="com.android.tools.apkparser:apkanalyzer:26.5.0" type="repository">
+      <library name="precompiled-analyzer" type="repository">
         <properties include-transitive-deps="false" maven-id="com.android.tools.apkparser:apkanalyzer:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/apkparser/apkanalyzer/26.5.0/apkanalyzer-26.5.0.jar!/" />
