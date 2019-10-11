@@ -301,6 +301,9 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
         return models.get(plugin);
       }
 
+      // TODO(b/141842964): creating a new Map expression leads to the correct results for Groovy, but the wrong syntax for Kotlin.
+      //  Either smooth over the difference in Kotlin by supporting method calls with named arguments as DslExpressionMap elements
+      //  with a name, or construct a generic Dsl element here which backends can externalize in their own way.
       GradleDslExpressionMap applyMap = new GradleDslExpressionMap(myGradleDslFile, GradleNameElement.create(APPLY_BLOCK_NAME));
       GradleDslLiteral literal = new GradleDslLiteral(applyMap, GradleNameElement.create(PLUGIN));
       literal.setValue(plugin.trim());
