@@ -91,7 +91,11 @@ class SqliteViewImpl(
     defaultUiPanel.label.font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT
     defaultUiPanel.label.foreground = UIUtil.getInactiveTextColor()
 
-    sqliteEditorPanel.openSqliteEvaluator.addActionListener { listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
+    val openSqliteEvaluatorButton = CommonButton("Open SQLite evaluator", AllIcons.Actions.Search)
+    openSqliteEvaluatorButton.toolTipText = "Open SQLite evaluator"
+    sqliteEditorPanel.headerPanel.add(openSqliteEvaluatorButton)
+
+    openSqliteEvaluatorButton.addActionListener { listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
 
     tabs.apply {
       isTabDraggingEnabled = true
@@ -286,7 +290,11 @@ class SqliteViewImpl(
     private val syncProgressLabel = JLabel()
 
     init {
-      schemaPanel.removeDatabaseButton.addActionListener {
+      val closeDatabaseButton = CommonButton("Close db", AllIcons.Actions.Close)
+      closeDatabaseButton.toolTipText = "Close db"
+      schemaPanel.controlsPanel.add(closeDatabaseButton)
+
+      closeDatabaseButton.addActionListener {
         val databaseToRemove = tree?.selectionPaths?.mapNotNull { findDatabaseNode(it) }
         listeners.forEach { databaseToRemove?.forEach { database -> it.removeDatabaseActionInvoked(database) } }
       }
