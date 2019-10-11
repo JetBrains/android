@@ -36,7 +36,7 @@ final class Devices {
 
   @NotNull
   static String getText(@NotNull Device device, @Nullable Key key, @Nullable Snapshot snapshot) {
-    String snapshotName = snapshot == null || snapshot.equals(Snapshot.quickboot(FileSystems.getDefault())) ? null : snapshot.toString();
+    String snapshotName = Snapshot.getText(snapshot, FileSystems.getDefault());
     return getText(device.getName(), key == null ? null : key.getDeviceKey(), snapshotName, device.getValidityReason());
   }
 
