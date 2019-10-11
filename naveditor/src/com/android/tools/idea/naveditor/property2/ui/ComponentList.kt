@@ -19,11 +19,11 @@ import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.property.inspector.NAV_LIST_COMPONENT_NAME
 import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
 import java.awt.BorderLayout
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import javax.swing.ListModel
 import javax.swing.ListSelectionModel
 
 /**
@@ -32,9 +32,9 @@ import javax.swing.ListSelectionModel
  * [model]: the list of NlComponents to display
  * [cellRenderer]: the renderer to apply to each list item
  */
-class ComponentList(model: SortedListModel<NlComponent>, cellRenderer: ColoredListCellRenderer<NlComponent>)
+class ComponentList(model: ListModel<NlComponent>, cellRenderer: ColoredListCellRenderer<NlComponent>)
   : AdtSecondaryPanel(BorderLayout()) {
-  val list = JBList<NlComponent>(model)
+  val list = JBList(model)
 
   init {
     list.isOpaque = false
