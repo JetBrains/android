@@ -30,6 +30,7 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_TOP;
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
@@ -40,6 +41,7 @@ import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
@@ -953,10 +955,9 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
             }
           }
 
-          double scale = myComponent.getScene().getDesignSurface().getScale();
-          scale *= myComponent.getScene().getDesignSurface().getSceneScalingFactor();
-          float dx = myComponent.getScene().getDesignSurface().getContentOriginX();
-          float dy = myComponent.getScene().getDesignSurface().getContentOriginY();
+          SceneView view = myComponent.getScene().getSceneManager().getSceneView();
+          int swingX = Coordinates.getSwingXDip(view, x);
+          int swingY = Coordinates.getSwingYDip(view, y);
 
           // Finish previous dragging setup.
           myIsDragging = false;
@@ -979,8 +980,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
             }
           });
           if (menu.getComponentCount() > 0) {
-            menu
-              .show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), (int)(x * scale + dx), (int)(y * scale + dy));
+            menu.show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), swingX, swingY);
           }
         }
       }

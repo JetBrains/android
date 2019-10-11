@@ -507,16 +507,6 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  public int getContentOriginX() {
-    return 0;
-  }
-
-  @Override
-  public int getContentOriginY() {
-    return 0;
-  }
-
-  @Override
   protected double getMinScale() {
     return isEmpty() ? 1.0 : 0.1;
   }

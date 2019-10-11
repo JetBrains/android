@@ -174,10 +174,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable) :
 
   override fun getScrolledAreaSize(): Dimension? = null
 
-  override fun getContentOriginX() = 0
-
-  override fun getContentOriginY() = 0
-
   override fun getContentSize(dimension: Dimension?) = Dimension()
 
   override fun getDefaultOffset() = Dimension()
