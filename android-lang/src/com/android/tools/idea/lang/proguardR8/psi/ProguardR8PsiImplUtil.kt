@@ -180,6 +180,14 @@ fun toPsiModifier(modifier: ProguardR8Modifier) = when {
   modifier.node.findChildByType(ProguardR8PsiTypes.PRIVATE) != null -> PsiModifier.PRIVATE
   modifier.node.findChildByType(ProguardR8PsiTypes.PROTECTED) != null -> PsiModifier.PROTECTED
   modifier.node.findChildByType(ProguardR8PsiTypes.PUBLIC) != null -> PsiModifier.PUBLIC
+  modifier.node.findChildByType(ProguardR8PsiTypes.STATIC) != null -> PsiModifier.STATIC
+  modifier.node.findChildByType(ProguardR8PsiTypes.FINAL) != null -> PsiModifier.FINAL
+  modifier.node.findChildByType(ProguardR8PsiTypes.ABSTRACT) != null -> PsiModifier.ABSTRACT
+  modifier.node.findChildByType(ProguardR8PsiTypes.VOLATILE) != null -> PsiModifier.VOLATILE
+  modifier.node.findChildByType(ProguardR8PsiTypes.TRANSIENT) != null -> PsiModifier.TRANSIENT
+  modifier.node.findChildByType(ProguardR8PsiTypes.SYNCHRONIZED) != null -> PsiModifier.SYNCHRONIZED
+  modifier.node.findChildByType(ProguardR8PsiTypes.NATIVE) != null -> PsiModifier.NATIVE
+  modifier.node.findChildByType(ProguardR8PsiTypes.STRICTFP) != null -> PsiModifier.STRICTFP
   else -> error("Couldn't match ProguardR8AccessModifier \"${modifier.text}\" to PsiModifier")
 }
 
