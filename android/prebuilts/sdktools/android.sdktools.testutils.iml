@@ -13,7 +13,7 @@
     <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="com.android.tools:testutils:26.5.0" type="repository">
+      <library name="precompiled-testutils" type="repository">
         <properties include-transitive-deps="false" maven-id="com.android.tools:testutils:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/testutils/26.5.0/testutils-26.5.0.jar!/" />

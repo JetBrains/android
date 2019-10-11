@@ -55,20 +55,8 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="module-library" exported="">
-      <library name="com.android.tools:sdk-common:26.5.0" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools:sdk-common:26.5.0" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/sdk-common/26.5.0/sdk-common-26.5.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/sdk-common/26.5.0/sdk-common-26.5.0-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="org.jetbrains.intellij.deps.android.tools:sdk-common-tests:26.5.0" type="repository">
+      <library name="com.android.tools:sdk-common-tests:26.5.0" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:sdk-common-tests:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.5.0/sdk-common-tests-26.5.0.jar!/" />
@@ -76,6 +64,18 @@
         <JAVADOC />
         <SOURCES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.5.0/sdk-common-tests-26.5.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-sdk-common" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.tools:sdk-common:26.5.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/sdk-common/26.5.0/sdk-common-26.5.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/sdk-common/26.5.0/sdk-common-26.5.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

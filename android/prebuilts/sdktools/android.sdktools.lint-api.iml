@@ -21,7 +21,7 @@
     <orderEntry type="module" module-name="intellij.java.uast" exported="" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="kotlin-plugin" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="com.android.tools.lint:lint-api:26.5.0" type="repository">
+      <library name="precompiled-lint-api" type="repository">
         <properties include-transitive-deps="false" maven-id="com.android.tools.lint:lint-api:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/lint/lint-api/26.5.0/lint-api-26.5.0.jar!/" />

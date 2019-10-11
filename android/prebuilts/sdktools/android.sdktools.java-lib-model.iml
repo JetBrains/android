@@ -7,7 +7,7 @@
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="com.android.java.tools.build:java-lib-model:3.5.0" type="repository">
+      <library name="precompiled-java-lib-model" type="repository">
         <properties include-transitive-deps="false" maven-id="com.android.java.tools.build:java-lib-model:3.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/java/tools/build/java-lib-model/3.5.0/java-lib-model-3.5.0.jar!/" />

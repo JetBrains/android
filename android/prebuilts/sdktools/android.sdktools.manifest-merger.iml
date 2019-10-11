@@ -13,7 +13,7 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="com.android.tools.build:manifest-merger:26.5.0" type="repository">
+      <library name="precompiled-manifest-merger" type="repository">
         <properties include-transitive-deps="false" maven-id="com.android.tools.build:manifest-merger:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/manifest-merger/26.5.0/manifest-merger-26.5.0.jar!/" />

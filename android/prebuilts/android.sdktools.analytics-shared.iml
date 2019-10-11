@@ -15,18 +15,6 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jre8" level="project" />
-    <orderEntry type="module-library" exported="">
-      <library name="com.android.tools.analytics-library:shared:26.5.0" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.analytics-library:shared:26.5.0" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/analytics-library/shared/26.5.0/shared-26.5.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/analytics-library/shared/26.5.0/shared-26.5.0-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="org.jetbrains.intellij.deps.android.tools:analytics-shared-tests:26.5.0" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:analytics-shared-tests:26.5.0" />
@@ -36,6 +24,18 @@
         <JAVADOC />
         <SOURCES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/analytics-shared-tests/26.5.0/analytics-shared-tests-26.5.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-analytics-shared" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.tools.analytics-library:shared:26.5.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/analytics-library/shared/26.5.0/shared-26.5.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/analytics-library/shared/26.5.0/shared-26.5.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

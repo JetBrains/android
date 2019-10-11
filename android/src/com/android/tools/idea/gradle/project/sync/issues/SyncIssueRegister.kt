@@ -42,10 +42,8 @@ class SyncIssueRegister(val project: Project) : Sealable by BaseSealable() {
 
   fun register(module: Module, syncIssues: Collection<SyncIssue>) {
     lock.withLock {
-      if (syncIssues.isNotEmpty()) { // FIXME-ank: if the collection is not empty, user will see no SyncIssues anyway, but ugly exception instead.
-        if (checkSeal()) LOGGER.error("Attempted to add more sync issues when the SyncIssueRegister was sealed!")
-        syncIssueMap.computeIfAbsent(module.name) { ArrayList() }.addAll(syncIssues)
-      }
+      if (checkSeal()) LOGGER.error("Attempted to add more sync issues when the SyncIssueRegister was sealed!")
+      syncIssueMap.computeIfAbsent(module.name) { ArrayList() }.addAll(syncIssues)
     }
   }
 
