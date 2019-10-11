@@ -21,21 +21,13 @@ import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.util.dependsOnAppCompat
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
-import org.jetbrains.android.facet.AndroidFacet
 
 /*
  * Layout editor-specific helper methods and data for NlModel
@@ -44,7 +36,6 @@ import org.jetbrains.android.facet.AndroidFacet
 const val CUSTOM_DENSITY_ID: String = "Custom Density"
 
 // TODO: When appropriate move this static methods to appropriate file.
-//  For now keep it here to be closer to [NlModel.overrideConfigurationScreenSize]
 fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordinate xDimension: Int, @AndroidCoordinate yDimension: Int) {
   val original = configuration.device
   val deviceBuilder = Device.Builder(original) // doesn't copy tag id
@@ -78,75 +69,6 @@ fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordina
     if (xDimension > yDimension) device.getState("Landscape")
     else device.getState("Portrait")
   configuration.setEffectiveDevice(device, newState)
-}
-
-/**
- * Changes the configuration to use a custom device with screen size defined by xDimension and yDimension.
- */
-fun NlModel.overrideConfigurationScreenSize(@AndroidCoordinate xDimension: Int, @AndroidCoordinate yDimension: Int) {
-  val original = configuration.device
-  val deviceBuilder = Device.Builder(original) // doesn't copy tag id
-  if (original != null) {
-    deviceBuilder.setTagId(original.tagId)
-  }
-  deviceBuilder.setName("Custom")
-  deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
-  val device = deviceBuilder.build()
-  for (state in device.allStates) {
-    val screen = state.hardware.screen
-    screen.xDimension = xDimension
-    screen.yDimension = yDimension
-
-    val dpi = screen.pixelDensity.dpiValue.toDouble()
-    val width = xDimension / dpi
-    val height = yDimension / dpi
-    val diagonalLength = Math.sqrt(width * width + height * height)
-
-    screen.diagonalLength = diagonalLength
-    screen.size = ScreenSize.getScreenSize(diagonalLength)
-
-    screen.ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
-
-    screen.screenRound = device.defaultHardware.screen.screenRound
-    screen.chin = device.defaultHardware.screen.chin
-  }
-
-  val better: VirtualFile?
-  val newState: State?
-  //Change the orientation of the device depending on the shape of the canvas
-  if (xDimension > yDimension) {
-    better = ConfigurationMatcher.getBetterMatch(configuration, device, "Landscape", null, null)
-    newState = device.getState("Landscape")
-  }
-  else {
-    better = ConfigurationMatcher.getBetterMatch(configuration, device, "Portrait", null, null)
-    newState = device.getState("Portrait")
-  }
-
-  if (better != null) {
-    val old = configuration.file!!
-    val project = project
-    val descriptor = OpenFileDescriptor(project, better, -1)
-    val manager = FileEditorManager.getInstance(project)
-    val selectedEditor = manager.getSelectedEditor(old)
-    manager.openEditor(descriptor, true)
-    // Switch to the same type of editor (XML or Designer Editor) in the target file
-    if (selectedEditor is DesignerEditor) {
-      manager.setSelectedEditor(better, selectedEditor.editorId)
-    }
-    else if (selectedEditor != null) {
-      manager.setSelectedEditor(better, TextEditorProvider.getInstance().editorTypeId)
-    }
-
-    val facet = AndroidFacet.getInstance(configuration.module)
-    if (facet != null) {
-      val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(better)
-      configuration.setEffectiveDevice(device, newState)
-    }
-  }
-  else {
-    configuration.setEffectiveDevice(device, newState)
-  }
 }
 
 /**
