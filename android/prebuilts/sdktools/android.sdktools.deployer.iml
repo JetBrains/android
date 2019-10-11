@@ -48,7 +48,7 @@
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module-library" exported="">
-      <library name="org.jetbrains.intellij.deps.android.tools:deployer:26.5.0" type="repository">
+      <library name="precompiled-deployer" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:deployer:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/deployer/26.5.0/deployer-26.5.0.jar!/" />

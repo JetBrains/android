@@ -95,10 +95,10 @@
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.repository" />
     <orderEntry type="library" name="jna" level="project" />
-    <orderEntry type="module" module-name="db-baseLibrary" />
-    <orderEntry type="module" module-name="db-baseLibrarySupport" />
-    <orderEntry type="module" module-name="db-compilerCommon" />
-    <orderEntry type="module" module-name="db-compiler" />
+    <orderEntry type="module" module-name="android.sdktools.db-baseLibrary" />
+    <orderEntry type="module" module-name="android.sdktools.db-baseLibrarySupport" />
+    <orderEntry type="module" module-name="android.sdktools.db-compilerCommon" />
+    <orderEntry type="module" module-name="android.sdktools.db-compiler" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="intellij.gradle" />
@@ -109,8 +109,8 @@
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="module" module-name="analytics-shared" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
@@ -139,7 +139,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="xml-apis-ext" level="project" />
-    <orderEntry type="module" module-name="analytics-crash" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-crash" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module-library">
       <library name="pepk">
@@ -156,7 +156,7 @@
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="android.sdktools.deployer" />
     <orderEntry type="library" name="HdrHistogram" level="project" />
-    <orderEntry type="library" name="kotlin-plugin" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlin-plugin" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />

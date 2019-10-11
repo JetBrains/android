@@ -4,10 +4,10 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="db-baseLibrary" exported="" />
-    <orderEntry type="module" module-name="db-baseLibrarySupport" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.db-baseLibrary" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.db-baseLibrarySupport" exported="" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="module" module-name="db-compilerCommon" />
+    <orderEntry type="module" module-name="android.sdktools.db-compilerCommon" />
     <orderEntry type="module-library">
       <library name="antlr4-runtime" type="repository">
         <properties maven-id="org.antlr:antlr4-runtime:4.5.3" />
@@ -60,7 +60,7 @@
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="androidx.databinding:databinding-compiler:3.5.0" type="repository">
+      <library name="precompiled-db-compiler" type="repository">
         <properties include-transitive-deps="false" maven-id="androidx.databinding:databinding-compiler:3.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/androidx/databinding/databinding-compiler/3.5.0/databinding-compiler-3.5.0.jar!/" />

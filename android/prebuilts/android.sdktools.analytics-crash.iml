@@ -13,7 +13,7 @@
     <orderEntry type="library" scope="TEST" name="netty-codec-http" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="com.android.tools.analytics-library:crash:26.5.0" type="repository">
+      <library name="precompiled-analytics-crash" type="repository">
         <properties include-transitive-deps="false" maven-id="com.android.tools.analytics-library:crash:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/analytics-library/crash/26.5.0/crash-26.5.0.jar!/" />

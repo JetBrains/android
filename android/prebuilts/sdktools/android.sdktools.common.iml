@@ -8,7 +8,7 @@
     <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="com.android.tools:common:26.5.0" type="repository">
+      <library name="precompiled-common" type="repository">
         <properties include-transitive-deps="false" maven-id="com.android.tools:common:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/common/26.5.0/common-26.5.0.jar!/" />
