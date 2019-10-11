@@ -59,6 +59,11 @@ final class Snapshot implements Comparable<Snapshot> {
     return fileSystem.getPath("default_boot");
   }
 
+  @Nullable
+  static String getText(@Nullable Snapshot snapshot, @NotNull FileSystem fileSystem) {
+    return snapshot == null || snapshot.equals(quickboot(fileSystem)) ? null : snapshot.toString();
+  }
+
   @NotNull
   Path getDirectory() {
     return myDirectory;
