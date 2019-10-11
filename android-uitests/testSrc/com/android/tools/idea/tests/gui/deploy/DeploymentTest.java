@@ -32,6 +32,7 @@ import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.deployable.DeviceBinder;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.intellij.execution.executors.DefaultRunExecutor;
@@ -241,19 +242,26 @@ public class DeploymentTest {
   }
 
   private void setActiveApk(@NotNull Project project, @NotNull APK apk) throws IOException {
-    File baseDir = new File(project.getBasePath());
-    File targetApkFile = new File(baseDir, DEPLOY_APK_NAME);
+    try {
+      File baseDir = new File(project.getBasePath());
+      File targetApkFile = new File(baseDir, DEPLOY_APK_NAME);
 
-    FileUtilRt.delete(targetApkFile);
-    assertThat(targetApkFile.exists()).isFalse();
+      FileUtilRt.delete(targetApkFile);
+      assertThat(targetApkFile.exists()).isFalse();
 
-    if (apk == APK.NONE) {
-      return;
+      if (apk == APK.NONE) {
+        return;
+      }
+
+      File apkFile = TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath());
+
+      FileUtilRt.copy(apkFile, targetApkFile);
+      assertThat(targetApkFile.isFile()).isTrue();
     }
-
-    File apkFile = TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath());
-
-    FileUtilRt.copy(apkFile, targetApkFile);
-    assertThat(targetApkFile.isFile()).isTrue();
+    finally {
+      // We need to refresh the VFS because we're modifying files here and some listeners may fire
+      // at "inappropriate" times if we don't do it now.
+      GuiTests.refreshFiles();
+    }
   }
 }
