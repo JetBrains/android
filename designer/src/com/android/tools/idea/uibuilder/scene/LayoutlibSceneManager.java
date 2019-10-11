@@ -1062,7 +1062,7 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   private void updateTrackingConfiguration() {
     Configuration configuration = getModel().getConfiguration();
-    myPreviousDeviceName = configuration.getDevice() != null ? configuration.getDevice().getDisplayName() : null;
+    myPreviousDeviceName = configuration.getCachedDevice() != null ? configuration.getCachedDevice().getDisplayName() : null;
     myPreviousVersion = configuration.getTarget() != null ? configuration.getTarget().getVersionName() : null;
     myPreviousLocale = configuration.getLocale();
     myPreviousTheme = configuration.getTheme();

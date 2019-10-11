@@ -18,7 +18,6 @@ package com.android.tools.idea.configurations;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -122,7 +121,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   private ConfigurationHolder createConfigurationAndHolder() {
     VirtualFile file = myFixture.copyFileToProject("configurations/layout1.xml", "res/layout/layout1.xml");
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = Configuration.create(manager, file, new FolderConfiguration());
+    Configuration configuration = manager.create(file);
     return new ConfigurationHolder() {
       @NotNull
       @Override
