@@ -491,12 +491,6 @@ public class Configuration implements Disposable, ModificationTracker {
           }
         }
       }
-
-      // Don't match on target since we tend to use recent layout lib versions to render even default (older) layouts
-      // since more recent versions work a lot better fidelity wise
-      // if (target != null) {
-      //   currentConfig.setVersionQualifier(new VersionQualifier(target.getVersion().getApiLevel()));
-      // }
     }
 
     return currentConfig;
@@ -784,13 +778,6 @@ public class Configuration implements Disposable, ModificationTracker {
           myState = state;
           updateFlags |= CFG_DEVICE_STATE;
         }
-      }
-
-      // TODO: Is this redundant with the stuff above?
-      if (mySpecificDevice != null && myState == null) {
-        setDeviceStateName(mySpecificDevice.getDefaultState().getName());
-        myState = mySpecificDevice.getDefaultState();
-        updateFlags |= CFG_DEVICE_STATE;
       }
 
       updated(updateFlags);
