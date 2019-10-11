@@ -891,7 +891,8 @@
     <extensionPoint qualifiedName="com.android.tools.idea.templates.additionalTemplateActionsProvider"
                     interface="com.android.tools.idea.templates.AdditionalTemplateActionsProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
-                    interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
+                    interface="com.android.tools.idea.ui.GuiTestingStatusProvider"
+                    dynamic="false"/>
     <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
                     interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
     <extensionPoint qualifiedName="com.android.rendering.renderSecurityManagerOverrides"
