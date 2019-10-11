@@ -38,7 +38,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.MessagePool;
-import com.intellij.diagnostic.MessagePoolListener;
 import com.intellij.diagnostic.PerformanceWatcher;
 import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.ide.RecentProjectsManager;
@@ -49,7 +48,6 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.FrequentEventDetector;
-import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.impl.CoreProgressManager;
 import com.intellij.openapi.project.DumbService;
@@ -74,8 +72,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -125,29 +121,9 @@ public final class GuiTests {
 
   @NotNull
   public static List<Error> fatalErrorsFromIde() {
-    MessagePool messagePool = MessagePool.getInstance();
-    // MessagePool aggregates messages into groups and adds them to its list of fatal errors only after this grouping.
-    // Aggregation stops and a new group is created when either 20 messages have accumulated or 1 second has passed.
-    // This means that fatal errors added within the past second might not be present yet. To ensure that every error
-    // from the test run has propagated, add a dummy error and wait for it to be processed.
-    CountDownLatch latch = new CountDownLatch(1);
-    MessagePoolListener listener = new MessagePoolListener() {
-      @Override public void newEntryAdded() { latch.countDown(); }
-      @Override public void poolCleared() {}
-      @Override public void entryWasRead() {}
-    };
-    messagePool.addListener(listener);
-    Exception dummy = new Exception("DUMMY");
-    messagePool.addIdeFatalMessage(new IdeaLoggingEvent("DUMMY", dummy));
-    try {
-      latch.await(2, TimeUnit.SECONDS);
-    } catch (InterruptedException ignored) {
-    }
-    messagePool.removeListener(listener);
     List<AbstractMessage> errorMessages = MessagePool.getInstance().getFatalErrors(true, true);
     List<Error> errors = new ArrayList<>(errorMessages.size());
     for (AbstractMessage errorMessage : errorMessages) {
-      if (errorMessage.getThrowable() == dummy) continue;
       StringBuilder messageBuilder = new StringBuilder(errorMessage.getMessage() != null ? errorMessage.getMessage() : "");
       String additionalInfo = errorMessage.getAdditionalInfo();
       if (isNotEmpty(additionalInfo)) {
