@@ -60,13 +60,13 @@ data class TaskData(val taskName: String,
       return TaskExecutionMode.FULL
     }
 
-    fun createTaskData(taskFinishEvent: TaskFinishEvent): TaskData {
+    fun createTaskData(taskFinishEvent: TaskFinishEvent, pluginContainer: PluginContainer): TaskData {
       val result = taskFinishEvent.result as TaskSuccessResult
       val taskPath = taskFinishEvent.descriptor.taskPath
       val lastColonIndex = taskPath.lastIndexOf(':')
       return TaskData(taskPath.substring(lastColonIndex + 1),
                       taskPath.substring(0, lastColonIndex),
-                      PluginData(taskFinishEvent.descriptor.originPlugin),
+                      pluginContainer.getPlugin(taskFinishEvent.descriptor.originPlugin, taskPath.substring(0, lastColonIndex)),
                       result.endTime - result.startTime,
                       getTaskExecutionMode(result.isFromCache, result.isUpToDate, result.isIncremental),
                       result.executionReasons ?: emptyList())

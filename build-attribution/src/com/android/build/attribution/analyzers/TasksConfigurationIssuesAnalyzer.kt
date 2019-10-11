@@ -16,16 +16,18 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
-import org.gradle.tooling.events.ProgressEvent
 
 /**
  * An analyzer that looks for misconfigured tasks. Tasks that declare the same output are considered misconfigured.
  */
-class TasksConfigurationIssuesAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter, taskContainer: TaskContainer)
-  : BaseTasksAnalyzer(taskContainer), BuildAttributionReportAnalyzer {
+class TasksConfigurationIssuesAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
+                                       taskContainer: TaskContainer,
+                                       pluginContainer: PluginContainer)
+  : BaseAnalyzer(taskContainer, pluginContainer), BuildAttributionReportAnalyzer {
   var tasksSharingOutput: List<TasksSharingOutputData> = emptyList()
 
   override fun onBuildStart() {

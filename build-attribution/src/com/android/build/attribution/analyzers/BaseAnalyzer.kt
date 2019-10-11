@@ -15,14 +15,29 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.tooling.events.PluginIdentifier
 import org.gradle.tooling.events.task.TaskFinishEvent
 
-abstract class BaseTasksAnalyzer(private val taskContainer: TaskContainer) {
+abstract class BaseAnalyzer(private val taskContainer: TaskContainer, private val pluginContainer: PluginContainer) {
   open fun onBuildStart() {
     taskContainer.clear()
+    pluginContainer.clear()
+  }
+
+  protected fun getPlugin(pluginType: PluginData.PluginType, displayName: String, projectPath: String): PluginData {
+    if (pluginType == PluginData.PluginType.SCRIPT) {
+      return pluginContainer.getPlugin(pluginType, "$projectPath:$displayName")
+    }
+    return pluginContainer.getPlugin(pluginType, displayName)
+  }
+
+  protected fun getPlugin(pluginIdentifier: PluginIdentifier, projectPath: String): PluginData {
+    return pluginContainer.getPlugin(pluginIdentifier, projectPath)
   }
 
   protected fun getTask(taskPath: String): TaskData? {
@@ -30,7 +45,7 @@ abstract class BaseTasksAnalyzer(private val taskContainer: TaskContainer) {
   }
 
   protected fun getTask(event: TaskFinishEvent): TaskData {
-    return taskContainer.getTask(event)
+    return taskContainer.getTask(event, pluginContainer)
   }
 
   /**

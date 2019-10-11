@@ -17,6 +17,8 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
+import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
@@ -25,13 +27,15 @@ import com.android.build.attribution.data.TasksSharingOutputData
  * A way of interaction between the build events analyzers and the build attribution manager.
  * Used to fetch the final data from the analyzers after the build is complete.
  */
-class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter, taskContainer: TaskContainer) {
-  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter, taskContainer)
+class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter,
+                                taskContainer: TaskContainer,
+                                pluginContainer: PluginContainer) {
+  private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
   private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter)
-  private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer)
-  private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(warningsFilter, taskContainer)
-  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter)
-  private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(warningsFilter, taskContainer)
+  private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer, pluginContainer)
+  private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
+  private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter, taskContainer, pluginContainer)
+  private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(warningsFilter, taskContainer, pluginContainer)
 
   fun getBuildEventsAnalyzers(): List<BuildEventsAnalyzer> = listOf(alwaysRunTasksAnalyzer,
                                                                     annotationProcessorsAnalyzer,
@@ -65,12 +69,8 @@ class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter, 
     return criticalPathAnalyzer.pluginsCriticalPath
   }
 
-  fun getProjectsConfigurationData(): List<ProjectConfigurationAnalyzer.ProjectConfigurationData> {
+  fun getProjectsConfigurationData(): List<ProjectConfigurationData> {
     return projectConfigurationAnalyzer.projectsConfigurationData
-  }
-
-  fun getPluginsSlowingConfiguration(): List<ProjectConfigurationAnalyzer.ProjectConfigurationData> {
-    return projectConfigurationAnalyzer.pluginsSlowingConfiguration
   }
 
   fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {

@@ -79,7 +79,7 @@ class NoncacheableTasksAnalyzerTest {
 
     assertThat(noncacheableTask.getTaskPath()).isEqualTo(":app:dummy")
     assertThat(noncacheableTask.taskType).isEqualTo("org.gradle.api.DefaultTask")
-    assertThat(noncacheableTask.originPlugin.toString()).isEqualTo("script build.gradle")
+    assertThat(noncacheableTask.originPlugin.toString()).isEqualTo("script :app:build.gradle")
   }
 
   @Test
@@ -87,7 +87,7 @@ class NoncacheableTasksAnalyzerTest {
     setUpProject()
 
     BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNoncacheableTaskWarning("org.gradle.api.DefaultTask",
-                                                                                                      "build.gradle")
+                                                                                                      ":app:build.gradle")
 
     myProjectRule.invokeTasks("assembleDebug")
 

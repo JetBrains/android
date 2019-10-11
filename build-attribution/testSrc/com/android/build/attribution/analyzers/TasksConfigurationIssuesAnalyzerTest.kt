@@ -96,10 +96,10 @@ class TasksConfigurationIssuesAnalyzerTest {
 
     assertThat(tasksSharingOutput.taskList[0].getTaskPath()).isEqualTo(":app:dummy1")
     assertThat(tasksSharingOutput.taskList[0].taskType).isEqualTo("DummyTask")
-    assertThat(tasksSharingOutput.taskList[0].originPlugin.toString()).isEqualTo("script build.gradle")
+    assertThat(tasksSharingOutput.taskList[0].originPlugin.toString()).isEqualTo("script :app:build.gradle")
 
     assertThat(tasksSharingOutput.taskList[1].getTaskPath()).isEqualTo(":app:dummy2")
     assertThat(tasksSharingOutput.taskList[1].taskType).isEqualTo("DummyTask")
-    assertThat(tasksSharingOutput.taskList[1].originPlugin.toString()).isEqualTo("script build.gradle")
+    assertThat(tasksSharingOutput.taskList[1].originPlugin.toString()).isEqualTo("script :app:build.gradle")
   }
 }
