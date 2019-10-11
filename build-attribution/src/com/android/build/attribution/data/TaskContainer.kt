@@ -29,9 +29,9 @@ data class TaskContainer(private val taskCache: Cache<String, TaskData> = CacheB
     return taskCache.getIfPresent(taskPath)
   }
 
-  fun getTask(event: TaskFinishEvent): TaskData {
+  fun getTask(event: TaskFinishEvent, pluginContainer: PluginContainer): TaskData {
     return taskCache.get(event.descriptor.taskPath) {
-      TaskData.createTaskData(event)
+      TaskData.createTaskData(event, pluginContainer)
     }
   }
 

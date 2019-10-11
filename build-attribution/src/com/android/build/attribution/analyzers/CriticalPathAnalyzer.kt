@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
@@ -29,8 +30,10 @@ import kotlin.math.max
 /**
  * An analyzer for calculating the critical path, that is the path of tasks determining the total build duration.
  */
-class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter, taskContainer: TaskContainer)
-  : BaseTasksAnalyzer(taskContainer), BuildEventsAnalyzer {
+class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
+                           taskContainer: TaskContainer,
+                           pluginContainer: PluginContainer)
+  : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
   private val tasksSet = HashSet<TaskData>()
   private val dependenciesMap = HashMap<TaskData, List<TaskData>>()
 
@@ -54,9 +57,7 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
 
       event.descriptor.dependencies.forEach { dependency ->
         if (dependency is TaskOperationDescriptor) {
-          tasksSet.find {
-            it.getTaskPath() == dependency.taskPath && it.originPlugin.equals(dependency.originPlugin)
-          }?.let {
+          getTask(dependency.taskPath)?.let {
             dependenciesList.add(it)
           }
         }

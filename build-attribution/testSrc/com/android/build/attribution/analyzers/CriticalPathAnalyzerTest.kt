@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
@@ -26,7 +27,8 @@ class CriticalPathAnalyzerTest {
 
   @Test
   fun testCriticalPathAnalyzer() {
-    val analyzer = CriticalPathAnalyzer(BuildAttributionWarningsFilter(), TaskContainer())
+    val pluginContainer = PluginContainer()
+    val analyzer = CriticalPathAnalyzer(BuildAttributionWarningsFilter(), TaskContainer(), pluginContainer)
 
     val pluginA = createBinaryPluginIdentifierStub("pluginA")
     val pluginB = createBinaryPluginIdentifierStub("pluginB")
@@ -64,13 +66,14 @@ class CriticalPathAnalyzerTest {
     assertThat(analyzer.criticalPathDuration).isEqualTo(70)
 
     assertThat(analyzer.tasksCriticalPath).isEqualTo(
-      listOf(TaskData.createTaskData(taskA), TaskData.createTaskData(taskC), TaskData.createTaskData(taskD),
-             TaskData.createTaskData(taskF)))
+      listOf(TaskData.createTaskData(taskA, pluginContainer), TaskData.createTaskData(taskC, pluginContainer),
+             TaskData.createTaskData(taskD, pluginContainer),
+             TaskData.createTaskData(taskF, pluginContainer)))
 
     assertThat(analyzer.pluginsCriticalPath).hasSize(2)
-    assertThat(analyzer.pluginsCriticalPath[0].plugin).isEqualTo(PluginData(pluginA))
+    assertThat(analyzer.pluginsCriticalPath[0].plugin).isEqualTo(PluginData(pluginA, ""))
     assertThat(analyzer.pluginsCriticalPath[0].buildDuration).isEqualTo(40)
-    assertThat(analyzer.pluginsCriticalPath[1].plugin).isEqualTo(PluginData(pluginB))
+    assertThat(analyzer.pluginsCriticalPath[1].plugin).isEqualTo(PluginData(pluginB, ""))
     assertThat(analyzer.pluginsCriticalPath[1].buildDuration).isEqualTo(30)
 
 
@@ -108,13 +111,14 @@ class CriticalPathAnalyzerTest {
     assertThat(analyzer.criticalPathDuration).isEqualTo(55)
 
     assertThat(analyzer.tasksCriticalPath).isEqualTo(
-      listOf(TaskData.createTaskData(taskA), TaskData.createTaskData(taskB), TaskData.createTaskData(taskD),
-             TaskData.createTaskData(taskE)))
+      listOf(TaskData.createTaskData(taskA, pluginContainer), TaskData.createTaskData(taskB, pluginContainer),
+             TaskData.createTaskData(taskD, pluginContainer),
+             TaskData.createTaskData(taskE, pluginContainer)))
 
     assertThat(analyzer.pluginsCriticalPath).hasSize(2)
-    assertThat(analyzer.pluginsCriticalPath[0].plugin).isEqualTo(PluginData(pluginB))
+    assertThat(analyzer.pluginsCriticalPath[0].plugin).isEqualTo(PluginData(pluginB, ""))
     assertThat(analyzer.pluginsCriticalPath[0].buildDuration).isEqualTo(30)
-    assertThat(analyzer.pluginsCriticalPath[1].plugin).isEqualTo(PluginData(pluginA))
+    assertThat(analyzer.pluginsCriticalPath[1].plugin).isEqualTo(PluginData(pluginA, ""))
     assertThat(analyzer.pluginsCriticalPath[1].buildDuration).isEqualTo(25)
   }
 }

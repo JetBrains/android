@@ -90,12 +90,12 @@ class AlwaysRunTasksAnalyzerTest {
 
     assertThat(alwaysRunTasks[0].taskData.getTaskPath()).isEqualTo(":app:dummy")
     assertThat(alwaysRunTasks[0].taskData.taskType).isEqualTo("org.gradle.api.DefaultTask")
-    assertThat(alwaysRunTasks[0].taskData.originPlugin.toString()).isEqualTo("script build.gradle")
+    assertThat(alwaysRunTasks[0].taskData.originPlugin.toString()).isEqualTo("script :app:build.gradle")
     assertThat(alwaysRunTasks[0].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)
 
     assertThat(alwaysRunTasks[1].taskData.getTaskPath()).isEqualTo(":app:dummy2")
     assertThat(alwaysRunTasks[1].taskData.taskType).isEqualTo("org.gradle.api.DefaultTask")
-    assertThat(alwaysRunTasks[1].taskData.originPlugin.toString()).isEqualTo("script build.gradle")
+    assertThat(alwaysRunTasks[1].taskData.originPlugin.toString()).isEqualTo("script :app:build.gradle")
     assertThat(alwaysRunTasks[1].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
   }
 
@@ -104,7 +104,7 @@ class AlwaysRunTasksAnalyzerTest {
     setUpProject()
 
     BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressAlwaysRunTaskWarning("org.gradle.api.DefaultTask",
-                                                                                                   "build.gradle")
+                                                                                                   ":app:build.gradle")
 
     myProjectRule.invokeTasks("assembleDebug")
 
