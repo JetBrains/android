@@ -243,13 +243,13 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   }
 
   private void setTemplateThumbnail(@Nullable TemplateHandle templateHandle) {
-    TemplateIcon icon = ActivityGallery.getTemplateIcon(templateHandle, false);
+    TemplateIcon icon = ActivityGallery.getTemplateIcon(templateHandle);
     if (icon != null) {
       icon.setHeight(256);
       myTemplateIconTitle.setIcon(icon);
     }
-    myTemplateIconTitle.setText("<html><center>" + ActivityGallery.getTemplateImageLabel(templateHandle, false) + "</center></html>");
-    myTemplateIconDetail.setText("<html><center>" + ActivityGallery.getTemplateDescription(templateHandle, false) + "</center></html>");
+    myTemplateIconTitle.setText("<html><center>" + ActivityGallery.getTemplateImageLabel(templateHandle) + "</center></html>");
+    myTemplateIconDetail.setText("<html><center>" + ActivityGallery.getTemplateDescription(templateHandle) + "</center></html>");
   }
 
   private void createUIComponents() {

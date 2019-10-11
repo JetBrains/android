@@ -21,6 +21,7 @@ import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
+import static com.android.tools.idea.npw.ui.ActivityGallery.getCppIcon;
 import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
 import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTLIN;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
@@ -268,13 +269,19 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   private void setTemplateThumbnail(@Nullable TemplateHandle templateHandle) {
     boolean isCppTemplate = myProjectModel.getEnableCppSupport().get();
-    TemplateIcon icon = ActivityGallery.getTemplateIcon(templateHandle, isCppTemplate);
+    TemplateIcon icon = isCppTemplate ? getCppIcon() : ActivityGallery.getTemplateIcon(templateHandle);
     if (icon != null) {
       icon.cropBlankWidth();
       icon.setHeight(256);
       myTemplateIconTitle.setIcon(icon);
-      myTemplateIconTitle.setText(ActivityGallery.getTemplateImageLabel(templateHandle, isCppTemplate));
-      myTemplateIconDetail.setText("<html>" + ActivityGallery.getTemplateDescription(templateHandle, isCppTemplate) + "</html>");
+      myTemplateIconTitle.setText(isCppTemplate
+                                  ? message("android.wizard.gallery.item.add.cpp")
+                                  : ActivityGallery.getTemplateImageLabel(templateHandle));
+
+      String description = isCppTemplate
+                           ? message("android.wizard.gallery.item.add.cpp.Desc")
+                           : ActivityGallery.getTemplateDescription(templateHandle);
+      myTemplateIconDetail.setText("<html>" + description + "</html>");
     }
     myTemplateIconTitle.setVisible(icon != null);
     myTemplateIconDetail.setVisible(icon != null);

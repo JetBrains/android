@@ -27,10 +27,11 @@ import com.android.tools.idea.npw.template.ChooseGalleryItemStep
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.getDefaultSelectedTemplateIndex
-import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateDescription
-import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon
-import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImageLabel
+import com.android.tools.idea.npw.ui.getTemplateDescription
+import com.android.tools.idea.npw.ui.getTemplateIcon
+import com.android.tools.idea.npw.ui.getTemplateImageLabel
 import com.android.tools.idea.npw.ui.WizardGallery
+import com.android.tools.idea.npw.ui.cppIcon
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
@@ -67,7 +68,8 @@ import javax.swing.event.ListSelectionListener
  * First page in the New Project wizard that allows user to select the [FormFactor] (Mobile, Wear, TV, etc.) and its
  * template ("Empty Activity", "Basic", "Navigation Drawer", etc.)
  */
-class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProjectModel>(model, message("android.wizard.project.new.choose")) {
+class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProjectModel>(model,
+                                                                                          message("android.wizard.project.new.choose")) {
   private var loadingPanel = JBLoadingPanel(BorderLayout(), this)
   private val tabsPanel = CommonTabbedPane()
   private val rootPanel = JPanel(GridLayoutManager(1, 1))
@@ -138,7 +140,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
           myGallery.selectedElement?.let { renderer ->
             myTemplateName.text = renderer.label
             myTemplateDesc.text = "<html>" + renderer.description + "</html>"
-            myDocumentationLink.isVisible = renderer.isCppTemplate
+            myDocumentationLink.isVisible = renderer is CppTemplateRendererWithDescription
             canGoForward.set(true)
           } ?: canGoForward.set(false)
         }
@@ -154,7 +156,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   override fun onProceeding() {
     val formFactorInfo = formFactors!!.get()[tabsPanel.selectedIndex]
     val selectedTemplate = formFactorInfo.tabPanel.myGallery.selectedElement!!
-    model.enableCppSupport.set(selectedTemplate.isCppTemplate)
+    model.enableCppSupport.set(selectedTemplate is CppTemplateRendererWithDescription)
     with(newProjectModuleModel!!) {
       formFactor.set(formFactorInfo.formFactor)
       moduleTemplateFile().setNullableValue(formFactorInfo.templateFile)
@@ -175,12 +177,25 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     internal var minSdk: Int,
     internal val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>)
 
-  private class TemplateRendererWithDescription(
-    template: TemplateHandle?, internal val isCppTemplate: Boolean
+  private interface TemplateRendererWithDescription : ChooseGalleryItemStep.TemplateRenderer {
+    val template: TemplateHandle?
+    val description: String
+  }
+
+  data class CppTemplateRendererWithDescription(
+    override val template: TemplateHandle? = null,
+    override val description: String = message("android.wizard.gallery.item.add.cpp.Desc"),
+    override val label: String = message("android.wizard.gallery.item.add.cpp"),
+    override val icon: Icon? = cppIcon,
+    override val exists: Boolean = template != null
+  ) : TemplateRendererWithDescription
+
+  private class HandleTemplateRendererWithDescription(
+    template: TemplateHandle?
   ) : ChooseGalleryItemStep.OldTemplateRenderer(template) {
-    override val label: String get() = getTemplateImageLabel(template, isCppTemplate)
-    override val icon: Icon? get() = getTemplateIcon(template, isCppTemplate)
-    internal val description: String get() = getTemplateDescription(template, isCppTemplate)
+    override val label: String get() = getTemplateImageLabel(template)
+    override val icon: Icon? get() = getTemplateIcon(template)
+    internal val description: String get() = getTemplateDescription(template)
   }
 
   companion object {
@@ -227,11 +242,11 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     private fun createGallery(title: String, formFactor: FormFactor): ASGallery<TemplateRendererWithDescription> {
       val templateHandles = getFilteredTemplateHandles(formFactor)
       val listItems = sequence {
-        yield(TemplateRendererWithDescription(null, false)) // "No Activity" entry
+        yield(HandleTemplateRendererWithDescription(null)) // "No Activity" entry
 
-        yieldAll(templateHandles.map { TemplateRendererWithDescription(it, false) })
+        yieldAll(templateHandles.map { HandleTemplateRendererWithDescription(it) })
         if (formFactor === FormFactor.MOBILE) {
-          yield(TemplateRendererWithDescription(null, true)) // "Native C++" entry
+          yield(CppTemplateRendererWithDescription())
         }
       }.toList()
 
