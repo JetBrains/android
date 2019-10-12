@@ -288,6 +288,7 @@ object AndroidAttributeFact {
       "listheader" -> return NelePropertyType.LAYOUT
       "showIn" -> return NelePropertyType.LAYOUT
       "targetApi" -> return NelePropertyType.STRING
+      "viewBindingIgnore" -> return NelePropertyType.STRING
 
       // Hand edited overrides for framework attributes:
       "alignmentMode" -> return NelePropertyType.ENUM
