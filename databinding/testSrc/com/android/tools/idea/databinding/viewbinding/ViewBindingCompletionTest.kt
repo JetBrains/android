@@ -79,6 +79,54 @@ class ViewBindingCompletionTest {
   }
 
   @Test
+  fun completeViewBindingIgnoreAttribute() {
+    val layoutFile = fixture.addFileToProject(
+      "src/main/res/layout/activity_ignored.xml",
+        // language=XML
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <FrameLayout
+          xmlns:tools="http://schemas.android.com/tools"
+          tools:viewBi<caret>>
+        </FrameLayout>
+      """.trimIndent())
+
+    fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult(
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <FrameLayout
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:viewBindingIgnore="">
+      </FrameLayout>
+      """.trimIndent())
+  }
+
+  @Test
+  fun completeViewBindingIgnoreAttribute_BooleanValue() {
+    val layoutFile = fixture.addFileToProject(
+      "src/main/res/layout/activity_ignored.xml",
+        // language=XML
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <FrameLayout
+          xmlns:tools="http://schemas.android.com/tools"
+          tools:viewBindingIgnore="<caret>">
+        </FrameLayout>
+      """.trimIndent())
+
+    fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
+
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings).containsAllIn(listOf("true", "false"))
+  }
+
+
+  @Test
   fun completeViewBindingClass() {
     val modelFile = fixture.addFileToProject(
       "src/main/java/test/vb/Model.java",
