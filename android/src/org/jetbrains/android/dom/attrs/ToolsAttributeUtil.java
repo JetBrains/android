@@ -37,6 +37,7 @@ import static com.android.SdkConstants.ATTR_SHRINK_MODE;
 import static com.android.SdkConstants.ATTR_SRC_COMPAT;
 import static com.android.SdkConstants.ATTR_TARGET_API;
 import static com.android.SdkConstants.ATTR_USE_HANDLER;
+import static com.android.SdkConstants.ATTR_VIEW_BINDING_IGNORE;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.CLASS_VIEWGROUP;
 import static com.android.SdkConstants.VALUE_SAFE;
@@ -134,6 +135,8 @@ public class ToolsAttributeUtil {
     // AppCompatImageView srcCompat attribute
     // TODO: Remove this definition and make sure the app namespace attributes are handled by AndroidDomUtil#getAttributeDefinition
     .put(ATTR_SRC_COMPAT, singletonList(AttributeFormat.REFERENCE))
+    // View binding attributes
+    .put(ATTR_VIEW_BINDING_IGNORE, singletonList(AttributeFormat.BOOLEAN))
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, Converter> CONVERTERS = ImmutableMap.<String, Converter>builder()
