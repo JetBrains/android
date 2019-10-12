@@ -149,7 +149,7 @@ fun StringParameter.validateStringType(
         val modulePath: @SystemIndependent String = AndroidRootUtil.getModuleDirPath(module) ?: return false
         val file = File(FileUtil.toSystemDependentName(modulePath), value)
         val vFile = VfsUtil.findFileByIoFile(file, true)
-        IdeaSourceProvider.getSourceProvidersForFile(facet, vFile, null).isNotEmpty()
+        getSourceProvidersForFile(facet, vFile, null).isNotEmpty()
       }
       NONEMPTY, ID, STRING, URI_AUTHORITY, API_LEVEL -> false
       UNIQUE, EXISTS -> false // not applicable

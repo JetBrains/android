@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.facet;
 
+import static com.android.tools.idea.templates.SourceProviderUtilKt.getSourceProvidersForFile;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -76,67 +77,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(AndroidPlatform.getInstance(myLibModule));
   }
 
-  public void testGetCurrentSourceProviders() throws Exception {
-    StringBuilder sb = new StringBuilder();
-    VirtualFile baseDir = getProject().getBaseDir();
-    for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(myAppFacet)) {
-      sb.append(getStringRepresentation(provider, baseDir));
-    }
-    assertEquals("Manifest File: app/src/main/AndroidManifest.xml\n" +
-                 "Java Directories: [app/src/main/java]\n" +
-                 "Res Directories: [app/src/main/res]\n" +
-                 "Assets Directories: []\n" +
-                 "AIDL Directories: []\n" +
-                 "Renderscript Directories: []\n" +
-                 "Jni Directories: []\n" +
-                 "Resources Directories: []\n" +
-                 "Manifest File: null\n" +
-                 "Java Directories: []\n" +
-                 "Res Directories: []\n" +
-                 "Assets Directories: []\n" +
-                 "AIDL Directories: []\n" +
-                 "Renderscript Directories: []\n" +
-                 "Jni Directories: []\n" +
-                 "Resources Directories: []\n" +
-                 "Manifest File: null\n" +
-                 "Java Directories: []\n" +
-                 "Res Directories: []\n" +
-                 "Assets Directories: []\n" +
-                 "AIDL Directories: []\n" +
-                 "Renderscript Directories: []\n" +
-                 "Jni Directories: []\n" +
-                 "Resources Directories: []\n" +
-                 "Manifest File: null\n" +
-                 "Java Directories: []\n" +
-                 "Res Directories: []\n" +
-                 "Assets Directories: []\n" +
-                 "AIDL Directories: []\n" +
-                 "Renderscript Directories: []\n" +
-                 "Jni Directories: []\n" +
-                 "Resources Directories: []\n", sb.toString());
-
-    sb = new StringBuilder();
-    for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(myLibFacet)) {
-      sb.append(getStringRepresentation(provider, baseDir));
-    }
-    assertEquals("Manifest File: lib/src/main/AndroidManifest.xml\n" +
-                 "Java Directories: [lib/src/main/java]\n" +
-                 "Res Directories: [lib/src/main/res]\n" +
-                 "Assets Directories: []\n" +
-                 "AIDL Directories: []\n" +
-                 "Renderscript Directories: []\n" +
-                 "Jni Directories: []\n" +
-                 "Resources Directories: []\n" +
-                 "Manifest File: null\n" +
-                 "Java Directories: []\n" +
-                 "Res Directories: []\n" +
-                 "Assets Directories: []\n" +
-                 "AIDL Directories: []\n" +
-                 "Renderscript Directories: []\n" +
-                 "Jni Directories: []\n" +
-                 "Resources Directories: []\n", sb.toString());
-  }
-
   public void testFindSourceProvider() throws Exception {
     assertNotNull(AndroidModel.get(myAppFacet));
     VirtualFile moduleFile = findFileByIoFile(getProjectFolderPath(), true).findFileByRelativePath("app");
@@ -149,7 +89,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     VirtualFile javaMainSrcFile = moduleFile.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/");
     assertNotNull(javaMainSrcFile);
 
-    Collection<IdeaSourceProvider> providers = IdeaSourceProvider.getSourceProvidersForFile(myAppFacet, javaMainSrcFile, null);
+    Collection<IdeaSourceProvider> providers = getSourceProvidersForFile(myAppFacet, javaMainSrcFile, null);
     assertEquals(1, providers.size());
     IdeaSourceProvider actualProvider = providers.iterator().next();
     assertEquals(mainFlavorSourceProvider.getManifestFile(),
@@ -157,13 +97,13 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
     // Try finding paid flavor
     IdeaSourceProvider paidFlavorSourceProvider =
-      IdeaSourceProvider.getAllIdeaSourceProviders(myAppFacet).stream()
+      SourceProviderManager.getInstance(myAppFacet).getAllSourceProviders().stream()
         .filter(it -> it.getName().equalsIgnoreCase("paid")).collect(MoreCollectors.onlyElement());
 
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);
 
-    providers = IdeaSourceProvider.getSourceProvidersForFile(myAppFacet, javaSrcFile, null);
+    providers = getSourceProvidersForFile(myAppFacet, javaSrcFile, null);
     assertEquals(1, providers.size());
     actualProvider = providers.iterator().next();
     assertEquals(paidFlavorSourceProvider.getManifestFile(),
@@ -232,7 +172,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   public void testSourceProviderContainsFile() throws Exception {
     assertNotNull(AndroidModel.get(myAppFacet));
     IdeaSourceProvider paidFlavorSourceProvider =
-      IdeaSourceProvider.getAllIdeaSourceProviders(myAppFacet).stream()
+      SourceProviderManager.getInstance(myAppFacet).getAllSourceProviders().stream()
         .filter(it -> it.getName().equalsIgnoreCase("paid")).collect(MoreCollectors.onlyElement());
 
     VirtualFile moduleFile = findFileByIoFile(getProjectFolderPath(), true).findFileByRelativePath("app");
@@ -246,30 +186,5 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(javaMainSrcFile);
 
     assertFalse(IdeaSourceProvider.containsFile(paidFlavorSourceProvider, javaMainSrcFile));
-  }
-
-
-  public void testSourceProviderIsContainedByFolder() throws Exception {
-    assertNotNull(AndroidModel.get(myAppFacet));
-    IdeaSourceProvider paidFlavorSourceProvider =
-      IdeaSourceProvider.getAllIdeaSourceProviders(myAppFacet).stream()
-        .filter(it -> it.getName().equalsIgnoreCase("paid")).collect(MoreCollectors.onlyElement());
-
-    VirtualFile moduleFile = findFileByIoFile(getProjectFolderPath(), true).findFileByRelativePath("app");
-    assertNotNull(moduleFile);
-    VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
-    assertNotNull(javaSrcFile);
-
-    assertFalse(IdeaSourceProvider.isContainedBy(paidFlavorSourceProvider, javaSrcFile));
-
-    VirtualFile flavorRoot = moduleFile.findFileByRelativePath("src/paid");
-    assertNotNull(flavorRoot);
-
-    assertTrue(IdeaSourceProvider.isContainedBy(paidFlavorSourceProvider, flavorRoot));
-
-    VirtualFile srcFile = moduleFile.findChild("src");
-    assertNotNull(srcFile);
-
-    assertTrue(IdeaSourceProvider.isContainedBy(paidFlavorSourceProvider, srcFile));
   }
 }
