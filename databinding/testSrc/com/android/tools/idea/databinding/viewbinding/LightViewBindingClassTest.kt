@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding.viewbinding
 
+import com.android.SdkConstants
 import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
@@ -134,4 +135,22 @@ class LightViewBindingClassTest {
     }
   }
 
+  // ViewBinding logic breaks from DataBinding logic around view stubs. See also: b/142533358
+  @Test
+  fun correctTypeGeneratedForViewStubs() {
+    val file = fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <ViewStub
+            android:id="@+id/test_id"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+        </ViewStub>
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
+    assertThat(binding.findFieldByName("testId", false)!!.type.canonicalText).isEqualTo(SdkConstants.CLASS_VIEWSTUB)
+  }
 }
