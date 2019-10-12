@@ -424,7 +424,7 @@ public class MotionEditor extends JPanel {
 
     int index = mCombinedListPanel.getSelectedConstraintSet();
     mOverviewPanel.setConstraintSetIndex(index);
-
+    mTransitionPanel.stopAnimation();
     if (index >= 0) {
       MTag[] c_sets = mCombinedListPanel.mMotionScene.getChildTags("ConstraintSet");
       if (0 < index) {

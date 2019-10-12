@@ -36,6 +36,7 @@ import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.FocusListener;
+import java.awt.image.BufferedImage;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -103,6 +104,10 @@ public class MEUI {
   public static Color ourTextColor = makeColor("UIDesigner.motion.TextColor", 0x2C2C2C, 0x9E9E9E);
   public static Color ourAddConstraintPlus = makeColor("UIDesigner.motion.AddConstraintPlus", 0xffc9c9c9, 0xff333333);
   public static Color ourGraphColor = makeColor("UIDesigner.motion.GraphColor", 0x97b1c0, 0x97b1c0);
+
+  public static BufferedImage createImage(int w, int h, int type) {
+    return UIUtil.createImage(w,h,type);
+  }
 
   public static class Overview {
     public static Color ourCS = makeColor("UIDesigner.motion.ConstraintSet", 0xFFFFFF, 0x515658);
