@@ -473,4 +473,23 @@ class LightBindingClassTest {
     assertThat(nullabilityManager.isNotNull(alwaysPresentField, false)).isTrue()
     assertThat(nullabilityManager.isNullable(sometimesPresentField, false)).isTrue()
   }
+
+  @Test
+  fun viewProxyClassGeneratedForViewStubs() {
+    fixture.addFileToProject("res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <ViewStub
+            android:id="@+id/test_id"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+        </ViewStub>
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
+    assertThat(binding.findFieldByName("testId", false)!!.type.canonicalText)
+      .isEqualTo(ModuleDataBinding.getInstance(facet).dataBindingMode.viewStubProxy)
+  }
 }
