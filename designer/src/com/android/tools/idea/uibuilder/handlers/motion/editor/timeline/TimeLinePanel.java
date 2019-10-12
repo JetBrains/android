@@ -232,6 +232,11 @@ public class TimeLinePanel extends JPanel {
     mListener = l;
   }
 
+  public void stopAnimation() {
+    destroyTimer();
+    mTimeLineTopLeft.displayPlay();
+  }
+
   private static String buildKey(MTag keyFrame) {
     String targetKey;
     String target = keyFrame.getAttributeValue("motionTarget");
@@ -276,6 +281,10 @@ public class TimeLinePanel extends JPanel {
 
   public void clearSelection() {
     mSelectedKeyFrame = null;
+    int  n = mTimeLine.getComponentCount();
+    if (n == 0 || mTimeLine.mSelectedIndex >= n) {
+      return;
+    }
     Component component = mTimeLine.getComponent(mTimeLine.mSelectedIndex);
     if (component instanceof TimeLineRow) {
       TimeLineRow child = ((TimeLineRow)component);

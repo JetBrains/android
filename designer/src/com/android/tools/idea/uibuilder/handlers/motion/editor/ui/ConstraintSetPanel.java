@@ -74,7 +74,7 @@ class ConstraintSetPanel extends JPanel {
   JPopupMenu myPopupMenu = new JPopupMenu();
 
   DefaultTableModel mConstraintSetModel = new DefaultTableModel(
-    new String[]{"Included", "ID", "Defined In"}, 0) {
+    new String[]{"Constraint", "ID", "Source"}, 0) {
 
     @Override
     public Class getColumnClass(int column) {
@@ -410,7 +410,7 @@ class ConstraintSetPanel extends JPanel {
             row[1] = layoutId;
             //row[2] = "";
             row[2] = row[3] = (derived == null) ? "layout" : findFirstDefOfView(layoutId, mConstraintSet);
-            row[0] = ("layout".equals(row[3])) ? null : MEIcons.LIST_GRAY_STATE;
+            row[0] = ("layout".equals(row[3])) ? null : Utils.computeLiteIcon(MEIcons.LIST_STATE);
             mDisplayedRows.add(view);
             mConstraintSetModel.addRow(row);
           }

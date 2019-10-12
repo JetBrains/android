@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 /**
  * Small static functions used across the system
@@ -46,5 +52,27 @@ public class Utils {
       return start + "->" + end;
     }
     return id;
+  }
+
+  /**
+   * Produce an icon of reduced opacity but turning down the alpha by 1/3
+   *
+   * @param icon input icon
+   * @return created icon
+   */
+  public static Icon computeLiteIcon(Icon icon) {
+    final int w = icon.getIconWidth();
+    final int h = icon.getIconHeight();
+    BufferedImage image = MEUI.createImage(w, h, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2d = image.createGraphics();
+    icon.paintIcon(null, g2d, 0, 0);
+    int[] data = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
+    for (int i = 0; i < data.length; i++) {
+      int v = data[i] & 0xFF;
+      int a = (data[i] >> 24) & 0xFF;
+      a /= 3;
+      data[i] = (a << 24) | (v * 0x10101);
+    }
+    return new ImageIcon(image);
   }
 }

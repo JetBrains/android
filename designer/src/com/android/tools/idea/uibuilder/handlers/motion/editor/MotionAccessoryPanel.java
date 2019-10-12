@@ -118,7 +118,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
                               @NotNull NlComponent parent,
                               @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     if (DEBUG) {
-      Debug.log("MotionAccessoryPanel created ");
+      Debug.log("MotionAccessoryPanel created "+parent);
     }
     myDesignSurface = surface;
     myProject = surface.getProject();
@@ -367,6 +367,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   private void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
+    if (DEBUG) {
+      Debug.log(" handleSelectionChanged ");
+    }
     if (selection.size() == myLayoutSelectedId.size()) {
       int count = 0;
       for (NlComponent component : selection) {
