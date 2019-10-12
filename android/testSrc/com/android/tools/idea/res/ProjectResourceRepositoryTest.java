@@ -64,6 +64,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -259,7 +260,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
     // Refresh temporary resource directories created by the model, so that they are accessible as VirtualFiles.
     Collection<String> resourceDirUrls =
-      IdeaSourceProvider.getAllIdeaSourceProviders(myFacet)
+      SourceProviderManager.getInstance(myFacet).getAllSourceProviders()
         .stream()
         .flatMap(provider -> provider.getResDirectoryUrls().stream())
         .collect(Collectors.toList());

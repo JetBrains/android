@@ -33,6 +33,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import java.util.Collection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,7 +97,7 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
       return;
     }
 
-    final Collection<IdeaSourceProvider> providerList = IdeaSourceProvider.getCurrentSourceProviders(facet);
+    final Collection<IdeaSourceProvider> providerList = SourceProviderManager.getInstance(facet). getCurrentSourceProviders();
     final List<VirtualFile> javaDirectories = Lists.newArrayList();
     for (IdeaSourceProvider provider : providerList) {
       javaDirectories.addAll(provider.getJavaDirectories());

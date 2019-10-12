@@ -68,8 +68,9 @@ data class MergedManifestContributors(
 
 private fun AndroidFacet.getFlavorAndBuildTypeManifests(): List<VirtualFile> {
   // get all other manifests for this module, (NOT including the default one)
-  val defaultSourceProvider = SourceProviderManager.getInstance(this).mainIdeaSourceProvider
-  return IdeaSourceProvider.getCurrentSourceProviders(this)
+  val sourceProviderManager = SourceProviderManager.getInstance(this)
+  val defaultSourceProvider = sourceProviderManager.mainIdeaSourceProvider
+  return sourceProviderManager.currentSourceProviders
     .filter { it != defaultSourceProvider }
     .mapNotNull(IdeaSourceProvider::manifestFile)
 }
@@ -118,7 +119,7 @@ private fun addAarManifests(lib: AndroidLibrary, result: MutableSet<File>, modul
  * TODO(b/70815924): Change implementation to use resource repository API
  */
 private fun AndroidFacet.getNavigationFiles(): List<VirtualFile> {
-  return IdeaSourceProvider.getCurrentSourceProviders(this)
+  return SourceProviderManager.getInstance(this).currentSourceProviders
     .asReversed() // iterate over providers in reverse order so higher precedence navigation files are first
     .asSequence()
     .flatMapWithoutNulls { provider -> provider.resDirectories.asSequence() }

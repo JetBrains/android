@@ -65,71 +65,10 @@ interface IdeaSourceProvider {
   val shadersDirectories: Collection<VirtualFile>
 
   companion object {
-
-    /**
-     * Returns an [IdeaSourceProvider] wrapping the given [SourceProvider].
-     */
-    @JvmStatic
-    fun toIdeaProvider(sourceProvider: SourceProvider): IdeaSourceProvider = Delegate(sourceProvider)
-
-    /**
-     * Returns a list of source providers, in the overlay order (meaning that later providers
-     * override earlier providers when they redefine resources) for the currently selected variant.
-     *
-     * Note that the list will never be empty; there is always at least one source provider.
-     *
-     * The overlay source order is defined by the underlying build system.
-     */
-    @JvmStatic
-    fun getCurrentSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> =
-      SourceProviderManager.getInstance(facet).currentSourceProviders
-
-    /**
-     * Returns a list of source providers which includes the main source provider and
-     * product flavor specific source providers.
-     *
-     * DEPRECATED: This is method is added here to support android-kotlin-extensions which
-     * for compatibility reasons require this particular subset of source providers.
-     */
-    @Deprecated("Do not use. This is unlikely to be what anybody needs.")
-    @JvmStatic
-    fun getMainAndFlavorSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> =
-      @Suppress("DEPRECATION") SourceProviderManager.getInstance(facet).mainAndFlavorSourceProviders
-
-
-    /**
-     * Returns a list of source providers for all test artifacts (e.g. both `test/` and `androidTest/` source sets), in increasing
-     * precedence order.
-     *
-     * @see getCurrentSourceProviders
-     */
-    @JvmStatic
-    fun getCurrentTestSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> =
-      SourceProviderManager.getInstance(facet).currentTestSourceProviders
-
     /**
      * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
      * the given folder.
      */
-    @JvmStatic
-    fun isContainedBy(provider: IdeaSourceProvider, targetFolder: VirtualFile): Boolean {
-      val srcDirectories = provider.allSourceFolders
-      for (container in srcDirectories) {
-        if (isAncestor(targetFolder, container, false)) {
-          return true
-        }
-
-        if (!container.exists()) {
-          continue
-        }
-
-        if (isAncestor(targetFolder, container, false /* allow them to be the same */)) {
-          return true
-        }
-      }
-      return false
-    }
-
     /**
      * Returns true iff this SourceProvider provides the source folder that contains the given file.
      */
@@ -159,62 +98,9 @@ interface IdeaSourceProvider {
       return false
     }
 
-    /**
-     * Returns a list of all IDEA source providers, for the given facet, in the overlay order
-     * (meaning that later providers override earlier providers when they redefine resources.)
-     *
-     *
-     * Note that the list will never be empty; there is always at least one source provider.
-     *
-     *
-     * The overlay source order is defined by the underlying build system.
-     *
-     * This method should be used when only on-disk source sets are required. It will return
-     * empty source sets for all other source providers (since VirtualFiles MUST exist on disk).
-     */
-    @JvmStatic
-    fun getAllIdeaSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> =
-      SourceProviderManager.getInstance(facet).allSourceProviders
-
-    /**
-     * Returns a list of all source providers that contain, or are contained by, the given file.
-     * For example, with the file structure:
-     *
-     * ```
-     * src
-     *   main
-     *     aidl
-     *       myfile.aidl
-     *   free
-     *     aidl
-     *       myoverlay.aidl
-     * ```
-     *
-     * With target file == "myoverlay.aidl" the returned list would be ['free'], but if target file == "src",
-     * the returned list would be ['main', 'free'] since both of those source providers have source folders which
-     * are descendants of "src."
-     */
-    @JvmStatic
-    fun getSourceProvidersForFile(
-      facet: AndroidFacet,
-      targetFolder: VirtualFile?,
-      defaultSourceProvider: IdeaSourceProvider?
-    ): List<IdeaSourceProvider> {
-      val sourceProviderList =
-        if (targetFolder != null) {
-          // Add source providers that contain the file (if any) and any that have files under the given folder
-          SourceProviderManager.getInstance(facet).allSourceProviders
-            .filter { provider -> containsFile(provider, targetFolder) || isContainedBy(provider, targetFolder) }
-            .takeUnless { it.isEmpty() }
-        }
-        else null
-
-      return sourceProviderList ?: listOfNotNull(defaultSourceProvider)
-    }
-
     @JvmStatic
     fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-      return getCurrentTestSourceProviders(facet).any { containsFile(it, candidate) }
+      return SourceProviderManager.getInstance(facet).currentTestSourceProviders.any { containsFile(it, candidate) }
     }
 
     /** Returns true if the given candidate file is a manifest file in the given module  */
@@ -226,12 +112,12 @@ interface IdeaSourceProvider {
     /** Returns the manifest files in the given module  */
     @JvmStatic
     fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> {
-      return getCurrentSourceProviders(facet).mapNotNull { it.manifestFile }
+      return SourceProviderManager.getInstance(facet).currentSourceProviders.mapNotNull { it.manifestFile }
     }
   }
 }
 
-private val IdeaSourceProvider.allSourceFolders: Collection<VirtualFile>
+val IdeaSourceProvider.allSourceFolders: Collection<VirtualFile>
   get() =
     flatten(arrayOf(javaDirectories, resDirectories, aidlDirectories, renderscriptDirectories, assetsDirectories, jniDirectories,
                     jniLibsDirectories))

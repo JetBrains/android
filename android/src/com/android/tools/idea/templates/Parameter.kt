@@ -227,7 +227,7 @@ class Parameter(
           val modulePath: @SystemIndependent String  = AndroidRootUtil.getModuleDirPath(module) ?: return false
           val file = File(FileUtil.toSystemDependentName(modulePath), value)
           val vFile = VfsUtil.findFileByIoFile(file, true)
-          IdeaSourceProvider.getSourceProvidersForFile(facet, vFile, null).isNotEmpty()
+          getSourceProvidersForFile(facet, vFile, null).isNotEmpty()
         }
         Constraint.NONEMPTY, Constraint.ID, Constraint.STRING, Constraint.URI_AUTHORITY, Constraint.API_LEVEL -> false
         Constraint.UNIQUE, Constraint.EXISTS -> false // not applicable

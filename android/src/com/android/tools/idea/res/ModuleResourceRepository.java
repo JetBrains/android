@@ -128,7 +128,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
    * Inserts repositories for the given {@code resourceDirectories} into {@code childRepositories}, in the right order.
    *
    * <p>{@code resourceDirectories} is assumed to be in the order returned from
-   * {@link IdeaSourceProvider#getCurrentSourceProviders(AndroidFacet)}, which is the inverse of what we need. The code in
+   * {@link SourceProviderManager#getCurrentSourceProviders()}, which is the inverse of what we need. The code in
    * {@link MultiResourceRepository#getMap(ResourceNamespace, ResourceType, boolean)} gives priority to child repositories which are earlier
    * in the list, so after creating repositories for every folder, we add them in reverse to the list.
    *
