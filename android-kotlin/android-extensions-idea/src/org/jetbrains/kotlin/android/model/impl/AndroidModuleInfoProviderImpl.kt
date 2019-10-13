@@ -34,11 +34,14 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
     }
 
     override fun getActiveSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
-        return IdeaSourceProvider.getCurrentSourceProviders(androidFacet ?: return emptyList()).map(::SourceProviderMirrorImpl)
+        return SourceProviderManager.getInstance(androidFacet ?: return emptyList()).currentSourceProviders.map(::SourceProviderMirrorImpl)
     }
 
     override fun getMainAndFlavorSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
-        return IdeaSourceProvider.getMainAndFlavorSourceProviders(androidFacet ?: return emptyList()).map(::SourceProviderMirrorImpl)
+        @Suppress("DEPRECATION")
+        return SourceProviderManager.getInstance(androidFacet ?: return emptyList())
+          .mainAndFlavorSourceProviders
+          .map(::SourceProviderMirrorImpl)
     }
 
     private class SourceProviderMirrorImpl(val sourceProvider: IdeaSourceProvider) :
