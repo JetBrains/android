@@ -263,7 +263,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     boolean androidProjectWithoutVariants = false;
     // This stores the sync issues that should be attached to a Java module if we have a AndroidProject without variants.
-    String moduleName = gradleModule.getName();
+    String moduleName = ideModule.getData().getInternalName();
 
     VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
 
