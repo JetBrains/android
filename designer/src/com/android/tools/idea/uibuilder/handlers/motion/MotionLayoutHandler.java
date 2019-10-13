@@ -44,6 +44,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintPlaceholder;
+import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
@@ -97,6 +98,7 @@ public class MotionLayoutHandler extends ViewGroupHandler {
 
     return (context) -> new MotionLayoutAssistantPanel(surface, context.getComponent());
   }
+
 
   @NotNull
   @Override
@@ -259,6 +261,6 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   @Override
   @NotNull
   public CustomPanel getLayoutCustomPanel() {
-    return new WidgetConstraintPanel(ImmutableList.of());
+    return new MotionConstraintPanel(ImmutableList.of());
   }
 }

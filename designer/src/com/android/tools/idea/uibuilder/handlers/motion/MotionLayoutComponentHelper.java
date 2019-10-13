@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
+import android.view.View;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -441,6 +442,7 @@ public class MotionLayoutComponentHelper {
       return false;
     }
     model.notifyLiveUpdate(false);
+    refresh(myMotionLayoutComponent);
     return true;
   }
 
@@ -969,5 +971,12 @@ public class MotionLayoutComponentHelper {
 
   public boolean getShowPaths() {
     return mShowPaths;
+  }
+
+  public static void refresh(NlComponent component) {
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
+    if (viewInfo != null) {
+      ((View)viewInfo.getViewObject()).forceLayout();
+    }
   }
 }
