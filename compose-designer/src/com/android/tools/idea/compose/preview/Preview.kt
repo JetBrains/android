@@ -54,6 +54,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -83,6 +85,7 @@ import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtImportDirective
 import java.awt.BorderLayout
+import java.lang.RuntimeException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
@@ -211,13 +214,18 @@ private fun configureExistingModel(existingModel: NlModel,
                                    displayName: String,
                                    fileContents: String,
                                    surface: NlDesignSurface): NlModel {
+  val psiFileManager = PsiManager.getInstance(existingModel.project)
   // Reconfigure the model by setting the new display name and applying the configuration values
   existingModel.modelDisplayName = displayName
   val file = existingModel.virtualFile as ComposeAdapterLightVirtualFile
-  // Update the contents of the VirtualFile associated to the NlModel. fireEvent value is currently ignored, just set to true in case
-  // that changes in the future.
-  file.setContent(null, fileContents, true)
-
+  ApplicationManager.getApplication().invokeAndWait {
+    WriteAction.run<RuntimeException>  {
+      // Update the contents of the VirtualFile associated to the NlModel. fireEvent value is currently ignored, just set to true in case
+      // that changes in the future.
+      file.setContent(null, fileContents, true)
+      psiFileManager.reloadFromDisk(existingModel.file)
+    }
+  }
   configureLayoutlibSceneManager(surface.getSceneManager(existingModel) as LayoutlibSceneManager,
                                  RenderSettings.getProjectSettings(existingModel.project).showDecorations)
 
@@ -400,6 +408,8 @@ private class PreviewEditor(private val psiFile: PsiFile,
       .onEach {
         if (LOG.isDebugEnabled) {
           LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
+              displayName=${it.displayName}
+              methodName=${it.composableMethodFqn}
 
               ${it.toPreviewXmlString()}
           """.trimIndent())
