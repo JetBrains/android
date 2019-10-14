@@ -36,7 +36,7 @@ LINE_CMT=#[^\n\r]*
 // jletter includes all characters for which the Java function Character.isJavaIdentifierStart returns true and
 // jletterdigit all characters for that Character.isJavaIdentifierPart returns true.
 JAVA_IDENTIFIER=[:jletter:][:jletterdigit:]*
-WILDCARD=(\?|\*{1,2})
+WILDCARD=(\?|\*{1,2}|<\d+>)
 WILDCARD_FOLLOWED_BY_DIGITS_OR_LETTERS= {WILDCARD}[:jletterdigit:]+
 // Like JAVA_IDENTIFIER but contain the "?" symbol (no more than one in row) and the "*" (no more than two in row).
 JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGITS_OR_LETTERS}+{WILDCARD}?)|{WILDCARD})

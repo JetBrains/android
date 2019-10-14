@@ -444,4 +444,17 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       "file" to FILE_NAME
     )
   }
+
+  fun testBackReferenceWildcard() {
+    assertTokenTypes(
+      """
+      -keep class **${'$'}D<2>
+      """.trimIndent(),
+      "-keep" to FLAG,
+      SPACE,
+      "class" to CLASS,
+      SPACE,
+      "**${'$'}D<2>" to JAVA_IDENTIFIER_WITH_WILDCARDS
+    )
+  }
 }
