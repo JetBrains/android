@@ -1,7 +1,7 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.lang.databinding;
 
-import com.android.tools.idea.lang.databinding.psi.DbTokenTypes; // FIXME-ank: circular deps
+import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
 import com.google.common.collect.Maps;
 import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
