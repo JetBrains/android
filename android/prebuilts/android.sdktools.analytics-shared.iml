@@ -14,7 +14,6 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="library" name="kotlin-stdlib-jre8" level="project" />
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="org.jetbrains.intellij.deps.android.tools:analytics-shared-tests:26.5.0" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:analytics-shared-tests:26.5.0" />
