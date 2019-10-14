@@ -11,7 +11,7 @@
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="org.jetbrains.intellij.deps.android.tools:deploy-java-proto:26.5.0" type="repository">
+      <library name="deploy-java-proto" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:deploy-java-proto:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/deploy-java-proto/26.5.0/deploy-java-proto-26.5.0.jar!/" />
@@ -24,20 +24,10 @@
     </orderEntry>
     <orderEntry type="library" exported="" name="protobuf" level="project" />
     <orderEntry type="module-library">
-      <library type="repository">
+      <library name="r8-master" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:r8-master:26.5.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/r8-master/26.5.0/r8-master-26.5.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="org.jetbrains.intellij.deps.android.tools:deploy-java-version:26.5.0" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:deploy-java-version:26.5.0" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/deploy-java-version/26.5.0/deploy-java-version-26.5.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

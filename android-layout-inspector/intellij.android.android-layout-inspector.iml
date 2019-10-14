@@ -26,7 +26,7 @@
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.platform.debugger" />
   </component>
 </module>
