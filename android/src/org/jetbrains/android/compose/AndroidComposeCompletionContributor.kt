@@ -147,7 +147,7 @@ class AndroidComposeCompletionContributor : CompletionContributor() {
   private fun LookupElement.isForSpecialLambdaLookupElement(): Boolean {
     val presentation = LookupElementPresentation()
     renderElement(presentation)
-    return presentation.tailText?.startsWith(" {") ?: false
+    return presentation.tailText?.startsWith(" {...} (..., ") ?: false
   }
 }
 
@@ -209,7 +209,7 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
     }
     val renderer = when {
       COMPOSE_COMPLETION_DOTS_FOR_OPTIONAL.get() && visibleParameters.size < allParameters.size -> SHORT_NAMES_WITH_DOTS
-      !COMPOSE_COMPLETION_DOTS_FOR_OPTIONAL.get() && inParens.isEmpty() && visibleParameters.hasTrailingFunction -> {
+      inParens.isEmpty() && visibleParameters.hasTrailingFunction -> {
         // Don't render an empty pair of parenthesis if we're rendering a lambda afterwards.
         null
       }
@@ -297,7 +297,8 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
     psiDocumentManager.doPostponedOperationsAndUnblockDocument(document)
 
     val templateManager = TemplateManager.getInstance(project)
-    val requiredParameters = descriptor.valueParameters.filter { !it.declaresDefaultValue() }
+    val allParameters = descriptor.valueParameters
+    val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
     val insertLambda = requiredParameters.hasTrailingFunction
     val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
 
@@ -317,12 +318,12 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
           }
           addTextSegment(")")
         }
-        insertLambda && COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL.get() -> {
+        !insertLambda -> addTextSegment("()")
+        requiredParameters.size < allParameters.size && COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL.get() -> {
           addTextSegment("(")
           addVariable(EmptyExpression(), true)
           addTextSegment(")")
         }
-        !insertLambda -> addTextSegment("()")
       }
 
       if (insertLambda) {

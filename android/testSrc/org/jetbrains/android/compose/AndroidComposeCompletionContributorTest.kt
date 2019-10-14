@@ -56,6 +56,9 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
 
       @Composable
       fun FoobarThree(optional: Int = 42, children: @Composable() () -> Unit) {}
+
+      @Composable
+      fun FoobarFour(children: @Composable() () -> Unit) {}
       """.trimIndent()
     )
 
@@ -82,7 +85,8 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
     assertThat(myFixture.renderedLookupElements).containsExactly(
       "FoobarOne(required: Int)",
       "FoobarTwo(required: Int, ...)",
-      "FoobarThree(...) {...}"
+      "FoobarThree(...) {...}",
+      "FoobarFour {...}"
     )
   }
 
@@ -135,6 +139,59 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       }
       """.trimIndent()
     )
+  }
+
+  fun testInsertHandler_lambda() {
+    // Given:
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun FoobarOne(children: @Composable() () -> Unit) {}
+
+      """.trimIndent()
+    )
+
+    val file =myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne {
+
+        }
+      }
+      """.trimIndent()
+      , true)
   }
 
   fun testInsertHandler_lambdaWithOptional() {
