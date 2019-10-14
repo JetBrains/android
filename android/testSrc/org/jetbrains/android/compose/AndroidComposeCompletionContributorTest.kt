@@ -59,6 +59,9 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
 
       @Composable
       fun FoobarFour(children: @Composable() () -> Unit) {}
+
+      @Composable
+      fun FoobarFive(icon: String, onClick: () -> Unit) {}
       """.trimIndent()
     )
 
@@ -86,7 +89,8 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       "FoobarOne(required: Int)",
       "FoobarTwo(required: Int, ...)",
       "FoobarThree(...) {...}",
-      "FoobarFour {...}"
+      "FoobarFour {...}",
+      "FoobarFive(icon: String, onClick: () -> Unit)"
     )
   }
 
@@ -157,7 +161,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """.trimIndent()
     )
 
-    val file =myFixture.addFileToProject(
+    val file = myFixture.addFileToProject(
       "src/com/example/Test.kt",
       // language=kotlin
       """
@@ -210,7 +214,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """.trimIndent()
     )
 
-    val file =myFixture.addFileToProject(
+    val file = myFixture.addFileToProject(
       "src/com/example/Test.kt",
       // language=kotlin
       """
@@ -242,6 +246,57 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
         FoobarOne() {
 
         }
+      }
+      """.trimIndent()
+      , true)
+  }
+
+  fun testInsertHandler_onClick() {
+    // Given:
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun AppBarIcon(icon: String, onClick: () -> Unit) {}
+
+      """.trimIndent()
+    )
+
+    val file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        AppBarIcon${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        AppBarIcon(icon = , onClick = )
       }
       """.trimIndent()
       , true)
