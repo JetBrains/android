@@ -707,6 +707,20 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // '@'file_
+  public static boolean include_file(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "include_file")) return false;
+    if (!nextTokenIs(builder, AT)) return false;
+    boolean result, pinned;
+    Marker marker = enter_section_(builder, level, _NONE_, INCLUDE_FILE, null);
+    result = consumeToken(builder, AT);
+    pinned = result; // pin = 1
+    result = result && file_(builder, level + 1);
+    exit_section_(builder, level, marker, result, pinned, null);
+    return result || pinned;
+  }
+
+  /* ********************************************************** */
   // (<init>|<clinit>) parameters
   static boolean init_description(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "init_description")) return false;
@@ -1197,15 +1211,26 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // rule_*
+  // (include_file|rule_)*
   static boolean root(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "root")) return false;
     while (true) {
       int pos = current_position_(builder);
-      if (!rule_(builder, level + 1)) break;
+      if (!root_0(builder, level + 1)) break;
       if (!empty_element_parsed_guard_(builder, "root", pos)) break;
     }
     return true;
+  }
+
+  // include_file|rule_
+  private static boolean root_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "root_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = include_file(builder, level + 1);
+    if (!result) result = rule_(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
   }
 
   /* ********************************************************** */

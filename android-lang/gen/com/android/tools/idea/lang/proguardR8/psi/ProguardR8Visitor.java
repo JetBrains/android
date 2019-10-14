@@ -88,6 +88,10 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitClassMember(o);
   }
 
+  public void visitIncludeFile(@NotNull ProguardR8IncludeFile o) {
+    visitPsiElement(o);
+  }
+
   public void visitJavaPrimitive(@NotNull ProguardR8JavaPrimitive o) {
     visitPsiElement(o);
   }

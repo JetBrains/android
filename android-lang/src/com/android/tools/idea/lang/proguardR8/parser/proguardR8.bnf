@@ -63,8 +63,11 @@
   implements("method|field|fully_qualified_name_constructor")="com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMember"
 }
 
-root ::= rule_*
+root ::= (include_file|rule_)*
 
+include_file ::= '@' file_ {
+  pin=1
+}
 private rule_ ::= rule_with_class_specification | rule {recoverWhile=not_flag}
 rule ::= FLAG (flag_argument ("," flag_argument)*)?
 rule_with_class_specification ::= FLAG  ("," keep_option_modifier)* class_specification_header class_specification_body?
