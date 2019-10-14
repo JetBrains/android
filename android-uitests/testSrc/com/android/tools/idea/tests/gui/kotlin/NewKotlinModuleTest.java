@@ -75,7 +75,7 @@ public class NewKotlinModuleTest {
     guiTest.ideFrame().openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextPhoneAndTabletModule()
       .enterModuleName(NEW_KOTLIN_MODULE_NAME)
-      .setSourceLanguage("Kotlin")
+      .setSourceLanguage(KOTLIN)
       .wizard()
       .clickNext() // Default options
       .clickNext() // Default Activity
