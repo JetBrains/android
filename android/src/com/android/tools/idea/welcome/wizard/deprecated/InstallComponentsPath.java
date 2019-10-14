@@ -41,12 +41,14 @@ import com.android.tools.idea.welcome.install.CheckSdkOperation;
 import com.android.tools.idea.welcome.install.ComponentCategory;
 import com.android.tools.idea.welcome.install.ComponentInstaller;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
+import com.android.tools.idea.welcome.install.Gvm;
 import com.android.tools.idea.welcome.install.Haxm;
 import com.android.tools.idea.welcome.install.InstallComponentsOperation;
 import com.android.tools.idea.welcome.install.InstallContext;
 import com.android.tools.idea.welcome.install.InstallOperation;
 import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
+import com.android.tools.idea.welcome.install.InstallationIntention;
 import com.android.tools.idea.welcome.install.Platform;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -122,11 +124,13 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     if (platforms != null) {
       components.add(platforms);
     }
-    if (Haxm.canRun() && reason == FirstRunWizardMode.NEW_INSTALL) {
-      Haxm.HaxmInstallationIntention haxmInstallationIntention =
-        myInstallUpdates ? Haxm.HaxmInstallationIntention.INSTALL_WITH_UPDATES
-                         : Haxm.HaxmInstallationIntention.INSTALL_WITHOUT_UPDATES;
-      components.add(new Haxm(haxmInstallationIntention, stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
+    InstallationIntention installationIntention = myInstallUpdates ? InstallationIntention.INSTALL_WITH_UPDATES
+                                                                   : InstallationIntention.INSTALL_WITHOUT_UPDATES;
+    if (reason == FirstRunWizardMode.NEW_INSTALL && Haxm.canRun()) {
+      components.add(new Haxm(installationIntention, stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
+    }
+    if (reason == FirstRunWizardMode.NEW_INSTALL && Gvm.canRun()) {
+      components.add(new Gvm(installationIntention, stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
     if (createAvd) {
       components.add(new AndroidVirtualDevice(stateStore, remotePackages, myInstallUpdates, myFileOp));
@@ -334,7 +338,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     private final InstallContext myContext;
     private boolean myRepoWasMerged = false;
 
-    public MergeOperation(File repo, InstallContext context, double progressRatio) {
+    MergeOperation(File repo, InstallContext context, double progressRatio) {
       super(context, progressRatio);
       myRepo = repo;
       myContext = context;
@@ -381,7 +385,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     @Nullable private final String myInstallerTimestamp;
     @NotNull private final ModalityState myModalityState;
 
-    public SetPreference(@Nullable String installerTimestamp, @NotNull ModalityState modalityState) {
+    SetPreference(@Nullable String installerTimestamp, @NotNull ModalityState modalityState) {
       myInstallerTimestamp = installerTimestamp;
       myModalityState = modalityState;
     }
@@ -404,9 +408,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     private final Collection<? extends InstallableComponent> mySelectedComponents;
     private final AndroidSdkHandler mySdkHandler;
 
-    public ConfigureComponents(InstallContext installContext,
-                               Collection<? extends InstallableComponent> selectedComponents,
-                               AndroidSdkHandler sdkHandler) {
+    ConfigureComponents(InstallContext installContext,
+                        Collection<? extends InstallableComponent> selectedComponents,
+                        AndroidSdkHandler sdkHandler) {
       myInstallContext = installContext;
       mySelectedComponents = selectedComponents;
       mySdkHandler = sdkHandler;

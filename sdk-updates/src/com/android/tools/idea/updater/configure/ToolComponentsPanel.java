@@ -24,6 +24,7 @@ import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.repository.installer.MavenInstallListener;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.install.patch.PatchInstallerUtil;
+import com.android.tools.idea.welcome.install.Gvm;
 import com.android.tools.idea.welcome.install.Haxm;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ComparisonChain;
@@ -63,7 +64,7 @@ public class ToolComponentsPanel {
 
   // TODO: Add more fine-grained support for ChromeOS to SDK repo infrastructure (b/131738330)
   private static final Set<String> CHROME_OS_INCOMPATIBLE_PATHS =
-    ImmutableSet.of(SdkConstants.FD_EMULATOR, Haxm.REPO_PACKAGE_PATH);
+    ImmutableSet.of(SdkConstants.FD_EMULATOR, Haxm.HAXM_REPO_PACKAGE_PATH, Gvm.GVM_REPO_PACKAGE_PATH);
 
   private TreeTableView myToolsSummaryTable;
   private JCheckBox myToolsDetailsCheckbox;

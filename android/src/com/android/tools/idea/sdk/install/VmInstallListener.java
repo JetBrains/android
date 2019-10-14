@@ -20,16 +20,22 @@ import com.android.repository.api.Installer;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.Uninstaller;
-import com.android.tools.idea.sdk.wizard.HaxmWizard;
+import com.android.tools.idea.sdk.wizard.VmWizard;
+import com.android.tools.idea.welcome.install.VmType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * {@link PackageInstaller} for installing HAXM. Runs the {@link HaxmWizard} instead of the normal quickfix wizard.
+ * {@link PackageOperation.StatusChangeListener} for installing VM. Runs the {@link VmWizard} instead of the normal quickfix wizard.
  */
-public class HaxmInstallListener implements PackageOperation.StatusChangeListener {
+public class VmInstallListener implements PackageOperation.StatusChangeListener {
+  @NonNull private VmType myType;
+
+  public VmInstallListener(@NonNull VmType type) {
+    myType = type;
+  }
+
   @Override
   public void statusChanged(@NonNull PackageOperation op, @NonNull ProgressIndicator progress)
     throws PackageOperation.StatusChangeListenerException {
@@ -49,12 +55,12 @@ public class HaxmInstallListener implements PackageOperation.StatusChangeListene
 
       final AtomicBoolean result = new AtomicBoolean(false);
       ApplicationManager.getApplication().invokeAndWait(() -> {
-        HaxmWizard wizard = new HaxmWizard(op instanceof Uninstaller);
+        VmWizard wizard = new VmWizard(op instanceof Uninstaller, myType);
         wizard.init();
         result.set(wizard.showAndGet());
       }, ModalityState.any());
       if (!result.get()) {
-        throw new PackageOperation.StatusChangeListenerException("HAXM setup failed!");
+        throw new PackageOperation.StatusChangeListenerException(myType + " setup failed!");
       }
     }
   }
