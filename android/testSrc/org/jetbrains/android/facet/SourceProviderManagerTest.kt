@@ -15,7 +15,9 @@
  */
 package org.jetbrains.android.facet
 
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ProjectTopics
 import com.intellij.facet.FacetManager
@@ -48,6 +50,21 @@ class SourceProviderManagerTest {
       publisher.beforeRootsChange(ModuleRootEventImpl(projectRule.project, false))
       publisher.rootsChanged(ModuleRootEventImpl(projectRule.project, false))
     }
+    val sourceProviderManagerAfterNotification = facet.sourceProviderManager
+    assertThat(sourceProviderManagerAfterNotification).isNotSameAs(sourceProviderManagerBeforeNotification)
+  }
+}
+
+class GradleSourceProviderManagerTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
+  fun selfDisposesOnFacetConfigurationChange() {
+    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
+    val facet = AndroidFacet.getInstance(projectRule.modules.appModule)!!
+    val sourceProviderManagerBeforeNotification = facet.sourceProviderManager
+    projectRule.requestSyncAndWait()
     val sourceProviderManagerAfterNotification = facet.sourceProviderManager
     assertThat(sourceProviderManagerAfterNotification).isNotSameAs(sourceProviderManagerBeforeNotification)
   }
