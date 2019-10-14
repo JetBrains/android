@@ -1012,4 +1012,24 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       )
     )
   }
+
+  fun testFileNameAfterAt() {
+    assertEquals(
+      """
+        FILE
+          ProguardR8IncludeFileImpl(INCLUDE_FILE)
+            PsiElement(@)('@')
+            PsiElement(FILE_NAME)('keep-rules.txt')
+          ProguardR8RuleImpl(RULE)
+            PsiElement(FLAG)('-secondrule')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        @keep-rules.txt
+        
+        -secondrule
+        """.trimIndent()
+      )
+    )
+  }
 }

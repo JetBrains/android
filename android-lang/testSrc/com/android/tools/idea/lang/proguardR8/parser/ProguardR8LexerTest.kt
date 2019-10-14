@@ -406,4 +406,42 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
     assertThat(ProguardR8Lexer.isJavaIdentifier("goodStart^^^^")).isFalse()
     assertThat(ProguardR8Lexer.isJavaIdentifier("public")).isFalse()
   }
+
+  fun testFileNameAfterAt() {
+    assertTokenTypes(
+      """
+      @keep-rules.txt
+      -secondrule
+      """.trimIndent(),
+      "@" to AT,
+      "keep-rules.txt" to FILE_NAME,
+      NEWLINE,
+      "-secondrule" to FLAG
+    )
+  }
+
+  fun testAnnotationInKeepRuleHeader() {
+    assertTokenTypes(
+      """
+      -keep @annotation
+      """.trimIndent(),
+      "-keep" to FLAG,
+      SPACE,
+      "@" to AT,
+      "annotation" to JAVA_IDENTIFIER
+    )
+  }
+
+  fun testFileNamesAtSameLine() {
+    assertTokenTypes(
+      """
+      @file @file
+      """.trimIndent(),
+      "@" to AT,
+      "file" to FILE_NAME,
+      SPACE,
+      "@" to AT,
+      "file" to FILE_NAME
+    )
+  }
 }
