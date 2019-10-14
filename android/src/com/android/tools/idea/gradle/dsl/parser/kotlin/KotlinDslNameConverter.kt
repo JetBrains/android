@@ -42,13 +42,17 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   override fun externalNameForParent(modelName: String, context: GradleDslElement): String {
     val map = context.getExternalToModelMap(this)
     for (e in map.entries) {
-      if (e.value == modelName) return e.key
+      if (e.value.first == modelName) return e.key.first
     }
     return modelName
   }
 
   @JvmDefault
   override fun modelNameForParent(externalName: String, context: GradleDslElement): String {
-    return context.getExternalToModelMap(this).getOrDefault(externalName, externalName)
+    val map = context.getExternalToModelMap(this)
+    for (e in map.entries) {
+      if (e.key.first == externalName) return e.value.first
+    }
+    return externalName
   }
 }
