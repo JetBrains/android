@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
@@ -46,9 +47,9 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
   }
 
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> setSourceLanguage(@NotNull String sourceLanguage) {
+  public ConfigureNewAndroidProjectStepFixture<W> setSourceLanguage(@NotNull Language language) {
     new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Language", JComboBox.class, true))
-      .selectItem(sourceLanguage);
+      .selectItem(language.toString());
     return this;
   }
 

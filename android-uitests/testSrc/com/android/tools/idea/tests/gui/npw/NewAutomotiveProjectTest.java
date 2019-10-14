@@ -60,7 +60,7 @@ public class NewAutomotiveProjectTest {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage(language.toString())
+      .setSourceLanguage(language)
       .selectMinimumSdkApi(FormFactor.AUTOMOTIVE, "28")
       .wizard()
       .clickFinish();

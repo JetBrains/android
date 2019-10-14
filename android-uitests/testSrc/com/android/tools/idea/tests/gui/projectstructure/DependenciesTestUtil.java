@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -47,8 +48,6 @@ public class DependenciesTestUtil {
   protected static final String MIN_SDK = "18";
   protected static final String CLASS_NAME_1 = "ModuleA";
   protected static final String CLASS_NAME_2 = "ModuleB";
-  protected static final String LANGUAGE_JAVA = "Java";
-  protected static final String LANGUAGE_KOTLIN = "Kotlin";
 
   @Before
   public void setUp() {
@@ -64,7 +63,7 @@ public class DependenciesTestUtil {
   protected static IdeFrameFixture createNewProject(@NotNull GuiTestRule guiTest,
                                                     @NotNull String appName,
                                                     @NotNull String minSdk,
-                                                    @NotNull String language) {
+                                                    @NotNull Language language) {
     guiTest
       .welcomeFrame()
       .createNewProject()

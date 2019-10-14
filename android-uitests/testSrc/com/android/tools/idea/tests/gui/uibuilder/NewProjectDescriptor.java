@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.android.tools.idea.npw.platform.Language.JAVA;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +91,7 @@ class NewProjectDescriptor {
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .enterName(myName)
-      .setSourceLanguage("Java")
+      .setSourceLanguage(JAVA)
       .enterPackageName(myPkg)
       .selectMinimumSdkApi(myMinSdk)
       .wizard()

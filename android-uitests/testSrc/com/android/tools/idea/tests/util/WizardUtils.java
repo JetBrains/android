@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.util;
 
+import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -42,7 +43,7 @@ public final class WizardUtils {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage("Java")
+      .setSourceLanguage(JAVA)
       .enterPackageName("com.google.myapplication")
       .wizard()
       .clickFinish();
