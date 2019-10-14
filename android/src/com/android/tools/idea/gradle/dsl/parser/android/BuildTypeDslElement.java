@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
 import com.google.common.collect.ImmutableMap;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -92,5 +91,11 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
   public void setParsedElement(@NotNull GradleDslElement element) {
     super.setParsedElement(element);
     maybeRenameElement(element);
+  }
+
+  @Override
+  public boolean isInsignificantIfEmpty() {
+    // "release" and "debug" Build Type blocks can be deleted if empty
+    return myName.name().equals("release") || myName.name().equals("debug");
   }
 }
