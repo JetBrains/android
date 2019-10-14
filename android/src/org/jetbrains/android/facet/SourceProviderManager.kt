@@ -130,8 +130,7 @@ private abstract class SourceProviderManagerBase(val facet: AndroidFacet) : Sour
   }
 }
 
-private class SourceProviderManagerImpl(facet: AndroidFacet) : SourceProviderManagerBase(facet) {
-  private var mainSourceSet: SourceProvider? = null
+private class SourceProviderManagerImpl(facet: AndroidFacet, private val model: AndroidModel) : SourceProviderManagerBase(facet) {
   private var mainIdeaSourceSet: IdeaSourceProvider? = null
   private var mainIdeaSourceSetCreatedFor: SourceProvider? = null
 
@@ -139,13 +138,7 @@ private class SourceProviderManagerImpl(facet: AndroidFacet) : SourceProviderMan
    * Returns the main source provider for the project. For projects that are not backed by a Gradle model, this method returns a
    * [SourceProvider] wrapper which provides information about the old project.
    */
-  private val mainSourceProvider: SourceProvider
-    get() {
-      @Suppress("DEPRECATION")
-      return AndroidModel.get(facet)?.defaultSourceProvider
-             ?: mainSourceSet
-             ?: LegacySourceProvider(facet).also { mainSourceSet = it }
-    }
+  private val mainSourceProvider: SourceProvider get() = model.defaultSourceProvider
 
   override val mainIdeaSourceProvider: IdeaSourceProvider
     get() {
@@ -159,18 +152,18 @@ private class SourceProviderManagerImpl(facet: AndroidFacet) : SourceProviderMan
     }
 
   override val currentSourceProviders: List<IdeaSourceProvider>
-    get() = @Suppress("DEPRECATION") AndroidModel.get(facet)?.activeSourceProviders?.toIdeaProviders().orEmpty()
+    get() = @Suppress("DEPRECATION") model.activeSourceProviders.toIdeaProviders()
 
   override val currentTestSourceProviders: List<IdeaSourceProvider>
-    get() = @Suppress("DEPRECATION") AndroidModel.get(facet)?.testSourceProviders?.toIdeaProviders().orEmpty()
+    get() = @Suppress("DEPRECATION") model.testSourceProviders.toIdeaProviders()
 
   override val allSourceProviders: List<IdeaSourceProvider>
-    get() = @Suppress("DEPRECATION") AndroidModel.get(facet)?.allSourceProviders?.toIdeaProviders().orEmpty()
+    get() = @Suppress("DEPRECATION") model.allSourceProviders.toIdeaProviders()
 
   @Suppress("OverridingDeprecatedMember")
   override val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
     get() {
-      val androidModel = AndroidModuleModel.get(facet) ?: return emptyList()
+      val androidModel = model as? AndroidModuleModel ?: return emptyList()
       val result = mutableListOf<IdeaSourceProvider>()
       result.add(mainIdeaSourceProvider)
       result.addAll(androidModel.flavorSourceProviders.toIdeaProviders())
@@ -378,7 +371,8 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
 private val KEY: Key<SourceProviderManager> = Key.create(::KEY.qualifiedName)
 
 private fun createSourceProviderFor(facet: AndroidFacet): SourceProviderManager {
-  return if (AndroidModel.isRequired(facet)) SourceProviderManagerImpl(facet) else LegacySourceProviderManagerImpl(facet)
+  val model = if (AndroidModel.isRequired(facet)) AndroidModel.get(facet) else null
+  return if (model != null) SourceProviderManagerImpl(facet, model) else LegacySourceProviderManagerImpl(facet)
 }
 
 private fun List<SourceProvider>.toIdeaProviders(): List<IdeaSourceProvider> = map(::Delegate)
