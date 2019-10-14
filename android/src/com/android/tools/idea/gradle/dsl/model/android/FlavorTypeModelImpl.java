@@ -45,20 +45,19 @@ import org.jetbrains.annotations.Nullable;
  * Common base class for {@link BuildTypeModelImpl} and {@link ProductFlavorModelImpl}.
  */
 public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements FlavorTypeModel {
-  @NonNls private static final String APPLICATION_ID_SUFFIX = "applicationIdSuffix";
-  @NonNls private static final String BUILD_CONFIG_FIELD = "buildConfigField";
-  @NonNls private static final String CONSUMER_PROGUARD_FILES = "consumerProguardFiles";
-  @NonNls private static final String MANIFEST_PLACEHOLDERS = "manifestPlaceholders";
-  @NonNls private static final String MATCHING_FALLBACKS = "matchingFallbacks";
-  @NonNls private static final String MULTI_DEX_ENABLED = "multiDexEnabled";
-  @NonNls private static final String MULTI_DEX_KEEP_FILE = "multiDexKeepFile";
-  @NonNls private static final String MULTI_DEX_KEEP_PROGUARD = "multiDexKeepProguard";
-  @NonNls private static final String PROGUARD_FILES = "proguardFiles";
-  @NonNls private static final String SET_PROGUARD_FILES = "setProguardFiles";
-  @NonNls private static final String RES_VALUE = "resValue";
-  @NonNls private static final String SIGNING_CONFIG = "signingConfig";
-  @NonNls private static final String USE_JACK = "useJack";
-  @NonNls private static final String VERSION_NAME_SUFFIX = "versionNameSuffix";
+  @NonNls public static final String APPLICATION_ID_SUFFIX = "mApplicationIdSuffix";
+  @NonNls public static final String BUILD_CONFIG_FIELD = "mBuildConfigField";
+  @NonNls public static final String CONSUMER_PROGUARD_FILES = "mConsumerProguardFiles";
+  @NonNls public static final String MANIFEST_PLACEHOLDERS = "mMmanifestPlaceholders";
+  @NonNls public static final String MATCHING_FALLBACKS = "mMatchingFallbacks";
+  @NonNls public static final String MULTI_DEX_ENABLED = "mMultiDexEnabled";
+  @NonNls public static final String MULTI_DEX_KEEP_FILE = "mMultiDexKeepFile";
+  @NonNls public static final String MULTI_DEX_KEEP_PROGUARD = "mMultiDexKeepProguard";
+  @NonNls public static final String PROGUARD_FILES = "mProguardFiles";
+  @NonNls public static final String RES_VALUE = "mResValue";
+  @NonNls public static final String SIGNING_CONFIG = "mSigningConfig";
+  @NonNls public static final String USE_JACK = "mUseJack";
+  @NonNls public static final String VERSION_NAME_SUFFIX = "mVersionNameSuffix";
 
   public FlavorTypeModelImpl(@NotNull AbstractFlavorTypeDslElement dslElement) {
     super(dslElement);
