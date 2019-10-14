@@ -44,6 +44,13 @@ public class ConfigureDynamicFeatureStepFixture<W extends AbstractWizardFixture>
   }
 
   @NotNull
+  public ConfigureDynamicFeatureStepFixture<W> enterPackageName(@NotNull String text) {
+    JTextComponent textField = findTextFieldWithLabel("Package name");
+    replaceText(textField, text);
+    return this;
+  }
+
+  @NotNull
   public ConfigureDynamicFeatureStepFixture<W> selectBaseApplication(@NotNull String baseName) {
    JComboBoxFixture apiLevelComboBox =
       new JComboBoxFixture(robot(), robot().finder().findByName(target(), "baseComboBox", JComboBox.class));
