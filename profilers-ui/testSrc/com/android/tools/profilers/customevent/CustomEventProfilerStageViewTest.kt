@@ -16,9 +16,9 @@
 package com.android.tools.profilers.customevent
 
 import com.android.tools.adtui.AxisComponent
-import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.trackgroup.TrackGroupListPanel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
@@ -30,7 +30,7 @@ import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
-import javax.swing.JPanel
+import javax.swing.JList
 
 class CustomEventProfilerStageViewTest {
 
@@ -57,7 +57,7 @@ class CustomEventProfilerStageViewTest {
   fun trackGroupListIsCreated() {
     val stageView = CustomEventProfilerStageView(view, stage)
     stage.enter()
-    assertThat(stageView.trackGroupList.componentCount).isEqualTo(1)
+    assertThat(stageView.trackGroupList).isInstanceOf(TrackGroupListPanel::class.java)
   }
 
   @Test
@@ -66,21 +66,14 @@ class CustomEventProfilerStageViewTest {
   }
 
   @Test
-  fun testTooltipComponentIsFirstChild() {
-    val customEventProfilerStageView = view.stageView as CustomEventProfilerStageView
-    val treeWalker = TreeWalker(customEventProfilerStageView.component)
-    val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)[0]
-    assertThat(tooltipComponent.parent.components[0]).isEqualTo(tooltipComponent)
-  }
-
-  @Test
   fun testExpectedUIComponents() {
     //Test that the stage view has the following expected components: JList of all the tracks, the timeline, and the scrollbar
     val customEventProfilerStageView = view.stageView as CustomEventProfilerStageView
     val treeWalker = TreeWalker(customEventProfilerStageView.component)
 
-    //track list
-    assertThat(customEventProfilerStageView.component.components.contains(customEventProfilerStageView.trackGroupList))
+    //track lists
+    val trackList = treeWalker.descendants().filterIsInstance(JList::class.java)
+    assertThat(trackList.size).isEqualTo(2)
 
     //timeline
     val timeline = treeWalker.descendants().filterIsInstance(AxisComponent::class.java)

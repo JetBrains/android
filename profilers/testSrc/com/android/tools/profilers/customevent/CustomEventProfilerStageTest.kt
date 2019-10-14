@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -41,13 +42,28 @@ class CustomEventProfilerStageTest {
     val stage = CustomEventProfilerStage(profilers)
     profilers.stage = stage
     stage.enter()
-    assertThat(stage.trackGroupModels.size).isEqualTo(1)
+    assertThat(stage.trackGroupModels.size).isEqualTo(2)
     val interactionTrackGroup = stage.trackGroupModels[0]
-    assertThat(interactionTrackGroup.title).isEqualTo("Custom Events")
-    assertThat(interactionTrackGroup.size).isEqualTo(0)
+    assertThat(interactionTrackGroup.title).isEqualTo("Interaction")
+    assertThat(interactionTrackGroup.size).isEqualTo(2)
+    val customEventsTrackGroup = stage.trackGroupModels[1]
+    assertThat(customEventsTrackGroup.title).isEqualTo("Custom Events")
+    assertThat(customEventsTrackGroup.size).isEqualTo(0)
 
   }
 
+  @Test
+  fun testInteractionTrackGroup() {
+    val stage = CustomEventProfilerStage(profilers)
+    profilers.stage = stage
+    stage.enter()
+
+    assertThat(stage.trackGroupModels).isNotEmpty();
+    assertThat(stage.trackGroupModels[0].size).isEqualTo(2)
+    assertThat(stage.trackGroupModels[0][0].rendererType).isEqualTo(ProfilerTrackRendererType.USER_INTERACTION)
+    assertThat(stage.trackGroupModels[0][1].rendererType).isEqualTo(ProfilerTrackRendererType.APP_LIFECYCLE)
+
+  }
   @Test
   fun testInitTrackModels() {
     val stage = CustomEventProfilerStage(profilers)
@@ -56,8 +72,8 @@ class CustomEventProfilerStageTest {
     stage.eventNames.add("test2")
     stage.enter()
 
-    assertThat(stage.trackGroupModels.size).isEqualTo(1)
-    val trackGroup1 = stage.trackGroupModels[0]
+    assertThat(stage.trackGroupModels.size).isEqualTo(2)
+    val trackGroup1 = stage.trackGroupModels[1]
 
     assertThat(trackGroup1.size()).isEqualTo(2)
 
