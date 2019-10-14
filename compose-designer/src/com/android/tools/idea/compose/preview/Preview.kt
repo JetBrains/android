@@ -272,7 +272,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
    */
   var previewElements: List<PreviewElement> = emptyList()
 
-  var isRefreshingPreview = false
+  var isRefreshingPreview = true
 
   /**
    * Callback called after refresh has happened
@@ -496,6 +496,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
   override fun refresh() {
+    isRefreshingPreview = true
     val filePreviewElements = previewProvider()
 
     if (filePreviewElements == previewElements) {
