@@ -1032,4 +1032,84 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       )
     )
   }
+
+  fun testParsingSingleAsterisk() {
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+            PsiElement(FLAG)('-keep')
+            ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+              ProguardR8AnnotationNameImpl(ANNOTATION_NAME)
+                PsiElement(@)('@')
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER_WITH_WILDCARDS)('**')
+                  PsiElement(dot)('.')
+                  PsiElement(JAVA_IDENTIFIER)('RunWith')
+              ProguardR8ClassTypeImpl(CLASS_TYPE)
+                PsiElement(class)('class')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(asterisk)('*')
+            ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+              PsiElement(opening brace)('{')
+              ProguardR8JavaRuleImpl(JAVA_RULE)
+                ProguardR8FieldsSpecificationImpl(FIELDS_SPECIFICATION)
+                  ProguardR8FieldImpl(FIELD)
+                    ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
+                      PsiElement(asterisk)('*')
+              PsiElement(semicolon)(';')
+              PsiElement(closing brace)('}')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        -keep @**.RunWith class * { *; }
+        """.trimIndent()
+      )
+    )
+  }
+
+  fun testAnnotationInSuperClass() {
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+            PsiElement(FLAG)('-keep')
+            ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+              ProguardR8ClassTypeImpl(CLASS_TYPE)
+                PsiElement(class)('class')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER_WITH_WILDCARDS)('**')
+              PsiElement(implements)('implements')
+              ProguardR8AnnotationNameImpl(ANNOTATION_NAME)
+                PsiElement(@)('@')
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER)('shaking3')
+                  PsiElement(dot)('.')
+                  PsiElement(JAVA_IDENTIFIER)('SubtypeUsedByReflection')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER_WITH_WILDCARDS)('**')
+            ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+              PsiElement(opening brace)('{')
+              ProguardR8JavaRuleImpl(JAVA_RULE)
+                ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
+                  PsiElement(<init>)('<init>')
+                  ProguardR8ParametersImpl(PARAMETERS)
+                    PsiElement(left parenthesis)('(')
+                    PsiElement(...)('...')
+                    PsiElement(right parenthesis)(')')
+              PsiElement(semicolon)(';')
+              PsiElement(closing brace)('}')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        -keep class ** implements @shaking3.SubtypeUsedByReflection ** {
+          <init>(...);
+        }
+        """.trimIndent()
+      )
+    )
+  }
 }
