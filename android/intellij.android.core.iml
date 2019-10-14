@@ -7,6 +7,10 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" generated="true" />
     </content>
+    <content url="file://$MODULE_DIR$/../android-lang-databinding">
+      <sourceFolder url="file://$MODULE_DIR$/../android-lang-databinding/gen" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../android-lang-databinding/src" isTestSource="false" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="freemarker" level="project" />
@@ -95,10 +99,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.repository" />
     <orderEntry type="library" name="jna" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.db-baseLibrary" />
-    <orderEntry type="module" module-name="android.sdktools.db-baseLibrarySupport" />
-    <orderEntry type="module" module-name="android.sdktools.db-compilerCommon" />
-    <orderEntry type="module" module-name="android.sdktools.db-compiler" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="intellij.gradle" />
@@ -151,8 +151,8 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" name="org.jetbrains.intellij.deps.android.tools:nosyncbuilder" level="project" />
+    <orderEntry type="library" name="analytics-proto" level="project" />
+    <orderEntry type="library" name="nosyncbuilder" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="android.sdktools.deployer" />
     <orderEntry type="library" name="HdrHistogram" level="project" />
@@ -165,7 +165,6 @@
     <orderEntry type="module" module-name="intellij.android.resources-aar" />
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="batik-transcoder" level="project" />
-    <orderEntry type="module" module-name="intellij.android.lang-databinding" />
     <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
   </component>
 </module>
