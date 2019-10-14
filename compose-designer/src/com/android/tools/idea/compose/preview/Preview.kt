@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.actions.IssueNotificationAction
@@ -75,6 +76,7 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
+import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -569,7 +571,12 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       .map { it.preview }
       .singleOrNull()
 
-  // TODO(http://b/140948062): needs icon
+  private inner class ViewOptionsAction : DropDownAction(message("action.view.options.title"), null, StudioIcons.Common.VISIBILITY_INLINE) {
+    init {
+      add(ToggleShowDecorationAction())
+    }
+  }
+
   private inner class ToggleShowDecorationAction :
     ToggleAction(message("action.show.decorations.title"), message("action.show.decorations.description"), null) {
 
@@ -587,8 +594,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   }
 
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(listOf(
-    ForceCompileAndRefreshAction(),
-    ToggleShowDecorationAction()
+    ViewOptionsAction(),
+    ForceCompileAndRefreshAction()
   ))
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
