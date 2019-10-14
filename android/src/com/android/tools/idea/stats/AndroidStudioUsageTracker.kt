@@ -20,8 +20,13 @@ import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.base.Strings
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
+import com.google.wireless.android.sdk.stats.ComposeSampleEvent
+import com.google.wireless.android.sdk.stats.ComposeSampleEvent.ComposeSampleEventType
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DisplayDetails
 import com.google.wireless.android.sdk.stats.IdePlugin
@@ -38,17 +43,22 @@ import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.editor.actionSystem.LatencyListener
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
+import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.ArrayList
 import java.util.Locale
+import java.util.Objects
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -151,7 +161,7 @@ object AndroidStudioUsageTracker {
 
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.IDE_PLUGIN_INFO)
+        .setKind(EventKind.IDE_PLUGIN_INFO)
         .setIdePluginInfo(pluginInfoProto))
   }
 
@@ -159,7 +169,7 @@ object AndroidStudioUsageTracker {
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
         .setCategory(AndroidStudioEvent.EventCategory.PING)
-        .setKind(AndroidStudioEvent.EventKind.STUDIO_PING)
+        .setKind(EventKind.STUDIO_PING)
         .setProductDetails(productDetails)
         .setMachineDetails(getMachineDetails(File(PathManager.getHomePath())))
         .setJvmDetails(CommonMetricsData.jvmDetails))
@@ -190,7 +200,7 @@ object AndroidStudioUsageTracker {
       dialog.showAndGetOk().doWhenDone(Runnable {
         val result = dialog.selectedSentiment
         UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
-          kind = AndroidStudioEvent.EventKind.USER_SENTIMENT
+          kind = EventKind.USER_SENTIMENT
           userSentiment = UserSentiment.newBuilder().apply {
             state = UserSentiment.SentimentState.POPUP_QUESTION
             level = result
@@ -209,7 +219,7 @@ object AndroidStudioUsageTracker {
   private fun runHourlyReports() {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                        .setCategory(AndroidStudioEvent.EventCategory.SYSTEM)
-                       .setKind(AndroidStudioEvent.EventKind.STUDIO_PROCESS_STATS)
+                       .setKind(EventKind.STUDIO_PROCESS_STATS)
                        .setJavaProcessStats(CommonMetricsData.javaProcessStats))
 
     TypingLatencyTracker.reportTypingLatency()
@@ -290,7 +300,7 @@ object AndroidStudioUsageTracker {
     override fun beforeProjectLoaded(project: Project) {
       val projectsOpen = ProjectManager.getInstance().openProjects.size
       UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
+                         .setKind(EventKind.STUDIO_PROJECT_OPENED)
                          .setStudioProjectChange(StudioProjectChange.newBuilder()
                                                    .setProjectsOpen(projectsOpen)))
 
@@ -300,7 +310,7 @@ object AndroidStudioUsageTracker {
     override fun afterProjectClosed(project: Project) {
       val projectsOpen = ProjectManager.getInstance().openProjects.size
       UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_CLOSED)
+                         .setKind(EventKind.STUDIO_PROJECT_CLOSED)
                          .setStudioProjectChange(StudioProjectChange.newBuilder()
                                                    .setProjectsOpen(projectsOpen)))
 
@@ -310,6 +320,26 @@ object AndroidStudioUsageTracker {
     override fun projectComponentsInitialized(project: Project) {
       val service = ToolWindowTrackerService.getInstance(project)
       ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(service, project)
+
+      // Track usage of Compose Jetnews sample
+      StartupManager.getInstance(project)?.registerPostStartupActivity {
+        val moduleManager = ModuleManager.getInstance(project) ?: return@registerPostStartupActivity
+
+        val match = moduleManager.modules.asSequence()
+          .filter { module -> AndroidFacet.getInstance(module) != null }
+          .map { Module::getModuleSystem }
+          .map { AndroidModuleSystem::getPackageName }
+          .any { packageName -> Objects.equals(packageName, "com.example.jetnews") }
+
+        if (!match) {
+          return@registerPostStartupActivity
+        }
+
+        UsageTracker.log(AndroidStudioEvent.newBuilder()
+                           .setKind(EventKind.COMPOSE_SAMPLE_EVENT)
+                           .setComposeSampleEvent(ComposeSampleEvent.newBuilder()
+                                                    .setType(ComposeSampleEventType.OPEN)))
+      }
     }
   }
 }
