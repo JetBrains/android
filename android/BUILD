@@ -395,7 +395,7 @@ filegroup(
     name = "layout-inspector-artifacts",
     srcs = [
         "//tools/base/dynamic-layout-inspector:skia-grpc-server",
-        "//tools/base/dynamic-layout-inspector/proto:java_proto",
+        "//tools/base/dynamic-layout-inspector/proto:layout_inspector_java_proto",
     ],
     visibility = ["//visibility:public"],
 )
