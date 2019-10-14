@@ -15,24 +15,34 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.util.SystemInfo;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-
 /**
- * This is to be shown as the first HAXM Wizard step just to inform the user that
- * HAXM uninstallation is about to start. It is here just to make sure we don't
- * run uninstallation operations straight away as the first wizard step, as this
+ * This is to be shown as the first GVM Wizard step just to inform the user that
+ * GVM installation is about to start. It is here just to make sure we don't
+ * run installation operations straight away as the first wizard step, as this
  * would not be in line with common wizard conventions
- * @deprecated use {@link com.android.tools.idea.welcome.wizard.HaxmUninstallInfoStep}
  */
-public class HaxmUninstallInfoStep extends FirstRunWizardStep {
+@Deprecated
+public class GvmInstallInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
+  private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
 
-  public HaxmUninstallInfoStep() {
-    super("Uninstalling HAXM");
+  public GvmInstallInfoStep(@NotNull ScopedStateStore.Key<Boolean> keyCustomInstall) {
+    super("Installing Android Emulator Hypervisor Driver for AMD Processors");
+    myKeyCustomInstall = keyCustomInstall;
     setComponent(myRoot);
+  }
+
+  @Override
+  public boolean isStepVisible() {
+    return SystemInfo.isWindows && Boolean.TRUE.equals(myState.get(myKeyCustomInstall));
   }
 
   @Override
@@ -49,8 +59,4 @@ public class HaxmUninstallInfoStep extends FirstRunWizardStep {
     return myRoot;
   }
 
-  @Override
-  public boolean isStepVisible() {
-    return SystemInfo.isMac || SystemInfo.isWindows;
-  }
 }

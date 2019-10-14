@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.INSTALL_GVM;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.REINSTALL_GVM;
+
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.sdk.wizard.HaxmWizard;
+import com.android.tools.idea.sdk.wizard.VmWizard;
+import com.android.tools.idea.welcome.install.VmType;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
@@ -33,11 +37,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtilRt;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Solution strings used in {@link AccelerationErrorCode}, and associated Runnables to fix them.
@@ -88,7 +91,9 @@ public class AccelerationErrorSolution {
     INSTALL_KVM("Install KVM"),
     INSTALL_HAXM("Install Haxm"),
     REINSTALL_HAXM("Reinstall Haxm"),
-    TURNOFF_HYPER_V("Turn off Hyper-V");
+    TURNOFF_HYPER_V("Turn off Hyper-V"),
+    INSTALL_GVM("Install Android Emulator Hypervisor Driver for AMD Processors"),
+    REINSTALL_GVM("Reinstall Android Emulator Hypervisor Driver for AMD Processors");
 
     private final String myDescription;
 
@@ -208,9 +213,12 @@ public class AccelerationErrorSolution {
 
       case INSTALL_HAXM:
       case REINSTALL_HAXM:
+      case INSTALL_GVM:
+      case REINSTALL_GVM:
+        final VmType type = myError.getSolution() == INSTALL_GVM || myError.getSolution() == REINSTALL_GVM ? VmType.GVM : VmType.HAXM;
         return () -> {
           try {
-            HaxmWizard wizard = new HaxmWizard(false);
+            VmWizard wizard = new VmWizard(false, type);
             wizard.init();
             myChangesMade = wizard.showAndGet();
           }
@@ -218,7 +226,6 @@ public class AccelerationErrorSolution {
             reportBack();
           }
         };
-
       case TURNOFF_HYPER_V:
         return () -> {
           try {
@@ -262,7 +269,7 @@ public class AccelerationErrorSolution {
    */
   public static void promptAndReboot(@NotNull String prompt) throws ExecutionException {
     int response = Messages
-      .showOkCancelDialog((Project)null, prompt, "Reboot Now", Messages.getQuestionIcon());
+      .showOkCancelDialog((Project)null, prompt, "Reboot Now", "Reboot", "Cancel", Messages.getQuestionIcon());
     if (response == Messages.OK) {
       GeneralCommandLine reboot = new ElevatedCommandLine();
       reboot.setExePath("shutdown");
