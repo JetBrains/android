@@ -242,10 +242,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     parent: GradlePropertiesDslElement,
     name: GradleNameElement? = null): GradlePropertiesDslElement? {
     val blockName = methodCallBlockName(expression) ?: return null
-    val blockElement = dslFile.getBlockElement(listOf(blockName), this, parent, name) ?: return null
+    val blockElement = getBlockElement(listOf(blockName), parent, name) ?: return null
     if (blockElement is AbstractFlavorTypeDslElement) {
       // TODO(xof): this way of keeping track of how we got hold of the block (which method name) only works once
-      blockElement.setMethodName(expression.name())
+      blockElement.methodName = expression.name()
     }
     if (blockElement is SigningConfigDslElement) {
       blockElement.methodName = expression.name()
@@ -280,7 +280,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         // Then the block should be applied to subprojects.
         referenceName = "subprojects"
       }
-      val blockElement = methodCallBlock(expression, parent, name) ?: dslFile.getBlockElement(listOf(referenceName), this, parent, name) ?: return
+      val blockElement = methodCallBlock(expression, parent, name) ?: getBlockElement(listOf(referenceName), parent, name) ?: return
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
 
       blockElement.setPsiElement(argumentsBlock)
@@ -318,11 +318,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     fun parentBlockFromReceiver(receiver: KtExpression): GradlePropertiesDslElement? {
       var current = parent
       receiver.accept(object : KtTreeVisitorVoid() {
-        // TODO(xof): need to handle android.getByName("buildTypes").release { ... }
         override fun visitReferenceExpression(expression: KtReferenceExpression) {
           when (expression) {
             is KtNameReferenceExpression -> {
-              current = dslFile.getBlockElement(listOf(expression.text), this@KotlinDslParser, current) ?: return
+              current = getBlockElement(listOf(expression.text), current, null) ?: return
             }
             else -> Unit
           }
@@ -336,8 +335,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
     // android.buildTypes.release { minify_enabled true }
     val receiver = expression.receiverExpression
-    val selector = expression.selectorExpression
-    when (selector) {
+    when (val selector = expression.selectorExpression) {
       is KtCallExpression -> {
         val parentBlock = parentBlockFromReceiver(receiver)
         if (parentBlock == null) {
@@ -350,7 +348,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }
   }
 
-  fun getDotQualifiedExpression(
+  private fun getDotQualifiedExpression(
     parent: GradleDslElement,
     expression: KtDotQualifiedExpression,
     name: GradleNameElement) : GradleDslExpression? {
