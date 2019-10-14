@@ -265,7 +265,7 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // annotation_name? class_modifier* class_type class_name ((extends|implements) annotation_name? class_name)?
+  // annotation_name? class_modifier* class_type class_name (',' class_name)* ((extends|implements) annotation_name? class_name (',' class_name)*)?
   public static boolean class_specification_header(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_specification_header")) return false;
     boolean result, pinned;
@@ -275,7 +275,8 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     result = result && class_type(builder, level + 1);
     pinned = result; // pin = class_type
     result = result && report_error_(builder, class_name(builder, level + 1));
-    result = pinned && class_specification_header_4(builder, level + 1) && result;
+    result = pinned && report_error_(builder, class_specification_header_4(builder, level + 1)) && result;
+    result = pinned && class_specification_header_5(builder, level + 1) && result;
     exit_section_(builder, level, marker, result, pinned, ProguardR8Parser::not_open_brace_or_new_flag);
     return result || pinned;
   }
@@ -298,28 +299,51 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // ((extends|implements) annotation_name? class_name)?
+  // (',' class_name)*
   private static boolean class_specification_header_4(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_specification_header_4")) return false;
-    class_specification_header_4_0(builder, level + 1);
+    while (true) {
+      int pos = current_position_(builder);
+      if (!class_specification_header_4_0(builder, level + 1)) break;
+      if (!empty_element_parsed_guard_(builder, "class_specification_header_4", pos)) break;
+    }
     return true;
   }
 
-  // (extends|implements) annotation_name? class_name
+  // ',' class_name
   private static boolean class_specification_header_4_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_specification_header_4_0")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = class_specification_header_4_0_0(builder, level + 1);
-    result = result && class_specification_header_4_0_1(builder, level + 1);
+    result = consumeToken(builder, COMMA);
     result = result && class_name(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
   }
 
+  // ((extends|implements) annotation_name? class_name (',' class_name)*)?
+  private static boolean class_specification_header_5(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "class_specification_header_5")) return false;
+    class_specification_header_5_0(builder, level + 1);
+    return true;
+  }
+
+  // (extends|implements) annotation_name? class_name (',' class_name)*
+  private static boolean class_specification_header_5_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "class_specification_header_5_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = class_specification_header_5_0_0(builder, level + 1);
+    result = result && class_specification_header_5_0_1(builder, level + 1);
+    result = result && class_name(builder, level + 1);
+    result = result && class_specification_header_5_0_3(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
   // extends|implements
-  private static boolean class_specification_header_4_0_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "class_specification_header_4_0_0")) return false;
+  private static boolean class_specification_header_5_0_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "class_specification_header_5_0_0")) return false;
     boolean result;
     result = consumeToken(builder, EXTENDS);
     if (!result) result = consumeToken(builder, IMPLEMENTS);
@@ -327,10 +351,32 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   // annotation_name?
-  private static boolean class_specification_header_4_0_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "class_specification_header_4_0_1")) return false;
+  private static boolean class_specification_header_5_0_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "class_specification_header_5_0_1")) return false;
     annotation_name(builder, level + 1);
     return true;
+  }
+
+  // (',' class_name)*
+  private static boolean class_specification_header_5_0_3(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "class_specification_header_5_0_3")) return false;
+    while (true) {
+      int pos = current_position_(builder);
+      if (!class_specification_header_5_0_3_0(builder, level + 1)) break;
+      if (!empty_element_parsed_guard_(builder, "class_specification_header_5_0_3", pos)) break;
+    }
+    return true;
+  }
+
+  // ',' class_name
+  private static boolean class_specification_header_5_0_3_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "class_specification_header_5_0_3_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, COMMA);
+    result = result && class_name(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
   }
 
   /* ********************************************************** */
@@ -707,7 +753,7 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '@'file_
+  // '@' file_
   public static boolean include_file(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "include_file")) return false;
     if (!nextTokenIs(builder, AT)) return false;
