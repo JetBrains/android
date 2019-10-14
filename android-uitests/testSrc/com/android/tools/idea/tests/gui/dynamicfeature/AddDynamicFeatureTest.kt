@@ -424,6 +424,7 @@ class AddDynamicFeatureTest {
       .clickNextToDynamicFeature()
       .setSourceLanguage(lang)
       .enterFeatureModuleName("MyDynamicFeature")
+      .enterPackageName("com.example.mydynamicfeature")
       .selectBaseApplication("app")
       .selectMinimumSdkApi("26")
       .clickNextToConfigureConditionalDelivery()
@@ -442,7 +443,7 @@ class AddDynamicFeatureTest {
     val fileName = "MyDynamicFeature/src/androidTest/java/com/example/mydynamicfeature/ExampleInstrumentedTest.${lang.extension}"
     assertThat(ideFrame.findFileByRelativePath(fileName)).isNotNull()
 
-    return ideFrame;
+    return ideFrame
   }
 
   private fun createInstantDynamicModuleWithFusing(ideFrame: IdeFrameFixture): IdeFrameFixture {

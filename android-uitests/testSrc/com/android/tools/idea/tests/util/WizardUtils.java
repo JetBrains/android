@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.util;
 import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -35,6 +36,10 @@ public final class WizardUtils {
   }
 
   public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity) {
+    createNewProject(guiTest, activity, JAVA);
+  }
+
+  public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity, @NotNull Language language) {
     guiTest
       .welcomeFrame()
       .createNewProject()
@@ -43,7 +48,8 @@ public final class WizardUtils {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage(JAVA)
+      .selectMinimumSdkApi("23")
+      .setSourceLanguage(language)
       .enterPackageName("com.google.myapplication")
       .wizard()
       .clickFinish();
