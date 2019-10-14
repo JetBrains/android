@@ -35,7 +35,7 @@ internal class ModelNameLayer(private val myScreenView: ScreenViewBase) : Layer(
       g2d.clip(myCachedRectangle)
       g2d.color = JBColor.foreground()
 
-      val font = g2d.font
+      val font = myScreenView.labelFont
       val fontHeight = g2d.getFontMetrics(font).height
 
       val x = myScreenView.x
