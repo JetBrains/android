@@ -245,10 +245,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     val blockElement = getBlockElement(listOf(blockName), parent, name) ?: return null
     if (blockElement is AbstractFlavorTypeDslElement) {
       // TODO(xof): this way of keeping track of how we got hold of the block (which method name) only works once
-      blockElement.methodName = expression.name()
+      blockElement.methodName = blockElement.methodName ?: expression.name()
     }
     if (blockElement is SigningConfigDslElement) {
-      blockElement.methodName = expression.name()
+      blockElement.methodName = blockElement.methodName ?: expression.name()
     }
     return blockElement
   }
