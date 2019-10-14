@@ -38,7 +38,7 @@ class AddBenchmarkModuleTest {
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
    * 3. Choose Benchmark Module and click next.
-   * 4. Select Java as the source lanaguage.
+   * 4. Select Java as the source language.
    * 5. Complete the wizard and wait for the build to complete.
    * Verify:
    * 1. The new Benchmark Module is shown in the project explorer pane.
@@ -87,7 +87,7 @@ class AddBenchmarkModuleTest {
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
    * 3. Choose Benchmark Module and click next.
-   * 4. Select Kotlin as the source lanaguage.
+   * 4. Select Kotlin as the source language.
    * 5. Complete the wizard and wait for the build to complete.
    * Verify:
    * 1. The new Benchmark Module is shown in the project explorer pane.
