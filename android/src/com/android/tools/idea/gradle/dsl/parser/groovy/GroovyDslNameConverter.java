@@ -19,9 +19,11 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
 import java.util.Map;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class GroovyDslNameConverter implements GradleDslNameConverter {
@@ -40,10 +42,10 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
   @Override
   public String externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
-    ImmutableMap<String, String> map = context.getExternalToModelMap(this);
-    for (Map.Entry<String, String> e : map.entrySet()) {
-      if (e.getValue().equals(modelName)) {
-        return e.getKey();
+    ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> map = context.getExternalToModelMap(this);
+    for (Map.Entry<Pair<String,Integer>, Pair<String,SemanticsDescription>> e : map.entrySet()) {
+      if (e.getValue().getFirst().equals(modelName)) {
+        return e.getKey().getFirst();
       }
     }
     return modelName;
@@ -57,6 +59,12 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
              "." +
              modelNameForParent(externalName.substring(externalName.lastIndexOf(".") + 1), context);
     }
-    return context.getExternalToModelMap(this).getOrDefault(externalName, externalName);
+    ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> map = context.getExternalToModelMap(this);
+    for (Map.Entry<Pair<String,Integer>, Pair<String,SemanticsDescription>> e : map.entrySet()) {
+      if (e.getKey().getFirst().equals(externalName)) {
+        return e.getValue().getFirst();
+      }
+    }
+    return externalName;
   }
 }

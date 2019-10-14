@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
@@ -24,53 +27,71 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainEle
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement implements GradleDslNamedDomainElement {
 
   @NotNull
-  private static final ImmutableMap<String, String> ktsToModelNameMap = Stream.concat(
-    AbstractFlavorTypeDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new String[]{data.getKey(), data.getValue()}),
-    Stream.of(new String[][]{
-      {"isDebuggable", DEBUGGABLE},
-      {"isEmbedMicroApp", EMBED_MICRO_APP},
-      {"isJniDebuggable", JNI_DEBUGGABLE},
-      {"isMinifyEnabled", MINIFY_ENABLED},
-      {"isPseudoLocalesEnabled", PSEUDO_LOCALES_ENABLED},
-      {"isRenderscriptDebuggable", RENDERSCRIPT_DEBUGGABLE},
-      {"renderscriptOptimLevel", RENDERSCRIPT_OPTIM_LEVEL},
-      {"isShrinkResources", SHRINK_RESOURCES},
-      {"isTestCoverageEnabled", TEST_COVERAGE_ENABLED},
-      {"isZipAlignEnabled", ZIP_ALIGN_ENABLED}
+  private static final ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.concat(
+    AbstractFlavorTypeDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new Object[]{
+      data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+    }),
+    Stream.of(new Object[][]{
+      {"isDebuggable", property, DEBUGGABLE, VAR},
+      {"isEmbedMicroApp", property, EMBED_MICRO_APP, VAR},
+      {"isJniDebuggable", property, JNI_DEBUGGABLE, VAR},
+      {"isMinifyEnabled", property, MINIFY_ENABLED, VAR},
+      {"isPseudoLocalesEnabled", property, PSEUDO_LOCALES_ENABLED, VAR},
+      {"isRenderscriptDebuggable", property, RENDERSCRIPT_DEBUGGABLE, VAR},
+      {"renderscriptOptimLevel", property, RENDERSCRIPT_OPTIM_LEVEL, VAR},
+      {"isShrinkResources", property, SHRINK_RESOURCES, VAR},
+      {"isTestCoverageEnabled", property, TEST_COVERAGE_ENABLED, VAR},
+      {"isZipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR}
     }))
-    .collect(toImmutableMap(data -> data[0], data -> data[1]));
+    .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
 
   @NotNull
-  private static final ImmutableMap<String, String> groovyToModelNameMap = Stream.concat(
-    AbstractFlavorTypeDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new String[]{data.getKey(), data.getValue()}),
-    Stream.of(new String[][]{
-      {"debuggable", DEBUGGABLE},
-      {"embedMicroApp", EMBED_MICRO_APP},
-      {"jniDebuggable", JNI_DEBUGGABLE},
-      {"minifyEnabled", MINIFY_ENABLED},
-      {"pseudoLocalesEnabled", PSEUDO_LOCALES_ENABLED},
-      {"renderscriptDebuggable", RENDERSCRIPT_DEBUGGABLE},
-      {"renderscriptOptimLevel", RENDERSCRIPT_OPTIM_LEVEL},
-      {"shrinkResources", SHRINK_RESOURCES},
-      {"testCoverageEnabled", TEST_COVERAGE_ENABLED},
-      {"zipAlignEnabled", ZIP_ALIGN_ENABLED}
+  private static final ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>> groovyToModelNameMap = Stream.concat(
+    AbstractFlavorTypeDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new Object[]{
+      data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+    }),
+    Stream.of(new Object[][]{
+      {"debuggable", property, DEBUGGABLE, VAR},
+      {"debuggable", exactly(1), DEBUGGABLE, SET},
+      {"embedMicroApp", property, EMBED_MICRO_APP, VAR},
+      {"embedMicroApp", exactly(1), EMBED_MICRO_APP, SET},
+      {"jniDebuggable", property, JNI_DEBUGGABLE, VAR},
+      {"jniDebuggable", exactly(1), JNI_DEBUGGABLE, SET},
+      {"minifyEnabled", property, MINIFY_ENABLED, VAR},
+      {"minifyEnabled", exactly(1), MINIFY_ENABLED, SET},
+      {"pseudoLocalesEnabled", property, PSEUDO_LOCALES_ENABLED, VAR},
+      {"pseudoLocalesEnabled", exactly(1), PSEUDO_LOCALES_ENABLED, SET},
+      {"renderscriptDebuggable", property, RENDERSCRIPT_DEBUGGABLE, VAR},
+      {"renderscriptDebuggable", exactly(1), RENDERSCRIPT_DEBUGGABLE, SET},
+      {"renderscriptOptimLevel", property, RENDERSCRIPT_OPTIM_LEVEL, VAR},
+      {"renderscriptOptimLevel", exactly(1), RENDERSCRIPT_OPTIM_LEVEL, SET},
+      {"shrinkResources", property, SHRINK_RESOURCES, VAR},
+      {"shrinkResources", exactly(1), SHRINK_RESOURCES, SET},
+      {"testCoverageEnabled", property, TEST_COVERAGE_ENABLED, VAR},
+      {"testCoverageEnabled", exactly(1), TEST_COVERAGE_ENABLED, SET},
+      {"zipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
+      {"zipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET}
     }))
-    .collect(toImmutableMap(data -> data[0], data -> data[1]));
+    .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
 
   @Nullable
   private String methodName;
 
   @Override
   @NotNull
-  public ImmutableMap<String, String> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }
