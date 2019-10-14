@@ -397,6 +397,35 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(header.resolvePsiClasses()).containsExactly(myClass, superClass)
   }
 
+  fun testResolveToMultiplePsiClasses() {
+    val class1 = myFixture.addClass(
+      """
+      package p1.p2
+
+      class MyClass1 {}
+    """.trimIndent()
+    )
+
+    val class2 = myFixture.addClass(
+      """
+      package p1.p2
+
+      class MyClass2 {}
+    """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+          -keep class $caret p1.p2.MyClass1, p1.p2.MyClass2 
+      """.trimIndent()
+    )
+
+    val header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
+    assertThat(header.resolvePsiClasses()).containsExactly(class1, class2)
+    assertThat(header.resolvePsiClasses().map { it.qualifiedName }).containsExactly("p1.p2.MyClass1", "p1.p2.MyClass2")
+  }
+
   fun testGetTypeForMethod() {
 
     myFixture.configureByText(
