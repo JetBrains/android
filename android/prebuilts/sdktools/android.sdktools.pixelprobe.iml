@@ -3,8 +3,6 @@
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="true">
     <exclude-output />
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="module" module-name="android.sdktools.chunkio" />
-    <orderEntry type="module" module-name="android.sdktools.chunkio-processor" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
