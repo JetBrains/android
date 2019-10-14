@@ -83,7 +83,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   /**
    * vertical gap between different previews
    */
-  @SwingCoordinate private static final int VERTICAL_SCREEN_DELTA = 60;
+  @SwingCoordinate private static final int VERTICAL_SCREEN_DELTA = 48;
 
   private final Project myProject;
   private final NlDesignSurface mySurface;

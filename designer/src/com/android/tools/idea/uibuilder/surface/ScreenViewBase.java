@@ -40,11 +40,6 @@ import org.jetbrains.annotations.Nullable;
  */
 abstract class ScreenViewBase extends SceneView {
 
-  /**
-   * Distance between the bottom bound of model name and top bound of SceneView.
-   */
-  @SwingCoordinate private static final int NAME_LABEL_BOTTOM_MARGIN_PX = 5;
-
   private final ColorSet myColorSet = new AndroidColorSet();
   protected boolean myIsSecondary;
 
