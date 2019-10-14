@@ -77,7 +77,7 @@ public class CustomEventProfilerStage extends Stage {
       eventTrackGroupModel.addTrackModel(
         TrackModel.newBuilder(customEventTrackModel,
                          ProfilerTrackRendererType.CUSTOM_EVENTS,
-                         eventName));
+                         eventName).setHideHeader(true));
     }
   }
 
