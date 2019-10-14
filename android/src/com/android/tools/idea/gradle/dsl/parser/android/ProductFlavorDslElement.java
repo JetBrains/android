@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
@@ -186,5 +187,11 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
     // FIXME(xof): investigate whether any of the addParsedElement() cleverness needs to be implemented in setParsedElement
     super.setParsedElement(element);
     maybeRenameElement(element);
+  }
+
+  @Override
+  public boolean isInsignificantIfEmpty() {
+    // defaultConfig is special in that is can be deleted if it is empty.
+    return myName.name().equals(AndroidModelImpl.DEFAULT_CONFIG);
   }
 }
