@@ -63,6 +63,11 @@ abstract class ScreenViewBase extends SceneView {
     return 0;
   }
 
+  @NotNull
+  public Font getLabelFont() {
+    return myLabelFont;
+  }
+
   /**
    * Returns the current preferred size for the view.
    *
@@ -140,6 +145,6 @@ abstract class ScreenViewBase extends SceneView {
   private static Font createLabelFont() {
     @SuppressWarnings("StaticMethodReferencedViaSubclass") // For coding convention, using UIUtil instead of StartupUiUtil
     Font labelFont = UIUtil.getLabelFont();
-    return labelFont.deriveFont((float) labelFont.getSize());
+    return labelFont.deriveFont(labelFont.getSize() - 1f);
   }
 }
