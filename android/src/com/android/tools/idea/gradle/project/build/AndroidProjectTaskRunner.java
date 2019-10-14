@@ -45,8 +45,8 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
 
     ProjectTaskNotification aggregatedCallback = callback == null ? null : new MergedProjectTaskNotification(callback, 2);
 
-    executeTasks(project, context, REBUILD, moduleBuildTasksMap.get(Boolean.FALSE), aggregatedCallback);
-    executeTasks(project, context, COMPILE_JAVA, moduleBuildTasksMap.get(Boolean.TRUE), aggregatedCallback);
+    executeTasks(project, REBUILD, moduleBuildTasksMap.get(Boolean.FALSE), aggregatedCallback);
+    executeTasks(project, COMPILE_JAVA, moduleBuildTasksMap.get(Boolean.TRUE), aggregatedCallback);
   }
 
   @Override
@@ -61,7 +61,6 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
   }
 
   private void executeTasks(@NotNull Project project,
-                            @NotNull ProjectTaskContext context,
                             @NotNull BuildMode buildMode,
                             List<ModuleBuildTask> moduleBuildTasks,
                             @Nullable ProjectTaskNotification callback) {
@@ -69,7 +68,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
     if (modules.length == 0) {
       // nothing to build
       if (callback != null) {
-        callback.finished(context, new ProjectTaskResult(false, 0, 0));
+        callback.finished(new ProjectTaskResult(false, 0, 0));
       }
       return;
     }
@@ -77,7 +76,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
     String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(modules[0]);
     if (rootProjectPath == null) {
       if (callback != null) {
-        callback.finished(context, new ProjectTaskResult(false, 1, 0));
+        callback.finished(new ProjectTaskResult(false, 1, 0));
       }
       return;
     }
@@ -110,13 +109,13 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
           @Override
           public void onSuccess(@NotNull ExternalSystemTaskId id) {
             super.onSuccess(id);
-            aggregatedCallback.finished(context, new ProjectTaskResult(false, 0, 0));
+            aggregatedCallback.finished(new ProjectTaskResult(false, 0, 0));
           }
 
           @Override
           public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
             super.onFailure(id, e);
-            aggregatedCallback.finished(context, new ProjectTaskResult(false, 1, 0));
+            aggregatedCallback.finished(new ProjectTaskResult(false, 1, 0));
           }
 
           @Override
@@ -145,7 +144,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
     }
 
     @Override
-    public void finished(@NotNull ProjectTaskContext context, @NotNull ProjectTaskResult executionResult) {
+    public void finished(@NotNull ProjectTaskResult executionResult) {
       int finished = myResultsCounter.incrementAndGet();
       if (executionResult.isAborted()) {
         myAborted = true;
@@ -154,7 +153,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
       myWarnings += executionResult.getWarnings();
 
       if (finished == myExpectedResults) {
-        myCallback.finished(context, new ProjectTaskResult(myAborted, myErrors, myWarnings));
+        myCallback.finished(new ProjectTaskResult(myAborted, myErrors, myWarnings));
       }
     }
   }
