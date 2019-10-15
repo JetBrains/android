@@ -53,6 +53,8 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.ImageIcon
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class ResourceExplorerListViewModelImplTest {
   private val projectRule = AndroidProjectRule.onDisk()
@@ -82,23 +84,30 @@ class ResourceExplorerListViewModelImplTest {
   }
 
   @Test
-  fun getDrawablePreview() {
-    val latch = CountDownLatch(1)
+  fun getDrawablePreviewAndRefresh() {
+    var latch = CountDownLatch(1)
     val pngDrawable = projectRule.getPNGResourceItem()
     val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
     val asset = Asset.fromResourceItem(pngDrawable) as DesignAsset
     val iconSize = 32 // To compensate the 10% margin around the icon
     Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
-    viewModel.assetPreviewManager
-      .getPreviewProvider(ResourceType.DRAWABLE)
-      .getIcon(asset, iconSize, iconSize, { latch.countDown() })
-    Truth.assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue()
+    val emptyIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { latch.countDown() })
+    assertTrue(latch.await(1, TimeUnit.SECONDS))
 
-    val icon = viewModel.assetPreviewManager
-      .getPreviewProvider(ResourceType.DRAWABLE)
-      .getIcon(asset, iconSize, iconSize, { println("CALLBACK") }) as ImageIcon
+    val icon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { /* Do nothing */ }) as ImageIcon
     val image = icon.image as BufferedImage
     ImageDiffUtil.assertImageSimilar(getPNGFile(), image, 0.05)
+
+    // Clear the image cache for the resource
+    latch = CountDownLatch(1)
+    viewModel.clearImageCache(asset)
+    val clearedCacheIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { latch.countDown() }) as ImageIcon
+    assertSame(emptyIcon, clearedCacheIcon) // When cleared, it should return the same instance of an empty icon
+    assertTrue(latch.await(1, TimeUnit.SECONDS))
+
+    val refreshedIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { /* Do nothing */ }) as ImageIcon
+    val refreshedImage = refreshedIcon.image as BufferedImage
+    ImageDiffUtil.assertImageSimilar(getPNGFile().name, image, refreshedImage, 0.05)
   }
 
   @Test
@@ -283,4 +292,7 @@ class ResourceExplorerListViewModelImplTest {
       smallImageCache
     )
   }
+
+  private val ResourceExplorerListViewModel.drawablePreviewManager
+    get() = this.assetPreviewManager.getPreviewProvider(ResourceType.DRAWABLE)
 }

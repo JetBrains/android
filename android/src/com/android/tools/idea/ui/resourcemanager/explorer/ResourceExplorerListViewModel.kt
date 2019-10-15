@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.model.Asset
+import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
@@ -75,6 +76,13 @@ interface ResourceExplorerListViewModel {
   val filterOptions: FilterOptions
 
   val externalActions: Collection<ActionGroup>
+
+  /**
+   * Clears the cached image for the given [DesignAsset].
+   *
+   * Clearing the cached image will indirectly result in a new image being rendered and cached.
+   */
+  fun clearImageCache(asset: DesignAsset)
 
   /**
    * Returns a list of [ResourceSection] with one section per namespace, the first section being the
