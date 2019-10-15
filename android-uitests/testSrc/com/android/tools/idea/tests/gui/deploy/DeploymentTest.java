@@ -37,9 +37,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.ui.RunContentManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.io.IOException;
@@ -49,6 +52,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -243,25 +247,28 @@ public class DeploymentTest {
 
   private void setActiveApk(@NotNull Project project, @NotNull APK apk) throws IOException {
     try {
-      File baseDir = new File(project.getBasePath());
-      File targetApkFile = new File(baseDir, DEPLOY_APK_NAME);
+      VirtualFile baseDir = VfsUtil.findFileByIoFile(new File(project.getBasePath()), true);
+      assertThat(baseDir.isDirectory()).isTrue();
 
-      FileUtilRt.delete(targetApkFile);
-      assertThat(targetApkFile.exists()).isFalse();
+      VirtualFile targetApkFile = VfsUtil.refreshAndFindChild(baseDir, DEPLOY_APK_NAME);
+      if (targetApkFile != null && targetApkFile.exists()) {
+        GuiTask.execute(() -> WriteAction.run(() -> targetApkFile.delete(this)));
+        assertThat(targetApkFile.exists()).isFalse();
+      }
 
       if (apk == APK.NONE) {
         return;
       }
 
-      File apkFile = TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath());
-
-      FileUtilRt.copy(apkFile, targetApkFile);
-      assertThat(targetApkFile.isFile()).isTrue();
+      VirtualFile apkFile = VfsUtil.findFileByIoFile(TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath()), true);
+      VirtualFile targetApkCopy = VfsUtilCore.copyFile(this, apkFile, baseDir, DEPLOY_APK_NAME);
+      assertThat(targetApkCopy.isValid()).isTrue();
     }
     finally {
       // We need to refresh the VFS because we're modifying files here and some listeners may fire
       // at "inappropriate" times if we don't do it now.
       GuiTests.refreshFiles();
+      GuiTests.waitForProjectIndexingToFinish(project);
     }
   }
 }
