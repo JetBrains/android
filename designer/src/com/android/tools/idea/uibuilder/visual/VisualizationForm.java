@@ -38,6 +38,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -143,7 +144,10 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   private JComponent createToolbarPanel() {
     myFileNameLabel = new JLabel();
     ActionGroup group = new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet));
-    myActionToolbar = ActionManager.getInstance().createActionToolbar("VisualizationBar", group, true);
+    // Use ActionPlaces.EDITOR_TOOLBAR as place to update the ui when appearance is changed.
+    // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
+    // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
+    myActionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true);
 
     JComponent toolbarPanel = new AdtPrimaryPanel(new BorderLayout());
     toolbarPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
