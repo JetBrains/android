@@ -409,7 +409,7 @@ public final class StudioFlags {
     "Choose a strategy for selecting the default activity to launch from the merged manifest.",
     "This can be \"BLOCK\" to unconditionally block on a fresh merged manifest, \"STALE\" to use a potentially stale manifest, "
       + "or \"INDEX\" to use the custom Android Manifest index (only select this option if manifest indexing is enabled).",
-    DefaultActivityLocatorStrategy.BLOCK
+    DefaultActivityLocatorStrategy.INDEX
   );
 
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
@@ -823,7 +823,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ANDROID_MANIFEST_INDEX_ENABLED = Flag.create(
     MANIFESTS, "index.enabled", "Enable Android Manifest Indexing",
     "Enables a custom index for pre-parsing your project's AndroidManifest.xml files",
-    false);
+    true);
   //endregion
   private StudioFlags() { }
 }
