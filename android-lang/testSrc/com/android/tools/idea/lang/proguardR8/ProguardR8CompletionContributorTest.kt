@@ -186,9 +186,11 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
     // suggests after another modifier
     assertThat(keys).isNotEmpty()
-    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("public", "private", "protected",
-                                                                    "static", "synchronized", "native", "abstract", "strictfp",
-                                                                    "volatile", "transient", "final")
+    assertThat(keys.map { it.lookupString }.toList()).containsAllOf(
+      "private", "protected",
+      "static", "synchronized", "native", "abstract", "strictfp",
+      "volatile", "transient", "final"
+    )
 
     myFixture.configureByText(ProguardR8FileType.INSTANCE, """
         -keep class * {
@@ -406,14 +408,41 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
     """.trimIndent()
     ).qualifiedName
 
-    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
         -keep class p1.myPackage1.MyClass {
           $caret
-    """.trimIndent()
+        """.trimIndent()
     )
 
     val classes = myFixture.completeBasic()
     assertThat(classes).isNotEmpty()
     assertThat(classes.map { it.lookupString }).containsAllOf("p1", "MyClass2")
+  }
+
+  fun testFilterModifiersInSuggestion() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class p1.myPackage1.MyClass {
+          private $caret
+        """.trimIndent()
+    )
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).doesNotContain("private")
+
+    // Ignore negated modifiers as well.
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class p1.myPackage1.MyClass {
+          !static $caret
+        """.trimIndent()
+    )
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).doesNotContain("static")
   }
 }
