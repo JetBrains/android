@@ -42,7 +42,7 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     """.trimIndent()
 
     myFixture.configureByText("Test.kt", fileContent)
-    assertEquals("Preview methods must be @Composable.",
+    assertEquals("Preview only works with Composable functions.",
                  myFixture.doHighlighting(HighlightSeverity.ERROR).single().description)
   }
 
@@ -71,8 +71,8 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       .map { it.description }
       .toArray(emptyArray())
 
-    assertArrayEquals(arrayOf("Preview methods must not have parameters.",
-                              "Preview methods must not have parameters."),
+    assertArrayEquals(arrayOf("Composable functions with parameters are not supported in Preview.",
+                              "Composable functions with parameters are not supported in Preview."),
                       inspections)
   }
 
@@ -103,6 +103,6 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       .map { it.description }
       .toArray(emptyArray())
 
-    assertEquals("Preview methods must be top level declarations.", inspections.single())
+    assertEquals("Preview must be a top level declarations.", inspections.single())
   }
 }
