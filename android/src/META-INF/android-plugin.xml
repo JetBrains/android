@@ -1004,6 +1004,13 @@
     </action>
   </actions>
 
+  <actions>
+    <action id="ToggleEmulatorWindow" class="com.android.tools.idea.emulator.ToggleEmulatorWindowAction"
+            text="Toggle Emulator Window">
+      <keyboard-shortcut first-keystroke="alt shift e" keymap="$default"/>
+    </action>
+  </actions>
+
   <extensions defaultExtensionNs="com.android.run">
     <deployTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider"/>
   </extensions>
