@@ -156,7 +156,7 @@
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="android.sdktools.deployer" />
     <orderEntry type="library" name="HdrHistogram" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlin-plugin" level="project" />
+    <orderEntry type="library" name="kotlin-plugin" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />
@@ -166,5 +166,6 @@
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="batik-transcoder" level="project" />
     <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
+    <orderEntry type="library" scope="RUNTIME" name="intellij.android.kotlin.idea" level="project" />
   </component>
 </module>
