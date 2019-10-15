@@ -204,6 +204,7 @@ private fun displayInToolWindow(facet: AndroidFacet, toolWindow: ToolWindow) {
   val content = contentManager.factory.createContent(resourceExplorer, null, false)
   Disposer.register(content, resourceExplorer)
   contentManager.addContent(content)
+  content.preferredFocusableComponent = resourceExplorer
   connectListeners(toolWindow, facet.module.project, resourceExplorer)
   ResourceManagerTracking.logPanelOpens()
 }
