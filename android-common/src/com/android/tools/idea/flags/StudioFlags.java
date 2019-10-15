@@ -701,10 +701,6 @@ public final class StudioFlags {
     SYSTEM_HEALTH, "antivirus.metrics.enabled", "Enable antivirus metrics collection",
     "If enabled, metrics about the status of antivirus realtime scanning and excluded directories will be collected",
     true);
-
-  public static final Flag<Boolean> WIN32_DEPRECATION_NOTIFICATION_ENABLED = Flag.create(
-    SYSTEM_HEALTH, "win32.deprecation.notification.enabled", "Enable win32 deprecation notification",
-    "If enabled, a notification will be shown",true);
   //endregion
 
   //region Compose
