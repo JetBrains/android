@@ -32,7 +32,7 @@ class NewResourceValueAction(
   private val type: ResourceType,
   private val facet: AndroidFacet,
   private val createdResourceCallback: (String, ResourceType) -> Unit
-): AnAction("${type.displayName} Value") {
+): AnAction("${type.displayName} Value", "Create a new ${type.displayName} resource value", null) {
 
   override fun actionPerformed(e: AnActionEvent) {
     val dialog = CreateXmlResourceDialog(facet.module,
