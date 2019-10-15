@@ -32,9 +32,11 @@ import static com.intellij.openapi.ui.Messages.CANCEL;
 import static com.intellij.openapi.ui.Messages.NO;
 import static com.intellij.openapi.ui.Messages.YES;
 import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -93,6 +95,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
@@ -404,6 +407,7 @@ public class GradleBuildInvoker {
     try {
       return new ExternalSystemTaskNotificationListenerAdapter() {
         @NotNull private BuildEventDispatcher myBuildEventDispatcher = eventDispatcher;
+        private boolean myBuildFailed = false;
 
         @Override
         public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
@@ -415,14 +419,15 @@ public class GradleBuildInvoker {
 
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
+              myBuildFailed = false;
               // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
               myBuildEventDispatcher.close();
-              // noinspection resource, IOResourceOpenedButNotSafelyClosed
               myBuildEventDispatcher = new ExternalSystemEventDispatcher(request.myTaskId, buildViewManager);
               executeTasks(request);
             }
           };
 
+          myBuildFailed = false;
           Presentation presentation = restartAction.getTemplatePresentation();
           presentation.setText("Restart");
           presentation.setDescription("Restart");
@@ -455,7 +460,24 @@ public class GradleBuildInvoker {
 
         @Override
         public void onEnd(@NotNull ExternalSystemTaskId id) {
+          CountDownLatch eventDispatcherFinished = new CountDownLatch(1);
+          myBuildEventDispatcher.invokeOnCompletion((t) -> {
+            if (myBuildFailed) {
+              ServiceManager.getService(myProject, BuildOutputParserManager.class).sendBuildFailureMetrics();
+            }
+            eventDispatcherFinished.countDown();
+          });
           myBuildEventDispatcher.close();
+
+          // The underlying output parsers are closed asynchronously. Wait for completion in tests.
+          if (ApplicationManager.getApplication().isUnitTestMode()) {
+            try {
+              eventDispatcherFinished.await(10, SECONDS);
+            }
+            catch (InterruptedException ex) {
+              throw new RuntimeException("Timeout waiting for event dispatcher to finish.", ex);
+            }
+          }
         }
 
         @Override
@@ -467,6 +489,7 @@ public class GradleBuildInvoker {
 
         @Override
         public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
+          myBuildFailed = true;
           String title = executionName + " failed";
           FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
           myBuildEventDispatcher.onEvent(id, new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult));
@@ -482,9 +505,9 @@ public class GradleBuildInvoker {
         }
       };
     }
-    catch (Exception ignored) {
+    catch (Exception exception) {
       eventDispatcher.close();
-      throw ignored;
+      throw exception;
     }
   }
 
