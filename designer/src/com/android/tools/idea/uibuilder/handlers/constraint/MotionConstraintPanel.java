@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
+import java.util.HashMap;
 import java.util.List;
 import javax.swing.Timer;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,10 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
 
   public MotionConstraintPanel(@NotNull List<NlComponent> components) {
     super(components);
+    if (components==null || components.size()==0) {
+      mTitle.setText("Constraints");
+      return;
+    }
     myComponent = components.get(0);
     MotionAttributes attr = MotionSceneUtils.getAttributes(myComponent);
     mTitle.setText("Constraints from " + attr.getLayoutSource());
@@ -66,7 +71,11 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
         return null;
       }
       MotionAttributes attr = MotionSceneUtils.getAttributes(component);
-      MotionAttributes.DefinedAttribute v = attr.getAttrMap().get(attribute);
+      if (attr == null) {
+        return null;
+      }
+      HashMap<String, MotionAttributes.DefinedAttribute> map = attr.getAttrMap();
+      MotionAttributes.DefinedAttribute v = map.get(attribute);
       if (v == null) {
         return null;
       }

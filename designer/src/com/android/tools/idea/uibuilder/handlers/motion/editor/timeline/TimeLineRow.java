@@ -158,6 +158,7 @@ public class TimeLineRow extends JPanel {
       int gy = ROW_HEIGHT + ((mShowTitle) ? TITLE_HEIGHT : 0);
       mGraph.draw(g, mTimelineStructure, MEUI.ourLeftColumnWidth, gy, w - MEUI.ourLeftColumnWidth, GRAPH_HEIGHT);
     }
+    g.setColor(MEUI.myGridColor);
     drawTicks(g, mTimelineStructure, h);
   }
 

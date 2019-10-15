@@ -17,10 +17,12 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEJTable;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,6 +65,7 @@ class LayoutPanel extends JPanel {
     JPanel top = new JPanel(new BorderLayout());
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
+    top.setPreferredSize(new Dimension(0, MEUI.scale(32)));
     mConstraintSetTable.setShowHorizontalLines(false);
 
     left.add(mTitle = new JLabel("Layout ", MEIcons.LIST_LAYOUT, SwingConstants.LEFT));
