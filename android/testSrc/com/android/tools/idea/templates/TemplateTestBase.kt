@@ -43,6 +43,8 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_TARGET_API_STRIN
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_THEME_EXISTS
 import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX
 import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
+import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import java.io.File
@@ -110,6 +112,17 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     templateMap[ATTR_CPP_FLAGS] = ""
   }
 
+  protected val withNewRenderingContext = { templateMap: MutableMap<String, Any>, _: MutableMap<String, Any> ->
+    templateMap[COMPARE_NEW_RENDERING_CONTEXT] = true
+  }
+
+  /**
+   * A wrapper to allow Kotlin "last argument is a lambda" syntax.
+   */
+  protected fun checkCreateTemplate(
+    category: String, name: String, createWithProject: Boolean = false, customizer: ProjectStateCustomizer
+  ): Unit = checkCreateTemplate(category, name, createWithProject, customizer, {_, _ -> })
+
   /**
    * Checks the given template in the given category
    *
@@ -117,10 +130,10 @@ open class TemplateTestBase : AndroidGradleTestCase() {
    * @param name              the template name
    * @param createWithProject whether the template should be created as part of creating the project (only for activities), or whether it
    * should be added as as a separate template into an existing project (which is created first, followed by the template).
-   * @param customizer        An instance of [ProjectStateCustomizer] used for providing template and project overrides.
+   * @param customizers        An instance of [ProjectStateCustomizer]s used for providing template and project overrides.
    */
   protected open fun checkCreateTemplate(
-    category: String, name: String, createWithProject: Boolean = false, customizer: ProjectStateCustomizer = { _, _ -> }
+    category: String, name: String, createWithProject: Boolean = false, vararg customizers: ProjectStateCustomizer
   ) {
     if (DISABLED) {
       return
@@ -132,7 +145,9 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     }
     val templateOverrides = mutableMapOf<String, Any>()
     val projectOverrides = mutableMapOf<String, Any>()
-    customizer(templateOverrides, projectOverrides)
+    customizers.forEach {
+      it(templateOverrides, projectOverrides)
+    }
     val msToCheck = measureTimeMillis {
       checkTemplate(templateFile, createWithProject, templateOverrides, projectOverrides)
     }
@@ -357,3 +372,11 @@ internal val TEST_FEWER_API_VERSIONS = !COMPREHENSIVE
 private val TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE
 private val TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE
 private val TEST_JUST_ONE_TARGET_SDK_VERSION = !COMPREHENSIVE
+
+/**
+ * Const for toggling the behavior of a test.
+ *
+ * If this value is true, the test should include comparison between the contents of the two projects generated from
+ * the [RenderingContext] and the new [RenderingContext2].
+ */
+const val COMPARE_NEW_RENDERING_CONTEXT = "compareNewRenderingContext"
