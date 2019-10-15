@@ -183,7 +183,7 @@ public class CaptureModel {
     if (type != null) {
       DETAILS_TRACKERS.get(type).accept(tracker);
     }
-    buildDetails(type);
+    rebuildDetails(type);
   }
 
   @Nullable
@@ -191,32 +191,39 @@ public class CaptureModel {
     return myDetails;
   }
 
-  private void rebuildDetails() {
-    if (myCapture == null) {
-      buildDetails(null);
-    }
-    else {
-      buildDetails(myDetails == null ? CaptureDetails.Type.CALL_CHART : myDetails.getType());
-    }
-  }
-
-  private void buildDetails(@Nullable CaptureDetails.Type type) {
+  /**
+   * Helper function to change the {@link CaptureDetails}.
+   *
+   * @param suggestedType The {@link CaptureDetails.Type} to change to. If suggestedType is not null the new type will be that type.
+   *                      If suggestedType is null the last capture details type is used.
+   *                      If no last details type is set the {@link CaptureDetails.Type.CALL_CHART} is used by default.
+   */
+  private void rebuildDetails(@Nullable CaptureDetails.Type suggestedType) {
     updateCaptureConvertedRange();
     myTotalNodeCount = 0;
     myFilterNodeCount = 0;
-    if (type != null) {
+    if (myCapture != null) {
+      // Grab the currently selected thread and apply any filters the user set.
       CaptureNode node = getNode();
       if (node != null) {
         applyFilter(node, false);
       }
-      myDetails = type.build(myCaptureConvertedRange, node, myCapture);
+      if (suggestedType == null) {
+        suggestedType = myDetails == null ? CaptureDetails.Type.CALL_CHART : myDetails.getType();
+      }
+      myDetails = suggestedType.build(myCaptureConvertedRange, node, myCapture);
     }
     else {
+      // If we don't have a capture clear the filter state and the details.
       myFilter = Filter.EMPTY_FILTER;
       myDetails = null;
     }
-
+    // Let everyone know the state of details has changed. This needs to be done after we set myDetails.
     myStage.getAspect().changed(CpuProfilerAspect.CAPTURE_DETAILS);
+  }
+
+  private void rebuildDetails() {
+    rebuildDetails(null);
   }
 
   @Nullable

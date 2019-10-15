@@ -15,18 +15,32 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddNdkFacet;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
+import static com.intellij.util.ThreeState.YES;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ProjectStructure;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkVariant;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -39,6 +53,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVa
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
@@ -46,23 +61,14 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
+import java.io.File;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
-import java.io.File;
-import java.util.Collections;
-
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddNdkFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
-import static com.intellij.util.ThreeState.YES;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link BuildVariantUpdater}.
@@ -95,7 +101,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     initMocks(this);
 
     AndroidFacet androidFacet = createAndAddAndroidFacet(getModule());
-    androidFacet.getConfiguration().setModel(myAndroidModel);
+    AndroidModel.set(androidFacet, myAndroidModel);
 
     Project project = getProject();
     when(myModifiableModelsProviderFactory.create(project)).thenReturn(myModifiableModelsProvider);
@@ -401,7 +407,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
     // Setup library.
 
@@ -489,7 +495,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
     // Setup library.
 
@@ -578,7 +584,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
     // Setup library.
 
@@ -696,7 +702,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
     // Setup library.
 
@@ -819,7 +825,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    AndroidModel.set(libraryAndroidFacet, libraryAndroidModel);
 
     // Setup library.
 

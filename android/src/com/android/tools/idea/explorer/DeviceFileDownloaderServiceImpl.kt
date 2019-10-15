@@ -15,21 +15,46 @@
  */
 package com.android.tools.idea.explorer
 
+import com.android.tools.idea.concurrent.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
+import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.device.fs.DownloadedFileData
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
-import java.util.concurrent.Future
+import org.jetbrains.android.sdk.AndroidSdkUtils
+import org.jetbrains.ide.PooledThreadExecutor
 
 class DeviceFileDownloaderServiceImpl(
   private val project: Project,
-  private val DeviceExplorerFileManager: DeviceExplorerFileManager,
+  private val adbDeviceFileSystemService: AdbDeviceFileSystemService,
   private val fileManager: DeviceExplorerFileManager) : DeviceFileDownloaderService {
 
-  override fun downloadFile(deviceFileId: DeviceFileId): Future<DownloadedFileData> {
-    TODO("do in next CL. " +
-         "Use ADbDeviceFileSystemService to resolve a DeviceFileEntry from a DeviceFileId, " +
-         "then use file manager to download the file."
-    )
+  private val taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
+
+  override fun downloadFile(deviceFileId: DeviceFileId, downloadProgress: DownloadProgress): ListenableFuture<DownloadedFileData> {
+    val settableFuture = SettableFuture.create<DownloadedFileData>()
+
+    val startServiceFuture = adbDeviceFileSystemService.start { AndroidSdkUtils.getAdb(project) }
+    taskExecutor.transform(startServiceFuture) {
+      taskExecutor.transform(doDownloadFile(deviceFileId, downloadProgress)) { downloadedFileData ->
+        settableFuture.set(downloadedFileData)
+      }
+    }
+
+    return settableFuture
+  }
+
+  private fun doDownloadFile(deviceFileId: DeviceFileId, downloadProgress: DownloadProgress): ListenableFuture<DownloadedFileData> {
+    return taskExecutor.transformAsync(adbDeviceFileSystemService.devices) { devices ->
+      val device = devices!!.find { it.name == deviceFileId.deviceId }
+      require(device != null)
+      taskExecutor.transformAsync(device.getEntry(deviceFileId.devicePath)) { entry ->
+        val localPath = fileManager.getDefaultLocalPathForEntry(entry!!)
+        fileManager.downloadFileEntry(entry, localPath, downloadProgress)
+      }
+    }
   }
 }

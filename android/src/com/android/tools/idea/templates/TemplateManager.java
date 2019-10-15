@@ -19,8 +19,8 @@ import static com.android.SdkConstants.FD_ADDONS;
 import static com.android.SdkConstants.FD_EXTRAS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_TEMPLATES;
-import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.tools.idea.flags.StudioFlags.COMPOSE_WIZARD_TEMPLATES;
 import static com.android.tools.idea.npw.project.AndroidPackageUtils.getModuleTemplates;
 import static com.android.tools.idea.npw.project.AndroidPackageUtils.getPackageForPath;
 import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
@@ -34,19 +34,20 @@ import com.android.repository.Revision;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
-import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.ChooseFragmentTypeStep;
-import com.android.tools.idea.npw.template.ChooseGalleryItemStep;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -81,6 +82,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -109,6 +111,7 @@ public class TemplateManager {
   public static final String CATEGORY_ACTIVITY = "Activity";
   public static final String CATEGORY_FRAGMENT = "Fragment";
   public static final String CATEGORY_AUTOMOTIVE = "Automotive";
+  public static final String CATEGORY_COMPOSE = "Compose";
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
   public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of();
@@ -496,9 +499,9 @@ public class TemplateManager {
     final Module module = event.getData(LangDataKeys.MODULE);
     final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
     Presentation presentation = event.getPresentation();
-    boolean isProjectReady = facet != null && facet.getConfiguration().getModel() != null;
+    boolean isProjectReady = facet != null && AndroidModel.get(facet) != null;
     presentation.setText(text + (isProjectReady ? "" : " (Project not ready)"));
-    presentation.setVisible(visible && view != null && facet != null && facet.requiresAndroidModel());
+    presentation.setVisible(visible && view != null && facet != null && AndroidModel.isRequired(facet));
     presentation.setEnabled(!disableIfNotReady || isProjectReady);
   }
 
@@ -554,10 +557,11 @@ public class TemplateManager {
       TemplateMetadata metadata = getTemplateMetadata(myCategoryTable.get(templateCategory, templateName));
       int minSdkVersion = metadata == null ? 0 : metadata.getMinSdk();
       int minBuildSdkApi = metadata == null ? 0 : metadata.getMinBuildApi();
-      boolean androidXRequired = metadata != null && metadata.getAndroidXRequired();
+      EnumSet<TemplateConstraint> templateConstraints = metadata == null ? EnumSet.noneOf(
+        TemplateConstraint.class) : metadata.getConstraints();
       File templateFile = myCategoryTable.row(templateCategory).get(templateName);
       NewAndroidComponentAction templateAction = new NewAndroidComponentAction(
-        category, templateName, minSdkVersion, minBuildSdkApi, androidXRequired, templateFile);
+        category, templateName, minSdkVersion, minBuildSdkApi, templateConstraints, templateFile);
       String actionId = ACTION_ID_PREFIX + templateCategory + templateName;
       am.replaceAction(actionId, templateAction);
       categoryGroup.add(templateAction);
@@ -581,7 +585,7 @@ public class TemplateManager {
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null && facet.getConfiguration().getModel() != null;
+    assert facet != null && AndroidModel.get(facet) != null;
 
     List<NamedModuleTemplate> moduleTemplates = getModuleTemplates(facet, targetDirectory);
     assert (!moduleTemplates.isEmpty());
@@ -594,7 +598,7 @@ public class TemplateManager {
       commandName, projectSyncInvoker, true);
 
     NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker, moduleTemplates.get(0));
-    ChooseGalleryItemStep chooseTypeStep;
+    SkippableWizardStep chooseTypeStep;
     if (category.equals(CATEGORY_ACTIVITY)) {
       chooseTypeStep =
         new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
@@ -676,6 +680,9 @@ public class TemplateManager {
         return;
       }
       String category = newMetadata.getCategory() != null ? newMetadata.getCategory() : CATEGORY_OTHER;
+      if (CATEGORY_COMPOSE.equals(category) && !COMPOSE_WIZARD_TEMPLATES.get()) {
+        return;
+      }
       File existingTemplate = myCategoryTable.get(category, title);
       if (existingTemplate == null || compareTemplates(existingTemplate, newTemplate) > 0) {
         myCategoryTable.put(category, title, newTemplate);

@@ -35,6 +35,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.mockito.Mock;
 
 /**
@@ -73,8 +74,8 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     assertThat(modules).hasLength(1);
     Module module = modules[0];
     assertEquals(getProject().getName(), module.getName());
-    File moduleFilePath = new File(module.getModuleFilePath());
-    assertEquals(projectRootFolderPath.getPath(), moduleFilePath.getParent());
+    File moduleFilePath = AndroidRootUtil.findModuleRootFolderPath(module);
+    assertEquals(projectRootFolderPath.getPath(), moduleFilePath.getPath());
 
     // Verify the module has a JDK.
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();

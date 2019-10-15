@@ -15,8 +15,11 @@
  */
 package org.jetbrains.android.compiler;
 
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.CommonBundle;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerConfigurationImpl;
@@ -75,6 +78,7 @@ import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 import org.jetbrains.jps.model.java.JavaSourceRootProperties;
@@ -608,8 +612,9 @@ public class AndroidCompileUtil {
     compileScope.putUserData(RELEASE_BUILD_KEY, Boolean.TRUE);
   }
 
+  @SuppressWarnings("deprecation")
   public static boolean createGenModulesAndSourceRoots(@NotNull AndroidFacet facet, @NotNull ModifiableRootModel model) {
-    if (facet.requiresAndroidModel() || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
+    if (AndroidModel.isRequired(facet) || !facet.getProperties().ENABLE_SOURCES_AUTOGENERATION) {
       return false;
     }
     final GlobalSearchScope moduleScope = facet.getModule().getModuleScope();
@@ -670,6 +675,7 @@ public class AndroidCompileUtil {
     }
   }
 
+  @SuppressWarnings("deprecation")
   private static void includeAaptGenSourceRootToCompilation(AndroidFacet facet) {
     final Project project = facet.getModule().getProject();
     final ExcludesConfiguration configuration =
@@ -895,7 +901,12 @@ public class AndroidCompileUtil {
 
   @Nullable
   public static String getUnsignedApkPath(@NotNull AndroidFacet facet) {
-    return AndroidRootUtil.getApkPath(facet);
+    String path = facet.getProperties().APK_PATH;
+    if (path.isEmpty()) {
+      return getOutputPackage(facet.getModule());
+    }
+    @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(facet.getModule());
+    return moduleDirPath != null ? toSystemDependentName(moduleDirPath + path) : null;
   }
 
   public static void reportException(@NotNull CompileContext context, @NotNull String messagePrefix, @NotNull Exception e) {
@@ -926,7 +937,7 @@ public class AndroidCompileUtil {
         final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
 
         for (final AndroidFacet facet : facets) {
-          if (facet.requiresAndroidModel()) {
+          if (AndroidModel.isRequired(facet)) {
             continue;
           }
           final Module module = facet.getModule();

@@ -50,7 +50,6 @@ import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.ide.common.rendering.api.AdapterBinding;
 import com.android.ide.common.rendering.api.DataBindingItem;
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.LayoutLog;
@@ -314,11 +313,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       throws ClassNotFoundException {
     myUsed = true;
     return myClassLoader.loadClass(name, constructorSignature, constructorArgs);
-  }
-
-  @Override
-  public boolean supports(int ideFeature) {
-    return ideFeature <= Features.LAST_FEATURE;
   }
 
   /**
@@ -961,6 +955,13 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   public void error(@NotNull Throwable t) {
     LOG.error(t);
+  }
+
+  /**
+   * Returns true if the given class has been loaded by the class loader.
+   */
+  boolean hasLoadedClass(@NotNull String classFqn) {
+    return myClassLoader.hasLoadedClass(classFqn);
   }
 
   private static class NamedXmlParser extends KXmlParser {

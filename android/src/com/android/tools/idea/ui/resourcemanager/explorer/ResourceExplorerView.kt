@@ -16,44 +16,23 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
 import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWrapper
-import com.intellij.icons.AllIcons
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import java.awt.BorderLayout
 import java.util.function.BiConsumer
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
-import kotlin.properties.Delegates
-
-private const val DEFAULT_GRID_MODE = false
-
-private val MAX_GRID_MODE_WIDTH get() = JBUI.scale(300)
-private val MIN_GRID_MODE_WITH get() = JBUI.scale(150)
-private val DEFAULT_LIST_MODE_WIDTH get() = JBUI.scale(60)
 
 /**
  * The basic view of the Resource Explorer, has a center panel where [ResourceExplorerListView] will be added. Has the ResourceType tabs on
@@ -75,18 +54,6 @@ class ResourceExplorerView(
   private var fileToSelect: VirtualFile? = null
   private var resourceToSelect: String? = preselectedResourceName
 
-  private var previewSize: Int by Delegates.observable(DEFAULT_LIST_MODE_WIDTH) { _, oldValue, newValue ->
-    if (newValue != oldValue) {
-      listView?.previewSize = newValue
-    }
-  }
-
-  private var gridMode: Boolean by Delegates.observable(DEFAULT_GRID_MODE) { _, oldValue, newValue ->
-    if (newValue != oldValue) {
-      listView?.gridMode = newValue
-    }
-  }
-
   private val resourcesTabsPanel = OverflowingTabbedPaneWrapper().apply {
     viewModel.supportedResourceTypes.forEach {
       tabbedPane.add(it.displayName, null)
@@ -107,14 +74,6 @@ class ResourceExplorerView(
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
     add(resourcesTabsPanel)
     add(topActionsPanel)
-  }
-
-  private val footerPanel = JPanel(BorderLayout()).apply {
-    border = JBUI.Borders.customLine(JBColor.border(), 1, 0, 0, 0)
-
-    add(ActionManager.getInstance().createActionToolbar(
-      "resourceExplorer",
-      createBottomActions(), true).component, BorderLayout.EAST)
   }
 
   private val centerPanel = JPanel().apply {
@@ -173,7 +132,6 @@ class ResourceExplorerView(
     val explorerListPanel = JPanel(BorderLayout()).apply {
       add(headerPanel, BorderLayout.NORTH)
       add(centerPanel, BorderLayout.CENTER)
-      add(footerPanel, BorderLayout.SOUTH)
     }
     if (summaryView == null) {
       return explorerListPanel
@@ -230,79 +188,4 @@ class ResourceExplorerView(
                                     withDetailView = withDetailView,
                                     multiSelection = multiSelection)
   }
-
-  private fun createBottomActions(): DefaultActionGroup {
-    return DefaultActionGroup(
-      ListModeButton(),
-      GridModeButton(),
-      Separator(),
-      ZoomMinus(),
-      ZoomPlus()
-    )
-  }
-
-  /**
-   * Button to enable the list view
-   */
-  private inner class ListModeButton
-    : ToggleAction("List mode", "Switch to list mode", StudioIcons.Common.LIST_VIEW),
-      DumbAware {
-
-    override fun isSelected(e: AnActionEvent) = !gridMode
-
-    override fun setSelected(e: AnActionEvent, state: Boolean) {
-      if (state) {
-        ResourceManagerTracking.logSwitchToListMode()
-        gridMode = false
-        previewSize = DEFAULT_LIST_MODE_WIDTH
-      }
-    }
-  }
-
-  /**
-   * Button to enable the grid view
-   */
-  private inner class GridModeButton
-    : ToggleAction("Grid mode", "Switch to grid mode", StudioIcons.Common.GRID_VIEW),
-      DumbAware {
-
-    override fun isSelected(e: AnActionEvent) = gridMode
-
-    override fun setSelected(e: AnActionEvent, state: Boolean) {
-      if (state) {
-        ResourceManagerTracking.logSwitchToGridMode()
-        gridMode = true
-        previewSize = MIN_GRID_MODE_WITH
-      }
-    }
-  }
-
-  /**
-   * Button to scale down the icons. It is only enabled in grid mode.
-   */
-  private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", AllIcons.General.ZoomOut), DumbAware {
-
-    override fun actionPerformed(e: AnActionEvent) {
-      previewSize = max(MIN_GRID_MODE_WITH, (previewSize * 0.9).roundToInt())
-    }
-
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = gridMode && previewSize > MIN_GRID_MODE_WITH
-    }
-  }
-
-  /**
-   * Button to scale up the icons. It is only enabled in grid mode.
-   */
-  private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", AllIcons.General.ZoomIn), DumbAware {
-
-    override fun actionPerformed(e: AnActionEvent) {
-      previewSize = min(MAX_GRID_MODE_WIDTH, (previewSize * 1.1).roundToInt())
-    }
-
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = gridMode && previewSize < MAX_GRID_MODE_WIDTH
-    }
-  }
-
 }

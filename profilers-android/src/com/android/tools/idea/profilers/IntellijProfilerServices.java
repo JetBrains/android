@@ -16,8 +16,8 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
@@ -35,7 +35,6 @@ import com.android.tools.profilers.Notification;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
-import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.collect.ImmutableList;
@@ -170,7 +169,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   public String getApplicationId() {
     List<String> applicationIds = new ArrayList<>();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      AndroidModel androidModuleModel = AndroidModel.get(module);
       if (androidModuleModel != null) {
         applicationIds.add(androidModuleModel.getApplicationId());
       }

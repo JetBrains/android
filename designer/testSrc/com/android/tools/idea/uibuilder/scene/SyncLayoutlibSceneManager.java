@@ -48,8 +48,8 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   @NotNull
   @Override
-  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger, boolean forceInflate) {
-    return CompletableFuture.completedFuture(super.render(trigger, forceInflate).join());
+  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    return CompletableFuture.completedFuture(super.render(trigger).join());
   }
 
   @NotNull

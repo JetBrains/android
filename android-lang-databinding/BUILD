@@ -59,7 +59,6 @@ iml_module(
     tags = [
         "manual",  # b/141498231
         "no_test_mac",  # b/113099009
-        "no_test_mac_psq",  # b/113099009
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.lang.databinding.LangDataBindingTestSuite",

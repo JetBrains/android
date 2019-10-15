@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.testing.Modules;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -95,7 +96,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
@@ -141,7 +141,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public AndroidModuleModel getAndroidProjectForModule(@NotNull String name) {
     Module module = getModule(name);
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.requiresAndroidModel()) {
+    if (facet != null && AndroidModel.isRequired(facet)) {
       // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
       AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
@@ -238,26 +238,26 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture selectDevice(@NotNull String device) {
-    new DeviceSelectorFixture(robot()).selectItem(device);
+    new DeviceSelectorFixture(robot(), this).selectItem(device);
     return this;
   }
 
   public void troubleshootDeviceConnections(@NotNull String appName) {
-    new DeviceSelectorFixture(robot()).troubleshootDeviceConnections(this, appName);
+    new DeviceSelectorFixture(robot(), this).troubleshootDeviceConnections(appName);
   }
 
   @NotNull
   public IdeFrameFixture recordEspressoTest(@NotNull String device) {
-    new DeviceSelectorFixture(robot()).recordEspressoTest(this, device);
+    new DeviceSelectorFixture(robot(), this).recordEspressoTest(device);
     return this;
   }
 
   public void debugApp(@NotNull String appName, @NotNull String deviceName) {
-    new DeviceSelectorFixture(robot()).debugApp(this, appName, deviceName);
+    new DeviceSelectorFixture(robot(), this).debugApp(appName, deviceName);
   }
 
   public void runApp(@NotNull String appName, @NotNull String deviceName) {
-    new DeviceSelectorFixture(robot()).runApp(this, appName, deviceName);
+    new DeviceSelectorFixture(robot(), this).runApp(appName, deviceName);
   }
 
   @NotNull
@@ -688,18 +688,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public DialogFixture waitForDialog(@NotNull String title, long secondsToWait) {
     return new DialogFixture(robot(), GuiTests.waitUntilShowing(robot(), null, Matchers.byTitle(JDialog.class, title), secondsToWait));
-  }
-
-  @NotNull
-  public IdeFrameFixture setGradleJvmArgs(@NotNull String jvmArgs) {
-    Project project = getProject();
-
-    GradleSettings settings = GradleSettings.getInstance(project);
-    settings.setGradleVmOptions(jvmArgs);
-
-    Wait.seconds(1).expecting("Gradle settings to be set").until(() -> jvmArgs.equals(settings.getGradleVmOptions()));
-
-    return this;
   }
 
   @NotNull

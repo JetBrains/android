@@ -22,7 +22,6 @@ import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 
 import com.android.SdkConstants;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
@@ -42,16 +41,18 @@ import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.execution.ExecutionException;
@@ -71,6 +72,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.net.HttpConfigurable;
 import java.awt.Dimension;
@@ -90,6 +92,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * A wrapper class for communicating with {@link AvdManager} and exposing helper functions
@@ -122,14 +125,22 @@ public class AvdManagerConnection {
     new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 12),
   };
 
-  private AvdManager myAvdManager;
   private static Map<File, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
   private static long ourMemorySize = -1;
-  private final FileOp myFileOp;
 
   private static Function<AndroidSdkHandler, AvdManagerConnection> ourConnectionFactory = AvdManagerConnection::new;
 
-  @Nullable private final AndroidSdkHandler mySdkHandler;
+  @Nullable
+  private final AndroidSdkHandler mySdkHandler;
+
+  @NotNull
+  private final FileOp myFileOp;
+
+  @NotNull
+  private final ListeningExecutorService myEdtListeningExecutorService;
+
+  @Nullable
+  private AvdManager myAvdManager;
 
   @NotNull
   public static AvdManagerConnection getDefaultAvdManagerConnection() {
@@ -151,10 +162,15 @@ public class AvdManagerConnection {
     return ourCache.get(sdkPath);
   }
 
+  private AvdManagerConnection(@Nullable AndroidSdkHandler sdkHandler) {
+    this(sdkHandler, MoreExecutors.listeningDecorator(EdtExecutorService.getInstance()));
+  }
+
   @VisibleForTesting
-  public AvdManagerConnection(@Nullable AndroidSdkHandler handler) {
-    mySdkHandler = handler;
-    myFileOp = handler == null ? FileOpUtils.create() : handler.getFileOp();
+  public AvdManagerConnection(@Nullable AndroidSdkHandler sdkHandler, @NotNull ListeningExecutorService edtListeningExecutorService) {
+    mySdkHandler = sdkHandler;
+    myFileOp = sdkHandler == null ? FileOpUtils.create() : sdkHandler.getFileOp();
+    myEdtListeningExecutorService = edtListeningExecutorService;
   }
 
   /**
@@ -368,7 +384,6 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
 
-    final String avdName = info.getName();
     final String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
       File skinFile = new File(skinPath);
@@ -377,17 +392,54 @@ public class AvdManagerConnection {
       AvdWizardUtils.pathToUpdatedSkins(baseSkinFile, null, myFileOp);
     }
 
-    AccelerationErrorCode error = checkAcceleration();
-    ListenableFuture<IDevice> errorResult = handleAccelerationError(project, info, error);
-    if (errorResult != null) {
-      return errorResult;
-    }
+    // noinspection ConstantConditions, UnstableApiUsage
+    return Futures.transformAsync(
+      checkAccelerationAsync(),
+      code -> continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, info, snapshot),
+      MoreExecutors.directExecutor());
+  }
 
+  @NotNull
+  private ListenableFuture<IDevice> continueToStartAvdIfAccelerationErrorIsNotBlocking(@NotNull AccelerationErrorCode code,
+                                                                                       @Nullable Project project,
+                                                                                       @NotNull AvdInfo info,
+                                                                                       @Nullable String snapshot) {
+    switch (code) {
+      case ALREADY_INSTALLED:
+        return continueToStartAvd(project, info, snapshot);
+      case TOOLS_UPDATE_REQUIRED:
+      case PLATFORM_TOOLS_UPDATE_ADVISED:
+      case SYSTEM_IMAGE_UPDATE_ADVISED:
+        // Launch the virtual device with possibly degraded performance even if there are updates
+        // noinspection DuplicateBranchesInSwitch
+        return continueToStartAvd(project, info, snapshot);
+      case NO_EMULATOR_INSTALLED:
+        return handleAccelerationError(project, info, code);
+      default:
+        Abi abi = Abi.getEnum(info.getAbiType());
+
+        if (abi == null) {
+          return continueToStartAvd(project, info, snapshot);
+        }
+
+        if (abi.equals(Abi.X86) || abi.equals(Abi.X86_64)) {
+          return handleAccelerationError(project, info, code);
+        }
+
+        // Let ARM and MIPS virtual devices launch without hardware acceleration
+        return continueToStartAvd(project, info, snapshot);
+    }
+  }
+
+  @NotNull
+  private ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project, @NotNull AvdInfo info, @Nullable String snapshot) {
     final File emulatorBinary = getEmulatorBinary();
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
       return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
     }
+
+    String avdName = info.getName();
 
     // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
@@ -645,64 +697,60 @@ public class AvdManagerConnection {
     return tempFile;
   }
 
-  /**
-   * Handle the {@link AccelerationErrorCode} found when attempting to start an AVD.
-   * @param project
-   * @param error
-   * @return a future with a device that was launched delayed, or null if startAvd should proceed to start the AVD.
-   */
-  @Nullable
-  private ListenableFuture<IDevice> handleAccelerationError(@Nullable final Project project, @NotNull final AvdInfo info, @NotNull AccelerationErrorCode error) {
-    switch (error) {
-      case ALREADY_INSTALLED:
-        return null;
-      case TOOLS_UPDATE_REQUIRED:
-      case PLATFORM_TOOLS_UPDATE_ADVISED:
-      case SYSTEM_IMAGE_UPDATE_ADVISED:
-        // Do not block emulator from running if we need updates (run with degradated performance):
-        return null;
-      case NO_EMULATOR_INSTALLED:
-        // report this error below
-        break;
-      default:
-        Abi abi = Abi.getEnum(info.getAbiType());
-        boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
-        if (!isAvdIntel) {
-          // Do not block Arm and Mips emulators from running without an accelerator:
-          return null;
-        }
-        // report all other errors
-        break;
-    }
-    String accelerator = SystemInfo.isLinux ? "KVM" : "Intel HAXM";
-    int result = Messages.showOkCancelDialog(
-      project,
-      String.format("%1$s is required to run this AVD.\n%2$s\n\n%3$s\n", accelerator, error.getProblem(), error.getSolutionMessage()),
-      error.getSolution().getDescription(),
-      AllIcons.General.WarningDialog);
-    if (result != Messages.OK || error.getSolution() == AccelerationErrorSolution.SolutionCode.NONE) {
+  @NotNull
+  private ListenableFuture<IDevice> handleAccelerationError(@Nullable Project project,
+                                                            @NotNull AvdInfo info,
+                                                            @NotNull AccelerationErrorCode code) {
+    if (code.getSolution().equals(SolutionCode.NONE)) {
+      // noinspection UnstableApiUsage
       return Futures.immediateFailedFuture(new RuntimeException("Could not start AVD"));
     }
-    final SettableFuture<ListenableFuture<IDevice>> future = SettableFuture.create();
-    Runnable retry = () -> future.set(startAvd(project, info));
-    Runnable cancel = () -> future.setException(new RuntimeException("Retry after fixing problem by hand"));
-    Runnable action = AccelerationErrorSolution.getActionForFix(error, project, retry, cancel);
-    ApplicationManager.getApplication().invokeLater(action);
-    return dereference(future);
+
+    // noinspection ConstantConditions, UnstableApiUsage
+    return Futures.transformAsync(
+      showAccelerationErrorDialog(code, project),
+      result -> tryFixingAccelerationError(result, project, info, code),
+      MoreExecutors.directExecutor());
   }
 
-  private static <V> ListenableFuture<V> dereference(ListenableFuture<? extends ListenableFuture<? extends V>> nested) {
-    //noinspection unchecked
-    return Futures.transformAsync(nested, (AsyncFunction)DEREFERENCER, MoreExecutors.directExecutor());
+  @NotNull
+  private ListenableFuture<Integer> showAccelerationErrorDialog(@NotNull AccelerationErrorCode code, @Nullable Project project) {
+    return myEdtListeningExecutorService.submit(() -> {
+      String message = (SystemInfo.isLinux ? "KVM" : "Intel HAXM") + " is required to run this AVD.\n"
+                       + code.getProblem() + '\n'
+                       + '\n'
+                       + code.getSolutionMessage() + '\n';
+
+      return Messages.showOkCancelDialog(
+        project,
+        message,
+        code.getSolution().getDescription(),
+        Messages.OK_BUTTON,
+        Messages.CANCEL_BUTTON,
+        AllIcons.General.WarningDialog);
+    });
   }
 
-  private static final AsyncFunction<ListenableFuture<Object>, Object> DEREFERENCER =
-    new AsyncFunction<ListenableFuture<Object>, Object>() {
-      @Override
-      public ListenableFuture<Object> apply(ListenableFuture<Object> input) {
-        return input;
-      }
-    };
+  @NotNull
+  private ListenableFuture<IDevice> tryFixingAccelerationError(int result,
+                                                               @Nullable Project project,
+                                                               @NotNull AvdInfo info,
+                                                               @NotNull AccelerationErrorCode code) {
+    if (result == Messages.CANCEL) {
+      // noinspection UnstableApiUsage
+      return Futures.immediateFailedFuture(new RuntimeException("Could not start AVD"));
+    }
+
+    SettableFuture<IDevice> future = SettableFuture.create();
+
+    @SuppressWarnings("UnstableApiUsage")
+    Runnable setFuture = () -> future.setFuture(startAvd(project, info));
+
+    Runnable setException = () -> future.setException(new RuntimeException("Retry after fixing problem by hand"));
+    ApplicationManager.getApplication().invokeLater(AccelerationErrorSolution.getActionForFix(code, project, setFuture, setException));
+
+    return future;
+  }
 
   /**
    * Run "emulator -accel-check" to check the status for emulator acceleration on this machine.
@@ -752,6 +800,11 @@ public class AvdManagerConnection {
       return AccelerationErrorCode.SYSTEM_IMAGE_UPDATE_ADVISED;
     }
     return AccelerationErrorCode.ALREADY_INSTALLED;
+  }
+
+  @NotNull
+  private ListenableFuture<AccelerationErrorCode> checkAccelerationAsync() {
+    return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit(this::checkAcceleration);
   }
 
   /**

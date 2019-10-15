@@ -473,7 +473,13 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
       String[] stack = crashString.split("[:,]+");
       // The first value is the detection string.
       for (int i = 1; i < stack.length; i++) {
-        crashInfo.addBackstackAddressList(Long.parseLong(stack[i].trim()));
+        // The string may be "\n" and will be empty after trimming.
+        try {
+          crashInfo.addBackstackAddressList(Long.parseLong(stack[i].trim()));
+        }
+        catch (NumberFormatException e) {
+          // Ignore the string that's not a number.
+        }
       }
 
       // Create metrics event to report callstack.

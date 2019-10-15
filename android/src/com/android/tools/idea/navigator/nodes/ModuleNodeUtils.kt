@@ -20,6 +20,7 @@ package com.android.tools.idea.navigator.nodes
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.util.GradleUtil.isRootModuleWithNoSources
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.AndroidProjectViewPane
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
@@ -73,7 +74,7 @@ fun createChildModuleNodes(
     val androidFacet = AndroidFacet.getInstance(module)
     val ndkFacet = NdkFacet.getInstance(module)
     when {
-      androidFacet != null && androidFacet.configuration.model != null ->
+      androidFacet != null && AndroidModel.get(androidFacet) != null ->
         children.add(AndroidModuleNode(project, module, projectViewPane, settings))
       androidFacet != null && apkFacet != null -> {
         children.add(ApkModuleNode(project, module, androidFacet, apkFacet, settings))

@@ -71,6 +71,7 @@ public class GoToAndroidResourceContributorTest extends AndroidTestCase {
     assertThat(searchResults).hasLength(1);
     Object result = searchResults[0];
     assertThat(result).isInstanceOf(NavigationItem.class);
+    assertThat(((NavigationItem)result).getPresentation().getIcon(false)).isNotNull();
     UIUtil.dispatchAllInvocationEvents();
     ((NavigationItem)result).navigate(true);
     FileEditorManager editorManager = FileEditorManager.getInstance(myFixture.getProject());

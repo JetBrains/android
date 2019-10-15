@@ -39,7 +39,7 @@ class FontEnumSupportTest : AndroidTestCase() {
 
   private fun createEnumSupport(): FontEnumSupport {
     val configuration = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(file!!)
-    val resourceResolver = configuration.resourceResolver ?: throw IllegalStateException("No ResourceResolver")
+    val resourceResolver = configuration.resourceResolver
     return FontEnumSupport(myFacet, resourceResolver)
   }
 

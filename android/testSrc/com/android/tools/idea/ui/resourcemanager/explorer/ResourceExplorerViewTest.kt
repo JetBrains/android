@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.resources.ResourceType
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.android.tools.idea.res.addAndroidModule
@@ -60,6 +61,7 @@ class ResourceExplorerViewTest {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = getTestDataDirectory()
+    projectRule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML, FN_ANDROID_MANIFEST_XML)
   }
 
   @After
@@ -117,7 +119,7 @@ class ResourceExplorerViewTest {
 
     // Setup
     runInEdtAndWait {
-      addAndroidModule(module2Name, projectRule.project) { resourceDir ->
+      addAndroidModule(module2Name, projectRule.project, "com.example.app2") { resourceDir ->
         FileUtil.copy(File(getTestDataDirectory() + "/res/values/colors.xml"),
                       resourceDir.resolve("values/colors.xml"))
       }
@@ -168,7 +170,7 @@ class ResourceExplorerViewTest {
       projectRule.module.androidFacet!!,
       null,
       ResourceType.DRAWABLE,
-      arrayOf(ResourceType.DRAWABLE),
+      arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR),
       false,
       { asset ->
         assertThat(asset).isInstanceOf(DesignAsset::class.java)
@@ -188,10 +190,15 @@ class ResourceExplorerViewTest {
 
     list.selectedIndex = 0
     simulatePressEnter(list)
+    waitAndAssert<ResourceDetailView>(view) { it != null }
     val detailView = UIUtil.findComponentOfType(parent, ResourceDetailView::class.java)!!
     val assetView = UIUtil.findComponentsOfType(detailView, AssetView::class.java)[0]
     simulatePressEnter(assetView)
     assertEquals("res/drawable/png.png", openedFile)
+
+    // Change to COLOR resources, ResourceDetailView should no longer be visible.
+    runInEdtAndWait { viewModel.resourceTypeIndex = viewModel.supportedResourceTypes.indexOf(ResourceType.COLOR) }
+    waitAndAssert<ResourceDetailView>(view) { it == null }
   }
 
   @Test

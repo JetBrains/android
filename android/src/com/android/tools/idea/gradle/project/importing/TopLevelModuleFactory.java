@@ -60,7 +60,9 @@ class TopLevelModuleFactory {
     VirtualFile contentRoot = findFileByIoFile(projectRootDir, true);
 
     if (contentRoot != null) {
-      File moduleFile = new File(projectRootDir, projectRootDir.getName() + ".iml");
+      File moduleFile = new File(
+        new File(new File(projectRootDir, Project.DIRECTORY_STORE_FOLDER), "modules"), // "modules" is private in GradleManager.
+        projectRootDir.getName() + ".iml");
       ModifiableModuleModel projectModifieableModel = moduleManager.getModifiableModel();
       Module module = projectModifieableModel.newModule(moduleFile.getPath(), JAVA.getId());
       try {

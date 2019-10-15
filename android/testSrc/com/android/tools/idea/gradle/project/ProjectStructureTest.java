@@ -15,30 +15,33 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.builder.model.AndroidProject.*;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddJavaFacet;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.testFramework.PlatformTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link ProjectStructure}.
@@ -171,7 +174,7 @@ public class ProjectStructureTest extends PlatformTestCase {
     AndroidFacet androidFacet = createAndAddAndroidFacet(module);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    androidFacet.getConfiguration().setModel(androidModel);
+    AndroidModel.set(androidFacet, androidModel);
     androidFacet.getConfiguration().setProjectType(projectType);
 
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);

@@ -15,15 +15,29 @@
  */
 package com.android.tools.profilers.customevent;
 
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.UnifiedEventDataSeries;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class CustomEventMonitor extends ProfilerMonitor {
 
+  @NotNull private final StateChartModel<Long> myEventModel;
+
   public CustomEventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
+
+    myEventModel = createEventChartModel(profilers);
   }
 
   @Override
@@ -49,4 +63,21 @@ public class CustomEventMonitor extends ProfilerMonitor {
   public void expand() {
     myProfilers.setStage(new CustomEventProfilerStage(myProfilers));
   }
+
+  @NotNull
+  public StateChartModel<Long> getEventModel() {
+    return myEventModel;
+  }
+
+  private static StateChartModel<Long> createEventChartModel(StudioProfilers profilers) {
+    StateChartModel<Long> stateChartModel = new StateChartModel<>();
+    Range range = profilers.getTimeline().getViewRange();
+    Range dataRange = profilers.getTimeline().getDataRange();
+    TransportServiceGrpc.TransportServiceBlockingStub transportClient = profilers.getClient().getTransportClient();
+
+    stateChartModel.addSeries(new RangedSeries<>(range, new UserCounterDataSeries(transportClient, profilers), dataRange));
+
+    return stateChartModel;
+  }
 }
+

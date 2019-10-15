@@ -17,6 +17,7 @@ package com.android.tools.idea.templates
 
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_PLUGIN_VERSION
 import freemarker.template.SimpleScalar
 import freemarker.template.TemplateMethodModelEx
 import freemarker.template.TemplateModel
@@ -44,7 +45,7 @@ class FmGetConfigurationNameMethod(private val myParamMap: Map<String, Any>) : T
   companion object {
     @JvmStatic
     fun convertConfiguration(myParamMap: Map<String, Any>, configuration: String): String {
-      val gradlePluginVersion: String? = myParamMap[TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION] as? String
+      val gradlePluginVersion: String? = myParamMap[ATTR_GRADLE_PLUGIN_VERSION] as? String
       return GradleUtil.mapConfigurationName(configuration, gradlePluginVersion, false)
     }
   }

@@ -24,6 +24,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.testing.IdeComponents
@@ -363,7 +364,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
     `when`(model.androidProject).thenReturn(project)
     `when`(model.selectedMainCompileLevel2Dependencies).thenReturn(ideDependencies)
     val facet = AndroidFacet.getInstance(module)!!
-    facet.configuration.model = model
+    AndroidModel.set(facet, model)
     return model
   }
 

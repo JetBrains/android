@@ -30,6 +30,8 @@ class ClassLoaderExpander(g: HeapGraph, val bleakHelper: BleakHelper): Expander(
 
   override fun canExpand(obj: Any): Boolean = obj is ClassLoader || obj === BootstrapClassloaderPlaceholder
 
+  override fun canPotentiallyGrowIndefinitely(n: Node) = true
+
   override fun expand(n: Node) {
     val map = mutableMapOf<Label, Node>()
     labelToNodeMap[n] = map

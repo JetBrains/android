@@ -46,19 +46,19 @@ class MultiProjectSyncTest {
   fun testMultipleLinkedProjects() {
     // This test reproduces issues like https://issuetracker.google.com/129612500
     withProjectOpenAndSynced("secondapp") {
-      assertThat(moduleNames).containsExactly("My Second App", "app", "mysharedlibrary")
+      assertThat(moduleNames).containsExactly("My_Second_App", "app", "mysharedlibrary")
     }
     withProjectOpenAndSynced("firstapp") {
-      assertThat(moduleNames).containsExactly("My First App", "app", "mysharedlibrary")
+      assertThat(moduleNames).containsExactly("My_First_App", "app", "mysharedlibrary")
       // Modify the shared module's build file to cause sync on open.
       editor.open("../shared/mysharedlibrary/build.gradle").typeText("\n")
       invokeMenuPath("File", "Save All")
       invokeMenuPath("File", "Sync Project with Gradle Files")
       waitForGradleProjectSyncToFinish()
-      assertThat(moduleNames).containsExactly("My First App", "app", "mysharedlibrary")
+      assertThat(moduleNames).containsExactly("My_First_App", "app", "mysharedlibrary")
     }
     withProjectOpenAndSynced("secondapp") {
-      assertThat(moduleNames).containsExactly("My Second App", "app", "mysharedlibrary")
+      assertThat(moduleNames).containsExactly("My_Second_App", "app", "mysharedlibrary")
     }
   }
 

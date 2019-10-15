@@ -132,7 +132,7 @@ public final class ResourceNavigationItem implements NavigationItem {
     @Override
     @Nullable
     public Icon getIcon(boolean open) {
-      return null;
+      return ResourceReferencePsiElement.RESOURCE_ICON;
     }
   }
 }

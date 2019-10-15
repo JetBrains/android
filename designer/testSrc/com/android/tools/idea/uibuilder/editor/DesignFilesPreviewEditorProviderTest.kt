@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.editor
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.flags.StudioFlags
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
@@ -81,6 +82,7 @@ class DesignFilesPreviewEditorProviderTest : AndroidTestCase() {
 
   override fun tearDown() {
     super.tearDown()
+    DesignerTypeRegistrar.clearRegisteredTypes()
     StudioFlags.NELE_SPLIT_EDITOR.clearOverride()
   }
 

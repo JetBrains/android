@@ -22,7 +22,9 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.SubTagList;
+import com.intellij.util.xmlb.annotations.Attribute;
 import java.util.List;
+import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.AndroidPackageConverter;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -64,6 +66,7 @@ public interface Manifest extends ManifestElement {
   List<PermissionTree> getPermissionTrees();
 
   List<UsesPermission> getUsesPermissions();
+  UsesPermission addUsesPermission();
 
   List<UsesPermissionSdk23> getUsesPermissionSdk23s();
 
@@ -82,4 +85,7 @@ public interface Manifest extends ManifestElement {
 
   @SubTagList("uses-configuration")
   List<UsesConfiguration> getUsesConfigurations();
+
+  @Attribute("versionCode")
+  AndroidAttributeValue<Integer> getVersionCode();
 }

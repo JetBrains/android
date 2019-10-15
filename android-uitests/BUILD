@@ -43,7 +43,6 @@ COMMON_TAGS = [
     "no_mac",
     "no_windows",
     "cpu:3",
-    "slow",
 ]
 
 # managed by go/iml_to_build
@@ -335,6 +334,15 @@ java_test(
         ],
     }),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.deploy.DeploymentTest"],
+    tags = COMMON_TAGS,
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "TerminateAdbIfNotUsedTest",
+    data = COMMON_DATA + glob(["testData/simple/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.adb.TerminateAdbIfNotUsedTest"],
     tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -802,7 +810,6 @@ java_test(
         "qa_sanity",
         "qa_sanity_unreliable",  # b/76023451
         "qa_unreliable",  # b/76023451
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -826,7 +833,6 @@ java_test(
         "qa_unreliable",  # b/119505019
         "requires-network",
         "requires_emulator",  # Run together with emulators because the test needs to run alone
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -862,7 +868,6 @@ java_test(
         "block-network",
         "no_mac",
         "no_windows",
-        "slow",
         "no-remote",
         "requires-fakeroot",
         "qa_sanity",
@@ -914,7 +919,6 @@ java_test(
         "qa_unreliable",  # b/79937083
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -949,7 +953,6 @@ java_test(
         "qa_unreliable",  # b/128932526
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -979,7 +982,6 @@ java_test(
         "qa_sanity_emu",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1011,7 +1013,6 @@ java_test(
         "qa_unreliable",  # b/77635374
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1565,13 +1566,11 @@ java_test(
         "cpu:100",
         "no-remote",
         "no_mac",
-        "no_psq",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1596,13 +1595,11 @@ java_test(
         "cpu:100",
         "no-remote",
         "no_mac",
-        "no_psq",
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1637,7 +1634,6 @@ java_test(
         "qa_unreliable",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1672,7 +1668,6 @@ java_test(
         "qa_unreliable",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1707,7 +1702,6 @@ java_test(
         "qa_unreliable",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1742,7 +1736,6 @@ java_test(
         "qa_unreliable",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1777,7 +1770,6 @@ java_test(
         "qa_unreliable",  # b/137669728
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1812,7 +1804,6 @@ java_test(
         "qa_unreliable",  # b/137669728
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1847,7 +1838,6 @@ java_test(
         "qa_unreliable",  # b/138743860
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1920,7 +1910,6 @@ java_test(
         "qa_fast_emu",
         "requires-fakeroot",
         "requires_emulator",
-        "slow",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1947,6 +1936,38 @@ java_test(
         "block-network",
         "no_mac",
         "no_windows",
+        "no-remote",
+        "requires-fakeroot",
+        "qa_fast",
+        "qa_fast_emu",
+        "requires_emulator",
+        "cpu:100",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "ImportAndRunInstantAppTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/InstantAppsService/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.ImportAndRunInstantAppTest",
+    ],
+    # do not sort: the beginning of this list is copied from COMMON_TAGS
+    tags = [
+        "block-network",
+        "no_mac",
+        "no_windows",
         "slow",
         "no-remote",
         "requires-fakeroot",
@@ -1954,6 +1975,35 @@ java_test(
         "qa_fast_emu",
         "requires_emulator",
         "cpu:100",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# fast test
+java_test(
+    name = "InstrumentationTest",
+    size = "enormous",
+    data = COMMON_DATA + glob([
+        "testData/KotlinInstrumentation/**",
+    ]) + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.InstrumentationTest"],
+    tags = [
+        "block-network",
+        "cpu:100",
+        "no-remote",
+        "no_mac",
+        "no_windows",
+        "qa_fast",
+        "qa_fast_emu",
+        "requires-fakeroot",
+        "requires_emulator",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

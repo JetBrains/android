@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql.resolution
 
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlAlterTableStatement
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlColumnAliasName
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlColumnRefExpression
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlDeleteStatement
@@ -158,6 +159,9 @@ private fun pushNextElements(
         if (previous == element.insertColumns) {
           element.singleTableStatementTable.pushOnStack()
         }
+      }
+      is AndroidSqlAlterTableStatement -> {
+        element.singleTableStatementTable.pushOnStack()
       }
       is AndroidSqlFromClause -> {
         if (previous is AndroidSqlJoinConstraint) element.tableOrSubqueryList.forEach { stack.push(nextStep(it)) }

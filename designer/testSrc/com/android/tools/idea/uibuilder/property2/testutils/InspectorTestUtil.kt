@@ -137,9 +137,8 @@ class FakeEditorProviderImpl(model: NelePropertiesModel): EditorProvider<NelePro
 
   override fun createEditor(property: NelePropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val enumSupport = enumSupportProvider(property)
-    val controlType = controlTypeProvider(property)
 
-    when (controlType) {
+    when (controlTypeProvider(property)) {
       ControlType.COMBO_BOX ->
         return Pair(ComboBoxPropertyEditorModel(property, enumSupport!!, true), JPanel())
 

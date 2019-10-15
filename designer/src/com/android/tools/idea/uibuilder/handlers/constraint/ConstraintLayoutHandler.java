@@ -590,7 +590,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
   }
 
-
   private static class ConvertToMotionLayoutComponentsAction extends DirectViewAction {
     @Override
     public void perform(@NotNull ViewEditor editor,
@@ -612,7 +611,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                  getLabel());
         return;
       }
-      if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Convert to MotionLayout?", getLabel(),null) ==
+      if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Convert to MotionLayout?", "Motion Editor",null) ==
           Messages.YES) {
 
         ScoutMotionConvert.convert(component);

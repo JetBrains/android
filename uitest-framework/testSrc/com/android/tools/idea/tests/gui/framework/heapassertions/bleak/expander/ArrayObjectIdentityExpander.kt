@@ -37,6 +37,9 @@ class ArrayObjectIdentityExpander(g: HeapGraph): Expander(g) {
 
   // primitive arrays should be expanded by DefaultObjectExpander so we don't end up with nodes for primitive types
   override fun canExpand(obj: Any): Boolean = obj.javaClass.isArray && !obj.javaClass.componentType.isPrimitive
+
+  override fun canPotentiallyGrowIndefinitely(n: Node) = true
+
   override fun expand(n: Node) {
     val arr = n.obj as Array<*>
     val map = if (arr.size > LABEL_MAP_DEGREE_THRESHOLD) {

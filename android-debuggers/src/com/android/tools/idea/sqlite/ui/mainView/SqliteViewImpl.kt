@@ -80,7 +80,7 @@ class SqliteViewImpl(
   init {
     val definitions = mutableListOf<ToolWindowDefinition<SqliteViewContext>>()
     definitions.add(createToolWindowDefinition())
-    workBench.init(sqliteEditorPanel.mainPanel, viewContext, definitions)
+    workBench.init(sqliteEditorPanel.mainPanel, viewContext, definitions, false)
 
     rootPanel.layout = OverlayLayout(rootPanel)
     rootPanel.add(defaultUiPanel.rootPanel)

@@ -80,7 +80,6 @@ import org.mockito.Mock;
  */
 public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
-  @Mock private ProjectImportErrorHandler myErrorHandler;
   @Mock private ProjectFinder myProjectFinder;
   @Mock private VariantSelector myVariantSelector;
   @Mock private IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
@@ -125,7 +124,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, true);
     myResolverCtx.setModels(allModels);
 
-    myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myErrorHandler, myProjectFinder, myVariantSelector,
+    myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myProjectFinder, myVariantSelector,
                                                          myNativeAndroidProjectFactory, myIdeaJavaModuleModelFactory,
                                                          new IdeDependenciesFactory());
     myProjectResolver.setProjectResolverContext(myResolverCtx);

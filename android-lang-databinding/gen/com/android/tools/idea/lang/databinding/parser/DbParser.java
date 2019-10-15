@@ -23,7 +23,6 @@ import com.intellij.lang.PsiBuilder.Marker;
 import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
 import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.IFileElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
@@ -41,16 +40,15 @@ public class DbParser implements PsiParser, LightPsiParser {
     boolean r;
     b = adapt_builder_(t, b, this, EXTENDS_SETS_);
     Marker m = enter_section_(b, 0, _COLLAPSE_, null);
-    if (t instanceof IFileElementType) {
-      r = parse_root_(t, b, 0);
-    }
-    else {
-      r = false;
-    }
+    r = parse_root_(t, b);
     exit_section_(b, 0, m, t, r, true, TRUE_CONDITION);
   }
 
-  protected boolean parse_root_(IElementType t, PsiBuilder b, int l) {
+  protected boolean parse_root_(IElementType t, PsiBuilder b) {
+    return parse_root_(t, b, 0);
+  }
+
+  static boolean parse_root_(IElementType t, PsiBuilder b, int l) {
     return dataBindingExpression(b, l + 1);
   }
 
@@ -679,7 +677,7 @@ public class DbParser implements PsiParser, LightPsiParser {
         exit_section_(b, l, m, NULL_COALESCE_EXPR, r, true, null);
       }
       else if (g < 1 && consumeTokenSmart(b, QUEST)) {
-        r = report_error_(b, expr(b, l, 1));
+        r = report_error_(b, expr(b, l, 0));
         r = ternaryExpr_1(b, l + 1) && r;
         exit_section_(b, l, m, TERNARY_EXPR, r, true, null);
       }

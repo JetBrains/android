@@ -15,19 +15,26 @@
  */
 package com.android.tools.profilers.memory;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.commands.HeapDump;
+import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking;
+import com.android.tools.profiler.proto.Commands;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.memory.adapters.ClassSet;
 import com.android.tools.profilers.memory.adapters.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static org.junit.Assert.*;
+import javax.swing.JTree;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MemoryProfilerTestUtils {
   @NotNull
@@ -104,5 +111,76 @@ public class MemoryProfilerTestUtils {
     assertEquals(count, node.getAdapter().getDeltaAllocationCount());
     assertEquals(shallowSize, node.getAdapter().getTotalShallowSize());
     assertEquals(retainedSize, node.getAdapter().getTotalRetainedSize());
+  }
+
+
+  public static void startTrackingHelper(MemoryProfilerStage stage,
+                                         boolean unifiedPipeline,
+                                         FakeTransportService transportService,
+                                         FakeMemoryService memoryService,
+                                         FakeTimer timer,
+                                         long startTimeNs,
+                                         Memory.TrackStatus.Status status,
+                                         boolean legacyTracking) {
+    Memory.TrackStatus trackStatus = Memory.TrackStatus.newBuilder().setStartTime(startTimeNs).setStatus(status).build();
+    if (unifiedPipeline) {
+      MemoryAllocTracking allocTrackingHandler =
+        (MemoryAllocTracking)transportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
+      allocTrackingHandler.setLegacyTracking(legacyTracking);
+      allocTrackingHandler.setTrackStatus(trackStatus);
+    }
+    else {
+      memoryService.setExplicitAllocationsStatus(trackStatus);
+      if (status == Memory.TrackStatus.Status.SUCCESS) {
+        memoryService.setExplicitAllocationsInfo(startTimeNs, Long.MAX_VALUE, legacyTracking);
+      }
+    }
+    stage.trackAllocations(true);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+  }
+
+  public static void stopTrackingHelper(MemoryProfilerStage stage,
+                                        boolean unifiedPipeline,
+                                        FakeTransportService transportService,
+                                        FakeMemoryService memoryService,
+                                        FakeTimer timer,
+                                        long startTimeNs,
+                                        long endTimeNs,
+                                        Memory.TrackStatus.Status status,
+                                        boolean legacyTracking) {
+    Memory.TrackStatus trackStatus = Memory.TrackStatus.newBuilder().setStartTime(startTimeNs).setStatus(status).build();
+    if (unifiedPipeline) {
+      MemoryAllocTracking allocTrackingHandler =
+        (MemoryAllocTracking)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
+      allocTrackingHandler.setLegacyTracking(legacyTracking);
+      allocTrackingHandler.setTrackStatus(trackStatus);
+    }
+    else {
+      memoryService.setExplicitAllocationsStatus(trackStatus);
+      if (status == Memory.TrackStatus.Status.SUCCESS) {
+        memoryService.setExplicitAllocationsInfo(startTimeNs, endTimeNs, legacyTracking);
+      }
+    }
+    stage.trackAllocations(false);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+  }
+
+  public static void heapDumpHelper(MemoryProfilerStage stage,
+                                    boolean unifiedPipeline,
+                                    FakeTransportService transportService,
+                                    FakeMemoryService memoryService,
+                                    long dumpStartNs,
+                                    long dumpEndNs,
+                                    Memory.HeapDumpStatus.Status status) {
+    if (unifiedPipeline) {
+      ((HeapDump)transportService.getRegisteredCommand(Commands.Command.CommandType.HEAP_DUMP)).setDumpStatus(status);
+    }
+    else {
+      memoryService.setExplicitHeapDumpStatus(status);
+      if (status == Memory.HeapDumpStatus.Status.SUCCESS) {
+        memoryService.setExplicitHeapDumpInfo(dumpStartNs, dumpEndNs);
+      }
+    }
+    stage.requestHeapDump();
   }
 }

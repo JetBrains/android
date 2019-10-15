@@ -27,6 +27,7 @@ import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -35,6 +36,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import java.lang.RuntimeException
 import java.time.Duration
 import java.util.concurrent.ExecutionException
 
@@ -107,11 +109,11 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
     return runReadAction {
       when {
         // Make sure the module wasn't disposed while we were waiting for the read lock.
-        Disposer.isDisposed(facet) -> null
+        Disposer.isDisposed(facet) -> MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(facet.module)
         cachedSnapshot != null && snapshotUpToDate(cachedSnapshot) -> cachedSnapshot
         else -> MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, MergedManifestInfo.create(facet))
       }
-    } ?: MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(facet.module)
+    }
   }
 
   /**
@@ -201,6 +203,7 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
         // that we don't try to use the cached snapshot because the fact that there was
         // another thread already computing the merged manifest means that the cached
         // snapshot was stale.
+        ProgressManager.checkCanceled()
         return getOrCreateSnapshot(null)
       }
       throw e
@@ -323,16 +326,24 @@ open class MergedManifestManager(module: Module) {
     @JvmStatic
     fun getFreshSnapshot(module: Module): MergedManifestSnapshot {
       val supplier = getInstance(module).supplier
-      return if (ApplicationManager.getApplication().isReadAccessAllowed) {
-        // If we're holding the global write lock, blocking on the delegate supplier's
-        // computation would create a deadlock since the worker thread needs the read
-        // lock to create a new snapshot. If we're holding the read lock, we can't block
-        // on another thread that also requires the read lock, as this would cause deadlock
-        // if there's an incoming write request before the second thread acquires the lock.
-        supplier.getOrCreateSnapshotInCallingThread()
+      return try {
+        if (ApplicationManager.getApplication().isReadAccessAllowed) {
+          // If we're holding the global write lock, blocking on the delegate supplier's
+          // computation would create a deadlock since the worker thread needs the read
+          // lock to create a new snapshot. If we're holding the read lock, we can't block
+          // on another thread that also requires the read lock, as this would cause deadlock
+          // if there's an incoming write request before the second thread acquires the lock.
+          supplier.getOrCreateSnapshotInCallingThread()
+        }
+        else {
+          supplier.get().get()
+        }
       }
-      else {
-        supplier.get().get()
+      catch(e: ProcessCanceledException) {
+        throw e
+      }
+      catch(e: Exception) {
+        MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module)
       }
     }
   }

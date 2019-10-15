@@ -70,6 +70,9 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
     mySplitter.setOpaque(false);
     mySplitter.setInnerComponent(myContainer);
     mySplitter.setDividerWidth(JBUI.scale(0));
+    mySplitter.setFocusCycleRoot(false);
+    mySplitter.setFocusTraversalPolicyProvider(true);
+    mySplitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     mySide = Side.LEFT;
     Disposer.register(this, mySplitter);
 

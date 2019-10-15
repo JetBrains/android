@@ -18,6 +18,8 @@ package com.android.tools.idea.project;
 import static com.intellij.notification.NotificationDisplayType.NONE;
 import static com.intellij.notification.NotificationType.WARNING;
 
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.sync.hyperlink.FileBugHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationsConfiguration;
@@ -28,8 +30,9 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidKtsSupportNotification {
-  public static final String KTS_WARNING_MSG = "This project uses Gradle KTS build files which are not fully supported. Some functions may be affected.";
-  public static final String KTS_WARNING_TITLE = "Gradle KTS Build Files";
+  public static final String KTS_DISABLED_WARNING_MSG = "This project uses Gradle KTS build files which are not fully supported. Some functions may be affected.";
+  public static final String KTS_ENABLED_WARNING_MSG = "Support for <tt>gradle.kts</tt> build files is experimental: please file bugs to report any problems you encounter.";
+  public static final String KTS_WARNING_TITLE = "Gradle Kotlinscript Build Files";
   public static final NotificationGroup KTS_NOTIFICATION_GROUP = NotificationGroup.balloonGroup("Gradle KTS build files");
 
   @NotNull private final Project myProject;
@@ -47,8 +50,17 @@ public class AndroidKtsSupportNotification {
 
   public void showWarningIfNotShown() {
     if (!alreadyShown) {
-      AndroidNotification.getInstance(myProject).showBalloon(KTS_WARNING_TITLE, KTS_WARNING_MSG, WARNING, KTS_NOTIFICATION_GROUP,
-                                                             new DisableAndroidKtsNotificationHyperlink());
+      if (StudioFlags.KOTLIN_DSL_PARSING.get()) {
+        AndroidNotification.getInstance(myProject)
+          .showBalloon(KTS_WARNING_TITLE, KTS_ENABLED_WARNING_MSG, WARNING, KTS_NOTIFICATION_GROUP,
+                       new DisableAndroidKtsNotificationHyperlink(),
+                       new FileBugHyperlink());
+      }
+      else {
+        AndroidNotification.getInstance(myProject)
+          .showBalloon(KTS_WARNING_TITLE, KTS_DISABLED_WARNING_MSG, WARNING, KTS_NOTIFICATION_GROUP,
+                       new DisableAndroidKtsNotificationHyperlink());
+      }
       // Make sure that it was displayed, otherwise notification will not show until project is reopened.
       NotificationSettings settings = NotificationsConfigurationImpl.getSettings(KTS_NOTIFICATION_GROUP.getDisplayId());
       alreadyShown = settings.getDisplayType() != NONE || settings.isShouldLog();

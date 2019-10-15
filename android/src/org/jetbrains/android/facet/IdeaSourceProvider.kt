@@ -19,7 +19,7 @@ import com.android.SdkConstants.ANDROID_MANIFEST_XML
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.model.AndroidModel
 import com.google.common.collect.Lists
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.io.FileUtil.filesEqual
@@ -36,9 +36,6 @@ import org.jetbrains.android.facet.AndroidRootUtil.getFileByRelativeModulePath
 import org.jetbrains.android.facet.AndroidRootUtil.getRenderscriptGenDir
 import org.jetbrains.android.facet.AndroidRootUtil.getRenderscriptGenSourceRootPath
 import java.io.File
-import java.util.function.Function
-
-typealias SourceTypeAccessor = Function<IdeaSourceProvider, List<VirtualFile>>
 
 /**
  * Like [SourceProvider], but for IntelliJ, which means it provides
@@ -48,7 +45,6 @@ typealias SourceTypeAccessor = Function<IdeaSourceProvider, List<VirtualFile>>
          file referred to does not exist in the VFS.
  *
  * @see VirtualFile.getUrl
- * @see AndroidSourceType
  */
 interface IdeaSourceProvider {
 
@@ -84,33 +80,6 @@ interface IdeaSourceProvider {
   val shadersDirectoryUrls: Collection<String>
   val shadersDirectories: Collection<VirtualFile>
 
-  /**
-   * Returns true iff this SourceProvider provides the source folder that contains the given file.
-   */
-  fun containsFile(file: VirtualFile): Boolean {
-    val srcDirectories = allSourceFolders
-    if (file == manifestFile) {
-      return true
-    }
-
-    for (container in srcDirectories) {
-      if (!container.exists()) {
-        continue
-      }
-
-      if (isAncestor(container, file, false /* allow them to be the same */)) {
-        return true
-      }
-
-      // Check the flavor root directories
-      if (file == container.parent) {
-        return true
-      }
-    }
-    return false
-  }
-
-
   companion object {
 
     /**
@@ -139,12 +108,12 @@ interface IdeaSourceProvider {
      */
     @JvmStatic
     fun getCurrentSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
-      return if (!facet.requiresAndroidModel()) {
+      return if (!AndroidModel.isRequired(facet)) {
         listOf(SourceProviderManager.getInstance(facet).mainIdeaSourceProvider)
       }
       else {
         @Suppress("DEPRECATION")
-        facet.configuration.model?.activeSourceProviders?.toIdeaProviders().orEmpty()
+        AndroidModel.get(facet)?.activeSourceProviders?.toIdeaProviders().orEmpty()
       }
     }
 
@@ -158,7 +127,7 @@ interface IdeaSourceProvider {
     @Deprecated("Do not use. This is unlikely to be what anybody needs.")
     @JvmStatic
     fun getMainAndFlavorSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
-      if (!facet.requiresAndroidModel()) {
+      if (!AndroidModel.isRequired(facet)) {
         return listOf(SourceProviderManager.getInstance(facet).mainIdeaSourceProvider)
       }
       else {
@@ -183,27 +152,13 @@ interface IdeaSourceProvider {
      */
     @JvmStatic
     fun getCurrentTestSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
-      return if (!facet.requiresAndroidModel()) {
+      return if (!AndroidModel.isRequired(facet)) {
         emptyList()
       }
       else {
         @Suppress("DEPRECATION")
-        facet.configuration.model?.testSourceProviders?.toIdeaProviders().orEmpty()
+        AndroidModel.get(facet)?.testSourceProviders?.toIdeaProviders().orEmpty()
       }
-    }
-
-    @JvmStatic
-    fun getAllSourceFolders(provider: SourceProvider): Collection<File> {
-      return flatten(arrayOf(
-        provider.javaDirectories,
-        provider.resDirectories,
-        provider.aidlDirectories,
-        provider.renderscriptDirectories,
-        provider.assetsDirectories,
-        provider.cDirectories,
-        provider.cppDirectories,
-        provider.jniLibsDirectories
-      )).toList()
     }
 
     /**
@@ -211,8 +166,8 @@ interface IdeaSourceProvider {
      * the given folder.
      */
     @JvmStatic
-    fun isContainedBy(provider: SourceProvider, targetFolder: File): Boolean {
-      val srcDirectories = getAllSourceFolders(provider)
+    fun isContainedBy(provider: IdeaSourceProvider, targetFolder: VirtualFile): Boolean {
+      val srcDirectories = provider.allSourceFolders
       for (container in srcDirectories) {
         if (isAncestor(targetFolder, container, false)) {
           return true
@@ -233,16 +188,16 @@ interface IdeaSourceProvider {
      * Returns true iff this SourceProvider provides the source folder that contains the given file.
      */
     @JvmStatic
-    fun containsFile(provider: SourceProvider, file: File): Boolean {
-      val srcDirectories = getAllSourceFolders(provider)
-      if (filesEqual(provider.manifestFile, file)) {
+    fun containsFile(provider: IdeaSourceProvider, file: VirtualFile): Boolean {
+      val srcDirectories = provider.allSourceFolders
+      if (provider.manifestFile == file) {
         return true
       }
 
       for (container in srcDirectories) {
         // Check the flavor root directories
-        val parent = container.parentFile
-        if (parent != null && parent.isDirectory && filesEqual(parent, file)) {
+        val parent = container.parent
+        if (parent != null && parent.isDirectory && parent == file) {
           return true
         }
 
@@ -256,26 +211,6 @@ interface IdeaSourceProvider {
         }
       }
       return false
-    }
-
-    /**
-     * Returns an iterable of all source providers, for the given facet,
-     * in the overlay order (meaning that later providers
-     * override earlier providers when they redefine resources.)
-     *
-     * Note that the list will never be empty; there is always at least one source provider.
-     *
-     * The overlay source order is defined by the underlying build system.
-     */
-    @JvmStatic
-    fun getAllSourceProviders(facet: AndroidFacet): List<SourceProvider> {
-      return if (!facet.requiresAndroidModel() || facet.configuration.model == null) {
-        listOf(SourceProviderManager.getInstance(facet).mainSourceProvider)
-      }
-      else {
-        @Suppress("DEPRECATION")
-        facet.configuration.model!!.allSourceProviders
-      }
     }
 
     /**
@@ -293,48 +228,12 @@ interface IdeaSourceProvider {
      */
     @JvmStatic
     fun getAllIdeaSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
-      return if (!facet.requiresAndroidModel() || facet.configuration.model == null) {
+      return if (!AndroidModel.isRequired(facet) || AndroidModel.get(facet) == null) {
         listOf(SourceProviderManager.getInstance(facet).mainIdeaSourceProvider)
       }
       else {
-        getAllSourceProviders(facet).toIdeaProviders()
+        AndroidModel.get(facet)!!.allSourceProviders.toIdeaProviders()
       }
-    }
-
-    /**
-     * Returns a list of all IDEA source providers that contain, or are contained by, the given file.
-     * For example, with the file structure:
-     *
-     * ```
-     * src
-     *   main
-     *     aidl
-     *       myfile.aidl
-     *   free
-     *     aidl
-     *       myoverlay.aidl
-     * ```
-     *
-     * With target file == "myoverlay.aidl" the returned list would be ['free'], but if target file == "src",
-     * the returned list would be ['main', 'free'] since both of those source providers have source folders which
-     * are descendants of "src."
-     */
-    @JvmStatic
-    fun getIdeaSourceProvidersForFile(
-      facet: AndroidFacet,
-      targetFolder: VirtualFile?,
-      defaultIdeaSourceProvider: IdeaSourceProvider?
-    ): List<IdeaSourceProvider> {
-      val sourceProviderList =
-        if (targetFolder != null) {
-          // Add source providers that contain the file (if any) and any that have files under the given folder
-          getAllIdeaSourceProviders(facet)
-            .filter { provider -> provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder) }
-            .takeUnless { it.isEmpty() }
-        }
-        else null
-
-      return sourceProviderList ?: listOfNotNull(defaultIdeaSourceProvider)
     }
 
     /**
@@ -359,14 +258,13 @@ interface IdeaSourceProvider {
     fun getSourceProvidersForFile(
       facet: AndroidFacet,
       targetFolder: VirtualFile?,
-      defaultSourceProvider: SourceProvider?
-    ): List<SourceProvider> {
-      val targetIoFolder = targetFolder?.toIoFile()
+      defaultSourceProvider: IdeaSourceProvider?
+    ): List<IdeaSourceProvider> {
       val sourceProviderList =
-        if (targetIoFolder != null) {
+        if (targetFolder != null) {
           // Add source providers that contain the file (if any) and any that have files under the given folder
-          getAllSourceProviders(facet)
-            .filter { provider -> containsFile(provider, targetIoFolder) || isContainedBy(provider, targetIoFolder) }
+          getAllIdeaSourceProviders(facet)
+            .filter { provider -> containsFile(provider, targetFolder) || isContainedBy(provider, targetFolder) }
             .takeUnless { it.isEmpty() }
         }
         else null
@@ -376,13 +274,13 @@ interface IdeaSourceProvider {
 
     @JvmStatic
     fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-      return getCurrentTestSourceProviders(facet).any { it.containsFile(candidate) }
+      return getCurrentTestSourceProviders(facet).any { containsFile(it, candidate) }
     }
 
     /** Returns true if the given candidate file is a manifest file in the given module  */
     @JvmStatic
     fun isManifestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-      return if (facet.requiresAndroidModel()) {
+      return if (AndroidModel.isRequired(facet)) {
         getCurrentSourceProviders(facet).any { candidate == it.manifestFile }
       }
       else {
@@ -394,42 +292,12 @@ interface IdeaSourceProvider {
     @JvmStatic
     fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> {
       val main = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.manifestFile
-      if (!facet.requiresAndroidModel()) {
+      if (!AndroidModel.isRequired(facet)) {
         return if (main != null) listOf(main) else emptyList()
       }
 
       return getCurrentSourceProviders(facet).mapNotNull { it.manifestFile }
     }
-
-    @JvmField
-    val MANIFEST_PROVIDER = Function { provider: IdeaSourceProvider -> provider.manifestFile?.let { listOf(it) }.orEmpty() }
-
-    @JvmField
-    val RES_PROVIDER = SourceTypeAccessor { it.resDirectories.toList() }
-
-    @JvmField
-    val JAVA_PROVIDER = SourceTypeAccessor { it.javaDirectories.toList() }
-
-    @JvmField
-    val RESOURCES_PROVIDER = SourceTypeAccessor { it.resourcesDirectories.toList() }
-
-    @JvmField
-    val AIDL_PROVIDER = SourceTypeAccessor { it.aidlDirectories.toList() }
-
-    @JvmField
-    val JNI_PROVIDER = SourceTypeAccessor { it.jniDirectories.toList() }
-
-    @JvmField
-    val JNI_LIBS_PROVIDER = SourceTypeAccessor { it.jniLibsDirectories.toList() }
-
-    @JvmField
-    val ASSETS_PROVIDER = SourceTypeAccessor { it.assetsDirectories.toList() }
-
-    @JvmField
-    val RENDERSCRIPT_PROVIDER = SourceTypeAccessor { it.renderscriptDirectories.toList() }
-
-    @JvmField
-    val SHADERS_PROVIDER = SourceTypeAccessor { it.shadersDirectories.toList() }
   }
 }
 
@@ -520,6 +388,7 @@ private class Delegate constructor(private val provider: SourceProvider) : IdeaS
 }
 
 /** [IdeaSourceProvider] for legacy Android projects without [SourceProvider].  */
+@Suppress("DEPRECATION")
 private class LegacyDelegate constructor(private val facet: AndroidFacet) : IdeaSourceProvider {
 
   override val name: String = ""
@@ -595,24 +464,6 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
   }
 
   override fun hashCode(): Int = facet.hashCode()
-}
-
-/**
- * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
- * the given folder.
- */
-fun IdeaSourceProvider.isContainedBy(targetFolder: VirtualFile): Boolean {
-  val srcDirectories = allSourceFolders
-  for (container in srcDirectories) {
-    if (!container.exists()) {
-      continue
-    }
-
-    if (isAncestor(targetFolder, container, false /* allow them to be the same */)) {
-      return true
-    }
-  }
-  return false
 }
 
 private val IdeaSourceProvider.allSourceFolders: Collection<VirtualFile>

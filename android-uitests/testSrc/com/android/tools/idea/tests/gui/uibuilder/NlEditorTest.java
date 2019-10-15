@@ -22,6 +22,8 @@ import android.view.View;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -348,6 +350,7 @@ public class NlEditorTest {
     assertThat(editor.getSelectedTab()).isEqualTo("Text");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/124109589
   @Test
   public void scrollWhileZoomed() throws Exception {
     NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")

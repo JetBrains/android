@@ -30,16 +30,20 @@ import javax.swing.*;
 import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
 
 class CpuChartTooltipView extends CpuChartTooltipViewBase {
-  public CpuChartTooltipView(@NotNull HTreeChart<CaptureNode> chart,
-                             @NotNull CpuProfilerStageView stageView) {
-    super(chart, stageView);
+
+  private final Range myDataRange;
+
+  CpuChartTooltipView(@NotNull HTreeChart<CaptureNode> chart,
+                      @NotNull Range dataRange,
+                      @NotNull JLayeredPane tooltipRoot) {
+    super(chart, tooltipRoot);
+    myDataRange = dataRange;
   }
 
   @Override
   protected void showTooltip(@NotNull CaptureNode node) {
-    Range dataRange = myStageView.getTimeline().getDataRange();
-    long start = (long)(node.getStart() - dataRange.getMin());
-    long end = (long)(node.getEnd() - dataRange.getMin());
+    long start = (long)(node.getStart() - myDataRange.getMin());
+    long end = (long)(node.getEnd() - myDataRange.getMin());
     long totalDuration = node.getDuration();
 
     getTooltipContainer().removeAll();

@@ -19,6 +19,10 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.deployment.Key;
 import com.android.tools.idea.run.deployment.SelectDeviceAction;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionItem;
 import java.awt.event.KeyEvent;
 import java.time.Duration;
@@ -32,6 +36,7 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class DeviceSelectorFixture {
   private static final Duration DURATION = Duration.ofSeconds(20);
@@ -42,9 +47,13 @@ public final class DeviceSelectorFixture {
   @NotNull
   private final JButtonFixture myComboBoxButton;
 
-  public DeviceSelectorFixture(@NotNull Robot robot) {
+  @NotNull
+  private final IdeFrameFixture myIdeFrameFixture;
+
+  public DeviceSelectorFixture(@NotNull Robot robot, @NotNull IdeFrameFixture ideFrameFixture) {
     myRobot = robot;
     myComboBoxButton = new JButtonFixture(robot, "deviceAndSnapshotComboBoxButton");
+    myIdeFrameFixture = ideFrameFixture;
   }
 
   public void selectItem(@NotNull String item) {
@@ -64,8 +73,9 @@ public final class DeviceSelectorFixture {
   }
 
   /**
-   * Prefer to use {@link #selectItem(String)}
+   * Prefer to use {@link #selectItem(String)}. This is only used for DeploymentTest. Will be removed.
    */
+  @Deprecated
   public void selectDevice(@NotNull IDevice device) {
     Wait.seconds(DURATION.getSeconds()).expecting("device " + device + " to be selected").until(() -> {
       if (!clickComboBoxButtonIfEnabled()) {
@@ -73,16 +83,24 @@ public final class DeviceSelectorFixture {
       }
 
       try {
-        JListFixture list = new JListFixture(myRobot, "deviceAndSnapshotComboBoxList");
-        int i = comboBoxListIndexOf(list, device);
+        JListFixture fixture = new JListFixture(myRobot, "deviceAndSnapshotComboBoxList");
 
-        if (i == -1) {
-          clickComboBoxButtonIfEnabled();
+        String text = comboBoxListTextOf(fixture, device);
+        if (text == null) {
+          return false;
+        }
+        fixture.clickItem(text);
+
+        // TODO (b/142343916): Occasionally clicks don't register in the IJ framework.
+        //  So as a workaround, we'll manually invoke the device selection action.
+        AnAction selectDeviceAction = getComboBoxAction(fixture, device);
+        if (selectDeviceAction == null) {
           return false;
         }
 
-        list.clickItem(i);
-        return true;
+        return GuiQuery.get(() -> ActionManager.getInstance()
+          .tryToExecute(selectDeviceAction, ActionCommand.getInputEvent("SelectDevicesAction"), null, ActionPlaces.UNKNOWN, true)
+          .isDone());
       }
       catch (ComponentLookupException exception) {
         return false;
@@ -90,7 +108,8 @@ public final class DeviceSelectorFixture {
     });
   }
 
-  private static int comboBoxListIndexOf(@NotNull JListFixture list, @NotNull IDevice device) {
+  @Nullable
+  private static String comboBoxListTextOf(@NotNull JListFixture list, @NotNull IDevice device) {
     return GuiQuery.get(() -> {
       @SuppressWarnings("unchecked")
       JList<ActionItem> target = list.target();
@@ -99,32 +118,65 @@ public final class DeviceSelectorFixture {
       Object key = new Key(device.getSerialNumber());
 
       for (int i = 0, size = model.getSize(); i < size; i++) {
-        Object action = model.getElementAt(i).getAction();
+        ActionItem actionItem = model.getElementAt(i);
+        Object action = actionItem.getAction();
 
         if (!(action instanceof SelectDeviceAction)) {
           continue;
         }
 
         if (((SelectDeviceAction)action).getDevice().getKey().equals(key)) {
-          return i;
+          return actionItem.toString();
         }
       }
 
-      return -1;
+      return null;
+    });
+  }
+
+  @Nullable
+  private static AnAction getComboBoxAction(@NotNull JListFixture list, @NotNull IDevice device) {
+    return GuiQuery.get(() -> {
+      @SuppressWarnings("unchecked")
+      JList<ActionItem> target = list.target();
+
+      ListModel<ActionItem> model = target.getModel();
+      Key key = new Key(device.getSerialNumber());
+
+      for (int i = 0, size = model.getSize(); i < size; i++) {
+        ActionItem actionItem = model.getElementAt(i);
+        AnAction action = actionItem.getAction();
+
+        if (action instanceof SelectDeviceAction && ((SelectDeviceAction)action).getDevice().getKey().equals(key)) {
+          return action;
+        }
+      }
+
+      return null;
     });
   }
 
   private boolean clickComboBoxButtonIfEnabled() {
+    // It's possible for the UI to not be enabled without user input (e.g. moving the mouse).
+    // So we'll manually update the toolbars to ensure that our target button is in a good state.
+    myIdeFrameFixture.updateToolbars();
+
     if (!myComboBoxButton.isEnabled()) {
       return false;
     }
 
-    myComboBoxButton.click();
-    return true;
+    try {
+      myComboBoxButton.click();
+      return true;
+    }
+    catch (IllegalStateException e) {
+      // TODO (b/142341755): Race condition. Just let the caller try again.
+      return false;
+    }
   }
 
-  public void troubleshootDeviceConnections(@NotNull IdeFrameFixture ide, @NotNull String appName) {
-    ide.selectApp(appName);
+  public void troubleshootDeviceConnections(@NotNull String appName) {
+    myIdeFrameFixture.selectApp(appName);
     selectItem("Troubleshoot Device Connections");
 
     // Without typing Enter the combo box stays open and OpenConnectionAssistantSidePanelAction::actionPerformed never gets called. I wonder
@@ -134,22 +186,22 @@ public final class DeviceSelectorFixture {
     myRobot.pressAndReleaseKey(KeyEvent.VK_ENTER);
   }
 
-  public void recordEspressoTest(@NotNull IdeFrameFixture ide, @NotNull String deviceName) {
+  public void recordEspressoTest(@NotNull String deviceName) {
     selectItem(deviceName);
-    ide.invokeMenuPath("Run", "Record Espresso Test");
+    myIdeFrameFixture.invokeMenuPath("Run", "Record Espresso Test");
   }
 
-  public void runApp(@NotNull IdeFrameFixture ide, @NotNull String appName, @NotNull String deviceName) {
-    ide.selectApp(appName);
+  public void runApp(@NotNull String appName, @NotNull String deviceName) {
+    myIdeFrameFixture.selectApp(appName);
     selectItem(deviceName);
 
-    ide.findRunApplicationButton().click();
+    myIdeFrameFixture.findRunApplicationButton().click();
   }
 
-  public void debugApp(@NotNull IdeFrameFixture ide, @NotNull String appName, @NotNull String deviceName) {
-    ide.selectApp(appName);
+  public void debugApp(@NotNull String appName, @NotNull String deviceName) {
+    myIdeFrameFixture.selectApp(appName);
     selectItem(deviceName);
 
-    ide.findDebugApplicationButton().click();
+    myIdeFrameFixture.findDebugApplicationButton().click();
   }
 }

@@ -225,7 +225,6 @@ iml_module(
     test_shard_count = 50,
     test_srcs = ["testSrc"],
     test_tags = [
-        "slow",
         "cpu:3",
         "block-network",
         "no_test_mac",
@@ -328,6 +327,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
         "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer[module, test]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
     ],
 )
 
@@ -349,6 +349,7 @@ filegroup(
     srcs = select({
         "//tools/base/bazel:windows": [
             "//tools/base/deploy/installer:android-installer",
+            "//tools/base/deploy/installer/tests:fake_device_proto",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [
@@ -720,8 +721,8 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-native-utils/1.3.20:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-script-runtime/1.3.20:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/1.3.20:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.3.50:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.50-compose-20190920:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.3.50-compose-20190920:jar",
         "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/2.7.1:jar",
         "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.5:jar",
         "//prebuilts/tools/common/m2/repository/org/slf4j/slf4j-api/1.7.2:jar",

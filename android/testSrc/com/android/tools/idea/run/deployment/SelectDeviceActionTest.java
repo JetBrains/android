@@ -21,6 +21,7 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.project.Project;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Before;
@@ -70,6 +71,42 @@ public final class SelectDeviceActionTest {
 
     // Assert
     assertEquals("LGE Nexus 5X [00fff9d2279fa601]", action.getTemplatePresentation().getText());
+  }
+
+  @Test
+  public void newSelectDeviceActionDeviceHasNondefaultSnapshot() {
+    // Arrange
+    Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 3 API 29")
+      .setKey(new Key("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setSnapshot(new Snapshot(Paths.get("snap_2019-09-27_15-48-09"), "Snapshot"))
+      .build();
+
+    // Act
+    AnAction action = SelectDeviceAction.newSelectDeviceAction(myComboBoxAction, myProject, device);
+
+    // Assert
+    assertEquals("Pixel 3 API 29 - Snapshot", action.getTemplatePresentation().getText());
+  }
+
+  @Test
+  public void newSelectDeviceActionDeviceHasValidityReason() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 3 API 29")
+      .setValidityReason("Missing system image")
+      .setKey(new Key("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    // Act
+    AnAction action = SelectDeviceAction.newSelectDeviceAction(myComboBoxAction, myProject, device);
+
+    // Assert
+    assertEquals("Pixel 3 API 29 (Missing system image)", action.getTemplatePresentation().getText());
   }
 
   @Test

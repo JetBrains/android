@@ -37,6 +37,7 @@ import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.inspections.lint.AndroidLintUtil;
 import org.jetbrains.annotations.NotNull;
@@ -246,22 +247,13 @@ public class LintIdeUtils {
   /** Returns the resource directories to use for the given module */
   @NotNull
   public static List<File> getResourceDirectories(@NotNull AndroidFacet facet) {
-    if (facet.requiresAndroidModel()) {
-      AndroidModel androidModel = facet.getConfiguration().getModel();
-      if (androidModel != null) {
-        List<File> resDirectories = new ArrayList<>();
-        List<SourceProvider> sourceProviders = androidModel.getActiveSourceProviders();
-        for (SourceProvider provider : sourceProviders) {
-          for (File file : provider.getResDirectories()) {
-            if (file.isDirectory()) {
-              resDirectories.add(file);
-            }
-          }
-        }
-        return resDirectories;
+    List<File> resDirectories = new ArrayList<>();
+    for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
+      for (VirtualFile resDirectory : sourceProvider.getResDirectories()) {
+        resDirectories.add(VfsUtilCore.virtualToIoFile(resDirectory));
       }
     }
-    return new ArrayList<>(SourceProviderManager.getInstance(facet).getMainSourceProvider().getResDirectories());
+    return resDirectories;
   }
 
   public static boolean isApiLevelAtLeast(@Nullable PsiFile file, int minApiLevel, boolean defaultValue) {

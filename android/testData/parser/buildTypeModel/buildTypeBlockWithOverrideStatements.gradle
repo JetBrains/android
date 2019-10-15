@@ -23,7 +23,7 @@ android {
 }
 android.buildTypes.xyz {
   applicationIdSuffix = "mySuffix-1"
-  consumerProguardFiles 'proguard-android-1.txt', 'proguard-rules-1.pro'
+  consumerProguardFiles = ['proguard-android-1.txt', 'proguard-rules-1.pro']
   debuggable = false
   embedMicroApp true
   jniDebuggable = false

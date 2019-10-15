@@ -60,30 +60,6 @@ public class AnimationToolbarTest {
     }
   }
 
-  @Test
-  public void toolbarDisplayedForMotionLayout() throws Exception {
-    StudioFlags.NELE_MOTION_LAYOUT_ANIMATIONS.override(true);
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication");
-    IdeFrameFixture frame = guiTest.ideFrame();
-    EditorFixture editor = frame.getEditor().open("app/src/main/res/layout/motion_layout.xml", EditorFixture.Tab.DESIGN);
-
-    DesignerEditorPanel panel = editor.getLayoutEditor(false).waitForRenderToFinish().target();
-    AnimationToolbar toolbar = frame.robot().finder().findByType(panel, AnimationToolbar.class);
-    assertThat(toolbar).isNotNull();
-
-    // Open a non-motion layout. Toolbar should not be displayed.
-    editor = frame.getEditor().open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN);
-
-    panel = editor.getLayoutEditor(false).waitForRenderToFinish().target();
-    try {
-      frame.robot().finder().findByType(panel, AnimationToolbar.class);
-      fail("We shouldn't find an AnimationToolbar when opening layouts other than MotionLayout.");
-    }
-    catch (ComponentLookupException expected) {
-      // We expect to throw ComponentLookupException as we shouldn't find an AnimationToolbar
-    }
-  }
-
   @After
   public void tearDown() {
     StudioFlags.NELE_ANIMATIONS_PREVIEW.clearOverride();

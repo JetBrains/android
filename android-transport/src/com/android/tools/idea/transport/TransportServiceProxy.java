@@ -564,12 +564,14 @@ public class TransportServiceProxy extends ServiceProxy
     for (Client client : removedClients) {
       Common.Process process = myCachedProcesses.remove(client);
       // New data pipeline event.
-      myEventQueue.offer(Common.Event.newBuilder()
-                           .setGroupId(process.getPid())
-                           .setKind(Event.Kind.PROCESS)
-                           .setIsEnded(true)
-                           .setTimestamp(timestampNs)
-                           .build());
+      if (process != null) {
+        myEventQueue.offer(Common.Event.newBuilder()
+                             .setGroupId(process.getPid())
+                             .setKind(Event.Kind.PROCESS)
+                             .setIsEnded(true)
+                             .setTimestamp(timestampNs)
+                             .build());
+      }
     }
   }
 

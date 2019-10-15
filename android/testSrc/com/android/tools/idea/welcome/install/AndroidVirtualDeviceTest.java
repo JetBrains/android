@@ -30,15 +30,15 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.android.AndroidTestBase;
-
 import java.io.File;
 import java.util.Map;
+import org.jetbrains.android.AndroidTestBase;
 
 public class AndroidVirtualDeviceTest extends AndroidTestBase {
 
@@ -108,7 +108,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
 
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android-home"), fop);
 
-    final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler);
+    AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, MoreExecutors.newDirectExecutorService());
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 

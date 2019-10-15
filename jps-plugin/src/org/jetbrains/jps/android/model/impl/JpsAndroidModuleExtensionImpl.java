@@ -256,6 +256,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
 
   @Override
   public boolean isGradleProject() {
+    //noinspection deprecation  This is one of legitimate assignments to this property.
     return !myProperties.ALLOW_USER_CONFIGURATION;
   }
 

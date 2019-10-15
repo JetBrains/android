@@ -288,7 +288,4 @@ public class ViewGroupHandler extends ViewHandler {
     void show(@NotNull AccessoryPanel.Type type, boolean show);
   }
 
-  public NlComponentDelegate getNlComponentDelegate() {
-    return null;
-  }
 }

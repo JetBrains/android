@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profiling.view;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -42,5 +43,10 @@ public class CapturesToolWindowFactory implements ToolWindowFactory, DumbAware {
   public void init(ToolWindow toolWindow) {
     toolWindow.setStripeTitle(WINDOW_TITLE);
     toolWindow.setSplitMode(true, null);
+  }
+
+  @Override
+  public boolean shouldBeAvailable(@NotNull Project project) {
+    return !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get();
   }
 }

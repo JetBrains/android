@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.stdui.CommonAction
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -27,11 +28,11 @@ import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profiler.proto.MemoryProfiler
-import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuCaptureArtifactView
@@ -47,14 +48,27 @@ import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.awt.event.ActionEvent
+import java.util.Arrays
 import java.util.concurrent.TimeUnit
 
-class SessionsViewTest {
+@RunWith(Parameterized::class)
+class SessionsViewTest(private val useUnifiedEvents: Boolean) {
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters
+    fun useNewEventPipelineParameter(): Collection<Boolean> {
+      return Arrays.asList(false, true)
+    }
+  }
 
   private val VALID_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
 
@@ -62,6 +76,10 @@ class SessionsViewTest {
   private val myTransportService = FakeTransportService(myTimer, false)
   private val myMemoryService = FakeMemoryService()
   private val myCpuService = FakeCpuService()
+  private val myIdeProfilerServices = FakeIdeProfilerServices().apply {
+    enableEventsPipeline(useUnifiedEvents)
+  }
+
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel(
@@ -80,7 +98,7 @@ class SessionsViewTest {
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), myTimer)
+    myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myIdeProfilerServices, myTimer)
     mySessionsManager = myProfilers.sessionsManager
     mySessionsView = SessionsView(myProfilers, FakeIdeProfilerComponents())
   }
@@ -96,20 +114,23 @@ class SessionsViewTest {
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
 
     myTimer.currentTimeNs = 1
-    mySessionsManager.beginSession(device, process1)
+    mySessionsManager.beginSession(device.deviceId, device, process1)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     var session1 = mySessionsManager.selectedSession
     assertThat(sessionsPanel.componentCount).isEqualTo(1)
     var sessionItem0 = sessionsPanel.getComponent(0) as SessionItemView
     assertThat(sessionItem0.artifact.session).isEqualTo(session1)
 
     mySessionsManager.endCurrentSession()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     session1 = mySessionsManager.selectedSession
     assertThat(sessionsPanel.componentCount).isEqualTo(1)
     sessionItem0 = sessionsPanel.getComponent(0) as SessionItemView
     assertThat(sessionItem0.artifact.session).isEqualTo(session1)
 
     myTimer.currentTimeNs = 2
-    mySessionsManager.beginSession(device, process2)
+    mySessionsManager.beginSession(device.deviceId, device, process2)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     val session2 = mySessionsManager.selectedSession
     assertThat(sessionsPanel.componentCount).isEqualTo(2)
     // Sessions are sorted in descending order.
@@ -130,8 +151,25 @@ class SessionsViewTest {
       .setFromTimestamp(cpuTraceTimestamp)
       .setToTimestamp(cpuTraceTimestamp + 1)
       .build()
-    myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
-    myCpuService.addTraceInfo(cpuTraceInfo)
+    if (myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled) {
+      val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
+      myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session1.pid).build())
+      myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session2.pid).build())
+
+      val cpuTraceEvent = Common.Event.newBuilder()
+        .setGroupId(cpuTraceTimestamp)
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(cpuTraceTimestamp)
+        .setIsEnded(true)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+      myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(session1.pid).build())
+      myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(session2.pid).build())
+    }
+    else {
+      myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+      myCpuService.addTraceInfo(cpuTraceInfo)
+    }
     mySessionsManager.update()
 
     assertThat(sessionsPanel.componentCount).isEqualTo(6)
@@ -339,6 +377,7 @@ class SessionsViewTest {
     myTransportService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     myProfilers.setProcess(device1, process1)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     val session = myProfilers.session
     assertThat(stopProfilingButton.isEnabled).isTrue()
@@ -355,6 +394,9 @@ class SessionsViewTest {
 
   @Test
   fun testImportSessionsFromHprofFile() {
+    // TODO b/136292864
+    Assume.assumeFalse(myIdeProfilerServices.featureConfig.isUnifiedPipelineEnabled)
+
     val sessionsPanel = mySessionsView.sessionsPanel
     assertThat(sessionsPanel.componentCount).isEqualTo(0)
 
@@ -395,16 +437,37 @@ class SessionsViewTest {
       .setFromTimestamp(20)
       .setToTimestamp(21)
       .build()
-    myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
-    myCpuService.addTraceInfo(cpuTraceInfo)
+    if (myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled) {
+      val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
+      myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(process1.pid).build())
+      myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(process2.pid).build())
+
+      val cpuTraceEvent = Common.Event.newBuilder()
+        .setGroupId(cpuTraceInfo.fromTimestamp)
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(cpuTraceInfo.fromTimestamp)
+        .setIsEnded(true)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+      myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(process1.pid).build())
+      myTransportService.addEventToStream(device.deviceId, cpuTraceEvent.setPid(process2.pid).build())
+    }
+    else {
+      myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+      myCpuService.addTraceInfo(cpuTraceInfo)
+    }
 
     myTimer.currentTimeNs = 2
-    mySessionsManager.beginSession(device, process1)
+    mySessionsManager.beginSession(device.deviceId, device, process1)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     mySessionsManager.endCurrentSession()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     val session1 = mySessionsManager.selectedSession
     myTimer.currentTimeNs = 2
-    mySessionsManager.beginSession(device, process2)
+    mySessionsManager.beginSession(device.deviceId, device, process2)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     mySessionsManager.endCurrentSession()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     val session2 = mySessionsManager.selectedSession
 
     assertThat(sessionsPanel.componentCount).isEqualTo(6)
@@ -524,12 +587,28 @@ class SessionsViewTest {
                               .setTraceType(Cpu.CpuTraceType.ART)
                               .setTraceMode(Cpu.CpuTraceMode.SAMPLED)))
       .build()
-    myCpuService.addTraceInfo(cpuTraceInfo)
+
+    if (useUnifiedEvents) {
+      myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
+        .setGroupId(cpuTraceInfo.fromTimestamp)
+        .setPid(process.getPid())
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(cpuTraceInfo.fromTimestamp)
+        .setIsEnded(true)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+        .build())
+    }
+    else {
+      myCpuService.addTraceInfo(cpuTraceInfo)
+    }
     myTransportService.addFile(traceInfoId.toString(), ByteString.copyFrom(TestUtils.getWorkspaceFile(VALID_TRACE_PATH).readBytes()))
 
     myTimer.currentTimeNs = 0
-    mySessionsManager.beginSession(device, process)
+    mySessionsManager.beginSession(device.deviceId, device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     mySessionsManager.endCurrentSession()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     val session = mySessionsManager.selectedSession
 
     assertThat(sessionsPanel.componentCount).isEqualTo(2)
@@ -575,18 +654,33 @@ class SessionsViewTest {
     val sessionStartNs = 1L
 
     // Sets an ongoing trace info in the service
-    myCpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
-                                .setTraceId(1)
-                                .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
-                                                    .setUserOptions(
-                                                      Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-                                                        .setTraceType(Cpu.CpuTraceType.ATRACE)
-                                                        .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)))
-                                .setFromTimestamp(sessionStartNs + 1)
-                                .setToTimestamp(-1)
-                                .build())
+    val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceId(1)
+      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                          .setUserOptions(
+                            Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+                              .setTraceType(Cpu.CpuTraceType.ATRACE)
+                              .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)))
+      .setFromTimestamp(sessionStartNs + 1)
+      .setToTimestamp(-1)
+      .build()
+    if (useUnifiedEvents) {
+      myTransportService.addEventToStream(device.deviceId, Common.Event.newBuilder()
+        .setGroupId(cpuTraceInfo.fromTimestamp)
+        .setPid(process.getPid())
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTimestamp(cpuTraceInfo.fromTimestamp)
+        .setIsEnded(true)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build()))
+        .build())
+    }
+    else {
+      myCpuService.addTraceInfo(cpuTraceInfo)
+    }
     myTimer.currentTimeNs = sessionStartNs
-    mySessionsManager.beginSession(device, process)
+    mySessionsManager.beginSession(device.deviceId, device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     val session = mySessionsManager.selectedSession
 
     assertThat(sessionsPanel.componentCount).isEqualTo(2)
@@ -620,11 +714,19 @@ class SessionsViewTest {
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
 
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(11).build()
-    myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+    if (myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled) {
+      val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
+      myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(process.pid).build())
+    }
+    else {
+      myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+    }
 
     myTimer.currentTimeNs = 1
-    mySessionsManager.beginSession(device, process)
+    mySessionsManager.beginSession(device.deviceId, device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     mySessionsManager.endCurrentSession()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     val session = mySessionsManager.selectedSession
 
     assertThat(sessionsPanel.componentCount).isEqualTo(2)
@@ -665,9 +767,16 @@ class SessionsViewTest {
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
 
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(Long.MAX_VALUE).build()
-    myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+    if (myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled) {
+      val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
+      myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(process.pid).build())
+    }
+    else {
+      myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+    }
 
-    mySessionsManager.beginSession(device, process)
+    mySessionsManager.beginSession(device.deviceId, device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     val session = mySessionsManager.selectedSession
 
     assertThat(sessionsPanel.componentCount).isEqualTo(2)
@@ -697,13 +806,17 @@ class SessionsViewTest {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
 
-    val allocationInfo = MemoryProfiler.MemoryData.newBuilder()
-      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(10).setEndTime(11).setLegacy(true).setSuccess(true).build())
-      .build()
-    myMemoryService.setMemoryData(allocationInfo)
+    val allocationInfo = AllocationsInfo.newBuilder().setStartTime(10).setEndTime(11).setLegacy(true).setSuccess(true).build()
+    if (myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled) {
+      myTransportService.addEventToStream(
+        device.deviceId, ProfilersTestData.generateMemoryAllocationInfoData(allocationInfo.startTime, process.pid, allocationInfo).build())
+    }
+    else {
+      myMemoryService.setMemoryData(MemoryProfiler.MemoryData.newBuilder().addAllocationsInfo(allocationInfo).build())
+    }
 
-    mySessionsManager.beginSession(device, process)
-    mySessionsManager.endCurrentSession()
+    mySessionsManager.beginSession(device.deviceId, device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     val session = mySessionsManager.selectedSession
 
     assertThat(sessionsPanel.componentCount).isEqualTo(2)
@@ -743,12 +856,17 @@ class SessionsViewTest {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
 
-    var allocationInfo = MemoryProfiler.MemoryData.newBuilder()
-      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(10).setEndTime(Long.MAX_VALUE).setLegacy(true).build())
-      .build()
-    myMemoryService.setMemoryData(allocationInfo)
+    val allocationInfo = AllocationsInfo.newBuilder().setStartTime(10).setEndTime(Long.MAX_VALUE).setLegacy(true).build()
+    if (myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled) {
+      myTransportService.addEventToStream(
+        device.deviceId, ProfilersTestData.generateMemoryAllocationInfoData(allocationInfo.startTime, process.pid, allocationInfo).build())
+    }
+    else {
+      myMemoryService.setMemoryData(MemoryProfiler.MemoryData.newBuilder().addAllocationsInfo(allocationInfo).build())
+    }
 
-    mySessionsManager.beginSession(device, process)
+    mySessionsManager.beginSession(device.deviceId, device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     val session = mySessionsManager.selectedSession
 
     assertThat(sessionsPanel.componentCount).isEqualTo(2)

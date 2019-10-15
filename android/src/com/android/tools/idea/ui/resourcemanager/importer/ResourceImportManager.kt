@@ -24,6 +24,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.util.AndroidResourceUtil
 import java.io.File
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
@@ -77,7 +78,7 @@ fun Sequence<File>.findAllDesignAssets(importersProvider: ImportersProvider): Se
  */
 fun Sequence<DesignAsset>.groupIntoDesignAssetSet(): List<ResourceAssetSet> =
   groupBy { it.name }
-    .map { (name, assets) -> ResourceAssetSet(ValueResourceNameValidator.normalizeName(name), assets) }
+    .map { (name, assets) -> ResourceAssetSet(ValueResourceNameValidator.normalizeName(name.iconizeName()), assets) }
 
 /**
  * Displays a file picker which filters files depending on the files supported by the [DesignAssetImporter]
@@ -102,6 +103,19 @@ fun chooseDesignAssets(importersProvider: ImportersProvider,
     PropertiesComponent.getInstance().setValue(PREFERENCE_LAST_SELECTED_DIRECTORY, selectedFiles.firstOrNull()?.path)
   }
 }
+
+private const val ICON_PREFIX = "ic_"
+
+/**
+ * Fix the image resource file name to follow the icon naming convention. Ie: start with "ic_", all lowercase with '0-9', 'a-z', '_' chars.
+ */
+private fun String.iconizeName(): String =
+  if (!this.startsWith(ICON_PREFIX)) {
+    ICON_PREFIX + AndroidResourceUtil.getValidResourceFileName(this)
+  }
+  else {
+    AndroidResourceUtil.getValidResourceFileName(this)
+  }
 
 /**
  * Create a [FileChooserDescriptor] from the available [DesignAssetImporter] provided by the ImportersProvider.

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -141,7 +142,9 @@ interface PreviewElementFinder {
 }
 
 internal fun requestBuild(project: Project, module: Module) {
-  GradleBuildInvoker.getInstance(project).compileJava(arrayOf(module), TestCompileType.NONE)
+  val modules = mutableSetOf(module)
+  ModuleUtil.collectModulesDependsOn(module, modules)
+  GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
 }
 
 fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {

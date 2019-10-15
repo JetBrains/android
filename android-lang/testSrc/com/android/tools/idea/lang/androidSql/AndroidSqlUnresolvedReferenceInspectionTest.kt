@@ -25,7 +25,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testInvalidColumn() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -45,7 +45,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testValidColumn() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -65,7 +65,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testValidColumnInKotlinStringTemplate() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("UserDao.kt", """
         package com.example;
@@ -87,7 +87,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testInvalidColumnWithClause() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -107,7 +107,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testInvalidTable() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -127,7 +127,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testIncompleteQuery_validColumn() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -147,7 +147,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testIncompleteQuery_invalidColumn() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -167,7 +167,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testSubquery_valid() {
-    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -187,7 +187,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testSubquery_invalidOuterQuery() {
-    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -207,7 +207,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testSubquery_validOuterQuery() {
-    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -227,7 +227,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testSubquery_invalidInnerQuery() {
-    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -247,7 +247,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testDelete() {
-    myFixture.addRoomEntity("com.example.User","age" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "age" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -283,7 +283,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testUpdate() {
-    myFixture.addRoomEntity("com.example.User","age" ofType "int", "id" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "age" ofType "int", "id" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -335,7 +335,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testInsert() {
-    myFixture.addRoomEntity("com.example.User","age" ofType "int", "id" ofType "int")
+    myFixture.addRoomEntity("com.example.User", "age" ofType "int", "id" ofType "int")
 
     myFixture.configureByText("UserDao.java", """
         package com.example;
@@ -493,8 +493,8 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testRowId() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
-    myFixture.addRoomEntity("com.example.Mail","body" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+    myFixture.addRoomEntity("com.example.Mail", "body" ofType "String")
 
     myFixture.configureByText("SomeDao.java", """
         package com.example;
@@ -572,7 +572,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
 
     myFixture.configureByText("SomeDao.java",
       //language=JAVA
-      """
+                              """
         package com.example;
 
         import androidx.room.Dao;
@@ -590,7 +590,7 @@ class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   }
 
   fun testDatabaseView() {
-    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
     myFixture.configureByText("NamesView.java", """
         package com.example;

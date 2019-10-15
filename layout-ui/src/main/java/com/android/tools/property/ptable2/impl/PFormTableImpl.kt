@@ -36,11 +36,46 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
         // and there are editable cells: delegate to the next focus candidate.
         when {
           event !is CausedFocusEvent -> return
-          event.cause == CausedFocusEvent.Cause.TRAVERSAL_FORWARD -> transferFocus()
-          event.cause == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD -> transferFocusBackward()
+          event.cause == CausedFocusEvent.Cause.TRAVERSAL_FORWARD -> transferFocusToFirstEditor()
+          event.cause == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD -> transferFocusToLastEditor()
         }
       }
     })
+  }
+
+  private fun transferFocusToFirstEditor() {
+    if (isEmpty || hasAnyEditableCells()) {
+      // If this table is empty just move the focus to the next component after the table.
+      // If there is an editable cell, use the PTableFocusTraversalPolicy to start editing the first editable cell.
+      transferFocus()
+    }
+    else {
+      // If no cells are editable, accept focus in the table and select the first row.
+      setRowSelectionInterval(0, 0)
+    }
+  }
+
+  private fun transferFocusToLastEditor() {
+    if (isEmpty || hasAnyEditableCells()) {
+      // If this table is empty just move the focus to the next component before the table.
+      // If there is an editable cell, use the PTableFocusTraversalPolicy to start editing the last editable cell.
+      transferFocusBackward()
+    }
+    else {
+      // If no cells are editable, accept focus in the table and select the last row.
+      setRowSelectionInterval(rowCount - 1, rowCount - 1)
+    }
+  }
+
+  private fun hasAnyEditableCells(): Boolean {
+    for (row in 0 until rowCount) {
+      for (column in 0..1) {
+        if (isCellEditable(row, column)) {
+          return true
+        }
+      }
+    }
+    return false
   }
 
   // When an editor is present, do not accept focus on the table itself.

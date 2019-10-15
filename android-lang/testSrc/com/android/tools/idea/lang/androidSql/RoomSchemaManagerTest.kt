@@ -77,11 +77,11 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
       RoomSchema(
         tables = setOf(
           RoomTable(myFixture.classPointer("MainSourcesEntity"), ENTITY, "MainSourcesEntity",
-                                                                columns = setOf(
-                                                                  RoomRowidColumn(
-                                                                    PsiElementForFakeColumn(
-                                                                      myFixture.classPointer("MainSourcesEntity").element!!))
-                                                                ))
+                    columns = setOf(
+                      RoomRowidColumn(
+                        PsiElementForFakeColumn(
+                          myFixture.classPointer("MainSourcesEntity").element!!))
+                    ))
         ),
         databases = emptySet(),
         daos = emptySet())
@@ -91,11 +91,11 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
       RoomSchema(
         tables = setOf(
           RoomTable(myFixture.classPointer("MainSourcesEntity"), ENTITY, "MainSourcesEntity",
-                                                                columns = setOf(
-                                                                  RoomRowidColumn(
-                                                                    PsiElementForFakeColumn(
-                                                                      myFixture.classPointer("MainSourcesEntity").element!!))
-                                                                )),
+                    columns = setOf(
+                      RoomRowidColumn(
+                        PsiElementForFakeColumn(
+                          myFixture.classPointer("MainSourcesEntity").element!!))
+                    )),
           RoomTable(myFixture.classPointer("TestEntity"), ENTITY, "TestEntity", columns = setOf(
             RoomRowidColumn(
               PsiElementForFakeColumn(myFixture.classPointer("TestEntity").element!!))
@@ -125,11 +125,11 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
               PsiElementForFakeColumn(myFixture.classPointer("User").element!!))
           )),
           RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address",
-                                                                columns = setOf(
-                                                                  RoomRowidColumn(
-                                                                    PsiElementForFakeColumn(
-                                                                      myFixture.classPointer("com.example.Address").element!!))
-                                                                ))),
+                    columns = setOf(
+                      RoomRowidColumn(
+                        PsiElementForFakeColumn(
+                          myFixture.classPointer("com.example.Address").element!!))
+                    ))),
         databases = emptySet(),
         daos = emptySet()))
   }
@@ -188,11 +188,11 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
       RoomSchema(
         tables = setOf(
           RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address",
-                                                                columns = setOf(
-                                                                  RoomRowidColumn(
-                                                                    PsiElementForFakeColumn(
-                                                                      myFixture.classPointer("com.example.Address").element!!))
-                                                                ))),
+                    columns = setOf(
+                      RoomRowidColumn(
+                        PsiElementForFakeColumn(
+                          myFixture.classPointer("com.example.Address").element!!))
+                    ))),
         databases = emptySet(),
         daos = emptySet()))
   }
@@ -244,11 +244,11 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
       RoomSchema(
         tables = setOf(
           RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address",
-                                                                columns = setOf(
-                                                                  RoomRowidColumn(
-                                                                    PsiElementForFakeColumn(
-                                                                      myFixture.classPointer("com.example.Address").element!!))
-                                                                ))),
+                    columns = setOf(
+                      RoomRowidColumn(
+                        PsiElementForFakeColumn(
+                          myFixture.classPointer("com.example.Address").element!!))
+                    ))),
         databases = emptySet(),
         daos = emptySet()))
 
@@ -283,21 +283,21 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
       RoomSchema(
         tables = setOf(
           RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address",
-                                                                columns = setOf(
-                                                                  RoomRowidColumn(
-                                                                    PsiElementForFakeColumn(
-                                                                      myFixture.classPointer("com.example.Address").element!!))
-                                                                )),
+                    columns = setOf(
+                      RoomRowidColumn(
+                        PsiElementForFakeColumn(
+                          myFixture.classPointer("com.example.Address").element!!))
+                    )),
           RoomTable(myFixture.classPointer("com.example.User"), ENTITY, "User", columns = setOf(
             RoomRowidColumn(
               PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
           )),
           RoomTable(myFixture.classPointer("com.example.Order"), ENTITY, "Order",
-                                                                columns = setOf(
-                                                                  RoomRowidColumn(
-                                                                    PsiElementForFakeColumn(
-                                                                      myFixture.classPointer("com.example.Order").element!!))
-                                                                ))),
+                    columns = setOf(
+                      RoomRowidColumn(
+                        PsiElementForFakeColumn(
+                          myFixture.classPointer("com.example.Order").element!!))
+                    ))),
         databases = setOf(
           RoomDatabase(
             myFixture.classPointer("com.example.AppDatabase"),
@@ -336,21 +336,21 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
       RoomSchema(
         tables = setOf(
           RoomTable(myFixture.classPointer("com.example.Address"), ENTITY, "Address",
-                                                                columns = setOf(
-                                                                  RoomRowidColumn(
-                                                                    PsiElementForFakeColumn(
-                                                                      myFixture.classPointer("com.example.Address").element!!))
-                                                                )),
+                    columns = setOf(
+                      RoomRowidColumn(
+                        PsiElementForFakeColumn(
+                          myFixture.classPointer("com.example.Address").element!!))
+                    )),
           RoomTable(myFixture.classPointer("com.example.User"), ENTITY, "User", columns = setOf(
             RoomRowidColumn(
               PsiElementForFakeColumn(myFixture.classPointer("com.example.User").element!!))
           )),
           RoomTable(myFixture.classPointer("com.example.Order"), ENTITY, "Order",
-                                                                columns = setOf(
-                                                                  RoomRowidColumn(
-                                                                    PsiElementForFakeColumn(
-                                                                      myFixture.classPointer("com.example.Order").element!!))
-                                                                ))
+                    columns = setOf(
+                      RoomRowidColumn(
+                        PsiElementForFakeColumn(
+                          myFixture.classPointer("com.example.Order").element!!))
+                    ))
         ),
         databases = setOf(
           RoomDatabase(
@@ -589,7 +589,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
 
     val element = myFixture.elementAtCaret
 
-    assertThat(getSchema(element).tables.iterator().next().columns.find{it.name =="override_name"}).isNotNull()
+    assertThat(getSchema(element).tables.iterator().next().columns.find { it.name == "override_name" }).isNotNull()
   }
 
   fun testEditFragmentFindsCorrectSchema() {

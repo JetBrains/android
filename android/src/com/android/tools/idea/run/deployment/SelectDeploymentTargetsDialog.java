@@ -110,6 +110,13 @@ final class SelectDeploymentTargetsDialog extends DialogWrapper {
     myOKAction.putValue(Action.NAME, "Run");
   }
 
+  @NotNull
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    assert myTable != null;
+    return myTable;
+  }
+
   @Override
   protected void doOKAction() {
     super.doOKAction();

@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.GradleTaskRunnerFactory;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.gradle.util.GradleVersions;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.collect.ImmutableList;
@@ -42,7 +43,6 @@ import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.PlatformTestCase;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.model.GradleProject;
@@ -141,7 +141,7 @@ public class GradleTaskRunnerFactoryTest extends PlatformTestCase {
     state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet("afterSyncTask1", "afterSyncTask2");
     state.COMPILE_JAVA_TASK_NAME = "compileTask2";
 
-    androidFacet.getConfiguration().setModel(androidModel);
+    AndroidModel.set(androidFacet, androidModel);
   }
 
   private void setUpModuleAsGradleModule(Module module) {

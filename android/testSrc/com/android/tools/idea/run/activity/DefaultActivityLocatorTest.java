@@ -18,6 +18,7 @@ package com.android.tools.idea.run.activity;
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.flags.StudioFlags.DefaultActivityLocatorStrategy;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiClass;
@@ -44,6 +45,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   public void tearDown() throws Exception {
     try {
       StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.clearOverride();
+      StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.clearOverride();
     } finally {
       super.tearDown();
     }
@@ -90,7 +92,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("LauncherAlias", computeDefaultActivity(myFacet, null));
+    assertEquals("com.example.unittest.LauncherAlias", computeDefaultActivity(myFacet, null));
   }
 
   // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
@@ -126,11 +128,11 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.copyFileToProject(RUN_CONFIG_ENABLED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    assertEquals("LaunchActivity", computeDefaultActivity(myFacet, null));
+    assertEquals("com.example.unittest.LaunchActivity", computeDefaultActivity(myFacet, null));
 
     // make sure that the dom based approach to getting values works as well
     final Manifest manifest = Manifest.getMainManifest(myFacet);
-    assertEquals("LaunchActivity", DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest));
+    assertEquals("com.example.unittest.LaunchActivity", DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest));
   }
 
   public void testLauncherActivityIntent() throws Exception {
@@ -140,7 +142,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testBlockStrategy_blocksOnFreshMergedManifest() {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override("BLOCK");
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.BLOCK);
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
@@ -152,7 +154,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testStaleStrategy_blocksBackgroundThreadOnFreshMergedManifest() throws Exception {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override("STALE");
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.STALE);
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
@@ -164,7 +166,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testStaleStrategy_usesStaleManifestOnEdt() throws Exception {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override("STALE");
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.STALE);
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
@@ -183,6 +185,33 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     runAndWaitForMergedManifestUpdate(
       () -> assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null)));
     // But it eventually is able to identify the correct class once the merged manifest has been recomputed.
+    assertEquals("com.example.unittest.NewLauncher", computeDefaultActivity(myFacet, null));
+  }
+
+  public void testIndexStrategy_onBackgroundThread() throws Exception {
+    StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.override(true);
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
+
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+
+    assertEquals("com.example.unittest.Launcher", computeInBackgroundThread(() -> computeDefaultActivity(myFacet, null)));
+    renameClass("com.example.unittest.Launcher", "NewLauncher");
+    assertEquals("com.example.unittest.NewLauncher", computeInBackgroundThread(() -> computeDefaultActivity(myFacet, null)));
+  }
+
+  public void testIndexStrategy_onEdt() {
+    StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.override(true);
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+
+    assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null));
+    renameClass("com.example.unittest.Launcher", "NewLauncher");
     assertEquals("com.example.unittest.NewLauncher", computeDefaultActivity(myFacet, null));
   }
 }

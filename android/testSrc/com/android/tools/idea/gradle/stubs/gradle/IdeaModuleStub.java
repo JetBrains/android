@@ -62,7 +62,7 @@ public class IdeaModuleStub implements IdeaModule {
 
   @Override
   public String getJdkName() throws UnsupportedMethodException {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedMethodException("getJdkName");
   }
 
   @NotNull
@@ -124,6 +124,7 @@ public class IdeaModuleStub implements IdeaModule {
     throw new UnsupportedOperationException();
   }
 
+  @Nullable
   @Override
-  public IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException { throw new UnsupportedOperationException(); }
+  public IdeaJavaLanguageSettings getJavaLanguageSettings() { return null; }
 }

@@ -20,7 +20,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.DrawableParams;
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.IImageFactory;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
@@ -74,6 +73,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -90,7 +90,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -139,6 +138,7 @@ public class RenderTask {
                                                                                                         "RenderTask dispose thread");
                                                                                     }
                                                                                   });
+  public static final String GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker";
 
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderTaskContext myContext;
@@ -279,6 +279,33 @@ public class RenderTask {
     return isDisposed.get();
   }
 
+  private void clearGapWorkerCache() {
+    if (!myLayoutlibCallback.hasLoadedClass(SdkConstants.RECYCLER_VIEW.newName()) &&
+        !myLayoutlibCallback.hasLoadedClass(SdkConstants.RECYCLER_VIEW.oldName())) {
+      // If RecyclerView has not been loaded, we do not need to care about the GapWorker cache
+      return;
+    }
+
+    try {
+      Class<?> gapWorkerClass = myLayoutlibCallback.findClass(GAP_WORKER_CLASS_NAME);
+      Field gapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker");
+      gapWorkerField.setAccessible(true);
+
+      // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
+      RenderService.runAsyncRenderAction(() -> {
+        try {
+          ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal)gapWorkerField.get(null);
+          gapWorkerFieldValue.set(null);
+        }
+        catch (IllegalAccessException e) {
+          LOG.debug(e);
+        }
+      });
+    } catch(Throwable t) {
+      LOG.debug(t);
+    }
+  }
+
   /**
    * Disposes the RenderTask and releases the allocated resources. The execution of the dispose operation will run asynchronously.
    * The returned {@link Future} can be used to wait for the dispose operation to complete.
@@ -314,6 +341,8 @@ public class RenderTask {
       }
       myImageFactoryDelegate = null;
       myAssetRepository = null;
+
+      clearGapWorkerCache();
 
       return null;
     });
@@ -929,20 +958,15 @@ public class RenderTask {
                            myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
-    boolean supportsMultipleStates = myLayoutLib.supports(Features.RENDER_ALL_DRAWABLE_STATES);
-    if (supportsMultipleStates) {
-      params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
-    }
+    params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
 
     try {
       Result result = RenderService.runRenderAction(() -> myLayoutLib.renderDrawable(params));
 
       if (result != null && result.isSuccess()) {
         Object data = result.getData();
-        if (supportsMultipleStates && data instanceof List) {
+        if (data instanceof List) {
           return (List<BufferedImage>)data;
-        } else if (!supportsMultipleStates && data instanceof BufferedImage) {
-          return Collections.singletonList((BufferedImage) data);
         }
       }
     }
@@ -961,10 +985,6 @@ public class RenderTask {
   @NotNull
   public LayoutlibCallbackImpl getLayoutlibCallback() {
     return myLayoutlibCallback;
-  }
-
-  public boolean supportsCapability(@MagicConstant(flagsFromClass = Features.class) int capability) {
-    return myLayoutLib.supports(capability);
   }
 
   /** Returns true if this service can render a non-rectangular shape */

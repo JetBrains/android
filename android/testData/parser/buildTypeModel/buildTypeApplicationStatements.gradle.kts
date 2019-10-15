@@ -10,7 +10,7 @@ android.buildTypes.getByName("xyz").consumerProguardFiles("proguard-android.txt"
 android.buildTypes.getByName("xyz").debuggable(true)
 android.buildTypes.getByName("xyz").embedMicroApp(true)
 android.buildTypes.getByName("xyz").jniDebuggable(true)
-android.buildTypes.getByName("xyz").manifestPlaceholders(mapOf("activityLabel1" to "defaultName1", "activityLabel2" to "defaultName2"))
+android.buildTypes.getByName("xyz").manifestPlaceholders = mapOf("activityLabel1" to "defaultName1", "activityLabel2" to "defaultName2")
 android.buildTypes.getByName("xyz").minifyEnabled(true)
 android.buildTypes.getByName("xyz").multiDexEnabled(true)
 android.buildTypes.getByName("xyz").proguardFiles("proguard-android.txt", "proguard-rules.pro")

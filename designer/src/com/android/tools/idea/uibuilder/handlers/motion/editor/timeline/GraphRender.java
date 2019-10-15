@@ -104,7 +104,9 @@ public class GraphRender {
       if (str == null) {
         str = "sin";
       }
-      curveType = Math.max(curveType, ourWaveTypeMap.get(str));
+      if (ourWaveTypeMap.containsKey(str)) {
+        curveType = Math.max(curveType, ourWaveTypeMap.get(str));
+      }
     }
 
     mCycle = new Cycle();

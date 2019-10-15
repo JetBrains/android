@@ -265,5 +265,8 @@ public class ProfilerColors {
 
   public static final Color TOOLTIP_LOW_CONTRAST = new JBColor(0x888888, 0x838485);
 
+  //TODO (b/141756319) Define final colors for custom event visualization.
+  public static final Color USER_COUNTER_EVENT_COUNT = new JBColor(0x8888FFFF, 0x8888FFFF);
+
   public static final Color WARNING_BAR_COLOR = new JBColor(new Color(254, 248, 213), new Color(35, 56, 85));
 }

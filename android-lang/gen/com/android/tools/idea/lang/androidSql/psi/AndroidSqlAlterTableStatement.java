@@ -18,6 +18,7 @@
 
 package com.android.tools.idea.lang.androidSql.psi;
 
+import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
@@ -27,12 +28,27 @@ public interface AndroidSqlAlterTableStatement extends PsiElement {
   AndroidSqlColumnDefinition getColumnDefinition();
 
   @Nullable
-  AndroidSqlDatabaseName getDatabaseName();
+  AndroidSqlColumnName getColumnName();
 
   @NotNull
-  AndroidSqlDefinedTableName getDefinedTableName();
+  AndroidSqlSingleTableStatementTable getSingleTableStatementTable();
 
   @Nullable
   AndroidSqlTableDefinitionName getTableDefinitionName();
+
+  @Nullable
+  PsiElement getBacktickLiteral();
+
+  @Nullable
+  PsiElement getBracketLiteral();
+
+  @Nullable
+  PsiElement getDoubleQuoteStringLiteral();
+
+  @Nullable
+  PsiElement getIdentifier();
+
+  @Nullable
+  PsiElement getSingleQuoteStringLiteral();
 
 }

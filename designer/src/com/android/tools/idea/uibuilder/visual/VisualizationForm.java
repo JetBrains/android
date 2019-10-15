@@ -20,16 +20,12 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCRE
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ScreenOrientation;
-import com.android.sdklib.devices.Device;
+import com.android.tools.adtui.common.AdtPrimaryPanel;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.workbench.WorkBench;
-import com.android.tools.idea.common.error.IssuePanelSplitter;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -40,6 +36,10 @@ import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbService;
@@ -52,13 +52,12 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +71,7 @@ import org.jetbrains.annotations.Nullable;
  * Most of the codes are copied from {@link NlPreviewForm} instead of sharing, because {@link NlPreviewForm} is being
  * removed after we enable split editor.
  */
-public class VisualizationForm implements Disposable {
+public class VisualizationForm implements Disposable, ConfigurationSetListener {
 
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
 
@@ -86,13 +85,6 @@ public class VisualizationForm implements Disposable {
    */
   @SwingCoordinate private static final int VERTICAL_SCREEN_DELTA = 60;
 
-  /**
-   * We predefined some pixel devices for now.
-   */
-  private static final List<String> DEVICES_TO_DISPLAY =
-    ImmutableList.of("Pixel 3", "Pixel 3 XL", "Pixel 3a", "Pixel 3a XL", "Pixel 2", "Pixel 2 XL", "Pixel", "Pixel XL", "Pixel C");
-
-  private final VisualizationManager myManager;
   private final Project myProject;
   private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
@@ -100,6 +92,8 @@ public class VisualizationForm implements Disposable {
   private VirtualFile myFile;
   private boolean isActive = false;
   private JComponent myContentPanel;
+  private ActionToolbar myActionToolbar;
+  private JLabel myFileNameLabel;
 
   @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
 
@@ -112,14 +106,16 @@ public class VisualizationForm implements Disposable {
   private FileEditor myPendingEditor;
 
   private FileEditor myEditor;
+
+  @NotNull private ConfigurationSet myCurrentConfigurationSet = ConfigurationSet.PIXEL_DEVICES;
+
   /**
    * {@link CompletableFuture} of the next model load. This is kept so the load can be cancelled.
    */
   private AtomicBoolean myCancelPendingModelLoad = new AtomicBoolean(false);
 
-  public VisualizationForm(@NotNull VisualizationManager manager) {
-    myManager = manager;
-    myProject = myManager.getProject();
+  public VisualizationForm(@NotNull Project project) {
+    myProject = project;
     mySurface = NlDesignSurface.builder(myProject, myProject)
       .showModelNames()
       .setIsPreview(false)
@@ -138,7 +134,23 @@ public class VisualizationForm implements Disposable {
     myWorkBench = new WorkBench<>(myProject, "Visualization", null, this);
     myWorkBench.setLoadingText("Loading...");
     myWorkBench.setToolContext(mySurface);
-    myRoot.add(new IssuePanelSplitter(mySurface, myWorkBench));
+
+    myRoot.add(createToolbarPanel(), BorderLayout.NORTH);
+    myRoot.add(myWorkBench, BorderLayout.CENTER);
+  }
+
+  @NotNull
+  private JComponent createToolbarPanel() {
+    myFileNameLabel = new JLabel();
+    ActionGroup group = new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet));
+    myActionToolbar = ActionManager.getInstance().createActionToolbar("VisualizationBar", group, true);
+
+    JComponent toolbarPanel = new AdtPrimaryPanel(new BorderLayout());
+    toolbarPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
+                                                              BorderFactory.createEmptyBorder(0, 6, 0, 0)));
+    toolbarPanel.add(myFileNameLabel, BorderLayout.WEST);
+    toolbarPanel.add(myActionToolbar.getComponent(), BorderLayout.CENTER);
+    return toolbarPanel;
   }
 
   private void createContentPanel() {
@@ -230,7 +242,7 @@ public class VisualizationForm implements Disposable {
 
   // Build was either cancelled or there was an error
   private void buildError() {
-    myWorkBench.loadingStopped("Preview is unavailable until after a successful project sync");
+    myWorkBench.loadingStopped("Previews are unavailable until after a successful project sync");
   }
 
   private void initPreviewFormAfterBuildOnEventDispatchThread() {
@@ -239,7 +251,7 @@ public class VisualizationForm implements Disposable {
     }
     if (myContentPanel == null) {
       createContentPanel();
-      myWorkBench.init(myContentPanel, mySurface, ImmutableList.of());
+      myWorkBench.init(myContentPanel, mySurface, ImmutableList.of(), false);
     }
     initNeleModel();
   }
@@ -267,6 +279,8 @@ public class VisualizationForm implements Disposable {
       return;
     }
 
+    myFileNameLabel.setText(file.getName());
+
     // isRequestCancelled allows us to cancel the ongoing computation if it is not needed anymore. There is no need to hold
     // to the Future since Future.cancel does not really interrupt the work.
     AtomicBoolean isRequestCancelled = new AtomicBoolean(false);
@@ -276,33 +290,10 @@ public class VisualizationForm implements Disposable {
       .supplyAsync(() -> {
         // Hide the content while adding the models.
         myWorkBench.hideContent();
-        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet);
-        List<Device> devices = configurationManager.getDevices();
-        Configuration defaultConfig = configurationManager.getConfiguration(file.getVirtualFile());
-
-        List<Device> deviceList = new ArrayList<>();
-        for (String name : DEVICES_TO_DISPLAY) {
-          devices.stream().filter(device -> name.equals(device.getDisplayName())).findFirst().ifPresent(deviceList::add);
-        }
-
-        if (deviceList.isEmpty()) {
+        List<NlModel> models = myCurrentConfigurationSet.getModelsProvider().createNlModels(this, file, facet);
+        if (models.isEmpty()) {
           myWorkBench.showLoading("No Device Found");
           return null;
-        }
-
-        List<NlModel> models = new ArrayList<>();
-        VirtualFile virtualFile = file.getVirtualFile();
-        Consumer<NlComponent> registrar = mySurface.getComponentRegistrar();
-
-        for (Device d : deviceList) {
-          Configuration config = defaultConfig.clone();
-          config.setDevice(d, false);
-          String label = d.getDisplayName();
-          Dimension size = d.getScreenSize(ScreenOrientation.PORTRAIT);
-          if (size != null) {
-            label = label + " (" + size.width + " x " + size.height + ")";
-          }
-          models.add(NlModel.create(this, label, facet, virtualFile, config, registrar));
         }
         return models;
       }, AppExecutorUtil.getAppExecutorService()).thenAcceptAsync(models -> {
@@ -425,6 +416,16 @@ public class VisualizationForm implements Disposable {
       setNoActiveModel();
     }
     getAnalyticsManager().trackVisualizationToolWindow(false);
+  }
+
+  @Override
+  public void onConfigurationSetChanged(@NotNull ConfigurationSet newConfigurationSet) {
+    if (myCurrentConfigurationSet != newConfigurationSet) {
+      myCurrentConfigurationSet = newConfigurationSet;
+      myActionToolbar.updateActionsImmediately();
+      // Dispose old models and create new models with new configuration set.
+      initNeleModel();
+    }
   }
 
   private NlAnalyticsManager getAnalyticsManager() {

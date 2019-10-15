@@ -26,10 +26,18 @@ class TrackTest {
 
   @Test
   fun createTrack() {
-    val trackModel = TrackModel(true, TestTrackRendererType.FOO, "foo")
+    val trackModel = TrackModel.newBuilder (true, TestTrackRendererType.FOO, "foo").build()
     val trackComponent = Track.create(trackModel, FooTrackRenderer()).component
     assertThat(trackComponent.componentCount).isEqualTo(2)
     assertThat(trackComponent.getComponent(0)).isInstanceOf(JLabel::class.java)
     assertThat(trackComponent.getComponent(1)).isInstanceOf(JCheckBox::class.java)
+  }
+
+  @Test
+  fun hideTrackHeader() {
+    val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.FOO, "foo").setHideHeader(true).build()
+    val trackComponent = Track.create(trackModel, FooTrackRenderer()).component
+    assertThat(trackComponent.componentCount).isEqualTo(1)
+    assertThat(trackComponent.getComponent(0)).isInstanceOf(JCheckBox::class.java)
   }
 }

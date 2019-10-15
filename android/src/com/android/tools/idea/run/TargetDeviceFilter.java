@@ -17,17 +17,17 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ThreeState;
+import java.util.EnumSet;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.EnumSet;
-import java.util.Set;
 
 public abstract class TargetDeviceFilter implements Predicate<IDevice> {
   @Override
@@ -62,8 +62,9 @@ public abstract class TargetDeviceFilter implements Predicate<IDevice> {
         return false;
       } else {
         AndroidDevice connectedDevice = new ConnectedAndroidDevice(device, null);
-        Set<String> supportedAbis = myFacet.getConfiguration().getModel() instanceof AndroidModuleModel ?
-                                    ((AndroidModuleModel)myFacet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+        AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
+        Set<String> supportedAbis = androidModuleModel != null ?
+                                    androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
                                     null;
 
         LaunchCompatibility compatibility = connectedDevice.canRun(AndroidModuleInfo.getInstance(myFacet).getRuntimeMinSdkVersionSynchronously(),

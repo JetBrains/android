@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.build.attribution.BuildAttributionManager
 import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
@@ -56,10 +57,19 @@ class AlwaysRunTasksAnalyzerTest {
           }
       }
 
+      task dummy2 {
+          doLast {
+              // do nothing
+          }
+
+          outputs.upToDateWhen { false }
+          dependsOn dummy
+      }
+
       afterEvaluate { project ->
           android.applicationVariants.all { variant ->
               def mergeResourcesTask = tasks.getByPath("merge${"$"}{variant.name.capitalize()}Resources")
-              mergeResourcesTask.dependsOn dummy
+              mergeResourcesTask.dependsOn dummy2
           }
       }
     """.trimIndent())
@@ -74,13 +84,19 @@ class AlwaysRunTasksAnalyzerTest {
     val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
                                                             BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
-    assertThat(buildAttributionManager.analyzersProxy.getAlwaysRunTasks()).hasSize(1)
-    val alwaysRunTask = buildAttributionManager.analyzersProxy.getAlwaysRunTasks()[0]
+    val alwaysRunTasks = buildAttributionManager.analyzersProxy.getAlwaysRunTasks().sortedBy { it.taskData.taskName }
 
-    assertThat(alwaysRunTask.taskData.getTaskPath()).isEqualTo(":app:dummy")
-    assertThat(alwaysRunTask.taskData.taskType).isEqualTo("org.gradle.api.DefaultTask")
-    assertThat(alwaysRunTask.taskData.originPlugin.toString()).isEqualTo("script build.gradle")
-    assertThat(alwaysRunTask.reason).isEqualTo("Task has not declared any outputs despite executing actions.")
+    assertThat(alwaysRunTasks).hasSize(2)
+
+    assertThat(alwaysRunTasks[0].taskData.getTaskPath()).isEqualTo(":app:dummy")
+    assertThat(alwaysRunTasks[0].taskData.taskType).isEqualTo("org.gradle.api.DefaultTask")
+    assertThat(alwaysRunTasks[0].taskData.originPlugin.toString()).isEqualTo("script build.gradle")
+    assertThat(alwaysRunTasks[0].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)
+
+    assertThat(alwaysRunTasks[1].taskData.getTaskPath()).isEqualTo(":app:dummy2")
+    assertThat(alwaysRunTasks[1].taskData.taskType).isEqualTo("org.gradle.api.DefaultTask")
+    assertThat(alwaysRunTasks[1].taskData.originPlugin.toString()).isEqualTo("script build.gradle")
+    assertThat(alwaysRunTasks[1].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
   }
 
   @Test

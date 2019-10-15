@@ -68,8 +68,4 @@ class ViewNode(val drawId: Long,
   fun flatten(): Collection<ViewNode> {
     return children.flatMap { it.flatten() }.plus(this)
   }
-
-  companion object {
-    val EMPTY = ViewNode(0, "empty", null, 0, 0, 1, 1, null, "")
-  }
 }

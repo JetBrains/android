@@ -46,6 +46,8 @@ import com.intellij.ui.layout.panel
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkUtils
@@ -66,12 +68,14 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
                                                                   TimeUnit.MILLISECONDS.toNanos(100),
                                                                   Comparator.comparing(Common.Event::getTimestamp).reversed())
 
-  private var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
-  private var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
+  override var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
+  override var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
 
-  private val endListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
+  private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private val lastResponseTimePerGroup = mutableMapOf<Long, Long>()
   private var adb: ListenableFuture<AndroidDebugBridge>? = null
+
+  private var attachListener: TransportEventListener? = null
 
   override var isConnected = false
     private set
@@ -110,8 +114,8 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
     })
   }
 
-  override fun registerProcessEnded(callback: () -> Unit) {
-    endListeners.add(callback)
+  override fun registerProcessChanged(callback: () -> Unit) {
+    processChangedListeners.add(callback)
   }
 
   private fun registerProcessEnded() {
@@ -128,7 +132,8 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
         selectedStream = Common.Stream.getDefaultInstance()
         selectedProcess = Common.Process.getDefaultInstance()
         isConnected = false
-        endListeners.forEach { it() }
+        isCapturing = false
+        processChangedListeners.forEach { it() }
       }
       false
     })
@@ -216,16 +221,18 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
   }
 
   override fun attach(stream: Common.Stream, process: Common.Process) {
+    // Remove existing listener if we're retrying
+    attachListener?.let { transportPoller.unregisterListener(it) }
+
     // TODO: Probably need to detach from an existing process here
-    selectedStream = stream
-    selectedProcess = process
     isConnected = false
     isCapturing = false
+    processChangedListeners.forEach { it() }
 
     // The device daemon takes care of the case if and when the agent is previously attached already.
     val attachCommand = Command.newBuilder()
-      .setStreamId(selectedStream.streamId)
-      .setPid(selectedProcess.pid)
+      .setStreamId(stream.streamId)
+      .setPid(process.pid)
       .setType(Command.CommandType.ATTACH_AGENT)
       .setAttachAgent(
         Commands.AttachAgent.newBuilder()
@@ -233,8 +240,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
           .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
       .build()
 
-    lateinit var listener: TransportEventListener
-    listener = TransportEventListener(
+    attachListener = TransportEventListener(
       eventKind = Common.Event.Kind.AGENT,
       executor = MoreExecutors.directExecutor(),
       streamId = stream::getStreamId,
@@ -242,14 +248,18 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
       filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
     ) {
       isConnected = true
+      selectedStream = stream
+      selectedProcess = process
+      processChangedListeners.forEach { it() }
       setDebugViewAttributes(selectedStream, true)
       execute(LayoutInspectorCommand.Type.START)
 
       // TODO: verify that capture started successfully
-      transportPoller.unregisterListener(listener)
+      attachListener?.let { transportPoller.unregisterListener(it) }
+      attachListener = null
       false
     }
-    transportPoller.registerListener(listener)
+    attachListener?.let { transportPoller.registerListener(it) }
 
     client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
   }
@@ -264,8 +274,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
   }
 
   private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
-    if (selectedStream != Common.Stream.getDefaultInstance() ||
-        selectedProcess != Common.Process.getDefaultInstance()) {
+    if (isConnected) {
       return
     }
     val processesMap = loadProcesses()
@@ -273,14 +282,38 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
       if (preferredProcess.isDeviceMatch(stream.device)) {
         for (process in processes) {
           if (process.name == preferredProcess.packageName) {
-            attach(stream, process)
-            return
+            try {
+              attach(stream, process)
+              return
+            }
+            catch (ex: StatusRuntimeException) {
+              // If the process is not found it may still be loading. Retry!
+              if (ex.status.code != Status.Code.NOT_FOUND) {
+                throw ex
+              }
+            }
           }
         }
       }
     }
     if (timesAttempted < MAX_RETRY_COUNT) {
       JobScheduler.getScheduler().schedule({ attachWithRetry(preferredProcess, timesAttempted + 1) }, 1, TimeUnit.SECONDS)
+    }
+  }
+
+  override fun disconnect() {
+    ApplicationManager.getApplication().executeOnPooledThread {
+      if (selectedStream != Common.Stream.getDefaultInstance() &&
+          selectedProcess != Common.Process.getDefaultInstance()) {
+
+        execute(LayoutInspectorCommand.Type.STOP)
+
+        selectedStream = Common.Stream.getDefaultInstance()
+        selectedProcess = Common.Process.getDefaultInstance()
+        isConnected = false
+        isCapturing = false
+        processChangedListeners.forEach { it() }
+      }
     }
   }
 

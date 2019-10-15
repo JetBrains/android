@@ -17,7 +17,6 @@ package com.android.tools.idea.diagnostics;
 
 import com.android.tools.idea.diagnostics.error.ErrorReporter;
 import com.intellij.diagnostic.IdeErrorsDialog;
-import com.intellij.ide.SystemHealthMonitor;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;

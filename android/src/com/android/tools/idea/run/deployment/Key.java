@@ -19,6 +19,10 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A device identifier. When the selected device is persisted in the {@link com.intellij.ide.util.PropertiesComponent PropertiesComponent,}
+ * the output of the device key's {@link #toString} method is what actually gets persisted.
+ */
 public final class Key {
   @NotNull
   private final String myDeviceKey;
@@ -26,13 +30,22 @@ public final class Key {
   @Nullable
   private final String mySnapshotKey;
 
-  public Key(@NotNull String deviceKey) {
-    this(deviceKey, null);
+  public Key(@NotNull String key) {
+    int index = key.indexOf('/');
+
+    if (index == -1) {
+      myDeviceKey = key;
+      mySnapshotKey = null;
+    }
+    else {
+      myDeviceKey = key.substring(0, index);
+      mySnapshotKey = key.substring(index + 1);
+    }
   }
 
   Key(@NotNull String deviceKey, @Nullable Snapshot snapshot) {
     myDeviceKey = deviceKey;
-    mySnapshotKey = snapshot == null ? null : snapshot.getDirectoryName();
+    mySnapshotKey = snapshot == null ? null : snapshot.getDirectory().toString();
   }
 
   @NotNull

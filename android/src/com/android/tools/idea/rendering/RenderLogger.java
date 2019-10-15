@@ -26,6 +26,7 @@ import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.lint.UpgradeConstraintLayoutFix;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -276,7 +277,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     if (LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR.equals(tag) && myModule != null
         && BuildSettings.getInstance(myModule.getProject()).getBuildMode() == BuildMode.SOURCE_GEN) {
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      if (facet != null && facet.requiresAndroidModel()) {
+      if (facet != null && AndroidModel.isRequired(facet)) {
         description = "Still building project; theme resources from libraries may be missing. Layout should refresh when the " +
                       "build is complete.\n\n" + description;
         tag = TAG_STILL_BUILDING;

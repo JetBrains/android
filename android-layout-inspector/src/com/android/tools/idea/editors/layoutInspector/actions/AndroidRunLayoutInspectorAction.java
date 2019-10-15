@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.layoutInspector.actions;
 
 import com.android.ddmlib.Client;
 import com.android.tools.idea.editors.layoutInspector.AndroidLayoutInspectorService;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.components.ServiceManager;
@@ -47,6 +48,7 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
       e.getPresentation().setDescription(AndroidBundle.message("android.ddms.actions.layoutinspector.description"));
       e.getPresentation().setEnabled(true);
     }
+    e.getPresentation().setVisible(!StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get());
   }
 
   @Override

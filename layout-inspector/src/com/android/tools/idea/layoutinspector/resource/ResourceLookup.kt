@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.common.StringTable
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
@@ -77,6 +78,12 @@ class ResourceLookup(private val project: Project) {
    */
   fun findFileLocations(property: InspectorPropertyItem, max: Int = MAX_RESOURCE_INDIRECTION): List<SourceLocation> =
     resolver?.findFileLocations(property, property.source, max) ?: emptyList()
+
+  /**
+   * Find the location of the specified [view].
+   */
+  fun findFileLocation(view: ViewNode): SourceLocation? =
+    resolver?.findFileLocation(view)
 
   /**
    * Find the attribute value from resource reference.

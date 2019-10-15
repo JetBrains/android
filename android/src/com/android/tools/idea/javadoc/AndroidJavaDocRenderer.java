@@ -56,6 +56,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -325,7 +326,7 @@ public class AndroidJavaDocRenderer {
         if (androidModel != null) {
           hasGradleModel = true;
           String facetModuleName = reachableFacet.getModule().getName();
-          assert reachableFacet.requiresAndroidModel();
+          assert AndroidModel.isRequired(reachableFacet);
           IdeAndroidProject androidProject = androidModel.getAndroidProject();
           Variant selectedVariant = androidModel.getSelectedVariant();
           Set<SourceProvider> selectedProviders = new HashSet<>();

@@ -33,13 +33,19 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APPLICATION_PACKAGE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_SOURCE_PROVIDER_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_APPLICATION_PACKAGE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_SOURCE_PROVIDER_NAME
+import com.android.tools.idea.templates.TemplateManager.CATEGORY_COMPOSE
 import com.android.tools.idea.templates.TemplateUtils
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.WizardParameterData
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.ide.util.PropertiesComponent
@@ -52,6 +58,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+import com.android.tools.idea.wizard.template.Template as Template2
 
 private val log = logger<RenderTemplateModel>()
 
@@ -79,13 +86,24 @@ class RenderTemplateModel private constructor(
   private val commandName: String,
   private val shouldOpenFiles: Boolean,
   /** Populated in [Template.render] */
-  val createdFiles: MutableList<File> = arrayListOf()
+  val createdFiles: MutableList<File> = arrayListOf(),
+  // TODO(qumeric): this should replace templateHandle eventually
+  var newTemplate: Template2 = Template2.NoActivity
 ) : WizardModel(), ModuleModelData by moduleModelData {
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
    * try to render anything.
    */
   val templateValues = hashMapOf<String, Any>()
+  /**
+   * This is used in place of [templateValues] for the new templates.
+   */
+  val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(false) // FIXME(qumeric)
+  val wizardParameterData = WizardParameterData(
+    packageName.get(),
+    module == null,
+    template.get().name
+  )
   var iconGenerator: IconGenerator? = null
   val renderLanguage = ObjectValueProperty(getInitialSourceLanguage(project.valueOrNull)).apply {
     addListener {
@@ -95,6 +113,15 @@ class RenderTemplateModel private constructor(
 
   val module: Module?
     get() = androidFacet?.module
+
+  val hasActivity: Boolean
+    get() = templateHandle != null || newTemplate != Template2.NoActivity
+
+  val isNew: Boolean
+    get() = templateHandle == null && newTemplate != Template2.NoActivity
+
+  val isOld: Boolean
+    get() = templateHandle != null && newTemplate == Template2.NoActivity
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(FreeMarkerTemplateRenderer())
@@ -116,7 +143,36 @@ class RenderTemplateModel private constructor(
         return
       }
 
+      if (StudioFlags.COMPOSE_WIZARD_TEMPLATES.get() && templateHandle?.metadata?.category == CATEGORY_COMPOSE) {
+        // TODO(parentej) ag/q/topic:kotlin-1.3.50-compose-20190920 - This should not be needed when the kotlin plugin is merged.
+        moduleTemplateValues["isCompose"] = true
+      }
+
       templateValues.putAll(moduleTemplateValues)
+
+      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && isNew) {
+        moduleTemplateDataBuilder.apply {
+          // sourceProviderName = template.get().name TODO there is no sourcesProvider (yet?)
+          projectTemplateDataBuilder.setProjectDefaults(project.value)
+          formFactor = newTemplate.formFactor
+          moduleTemplateDataBuilder.setModuleRoots(
+            paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get())
+
+          projectTemplateDataBuilder.language = language.get().get()
+
+          if (androidFacet == null) {
+            return@apply
+          }
+
+          setFacet(androidFacet)
+
+          // Register application-wide settings
+          val applicationPackage = androidFacet.getPackageForApplication()
+          if (this@RenderTemplateModel.packageName.get() != applicationPackage) {
+            projectTemplateDataBuilder.applicationPackage = androidFacet.getPackageForApplication()
+          }
+        }
+      }
 
       templateValues[ATTR_SOURCE_PROVIDER_NAME] = template.get().name
       if (module == null) { // New Module
@@ -141,7 +197,7 @@ class RenderTemplateModel private constructor(
 
     @WorkerThread
     override fun doDryRun(): Boolean {
-      if (!project.get().isPresent || templateHandle == null) {
+      if (!project.get().isPresent || !hasActivity) {
         log.error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.")
         return false
       }
@@ -172,12 +228,26 @@ class RenderTemplateModel private constructor(
       }
     }
 
-    private fun renderTemplate(dryRun: Boolean,
-                               project: Project,
-                               paths: AndroidModulePaths,
-                               filesToOpen: MutableList<File>?,
-                               filesToReformat: MutableList<File>?): Boolean {
+    private fun renderTemplate(
+      dryRun: Boolean, project: Project, paths: AndroidModulePaths, filesToOpen: MutableList<File>?, filesToReformat: MutableList<File>?
+    ): Boolean {
       paths.moduleRoot ?: return false
+
+      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && isNew) {
+        val context = RenderingContext2(
+          project = project,
+          module = module,
+          commandName = commandName,
+          templateData = moduleTemplateDataBuilder.build(), // FIXME
+          moduleRoot = paths.moduleRoot!!,
+          dryRun = dryRun,
+          showErrors = true
+        )
+
+        val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
+
+        return newTemplate.render(context, executor)
+      }
 
       val template = templateHandle!!.template
 

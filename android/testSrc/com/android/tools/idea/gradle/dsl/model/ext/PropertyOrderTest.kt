@@ -80,6 +80,7 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
@@ -503,7 +504,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.android().defaultConfig().minSdkVersion()
-    verifyPropertyModel(propertyModel, INTEGER_TYPE, 20, INTEGER, REGULAR, 1, "minSdkVersion")
+    verifyPropertyModel(propertyModel, INTEGER_TYPE, 20, INTEGER, REGULAR, 1, ProductFlavorModelImpl.MIN_SDK_VERSION)
   }
 
   @Test
@@ -515,8 +516,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val minSdkModel = buildModel.android().defaultConfig().minSdkVersion()
     val maxSdkModel = buildModel.android().defaultConfig().maxSdkVersion()
 
-    verifyPropertyModel(minSdkModel, STRING_TYPE, extraName("minSdk"), REFERENCE, REGULAR, 0, "minSdkVersion")
-    verifyPropertyModel(maxSdkModel, STRING_TYPE, extraName("maxSdk"), REFERENCE, REGULAR, 0, "maxSdkVersion")
+    verifyPropertyModel(minSdkModel, STRING_TYPE, extraName("minSdk"), REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MIN_SDK_VERSION)
+    verifyPropertyModel(maxSdkModel, STRING_TYPE, extraName("maxSdk"), REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MAX_SDK_VERSION)
   }
 
   @Test
@@ -528,8 +529,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val minSdkModel = buildModel.android().defaultConfig().minSdkVersion()
     val maxSdkModel = buildModel.android().defaultConfig().maxSdkVersion()
 
-    verifyPropertyModel(minSdkModel, STRING_TYPE, "ext.minSdk", REFERENCE, REGULAR, 0, "minSdkVersion")
-    verifyPropertyModel(maxSdkModel, STRING_TYPE, "ext.maxSdk", REFERENCE, REGULAR, 0, "maxSdkVersion")
+    verifyPropertyModel(minSdkModel, STRING_TYPE, "ext.minSdk", REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MIN_SDK_VERSION)
+    verifyPropertyModel(maxSdkModel, STRING_TYPE, "ext.maxSdk", REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MAX_SDK_VERSION)
   }
 
   @Test

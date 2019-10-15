@@ -24,7 +24,7 @@ import org.junit.Assert.assertThat
 class PsResolvedVariantCollectionTest : AndroidGradleTestCase() {
 
   fun testVariants() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 

@@ -33,7 +33,7 @@ public class DeployTask extends AbstractDeployTask {
   private static final Logger LOG = Logger.getInstance(DeployTask.class);
   private static final String ID = "DEPLOY";
 
-  private final String userInstallOptions;
+  private final String[] userInstallOptions;
 
   /**
    * Creates a task to deploy a list of apks.
@@ -43,7 +43,12 @@ public class DeployTask extends AbstractDeployTask {
    */
   public DeployTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, String userInstallOptions) {
     super(project, packages, false);
-    this.userInstallOptions = userInstallOptions;
+    if (userInstallOptions != null && !userInstallOptions.isEmpty()) {
+      userInstallOptions = userInstallOptions.trim();
+      this.userInstallOptions = userInstallOptions.split("\\s");
+    } else {
+      this.userInstallOptions = new String[0];
+    }
   }
 
   @NotNull

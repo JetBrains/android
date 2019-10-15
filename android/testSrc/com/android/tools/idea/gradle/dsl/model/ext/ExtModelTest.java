@@ -30,6 +30,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_NESTED_DE
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_PARSING_LIST_OF_PROPERTIES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_PARSING_SIMPLE_PROPERTY_IN_EXT_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_PARSING_SIMPLE_PROPERTY_PER_LINE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_PROPERTY_NAMES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_EXT_PROPERTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_LEVEL_EXT_PROPERTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.EXT_MODEL_RESOLVE_MULTI_LEVEL_EXT_PROPERTY_WITH_HISTORY;
@@ -59,6 +60,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTE
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
@@ -517,5 +519,18 @@ public class ExtModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(newModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
 
     verifyFileContents(myBuildFile, EXT_MODEL_EXT_FLAT_AND_BLOCK_EXPECTED);
+  }
+
+  @Test
+  public void testPropertyNames() throws IOException {
+    writeToBuildFile(EXT_MODEL_PROPERTY_NAMES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel ext = buildModel.ext();
+
+    verifyPropertyModel(ext.findProperty("isDebuggable"), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
+    verifyPropertyModel(ext.findProperty("foo"), STRING_TYPE, "isDebuggable", REFERENCE, REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("foo").resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1);
+    verifyPropertyModel(ext.findProperty("debuggable"), BOOLEAN_TYPE, null, NONE, REGULAR, 0);
   }
 }

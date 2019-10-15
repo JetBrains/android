@@ -29,4 +29,7 @@ public interface Layout extends LayoutElement, DataBindingElement {
 
   @SubTagList("merge")
   List<Merge> getMergeElements();
+
+  @SubTagList("fragment")
+  List<Fragment> getFragmentElements();
 }

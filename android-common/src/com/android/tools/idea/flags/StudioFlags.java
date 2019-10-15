@@ -317,11 +317,6 @@ public final class StudioFlags {
     "Enable the shadow rendering in Layout Editor",
     true);
 
-  public static final Flag<Boolean> NELE_SIMPLER_RESIZE = Flag.create(
-    NELE, "simpler.resize", "Simplify resize",
-    "Simplify design surface resize",
-    true);
-
   public static final Flag<Boolean> NELE_CONSTRAINT_SECTION = Flag.create(
     NELE, "constraint.section", "Constraint Section",
     "Show the constraint section for constraint widget in property panel",
@@ -388,12 +383,28 @@ public final class StudioFlags {
     "So the new Instant Run can use the combo box",
     false);
 
-  public static final Flag<String> DEFAULT_ACTIVITY_LOCATOR_STRATEGY = Flag.create(
+  /**
+   * The strategy that {@link com.android.tools.idea.run.activity.DefaultActivityLocator}
+   * uses to obtain a list of activities from a given module's merged manifest.
+   *
+   * @see StudioFlags#DEFAULT_ACTIVITY_LOCATOR_STRATEGY
+   */
+  public enum DefaultActivityLocatorStrategy {
+    /** Unconditionally block on a fresh view of the merged manifest. */
+    BLOCK,
+    /** Determine the list of activities using the {@link com.android.tools.idea.model.AndroidManifestIndex}. */
+    INDEX,
+    /** Use a potentially stale view of the merged manifest if the caller is on the EDT. */
+    STALE
+  }
+
+  public static final Flag<DefaultActivityLocatorStrategy> DEFAULT_ACTIVITY_LOCATOR_STRATEGY = Flag.create(
     RUNDEBUG,
     "default.activity.locator.strategy",
     "Choose a strategy for selecting the default activity to launch from the merged manifest.",
-    "This can be \"BLOCK\" to unconditionally block on a fresh merged manifest or \"STALE\" to use a potentially stale manifest",
-    "BLOCK"
+    "This can be \"BLOCK\" to unconditionally block on a fresh merged manifest, \"STALE\" to use a potentially stale manifest, "
+      + "or \"INDEX\" to use the custom Android Manifest index (only select this option if manifest indexing is enabled).",
+    DefaultActivityLocatorStrategy.BLOCK
   );
 
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
@@ -432,7 +443,7 @@ public final class StudioFlags {
     "Enable build attribution.", false);
   public static final Flag<Boolean> KOTLIN_DSL_PARSING = Flag.create(
     GRADLE_IDE, "kotlin.dsl", "Enable parsing for Kotlin build files",
-    "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", false);
+    "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
 
   // REMOVE or change default to true after http://b/80245603 is fixed.
   public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(
@@ -708,20 +719,20 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW = Flag.create(
     COMPOSE, "preview.enabled", "Enable the Compose preview",
     "If enabled, a visual preview will be available for Compose.",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_ICONS = Flag.create(
     COMPOSE, "completion.icons",
     "Custom icons in completion for Compose",
     "If enabled, code completion for composable functions uses different icons on the left.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_HIDE_RETURN_TYPES = Flag.create(
     COMPOSE, "completion.hide.return.types",
     "Hide return types in completion for Compose",
     "If enabled, code completion for composable functions that return Unit doesn't show return types.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_LAYOUT_ICON = Flag.create(
@@ -743,14 +754,14 @@ public final class StudioFlags {
     COMPOSE, "completion.hide.special",
     "Hide special LookupElements for composable functions",
     "If enabled, code completion for composable functions doesn't include duplicate suggestions for inserting lambdas.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_REQUIRED_ONLY = Flag.create(
     COMPOSE, "completion.required.only",
     "Show only required parameters in completion",
     "If enabled, code completion for composable functions shows only required parameters.",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_DOTS_FOR_OPTIONAL = Flag.create(
@@ -758,13 +769,56 @@ public final class StudioFlags {
     "Show three dots when optional parameters are skipped in completion",
     "If enabled, code completion for composable functions will show three dots after required parameters if there are optional " +
     "parameters as well.",
-    false
+    true
   );
+
   public static final Flag<Boolean> COMPOSE_COMPLETION_TRAILING_LAMBDA = Flag.create(
     COMPOSE, "completion.lambda",
     "Show trailing function parameter as lambda",
     "If enabled, code completion for composable functions will use lambda syntax for trailing functional parameters.",
+    true
+  );
+
+  public static final Flag<Boolean> COMPOSE_COMPLETION_WEIGHER = Flag.create(
+    COMPOSE, "completion.weigher",
+    "Custom weigher for Compose",
+    "If enabled, code completion puts composable functions above other completion suggestions. For now in every context.",
+    true
+  );
+
+  public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER = Flag.create(
+    COMPOSE, "completion.insert.handler",
+    "Custom insert handler for composable functions",
+    "If enabled, code completion for composable functions uses a custom InsertHandler that inserts required parameter names.",
+    true
+  );
+
+  public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL = Flag.create(
+    COMPOSE, "completion.insert.handler.optional",
+    "Custom insert handler for composable functions adds a stop for optional parameters",
+    "If enabled, custom InsertHandler adds an extra 'stop' for optional parameters.",
+    true
+  );
+
+  public static final Flag<Boolean> COMPOSE_WIZARD_TEMPLATES = Flag.create(
+    COMPOSE, "wizard.templates",
+    "Show Compose Wizards",
+    "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
     false
+  );
+
+  public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
+    COMPOSE, "completion.auto.documentation",
+    "Show quick documentation automatically for Compose",
+    "If enabled, during code completion popup with documentation shows automatically",
+    true
+  );
+
+  public static final Flag<Boolean> COMPOSE_GUTTER_ICON_COLOR = Flag.create(
+    COMPOSE, "completion.gutter.icon.color",
+    "Show color icon in the gutter when declaring colors",
+    "If enabled, in the editor, a color icon will be shown matching the color described.",
+    true
   );
 
   //endregion
@@ -782,5 +836,12 @@ public final class StudioFlags {
     true);
   //endregion
 
+  //region Manifests
+  private static final FlagGroup MANIFESTS = new FlagGroup(FLAGS, "manifests", "Android Manifests");
+  public static final Flag<Boolean> ANDROID_MANIFEST_INDEX_ENABLED = Flag.create(
+    MANIFESTS, "index.enabled", "Enable Android Manifest Indexing",
+    "Enables a custom index for pre-parsing your project's AndroidManifest.xml files",
+    false);
+  //endregion
   private StudioFlags() { }
 }

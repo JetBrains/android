@@ -85,14 +85,6 @@ public class CreateKeyCycle extends BaseCreateKey {
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
     gbc.anchor = GridBagConstraints.CENTER;
-    add(new JLabel("TAG/ID"), gbc);
-    grid(gbc, 0, y++, 2, 1);
-    gbc.anchor = GridBagConstraints.CENTER;
-    add(mMatchTag = newTextField("ID or constraintTag", 15), gbc);
-
-    grid(gbc, 0, y++, 2, 1);
-    gbc.weighty = 0;
-    gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Position"), gbc);
     grid(gbc, 0, y++, 2, 1);
     gbc.anchor = GridBagConstraints.CENTER;

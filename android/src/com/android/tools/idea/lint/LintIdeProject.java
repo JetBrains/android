@@ -19,7 +19,6 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.ProductFlavor;
-import com.android.builder.model.SourceProvider;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -46,7 +45,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -57,12 +55,10 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
@@ -315,11 +311,11 @@ public class LintIdeProject extends Project {
       project = new LintModuleProject(client, dir, dir, module);
       AndroidFacet f = findAndroidFacetInProject(module.getProject());
       if (f != null) {
-        project.gradleProject = f.requiresAndroidModel();
+        project.gradleProject = AndroidModel.isRequired(f);
       }
     }
-    else if (facet.requiresAndroidModel()) {
-      AndroidModel androidModel = facet.getConfiguration().getModel();
+    else if (AndroidModel.isRequired(facet)) {
+      AndroidModel androidModel = AndroidModel.get(facet);
       if (androidModel instanceof AndroidModuleModel) {
         project = new LintGradleProject(client, dir, dir, facet, (AndroidModuleModel)androidModel);
       } else if (androidModel != null) {
@@ -780,44 +776,13 @@ public class LintIdeProject extends Project {
     public List<File> getManifestFiles() {
       if (manifestFiles == null) {
         manifestFiles = Lists.newArrayList();
-        File mainManifest = SourceProviderManager.getInstance(myFacet).getMainSourceProvider().getManifestFile();
-        if (mainManifest.exists()) {
-          manifestFiles.add(mainManifest);
-        }
-
-        List<SourceProvider> flavorSourceProviders = myAndroidModuleModel.getFlavorSourceProviders();
-        for (SourceProvider provider : flavorSourceProviders) {
-          File manifestFile = provider.getManifestFile();
-          if (manifestFile.exists()) {
-            manifestFiles.add(manifestFile);
-          }
-        }
-
-        SourceProvider multiProvider = myAndroidModuleModel.getMultiFlavorSourceProvider();
-        if (multiProvider != null) {
-          File manifestFile = multiProvider.getManifestFile();
-          if (manifestFile.exists()) {
-            manifestFiles.add(manifestFile);
-          }
-        }
-
-        SourceProvider buildTypeSourceProvider = myAndroidModuleModel.getBuildTypeSourceProvider();
-        if (buildTypeSourceProvider != null) {
-          File manifestFile = buildTypeSourceProvider.getManifestFile();
-          if (manifestFile.exists()) {
-            manifestFiles.add(manifestFile);
-          }
-        }
-
-        SourceProvider variantProvider = myAndroidModuleModel.getVariantSourceProvider();
-        if (variantProvider != null) {
-          File manifestFile = variantProvider.getManifestFile();
-          if (manifestFile.exists()) {
-            manifestFiles.add(manifestFile);
+        for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
+          VirtualFile manifestFile = sourceProvider.getManifestFile();
+          if (manifestFile != null) {
+            manifestFiles.add(VfsUtilCore.virtualToIoFile(manifestFile));
           }
         }
       }
-
       return manifestFiles;
     }
 
@@ -826,12 +791,10 @@ public class LintIdeProject extends Project {
     public List<File> getAssetFolders() {
       if (assetFolders == null) {
         assetFolders = Lists.newArrayList();
-        for (SourceProvider provider : IdeaSourceProvider.getAllSourceProviders(myFacet)) {
-          Collection<File> dirs = provider.getAssetsDirectories();
-          for (File dir : dirs) {
-            if (dir.exists()) { // model returns path whether or not it exists
-              assetFolders.add(dir);
-            }
+        for (IdeaSourceProvider provider : IdeaSourceProvider.getAllIdeaSourceProviders(myFacet)) {
+          Collection<VirtualFile> dirs = provider.getAssetsDirectories();
+          for (VirtualFile dir : dirs) {
+            assetFolders.add(VfsUtilCore.virtualToIoFile(dir));
           }
         }
       }
@@ -843,7 +806,7 @@ public class LintIdeProject extends Project {
     @Override
     public List<File> getProguardFiles() {
       if (proguardFiles == null) {
-        if (myFacet.requiresAndroidModel()) {
+        if (AndroidModel.isRequired(myFacet)) {
           // TODO: b/22928250
           AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
           if (androidModel != null) {
@@ -885,7 +848,7 @@ public class LintIdeProject extends Project {
       if (!GradleProjectInfo.getInstance(myFacet.getModule().getProject()).isBuildWithGradle()) {
         return false;
       }
-      if (!myFacet.requiresAndroidModel()) {
+      if (!AndroidModel.isRequired(myFacet)) {
         return false;
       }
       AndroidModuleModel model = AndroidModuleModel.get(myFacet);
@@ -925,7 +888,7 @@ public class LintIdeProject extends Project {
     public List<File> getJavaLibraries(boolean includeProvided) {
       if (SUPPORT_CLASS_FILES) {
         if (javaLibraries == null) {
-          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null) {
+          if (AndroidModel.isRequired(myFacet) && AndroidModel.get(myFacet) != null) {
             Collection<JavaLibrary> libs = myAndroidModuleModel.getSelectedMainCompileDependencies().getJavaLibraries();
             javaLibraries = Lists.newArrayListWithExpectedSize(libs.size());
             for (JavaLibrary lib : libs) {
@@ -1035,7 +998,7 @@ public class LintIdeProject extends Project {
       if (SUPPORT_LIB_ARTIFACT.equals(artifact)
           || ANDROIDX_SUPPORT_LIB_ARTIFACT.equals(artifact)) {
         if (supportLib == null) {
-          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null && androidModel != null) {
+          if (AndroidModel.isRequired(myFacet) && AndroidModel.get(myFacet) != null && androidModel != null) {
             supportLib =
               GradleUtil.dependsOn(androidModel, SUPPORT_LIB_ARTIFACT) ||
               GradleUtil.dependsOn(androidModel, ANDROIDX_SUPPORT_LIB_ARTIFACT);
@@ -1050,7 +1013,7 @@ public class LintIdeProject extends Project {
       } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)
                  || ANDROIDX_APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
         if (appCompat == null) {
-          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null && androidModel != null) {
+          if (AndroidModel.isRequired(myFacet) && AndroidModel.get(myFacet) != null && androidModel != null) {
             appCompat =
               GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT) ||
               GradleUtil.dependsOn(androidModel, ANDROIDX_APPCOMPAT_LIB_ARTIFACT);
@@ -1066,7 +1029,7 @@ public class LintIdeProject extends Project {
       else if (LEANBACK_V17_ARTIFACT.equals(artifact)
                || ANDROIDX_LEANBACK_ARTIFACT.equals(artifact)) {
         if (leanback == null) {
-          if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null && androidModel != null) {
+          if (AndroidModel.isRequired(myFacet) && AndroidModel.get(myFacet) != null && androidModel != null) {
             leanback =
               GradleUtil.dependsOn(androidModel, LEANBACK_V17_ARTIFACT) ||
               GradleUtil.dependsOn(androidModel, ANDROIDX_LEANBACK_ARTIFACT);
@@ -1081,7 +1044,7 @@ public class LintIdeProject extends Project {
       }
       else {
         // Some other (not yet directly cached result)
-        if (myFacet.requiresAndroidModel() && myFacet.getConfiguration().getModel() != null
+        if (AndroidModel.isRequired(myFacet) && AndroidModel.get(myFacet) != null
             && androidModel != null) {
           if (GradleUtil.dependsOn(androidModel, artifact)) {
             return true;

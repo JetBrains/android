@@ -25,6 +25,7 @@ import com.android.builder.model.TestOptions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
@@ -136,7 +137,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   protected Pair<Boolean, String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet) {
-    if (!facet.requiresAndroidModel()) {
+    if (!AndroidModel.isRequired(facet)) {
       // Non Gradle projects always require an application
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
@@ -213,7 +214,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     }
 
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
-    if (!facet.requiresAndroidModel() && !configuration.getState().PACK_TEST_CODE) {
+    if (!AndroidModel.isRequired(facet) && !configuration.getState().PACK_TEST_CODE) {
       final int count = getTestSourceRootCount(module);
       if (count > 0) {
         final String shortMessage = "Test code not included into APK";
@@ -247,7 +248,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
                                        @NotNull ApplicationIdProvider applicationIdProvider,
                                        @NotNull List<AndroidDevice> targetDevices) {
-    if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
+    if (AndroidModel.get(facet) != null && AndroidModel.get(facet) instanceof AndroidModuleModel) {
       return createGradleApkProvider(facet, applicationIdProvider, true, targetDevices);
     }
     return new NonGradleApkProvider(facet, applicationIdProvider, null);

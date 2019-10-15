@@ -70,6 +70,12 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
   fun refresh() {
     val root = model.root
+    if (root == null) {
+      rootDimension = Dimension(0, 0)
+      maxDepth = 0
+      hitRects = emptyList()
+      return
+    }
     rootDimension = Dimension(root.width, root.height)
     val newHitRects = mutableListOf<ViewDrawInfo>()
     val transform = AffineTransform()
@@ -78,10 +84,10 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     val magnitude = min(1.0, hypot(xOff, yOff))
     val angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
 
-    transform.translate(rootDimension.width / 2.0 - model.root.x, rootDimension.height / 2.0 - model.root.y)
+    transform.translate(rootDimension.width / 2.0 - root.x, rootDimension.height / 2.0 - root.y)
     transform.rotate(angle)
     val levelLists = mutableListOf<MutableList<MutableList<Pair<ViewNode, Rectangle>>>>()
-    buildLevelLists(model.root, model.root.bounds, levelLists)
+    buildLevelLists(root, root.bounds, levelLists)
 
     rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
     maxDepth = levelLists.size

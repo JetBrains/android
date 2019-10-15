@@ -117,7 +117,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     AndroidFacet androidFacet = getValue();
     assert androidFacet != null;
     for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(androidFacet)) {
-      if (provider.containsFile(virtualFile)) {
+      if (IdeaSourceProvider.containsFile(provider, virtualFile)) {
         return provider;
       }
     }

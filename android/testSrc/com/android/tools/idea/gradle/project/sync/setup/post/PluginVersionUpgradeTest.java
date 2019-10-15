@@ -15,23 +15,28 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginVersionUpgradeStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link PluginVersionUpgrade}.
@@ -112,6 +117,6 @@ public class PluginVersionUpgradeTest extends PlatformTestCase {
     when(androidModel.getAndroidProject()).thenReturn(androidProject);
 
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.getConfiguration().setModel(androidModel);
+    AndroidModel.set(facet, androidModel);
   }
 }

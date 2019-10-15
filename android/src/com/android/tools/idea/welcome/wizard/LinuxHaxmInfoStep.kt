@@ -48,9 +48,9 @@ class LinuxHaxmInfoStep : ModelWizardStep.WithoutModel("Emulator Settings") {
       addHtml("Linux-based systems support virtual machine acceleration through the KVM (Kernel-based Virtual Machine) software package.")
       endParagraph()
       beginParagraph()
-      addHtml("<p>Search for install instructions for your particular Linux configuration (")
+      addHtml("Search for install instructions for your particular Linux configuration (")
       addLink("Android KVM Linux Installation", KVM_DOCUMENTATION_URL)
-      addHtml(") that KVM is enabled for faster Android emulator performance.</p>")
+      addHtml(") that KVM is enabled for faster Android emulator performance.")
       endParagraph()
     }.html
     SwingHelper.setHtml(this, text, UIUtil.getLabelForeground())

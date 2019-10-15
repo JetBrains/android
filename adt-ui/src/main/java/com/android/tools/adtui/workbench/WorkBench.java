@@ -118,10 +118,12 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * @param content the content of the main area of the {@link WorkBench}
    * @param context an instance identifying the data the {@link WorkBench} is manipulating
    * @param definitions a list of tool windows associated with this {@link WorkBench}
+   * @param minimizedWindows whether the tool windows should be minimized by default.
    */
   public void init(@NotNull JComponent content,
                    @NotNull T context,
-                   @NotNull List<ToolWindowDefinition<T>> definitions) {
+                   @NotNull List<ToolWindowDefinition<T>> definitions,
+                   boolean minimizedWindows) {
     if (ScreenReader.isActive()) {
       setFocusCycleRoot(true);
       setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
@@ -134,7 +136,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));
     mySplitter.setLastSize(getInitialSideWidth(Side.RIGHT));
     myModel.setContext(context);
-    addToolsToModel();
+    addToolsToModel(minimizedWindows);
     myWorkBenchManager.register(this);
     myDetachedToolWindowManager.register(myFileEditor, this);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
@@ -165,7 +167,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * </ul>
    */
   public boolean isMessageVisible() {
-    return myLoadingPanel.isLoading() || myLoadingPanel.hasError();
+    return myLoadingPanel.isLoadingOrHasError();
   }
 
   @TestOnly
@@ -235,6 +237,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     add(myLoadingPanel, JLayeredPane.DEFAULT_LAYER);
     myMainPanel.setVisible(false);
     myLoadingPanel.startLoading();
+    setFocusCycleRoot(true);
+    setFocusTraversalPolicyProvider(true);
+    setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
   }
 
   private boolean isCurrentEditor(@NotNull FileEditor fileEditor) {
@@ -271,6 +276,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     splitter.setFirstComponent(new SidePanel<>(Side.LEFT, myModel));
     splitter.setLastComponent(new SidePanel<>(Side.RIGHT, myModel));
     splitter.setShowDividerControls(true);
+    splitter.setFocusCycleRoot(false);
+    splitter.setFocusTraversalPolicyProvider(true);
+    splitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     return splitter;
   }
 
@@ -463,10 +471,11 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     }
   }
 
-  private void addToolsToModel() {
+  private void addToolsToModel(boolean minimizedWindows) {
     List<AttachedToolWindow<T>> tools = new ArrayList<>(myToolDefinitions.size());
     for (ToolWindowDefinition<T> definition : myToolDefinitions) {
-      AttachedToolWindow<T> toolWindow = new AttachedToolWindow<>(definition, myButtonDragListener, this, myModel);
+      AttachedToolWindow<T> toolWindow =
+        new AttachedToolWindow<>(definition, myButtonDragListener, this, myModel, minimizedWindows);
       Disposer.register(this, toolWindow);
       tools.add(toolWindow);
     }
@@ -526,11 +535,24 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myLoadingPanel.setBounds(0, 0, getWidth(), getHeight());
   }
 
-  /**
-   * Sets the context and updates the model to reflect the context change.
-   */
   public void setContext(@NotNull String context) {
     myContext = context;
+  }
+
+  /**
+   * Sets default properties for the context in case they're not set yet and updates the model to reflect the changes.
+   */
+  public void setDefaultPropertiesForContext(boolean minimizedByDefault) {
+    List<AttachedToolWindow<T>> tools = myModel.getAllTools();
+    if (tools.isEmpty()) {
+      return;
+    }
+    tools.forEach((tool) -> {
+      tool.setDefaultProperty(AttachedToolWindow.PropertyType.LEFT, tool.getDefinition().getSide().isLeft());
+      tool.setDefaultProperty(AttachedToolWindow.PropertyType.SPLIT, tool.getDefinition().getSplit().isBottom());
+      tool.setDefaultProperty(AttachedToolWindow.PropertyType.AUTO_HIDE, tool.getDefinition().getAutoHide().isAutoHide());
+      tool.setDefaultProperty(AttachedToolWindow.PropertyType.MINIMIZED, minimizedByDefault);
+    });
     updateModel();
   }
 
@@ -541,6 +563,12 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   @NotNull
   public String getContext() {
     return myContext;
+  }
+
+  @Override
+  @NotNull
+  public String getName() {
+    return myName;
   }
 
   private class MyButtonDragListener implements ButtonDragListener<T> {

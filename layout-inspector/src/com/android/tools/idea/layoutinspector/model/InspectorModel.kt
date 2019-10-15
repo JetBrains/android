@@ -19,7 +19,7 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.intellij.openapi.project.Project
 import kotlin.properties.Delegates
 
-class InspectorModel(val project: Project, initialRoot: ViewNode) {
+class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
   val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
   val resourceLookup = ResourceLookup(project)
@@ -30,23 +30,31 @@ class InspectorModel(val project: Project, initialRoot: ViewNode) {
     }
   }
 
-  var root: ViewNode by Delegates.observable(initialRoot) { _, old, new ->
+  var root: ViewNode? by Delegates.observable(initialRoot) { _, old, new ->
     modificationListeners.forEach { it(old, new, true) }
   }
 
   /**
    * Replaces all subtrees with differing root IDs. Existing views are updated.
    */
-  fun update(newRoot: ViewNode) {
+  fun update(newRoot: ViewNode?) {
+    if (newRoot == root) {
+      return
+    }
     val oldRoot = root
     val structuralChange: Boolean
-    if (newRoot.drawId != root.drawId || newRoot.qualifiedName != root.qualifiedName) {
+    if (newRoot?.drawId != root?.drawId || newRoot?.qualifiedName != root?.qualifiedName) {
       root = newRoot
       structuralChange = true
     }
     else {
-      val updater = Updater(root, newRoot)
-      structuralChange = updater.update()
+      if (oldRoot == null || newRoot == null) {
+        structuralChange = true
+      }
+      else {
+        val updater = Updater(oldRoot, newRoot)
+        structuralChange = updater.update()
+      }
     }
     modificationListeners.forEach { it(oldRoot, newRoot, structuralChange) }
   }
@@ -84,11 +92,11 @@ class InspectorModel(val project: Project, initialRoot: ViewNode) {
       return modified
     }
 
-    private fun sameChildren(oldNode: ViewNode, newNode: ViewNode): Boolean {
-      if (oldNode.children.size != newNode.children.size) {
+    private fun sameChildren(oldNode: ViewNode?, newNode: ViewNode?): Boolean {
+      if (oldNode?.children?.size != newNode?.children?.size) {
         return false
       }
-      return oldNode.children.indices.all { oldNode.children[it].drawId == newNode.children[it].drawId }
+      return oldNode?.children?.indices?.all { oldNode.children[it].drawId == newNode?.children?.get(it)?.drawId } ?: true
     }
   }
 }

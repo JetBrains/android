@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.run;
 
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -25,6 +27,7 @@ import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.base.Predicate;
@@ -50,22 +53,32 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import gnu.trove.TIntArrayList;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.awt.FontMetrics;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
-import java.awt.*;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.*;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener {
   private final static int UPDATE_DELAY_MILLIS = 250;
@@ -102,8 +115,9 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersionSynchronously();
     myProjectTarget = projectTarget;
-    mySupportedAbis = facet.getConfiguration().getModel() instanceof AndroidModuleModel ?
-                      ((AndroidModuleModel)facet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+    mySupportedAbis = androidModuleModel != null ?
+                      androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :
                       null;
 
     // Currently, we only look at whether the device supports the watch feature.

@@ -18,9 +18,9 @@ package com.android.tools.idea.templates
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.templates.Parameter.Type
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_TOP_OUT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_TOP_OUT
 import com.intellij.openapi.diagnostic.logger
 import java.io.File
 

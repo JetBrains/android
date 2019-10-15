@@ -56,6 +56,7 @@ import com.intellij.ui.PopupMenuListenerAdapter;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,6 +67,7 @@ import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.PopupMenuEvent;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -884,10 +886,17 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   }
 
   @Override
-  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+  public void addHit(@NotNull SceneContext transform,
+                     @NotNull ScenePicker picker,
+                     @JdkConstants.InputEventMask int modifiersEx) {
     if (!myIsEdge || this instanceof GuidelineAnchorTarget) {
       // This anchor is not the edge of root ConstraintLayout. Consider as normal size.
-      super.addHit(transform, picker);
+      super.addHit(transform, picker, modifiersEx);
+      return;
+    }
+
+    if ((modifiersEx & InputEvent.BUTTON3_DOWN_MASK) > 0) {
+      // Anchor doesn't support right click event yet.
       return;
     }
 

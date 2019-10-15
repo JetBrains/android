@@ -21,6 +21,7 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
@@ -128,7 +129,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     if (showBundle) {
       addStep(new ChooseBundleOrApkStep(this));
     }
-    boolean useGradleToSign = myFacet.requiresAndroidModel();
+    boolean useGradleToSign = AndroidModel.isRequired(myFacet);
 
     if (signed) {
       addStep(new KeystoreStep(this, useGradleToSign, facets));
@@ -155,7 +156,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     super.doOKAction();
 
     assert myFacet != null;
-    if (myFacet.requiresAndroidModel()) {
+    if (AndroidModel.isRequired(myFacet)) {
       buildAndSignGradleProject();
     }
     else {

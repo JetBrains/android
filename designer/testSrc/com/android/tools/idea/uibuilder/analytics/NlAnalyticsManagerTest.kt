@@ -17,9 +17,11 @@ package com.android.tools.idea.uibuilder.analytics
 
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
@@ -54,10 +56,14 @@ class NlAnalyticsManagerTest : AndroidTestBase() {
   }
 
   fun testLayoutType() {
+    `when`(surface.layoutType).thenReturn(DefaultDesignerFileType)
     assertThat(analyticsManager.layoutType).isEqualTo(LayoutEditorState.Type.UNKNOWN_TYPE) // By default, we don't infer any types
 
     `when`(surface.layoutType).thenReturn(LayoutFileType)
     assertThat(analyticsManager.layoutType).isEqualTo(LayoutEditorState.Type.LAYOUT)
+
+    `when`(surface.layoutType).thenReturn(AnimatedVectorFileType)
+    assertThat(analyticsManager.layoutType).isEqualTo(LayoutEditorState.Type.DRAWABLE)
   }
 
   fun testSurfaceType() {

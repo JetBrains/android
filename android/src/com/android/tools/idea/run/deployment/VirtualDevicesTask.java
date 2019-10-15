@@ -23,15 +23,14 @@ import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ThreeState;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -44,11 +43,17 @@ import org.jetbrains.annotations.Nullable;
 final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
   private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
+  @NotNull
+  private final FileSystem myFileSystem;
+
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
-  VirtualDevicesTask(boolean selectDeviceSnapshotComboBoxSnapshotsEnabled, @Nullable LaunchCompatibilityChecker checker) {
+  VirtualDevicesTask(boolean selectDeviceSnapshotComboBoxSnapshotsEnabled,
+                     @NotNull FileSystem fileSystem,
+                     @Nullable LaunchCompatibilityChecker checker) {
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
+    myFileSystem = fileSystem;
     myChecker = checker;
   }
 
@@ -80,8 +85,8 @@ final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
   }
 
   @NotNull
-  private static ImmutableCollection<Snapshot> getSnapshots(@NotNull AvdInfo avdInfo) {
-    Path snapshots = Paths.get(avdInfo.getDataFolderPath(), "snapshots");
+  private Collection<Snapshot> getSnapshots(@NotNull AvdInfo device) {
+    Path snapshots = myFileSystem.getPath(device.getDataFolderPath(), "snapshots");
 
     if (!Files.isDirectory(snapshots)) {
       return ImmutableList.of();
@@ -93,7 +98,7 @@ final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
 
       return stream
         .filter(Files::isDirectory)
-        .map(VirtualDevicesTask::getSnapshot)
+        .map(this::getSnapshot)
         .filter(Objects::nonNull)
         .sorted()
         .collect(collector);
@@ -106,12 +111,12 @@ final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
 
   @Nullable
   @VisibleForTesting
-  static Snapshot getSnapshot(@NotNull Path snapshotDirectory) {
+  Snapshot getSnapshot(@NotNull Path snapshotDirectory) {
     Path snapshotProtocolBuffer = snapshotDirectory.resolve("snapshot.pb");
-    String snapshotDirectoryName = snapshotDirectory.getFileName().toString();
+    Path snapshotDirectoryName = snapshotDirectory.getFileName();
 
     if (!Files.exists(snapshotProtocolBuffer)) {
-      return new Snapshot(snapshotDirectoryName);
+      return new Snapshot(snapshotDirectoryName, myFileSystem);
     }
 
     try (InputStream in = Files.newInputStream(snapshotProtocolBuffer)) {
@@ -125,7 +130,7 @@ final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
 
   @Nullable
   @VisibleForTesting
-  static Snapshot getSnapshot(@NotNull SnapshotOuterClass.Snapshot snapshot, @NotNull String fallbackName) {
+  Snapshot getSnapshot(@NotNull SnapshotOuterClass.Snapshot snapshot, @NotNull Path snapshotDirectory) {
     if (snapshot.getImagesCount() == 0) {
       return null;
     }
@@ -133,10 +138,10 @@ final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
     String name = snapshot.getLogicalName();
 
     if (name.isEmpty()) {
-      return new Snapshot(fallbackName);
+      return new Snapshot(snapshotDirectory, myFileSystem);
     }
 
-    return new Snapshot(name, fallbackName);
+    return new Snapshot(snapshotDirectory, name);
   }
 
   @NotNull

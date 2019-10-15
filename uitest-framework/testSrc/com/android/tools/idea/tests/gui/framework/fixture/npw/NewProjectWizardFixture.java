@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+import static com.android.tools.idea.tests.gui.framework.fixture.newpsd.UiTestUtilsKt.waitForIdle;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -61,10 +62,12 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public NewProjectWizardFixture clickFinish(@NotNull Wait projectOpen, @NotNull Wait indexing) {
-    super.clickFinish(projectOpen);
-    Assume.assumeTrue("The project should have already been opened by the time the wizard disappears.",
-                      GuiQuery.getNonNull(() -> ProjectManager.getInstance().getOpenProjects().length == 1));
+    findAndClickButton(this, "Finish");
+    projectOpen
+      .expecting("project opened")
+      .until(() -> GuiQuery.getNonNull(() -> ProjectManager.getInstance().getOpenProjects().length == 1));
     GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0], indexing);
+    Assume.assumeTrue(GuiQuery.getNonNull(() -> !target().isShowing()));
     return myself();
   }
 

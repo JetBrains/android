@@ -104,7 +104,7 @@ class CreateNewFlavorsTest {
       .open("/app/build.gradle")
       .currentFileContents
 
-    val dimenDemo = "dimension = '$DIMEN_NAME'"
+    val dimenDemo = "dimension '$DIMEN_NAME'"
     val flavor1 = "$FLAVOR1 {\n            $dimenDemo\n            minSdkVersion 24\n            targetSdkVersion 24\n        }"
     val flavor2 = "$FLAVOR2 {\n            $dimenDemo\n            versionCode = 2\n            versionName = '2.3'\n        }"
 

@@ -24,14 +24,14 @@ import com.intellij.psi.PsiElement;
 
 public interface ProguardR8Method extends ProguardR8ClassMember {
 
+  @NotNull
+  List<ProguardR8AccessModifier> getAccessModifierList();
+
   @Nullable
   ProguardR8AnnotationName getAnnotationName();
 
   @NotNull
   ProguardR8ClassMemberName getClassMemberName();
-
-  @NotNull
-  List<ProguardR8MethodModifier> getMethodModifierList();
 
   @NotNull
   ProguardR8Parameters getParameters();

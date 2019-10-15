@@ -119,10 +119,6 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
       // or else it will simply return null.
       assertThat(ex.getMessage()).contains("ADB not responding.");
     }
-
-    // This is required because ddmlib uses an application service and won't be terminated during project disposal.
-    // This line can be removed once (b/135555649) is resolved.
-    AdbService.getInstance().terminateDdmlib();
   }
 
   private static void createAndroidSdk(@NotNull File androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {

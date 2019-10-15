@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.proguardR8.psi
 
+import com.android.tools.idea.lang.androidSql.referenceAtCaret
 import com.android.tools.idea.lang.proguardR8.ProguardR8ClassMemberInspection
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
@@ -449,7 +450,6 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
         byte myMethod();
         String myMethod();
         MyClass myMethod();
-        
         boolean[] myMethod(int p1);
         byte myMethod(String[] p1);
         String myMethod(StringBuilder p1);
@@ -558,7 +558,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
       package test;
 
       class MyClass {
-        boolean[] myMethod();
+        public boolean[] myMethod();
       }
     """.trimIndent())
 
@@ -574,5 +574,58 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
 
     // suggest even without parenthesises
     assertThat(methods.map { it.lookupString }).contains("myMethod")
+  }
+
+  fun testCodeCompletionForMethodWithoutType() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      class MyClass {
+        boolean[] myMethod1();
+        int myMethod2();
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+         $caret
+      }
+      """.trimIndent()
+    )
+    val methods = myFixture.completeBasic()
+
+    // suggest methods with different return types
+    assertThat(methods.map { it.lookupString }).containsAllOf("myMethod1", "myMethod2")
+  }
+
+  fun testResolveMethodWithoutType() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      class MyClass {
+        boolean[] myMethod();
+        int myMethod();
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+         my${caret}Method();
+      }
+      """.trimIndent()
+    )
+    val methods = myFixture.referenceAtCaret.resolveReference() as Collection<ResolveResult>
+
+    // resolve methods with different return types
+    assertThat(methods).hasSize(2)
+    assertThat(methods.map { it.element!!.text }).containsExactly("boolean[] myMethod();", "int myMethod();")
   }
 }

@@ -17,12 +17,12 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
+import com.android.tools.adtui.actions.ZoomShortcut
+import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.adtui.actions.ZoomShortcut
-import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.idea.naveditor.actions.ActivateComponentAction
 import com.android.tools.idea.naveditor.actions.ActivateSelectionAction
 import com.android.tools.idea.naveditor.actions.AddActionToolbarAction
@@ -48,12 +48,10 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.uibuilder.actions.SelectAllAction
 import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.util.SystemInfo
-import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.KeyStroke
@@ -81,16 +79,19 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   // Open for testing only
   open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
 
-  override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) {
-    registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component, parentDisposable)
-    registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), mySurface, parentDisposable)
-    registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK), mySurface, parentDisposable)
-    registerAction(selectAllAction, IdeActions.ACTION_SELECT_ALL, component, parentDisposable)
-    registerAction(activateSelectionAction, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), component, parentDisposable)
+  override fun registerActionsShortcuts(component: JComponent) {
+    registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component)
+    registerAction(selectAllAction, IdeActions.ACTION_SELECT_ALL, component)
+    registerAction(activateSelectionAction, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), component)
+    val focusablePane = mySurface.layeredPane
+    registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), focusablePane)
+    registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), focusablePane)
+    registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), focusablePane)
+    registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), focusablePane)
 
     val keyEvent = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
-    registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), mySurface, parentDisposable)
-    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), mySurface)
+    registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), focusablePane)
+    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), focusablePane)
   }
 
   override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {

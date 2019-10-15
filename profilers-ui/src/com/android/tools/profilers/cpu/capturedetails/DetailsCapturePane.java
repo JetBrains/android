@@ -19,6 +19,7 @@ import com.android.tools.adtui.FilterComponent;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterHandler;
 import com.android.tools.adtui.model.filter.FilterResult;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.ViewBinder;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
@@ -48,7 +49,7 @@ class DetailsCapturePane extends CapturePane {
   private final FilterComponent myFilterComponent;
 
   @NotNull
-  private final ViewBinder<CpuProfilerStageView, CaptureDetails, CaptureDetailsView> myBinder;
+  private final ViewBinder<StudioProfilersView, CaptureDetails, CaptureDetailsView> myBinder;
 
   DetailsCapturePane(@NotNull CpuProfilerStageView view) {
     super(view);
@@ -93,7 +94,7 @@ class DetailsCapturePane extends CapturePane {
       return;
     }
 
-    myDetailsView = myBinder.build(myStageView, details);
+    myDetailsView = myBinder.build(myStageView.getProfilersView(), details);
     panel.add(myFilterComponent, BorderLayout.NORTH);
     panel.add(myDetailsView.getComponent(), BorderLayout.CENTER);
 

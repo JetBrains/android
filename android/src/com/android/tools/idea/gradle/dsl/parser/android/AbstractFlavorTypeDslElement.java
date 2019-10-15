@@ -50,10 +50,6 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
     String property = element.getName();
-    if (property.equals("consumerProguardFiles") && element instanceof GradleDslSimpleExpression) {
-      addAsParsedDslExpressionList((GradleDslSimpleExpression)element);
-      return;
-    }
 
     if (property.equals("setProguardFiles")) {
       // Clear the property since setProguardFiles overwrites these.
@@ -62,8 +58,19 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
       return;
     }
 
+    if (property.equals("setConsumerProguardFiles")) {
+      removeProperty("consumerProguardFiles");
+      addToParsedExpressionList("consumerProguardFiles", element);
+      return;
+    }
+
     if (property.equals("proguardFiles") || property.equals("proguardFile")) {
       addToParsedExpressionList("proguardFiles", element);
+      return;
+    }
+
+    if (property.equals("consumerProguardFiles") || property.equals("consumerProguardFile")) {
+      addToParsedExpressionList("consumerProguardFiles", element);
       return;
     }
 

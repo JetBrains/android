@@ -219,7 +219,7 @@ public final class Haxm extends InstallableComponent {
     myProgressStep = progressStep;
     if (myInstallationIntention == HaxmInstallationIntention.INSTALL_WITH_UPDATES
         || myInstallationIntention == HaxmInstallationIntention.INSTALL_WITHOUT_UPDATES) {
-      myStateStore.put(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
+      stateStore.put(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
     }
   }
 
@@ -229,8 +229,9 @@ public final class Haxm extends InstallableComponent {
     if (myInstallationIntention == HaxmInstallationIntention.UNINSTALL) {
       return Collections.singleton(new HaxmUninstallInfoStep());
     }
-    return Collections.singleton(new HaxmInstallSettingsStep(myIsCustomInstall, myKey, KEY_EMULATOR_MEMORY_MB));
+    return Collections.singleton(new HaxmInstallSettingsStep(myIsCustomInstall, key, KEY_EMULATOR_MEMORY_MB));
   }
+
 
   @Override
   public void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler) {
@@ -408,7 +409,7 @@ public final class Haxm extends InstallableComponent {
    */
   @NotNull
   private GeneralCommandLine getInstallCommandLine(@NotNull File sdk) throws WizardException, IOException {
-    int memorySize = myStateStore.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
+    int memorySize = stateStore.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
     return addInstallParameters(getInstallerCommandLine(sdk), memorySize);
   }
 

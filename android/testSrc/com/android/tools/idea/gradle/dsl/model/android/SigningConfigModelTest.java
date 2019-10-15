@@ -318,8 +318,9 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).hasSize(1);
     SigningConfigModel signingConfig = signingConfigs.get(0);
 
-    verifyPasswordModel(signingConfig.storePassword(), "\nKeystore password: ", CONSOLE_READ);
-    verifyPasswordModel(signingConfig.keyPassword(), "\nKey password: ", CONSOLE_READ);
+    // TODO(karimai) : verify behaviour with escape characters.
+    verifyPasswordModel(signingConfig.storePassword(), "Keystore password: ", CONSOLE_READ);
+    verifyPasswordModel(signingConfig.keyPassword(), "Key password: ", CONSOLE_READ);
   }
 
   @Test
@@ -361,8 +362,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).hasSize(1);
     SigningConfigModel signingConfig = signingConfigs.get(0);
 
-    verifyPasswordModel(signingConfig.storePassword(), "\nKeystore password: ", CONSOLE_READ);
-    verifyPasswordModel(signingConfig.keyPassword(), "\nKey password: ", CONSOLE_READ);
+    verifyPasswordModel(signingConfig.storePassword(), "Keystore password: ", CONSOLE_READ);
+    verifyPasswordModel(signingConfig.keyPassword(), "Key password: ", CONSOLE_READ);
 
     signingConfig.storePassword().setValue(CONSOLE_READ, "Another Keystore Password: ");
     signingConfig.keyPassword().setValue(CONSOLE_READ, "Another Key Password: ");
@@ -476,8 +477,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).hasSize(1);
     SigningConfigModel signingConfig = signingConfigs.get(0);
 
-    verifyPasswordModel(signingConfig.storePassword(), "\nKeystore password: ", CONSOLE_READ);
-    verifyPasswordModel(signingConfig.keyPassword(), "\nKey password: ", CONSOLE_READ);
+    verifyPasswordModel(signingConfig.storePassword(), "Keystore password: ", CONSOLE_READ);
+    verifyPasswordModel(signingConfig.keyPassword(), "Key password: ", CONSOLE_READ);
 
     signingConfig.storePassword().setValue(PLAIN_TEXT, "store_password");
     signingConfig.keyPassword().setValue(PLAIN_TEXT, "key_password");

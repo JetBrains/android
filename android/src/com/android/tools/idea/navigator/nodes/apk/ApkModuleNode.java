@@ -31,6 +31,7 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import java.util.regex.Pattern;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-import static com.android.SdkConstants.FN_APK_CLASSES_DEX;
+import static com.android.SdkConstants.REGEX_APK_CLASSES_DEX;
 import static com.android.tools.idea.navigator.nodes.apk.SourceFolders.isInSourceFolder;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -55,9 +56,9 @@ public class ApkModuleNode extends ProjectViewModuleNode {
   @Nullable private final PsiFile myApkPsiFile;
   @Nullable private final VirtualFile myApkFile;
   @Nullable private final VirtualFile myManifestFile;
-  @Nullable private final VirtualFile myDexFile;
+  @NotNull private final List<VirtualFile> myDexFiles;
 
-  private DexGroupNode myDexGroupNode;
+  @NotNull private final List<DexGroupNode> myDexGroupNodes;
 
   public ApkModuleNode(@NotNull Project project,
                        @NotNull Module module,
@@ -75,7 +76,20 @@ public class ApkModuleNode extends ProjectViewModuleNode {
 
     VirtualFile rootFolder = findModuleRootFolder();
     myManifestFile = rootFolder != null ? rootFolder.findChild(FN_ANDROID_MANIFEST_XML) : null;
-    myDexFile = apkRootFile != null ? apkRootFile.findChild(FN_APK_CLASSES_DEX) : null;
+    myDexGroupNodes = new ArrayList<>();
+    myDexFiles = new ArrayList<>();
+
+    if (apkRootFile != null) {
+      // Refresh the root so that it can find the most recent contents of the directory. This
+      // identifies any added/removed .dex files to the directory via APK reload.
+      apkRootFile.refresh(false, true);
+      Pattern dexFilePattern = Pattern.compile(REGEX_APK_CLASSES_DEX);
+      for (VirtualFile child : apkRootFile.getChildren()) {
+        if (dexFilePattern.matcher(child.getName()).matches()) {
+          myDexFiles.add(child);
+        }
+      }
+    }
   }
 
   @Nullable
@@ -115,10 +129,13 @@ public class ApkModuleNode extends ProjectViewModuleNode {
     children.add(createManifestGroupNode());
 
     // "java" folder
-    if (myDexGroupNode == null) {
-      myDexGroupNode = new DexGroupNode(myProject, settings, myDexFile);
+    if (myDexGroupNodes.isEmpty()) {
+      for (VirtualFile dexFile : myDexFiles) {
+        DexGroupNode node = new DexGroupNode(myProject, settings, dexFile);
+        myDexGroupNodes.add(node);
+        children.add(node);
+      }
     }
-    children.add(myDexGroupNode);
 
     // "Native libraries" folder
     VirtualFile found = LibraryFolder.findIn(myProject);
@@ -172,7 +189,7 @@ public class ApkModuleNode extends ProjectViewModuleNode {
     if (Objects.equals(path, getManifestPath())) {
       return true;
     }
-    if (myDexGroupNode != null && myDexGroupNode.contains(file)) {
+    if (!myDexGroupNodes.isEmpty() && myDexGroupNodes.stream().anyMatch(node -> node.contains(file))) {
       return true;
     }
     VirtualFile found = LibraryFolder.findIn(myProject);

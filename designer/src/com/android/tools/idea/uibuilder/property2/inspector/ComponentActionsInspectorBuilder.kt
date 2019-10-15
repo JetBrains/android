@@ -17,16 +17,19 @@ package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.editor.ActionToolbarUtil
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
 import com.android.tools.idea.uibuilder.api.actions.ViewAction
 import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.property.panel.api.*
 import com.android.tools.idea.uibuilder.model.viewHandler
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -34,7 +37,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionButton.HIDE_DROPDOWN_ICON
 import java.awt.BorderLayout
-import java.lang.IllegalArgumentException
 import javax.swing.JPanel
 
 /**
@@ -78,6 +80,7 @@ class ComponentActionsInspectorBuilder(private val model: NelePropertiesModel) :
     if (group.childrenCount != 0) {
       val actionManager = ActionManager.getInstance()
       val toolbar = actionManager.createActionToolbar(ActionPlaces.UNKNOWN, group, true)
+      ActionToolbarUtil.makeToolbarNavigable(toolbar)
       toolbar.setTargetComponent(panel)
       panel.add(toolbar.component.apply { background = secondaryPanelBackground }, BorderLayout.WEST)
       inspector.addComponent(panel)

@@ -19,6 +19,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
@@ -29,6 +30,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerStageView
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
@@ -53,32 +55,36 @@ class BottomUpDetailsViewTest {
                                     FakeTransportService(timer), FakeProfilerService(timer),
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
+  private lateinit var profilersView: StudioProfilersView
   private lateinit var stageView: CpuProfilerStageView
   private lateinit var stage: CpuProfilerStage
+  private val capture = CpuProfilerUITestUtils.validCapture()
 
   @Before
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-
     stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage
-    stage.capture = CpuProfilerUITestUtils.validCapture()
+    stage.capture = capture
     stage.enter()
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     stageView = CpuProfilerStageView(profilersView, stage)
   }
 
   @Test
-  fun showsNoDataForThreadMessageWhenNodeIsNull() {
+  fun bottomUpModelIsNullOnEmptyThreadData() {
     stage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
     stage.selectedThread = 1
-
     val bottomUp = stage.captureDetails as CaptureDetails.BottomUp
     assertThat(bottomUp.model).isNull()
+  }
 
-    val bottomUpView = TreeDetailsView.BottomUpDetailsView(stageView, bottomUp)
+  @Test
+  fun showsNoDataForThreadMessageWhenNodeIsNull() {
+    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(Range(), capture.getCaptureNode(1), capture) as CaptureDetails.BottomUp
+    val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructions = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {
       val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
@@ -90,15 +96,8 @@ class BottomUpDetailsViewTest {
 
   @Test
   fun showsContentWhenNodeIsNotNull() {
-    stage.apply {
-      val capture = CpuProfilerUITestUtils.validCapture()
-      setAndSelectCapture(capture)
-      selectedThread = capture.mainThreadId
-      setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
-    }
-
-    val bottomUp = stage.captureDetails as CaptureDetails.BottomUp
-    val bottomUpView = TreeDetailsView.BottomUpDetailsView(stageView, bottomUp)
+    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(Range(), capture.getCaptureNode(capture.mainThreadId), capture) as CaptureDetails.BottomUp
+    val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructionsList = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
       val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction
@@ -113,18 +112,10 @@ class BottomUpDetailsViewTest {
 
   @Test
   fun showsNoDataForRangeMessage() {
-    stage.apply {
-      val capture = CpuProfilerUITestUtils.validCapture()
-      setAndSelectCapture(capture)
-      selectedThread = capture.mainThreadId
-      setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
-    }
-
     // Select a range where we don't have trace data
-    stage.studioProfilers.timeline.selectionRange.set(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-
-    val bottomUp = stage.captureDetails as CaptureDetails.BottomUp
-    val bottomUpView = TreeDetailsView.BottomUpDetailsView(stageView, bottomUp)
+    val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
+    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(range, capture.getCaptureNode(capture.mainThreadId), capture) as CaptureDetails.BottomUp
+    val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructions = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {
       val textInstruction = it.getRenderInstructionsForComponent(0)[0] as TextInstruction

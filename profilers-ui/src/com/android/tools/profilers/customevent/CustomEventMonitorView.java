@@ -16,13 +16,16 @@
 package com.android.tools.profilers.customevent;
 
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBPanel;
 import java.awt.BorderLayout;
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +38,7 @@ public class CustomEventMonitorView extends ProfilerMonitorView<CustomEventMonit
 
   @Override
   protected void populateUi(JPanel container) {
-    // Current monitor view contains "Custom Events" heading and an empty legend
+    // Current Monitor View contains a state chart to show user event counts and an empty legend
     container.setLayout(new TabularLayout("*", "*"));
     container.setFocusable(true);
 
@@ -44,9 +47,26 @@ public class CustomEventMonitorView extends ProfilerMonitorView<CustomEventMonit
     label.setVerticalAlignment(JLabel.TOP);
     label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
+    // Legend Panel
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
     container.add(legendPanel, new TabularLayout.Constraint(0, 0));
+
+    // State Chart Panel
+    StateChart<Long> stateChart = UserCounterStateChartFactory.create(getMonitor().getEventModel());
+    JPanel stateChartPanel = new JBPanel(new BorderLayout());
+    stateChartPanel.setOpaque(false);
+    stateChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
+    stateChartPanel.add(stateChart, BorderLayout.CENTER);
+
+    container.add(legendPanel, new TabularLayout.Constraint(0, 0));
+    container.add(stateChartPanel, new TabularLayout.Constraint(0, 0));
+  }
+
+  @Override
+  public float getVerticalWeight() {
+    // Make Custom Event Monitor half the size of the regular monitors.
+    return 0.5f;
   }
 }

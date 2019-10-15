@@ -19,6 +19,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
+import com.android.tools.idea.ui.wizard.StudioWizardLayout;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;

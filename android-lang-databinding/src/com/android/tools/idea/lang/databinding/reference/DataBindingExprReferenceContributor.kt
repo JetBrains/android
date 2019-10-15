@@ -145,10 +145,11 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
             }
           }
 
-          bindingData.findViewId(simpleName)?.let { viewId ->
-            xmlFile.findIdAttribute(viewId.id)?.let { attribute ->
-              return arrayOf(XmlAttributeReference(element, attribute))
-            }
+          val attribute = bindingData.viewIds
+            .firstOrNull { simpleName == DataBindingUtil.convertToJavaFieldName(it.id) }
+            ?.let { xmlFile.findIdAttribute(it.id) }
+          if (attribute != null) {
+            return arrayOf(XmlAttributeReference(element, attribute))
           }
         }
       }

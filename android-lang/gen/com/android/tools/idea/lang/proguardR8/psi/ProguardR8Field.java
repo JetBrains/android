@@ -24,14 +24,14 @@ import com.intellij.psi.PsiElement;
 
 public interface ProguardR8Field extends ProguardR8ClassMember {
 
+  @NotNull
+  List<ProguardR8AccessModifier> getAccessModifierList();
+
   @Nullable
   ProguardR8AnnotationName getAnnotationName();
 
   @NotNull
   ProguardR8ClassMemberName getClassMemberName();
-
-  @NotNull
-  List<ProguardR8FieldsModifier> getFieldsModifierList();
 
   @Nullable
   ProguardR8Type getType();

@@ -16,6 +16,7 @@
 package org.jetbrains.android.facet
 
 import com.android.builder.model.SourceProvider
+import com.android.tools.idea.model.AndroidModel
 import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -24,11 +25,6 @@ import com.intellij.openapi.vfs.VirtualFile
 
 interface SourceProviderManager {
   companion object {
-    private val KEY: NotNullLazyKey<SourceProviderManager, AndroidFacet> = NotNullLazyKey.create(
-      ::KEY.qualifiedName,
-      ::SourceProviderManagerImpl
-    )
-
     @JvmStatic
     fun getInstance(facet: AndroidFacet) = KEY.getValue(facet)
 
@@ -40,12 +36,6 @@ interface SourceProviderManager {
       Disposer.register(disposable, Disposable { facet.putUserData(KEY, null) })
     }
   }
-
-  /**
-   * Returns the main source provider for the project. For projects that are not backed by a Gradle model, this method returns a
-   * [SourceProvider] wrapper which provides information about the old project.
-   */
-  val mainSourceProvider: SourceProvider
 
   val mainIdeaSourceProvider: IdeaSourceProvider
 
@@ -62,16 +52,16 @@ private class SourceProviderManagerImpl(val facet: AndroidFacet) : SourceProvide
    * Returns the main source provider for the project. For projects that are not backed by a Gradle model, this method returns a
    * [SourceProvider] wrapper which provides information about the old project.
    */
-  override val mainSourceProvider: SourceProvider
+  private val mainSourceProvider: SourceProvider
     get() {
-      return facet.configuration.model?.defaultSourceProvider
+      return AndroidModel.get(facet)?.defaultSourceProvider
              ?: mainSourceSet
              ?: LegacySourceProvider(facet).also { mainSourceSet = it }
     }
 
   override val mainIdeaSourceProvider: IdeaSourceProvider
     get() {
-      if (!facet.requiresAndroidModel()) {
+      if (!AndroidModel.isRequired(facet)) {
         if (mainIdeaSourceSet == null) {
           mainIdeaSourceSet = IdeaSourceProvider.createForLegacyProject(facet)
           mainIdeaSourceSetCreatedFor = null
@@ -95,3 +85,7 @@ private class SourceProviderManagerImpl(val facet: AndroidFacet) : SourceProvide
     return if (facet.isDisposed) null else return mainIdeaSourceProvider.manifestFile
   }
 }
+
+private val KEY: NotNullLazyKey<SourceProviderManager, AndroidFacet> = NotNullLazyKey.create(::KEY.qualifiedName, ::createSourceProviderFor)
+
+private fun createSourceProviderFor(facet: AndroidFacet) = SourceProviderManagerImpl(facet)

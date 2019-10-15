@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import java.nio.file.FileSystems;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,25 +24,32 @@ final class Devices {
   private Devices() {
   }
 
-  @NotNull
-  static String getText(@NotNull Device device, @NotNull Collection<Device> devices) {
-    return getText(device, devices, null);
-  }
+  static boolean containsAnotherDeviceWithSameName(@NotNull Collection<Device> devices, @NotNull Device device) {
+    Object key = device.getKey().getDeviceKey();
+    Object name = device.getName();
 
-  // TODO Delete this overload and use the snapshot in the device. Do not display it if it's null or the default.
-  @NotNull
-  static String getText(@NotNull Device device, @NotNull Collection<Device> devices, @Nullable Snapshot snapshot) {
-    String key = device.getKey().getDeviceKey();
-    String name = device.getName();
-
-    boolean match = devices.stream()
+    return devices.stream()
       .filter(d -> !d.getKey().getDeviceKey().equals(key))
       .map(Device::getName)
       .anyMatch(name::equals);
+  }
 
-    StringBuilder builder = new StringBuilder(name);
+  @NotNull
+  static String getText(@NotNull Device device, @Nullable Key key, @Nullable Snapshot snapshot) {
+    String snapshotName = snapshot == null || snapshot.equals(Snapshot.quickboot(FileSystems.getDefault())) ? null : snapshot.toString();
+    return getText(device.getName(), key == null ? null : key.getDeviceKey(), snapshotName, device.getValidityReason());
+  }
 
-    if (match) {
+  @NotNull
+  static String getText(@NotNull String device, @Nullable String reason) {
+    return getText(device, null, null, reason);
+  }
+
+  @NotNull
+  private static String getText(@NotNull String device, @Nullable String key, @Nullable String snapshot, @Nullable String reason) {
+    StringBuilder builder = new StringBuilder(device);
+
+    if (key != null) {
       builder
         .append(" [")
         .append(key)
@@ -53,8 +61,6 @@ final class Devices {
         .append(" - ")
         .append(snapshot);
     }
-
-    String reason = device.getValidityReason();
 
     if (reason != null) {
       builder

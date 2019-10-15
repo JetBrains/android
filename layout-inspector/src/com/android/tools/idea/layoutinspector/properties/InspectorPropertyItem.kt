@@ -71,7 +71,7 @@ open class InspectorPropertyItem(
 
   override val helpSupport = object : HelpSupport {
     override fun browse() {
-      val (_, location) = resourceLookup?.findFileLocations(this@InspectorPropertyItem, 1) ?: return
+      val location = resourceLookup?.findFileLocations(this@InspectorPropertyItem, 1)?.singleOrNull() ?: return
       location.navigatable?.navigate(true)
     }
   }

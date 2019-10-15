@@ -25,33 +25,32 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.Projects.getBaseDirPath
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.templates.FmGetConfigurationNameMethod
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException
 import com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate
+import com.android.tools.idea.templates.RenderingContextAdapter
 import com.android.tools.idea.templates.RepositoryUrlManager
-import com.android.tools.idea.templates.TemplateMetadata
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_APPLICATION_PACKAGE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BASE_FEATURE_DIR
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
-import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
-import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_APPLICATION_PACKAGE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BASE_FEATURE_DIR
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
-import com.android.tools.idea.templates.TemplateUtils.writeTextFile
 import com.android.tools.idea.templates.mergeGradleSettingsFile
 import com.android.tools.idea.templates.mergeXml
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2.DryRunRecipeIO
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2.RecipeIO
 import com.android.tools.idea.templates.resolveDependency
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.google.common.base.Strings.isNullOrEmpty
@@ -60,7 +59,6 @@ import com.google.common.collect.SetMultimap
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -68,7 +66,6 @@ import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.psi.XmlElementFactory
-import com.intellij.util.LineSeparator
 import freemarker.template.Configuration
 import java.io.File
 import java.io.IOException
@@ -215,7 +212,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
 
     referencesExecutor.addDependency(configuration, mavenUrl)
 
-    val dependencyList = paramMap[TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP] as SetMultimap<String, String>
+    val dependencyList = paramMap[ATTR_DEPENDENCIES_MULTIMAP] as SetMultimap<String, String>
     dependencyList.put(configuration, mavenUrl)
   }
 
@@ -338,10 +335,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
       val contents: String = when {
         targetFile.name == GRADLE_PROJECT_SETTINGS_FILE -> mergeGradleSettingsFile(sourceText, targetText)
         targetFile.name == FN_BUILD_GRADLE -> {
-          val compileSdkVersion = paramMap[TemplateMetadata.ATTR_BUILD_API_STRING] as String
+          val compileSdkVersion = paramMap[ATTR_BUILD_API_STRING] as String
           io.mergeBuildFiles(sourceText, targetText, context.project, compileSdkVersion)
         }
-        hasExtension(targetFile, DOT_XML) -> mergeXml(context, sourceText, targetText, targetFile)
+        hasExtension(targetFile, DOT_XML) -> mergeXml(RenderingContextAdapter(context), sourceText, targetText, targetFile)
         else -> throw RuntimeException("Only XML or Gradle settings files can be merged at this point: $targetFile")
       }
 
@@ -536,13 +533,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   }
 
   private fun readTextFile(file: File): String? =
-    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_MODULE])
+    if (java.lang.Boolean.TRUE == context.paramMap[ATTR_IS_NEW_MODULE])
       readTextFromDisk(file)
     else
       readTextFromDocument(context.project, file)
 
   private fun readTextFile(file: VirtualFile): String? =
-    if (java.lang.Boolean.TRUE == context.paramMap[TemplateMetadata.ATTR_IS_NEW_MODULE])
+    if (java.lang.Boolean.TRUE == context.paramMap[ATTR_IS_NEW_MODULE])
       readTextFromDisk(virtualToIoFile(file))
     else
       readTextFromDocument(context.project, file)
@@ -609,94 +606,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   }
 
   private fun addFileAlreadyExistWarning(targetFile: File) {
-    addWarning(String.format("The following file could not be created since it already exists: %1\$s", targetFile.path))
+    addWarning("The following file could not be created since it already exists: $targetFile")
   }
+}
 
-  private open class RecipeIO {
-    open fun writeFile(requestor: Any, contents: String?, to: File) {
-      checkedCreateDirectoryIfMissing(to.parentFile)
-      writeTextFile(this, contents, to)
-    }
-
-    open fun copyFile(requestor: Any, file: VirtualFile, toFile: File) {
-      val toDir = checkedCreateDirectoryIfMissing(toFile.parentFile)
-      VfsUtilCore.copyFile(this, file, toDir)
-    }
-
-    open fun copyFile(requestor: Any, file: VirtualFile, toFileDir: File, newName: String) {
-      val toDir = checkedCreateDirectoryIfMissing(toFileDir)
-      VfsUtilCore.copyFile(requestor, file, toDir, newName)
-    }
-
-    open fun mkDir(directory: File) {
-      checkedCreateDirectoryIfMissing(directory)
-    }
-
-    open fun applyChanges(buildModel: GradleBuildModel) {
-      buildModel.applyChanges()
-    }
-
-    open fun mergeBuildFiles(
-      dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?
-    ): String = project.getProjectSystem().mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter)
-  }
-
-  private class DryRunRecipeIO : RecipeIO() {
-    override fun writeFile(requestor: Any, contents: String?, to: File) {
-      checkDirectoryIsWriteable(to.parentFile)
-    }
-
-    override fun copyFile(requestor: Any, file: VirtualFile, toFile: File) {
-      checkDirectoryIsWriteable(toFile.parentFile)
-    }
-
-    override fun copyFile(requestor: Any, file: VirtualFile, toFileDir: File, newName: String) {
-      checkDirectoryIsWriteable(toFileDir)
-    }
-
-    override fun mkDir(directory: File) {
-      checkDirectoryIsWriteable(directory)
-    }
-
-    override fun applyChanges(buildModel: GradleBuildModel) {}
-
-    override fun mergeBuildFiles(
-      dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?
-    ): String = destinationContents
-  }
-
-  companion object {
-    /**
-     * The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories
-     */
-    private const val GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle"
-
-    /**
-     * 'classpath' is the configuration name used to specify buildscript dependencies.
-     */
-    private const val CLASSPATH_CONFIGURATION_NAME = "classpath"
-
-    private val LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().separatorString
-
-    private fun getBuildModel(buildFile: File, project: Project): GradleBuildModel? {
-      if (project.isDisposed || !buildFile.exists()) {
-        return null
-      }
-      val virtualFile = findFileByIoFile(buildFile, true) ?: throw RuntimeException("Failed to find " + buildFile.path)
-      return ProjectBuildModel.getOrLog(project)?.getModuleBuildModel(virtualFile)
-    }
-
-    private fun formatClasspath(dependency: String): String =
-      "buildscript {" + LINE_SEPARATOR +
-      "  dependencies {" + LINE_SEPARATOR +
-      "    classpath '" + dependency + "'" + LINE_SEPARATOR +
-      "  }" + LINE_SEPARATOR +
-      "}" + LINE_SEPARATOR
-
-    private fun getBuildFilePath(context: RenderingContext): File {
-      val module = context.module
-      val moduleBuildFile = if (module == null) null else getGradleBuildFile(module)
-      return moduleBuildFile?.let { virtualToIoFile(it) } ?: getGradleBuildFilePath(context.moduleRoot)
-    }
-  }
+private fun getBuildFilePath(context: RenderingContext): File {
+  val module = context.module
+  val moduleBuildFile = if (module == null) null else getGradleBuildFile(module)
+  return moduleBuildFile?.let { virtualToIoFile(it) } ?: getGradleBuildFilePath(context.moduleRoot)
 }

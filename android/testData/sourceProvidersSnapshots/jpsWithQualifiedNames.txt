@@ -1,14 +1,5 @@
 MODULE: MyApplication
     by Facet:
-        main
-            Manifest:
-                ./AndroidManifest.xml
-            AssetsDirectories:
-                ./assets
-            JavaDirectories:
-                .
-            ResDirectories:
-                ./res
          (IDEA)
             ManifestUrl:
                 file://./AndroidManifest.xml
@@ -55,16 +46,6 @@ MODULE: MyApplication
                     file://./res
                 ResDirectories:
                     file://./res
-        AllSourceProviders:
-            main
-                Manifest:
-                    ./AndroidManifest.xml
-                AssetsDirectories:
-                    ./assets
-                JavaDirectories:
-                    .
-                ResDirectories:
-                    ./res
         CurrentSourceProviders:
              (IDEA)
                 ManifestUrl:

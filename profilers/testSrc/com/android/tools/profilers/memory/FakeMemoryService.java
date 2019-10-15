@@ -121,15 +121,21 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     if (myTransportService != null) {
       myTransportService.addFile(Long.toString(request.getInfo().getStartTime()), request.getData());
     }
-    myMemoryData = MemoryData.newBuilder().addAllocationsInfo(request.getInfo()).build();
     response.onNext(ImportLegacyAllocationsResponse.newBuilder().setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build());
     response.onCompleted();
   }
 
   @Override
   public void getData(MemoryRequest request, StreamObserver<MemoryData> response) {
-    response.onNext(myMemoryData != null ? myMemoryData
-                                         : MemoryData.newBuilder().setEndTimestamp(request.getStartTime() + 1).build());
+    MemoryData.Builder builder = myMemoryData != null ? myMemoryData.toBuilder() :
+                                 MemoryData.newBuilder().setEndTimestamp(request.getStartTime() + 1);
+    if (myExplicitAllocationsInfo != null) {
+      builder.addAllocationsInfo(myExplicitAllocationsInfo);
+    }
+    if (myExplicitHeapDumpInfo != null) {
+      builder.addHeapDumpInfos(myExplicitHeapDumpInfo);
+    }
+    response.onNext(builder.build());
     response.onCompleted();
   }
 

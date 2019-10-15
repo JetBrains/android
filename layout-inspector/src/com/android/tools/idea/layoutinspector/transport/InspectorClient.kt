@@ -35,7 +35,7 @@ interface InspectorClient {
   /**
    * Register a handler for when the current process ends.
    */
-  fun registerProcessEnded(callback: () -> Unit)
+  fun registerProcessChanged(callback: () -> Unit)
 
   /**
    * Find all processes that the inspector can attach to.
@@ -51,6 +51,11 @@ interface InspectorClient {
    * Attach to a specific process.
    */
   fun attach(stream: Common.Stream, process: Common.Process)
+
+  /**
+   * Disconnect from the current process.
+   */
+  fun disconnect()
 
   /**
    * Send a command to the agent.
@@ -75,19 +80,30 @@ interface InspectorClient {
   val isConnected: Boolean
 
   /**
+   * If [isConnected] contains the current selected device stream.
+   */
+  val selectedStream: Common.Stream
+
+  /**
+   * If [isConnected] contains the current selected process.
+   */
+  val selectedProcess: Common.Process
+
+  /**
    * True, if the current connection is currently receiving live updates.
    */
   val isCapturing: Boolean
 
   companion object {
-
-    fun createOrGetDefaultInstance(project: Project): InspectorClient {
-      val client = currentInstance ?: DefaultInspectorClient(project)
-      currentInstance = client
-      return client
-    }
-
+    /**
+     * Prove a way for tests to generate a mock client.
+     */
     @VisibleForTesting
-    var currentInstance: InspectorClient? = null
+    var clientFactory: (project: Project) -> InspectorClient = { DefaultInspectorClient(it) }
+
+    /**
+     * Use this method to create a new client.
+     */
+    fun createInstance(project: Project): InspectorClient = clientFactory(project)
   }
 }

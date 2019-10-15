@@ -437,6 +437,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     return getValue(STRING_TYPE);
   }
 
+  @Nullable
+  @Override
+  public String valueAsString() {
+    return getValue(STRING_TYPE);
+  }
+
   @NotNull
   @Override
   public String forceString() {

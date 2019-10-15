@@ -19,6 +19,8 @@ import com.android.builder.model.AndroidArtifact
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.BuildTypeContainer
 import com.android.builder.model.ProductFlavorContainer
+import com.android.builder.model.SourceProvider
+import com.android.builder.model.SourceProviderContainer
 import com.android.builder.model.ViewBindingOptions
 import com.android.ide.common.gradle.model.IdeAndroidProjectImpl
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
@@ -44,6 +46,7 @@ import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -82,9 +85,14 @@ interface AndroidProjectStubBuilder {
   val buildPath: File
   val minSdk: Int
   val targetSdk: Int
+  val mainSourceProvider: SourceProvider
+  val androidTestSourceProviderContainer: SourceProviderContainer?
+  val unitTestSourceProviderContainer: SourceProviderContainer?
+  val debugSourceProvider: SourceProvider?
+  val releaseSourceProvider: SourceProvider?
   val defaultConfig: ProductFlavorContainer
-  val debugBuildType: BuildTypeContainer
-  val releaseBuildType: BuildTypeContainer
+  val debugBuildType: BuildTypeContainer?
+  val releaseBuildType: BuildTypeContainer?
   val viewBindingOptions: ViewBindingOptions
   val mainArtifact: AndroidArtifact
   val androidProject: AndroidProject
@@ -100,8 +108,13 @@ fun createAndroidProjectBuilder(
   minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
   targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
   defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
-  debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub = { buildDebugBuildTypeStub() },
-  releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub = { buildReleaseBuildTypeStub() },
+  mainSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub = { buildMainSourceProviderStub() },
+  androidTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildAndroidTestSourceProviderContainerStub() },
+  unitTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildUnitTestSourceProviderContainerStub() },
+  debugSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildDebugSourceProviderStub() },
+  releaseSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildReleaseSourceProviderStub() },
+  debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildDebugBuildTypeStub() },
+  releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
   viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
   mainArtifactStub: AndroidProjectStubBuilder.() -> AndroidArtifactStub = { buildMainArtifactStub() },
   androidProject: AndroidProjectStubBuilder.() -> AndroidProject = { buildAndroidProjectStub() }
@@ -113,9 +126,14 @@ fun createAndroidProjectBuilder(
       override val buildPath: File get() = basePath.resolve("build")
       override val minSdk: Int get() = minSdk()
       override val targetSdk: Int get() = targetSdk()
+      override val mainSourceProvider: SourceProvider get() = mainSourceProvider()
+      override val androidTestSourceProviderContainer: SourceProviderContainer? get() = androidTestSourceProvider()
+      override val unitTestSourceProviderContainer: SourceProviderContainer? get() = unitTestSourceProvider()
+      override val debugSourceProvider: SourceProvider? get() = debugSourceProvider()
+      override val releaseSourceProvider: SourceProvider? get() = releaseSourceProvider()
       override val defaultConfig: ProductFlavorContainer = defaultConfig()
-      override val debugBuildType: BuildTypeContainer = debugBuildType()
-      override val releaseBuildType: BuildTypeContainer = releaseBuildType()
+      override val debugBuildType: BuildTypeContainer? = debugBuildType()
+      override val releaseBuildType: BuildTypeContainer? = releaseBuildType()
       override val viewBindingOptions: ViewBindingOptions = viewBindingOptions()
       override val mainArtifact: AndroidArtifact = mainArtifactStub()
       override val androidProject: AndroidProject = androidProject()
@@ -124,51 +142,93 @@ fun createAndroidProjectBuilder(
   }
 }
 
-fun AndroidProjectStubBuilder.buildDefaultConfigStub() = ProductFlavorContainerStub(
-    ProductFlavorStub(
-      mapOf(),
-      listOf(),
-      VectorDrawablesOptionsStub(),
-      null,
-      null,
-      12,
-      "2.0",
-      ApiVersionStub("$minSdk", null, minSdk),
-      ApiVersionStub("$targetSdk", null, targetSdk),
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      "android.test.InstrumentationTestRunner",
-      null,
-      null,
-      null,
-      null
-    ),
-    SourceProviderStub("main", basePath.resolve("src/main"), "AndroidManifest.xml"),
-    listOf(
-      SourceProviderContainerStub(
-        ARTIFACT_NAME_ANDROID_TEST,
-        SourceProviderStub(ARTIFACT_NAME_ANDROID_TEST, basePath.resolve("src/androidTest"), "AndroidManifest.xml")),
-      SourceProviderContainerStub(
-        ARTIFACT_NAME_UNIT_TEST,
-        SourceProviderStub(ARTIFACT_NAME_UNIT_TEST, basePath.resolve("src/test"), "AndroidManifest.xml"))
+fun createAndroidProjectBuilderForDefaultTestProjectStructure(): AndroidProjectBuilder =
+    createAndroidProjectBuilder(
+      minSdk = { AndroidVersion.MIN_RECOMMENDED_API },
+      targetSdk = { AndroidVersion.VersionCodes.O_MR1 },
+      mainSourceProvider = {
+        SourceProviderStub(
+          ARTIFACT_NAME_MAIN,
+          File(basePath, "AndroidManifest.xml"),
+          listOf(File(basePath, "src")),
+          emptyList(),
+          emptyList(),
+          emptyList(),
+          emptyList(),
+          emptyList(),
+          listOf(File(basePath, "res")),
+          emptyList(),
+          emptyList(),
+          emptyList())
+      },
+      androidTestSourceProvider = { null },
+      unitTestSourceProvider = { null },
+      releaseSourceProvider = { null }
     )
-  )
 
-fun AndroidProjectStubBuilder.buildDebugBuildTypeStub() = BuildTypeContainerStub(
-    BuildTypeStub("debug", mapOf(), mapOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), null, null, null, null, null, true, true, true,
-                  1, false, true),
-    SourceProviderStub("debug", basePath.resolve("src/debug"), "AndroidManifest.xml"),
-    listOf())
+fun AndroidProjectStubBuilder.buildMainSourceProviderStub() =
+  SourceProviderStub(ARTIFACT_NAME_MAIN, basePath.resolve("src/main"), "AndroidManifest.xml")
 
-fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub() = BuildTypeContainerStub(
-    BuildTypeStub("release", mapOf(), mapOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), null, null, null, null, null, false, false,
-                  false, 1, true, true),
-    SourceProviderStub("release", basePath.resolve("src/release"), "AndroidManifest.xml"),
+fun AndroidProjectStubBuilder.buildAndroidTestSourceProviderContainerStub() =
+  SourceProviderContainerStub(
+    ARTIFACT_NAME_ANDROID_TEST,
+    SourceProviderStub(ARTIFACT_NAME_ANDROID_TEST, basePath.resolve("src/androidTest"), "AndroidManifest.xml"))
+
+fun AndroidProjectStubBuilder.buildUnitTestSourceProviderContainerStub() =
+  SourceProviderContainerStub(
+    ARTIFACT_NAME_UNIT_TEST,
+    SourceProviderStub(ARTIFACT_NAME_UNIT_TEST, basePath.resolve("src/test"), "AndroidManifest.xml"))
+
+fun AndroidProjectStubBuilder.buildDebugSourceProviderStub() =
+  SourceProviderStub("debug", basePath.resolve("src/debug"), "AndroidManifest.xml")
+
+fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub() =
+  SourceProviderStub("release", basePath.resolve("src/release"), "AndroidManifest.xml")
+
+fun AndroidProjectStubBuilder.buildDefaultConfigStub() = ProductFlavorContainerStub(
+  ProductFlavorStub(
+    mapOf(),
+    listOf(),
+    VectorDrawablesOptionsStub(),
+    null,
+    null,
+    12,
+    "2.0",
+    ApiVersionStub("$minSdk", null, minSdk),
+    ApiVersionStub("$targetSdk", null, targetSdk),
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    "android.test.InstrumentationTestRunner",
+    null,
+    null,
+    null,
+    null
+  ),
+  mainSourceProvider,
+  listOfNotNull(androidTestSourceProviderContainer, unitTestSourceProviderContainer)
+)
+
+fun AndroidProjectStubBuilder.buildDebugBuildTypeStub() = debugSourceProvider?.let { debugSourceProvider ->
+  BuildTypeContainerStub(
+    BuildTypeStub(
+      debugSourceProvider.name, mapOf(), mapOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), null, null, null, null, null,
+      true, true, true, 1, false, true),
+    debugSourceProvider,
     listOf())
+}
+
+fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub() = releaseSourceProvider?.let { releaseSourceProvider ->
+  BuildTypeContainerStub(
+    BuildTypeStub(
+      releaseSourceProvider.name, mapOf(), mapOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), null, null, null, null,
+      null, false, false, false, 1, true, true),
+    releaseSourceProvider,
+    listOf())
+}
 
 fun AndroidProjectStubBuilder.buildViewBindingOptions() = ViewBindingOptionsStub()
 
@@ -203,48 +263,54 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub() = AndroidArtifactStub(
     false
   )
 
-fun AndroidProjectStubBuilder.buildAndroidProjectStub() = AndroidProjectStub(
-  LatestKnownPluginVersionProvider.INSTANCE.get(),
-  projectName,
-  null,
-  defaultConfig,
-  listOf(debugBuildType, releaseBuildType),
-  listOf(),
-  "buildToolsVersion",
-  listOf(),
-  listOf(
+fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
+  val debugBuildType = this.debugBuildType
+  val releaseBuildType = this.releaseBuildType
+  val defaultVariant = debugBuildType ?: releaseBuildType
+  val defaultVariantName = defaultVariant?.sourceProvider?.name ?: "main"
+  return AndroidProjectStub(
+    LatestKnownPluginVersionProvider.INSTANCE.get(),
+    projectName,
+    null,
+    defaultConfig,
+    listOfNotNull(debugBuildType, releaseBuildType),
+    listOf(),
+    "buildToolsVersion",
+    listOf(),
+    listOf(
       VariantStub(
-        "debug",
-        "debug",
+        defaultVariantName,
+        defaultVariantName,
         mainArtifact,
         listOf(),
         listOf(),
-        "debug",
+        defaultVariantName,
         listOf(),
         defaultConfig.productFlavor,
         listOf(),
         false
       )),
-  listOf("debug", "release"),
-  "debug",
-  listOf(),
-  getLatestAndroidPlatform(),
-  listOf(),
-  listOf(),
-  listOf(),
-  LintOptionsStub(),
-  setOf(),
-  JavaCompileOptionsStub(),
-  AaptOptionsStub(),
-  viewBindingOptions,
-  buildPath,
-  null,
-  1,
-  true,
-  2,
-  true,
-  AndroidGradlePluginProjectFlagsStub()
+    listOfNotNull(debugBuildType?.sourceProvider?.name, releaseBuildType?.sourceProvider?.name),
+    defaultVariantName,
+    listOf(),
+    getLatestAndroidPlatform(),
+    listOf(),
+    listOf(),
+    listOf(),
+    LintOptionsStub(),
+    setOf(),
+    JavaCompileOptionsStub(),
+    AaptOptionsStub(),
+    viewBindingOptions,
+    buildPath,
+    null,
+    1,
+    true,
+    2,
+    true,
+    AndroidGradlePluginProjectFlagsStub()
   )
+}
 
 
 /**
@@ -252,7 +318,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub() = AndroidProjectStub(
  */
 fun setupTestProjectFromAndroidModel(
   project: Project,
-  stubBuilder: AndroidProjectBuilder = createAndroidProjectBuilder()
+  basePath: File,
+  stubBuilder: AndroidProjectBuilder
 ) {
 
   val moduleManager = ModuleManager.getInstance(project)
@@ -267,7 +334,6 @@ fun setupTestProjectFromAndroidModel(
     "org.gradle.plugins.ide.idea.IdeaPlugin"
   )
   val task = IdeaSyncPopulateProjectTask(project)
-  val basePath = File(project.basePath!!).absoluteFile
   val buildPath = basePath.resolve("build")
   val projectName = project.name
   val androidProjectStub = stubBuilder(projectName, basePath)

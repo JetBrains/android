@@ -108,14 +108,6 @@ fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName:
     ?.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))!![0]
 }
 
-fun createFakeResDirectory(androidFacet: AndroidFacet): File? {
-  val fileStructure = FileStructure("")
-  val defaultSourceProvider = SourceProviderStub(fileStructure)
-  defaultSourceProvider.addResDirectory("res")
-  val first = defaultSourceProvider.resDirectories.first()
-  androidFacet.configuration.model = TestAndroidModel(defaultSourceProvider = defaultSourceProvider)
-  return first
-}
 private const val WAIT_TIMEOUT = 3000
 
 internal inline fun <reified T : JComponent> waitAndAssert(view: ResourceExplorerView, crossinline condition: (list: T?) -> Boolean) {

@@ -309,6 +309,7 @@ public class AndroidPrecompileTask implements CompileTask {
     }
   }
 
+  @SuppressWarnings("deprecation")
   private static void unexcludeAllSourceRoots(AndroidFacet facet,
                                               ExcludesConfiguration configuration) {
     final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(facet.getModule()).getSourceRoots();

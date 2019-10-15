@@ -15,26 +15,38 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType.CUSTOM
-import org.jetbrains.android.util.AndroidBundle.message
-
+import com.android.repository.api.RemotePackage
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.getInitialSdkLocation
+import com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType.CUSTOM
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.WelcomeScreen
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame
+import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.Window
 import java.awt.event.WindowEvent
 import java.awt.event.WindowListener
+import java.io.File
+import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JPanel
+
+
+// TODO(qumiric): Should it be proper model instead of Data?
+data class InstallSummaryModel(
+  // TODO(qumeric): Change to enum (already exists)
+  val customInstall: Boolean,
+  val sdkLocation: File,
+  val jdkLocation: File
+)
 
 /**
  * Android Studio's implementation of a [WelcomeScreen]. Starts up a wizard  meant to run the first time someone starts up
@@ -55,6 +67,11 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       false
     }
 
+    // if mode == NEW_INSTALL
+    val customInstall = initialSdkLocation.path.isEmpty()
+    val jdkLocation = EmbeddedDistributionPaths.getInstance().embeddedJdkPath
+    val installSummaryData = InstallSummaryModel(customInstall, initialSdkLocation, jdkLocation)
+
     val model = ConfigureInstallationModel()
     // TODO(qumeric): Add more steps and check witch steps to add for each different FirstRunWizardMode
     modelWizard = ModelWizard.Builder().apply {
@@ -73,14 +90,18 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       addStep(MissingSdkAlertStep())
       // TODO(qumeric): addStep(SdkComponentsStep())
       // TODO(qumeric): addStep(InstallSummaryStep())
-      if (SystemInfo.isLinux && !SystemInfo.isChromeOS) {
+      if (SystemInfo.isLinux && !SystemInfo.isChromeOS) { // && mode == FirstRunWizardMode.NEW_INSTALL
         addStep(LinuxHaxmInfoStep()) // FIXME(qumeric): only if needed
       }
+      // if (mode != INSTALL_HANDOFF) {
+      addStep(InstallSummaryStep(installSummaryData, Supplier { listOf<RemotePackage>() }))
       // TODO(qumeric): add support for MISSING_SDK case and for INSTALL_HANDOFF
       //addStep(LicenseAgreementStep())
       //if(SystemInfo.isMac || SystemInfo.isWindows) {
       addStep(HaxmUninstallInfoStep())
       //}
+      // if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
+      //addStep(LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), listOf()))
     }.build()
 
 

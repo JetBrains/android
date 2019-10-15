@@ -70,7 +70,6 @@ public class MotionSceneUtils {
       return writer;
     }
     if (MotionSceneAttrs.Tags.CONSTRAINT.equals(tag.getTagName())) { // we already have  a Constraint
-      Debug.log(" >>> tag == null  ");
       MTag.TagWriter tw = tag.getTagWriter();
       tw.addCommitListener(newTag -> {setMTag(nlComponent, newTag);});
       return tw;

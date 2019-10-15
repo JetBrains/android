@@ -96,6 +96,11 @@ public class CpuCaptureParser {
   private String myProcessNameHint;
 
   /**
+   * Hint to the parser what process id to look for. This is used if a process with the process name hint was not found.
+   */
+  private int myProcessIdHint;
+
+  /**
    * Metadata associated with parsing a capture. If an entry exists, the metadata will be populated and uploaded to metrics.
    */
   private Map<Long, CpuCaptureMetadata> myCaptureMetadataMap = new HashMap<>();
@@ -151,8 +156,9 @@ public class CpuCaptureParser {
     return System.currentTimeMillis() - myParsingStartTimeMs;
   }
 
-  public void setProcessNameHint(@Nullable String processName) {
+  public void setProcessNameHint(@Nullable String processName, int processIdHint) {
     myProcessNameHint = processName;
+    myProcessIdHint = processIdHint;
   }
 
   /**
@@ -275,7 +281,12 @@ public class CpuCaptureParser {
             selected = Arrays.stream(processList).filter(it -> myProcessNameHint.endsWith(it.getProcessName())).findFirst().orElse(null);
           }
 
-          // 2) Ask the user for input.
+          // 2) If we don't have a process based on named find one based on id.
+          if (selected == null && myProcessIdHint > 0) {
+            selected = Arrays.stream(processList).filter(it -> it.getProcessId() == myProcessIdHint).findFirst().orElse(null);
+          }
+
+          // 3) Ask the user for input.
           if (selected == null) {
             selected = myServices.openListBoxChooserDialog("Select a process",
                                                            "Select the process you want to analyze.",

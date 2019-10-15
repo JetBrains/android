@@ -27,8 +27,8 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
@@ -57,12 +57,10 @@ abstract class ChartDetailsView extends CaptureDetailsView {
    * Component that contains everything, e.g chart, axis, scrollbar.
    */
   @NotNull protected final JPanel myPanel;
-
-  @NotNull protected final CpuProfilerStageView myStageView;
   @NotNull protected final AspectObserver myObserver;
 
-  private ChartDetailsView(@NotNull CpuProfilerStageView stageView, @NotNull CaptureDetails.ChartDetails chartDetails) {
-    myStageView = stageView;
+  private ChartDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.ChartDetails chartDetails) {
+    super(profilersView);
     myObserver = new AspectObserver();
 
     if (chartDetails.getNode() == null) {
@@ -105,23 +103,27 @@ abstract class ChartDetailsView extends CaptureDetailsView {
       if (node.getData() instanceof AtraceNodeModel) {
         if (type == CaptureDetails.Type.CALL_CHART) {
           chart.addMouseMotionListener(
-            new CpuTraceEventTooltipView(chart, myStageView, ProfilerColors.CPU_USAGE_CAPTURED, ProfilerColors.CPU_TRACE_IDLE));
+            new CpuTraceEventTooltipView(chart, myProfilersView.getComponent(), ProfilerColors.CPU_USAGE_CAPTURED,
+                                         ProfilerColors.CPU_TRACE_IDLE));
         }
         else {
           chart.addMouseMotionListener(
-            new CpuTraceEventTooltipView(chart, myStageView, ProfilerColors.CPU_FLAMECHART_APP, ProfilerColors.CPU_FLAMECHART_APP_IDLE));
+            new CpuTraceEventTooltipView(chart, myProfilersView.getComponent(), ProfilerColors.CPU_FLAMECHART_APP,
+                                         ProfilerColors.CPU_FLAMECHART_APP_IDLE));
         }
       }
       else {
-        chart.addMouseMotionListener(new CpuChartTooltipView(chart, myStageView));
+        chart.addMouseMotionListener(new CpuChartTooltipView(chart, myProfilersView.getStudioProfilers().getTimeline().getDataRange(),
+                                                             myProfilersView.getComponent()));
       }
     }
 
-    if (myStageView.getStage().getCapture() != null && myStageView.getStage().getCapture().getType() != Cpu.CpuTraceType.ATRACE) {
-      CodeNavigator navigator = myStageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
+    if (chartDetails.getCapture().getType() != Cpu.CpuTraceType.ATRACE) {
+      CodeNavigator navigator = myProfilersView.getStudioProfilers().getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
       CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator);
       chart.addMouseListener(handler);
-      myStageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
+      myProfilersView.getIdeProfilerComponents().createContextMenuInstaller()
+        .installNavigationContextMenu(chart, navigator, handler::getCodeLocation);
     }
     return chart;
   }
@@ -164,17 +166,14 @@ abstract class ChartDetailsView extends CaptureDetailsView {
      */
     @NotNull private final CaptureDetails.CallChart myCallChart;
 
-    CallChartDetailsView(@NotNull CpuProfilerStageView stageView,
-                         @NotNull CaptureDetails.CallChart callChart) {
-      super(stageView, callChart);
+    CallChartDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.CallChart callChart) {
+      super(profilersView, callChart);
       myCallChart = callChart;
       // Call Chart model always correlates to the entire capture. CallChartView shows the data corresponding to the selected range in
       // timeline. Users can navigate to other part within the capture by interacting with the call chart UI. When it happens, the timeline
       // selection should be automatically updated.
-      assert stageView.getStage().getCapture() != null;
-      myChart = createChart(myCallChart,
-                            stageView.getStage().getCapture().getRange(),
-                            stageView.getTimeline().getSelectionRange());
+      myChart = createChart(myCallChart, callChart.getCapture().getRange(),
+                            profilersView.getStudioProfilers().getTimeline().getSelectionRange());
       if (myCallChart.getNode() == null) {
         return;
       }
@@ -187,16 +186,15 @@ abstract class ChartDetailsView extends CaptureDetailsView {
 
     @NotNull
     private JPanel createChartPanel() {
-      Range selectionRange = myStageView.getTimeline().getSelectionRange();
-      assert myStageView.getStage().getCapture() != null;
-      Range captureRange = myStageView.getStage().getCapture().getRange();
+      Range selectionRange = myProfilersView.getStudioProfilers().getTimeline().getSelectionRange();
+      Range captureRange = myCallChart.getCapture().getRange();
       // We use selectionRange here instead of nodeRange, because nodeRange synchronises with selectionRange and vice versa.
       // In other words, there is a constant ratio between them. And the horizontal scrollbar represents selection range within
       // capture range.
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(captureRange, selectionRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
 
-      AxisComponent axis = createAxis(selectionRange, myStageView.getTimeline().getDataRange());
+      AxisComponent axis = createAxis(selectionRange, myProfilersView.getStudioProfilers().getTimeline().getDataRange());
 
       JPanel panel = new JPanel(new TabularLayout("*,Fit", "*,Fit"));
       panel.add(axis, new TabularLayout.Constraint(0, 0));
@@ -247,16 +245,16 @@ abstract class ChartDetailsView extends CaptureDetailsView {
      */
     @NotNull private final Range myMasterRange;
 
-    FlameChartDetailsView(CpuProfilerStageView stageView, @NotNull CaptureDetails.FlameChart flameChart) {
-      super(stageView, flameChart);
+    FlameChartDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.FlameChart flameChart) {
+      super(profilersView, flameChart);
       // FlameChart model always correlates to the selected range on the timeline, not necessarily the entire capture. Users cannot
       // navigate to other part within the capture by interacting with the FlameChart UI (they can do so only from timeline UI).
       // Users can zoom-in and then view only part of the FlameChart. Since a part of FlameChart may not correspond to a continuous
       // sub-range on timeline, the timeline selection should not be updated while users are interacting with FlameChart UI. Therefore,
       // we create new Range object (myMasterRange) to represent the range visible to the user. We cannot just pass flameChart.getRange().
       myFlameChart = flameChart;
-      myMasterRange = new Range(flameChart.getRange());
-      myChart = createChart(flameChart, flameChart.getRange(), myMasterRange);
+      myMasterRange = new Range(myFlameChart.getRange());
+      myChart = createChart(myFlameChart, myFlameChart.getRange(), myMasterRange);
 
       if (myFlameChart.getNode() == null) {
         return;

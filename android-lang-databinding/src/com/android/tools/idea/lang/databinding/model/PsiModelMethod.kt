@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.databinding.model
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiType
+import java.lang.Integer.min
 
 /**
  * PSI wrapper around psi methods that additionally expose information particularly useful in data binding expressions.
@@ -78,5 +79,43 @@ class PsiModelMethod(val containingClass: PsiModelClass, val psiMethod: PsiMetho
       i++
     }
     return parametersMatch
+  }
+
+  companion object {
+    /**
+     * Returns the [PsiModelMethod] whose parameters match [args] better.
+     *
+     * Ensure both [thisMethod] and [thatMethod] accept [args] as their arguments before calling this method.
+     * 1. Exact matches are better than boxed/unboxed ones for primitive types. e.g "int" matches "int" better than "java.lang.Integer"
+     * 2. Stricter matches are better.
+     * e.g. "int" matches "char" better than "float"
+     * "AbstractMap" matches "HashMap" better than "Map"
+     * "List<String>" matches "ArrayList<String>" better than "List"
+     */
+    fun betterMatchWithArguments(args: List<PsiModelClass>, thisMethod: PsiModelMethod, thatMethod: PsiModelMethod): PsiModelMethod {
+      for (i in args.indices) {
+        val arg = args[i]
+        val thisParameterType = thisMethod.parameterTypes[min(i, thisMethod.parameterTypes.size)]
+        val thatParameterType = thatMethod.parameterTypes[min(i, thatMethod.parameterTypes.size)]
+        if (thisParameterType == thatParameterType) {
+          continue
+        }
+        // Check exact match for primitive types.
+        if (thisParameterType == arg) {
+          return thisMethod
+        }
+        if (thatParameterType == arg) {
+          return thatMethod
+        }
+        // thatParameterType.isAssignableFrom(thisParameterType) means thisParameterType has a stricter bound
+        // e.g. "String" has a stricter bound than "Object" as "Object" is assignable from "String".
+        val thisStricterOrEqual = thatParameterType.isAssignableFrom(thisParameterType)
+        val thatStricterOrEqual = thisParameterType.isAssignableFrom(thatParameterType)
+        if (thisStricterOrEqual != thatStricterOrEqual) {
+          return if (thisStricterOrEqual) thisMethod else thatMethod
+        }
+      }
+      return thisMethod
+    }
   }
 }

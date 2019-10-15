@@ -17,62 +17,90 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.ide.common.vectordrawable.VdIcon;
+import com.android.tools.idea.material.icons.MaterialIconsUrlProvider;
+import com.android.tools.idea.npw.assetstudio.MaterialIconsMetadataUrlProvider;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.util.WaitFor;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
-import java.lang.reflect.InvocationTargetException;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Locale;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTable;
-import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+import org.jetbrains.annotations.Nullable;
 
-public class IconPickerDialogTest {
-  @Test
-  public void categoryNames() {
-    assertThat(IconPickerDialog.getCategoryNames()).isEqualTo(new String[]{
-      "All",
-      "Action",
-      "Alert",
-      "Audio/Video",
-      "Communication",
-      "Content",
-      "Device",
-      "Editor",
-      "File",
-      "Hardware",
-      "Image",
-      "Maps",
-      "Navigation",
-      "Notification",
-      "Places",
-      "Social",
-      "Toggle"});
+public class IconPickerDialogTest extends PlatformTestCase {
+
+  private static final String ICONS_PATH = "images/material/icons/";
+
+  public void testDialogWithInitialIcon() throws IOException {
+    URL iconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_2/my_icon_2.xml");
+    assertThat(iconUrl).isNotNull();
+
+    VdIcon initialIcon = new VdIcon(iconUrl);
+    IconPickerDialog pickerDialog = getInitializedIconPickerDialog(initialIcon);
+
+    assertThat(pickerDialog.getSelectedIcon().getName()).isEqualTo("my_icon_2.xml");
+    pickerDialog.close(DialogWrapper.CLOSE_EXIT_CODE);
   }
 
-  @Test
-  public void testFiltering() throws InvocationTargetException, InterruptedException {
-    SwingUtilities.invokeAndWait(() -> {
-      IconPickerDialog dialog = new IconPickerDialog(null);
-      JComponent panel = dialog.createCenterPanel();
-      panel.setVisible(true);
+  public void testSelectedIconAfterStyleChange() throws IOException {
+    URL style1IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_2/my_icon_2.xml");
+    URL style2IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style2/my_icon_2/my_icon_2.xml");
 
-      dialog.setFilter("ala");
+    VdIcon initialIcon = new VdIcon(style1IconUrl);
+    IconPickerDialog pickerDialog = getInitializedIconPickerDialog(initialIcon);
 
-      assertThat(tableToString(dialog.getTable())).isEqualTo(
-        "access alarm        access alarms       account balance     account balance w...add alarm           alarm add           \n" +
-        "alarm               alarm off           alarm on                                                                        \n"
-      );
-
-      dialog.setFilter("alar");
-
-      assertThat(tableToString(dialog.getTable())).isEqualTo(
-        "access alarm        access alarms       add alarm           alarm add           alarm               alarm off           \n" +
-        "alarm on                                                                                                                \n"
-      );
-      dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
+    UIUtil.findComponentsOfType(pickerDialog.createCenterPanel(), JComboBox.class).forEach(box -> {
+      Object item = box.getSelectedItem();
+      if (item instanceof String && item.equals("Style 1")) {
+        // Select the "Style 2" style.
+        box.setSelectedIndex(1);
+      }
     });
+    assertThat(pickerDialog.getSelectedIcon().getURL()).isEqualTo(style2IconUrl);
+    pickerDialog.close(DialogWrapper.CLOSE_EXIT_CODE);
+  }
+
+  public void testSelectedIconAfterCategoryChange() throws IOException {
+    URL category1IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_1/my_icon_1.xml");
+    URL category3IconUrl = IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "style1/my_icon_2/my_icon_2.xml");
+
+    VdIcon initialIcon = new VdIcon(category1IconUrl);
+    IconPickerDialog pickerDialog = getInitializedIconPickerDialog(initialIcon);
+
+    UIUtil.findComponentsOfType(pickerDialog.createCenterPanel(), JComboBox.class).forEach(box -> {
+      Object item = box.getSelectedItem();
+      if (item instanceof String && item.equals("All")) {
+        // Select category: "Category3" which should only have 1 icon: 'my_icon_2.xml'.
+        box.setSelectedIndex(3);
+      }
+    });
+    assertThat(pickerDialog.getSelectedIcon().getURL()).isEqualTo(category3IconUrl);
+    pickerDialog.close(DialogWrapper.CLOSE_EXIT_CODE);
+  }
+
+  public void testFiltering() {
+    IconPickerDialog dialog = getInitializedIconPickerDialog(null);
+
+    dialog.setFilter("1");
+    assertThat(tableToString(dialog.getTable())).isEqualTo(
+      "my icon 1                                                                                                               \n"
+    );
+
+    dialog.setFilter("2");
+    assertThat(tableToString(dialog.getTable())).isEqualTo(
+      "my icon 2                                                                                                               \n"
+    );
+    dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
   }
 
   @NotNull
@@ -104,5 +132,54 @@ public class IconPickerDialogTest {
     }
 
     return sb.toString();
+  }
+
+  private static IconPickerDialog getInitializedIconPickerDialog(@Nullable VdIcon initialIcon) {
+    IconPickerDialog dialog = new IconPickerDialog(initialIcon, new TestUrlMetadataProvider(), new TestUrlLoaderProvider());
+    JComponent pickerPanel = dialog.createCenterPanel();
+    pickerPanel.setVisible(true);
+
+    // The icons table is initialized asynchronously, so before doing any tests, lets wait for the table to get populated.
+    WaitFor wait = new WaitFor(3000) {
+      @Override
+      protected boolean condition() {
+        // Dispatch pending EDT tasks, do not block the thread while waiting.
+        try {
+          PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+        }
+        catch (InterruptedException e) {
+        }
+        JTable table = UIUtil.findComponentOfType(pickerPanel, JTable.class);
+        return table != null && table.getValueAt(0, 0) != null;
+      }
+    };
+    assertTrue(wait.isConditionRealized());
+    return dialog;
+  }
+
+  private static class TestUrlLoaderProvider implements MaterialIconsUrlProvider {
+    @Nullable
+    @Override
+    public URL getStyleUrl(@NotNull String style) {
+      return IconPickerDialogTest.class.getClassLoader().getResource(getStylePath(style));
+    }
+
+    @Nullable
+    @Override
+    public URL getIconUrl(@NotNull String style, @NotNull String iconName, @NotNull String iconFileName) {
+      return IconPickerDialogTest.class.getClassLoader().getResource(getStylePath(style) + iconName + "/" + iconFileName);
+    }
+  }
+
+  private static class TestUrlMetadataProvider implements MaterialIconsMetadataUrlProvider {
+    @Nullable
+    @Override
+    public URL getMetadataUrl() {
+      return IconPickerDialogTest.class.getClassLoader().getResource(ICONS_PATH + "icons_metadata_test.txt");
+    }
+  }
+
+  private static String getStylePath(@NotNull String style) {
+    return ICONS_PATH + style.toLowerCase(Locale.US).replace(" ", "") + "/";
   }
 }

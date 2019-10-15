@@ -28,12 +28,10 @@ import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
-import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
@@ -51,6 +49,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import javax.swing.JComponent;
@@ -81,10 +80,10 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
   @Nullable protected final JTree myTree;
   @Nullable private final CpuTraceTreeSorter mySorter;
 
-  private TreeDetailsView(@NotNull CpuCapture capture,
-                          @NotNull IdeProfilerServices ideServices,
-                          @NotNull IdeProfilerComponents components,
-                          @Nullable CpuTreeModel<T> model) {
+  protected TreeDetailsView(@NotNull StudioProfilersView profilersView,
+                            @NotNull CpuCapture cpuCapture,
+                            @Nullable CpuTreeModel<T> model) {
+    super(profilersView);
     myObserver = new AspectObserver();
     if (model == null) {
       myPanel = getNoDataForThread();
@@ -107,9 +106,10 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
     myPanel.add(createTableTree(), CARD_CONTENT);
     myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
-    CodeNavigator navigator = ideServices.getCodeNavigator();
-    if (capture.getType() != Cpu.CpuTraceType.ATRACE) {
-      components.createContextMenuInstaller().installNavigationContextMenu(myTree, navigator, () -> getCodeLocation(myTree));
+    CodeNavigator navigator = profilersView.getStudioProfilers().getIdeServices().getCodeNavigator();
+    if (cpuCapture.getType() != Cpu.CpuTraceType.ATRACE) {
+      profilersView.getIdeProfilerComponents().createContextMenuInstaller()
+        .installNavigationContextMenu(myTree, navigator, () -> getCodeLocation(myTree));
     }
 
     switchCardLayout(myPanel, model.isEmpty());
@@ -283,7 +283,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
     private final boolean myShowPercentage;
     private final int myAlignment;
 
-    public DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
+    DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
       myGetter = getter;
       myShowPercentage = showPercentage;
       myAlignment = alignment;
@@ -304,10 +304,10 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
         double v = myGetter.apply(node);
         if (myShowPercentage) {
           CpuTreeNode root = getNode(tree.getModel().getRoot());
-          append(String.format("%.2f", v / root.getGlobalTotal() * 100), attributes);
+          append(String.format(Locale.getDefault(), "%.2f", v / root.getGlobalTotal() * 100), attributes);
         }
         else {
-          append(String.format("%,.0f", v), attributes);
+          append(String.format(Locale.getDefault(), "%,.0f", v), attributes);
         }
       }
       else {
@@ -335,7 +335,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
      */
     private double myPercentage;
 
-    public DoubleValueCellRendererWithSparkline(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
+    DoubleValueCellRendererWithSparkline(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
       super(getter, showPercentage, alignment);
       mySparkLineColor = ProfilerColors.CPU_CAPTURE_SPARKLINE;
       myPercentage = Double.NEGATIVE_INFINITY;
@@ -410,16 +410,8 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
   }
 
   static class TopDownDetailsView extends TreeDetailsView<TopDownNode> {
-    TopDownDetailsView(@NotNull CpuProfilerStageView view, @NotNull CaptureDetails.TopDown topDown) {
-      this(view.getStage().getCapture(), view.getStage().getStudioProfilers().getIdeServices(),
-           view.getProfilersView().getIdeProfilerComponents(), topDown);
-    }
-
-    TopDownDetailsView(@NotNull CpuCapture capture,
-                       @NotNull IdeProfilerServices ideServices,
-                       @NotNull IdeProfilerComponents components,
-                       @NotNull CaptureDetails.TopDown topDown) {
-      super(capture, ideServices, components, topDown.getModel());
+    TopDownDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.TopDown topDown) {
+      super(profilersView, topDown.getCapture(), topDown.getModel());
       TopDownTreeModel model = topDown.getModel();
       if (model == null) {
         return;
@@ -430,7 +422,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
 
       model.addTreeModelListener(new TreeModelAdapter() {
         @Override
-        protected void process(TreeModelEvent event, EventType type) {
+        protected void process(@NotNull TreeModelEvent event, @NotNull EventType type) {
           switchCardLayout(myPanel, model.isEmpty());
         }
       });
@@ -449,16 +441,8 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
   }
 
   static class BottomUpDetailsView extends TreeDetailsView<BottomUpNode> {
-    BottomUpDetailsView(@NotNull CpuProfilerStageView view, @NotNull CaptureDetails.BottomUp bottomUp) {
-      this(view.getStage().getCapture(), view.getStage().getStudioProfilers().getIdeServices(),
-           view.getProfilersView().getIdeProfilerComponents(), bottomUp);
-    }
-
-    BottomUpDetailsView(@NotNull CpuCapture capture,
-                        @NotNull IdeProfilerServices ideServices,
-                        @NotNull IdeProfilerComponents components,
-                        @NotNull CaptureDetails.BottomUp bottomUp) {
-      super(capture, ideServices, components, bottomUp.getModel());
+    BottomUpDetailsView(@NotNull StudioProfilersView profilersView, @NotNull CaptureDetails.BottomUp bottomUp) {
+      super(profilersView, bottomUp.getCapture(), bottomUp.getModel());
       BottomUpTreeModel model = bottomUp.getModel();
       if (model == null) {
         return;
@@ -480,7 +464,7 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
 
       model.addTreeModelListener(new TreeModelAdapter() {
         @Override
-        protected void process(TreeModelEvent event, EventType type) {
+        protected void process(@NotNull TreeModelEvent event, @NotNull EventType type) {
           // When the root loses all of its children it can't be expanded and when they're added it is still collapsed.
           // As a result, nothing will be visible as the root itself isn't visible. So, expand it if it's the case.
           if (type == EventType.NodesInserted && event.getTreePath().getPathCount() == 1) {

@@ -15,9 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_5;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_6;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -30,12 +40,6 @@ import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.intellij.pom.java.LanguageLevel.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link JavaLanguageLevelModuleSetupStep}.
@@ -99,7 +103,7 @@ public class JavaLanguageLevelModuleSetupStepTest extends PlatformTestCase {
 
     Module module = createModule(name);
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.getConfiguration().setModel(androidModel);
+    AndroidModel.set(facet, androidModel);
   }
 
   public void testSetUpModuleWithNoLanguageLevel() {

@@ -57,7 +57,7 @@ public class ScreenView extends ScreenViewBase {
   // TODO(b/139046812): Replace this with a builder
   public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager, boolean useImageSize, boolean isResizeable) {
     super(surface, manager);
-    myHasBorderLayer = surface.getLayoutType() instanceof LayoutEditorFileType;
+    myHasBorderLayer = manager.getModel().getType() instanceof LayoutEditorFileType;
     this.myUseImageSize = useImageSize;
     this.myIsResizeable = isResizeable;
   }

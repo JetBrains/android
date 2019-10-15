@@ -28,6 +28,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
@@ -37,6 +38,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.concurrency.EdtExecutorService;
+import java.util.concurrent.ExecutionException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -112,7 +114,14 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
     AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myFacet.getModule());
     ListenableFuture<MergedManifestSnapshot> mergedManifest = supplier.get();
     if (mergedManifest.isDone()) {
-      showFreshManifest(Futures.getUnchecked(mergedManifest));
+      try {
+        showFreshManifest(mergedManifest.get());
+      }
+      catch (ExecutionException|InterruptedException e) {
+        Logger.getInstance(ManifestEditor.class)
+          .warn("Error computing fresh merged manifest for module " + myFacet.getModule().getName(), e);
+        showLoadingError();
+      }
       return;
     }
     MergedManifestSnapshot cachedManifest = supplier.getNow();
@@ -133,6 +142,8 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
 
       @Override
       public void onFailure(@Nullable Throwable t) {
+        Logger.getInstance(ManifestEditor.class)
+          .warn("Error computing fresh merged manifest for module " + myFacet.getModule().getName(), t);
         showLoadingError();
       }
     }, EdtExecutorService.getInstance());

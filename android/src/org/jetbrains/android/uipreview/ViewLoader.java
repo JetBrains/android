@@ -56,6 +56,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -584,5 +585,12 @@ public class ViewLoader {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("END loadAndParseRClass(%s)", anonymizeClassName(className)));
     }
+  }
+
+  /**
+   * Returns true if this ViewLoaded has loaded the given class.
+   */
+  public boolean hasLoadedClass(@NotNull String classFqn) {
+    return myLoadedClasses.containsKey(classFqn);
   }
 }

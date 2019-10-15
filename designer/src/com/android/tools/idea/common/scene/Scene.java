@@ -502,8 +502,8 @@ public class Scene implements SelectionListener, Disposable {
       needsRebuildList();
     }
     if (myRoot != null) {
-      myHoverListener.find(transform, myRoot, x, y);
-      mySnapListener.find(transform, myRoot, x, y);
+      myHoverListener.find(transform, myRoot, x, y, modifiersEx);
+      mySnapListener.find(transform, myRoot, x, y, modifiersEx);
     }
     repaint();
     Target closestTarget = myHoverListener.getClosestTarget(modifiersEx);
@@ -817,7 +817,7 @@ public class Scene implements SelectionListener, Disposable {
       return true;
     });
     SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
-    myHitListener.find(transform, myRoot, x, y);
+    myHitListener.find(transform, myRoot, x, y, modifiersEx);
     myHitTarget = myHitListener.getClosestTarget(modifiersEx);
     myHitComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
@@ -881,7 +881,7 @@ public class Scene implements SelectionListener, Disposable {
       }
 
       myHitListener.setTargetFilter(target -> myHitTarget != target);
-      myHitListener.find(transform, myRoot, x, y);
+      myHitListener.find(transform, myRoot, x, y, modifiersEx);
       SceneComponent targetComponent = myHitTarget.getComponent();
       if (lassoTarget == null // No need to select LassoTarget's component.
           && targetComponent != null
@@ -964,7 +964,7 @@ public class Scene implements SelectionListener, Disposable {
 
     SceneComponent closestComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
-      myHitListener.find(transform, myRoot, x, y);
+      myHitListener.find(transform, myRoot, x, y, modifiersEx);
       myHitTarget.mouseRelease(x, y, myHitListener.getHitTargets());
       myHitTarget.getComponent().setDragging(false);
       if (myHitTarget instanceof MultiComponentTarget) {
@@ -1112,7 +1112,7 @@ public class Scene implements SelectionListener, Disposable {
     if (myRoot == null) {
       return null;
     }
-    myFindListener.find(transform, myRoot, x, y);
+    myFindListener.find(transform, myRoot, x, y, 0);
     return myFindListener.getClosestComponent();
   }
 
@@ -1124,7 +1124,7 @@ public class Scene implements SelectionListener, Disposable {
     if (myRoot == null) {
       return null;
     }
-    myFindListener.find(transform, myRoot, x, y);
+    myFindListener.find(transform, myRoot, x, y, modifiersEx);
     return myFindListener.getClosestTarget(modifiersEx);
   }
 

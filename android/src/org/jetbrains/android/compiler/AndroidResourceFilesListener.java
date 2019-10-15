@@ -156,6 +156,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
       return result;
     }
 
+    @SuppressWarnings("deprecation")
     @NotNull
     private List<AndroidAutogeneratorMode> computeCompilersToRunAndInvalidateLocalAttributesMap(AndroidFacet facet, VirtualFile file) {
       VirtualFile parent = file.getParent();
@@ -164,7 +165,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
         return Collections.emptyList();
       }
       Module module = facet.getModule();
-      VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
+      VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(facet);
       List<AndroidAutogeneratorMode> modes = new ArrayList<>();
 
       if (Comparing.equal(manifestFile, file)) {

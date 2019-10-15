@@ -29,7 +29,7 @@ import java.lang.ref.WeakReference;
 
 /**
  * Substitutes Idea listener that terminates the app when window closes.
- * @deprecated See {@link com.android.tools.idea.welcome.wizard.FirstRunWizardDialog.DelegatingListener}
+ * @deprecated See {@link com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen.DelegatingListener}
  */
 @Deprecated
 public final class WelcomeScreenWindowListener {

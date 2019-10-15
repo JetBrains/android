@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -81,7 +82,7 @@ public class AndroidProjectRootListener {
   private static void moduleRootsOrDependenciesChanged(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      if (facet.requiresAndroidModel() && facet.getConfiguration().getModel() == null) {
+      if (AndroidModel.isRequired(facet) && AndroidModel.get(facet) == null) {
         // Project not yet fully initialized. No need to do a sync now because our
         // GradleProjectAvailableListener will be called as soon as it is and do a proper sync.
         return;

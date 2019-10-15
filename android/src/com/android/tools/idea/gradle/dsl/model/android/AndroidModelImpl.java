@@ -15,19 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.*;
-import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AdbOptionsModel;
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.parser.android.*;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
@@ -41,7 +28,52 @@ import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDsl
 import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
+
+import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
+import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
+import com.android.tools.idea.gradle.dsl.api.android.SplitsModel;
+import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
+import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AdbOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 public final class AndroidModelImpl extends GradleDslBlockModel implements AndroidModel {
   @NonNls private static final String NDK_VERSION = "ndkVersion";
@@ -367,5 +399,16 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   public ResolvedPropertyModel resourcePrefix() {
     return getModelForProperty(RESOURCE_PREFIX);
+  }
+
+  @Override
+  @NotNull
+  public ViewBindingModel viewBinding() {
+    ViewBindingDslElement viewBindingElement = myDslElement.getPropertyElement(VIEW_BINDING_BLOCK_NAME, ViewBindingDslElement.class);
+    if (viewBindingElement == null) {
+      viewBindingElement = new ViewBindingDslElement(myDslElement);
+      myDslElement.setNewElement(viewBindingElement);
+    }
+    return new ViewBindingModelImpl(viewBindingElement);
   }
 }

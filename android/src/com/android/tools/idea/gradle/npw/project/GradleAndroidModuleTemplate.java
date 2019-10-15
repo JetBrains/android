@@ -31,12 +31,14 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.SourceProviderManager;
@@ -145,13 +147,14 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
    * to instantiate an instance of this class.
    */
   @NotNull
-  private static Collection<SourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
+  private static Collection<IdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet,
+                                                                   @Nullable VirtualFile targetDirectory) {
     if (targetDirectory != null) {
       return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory,
-                                                          SourceProviderManager.getInstance(androidFacet).getMainSourceProvider());
+                                                          SourceProviderManager.getInstance(androidFacet).getMainIdeaSourceProvider());
     }
     else {
-      return IdeaSourceProvider.getAllSourceProviders(androidFacet);
+      return IdeaSourceProvider.getAllIdeaSourceProviders(androidFacet);
     }
   }
 
@@ -168,20 +171,22 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
       return Collections.emptyList();
     }
     List<NamedModuleTemplate> templates = Lists.newArrayList();
-    for (SourceProvider sourceProvider : getSourceProviders(facet, targetDirectory)) {
+    for (IdeaSourceProvider sourceProvider : getSourceProviders(facet, targetDirectory)) {
       GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
       VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
       if (roots.length > 0) {
         paths.myModuleRoot = VfsUtilCore.virtualToIoFile(roots[0]);
       }
-      paths.mySrcRoot = Iterables.getFirst(sourceProvider.getJavaDirectories(), null);
+      paths.mySrcRoot = new File(VfsUtilCore.urlToPath(Iterables.getFirst(sourceProvider.getJavaDirectoryUrls(), null)));
       List<VirtualFile> testsRoot = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.TESTS);
       if (!testsRoot.isEmpty()) {
         paths.myTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(0));
       }
-      paths.myResDirectories = ImmutableList.copyOf(sourceProvider.getResDirectories());
-      paths.myAidlRoot = Iterables.getFirst(sourceProvider.getAidlDirectories(), null);
-      paths.myManifestDirectory = sourceProvider.getManifestFile().getParentFile();
+      paths.myResDirectories =
+        ImmutableList.copyOf(
+          sourceProvider.getResDirectoryUrls().stream().map(it -> new File(VfsUtilCore.urlToPath(it))).collect(Collectors.toList()));
+      paths.myAidlRoot = new File(VfsUtilCore.urlToPath(Iterables.getFirst(sourceProvider.getAidlDirectoryUrls(), null)));
+      paths.myManifestDirectory = new File(VfsUtilCore.urlToPath(VfsUtil.getParentDir(sourceProvider.getManifestFileUrl())));
       templates.add(new NamedModuleTemplate(sourceProvider.getName(), paths));
     }
     return templates;

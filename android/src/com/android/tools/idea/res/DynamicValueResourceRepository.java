@@ -63,7 +63,7 @@ public class DynamicValueResourceRepository extends LocalResourceRepository
     super("Gradle Dynamic");
     myFacet = facet;
     myNamespace = namespace;
-    assert facet.requiresAndroidModel();
+    assert AndroidModel.isRequired(facet);
   }
 
   private void registerListeners() {

@@ -30,6 +30,7 @@ import com.android.tools.idea.naveditor.scene.getCurvePoints
 import com.android.tools.idea.naveditor.scene.getRegularActionIconRect
 import com.android.tools.idea.naveditor.scene.getSelfActionIconRect
 import com.android.tools.idea.naveditor.scene.selfActionPoints
+import org.intellij.lang.annotations.JdkConstants
 import java.awt.geom.Rectangle2D
 
 private val SOURCE_RECT = Rectangle2D.Float()
@@ -57,7 +58,9 @@ class ActionTarget(component: SceneComponent,
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {}
 
-  override fun addHit(transform: SceneContext, picker: ScenePicker) {
+  override fun addHit(transform: SceneContext,
+                      picker: ScenePicker,
+                      @JdkConstants.InputEventMask modifiersEx: Int) {
     val source = Coordinates.getSwingRectDip(transform, sourceComponent.fillDrawRect2D(0, SOURCE_RECT))
     val isPopAction = myComponent.nlComponent.popUpTo != null
     var iconRect: Rectangle2D.Float? = null

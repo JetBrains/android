@@ -48,6 +48,8 @@ import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement
@@ -115,13 +117,15 @@ private val makeDistinctClassSet = setOf(MavenRepositoryDslElement::class.java, 
  * Get the block element that is given be repeat
  */
 fun GradleDslFile.getBlockElement(
-    nameParts: List<String>,
-    parentElement: GradlePropertiesDslElement,
-    nameElement: GradleNameElement? = null
+  nameParts: List<String>,
+  converter: GradleDslNameConverter,
+  parentElement: GradlePropertiesDslElement,
+  nameElement: GradleNameElement? = null
 ): GradlePropertiesDslElement? {
   return nameParts.map { namePart -> namePart.trim { it <= ' ' } }.fold(parentElement) { resultElement, nestedElementName ->
-    val elementName = nameElement ?: GradleNameElement.fake(nestedElementName)
-    var element = resultElement.getElement(nestedElementName)
+    val canonicalNestedElementName = resultElement.getExternalToModelMap(converter).getOrDefault(nestedElementName, nestedElementName)
+    val elementName = nameElement ?: GradleNameElement.fake(canonicalNestedElementName)
+    var element = resultElement.getElement(canonicalNestedElementName)
 
     if (element != null && makeDistinctClassSet.contains(element::class.java)) {
       element = null // Force recreation of the element
@@ -185,6 +189,7 @@ fun GradleDslFile.getBlockElement(
         PACKAGING_OPTIONS_BLOCK_NAME -> PackagingOptionsDslElement(resultElement)
         SPLITS_BLOCK_NAME -> SplitsDslElement(resultElement)
         TEST_OPTIONS_BLOCK_NAME -> TestOptionsDslElement(resultElement)
+        VIEW_BINDING_BLOCK_NAME -> ViewBindingDslElement(resultElement)
         else -> return null
       }
       is ExternalNativeBuildDslElement -> when (nestedElementName) {
@@ -306,22 +311,27 @@ internal fun findLastPsiElementIn(startElement: GradleDslElement): PsiElement? {
 }
 
 /**
- * Get the name of a dsl element by triming the parent's name parts.
+ * Get the external name of a dsl element by trimming the parent's name parts and converting the name from model to external, if necessary.
  */
-internal fun maybeTrimForParent(name: GradleNameElement, parent: GradleDslElement?): String {
+internal fun maybeTrimForParent(name: GradleNameElement,
+                                parent: GradleDslElement?,
+                                converter: GradleDslNameConverter): String {
+  // FIXME(xof): this case needs fixing too
   if (parent == null) return name.fullName()
 
   val parts = ArrayList(name.fullNameParts())
   if (parts.isEmpty()) {
     return name.fullName()
   }
-  val lastNamePart = parts.removeAt(parts.size - 1)
+  var lastNamePart = parts.removeAt(parts.size - 1)
   val parentParts = Splitter.on(".").splitToList(parent.qualifiedName)
   var i = 0
   while (i < parentParts.size && !parts.isEmpty() && parentParts[i] == parts[0]) {
     parts.removeAt(0)
     i++
   }
+  // FIXME(xof): I have a feeling that this is partly wrong, with the same kind of forward/backward issues as in GradleNameElement.from()
+  lastNamePart = converter.externalNameForParent(lastNamePart, parent)
   parts.add(lastNamePart)
   return GradleNameElement.createNameFromParts(parts)
 }

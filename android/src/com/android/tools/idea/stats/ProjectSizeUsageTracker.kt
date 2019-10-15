@@ -62,7 +62,9 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
     XML(XmlFileType.INSTANCE, IntellijProjectSizeStats.FileType.XML),
     JAVA_CLASS(JavaClassFileType.INSTANCE, IntellijProjectSizeStats.FileType.DOT_CLASS),
     KOTLIN(FileTypeRegistry.getInstance().findFileTypeByName("Kotlin") ?: PlainTextFileType.INSTANCE,
-           IntellijProjectSizeStats.FileType.KOTLIN);
+           IntellijProjectSizeStats.FileType.KOTLIN),
+    NATIVE(FileTypeRegistry.getInstance().findFileTypeByName("ObjectiveC") ?: PlainTextFileType.INSTANCE,
+               IntellijProjectSizeStats.FileType.NATIVE);
 
     fun languageFileType(): com.intellij.openapi.fileTypes.FileType {
       return fileType

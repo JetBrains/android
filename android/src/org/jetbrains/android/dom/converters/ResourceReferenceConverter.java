@@ -80,6 +80,7 @@ import java.util.regex.Pattern;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.drawable.DrawableStateListItem;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
@@ -384,6 +385,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
     else if (types.contains(ResourceType.DRAWABLE)) {
       types.add(ResourceType.COLOR);
+      if (element.getParent() instanceof DrawableStateListItem) {
+        types.add(ResourceType.MIPMAP);
+      }
     }
     if (TOOLS_URI.equals(element.getXmlElementNamespace())) {
       // For tools: attributes, we also add the mock types
@@ -707,16 +711,19 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       return PsiReference.EMPTY_ARRAY;
     }
 
-    // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
-    //    android:layout_alignLeft="@+id/foo"
-    // is a reference to R.id.foo, but
-    //    android:id="@+id/foo"
-    // is not; it's the place we're defining it.
-    if (resValue.getPackage() == null && "+id".equals(resType) && element != null && element.getParent() instanceof XmlAttribute) {
-      XmlAttribute attribute = (XmlAttribute)element.getParent();
-      if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
-        // When defining an id, don't point to another reference
-        return PsiReference.EMPTY_ARRAY;
+
+    if (!StudioFlags.RESOLVE_USING_REPOS.get()) {
+      // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
+      //    android:layout_alignLeft="@+id/foo"
+      // is a reference to R.id.foo, but
+      //    android:id="@+id/foo"
+      // is not; it's the place we're defining it.
+      if (resValue.getPackage() == null && "+id".equals(resType) && element != null && element.getParent() instanceof XmlAttribute) {
+        XmlAttribute attribute = (XmlAttribute)element.getParent();
+        if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
+          // When defining an id, don't point to another reference
+          return PsiReference.EMPTY_ARRAY;
+        }
       }
     }
 

@@ -16,6 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
 import com.android.tools.adtui.stdui.menu.CommonPopupMenuUI;
+import com.intellij.openapi.actionSystem.ActionButtonComponent;
+import com.intellij.openapi.actionSystem.ex.ActionButtonLook;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
@@ -24,10 +27,15 @@ import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.event.FocusListener;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -107,6 +115,7 @@ public class MEUI {
     public static Color ourLineColor = makeColor("UIDesigner.motion.LineColor", 0xBEBEBE, 0x6D6D6E);
     public static Color ourSelectedLineColor = makeColor("UIDesigner.motion.SelectedLineColor", 0x1886F7, 0x9CCDFF);
     public static Color ourHoverLineColor = makeColor("UIDesigner.motion.LineColor", 0xBEBEBE, 0x6D6D6E);
+    public static Color ourPositionColor = makeColor("UIDesigner.motion.PositionMarkColor", 0xFFFFFF, 0x515658);
   }
 
   public static Color ourSelectedSetColor = new JBColor(0xE1E2E1, 0xF0F1F0);
@@ -118,34 +127,11 @@ public class MEUI {
   public static final int DIR_BOTTOM = 3;
 
   public static JButton createToolBarButton(Icon icon, String tooltip) {
-    JButton button = new JButton(icon) {
-      @Override
-      public void updateUI() {
-        setUI(new BasicButtonUI());
-      }
-    };
-    button.setBorderPainted(false);
-    button.setContentAreaFilled(false);
-    button.setToolTipText(tooltip);
-    button.setUI(new BasicButtonUI());
-    button.setOpaque(false);
-    button.setBorder(null);
-    return button;
+    return createToolBarButton(icon, null, tooltip);
   }
 
   public static JButton createToolBarButton(Icon icon, Icon disable_icon, String tooltip) {
-    JButton button = new JButton(icon) {
-      @Override
-      public void updateUI() {
-        setUI(new BasicButtonUI());
-      }
-    };
-    button.setContentAreaFilled(false);
-    button.setBorderPainted(false);
-    button.setUI(new BasicButtonUI());
-    button.setToolTipText(tooltip);
-    button.setBorder(null);
-    return button;
+    return new MEActionButton(icon, disable_icon, tooltip);
   }
 
   public static JPopupMenu createPopupMenu() {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.perf;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.testutils.TestUtils.getSdk;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -84,9 +85,8 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
     }
   }
 
-  @Override
   @NotNull
-  protected File findSdkPath() {
+  private static File findSdkPath() {
     String localSdkPath = System.getenv("ANDROID_HOME");
 
     if (localSdkPath != null) {
@@ -95,7 +95,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
         return localSdk;
       }
     }
-    return super.findSdkPath();
+    return getSdk();
   }
 
   @Override

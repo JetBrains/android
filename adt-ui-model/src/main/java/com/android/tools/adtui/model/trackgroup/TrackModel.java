@@ -25,20 +25,18 @@ import org.jetbrains.annotations.NotNull;
  * @param <R> renderer enum type
  */
 public class TrackModel<M, R extends Enum> implements DragAndDropModelListElement {
-  @NotNull private final M myDataModel;
-  @NotNull private final R myRendererType;
-  private int myId = -1;
-  private String myTitle;
+  private final M myDataModel;
+  private final R myRendererType;
+  private final String myTitle;
+  private final boolean myHideHeader;
+  private final int myId;
 
-  /**
-   * @param dataModel    data model to visualize
-   * @param rendererType determines how the data model is visualized
-   * @param title        string to be displayed in the header
-   */
-  public TrackModel(@NotNull M dataModel, @NotNull R rendererType, String title) {
-    myDataModel = dataModel;
-    myRendererType = rendererType;
-    myTitle = title;
+  private TrackModel(@NotNull Builder<M, R> builder) {
+    myDataModel = builder.myDataModel;
+    myRendererType = builder.myRendererType;
+    myTitle = builder.myTitle;
+    myHideHeader = builder.myHideHeader;
+    myId = builder.myId;
   }
 
   @NotNull
@@ -51,8 +49,16 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     return myRendererType;
   }
 
+  @NotNull
   public String getTitle() {
     return myTitle;
+  }
+
+  /**
+   * @return whether to hide the track's header column.
+   */
+  public boolean getHideHeader() {
+    return myHideHeader;
   }
 
   /**
@@ -64,10 +70,46 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
   }
 
   /**
-   * Used by track model container (e.g. {@link TrackGroupModel} to set unique IDs automatically.
+   * Instantiates a new builder with parameters required for the track model.
+   *
+   * @param dataModel    data model to visualize
+   * @param rendererType determines how the data model is visualized
+   * @param title        string to be displayed in the header
    */
-  protected TrackModel setId(int id) {
-    myId = id;
-    return this;
+  public static <M, R extends Enum> Builder<M, R> newBuilder(@NotNull M dataModel, @NotNull R rendererType, @NotNull String title) {
+    return new Builder<>(dataModel, rendererType, title);
+  }
+
+  public static class Builder<M, R extends Enum> {
+    private final M myDataModel;
+    private final R myRendererType;
+    private final String myTitle;
+    private boolean myHideHeader;
+    private int myId;
+
+    private Builder(@NotNull M dataModel, @NotNull R rendererType, @NotNull String title) {
+      myDataModel = dataModel;
+      myRendererType = rendererType;
+      myTitle = title;
+      myHideHeader = false;
+      myId = -1;
+    }
+
+    public Builder<M, R> setHideHeader(boolean hideHeader) {
+      myHideHeader = hideHeader;
+      return this;
+    }
+
+    /**
+     * Only exposed to track model container (e.g. {@link TrackGroupModel} to set unique IDs automatically.
+     */
+    protected Builder<M, R> setId(int id) {
+      myId = id;
+      return this;
+    }
+
+    public TrackModel<M, R> build() {
+      return new TrackModel<>(this);
+    }
   }
 }

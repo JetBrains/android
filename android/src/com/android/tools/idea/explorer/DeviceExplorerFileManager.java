@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.tools.idea.device.fs.DownloadProgress;
+import com.android.tools.idea.device.fs.DownloadedFileData;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
-import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
@@ -39,25 +40,14 @@ public interface DeviceExplorerFileManager {
   Path getDefaultLocalPathForEntry(@NotNull DeviceFileEntry entry);
 
   /**
-   * Download asynchronously the content of a {@link DeviceFileEntry} onto the local file system.
-   * Returns a {@link ListenableFuture} that completes when the download has completed.
+   * Asynchronously downloads the content of a {@link DeviceFileEntry} to the local file system.
+   *
+   * <p>Returns a {@link ListenableFuture} that completes when the download has completed.
    * The <code>progress</code> callback is regularly notified of the current progress of the
    * download operation.
    */
   @NotNull
-  ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress);
-
-  /**
-   * Opens a previously downloaded file and gives focus to the open component.
-   * If the file contents is not recognized,
-   * the implementation may open a dialog box asking the user to pick the best editor type.
-   *
-   * <ul>
-   * <li>Completes with a {@link RuntimeException} if the file can not be opened.</li>
-   * <li>Completes with a {@link java.util.concurrent.CancellationException} if the user cancels
-   * the 'choose editor type' dialog.</li>
-   * </ul>
-   */
-  @NotNull
-  ListenableFuture<Void> openFile(@NotNull DeviceFileEntry entry, @NotNull Path localPath);
+  ListenableFuture<DownloadedFileData> downloadFileEntry(@NotNull DeviceFileEntry entry,
+                                                         @NotNull Path localPath,
+                                                         @NotNull DownloadProgress progress);
 }

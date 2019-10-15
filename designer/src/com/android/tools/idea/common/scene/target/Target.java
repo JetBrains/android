@@ -77,10 +77,13 @@ public interface Target {
   /**
    * Implementing classes should use this method to add a hit region to the provided {@link ScenePicker} that can handle the interaction.
    *
-   * @param context The {@link SceneContext} used to transform coodinates when adding a region to the {@link ScenePicker}
-   * @param picker  The picker to add the hii region too
+   * @param context     The {@link SceneContext} used to transform coodinates when adding a region to the {@link ScenePicker}
+   * @param picker      The picker to add the hii region too
+   * @param modifiersEx The current modifiers of interaction.
    */
-  void addHit(@NotNull SceneContext context, @NotNull ScenePicker picker);
+  void addHit(@NotNull SceneContext context,
+              @NotNull ScenePicker picker,
+              @JdkConstants.InputEventMask int modifiersEx);
 
   void setComponent(@NotNull SceneComponent component);
 

@@ -16,13 +16,13 @@
 package com.android.tools.idea.navigator
 
 import com.android.builder.model.SourceProvider
+import com.android.testutils.TestUtils
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
-import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.module.ModuleManager
@@ -55,8 +55,14 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
     assertIsEqualToSnapshot(text)
   }
 
+  // TODO(b/121345405): Fix missing test source providers.
+  fun testMultiFlavor() {
+    val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testNestedProjects() {
-    val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE)
+    val text = importSyncAndDumpProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
     assertIsEqualToSnapshot(text)
   }
 
@@ -77,13 +83,18 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
 
     AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
       // Override settings just for tests (e.g. sdk.dir)
-      AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath())
+      AndroidGradleTests.updateLocalProperties(projectRoot, TestUtils.getSdk())
     }
 
     val project = ProjectUtil.openProject(projectPath.absolutePath, null, false)!!
     val text = project.dumpSourceProviders()
     ProjectUtil.closeAndDispose(project)
 
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testCompatibilityWithAndroidStudio36Project() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36)
     assertIsEqualToSnapshot(text)
   }
 
@@ -192,7 +203,6 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
             nest {
               nest("by Facet:") {
                 val sourceProviderManager = SourceProviderManager.getInstance(androidFacet)
-                sourceProviderManager.mainSourceProvider.dump()
                 sourceProviderManager.mainIdeaSourceProvider.dump()
               }
               val model = AndroidModel.get(module)
@@ -207,7 +217,6 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
               nest("by IdeaSourceProviders:") {
                 dumpPathsCore("Manifests", { IdeaSourceProvider.getManifestFiles(androidFacet) }, { it.url })
                 nest("AllIdeaSourceProviders:") { IdeaSourceProvider.getAllIdeaSourceProviders(androidFacet).forEach { it.dump() } }
-                nest("AllSourceProviders:") { IdeaSourceProvider.getAllSourceProviders(androidFacet).forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { IdeaSourceProvider.getCurrentSourceProviders(androidFacet).forEach { it.dump() } }
                 nest("CurrentTestSourceProviders:") { IdeaSourceProvider.getCurrentTestSourceProviders(androidFacet).forEach { it.dump() } }
               }

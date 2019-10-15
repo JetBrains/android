@@ -11,7 +11,6 @@ iml_module(
     ],
     iml_files = ["intellij.android.lang.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = ["no_test_mac_psq"],  # b/113099009
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
@@ -74,7 +73,6 @@ iml_module(
     name = "intellij.android.lang.tests",
     iml_files = ["intellij.android.lang.tests.iml"],
     tags = [
-        "no_test_mac_psq",  # b/113099009
         "no_test_windows",  # b/135665870
     ],
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
@@ -100,7 +98,6 @@ iml_module(
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
     ],
     test_srcs = ["testSrc"],
-    test_tags = ["slow"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [

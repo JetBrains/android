@@ -138,15 +138,17 @@ fun createTestModuleRepository(
  *
  * @param moduleName name given to the new module.
  * @param project current working project.
+ * @param packageName the module's package name (this will be recorded in its Android manifest)
  * @param createResources code that will be invoked on the module resources folder, to add desired resources. VFS will be refreshed after
  *                        the function is done.
  * @return The instance of the created module added to the project.
  */
-fun addAndroidModule(moduleName: String, project: Project, createResources: (moduleResDir: File) -> Unit): Module {
+fun addAndroidModule(moduleName: String, project: Project, packageName: String, createResources: (moduleResDir: File) -> Unit): Module {
   val root = project.basePath
   val moduleDir = File(FileUtil.toSystemDependentName(root!!), moduleName)
   val moduleFilePath = File(moduleDir, moduleName + ModuleFileType.DOT_DEFAULT_EXTENSION)
 
+  createAndroidManifest(moduleDir, packageName)
   val module = runWriteAction { ModuleManager.getInstance(project).newModule(moduleFilePath.path, ModuleTypeId.JAVA_MODULE) }
   Facets.createAndAddAndroidFacet(module)
 
@@ -156,6 +158,20 @@ fun addAndroidModule(moduleName: String, project: Project, createResources: (mod
   createResources(moduleResDir)
   VfsUtil.markDirtyAndRefresh(false, true, true, moduleDir.toVirtualFile(refresh = true))
   return module
+}
+
+/**
+ * Creates a minimal AndroidManifest.xml with the given [packageName] in the given [dir].
+ */
+private fun createAndroidManifest(dir: File, packageName: String) {
+  dir.mkdirs()
+  dir.resolve(SdkConstants.FN_ANDROID_MANIFEST_XML).writeText(
+    // language=xml
+    """
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="$packageName">
+      </manifest>
+    """.trimIndent()
+  )
 }
 
 /**
@@ -180,13 +196,7 @@ fun addAarDependency(
 
   // Create a manifest file in the right place, so that files inside aarDir are considered resource files.
   // See AndroidResourceUtil#isResourceDirectory which is called from ResourcesDomFileDescription#isResourcesFile.
-  aarDir.resolve(SdkConstants.FN_ANDROID_MANIFEST_XML).writeText(
-    // language=xml
-    """
-      <manifest package="$packageName">
-      </manifest>
-    """.trimIndent()
-  )
+  createAndroidManifest(aarDir, packageName)
 
   val resDir = aarDir.resolve(SdkConstants.FD_RES)
   resDir.mkdir()

@@ -27,6 +27,7 @@ import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.draw.DrawEmptyDesigner
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
+import org.intellij.lang.annotations.JdkConstants
 import java.awt.Point
 
 @SwingCoordinate
@@ -53,7 +54,9 @@ class EmptyDesignerTarget(private val surface: NavDesignSurface) : BaseTarget() 
     return false
   }
 
-  override fun addHit(transform: SceneContext, picker: ScenePicker) {
+  override fun addHit(transform: SceneContext,
+                      picker: ScenePicker,
+                      @JdkConstants.InputEventMask modifiersEx: Int) {
     picker.addRect(
         this, 0,
         transform.getSwingX(myLeft.toInt()),

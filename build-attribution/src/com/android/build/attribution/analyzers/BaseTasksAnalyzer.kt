@@ -17,6 +17,7 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.tooling.events.task.TaskFinishEvent
 
 abstract class BaseTasksAnalyzer(private val taskContainer: TaskContainer) {
@@ -24,11 +25,21 @@ abstract class BaseTasksAnalyzer(private val taskContainer: TaskContainer) {
     taskContainer.clear()
   }
 
-  fun getTask(taskPath: String): TaskData? {
+  protected fun getTask(taskPath: String): TaskData? {
     return taskContainer.getTask(taskPath)
   }
 
-  fun getTask(event: TaskFinishEvent): TaskData {
+  protected fun getTask(event: TaskFinishEvent): TaskData {
     return taskContainer.getTask(event)
+  }
+
+  /**
+   * Filter to ignore certain tasks or tasks from certain plugins.
+   */
+  protected fun applyWhitelistedTasksFilter(task: TaskData): Boolean {
+    // ignore tasks from our plugins
+    return !isAndroidPlugin(task.originPlugin) &&
+           // This task is not cacheable and runs all the time intentionally on invoking "clean". We should not surface this as an issue.
+           !(task.taskName == "clean" && task.originPlugin.displayName == LifecycleBasePlugin::class.java.canonicalName)
   }
 }

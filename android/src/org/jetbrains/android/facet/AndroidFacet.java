@@ -17,8 +17,6 @@ package org.jetbrains.android.facet;
 
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
 
-import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.apk.ApkFacet;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -86,21 +84,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public AndroidFacet(@NotNull Module module, @NotNull String name, @NotNull AndroidFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
     configuration.setFacet(this);
-  }
-
-  /**
-   * Indicates whether the project requires a {@link AndroidProject} (obtained from a build system. To check if a project is a "Gradle
-   * project," please use the method {@link com.android.tools.idea.gradle.project.GradleProjectInfo#isBuildWithGradle()}.
-   *
-   * @return {@code true} if the project has a {@code AndroidProject}; {@code false} otherwise.
-   */
-  public boolean requiresAndroidModel() {
-    return !getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(getModule()) == null;
-  }
-
-  @Override
-  public void disposeFacet() {
-    getConfiguration().disposeFacet();
   }
 
   @NotNull

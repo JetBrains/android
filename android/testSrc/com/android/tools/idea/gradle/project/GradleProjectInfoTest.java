@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.facet.FacetManager;
@@ -171,7 +172,7 @@ public class GradleProjectInfoTest extends PlatformTestCase {
     AndroidFacet facet = createAndAddAndroidFacet(module);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    facet.getConfiguration().setModel(androidModel);
+    AndroidModel.set(facet, androidModel);
 
     ProjectFileIndex projectFileIndex = mock(ProjectFileIndex.class);
     Project project = getProject();

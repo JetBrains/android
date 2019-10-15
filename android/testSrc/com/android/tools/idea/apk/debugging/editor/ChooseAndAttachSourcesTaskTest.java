@@ -18,6 +18,7 @@ package com.android.tools.idea.apk.debugging.editor;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.ProjectFiles;
 import com.android.tools.idea.util.FileOrFolderChooser;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.module.JavaModuleType;
@@ -64,7 +65,7 @@ public class ChooseAndAttachSourcesTaskTest extends AndroidGradleTestCase {
     prepareProjectForImport(SIMPLE_APPLICATION);
 
     File appModulePath = new File(getBaseDirPath(getProject()), "app");
-    Module appModule = createModule(appModulePath, JavaModuleType.getModuleType());
+    Module appModule = ProjectFiles.createModule(getProject(), appModulePath, JavaModuleType.getModuleType());
     ApkFacet apkFacet = createAndAddApkFacet(appModule);
 
     VirtualFile javaSourceFolder = findJavaSourceFolder(appModulePath);

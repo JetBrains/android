@@ -95,6 +95,9 @@ object TypeResolver {
       SdkConstants.ATTR_LAYOUT_CONSTRAINT_CIRCLE,
       SdkConstants.ATTR_LAYOUT_CONSTRAINTSET,
       SdkConstants.ATTR_LIFT_ON_SCROLL_TARGET_VIEW_ID,
+      SdkConstants.ATTR_MOTION_TARGET_ID,
+      SdkConstants.ATTR_MOTION_TOUCH_ANCHOR_ID,
+      SdkConstants.ATTR_MOTION_TOUCH_REGION_ID,
       SdkConstants.ATTR_NEXT_CLUSTER_FORWARD,
       SdkConstants.ATTR_NEXT_FOCUS_DOWN,
       SdkConstants.ATTR_NEXT_FOCUS_FORWARD,
@@ -288,7 +291,7 @@ object TypeResolver {
   private fun split(name: String): Set<String> {
     val parts = mutableSetOf<String>()
     var part = name
-    while (!part.isEmpty()) {
+    while (part.isNotEmpty()) {
       val index = part.indexOfFirst { it.isUpperCase() }
       if (index > 0) {
         parts.add(part.substring(0, index))

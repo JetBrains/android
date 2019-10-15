@@ -395,7 +395,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
           if (!(target instanceof PsiTypeParameter) && !(target instanceof SyntheticElement)) {
             VirtualFile source = target.getContainingFile().getVirtualFile();
             for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
-              if (sourceProvider.containsFile(source)) {
+              if (IdeaSourceProvider.containsFile(sourceProvider, source)) {
                 // This is a local source file, therefore a candidate to be moved
                 if (myClassRefSet.add((PsiClass)target)) {
                   myVisitQueue.add(target);

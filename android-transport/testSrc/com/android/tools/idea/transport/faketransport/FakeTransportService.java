@@ -24,10 +24,10 @@ import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.commands.BeginSession;
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler;
 import com.android.tools.idea.transport.faketransport.commands.EndSession;
+import com.android.tools.idea.transport.faketransport.commands.HeapDump;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocSampling;
-import com.android.tools.idea.transport.faketransport.commands.StartAllocTracking;
+import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking;
 import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
-import com.android.tools.idea.transport.faketransport.commands.StopAllocTracking;
 import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
@@ -107,9 +107,11 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     setCommandHandler(Command.CommandType.END_SESSION, new EndSession(myTimer));
     setCommandHandler(Command.CommandType.START_CPU_TRACE, new StartCpuTrace(myTimer));
     setCommandHandler(Command.CommandType.STOP_CPU_TRACE, new StopCpuTrace(myTimer));
-    setCommandHandler(Command.CommandType.START_ALLOC_TRACKING, new StartAllocTracking(myTimer));
-    setCommandHandler(Command.CommandType.STOP_ALLOC_TRACKING, new StopAllocTracking(myTimer));
+    MemoryAllocTracking allocTrackingHandler = new MemoryAllocTracking(myTimer);
+    setCommandHandler(Command.CommandType.START_ALLOC_TRACKING, allocTrackingHandler);
+    setCommandHandler(Command.CommandType.STOP_ALLOC_TRACKING, allocTrackingHandler);
     setCommandHandler(Command.CommandType.MEMORY_ALLOC_SAMPLING, new MemoryAllocSampling(myTimer));
+    setCommandHandler(Command.CommandType.HEAP_DUMP, new HeapDump(myTimer));
   }
 
   /**

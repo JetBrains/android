@@ -68,12 +68,16 @@ public final class SelectDeviceAction extends AnAction {
       Snapshot snapshot = device.getSnapshot();
       assert snapshot != null;
 
-      presentation.setText(snapshot.getDisplayName(), false);
+      presentation.setText(snapshot.toString(), false);
       return;
     }
 
     presentation.setIcon(device.getIcon());
-    presentation.setText(Devices.getText(device, comboBoxAction.getDevices(project)), false);
+
+    Key key = Devices.containsAnotherDeviceWithSameName(comboBoxAction.getDevices(project), device) ? device.getKey() : null;
+    Snapshot snapshot = comboBoxAction.areSnapshotsEnabled() ? device.getSnapshot() : null;
+
+    presentation.setText(Devices.getText(device, key, snapshot), false);
   }
 
   @NotNull

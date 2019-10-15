@@ -29,8 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
 import static com.google.common.truth.Truth.assertThat;
@@ -73,16 +72,7 @@ public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
   }
 
   public void testErrorIfGradlePluginVersionIsOutdated() throws Exception {
-    File projectSourceRoot = resolveTestDataPath(SIMPLE_APPLICATION_PRE30);
-    File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
-
-    AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectRoot, root -> {
-      AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
-      AndroidGradleTests.createGradleWrapper(projectRoot, "4.5");
-      AndroidGradleTests.updateGradleVersions(root, "3.0.0");
-    });
-    importProject();
-    prepareProjectForTest(getProject(), "app");
+    loadProject(SIMPLE_APPLICATION_PRE30, "app", "4.5", "3.0.0");
 
     // Verifies there is a validation error (since bundle tasks are not available)
     myRunConfiguration.DEPLOY = true;

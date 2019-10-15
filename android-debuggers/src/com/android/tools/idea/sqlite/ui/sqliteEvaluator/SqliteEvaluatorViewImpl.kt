@@ -44,7 +44,7 @@ class SqliteEvaluatorViewImpl(override val project: Project, private val schemaP
     evaluatorPanel.root.add(tableView.component, BorderLayout.CENTER)
     evaluatorPanel.evaluateButton.addActionListener {
       listeners.forEach {
-        it.evaluateSqlActionInvoked(evaluatorPanel.schemaComboBox.selectedItem as SqliteDatabase, editorTextField.text)
+        it.evaluateSqlActionInvoked((evaluatorPanel.schemaComboBox.selectedItem as ComboBoxItem).database, editorTextField.text)
       }
     }
 

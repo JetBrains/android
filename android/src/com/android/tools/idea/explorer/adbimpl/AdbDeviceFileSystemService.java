@@ -16,6 +16,7 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.concurrency.UiThread;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.adb.AdbService;
@@ -46,6 +47,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
  * The service is meant to be called on the EDT thread, where
  * long running operations either raise events or return a Future.
  */
+@UiThread
 public final class AdbDeviceFileSystemService implements DeviceFileSystemService<AdbDeviceFileSystem> {
   @NotNull
   public static AdbDeviceFileSystemService getInstance(Project project) {
@@ -63,6 +65,7 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
   @Nullable private DeviceChangeListener myDeviceChangeListener;
   @Nullable private DebugBridgeChangeListener myDebugBridgeChangeListener;
   @Nullable private File myAdb;
+  @NotNull private SettableFuture<Void> myStartServiceFuture = SettableFuture.create();
 
   public AdbDeviceFileSystemService() {
     myEdtExecutor = new FutureCallbackExecutor(EdtExecutorService.getInstance());
@@ -100,14 +103,22 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
     return myTaskExecutor;
   }
 
+  /**
+   * Starts the service using an ADB File.
+   *
+   * <p>If this method is called when the service is starting or is already started, the returned future completes immediately.
+   * <p>To restart the service using a different ADB file, call {@link AdbDeviceFileSystemService#restart(Supplier)}
+   */
   @NotNull
   @Override
   public ListenableFuture<Void> start(@NotNull Supplier<File> adbSupplier) {
-    checkState(State.Initial);
+    if (myState == State.SetupRunning || myState == State.SetupDone) {
+      return myStartServiceFuture;
+    }
 
     final File adb = adbSupplier.get();
     if (adb == null) {
-      LOGGER.error("ADB not found");
+      LOGGER.warn("ADB not found");
       return Futures.immediateFailedFuture(new FileNotFoundException("Android Debug Bridge not found."));
     }
 
@@ -125,14 +136,15 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
     assert myAdb != null;
 
     myState = State.SetupRunning;
-    SettableFuture<Void> futureResult = SettableFuture.create();
-    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(myAdb);
-    myEdtExecutor.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
+    myStartServiceFuture = SettableFuture.create();
+
+    ListenableFuture<AndroidDebugBridge> debugBridgeFuture = AdbService.getInstance().getDebugBridge(myAdb);
+    myEdtExecutor.addCallback(debugBridgeFuture, new FutureCallback<AndroidDebugBridge>() {
       @Override
       public void onSuccess(@Nullable AndroidDebugBridge bridge) {
         LOGGER.info("Successfully obtained debug bridge");
         myState = State.SetupDone;
-        futureResult.set(null);
+        myStartServiceFuture.set(null);
       }
 
       @Override
@@ -140,15 +152,15 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
         LOGGER.warn("Unable to obtain debug bridge", t);
         myState = State.Initial;
         if (t.getMessage() != null) {
-          futureResult.setException(t);
+          myStartServiceFuture.setException(t);
         }
         else {
-          futureResult.setException(new RuntimeException(AdbService.getDebugBridgeDiagnosticErrorMessage(t, myAdb), t));
+          myStartServiceFuture.setException(new RuntimeException(AdbService.getDebugBridgeDiagnosticErrorMessage(t, myAdb), t));
         }
       }
     });
 
-    return futureResult;
+    return myStartServiceFuture;
   }
 
   @NotNull

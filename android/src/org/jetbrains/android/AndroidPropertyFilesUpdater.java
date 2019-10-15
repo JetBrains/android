@@ -3,6 +3,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ProjectTopics;
 import com.intellij.lang.properties.IProperty;
 import com.intellij.lang.properties.psi.PropertiesElementFactory;
@@ -47,6 +48,9 @@ import java.util.*;
 /**
  * @author Eugene.Kudelevsky
  */
+// This class supports JPS projects and relies on APIs which should not be used in AS otherwise. We suppress related warnings to
+// avoid cluttering of the build output.
+@SuppressWarnings("deprecation")
 public class AndroidPropertyFilesUpdater implements BaseComponent {
   private static final NotificationGroup PROPERTY_FILES_UPDATING_NOTIFICATION =
     NotificationGroup.balloonGroup("Android Property Files Updating");
@@ -99,7 +103,7 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
 
-      if (facet != null && !facet.requiresAndroidModel()) {
+      if (facet != null && !AndroidModel.isRequired(facet)) {
         final String updatePropertyFiles = facet.getProperties().UPDATE_PROPERTY_FILES;
         final boolean ask = updatePropertyFiles.isEmpty();
 
@@ -385,7 +389,7 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
   @Nullable
   private static VirtualFile getBaseAndroidContentRoot(@NotNull Module module) {
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    final VirtualFile manifestFile = facet != null ? AndroidRootUtil.getManifestFile(facet) : null;
+    final VirtualFile manifestFile = facet != null ? AndroidRootUtil.getPrimaryManifestFile(facet) : null;
     final VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
     if (manifestFile != null) {
       for (VirtualFile contentRoot : contentRoots) {

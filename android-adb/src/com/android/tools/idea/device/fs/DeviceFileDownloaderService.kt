@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.device.fs
 
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import java.util.concurrent.Future
 
 /**
  * Service used to download a file from its [DeviceFileId].
@@ -34,16 +33,5 @@ interface DeviceFileDownloaderService {
   /**
    * Downloads the file corresponding to the [DeviceFileId] passed as argument, from the device to the local machine.
    */
-  fun downloadFile(deviceFileId: DeviceFileId): Future<DownloadedFileData>
+  fun downloadFile(deviceFileId: DeviceFileId, downloadProgress: DownloadProgress): ListenableFuture<DownloadedFileData>
 }
-
-/**
- * Contains information about a downloaded file.
- *
- * @param deviceFileId the [DeviceFileId] corresponding to the downloaded file.
- * @param virtualFile the [VirtualFile] corresponding to the downloaded file.
- * @param additionalFiles some files, when downloaded, trigger the download of additional files.
- * The additional [VirtualFile]s downloaded are contained in this list.
- * @see [com.android.tools.idea.deviceExplorer.FileHandler.getAdditionalDevicePaths].
- */
-data class DownloadedFileData(val deviceFileId: DeviceFileId, val virtualFile: VirtualFile, val additionalFiles: List<VirtualFile>)

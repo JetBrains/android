@@ -80,7 +80,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
       return // Extra render is driven by the Wizard itself
     }
 
-    if (newRenderTemplateModel.templateHandle != null) {
+    if (newRenderTemplateModel.hasActivity) {
       addRenderDefaultTemplateValues(newRenderTemplateModel)
       newRenderTemplateModel.handleFinished()
     }
@@ -103,8 +103,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
   private fun createMainRenderModel(): RenderTemplateModel = when {
     projectModel.enableCppSupport.get() -> createCompanionRenderModel(newModuleModel)
-    extraRenderTemplateModel.templateHandle == null ->
-      RenderTemplateModel.fromModuleModel(newModuleModel, renderTemplateHandle.valueOrNull)
+    !extraRenderTemplateModel.hasActivity -> RenderTemplateModel.fromModuleModel(newModuleModel, renderTemplateHandle.valueOrNull)
     else -> extraRenderTemplateModel // Extra Render is visible. Use it.
   }
 }

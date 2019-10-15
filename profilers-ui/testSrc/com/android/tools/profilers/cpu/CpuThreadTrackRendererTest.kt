@@ -53,7 +53,9 @@ class CpuThreadTrackRendererTest {
   fun renderComponentsForThreadTrack() {
     val mockCapture = Mockito.mock(CpuCapture::class.java)
     Mockito.`when`(mockCapture.range).thenReturn(Range())
-    val threadTrackModel = TrackModel(CpuThreadTrackModel(profilers, Range(), mockCapture, 1), ProfilerTrackRendererType.CPU_THREAD, "Foo")
+    val threadTrackModel = TrackModel.newBuilder(
+      CpuThreadTrackModel(profilers, Range(), mockCapture, 1),
+      ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
     val renderer = CpuThreadTrackRenderer()
     val component = renderer.render(threadTrackModel)
     assertThat(component.componentCount).isEqualTo(2)

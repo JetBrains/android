@@ -38,6 +38,9 @@ public class MotionLayoutComponentHelper {
   private Method myCallSetTransitionPosition;
   private Method myCallSetState;
   private Method myCallGetState;
+  private Method myCallGetStartState;
+  private Method myCallGetEndState;
+  private Method myCallDisableAutoTransition;
   private Method myCallGetProgress;
   private Method myCallSetTransition;
   private Method myGetMaxTimeMethod;
@@ -45,6 +48,7 @@ public class MotionLayoutComponentHelper {
   private Method motionLayoutAccess;
   private Method mySetAttributesMethod;
   private Method myGetKeyframeMethod;
+  private Method myGetKeyFramePositionsMethod;
   private Method mySetKeyframeMethod;
   private Method myGetPositionKeyframeMethod;
   private Method myGetKeyframeAtLocationMethod;
@@ -122,6 +126,9 @@ public class MotionLayoutComponentHelper {
         return (Integer)RenderService.runRenderAction(() -> {
           try {
             ViewInfo info = NlComponentHelperKt.getViewInfo(nlComponent);
+            if (info == null) {
+              return -1;
+            }
             return myGetAnimationPathMethod.invoke(myDesignTool, info.getViewObject(), path, size);
           }
           catch (Exception e) {
@@ -441,6 +448,7 @@ public class MotionLayoutComponentHelper {
       return;
     }
     if (myCallSetTransition == null) {
+      disableAutoTransition(true);
       try {
         myCallSetTransition = myDesignTool.getClass().getMethod("setTransition", String.class, String.class);
       }
@@ -522,6 +530,45 @@ public class MotionLayoutComponentHelper {
     model.notifyLiveUpdate(false);
   }
 
+  public void disableAutoTransition(boolean disable) {
+    if (myDesignTool == null) {
+      return;
+    }
+    if (myCallDisableAutoTransition == null) {
+      try {
+
+        myCallDisableAutoTransition = myDesignTool.getClass().getMethod("disableAutoTransition", boolean.class);
+      }
+      catch (NoSuchMethodException e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+        myCallDisableAutoTransition = null;
+        return;
+      }
+    }
+    if (myCallDisableAutoTransition != null) {
+      try {
+        RenderService.runRenderAction(() -> {
+          try {
+            myCallDisableAutoTransition.invoke(myDesignTool, disable);
+          }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallDisableAutoTransition = null;
+            if (DEBUG) {
+              e.printStackTrace();
+            }
+          }
+        });
+      }
+      catch (Exception e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
   public String getState() {
     String state = null;
     if (myDesignTool == null) {
@@ -547,6 +594,88 @@ public class MotionLayoutComponentHelper {
           }
           catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
             myCallSetState = null;
+            if (DEBUG) {
+              e.printStackTrace();
+            }
+          }
+          return null;
+        });
+      }
+      catch (Exception e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+      }
+    }
+    return state;
+  }
+
+  public String getStartState() {
+    String state = null;
+    if (myDesignTool == null) {
+      return state;
+    }
+    if (myCallGetStartState == null) {
+      try {
+        myCallGetStartState = myDesignTool.getClass().getMethod("getStartState");
+      }
+      catch (NoSuchMethodException e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+        myCallGetStartState = null;
+        return state;
+      }
+    }
+    if (myCallGetStartState != null) {
+      try {
+        state = RenderService.runRenderAction(() -> {
+          try {
+            return (String)myCallGetStartState.invoke(myDesignTool);
+          }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallGetStartState = null;
+            if (DEBUG) {
+              e.printStackTrace();
+            }
+          }
+          return null;
+        });
+      }
+      catch (Exception e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+      }
+    }
+    return state;
+  }
+
+  public String getEndState() {
+    String state = null;
+    if (myDesignTool == null) {
+      return state;
+    }
+    if (myCallGetEndState == null) {
+      try {
+        myCallGetEndState = myDesignTool.getClass().getMethod("getEndState");
+      }
+      catch (NoSuchMethodException e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+        myCallGetEndState = null;
+        return state;
+      }
+    }
+    if (myCallGetEndState != null) {
+      try {
+        state = RenderService.runRenderAction(() -> {
+          try {
+            return (String)myCallGetEndState.invoke(myDesignTool);
+          }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallGetEndState = null;
             if (DEBUG) {
               e.printStackTrace();
             }
@@ -784,5 +913,52 @@ public class MotionLayoutComponentHelper {
     }
 
     setAttributes(dpiValue, state, info.getViewObject(), attributes);
+  }
+
+  public int getKeyframePos(NlComponent component, int[] type, float[]pos) {
+    if (myDesignTool == null) {
+      return -1;
+    }
+    ViewInfo info = NlComponentHelperKt.getViewInfo(component);
+
+    if (info == null || (info != null && info.getViewObject() == null)) {
+      return -1;
+    }
+
+    if (myGetKeyFramePositionsMethod == null) {
+      try {
+        myGetKeyFramePositionsMethod = myDesignTool.getClass().getMethod("getKeyFramePositions",
+                                                                         Object.class, int[].class,float[].class);
+      }
+      catch (NoSuchMethodException e) {
+        if (true) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    if (myGetKeyFramePositionsMethod != null) {
+      try {
+        return RenderService.runRenderAction(() -> {
+          try {
+            return (Integer)myGetKeyFramePositionsMethod.invoke(myDesignTool, info.getViewObject(), type, pos);
+          }
+          catch (Exception e) {
+            myGetKeyFramePositionsMethod = null;
+            if (true) {
+              e.printStackTrace();
+            }
+          }
+          return null;
+        });
+      }
+      catch (Exception e) {
+        if (true) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    return -1;
   }
 }

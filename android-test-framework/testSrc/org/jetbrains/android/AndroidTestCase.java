@@ -5,6 +5,7 @@ package org.jetbrains.android;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -370,7 +371,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    * Enables namespacing in the given module and sets the app namespace according to the given package name.
    */
   protected void enableNamespacing(@NotNull AndroidFacet facet, @NotNull String appPackageName) {
-    facet.getConfiguration().setModel(TestAndroidModel.namespaced(facet));
+    AndroidModel.set(facet, TestAndroidModel.namespaced(facet));
     runWriteCommandAction(getProject(), () -> Manifest.getMainManifest(facet).getPackage().setValue(appPackageName));
     LocalResourceManager.getInstance(facet.getModule()).invalidateAttributeDefinitions();
   }

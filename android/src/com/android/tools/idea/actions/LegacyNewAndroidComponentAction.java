@@ -1,5 +1,6 @@
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -46,7 +47,7 @@ public class LegacyNewAndroidComponentAction extends AnAction {
     }
     final AndroidFacet facet = AndroidFacet.getInstance(module);
 
-    if (facet == null || facet.requiresAndroidModel()) {
+    if (facet == null || AndroidModel.isRequired(facet)) {
       return false;
     }
     final ProjectFileIndex projectIndex = ProjectRootManager.getInstance(module.getProject()).getFileIndex();

@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.Modules;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -42,10 +43,9 @@ import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -250,7 +250,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     File rootDir = androidProject.getRootDir();
     AndroidModuleModel androidModel =
       AndroidModuleModel.create(androidProject.getName(), rootDir, androidProject, variant.getName(), new IdeDependenciesFactory());
-    myFacet.getConfiguration().setModel(androidModel);
+    AndroidModel.set(myFacet, androidModel);
 
     File bundle = new File(rootDir, "bundle.aar");
     File libJar = new File(rootDir, "bundle_aar" + File.separatorChar + "library.jar");
@@ -258,18 +258,17 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     variant.getMainArtifact().getDependencies().addLibrary(library);
 
     // Refresh temporary resource directories created by the model, so that they are accessible as VirtualFiles.
-    Collection<File> resourceDirs =
-      IdeaSourceProvider.getAllSourceProviders(myFacet)
+    Collection<String> resourceDirUrls =
+      IdeaSourceProvider.getAllIdeaSourceProviders(myFacet)
         .stream()
-        .flatMap(provider -> provider.getResDirectories().stream())
+        .flatMap(provider -> provider.getResDirectoryUrls().stream())
         .collect(Collectors.toList());
-    refreshForVfs(resourceDirs);
+    refreshForVfs(resourceDirUrls);
   }
 
-  private static void refreshForVfs(Collection<File> freshFiles) {
-    for (File file : freshFiles) {
-      String path = FileUtil.toSystemIndependentName(file.getPath());
-      VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+  private static void refreshForVfs(Collection<String> freshFileUrls) {
+    for (String fileUrl : freshFileUrls) {
+      VirtualFile virtualFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(fileUrl);
       VfsUtil.markDirtyAndRefresh(false, true, true, virtualFile);
     }
   }

@@ -160,12 +160,12 @@ class QrScanningCujTest {
 
     // Add dependency by typing it in build.gradle file
     ide.editor
-      .open("app/build.gradle")
-      .moveBetween("dependencies {\n", "")
-      .typeText("    implementation 'com.google.android.gms:play-services-vision:+'\n")
       // play-services-vision uses AndroidX, so we need to add the following property (see bug 130286699). Eventually, all the dependencies
       // used in this test project should be upgraded to AndroidX.
       .newFile(Paths.get("gradle.properties"), "android.useAndroidX=true")
+      .open("app/build.gradle")
+      .moveBetween("dependencies {\n", "")
+      .typeText("    implementation 'com.google.android.gms:play-services-vision:+'\n")
       .ideFrame
       .requestProjectSync()
       .waitForGradleProjectSyncToFinish()
@@ -188,7 +188,7 @@ class QrScanningCujTest {
           .chooseIcon()
           .filterByNameAndSelect("flash on")
           .clickOk()
-          .setName("ic_flash_on_white_24dp")
+          .setName("ic_baseline_flash_on_24")
           .setColor("FFFFFF")
           .clickNext()
           .clickFinish()
@@ -199,8 +199,8 @@ class QrScanningCujTest {
       .getLayoutEditor(false).run {
         dragComponentToSurface("Common", "ImageView")
         ResourceExplorerDialogFixture.find(robot()).run {
-          resourceExplorer.searchField.setText("ic_flash_on_white")
-          resourceExplorer.selectResource("ic_flash_on_white_24dp")
+          resourceExplorer.searchField.setText("ic_baseline_flash_on")
+          resourceExplorer.selectResource("ic_baseline_flash_on_24")
           clickOk()
         }
       }

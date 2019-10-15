@@ -19,6 +19,7 @@ import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Mockito.mock;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -37,7 +38,7 @@ public class TestArtifactSearchScopeSetupStepGradleTest extends PlatformTestCase
 
   public void testSetUpModuleWithAndroidModule() {
     AndroidFacet facet = createAndAddAndroidFacet(myModule);
-    facet.getConfiguration().setModel(mock(AndroidModuleModel.class));
+    AndroidModel.set(facet, mock(AndroidModuleModel.class));
 
     mySetupStep.setUpModule(myModule, null);
     assertNotNull(GradleTestArtifactSearchScopes.getInstance(myModule));

@@ -15,6 +15,19 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.emptyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
@@ -28,6 +41,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.Facets;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
@@ -42,15 +56,6 @@ import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static com.google.common.truth.Truth.assertThat;
-import static java.util.Collections.emptyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link BuildApkAction}.
@@ -180,7 +185,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
     when(androidModel.getFeatures()).thenReturn(androidModelFeatures);
 
     AndroidFacet androidFacet = Facets.createAndAddAndroidFacet(module);
-    androidFacet.getConfiguration().setModel(androidModel);
+    AndroidModel.set(androidFacet, androidModel);
   }
 
   private static void setUpModuleAsGradleModule(@NotNull Module module) {

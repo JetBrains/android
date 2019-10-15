@@ -16,11 +16,17 @@
 package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.templates.GradleFileMergers;
+import com.intellij.openapi.util.text.StringUtil;
+import java.util.Comparator;
+import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class DependenciesDslElement extends GradleDslBlockElement {
   @NonNls public static final String DEPENDENCIES_BLOCK_NAME = "dependencies";
+
+  public static final Comparator comparator = Comparator.comparing(GradleDslElement::getName, GradleFileMergers.CONFIGURATION_ORDERING);
 
   public DependenciesDslElement(@NotNull GradleDslElement parent) {
     super(parent, GradleNameElement.create(DEPENDENCIES_BLOCK_NAME));
@@ -34,5 +40,19 @@ public class DependenciesDslElement extends GradleDslBlockElement {
         dependency instanceof GradleDslExpressionList) {
       super.addParsedElement(dependency);
     }
+  }
+
+  @Override
+  @NotNull
+  public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
+    List<GradleDslElement> es = getAllElements();
+    int i = 0;
+    for (; i < es.size(); i++) {
+      if (comparator.compare(es.get(i), newElement) > 0) {
+        break;
+      }
+    }
+    addNewElementAt(i, newElement);
+    return newElement;
   }
 }

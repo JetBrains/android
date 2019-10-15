@@ -88,7 +88,7 @@ public class RenderClassLoaderTest {
     File testJarFile = File.createTempFile("RenderClassLoader", ".jar");
     FileUtil.copy(jarSource, testJarFile);
     URL testJarFileUrl = testJarFile.toURI().toURL();
-    RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader(), 0) {
+    RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader()) {
       @Override
       protected List<URL> getExternalJars() {
         return ImmutableList.of(testJarFileUrl);
@@ -112,7 +112,7 @@ public class RenderClassLoaderTest {
     File classSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/MyJarClass.class");
     byte[] classBytes = Files.readAllBytes(classSource.toPath());
 
-    RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader(), 0) {
+    RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader()) {
       @Override
       protected List<URL> getExternalJars() {
         return ImmutableList.of();

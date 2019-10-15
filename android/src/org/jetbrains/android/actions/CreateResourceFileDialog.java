@@ -4,7 +4,6 @@ package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceConstants;
 import com.android.resources.ResourceFolderType;
@@ -24,6 +23,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -289,7 +289,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   }
 
   @Nullable
-  private SourceProvider getSourceProvider() {
+  private IdeaSourceProvider getSourceProvider() {
     return CreateResourceDialogUtils.getSourceProvider(mySourceSetCombo);
   }
 

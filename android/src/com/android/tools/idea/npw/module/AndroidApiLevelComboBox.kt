@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.module
 
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import java.awt.event.ItemEvent

@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -46,6 +47,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.TimeoutUtil;
 import java.io.File;
@@ -159,10 +161,11 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   public void testIsSourceModified() throws IOException {
     File rootDirPath = Projects.getBaseDirPath(getProject());
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
-    myFacet.getConfiguration()
-      .setModel(AndroidModuleModel.create(androidProject.getName(), rootDirPath, androidProject, "debug", new IdeDependenciesFactory()));
+    AndroidModel.set(myFacet,
+                     AndroidModuleModel.create(androidProject.getName(), rootDirPath, androidProject, "debug",
+                                               new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-    assertThat(myFacet.requiresAndroidModel()).isTrue();
+    assertThat(AndroidModel.isRequired(myFacet)).isTrue();
 
     File srcDir = new File(Files.createTempDir(), "src");
     File rSrc = new File(srcDir, "com/google/example/R.java");
@@ -224,24 +227,29 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testLibRClass() throws Exception {
-    VirtualFile defaultManifest = SourceProviderManager.getInstance(myFacet).getMainManifestFile();
+    SourceProviderManager sourceProviderManager = SourceProviderManager.getInstance(myFacet);
+    VirtualFile defaultManifest = sourceProviderManager.getMainManifestFile();
 
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
     androidProject.setProjectType(AndroidProject.PROJECT_TYPE_LIBRARY);
     myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProject.PROJECT_TYPE_LIBRARY;
-    myFacet.getConfiguration().setModel(
+    AndroidModel.set(myFacet,
       AndroidModuleModel.create(androidProject.getName(),
                                 Projects.getBaseDirPath(getProject()),
                                 androidProject,
                                 "debug",
                                 new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-    assertThat(myFacet.requiresAndroidModel()).isTrue();
+    assertThat(AndroidModel.isRequired(myFacet)).isTrue();
 
     WriteAction.run(() -> {
-      File sourceProviderManifestFile = SourceProviderManager.getInstance(myFacet).getMainSourceProvider().getManifestFile();
-      FileUtil.createIfDoesntExist(sourceProviderManifestFile);
-      VirtualFile manifestFile = VfsUtil.findFileByIoFile(sourceProviderManifestFile, true);
+      VirtualFile manifestFile = sourceProviderManager.getMainManifestFile();
+      if (manifestFile == null) {
+        String manifestUrl = sourceProviderManager.getMainIdeaSourceProvider().getManifestFileUrl();
+        String manifestDirectoryUrl = VfsUtil.getParentDir(manifestUrl);
+        VirtualFile manifestDirectory = VirtualFileManager.getInstance().findFileByUrl(manifestDirectoryUrl);
+        manifestFile = manifestDirectory.createChildData(this, VfsUtil.extractFileName(manifestUrl));
+      }
       assertThat(manifestFile).named("Manifest virtual file").isNotNull();
       byte[] defaultManifestContent = defaultManifest.contentsToByteArray();
       assertNotNull(defaultManifestContent);

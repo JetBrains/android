@@ -34,11 +34,15 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import kotlin.jvm.functions.Function2;
 
 /**
  * @author nik
  */
 public class JpsAndroidModuleProperties {
+
+  public static final String PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION = ";";
+
   public String SELECTED_BUILD_VARIANT = "";
 
   public String ASSEMBLE_TASK_NAME = "";
@@ -50,7 +54,18 @@ public class JpsAndroidModuleProperties {
   @XCollection(propertyElementName = "afterSyncTasks", elementName = "task", valueAttributeName = "")
   public Set<String> AFTER_SYNC_TASK_NAMES = Sets.newHashSet();
 
-  /** False when the Android project is Gradle-based, true otherwise. */
+  /**
+   * False when the Android project is Gradle-based, true otherwise.
+   *
+   * @deprecated Please do not use directly and do not configure in tests.
+   * See {@link com.android.tools.idea.project.AndroidProjectInfo#requiresAndroidModel} and
+   * {@link com.android.tools.idea.model.AndroidModel#isRequired}.
+   * <p>
+   * If you are looking for a way to configure a lightweight project
+   * with Android model, consider using
+   * {@link com.android.tools.idea.testing.AndroidProjectRule.Companion#withAndroidModel}
+   */
+  @Deprecated
   public boolean ALLOW_USER_CONFIGURATION = true;
 
   public String GEN_FOLDER_RELATIVE_PATH_APT = "/" + SdkConstants.FD_GEN_SOURCES;
@@ -59,8 +74,21 @@ public class JpsAndroidModuleProperties {
   public String MANIFEST_FILE_RELATIVE_PATH = "/" + SdkConstants.FN_ANDROID_MANIFEST_XML;
 
   public String RES_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_RES;
+
+  /**
+   * Urls of the res folders provided by the current source providers and of the generated res folders from the main artifact
+   * separated by {@link PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION} (";").
+   */
+  // TODO(b/141909881): Consider renaming and breaking it up into smaller properties.
   public String RES_FOLDERS_RELATIVE_PATH;
+
+  /**
+   * Urls of the res folders provided by the current test source providers and of the generated res folders from the androidTest artifact
+   * separated by {@link PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION} (";").
+   */
+  // TODO(b/141909881): Consider renaming and breaking it up into smaller properties.
   public String TEST_RES_FOLDERS_RELATIVE_PATH;
+
   public String ASSETS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_ASSETS;
   public String LIBS_FOLDER_RELATIVE_PATH = "/" + SdkConstants.FD_NATIVE_LIBS;
 

@@ -93,7 +93,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
     List<ToolWindowDefinition<String>> definitions = ImmutableList.of(PalettePanelToolContent.getDefinition(),
                                                                       PalettePanelToolContent.getOtherDefinition(),
                                                                       PalettePanelToolContent.getThirdDefinition());
-    myWorkBench.init(myContent, "CONTEXT", definitions);
+    myWorkBench.init(myContent, "CONTEXT", definitions, false);
     myToolWindow1 = myModel.getAllTools().get(0);
     myToolWindow2 = myModel.getAllTools().get(1);
     myToolWindow3 = myModel.getAllTools().get(2);
@@ -128,6 +128,34 @@ public class WorkBenchTest extends WorkBenchTestCase {
     myWorkBench.setToolContext("Google");
     assertThat(myModel.getContext()).isEqualTo("Google");
   }
+
+  public void testToolWindowDefaultUpdatesOnContextChange() {
+    // Default context was set before initializing the workbench, so tool window property is properly defined.
+    assertThat(myToolWindow1.isLeft()).isTrue();
+    myWorkBench.setContext("NewContext");
+
+    // Defaults are not automatically updated when setting a new workbench context, so all properties are false by default.
+    assertThat(myToolWindow1.isLeft()).isFalse();
+
+    myWorkBench.setDefaultPropertiesForContext(false);
+    // After updating defaults, tool window properties should work properly.
+    assertThat(myToolWindow1.isLeft()).isTrue();
+  }
+
+  public void testWindowsMinimizedByDefault() {
+    // Workbench was initialized with MINIMIZED default set to false.
+    assertThat(myToolWindow1.isMinimized()).isFalse();
+
+    myWorkBench.setContext("testWindowsMinimizedByDefault1");
+    myWorkBench.setDefaultPropertiesForContext(true);
+    // After updating defaults, MINIMIZED property should have been set to true.
+    assertThat(myToolWindow1.isMinimized()).isTrue();
+
+    myWorkBench.setContext("testWindowsMinimizedByDefault2");
+    myWorkBench.setDefaultPropertiesForContext(false);
+    assertThat(myToolWindow1.isMinimized()).isFalse();
+  }
+
 
   public void testAutoHide() {
     myToolWindow1.setAutoHide(true);

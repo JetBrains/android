@@ -19,16 +19,12 @@ import com.android.ide.common.signing.KeystoreHelper
 import com.android.ide.common.signing.KeytoolException
 import com.android.prefs.AndroidLocation
 import com.android.prefs.AndroidLocation.AndroidLocationException
-import com.android.tools.idea.gradle.parser.BuildFileKey
-import com.android.tools.idea.gradle.parser.GradleSettingsFile
-import com.android.tools.idea.gradle.parser.NamedObject
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.utils.StdLogger
 import com.google.common.base.Strings
 import com.google.common.io.BaseEncoding
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.util.Computable
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -92,19 +88,22 @@ object KeystoreUtils {
    *
    * @return null if there is no custom debug keystore configured, or if the project is not a Gradle project.
    */
-  @Suppress("UNCHECKED_CAST")
   private fun getGradleDebugKeystore(facet: AndroidFacet): File? {
-    val gradleSettingsFile = GradleSettingsFile.get(facet.module.project) ?: return null
-    val modulePath = GradleSettingsFile.getModuleGradlePath(facet.module) ?: return null
-    val moduleBuildFile = gradleSettingsFile.getModuleBuildFile(modulePath) ?: return null
+    val projectBuildModel = ProjectBuildModel.get(facet.module.project)
+    val gradleBuildModel = projectBuildModel.getModuleBuildModel(facet.module) ?: return null
 
-    val signingConfigs = ApplicationManager.getApplication().runReadAction(
-      Computable<Iterable<NamedObject>> { moduleBuildFile.getValue(BuildFileKey.SIGNING_CONFIGS) as? Iterable<NamedObject> }) ?: return null
+    val signingConfig = gradleBuildModel.android().signingConfigs().first { "debug" == it.name() } ?: return null
 
-    val namedObject = signingConfigs.firstOrNull { "debug" == it.name && it.getValue(BuildFileKey.STORE_FILE) is File } ?: return null
-
-    val debugKey = namedObject.getValue(BuildFileKey.STORE_FILE) as File
-    return File(ModuleUtilCore.getModuleDirPath(facet.module), debugKey.path)
+    val debugStorePath = signingConfig.storeFile().valueAsString() ?: return null
+    val debugStoreFile = File(debugStorePath)
+    if (debugStoreFile.isAbsolute) {
+      return debugStoreFile
+    }
+    else {
+      // Path is relative
+      val moduleRoot = AndroidRootUtil.findModuleRootFolderPath(facet.module) ?: return debugStoreFile
+      return File(moduleRoot, debugStorePath)
+    }
   }
 
   /**

@@ -22,6 +22,7 @@ import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.editor.SplitEditor;
@@ -234,6 +235,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myInteractionManager = new InteractionManager(this);
 
     myLayeredPane = new MyLayeredPane();
+    myLayeredPane.setFocusable(true);
     myLayeredPane.setBounds(0, 0, 100, 100);
     myGlassPane = new GlassPane();
     myLayeredPane.add(myGlassPane, JLayeredPane.DRAG_LAYER);
@@ -291,7 +293,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myInteractionManager.startListening();
     //noinspection AbstractMethodCallInConstructor
     myActionManager = actionManagerProvider.apply(this);
-    myActionManager.registerActionsShortcuts(myLayeredPane, this);
+    myActionManager.registerActionsShortcuts(myLayeredPane);
 
     myVisibleSurfaceLayerPanel.add(myActionManager.createDesignSurfaceToolbar(), BorderLayout.EAST);
   }
@@ -975,7 +977,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private void notifyScaleChanged() {
     if (myZoomListeners != null) {
       for (PanZoomListener myZoomListener : myZoomListeners) {
-        myZoomListener.zoomChanged(this);
+        myZoomListener.zoomChanged();
       }
     }
   }

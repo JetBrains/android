@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.SdkConstants.*
-import com.android.tools.property.panel.api.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.TAG_DEEP_LINK
+import com.android.SdkConstants.TAG_GROUP
+import com.android.SdkConstants.TAG_ITEM
+import com.android.SdkConstants.TAG_MENU
 import com.android.tools.idea.uibuilder.model.PreferenceUtils
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.intellij.util.containers.toArray
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesTable
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
-import org.jetbrains.kotlin.util.collectionUtils.concat
 
 /**
  * An [InspectorBuilder] for the [ATTR_ID] attribute shown on top in the Nele inspector.

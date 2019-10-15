@@ -40,7 +40,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.Visual
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
-import com.android.tools.idea.uibuilder.visual.VisualizationForm;
 import com.android.tools.idea.uibuilder.visual.VisualizationManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -837,24 +836,20 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", AndroidBundle.message("android.layout.visual.tool.window.title"));
     }
 
-    Wait.seconds(20).expecting("Visualization window to be visible")
-      .until(() -> VisualizationManager.getInstance(myFrame.getProject()).getVisualizationForm().getSurface().isShowing());
+    Wait.seconds(20).expecting("Visualization window to be visible").until(() -> isVisualizationToolShowing());
 
     return new VisualizationFixture(myFrame.getProject(), myFrame.robot());
   }
 
-  public boolean isVisualizationToolShowing() {
-    return GuiQuery.getNonNull(
-      () -> VisualizationManager.getInstance(myFrame.getProject()).getVisualizationForm().getSurface().isShowing());
+  @NotNull
+  public EditorFixture waitForVisualizationToolToHide() {
+    Wait.seconds(3).expecting("visualization tool to close").until(() -> !isVisualizationToolShowing());
+    return this;
   }
 
-  public boolean isVisualizationToolVisible() {
-    return VisualizationManager.getInstance(myFrame.getProject()).isWindowVisible();
-  }
-
-  public int getVisualizationToolUpdateCount() {
+  private boolean isVisualizationToolShowing() {
     return GuiQuery.getNonNull(
-      () -> VisualizationManager.getInstance(myFrame.getProject()).getUpdateCount());
+      () -> VisualizationManager.getInstance(myFrame.getProject()).isWindowVisible());
   }
 
   /**

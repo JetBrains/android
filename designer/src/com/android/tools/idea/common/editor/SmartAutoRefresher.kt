@@ -42,7 +42,8 @@ interface SmartRefreshable : Disposable {
  * straight away.
  */
 class SmartAutoRefresher(psiFile: PsiFile,
-                         private val refreshable: SmartRefreshable) {
+                         private val refreshable: SmartRefreshable,
+                         private val onBuildStarted: (() -> Unit)? = null) {
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
 
@@ -70,6 +71,7 @@ class SmartAutoRefresher(psiFile: PsiFile,
 
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       override fun buildStarted(context: BuildContext) {
+        onBuildStarted?.invoke()
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
       }
 

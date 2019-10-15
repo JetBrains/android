@@ -53,5 +53,6 @@ public abstract class EditorDesignSurface extends AdtPrimaryPanel {
    * has completed.
    * Only call this method if the action is initiated by the user.
    */
+  @NotNull
   abstract public CompletableFuture<Void> forceUserRequestedRefresh();
 }

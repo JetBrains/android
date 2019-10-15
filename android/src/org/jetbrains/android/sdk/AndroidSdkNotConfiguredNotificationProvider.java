@@ -1,5 +1,6 @@
 package org.jetbrains.android.sdk;
 
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
@@ -49,7 +50,7 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
     if (facet == null) {
       return null;
     }
-    if (!facet.requiresAndroidModel()
+    if (!AndroidModel.isRequired(facet)
         && (AndroidResourceUtil.isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
       final AndroidPlatform platform = AndroidPlatform.getInstance(module);
 

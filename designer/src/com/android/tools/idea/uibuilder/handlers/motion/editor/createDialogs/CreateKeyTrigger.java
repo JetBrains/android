@@ -86,7 +86,7 @@ public class CreateKeyTrigger extends BaseCreateKey {
         }
       }
     });
-    grid(gbc, 0, y++);
+    grid(gbc, 0, y++,2, 1);
     gbc.weighty = 0;
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Collide width"), gbc);

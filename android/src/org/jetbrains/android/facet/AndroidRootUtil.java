@@ -17,22 +17,22 @@
 package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.common.base.Strings;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -49,17 +49,13 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getOutput;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.*;
-import static org.jetbrains.android.compiler.AndroidCompileUtil.getOutputPackage;
 import static org.jetbrains.android.maven.AndroidMavenUtil.isMavenizedModule;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.CLASSES_JAR_FILE_NAME;
@@ -72,24 +68,6 @@ public class AndroidRootUtil {
   @NonNls public static final String DEFAULT_PROPERTIES_FILE_NAME = "default.properties";
 
   private AndroidRootUtil() {
-  }
-
-  /**
-   * Returns the main manifest file of the module.
-   *
-   * @deprecated Modules can have multiple manifests. If you really want the main manifest
-   * of the module, use {@link #getPrimaryManifestFile(AndroidFacet)}, but to test if
-   * a given file is a manifest, or to process all of them, use
-   * {@link IdeaSourceProvider#isManifestFile(AndroidFacet, VirtualFile)} or
-   * {@link IdeaSourceProvider#getManifestFiles(AndroidFacet)}.
-   */
-  @Nullable
-  @Deprecated
-  public static VirtualFile getManifestFile(@NotNull AndroidFacet facet) {
-    if (facet.requiresAndroidModel()) {
-      return SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFile();
-    }
-    return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
   }
 
   /**
@@ -147,6 +125,10 @@ public class AndroidRootUtil {
     return root.getPath() + facet.getProperties().RES_FOLDER_RELATIVE_PATH;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static String getResourceDirPath(@NotNull AndroidFacet facet) {
     VirtualFile resourceDir = getResourceDir(facet);
@@ -182,45 +164,62 @@ public class AndroidRootUtil {
     return null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getAssetsDir(@NotNull AndroidFacet facet) {
     return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().ASSETS_FOLDER_RELATIVE_PATH, false);
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getLibsDir(@NotNull AndroidFacet facet) {
     return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().LIBS_FOLDER_RELATIVE_PATH, false);
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getAidlGenDir(@NotNull AndroidFacet facet) {
     String genPath = getAidlGenSourceRootPath(facet);
     return genPath != null ? LocalFileSystem.getInstance().findFileByPath(genPath) : null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getAaptGenDir(@NotNull AndroidFacet facet) {
     String genPath = getAptGenSourceRootPath(facet);
     return genPath != null ? LocalFileSystem.getInstance().findFileByPath(genPath) : null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getRenderscriptGenDir(@NotNull AndroidFacet facet) {
     String path = getRenderscriptGenSourceRootPath(facet);
     return path != null ? LocalFileSystem.getInstance().findFileByPath(path) : null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static VirtualFile getBuildconfigGenDir(@NotNull AndroidFacet facet) {
     String path = getBuildconfigGenSourceRootPath(facet);
     return path != null ? LocalFileSystem.getInstance().findFileByPath(path) : null;
-  }
-
-  // works even if there is no Android facet in a module
-
-  @Nullable
-  public static VirtualFile getStandardGenDir(@NotNull Module module) {
-    return getFileByRelativeModulePath(module, '/' + SdkConstants.FD_GEN_SOURCES, false);
   }
 
   private static void collectClassFilesAndJars(@NotNull VirtualFile root,
@@ -360,6 +359,10 @@ public class AndroidRootUtil {
     }
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @NotNull
   public static Set<VirtualFile> getDependentModules(@NotNull Module module, @NotNull VirtualFile moduleOutputDir) {
     Set<VirtualFile> files = new HashSet<>();
@@ -384,6 +387,10 @@ public class AndroidRootUtil {
   @Nullable
   @SystemIndependent
   public static String getModuleDirPath(@NotNull Module module) {
+    String linkedProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module);
+    if (!Strings.isNullOrEmpty(linkedProjectPath)) {
+      return linkedProjectPath;
+    }
     @SystemIndependent String moduleFilePath = module.getModuleFilePath();
     return VfsUtil.getParentDir(moduleFilePath);
   }
@@ -395,12 +402,20 @@ public class AndroidRootUtil {
     return new File(PathUtil.toSystemDependentName(path));
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static String getRenderscriptGenSourceRootPath(@NotNull AndroidFacet facet) {
     // todo: return correct path for mavenized module when it'll be supported
     return getAidlGenSourceRootPath(facet);
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static String getBuildconfigGenSourceRootPath(@NotNull AndroidFacet facet) {
     // todo: return correct path for mavenized module when it'll be supported
@@ -430,6 +445,10 @@ public class AndroidRootUtil {
     return contentRoots[0];
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static Pair<PropertiesFile, VirtualFile> findPropertyFile(@NotNull Module module, @NotNull String propertyFileName) {
     for (VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
@@ -444,6 +463,10 @@ public class AndroidRootUtil {
     return null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   @Nullable
   public static Pair<Properties, VirtualFile> readPropertyFile(@NotNull Module module, @NotNull String propertyFileName) {
@@ -456,12 +479,20 @@ public class AndroidRootUtil {
     return null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static Pair<Properties, VirtualFile> readProjectPropertyFile(@NotNull Module module) {
     Pair<Properties, VirtualFile> pair = readPropertyFile(module, SdkConstants.FN_PROJECT_PROPERTIES);
     return pair != null ? pair : readPropertyFile(module, DEFAULT_PROPERTIES_FILE_NAME);
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   @Nullable
   private static Pair<Properties, VirtualFile> readPropertyFile(@NotNull VirtualFile contentRoot, @NotNull String propertyFileName) {
@@ -479,6 +510,10 @@ public class AndroidRootUtil {
     return null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   public static Pair<Properties, VirtualFile> readProjectPropertyFile(@NotNull VirtualFile contentRoot) {
     Pair<Properties, VirtualFile> pair = readPropertyFile(contentRoot, SdkConstants.FN_PROJECT_PROPERTIES);
@@ -506,6 +541,10 @@ public class AndroidRootUtil {
     return result != null ? result : getPropertyValue(module, DEFAULT_PROPERTIES_FILE_NAME, propertyName);
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   @SystemIndependent
   public static String getAptGenSourceRootPath(@NotNull AndroidFacet facet) {
@@ -515,6 +554,10 @@ public class AndroidRootUtil {
     return moduleDirPath != null ? moduleDirPath + path : null;
   }
 
+  /**
+   * @deprecated Do not use. JPS project specific.
+   */
+  @Deprecated
   @Nullable
   @SystemIndependent
   public static String getAidlGenSourceRootPath(@NotNull AndroidFacet facet) {
@@ -522,29 +565,6 @@ public class AndroidRootUtil {
     if (path.isEmpty()) return null;
     @SystemIndependent String moduleDirPath = getModuleDirPath(facet.getModule());
     return moduleDirPath != null ? moduleDirPath + path : null;
-  }
-
-  @Nullable
-  @SystemDependent
-  public static String getApkPath(@NotNull AndroidFacet facet) {
-    if (facet.requiresAndroidModel()) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-      if (androidModuleModel != null) {
-        // For Android-Gradle projects, AndroidModel is not null.
-        AndroidArtifact mainArtifact = androidModuleModel.getMainArtifact();
-        AndroidArtifactOutput output = getOutput(mainArtifact);
-        File outputFile = output.getMainOutputFile().getOutputFile();
-        return outputFile.getAbsolutePath();
-      } else {
-        return null;
-      }
-    }
-    String path = facet.getProperties().APK_PATH;
-    if (path.isEmpty()) {
-      return getOutputPackage(facet.getModule());
-    }
-    @SystemIndependent String moduleDirPath = getModuleDirPath(facet.getModule());
-    return moduleDirPath != null ? toSystemDependentName(moduleDirPath + path) : null;
   }
 
   @Nullable

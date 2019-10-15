@@ -39,9 +39,10 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
   public CpuCaptureHandler(@NotNull IdeProfilerServices services,
                            @NotNull File captureFile,
                            @NotNull String configuration,
-                           @Nullable String captureProcessNameHint) {
+                           @Nullable String captureProcessNameHint,
+                           int captureProcessIdHint) {
     myCaptureParser = new CpuCaptureParser(services);
-    myCaptureParser.setProcessNameHint(captureProcessNameHint);
+    myCaptureParser.setProcessNameHint(captureProcessNameHint, captureProcessIdHint);
     myCaptureFile = captureFile;
     myServices = services;
     myConfiguration = configuration;

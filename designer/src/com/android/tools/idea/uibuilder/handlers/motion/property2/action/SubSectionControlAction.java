@@ -58,15 +58,15 @@ public class SubSectionControlAction extends AnAction {
   public void actionPerformed(@NotNull AnActionEvent event) {
     boolean isPresent = check();
     if (isPresent) {
-      MTag.TagWriter tagWriter = myLookupResult.sectionTag.getTagWriter();
+      MTag.TagWriter tagWriter = myLookupResult.subTag.getTagWriter();
       tagWriter.deleteTag();
-      tagWriter.commit("Remove " + myLookupResult.sectionName);
+      tagWriter.commit("Remove " + myLookupResult.subTagName);
     }
     else {
-      MTag.TagWriter tagWriter = MotionLayoutAttributesModel.createConstraintSectionTag(myLookupResult.selection,
-                                                                                        myLookupResult.sectionTag,
-                                                                                        myLookupResult.sectionName);
-      tagWriter.commit(String.format("Create %1$s tag", myLookupResult.sectionName));
+      MTag.TagWriter tagWriter = MotionLayoutAttributesModel.createSubTag(myLookupResult.selection,
+                                                                          myLookupResult.tag,
+                                                                          myLookupResult.subTagName);
+      tagWriter.commit(String.format("Create %1$s tag", myLookupResult.subTagName));
     }
   }
 
@@ -75,27 +75,29 @@ public class SubSectionControlAction extends AnAction {
       return false;
     }
     MotionSelection selection = MotionLayoutAttributesModel.getMotionSelection(myProperty);
-    String sectionName = MotionLayoutAttributesModel.getSubTag(myProperty);
-    if (selection == null || selection.getType() != MotionEditorSelector.Type.CONSTRAINT || sectionName == null) {
+    String subTagName = MotionLayoutAttributesModel.getSubTag(myProperty);
+    if (selection == null || subTagName == null ||
+        (selection.getType() != MotionEditorSelector.Type.CONSTRAINT &&
+         selection.getType() != MotionEditorSelector.Type.TRANSITION)) {
       return false;
     }
-    MotionSceneTag constraintTag = selection.getMotionSceneTag();
-    if (constraintTag == null) {
+    MotionSceneTag tag = selection.getMotionSceneTag();
+    if (tag == null) {
       return false;
     }
-    MotionSceneTag sectionTag = MotionLayoutAttributesModel.getConstraintSectionTag(constraintTag, sectionName);
+    MotionSceneTag subTag = MotionLayoutAttributesModel.getSubTag(tag, subTagName);
     myLookupResult.selection = selection;
-    myLookupResult.constraintTag = constraintTag;
-    myLookupResult.sectionName = sectionName;
-    myLookupResult.sectionTag = sectionTag;
+    myLookupResult.tag = tag;
+    myLookupResult.subTagName = subTagName;
+    myLookupResult.subTag = subTag;
 
-    return sectionTag != null;
+    return subTag != null;
   }
 
   private static class LookupResult {
     MotionSelection selection;
-    MotionSceneTag constraintTag;
-    String sectionName;
-    MotionSceneTag sectionTag;
+    MotionSceneTag tag;
+    String subTagName;
+    MotionSceneTag subTag;
   }
 }

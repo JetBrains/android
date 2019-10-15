@@ -48,12 +48,10 @@ import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
 import static com.android.SdkConstants.XMLNS_ANDROID;
 import static com.android.SdkConstants.XMLNS_URI;
-import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.FULL_EXPAND;
 import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.V_SCROLL;
 
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -274,14 +272,7 @@ public class LayoutPullParsers {
       return MenuLayoutParserFactory.createInNavigationView(file);
     }
 
-    if (task.supportsCapability(Features.ACTION_BAR)) {
-      return MenuLayoutParserFactory.create(file, task.getLayoutlibCallback());
-    }
-
-    task.setDecorations(false);
-    task.setRenderingMode(FULL_EXPAND);
-
-    return new MenuPreviewRenderer(task.getContext(), file).render();
+    return MenuLayoutParserFactory.create(file, task.getLayoutlibCallback());
   }
 
   @Nullable

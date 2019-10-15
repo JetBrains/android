@@ -47,7 +47,6 @@ public class ErrorPanel extends JPanel {
     myBanner.setText("Motion Editor cannot be used");
     myBanner.setOpaque(true);
     myBanner.setMinimumSize(new Dimension(1,MEUI.scale(16)));
-    Debug.log("ourBannerColor " + Integer.toHexString(MEUI.ourBannerColor.getRGB()));
     myBanner.setBackground(MEUI.ourBannerColor);
     add(myBanner, gbc);
     gbc.gridy++;
@@ -113,7 +112,6 @@ public class ErrorPanel extends JPanel {
     }
     error = str;
     myErrorLabel.setText(error);
-    System.out.println("ERROR      " + error);
     return error == null;
   }
 

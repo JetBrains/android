@@ -171,21 +171,14 @@ public class GradleApkProvider implements ApkProvider {
           break;
 
         case AppBundleOutputModel:
+          Module baseAppModule = myFacet.getModule();
           if (projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
             // If it's instrumented test for dynamic feature module, the base-app module is retrieved,
             // and then Apks from bundle are able to be extracted.
-            ApkInfo apkFromBundleInfo = null;
-            Module baseAppModule = DynamicAppUtils.getBaseFeature(myFacet.getModule());
-
-            if (baseAppModule != null) {
-              apkFromBundleInfo = DynamicAppUtils.collectAppBundleOutput(baseAppModule, myOutputModelProvider, pkgName);
-            }
-            if (apkFromBundleInfo != null) {
-              apkList.add(apkFromBundleInfo);
-            }
+            baseAppModule = DynamicAppUtils.getBaseFeature(myFacet.getModule());
           }
-          else {
-            ApkInfo apkInfo = DynamicAppUtils.collectAppBundleOutput(myFacet.getModule(), myOutputModelProvider, pkgName);
+          if (baseAppModule != null) {
+            ApkInfo apkInfo = DynamicAppUtils.collectAppBundleOutput(baseAppModule, myOutputModelProvider, pkgName);
             if (apkInfo != null) {
               apkList.add(apkInfo);
             }
@@ -362,7 +355,7 @@ public class GradleApkProvider implements ApkProvider {
                 int apiWithSplitApk = AndroidVersion.ALLOW_SPLIT_APK_INSTALLATION.getApiLevel();
                 if (!device.getVersion().isGreaterOrEqualThan(apiWithSplitApk)) {
                   // b/119663247
-                  throw new ApkProvisionException("Testing dynamic features on devices API < 21 is not currently supported.");
+                  throw new ApkProvisionException("Running Instrumented Tests for Dynamic Features is currently not supported on API < 21.");
                 }
                 outputs.addAll(testVariantBuildOutput.getOutputs());
               }

@@ -22,7 +22,6 @@ import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.attemptToUseEmbeddedGradle;
-import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
 import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.GradleUtil.hasCause;
 import static com.google.common.base.Strings.nullToEmpty;
@@ -144,11 +143,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      // See https://code.google.com/p/android/issues/detail?id=169743
-      clearStoredGradleJvmArgs(getProject());
-    }
-
     myProgressIndicator = indicator;
 
     ProjectManager projectManager = ProjectManager.getInstance();

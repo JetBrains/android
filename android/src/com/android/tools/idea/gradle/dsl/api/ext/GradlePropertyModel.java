@@ -27,6 +27,16 @@ import java.util.Map;
 /**
  * This class represents a property or variable declared or referenced by the ExtraPropertiesExtension
  * of the projects Gradle build. It allows access to the properties name, values and dependencies.
+ *
+ * The following methods can be used to obtain values of different types from this class:
+ * <ul>
+ *   <li>{@link #valueAsString()}<li/>
+ *   <li>{@link #toInt()}<li/>
+ *   <li>{@link #toBoolean()}</li>
+ *   <li>{@link #toBigDecimal()}</li>
+ *   <li>{@link #toList()}<li/>
+ *   <li>{@link #toMap()}<li/>
+ * <ul/>
  */
 public interface GradlePropertyModel {
   @NotNull
@@ -249,10 +259,18 @@ public interface GradlePropertyModel {
   PsiElement getFullExpressionPsiElement();
 
   /**
+   * Prefer calls to {@link #valueAsString()}.
+   *
    * @return the value of the property as a String or null if no value exists or is of an incorrect type.
    */
   @Nullable
   String toString();
+
+  /**
+   * @return the value of the property as a String or null if no value exists or is of an incorrect type.
+   */
+  @Nullable
+  String valueAsString();
 
   /**
    * @return the value of the property as a String or throws an exception by asserting not null.

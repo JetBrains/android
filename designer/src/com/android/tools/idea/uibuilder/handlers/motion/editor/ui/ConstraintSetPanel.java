@@ -23,12 +23,23 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScroll
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,6 +55,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
@@ -57,11 +69,8 @@ class ConstraintSetPanel extends JPanel {
   MotionEditorSelector mListeners;
   private static boolean DEBUG = false;
   ArrayList<MTag> mParent; // mParent.get(0) is the direct parent
-  MTag mConstraintSet;
+  MTag mConstraintSet; // The currently displayed constraintSet
   ArrayList<MTag> mDisplayedRows = new ArrayList<>();
-  boolean building = false;
-  Icon[] types = {MEIcons.LIST_STATE, MEIcons.LIST_GRAY_STATE, MEIcons.LIST_LAYOUT};
-  String[] mask = {"Value", "Layout", "Motion", "Transform", "PropertySet"};
   JPopupMenu myPopupMenu = new JPopupMenu();
 
   DefaultTableModel mConstraintSetModel = new DefaultTableModel(
@@ -129,6 +138,7 @@ class ConstraintSetPanel extends JPanel {
 
     }
   };
+  private String mConstraintSetId;
 
   ConstraintSetPanel() {
     super(new BorderLayout());
@@ -140,6 +150,7 @@ class ConstraintSetPanel extends JPanel {
     mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(16));
     mConstraintSetTable.setShowHorizontalLines(false);
     JCheckBox cbox = new JCheckBox("All");
+
     cbox.setSelected(true);
     cbox.addActionListener(e -> {
                              showAll = cbox.isSelected();
@@ -152,7 +163,16 @@ class ConstraintSetPanel extends JPanel {
     left.add(label = new JLabel(")", SwingConstants.LEFT));
     makeRightMenu(right);
     right.add(cbox);
+    KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK, false);
 
+    KeyStroke paste = KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK, false);
+    ActionListener copyListener = e -> copy();
+    ActionListener pasteListener = e -> {
+      paste();
+    };
+    mConstraintSetTable.registerKeyboardAction(copyListener, "Copy", copy, JComponent.WHEN_FOCUSED);
+    mConstraintSetTable.registerKeyboardAction(pasteListener, "Paste", paste, JComponent.WHEN_FOCUSED);
+ 
     mConstraintSetTable.getSelectionModel().addListSelectionListener(
       e -> {
         if (mBuildingTable) {
@@ -221,15 +241,107 @@ class ConstraintSetPanel extends JPanel {
     }
   }
 
+  private void copy() {
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    clipboard.setContents(new StringSelection(MTag.serializeTag(mSelectedTag)), new ClipboardOwner() {
+      @Override
+      public void lostOwnership(Clipboard clipboard, Transferable contents) {
+
+      }
+    });
+  }
+
+  private void paste() {
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+    try {
+      String buff = (String)(clipboard.getContents(this).getTransferData(DataFlavor.stringFlavor));
+      StringMTag pastedTag = StringMTag.parse(buff);
+      HashMap<String, Attribute> attr = pastedTag.getAttrList();
+
+      if (mSelectedTag != null) {
+        String tagName = mSelectedTag.getTagName();
+
+        if ("Constraint".equals(tagName)) { // overwriting a constraint
+          HashMap<String, Attribute> toDel = new HashMap<>(mSelectedTag.getAttrList());
+
+          toDel.remove(MotionSceneAttrs.ATTR_ANDROID_ID);
+
+          MTag.TagWriter writer = mSelectedTag.getTagWriter();
+          if (writer == null) {
+            return;
+          }
+
+          for (String s : toDel.keySet()) {
+            Attribute a = toDel.get(s);
+            writer.setAttribute(a.mNamespace, a.mAttribute, null);
+          }
+          for (String s : attr.keySet()) {
+            Attribute a = attr.get(s);
+            if (a == null || a.mAttribute.equals("id")) {
+              continue;
+            }
+
+            writer.setAttribute(a.mNamespace, a.mAttribute, a.mValue);
+          }
+          MTag[] children = pastedTag.getChildTags();
+          for (int i = 0; i < children.length; i++) {
+            MTag child = children[i];
+            MTag.TagWriter cw = writer.getChildTagWriter(child.getTagName());
+            HashMap<String, Attribute> cwAttrMap = pastedTag.getAttrList();
+            for (String cwAttrStr : cwAttrMap.keySet()) {
+              Attribute cwAttr = cwAttrMap.get(cwAttrStr);
+              cw.setAttribute(cwAttr.mNamespace, cwAttr.mAttribute, cwAttr.mValue);
+            }
+          }
+          writer.commit("paste");
+        }
+        else if (!"Guideline".equals(tagName)) { // overwriting a
+          String id = mSelectedTag.getAttributeValue(MotionSceneAttrs.ATTR_ANDROID_ID);
+          MTag.TagWriter writer = mConstraintSet.getChildTagWriter("Constraint");
+          for (String s : attr.keySet()) {
+            Attribute a = attr.get(s);
+            if (a == null || a.mAttribute.equals(MotionSceneAttrs.ATTR_ANDROID_ID)) {
+              writer.setAttribute(a.mNamespace, a.mAttribute, "@+id/" + Utils.stripID(id));
+            }
+            else {
+
+              writer.setAttribute(a.mNamespace, a.mAttribute, a.mValue);
+            }
+          }
+          MTag[] children = pastedTag.getChildTags();
+          for (int i = 0; i < children.length; i++) {
+            MTag child = children[i];
+            MTag.TagWriter cw = writer.getChildTagWriter(child.getTagName());
+            HashMap<String, Attribute> cwAttrMap = pastedTag.getAttrList();
+            for (String cwAttrStr : cwAttrMap.keySet()) {
+              Attribute cwAttr = cwAttrMap.get(cwAttrStr);
+              cw.setAttribute(cwAttr.mNamespace, cwAttr.mAttribute, cwAttr.mValue);
+            }
+          }
+          writer.commit("paste");
+        }
+      }
+    }
+    catch (UnsupportedFlavorException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   private void makeRightMenu(JPanel right) {
     mModifyMenu = MEUI.createToolBarButton(MEIcons.EDIT_MENU, MEIcons.EDIT_MENU_DISABLED, "modify constraint set");
     right.add(mModifyMenu);
     mModifyMenu.setEnabled(false);
     myPopupMenu.add(createConstraint);
-    myPopupMenu.add(createSectionedConstraint);
-    myPopupMenu.add(moveConstraint);
     myPopupMenu.add(clearConstraint);
-    myPopupMenu.add(overrideConstraint);
+    if (DEBUG) {
+      myPopupMenu.add(moveConstraint);
+      myPopupMenu.add(createSectionedConstraint);
+      myPopupMenu.add(overrideConstraint);
+    }
     mModifyMenu.addActionListener(e -> {
       myPopupMenu.show(mModifyMenu, 0, 0);
     });
@@ -260,6 +372,7 @@ class ConstraintSetPanel extends JPanel {
         return;
       }
       else {
+        String cset_id = Utils.stripID(mConstraintSet.getAttributeValue("id"));
         MTag[] sets = mConstraintSet.getChildTags("Constraint");
         String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
 
@@ -271,10 +384,8 @@ class ConstraintSetPanel extends JPanel {
           row[1] = id;
           ArrayList<MTag> children = constraint.getChildren();
           HashMap<String, Attribute> attrs = constraint.getAttrList();
-          // row[2] = getMask(children, attrs, id);
-          row[2] = (derived == null) ? "layout" : findFirstDefOfView(id, mConstraintSet);
+          row[2] = cset_id;
           row[0] = MEIcons.LIST_STATE;
-
           mDisplayedRows.add(constraint);
           mConstraintSetModel.addRow(row);
         }
@@ -313,7 +424,6 @@ class ConstraintSetPanel extends JPanel {
   }
 
   private String findFirstDefOfView(String viewId, MTag constraintSet) {
-
     MTag[] sets = constraintSet.getChildTags("Constraint");
     for (int i = 0; i < sets.length; i++) {
       String cid = Utils.stripID(sets[i].getAttributeValue("id"));
@@ -352,19 +462,16 @@ class ConstraintSetPanel extends JPanel {
 
   public void setMTag(@Nullable MTag constraintSet, @NotNull MeModel meModel) {
     if (DEBUG) {
+      if (constraintSet == null) {
+        Debug.logStack("setMTag constraintSet = null", 4);
+      }
       Debug.log("ConstraintSetPanel.setMTag constraintSet = " + constraintSet);
       Debug.log("ConstraintSetPanel.setMTag motionScene = " + meModel.motionScene);
       Debug.log("ConstraintSetPanel.setMTag layout = " + meModel.layout);
     }
-    int[] row = mConstraintSetTable.getSelectedRows();
-    String[] selected = new String[row.length];
-    for (int i = 0; i < row.length; i++) {
-      selected[i] = (String)mConstraintSetModel.getValueAt(row[i], 1);
-      if (DEBUG) {
-        Debug.log("ConstraintSetPanel.setMTag  selected "+ selected[i]);
-      }
-    }
+    String[] selected = mMeModel != null ? mMeModel.getSelectedViewIDs() : new String[0];
     mMeModel = meModel;
+
     mConstraintSet = constraintSet;
     mDerived = null;
     if (mConstraintSet != null) {
@@ -376,23 +483,26 @@ class ConstraintSetPanel extends JPanel {
         MTag[] constraintSets = meModel.motionScene.getChildTags("ConstraintSet");
         mParent = getDerived(constraintSets, mDerived);
       }
-      mTitle.setText(Utils.stripID(mConstraintSet.getAttributeValue("id")));
+      mConstraintSetId = Utils.stripID(mConstraintSet.getAttributeValue("id"));
+      mTitle.setText(mConstraintSetId);
+    }
+    else {
+      if (mConstraintSetId != null) {
+        mConstraintSet = mMeModel.getConstraintSet(mConstraintSetId);
+      }
     }
     buildTable();
 
     HashSet<String> selectedSet = new HashSet<>(Arrays.asList(selected));
     for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
       String id = (String)mConstraintSetModel.getValueAt(i, 1);
-      if (DEBUG) {
-        Debug.log("ConstraintSetPanel.setMTag id "+ id );
-      }
       if (selectedSet.contains(id)) {
         mConstraintSetTable.addRowSelectionInterval(i, i);
       }
     }
   }
 
-  public void clearSelection(){
+  public void clearSelection() {
     mConstraintSetTable.clearSelection();
   }
 
@@ -424,10 +534,14 @@ class ConstraintSetPanel extends JPanel {
 
       @Override
       public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
+        ArrayList<String> selectedIds = new ArrayList<>();
         if (in) { // simple block for selection triggering selection.
           return;
         }
         in = true;
+        if (DEBUG) {
+          Debug.log(" selectionChanged " + selection);
+        }
         if (selection == MotionEditorSelector.Type.CONSTRAINT) {
           HashSet<String> selectedSet = new HashSet<>();
 
@@ -441,12 +555,27 @@ class ConstraintSetPanel extends JPanel {
           for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
             String id = (String)mConstraintSetModel.getValueAt(i, 1);
             if (selectedSet.contains(id)) {
+              selectedIds.add(id);
               mConstraintSetTable.addRowSelectionInterval(i, i);
             }
           }
         }
+        if (isVisible() && selection.equals(MotionEditorSelector.Type.CONSTRAINT)) {
+          mMeModel.setSelectedViewIDs(selectedIds);
+        }
         in = false;
       }
     });
+  }
+
+  public void selectById(String[] ids) {
+    HashSet<String> selectedSet = new HashSet<>(Arrays.asList(ids));
+    mConstraintSetTable.clearSelection();
+    for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
+      String id = (String)mConstraintSetModel.getValueAt(i, 1);
+      if (selectedSet.contains(id)) {
+        mConstraintSetTable.addRowSelectionInterval(i, i);
+      }
+    }
   }
 }

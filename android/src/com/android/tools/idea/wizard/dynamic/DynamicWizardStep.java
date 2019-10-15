@@ -251,7 +251,7 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    * which will be called to update the value associated with a single key.
    * @param modified set of the changed keys
    */
-  public void deriveValues(Set<Key> modified) {
+  public void deriveValues(Set<? extends Key> modified) {
 
   }
 

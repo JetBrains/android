@@ -111,6 +111,7 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module, test]",
         "//tools/idea/.idea/libraries:transport-proto[test]",
         "//tools/idea/.idea/libraries:studio-proto[test]",

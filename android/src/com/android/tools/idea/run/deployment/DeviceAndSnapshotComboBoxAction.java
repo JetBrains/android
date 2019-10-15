@@ -121,6 +121,10 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     myClock = clock;
   }
 
+  boolean areSnapshotsEnabled() {
+    return mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get();
+  }
+
   @NotNull
   @VisibleForTesting
   final AnAction getRunOnMultipleDevicesAction() {
@@ -155,7 +159,6 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     PropertiesComponent properties = myGetProperties.apply(project);
     String keyAsString = properties.getValue(SELECTED_DEVICE);
 
-    // TODO Make sure the constructor can handle a device and snapshot key combination string
     Object key = keyAsString == null ? null : new Key(keyAsString);
 
     Optional<Device> optionalSelectedDevice = devices.stream()
@@ -403,7 +406,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       assert device != null;
 
       presentation.setIcon(device.getIcon());
-      presentation.setText(Devices.getText(device, devices), false);
+      presentation.setText(getText(device, devices, mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()), false);
     }
 
     updateExecutionTargetManager(project, device);
@@ -440,6 +443,25 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     presentation.setDescription(null);
     presentation.setEnabled(true);
+  }
+
+  /**
+   * Formats the selected device for display in the drop down button. If there's another device with the same name, the text will have the
+   * selected device's key appended to it to disambiguate it from the other one. If the SNAPSHOTS_ENABLED flag is on and the device has a
+   * nondefault snapshot, the text will have the snapshot's name appended to it. Finally, if the {@link
+   * com.android.tools.idea.run.LaunchCompatibilityChecker LaunchCompatibilityChecker} found issues with the device, the text will have the
+   * issue appended to it.
+   *
+   * @param device           the selected device
+   * @param devices          the devices to check if any other has the same name as the selected device. The selected device may be in the
+   *                         collection.
+   * @param snapshotsEnabled the value of the SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED flag. Passed this way for testability.
+   */
+  @NotNull
+  @VisibleForTesting
+  static String getText(@NotNull Device device, @NotNull Collection<Device> devices, boolean snapshotsEnabled) {
+    boolean anotherDeviceHasSameName = Devices.containsAnotherDeviceWithSameName(devices, device);
+    return Devices.getText(device, anotherDeviceHasSameName ? device.getKey() : null, snapshotsEnabled ? device.getSnapshot() : null);
   }
 
   private static void updateExecutionTargetManager(@NotNull Project project, @Nullable Device device) {

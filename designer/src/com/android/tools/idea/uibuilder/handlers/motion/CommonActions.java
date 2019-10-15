@@ -209,7 +209,7 @@ public class CommonActions {
 
    public static boolean getPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
     actions.add(new BaseLineToggleViewAction());
-    actions.add(new ClearConstraintsSelectedComponentsAction());
+    //TODO add actions.add(new ClearConstraintsSelectedComponentsAction());
     actions.add(new ChainCycleViewAction());
 
     actions.add(new DisappearingActionMenu("Constrain", CREATE_CONSTRAINTS, ConstraintViewActions.CONNECT_ACTIONS));

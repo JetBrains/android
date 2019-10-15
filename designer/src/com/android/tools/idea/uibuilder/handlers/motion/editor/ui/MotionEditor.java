@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEList;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.METabbedPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
@@ -38,6 +39,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -77,9 +80,12 @@ public class MotionEditor extends JPanel {
   JScrollPane mOverviewScrollPane = new MEScrollPane(mOverviewPanel);
   CardLayout mCardLayout = new CardLayout();
   JPanel mCenterPanel = new JPanel(mCardLayout);
-  private static String LAYOUT_PANEL = "Layout";
-  private static String TRANSITION_PANEL = "Transition";
-  private static String CONSTRAINTSET_PANEL = "ConstraintSet";
+  private static final String LAYOUT_PANEL = "Layout";
+  private static final String TRANSITION_PANEL = "Transition";
+  private static final String CONSTRAINTSET_PANEL = "ConstraintSet";
+  private String mCurrentlyDisplaying = CONSTRAINTSET_PANEL;
+  private final List<Command> myCommandListeners = new ArrayList<>();
+
   CreateConstraintSet mCreateConstraintSet = new CreateConstraintSet();
   CreateOnClick mCreateOnClick = new CreateOnClick();
   CreateOnSwipe mCreateOnSwipe = new CreateOnSwipe();
@@ -89,6 +95,7 @@ public class MotionEditor extends JPanel {
   JPopupMenu myPopupMenu = new JPopupMenu();
   private static final String MAIN_PANEL = "main";
   private static final String ERROR_PANEL = "error";
+
   @Override
   public void updateUI() {
     super.updateUI();
@@ -117,6 +124,33 @@ public class MotionEditor extends JPanel {
     notifyListeners(type, tag);
   }
 
+  /**
+   * This will selected the views or ConstraintSets based on the ids
+   *
+   * @param ids
+   */
+  public void selectById(String[] ids) {
+    switch (mCurrentlyDisplaying) {
+      case LAYOUT_PANEL:
+        mLayoutPanel.selectByIds(ids);
+        break;
+      case CONSTRAINTSET_PANEL:
+        mConstraintSetPanel.selectById(ids);
+        break;
+      case TRANSITION_PANEL:
+    }
+  }
+
+  public void addCommandListener(Command command) {
+    myCommandListeners.add(command);
+  }
+
+  private void fireCommand(Command.Action action, MTag[] tags) {
+    for (Command listener : myCommandListeners) {
+      listener.perform(action, tags);
+    }
+  }
+
   enum LayoutMode {
     VERTICAL_LAYOUT,
     HORIZONTAL_LAYOUT,
@@ -133,7 +167,7 @@ public class MotionEditor extends JPanel {
 
   public MotionEditor() {
     super(new CardLayout());
-    mErrorSwitchCard = (CardLayout) getLayout();
+    mErrorSwitchCard = (CardLayout)getLayout();
     mMainPanel = new JPanel(new BorderLayout());
     add(mMainPanel, MAIN_PANEL);
     add(myErrorPanel, ERROR_PANEL);
@@ -159,7 +193,7 @@ public class MotionEditor extends JPanel {
     ui.setBackground(MEUI.ourPrimaryPanelBackground);
     mCombinedListPanel.setPreferredSize(new Dimension(10, 100));
     mTopPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mCombinedListPanel, mOverviewScrollPane);
-    //  layoutTop(LayoutMode.HORIZONTAL_LAYOUT);
+    mTopPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, MEUI.ourBorder));
 
     ui.add(mTopPanel);
     ui.add(mCenterPanel, BorderLayout.CENTER);
@@ -175,11 +209,35 @@ public class MotionEditor extends JPanel {
     mConstraintSetPanel.setBackground(MEUI.ourPrimaryPanelBackground);
     mCombinedListPanel.setBackground(MEUI.ourPrimaryPanelBackground);
     mOverviewPanel.setBorder(BorderFactory.createEmptyBorder());
+    mTransitionPanel.addTimeLineListener(new TimeLineListener() {
+      @Override
+      public void command(MotionEditorSelector.TimeLineCmd cmd, float pos) {
+        switch (cmd) {
 
-    mOverviewPanel.setSelectionListener(e -> {
-      selectTag(e);
+          case MOTION_PROGRESS:
+            mOverviewPanel.setTransitionProgress(pos);
+            break;
+          case MOTION_PLAY:
+            break;
+          case MOTION_STOP:
+            mOverviewPanel.setTransitionProgress(Float.NaN);
+            break;
+        }
+      }
     });
+    MTagActionListener mTagActionListener = new MTagActionListener() {
+      @Override
+      public void select(MTag selected) {
+        selectTag(selected);
+      }
 
+      @Override
+      public void delete(MTag[] tags) {
+        fireCommand(Command.Action.DELETE, tags);
+      }
+    };
+    mOverviewPanel.setActionListener(mTagActionListener);
+    mTransitionPanel.setActionListener(mTagActionListener);
     mMainPanel.add(ui);
     JPanel toolbarLeft = new JPanel(new FlowLayout(FlowLayout.LEFT));
     JPanel toolbarRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -239,7 +297,9 @@ public class MotionEditor extends JPanel {
   public void selectTag(MTag tag) {
     if (tag != null && tag.equals(mSelectedTag)) {
       mConstraintSetPanel.clearSelection();
+      mLayoutPanel.clearSelection();
       mTransitionPanel.clearSelection();
+      mMeModel.setSelectedViewIDs(new ArrayList<>()); // clear out selections because of double click
       if ("Transition".equals(tag.getTagName())) {
         notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{tag});
       }
@@ -254,9 +314,9 @@ public class MotionEditor extends JPanel {
                       @Nullable String motionSceneFileName) {
     if (myErrorPanel.validateMotionScene(motionScene)) {
       mErrorSwitchCard.show(this, MAIN_PANEL);
-    } else {
+    }
+    else {
       mErrorSwitchCard.show(this, ERROR_PANEL);
-
     }
     setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
   }
@@ -290,6 +350,7 @@ public class MotionEditor extends JPanel {
       mOverviewPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
       mConstraintSetPanel.setMTag(asConstraintSet(newSelection), mMeModel);
       mTransitionPanel.setMTag(asTransition(newSelection), mMeModel);
+      mSelectedTag = newSelection;
     }
     finally {
       mUpdatingModel = false;
@@ -365,7 +426,7 @@ public class MotionEditor extends JPanel {
     if (index >= 0) {
       MTag[] c_sets = mCombinedListPanel.mMotionScene.getChildTags("ConstraintSet");
       if (0 < index) {
-        mCardLayout.show(mCenterPanel, CONSTRAINTSET_PANEL);
+        mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = CONSTRAINTSET_PANEL);
         MTag selectedConstraintSet = c_sets[index - 1];
         notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET,
                         new MTag[]{selectedConstraintSet});
@@ -373,7 +434,7 @@ public class MotionEditor extends JPanel {
         mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
       }
       else {
-        mCardLayout.show(mCenterPanel, LAYOUT_PANEL);
+        mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = LAYOUT_PANEL);
         mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
         notifyListeners(MotionEditorSelector.Type.LAYOUT,
                         (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
@@ -386,7 +447,7 @@ public class MotionEditor extends JPanel {
   void transitionSelection() {
     int index = mCombinedListPanel.getSelectedTransition();
     mOverviewPanel.setTransitionSetIndex(index);
-    mCardLayout.show(mCenterPanel, TRANSITION_PANEL);
+    mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = TRANSITION_PANEL);
     MTag[] transitions = mCombinedListPanel.mMotionScene.getChildTags("Transition");
     if (transitions.length == 0) {
       constraintSetSelection();
@@ -632,8 +693,8 @@ public class MotionEditor extends JPanel {
   class ConstraintSetListPanel extends BaseListPanel {
 
     boolean building = false;
-    JList<String> mConstraintSetList = new JList<>();
-    JScrollPane mTListPane = new JScrollPane(mConstraintSetList);
+    JList<String> mConstraintSetList = new MEList<>();
+    JScrollPane mTListPane = new MEScrollPane(mConstraintSetList);
 
     ConstraintSetListPanel() {
       add(mTListPane, BorderLayout.CENTER);
@@ -689,5 +750,14 @@ public class MotionEditor extends JPanel {
     public int getSelected() {
       return mConstraintSetList.getSelectedIndex();
     }
+  }
+
+  public interface Command {
+    enum Action {
+      DELETE,
+      COPY,
+    }
+
+    void perform(Action action, MTag[] tag);
   }
 }

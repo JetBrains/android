@@ -21,7 +21,6 @@ import com.android.SdkConstants.ATTR_BACKGROUND_TINT
 import com.android.SdkConstants.ATTR_DRAWABLE_LEFT
 import com.android.SdkConstants.ATTR_DRAWABLE_RIGHT
 import com.android.SdkConstants.ATTR_TEXT_COLOR
-import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
@@ -30,6 +29,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.util.InspectorBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.google.common.truth.Truth.assertThat
@@ -37,8 +37,8 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -55,28 +55,11 @@ class ResourceLookupResolverTest {
   val edtRule = EdtRule()
 
   @Before
-  fun setUp() {
-    projectRule.fixture.testDataPath = getTestDataPath()
-    projectRule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML)
-    projectRule.fixture.copyFileToProject("res/color/app_text_color.xml")
-    projectRule.fixture.copyFileToProject("res/drawable/background_choice.xml")
-    projectRule.fixture.copyFileToProject("res/drawable/battery.xml")
-    projectRule.fixture.copyFileToProject("res/drawable/dsl1.xml")
-    projectRule.fixture.copyFileToProject("res/drawable/dsl2.xml")
-    projectRule.fixture.copyFileToProject("res/drawable/dsl3.xml")
-    projectRule.fixture.copyFileToProject("res/drawable/vd.xml")
-    projectRule.fixture.copyFileToProject("res/layout/demo.xml")
-    projectRule.fixture.copyFileToProject("res/layout-w800dp/demo.xml")
-    projectRule.fixture.copyFileToProject("res/values/colors.xml")
-    projectRule.fixture.copyFileToProject("res/values/drawables.xml")
-    projectRule.fixture.copyFileToProject("res/values-land/colors.xml")
-    projectRule.fixture.copyFileToProject("res/values/strings.xml")
-    projectRule.fixture.copyFileToProject("res/values/styles.xml")
-    projectRule.fixture.copyFileToProject("res/values-land/styles.xml")
-  }
+  fun setUp() = InspectorBuilder.setUpDemo(projectRule)
 
-  private fun getTestDataPath(): String =
-    AndroidTestBase.getModulePath("layout-inspector") + "/testData/resource"
+
+  @After
+  fun tearDown() = InspectorBuilder.tearDownDemo()
 
   private fun createResourceLookupResolver(theme: String, vararg qualifiers: String): ResourceLookupResolver {
     // We will always get qualifiers from the device.

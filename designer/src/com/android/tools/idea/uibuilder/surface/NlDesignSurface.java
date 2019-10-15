@@ -73,7 +73,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.pom.Navigatable;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
@@ -81,6 +80,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -212,6 +212,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public interface NavigationHandler extends Disposable {
 
     /**
+     * Returns the list of file names that the handler can navigate.
+     */
+    @NotNull Set<String> getFileNames();
+
+    /**
      * Triggered when preview in the design surface is clicked.
      */
     void handleNavigate(SceneView view, ImmutableList<NlModel> models, boolean editor);
@@ -335,6 +340,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   public SceneMode getSceneMode() {
     return mySceneMode;
+  }
+
+  @Nullable
+  public NavigationHandler getNavigationHandler() {
+    return myNavigationHandler;
   }
 
   public void setScreenMode(@NotNull SceneMode sceneMode, boolean setAsDefault) {
@@ -710,6 +720,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     layoutContent();
   }
 
+  @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
     ArrayList<CompletableFuture<Void>> refreshFutures = new ArrayList<>();
@@ -735,7 +746,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   protected double getMinScale() {
-    return Math.max(getFitScale(false), 0.01);
+    return Math.max(getFitScale(true), 0.01);
   }
 
   @Override
@@ -802,11 +813,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return false;
     }
 
-    if (StudioFlags.NELE_SIMPLER_RESIZE.get()) {
-      return true;
-    }
-
-    return Configuration.CUSTOM_DEVICE_ID.equals(device.getId());
+    return true;
   }
 
   @Override
@@ -826,10 +833,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (resizeZone.contains(mouseX, mouseY) && isResizeAvailable()) {
       Configuration configuration = getConfiguration();
       assert configuration != null;
-
-      if (StudioFlags.NELE_SIMPLER_RESIZE.get()) {
-        return new SimplerCanvasResizeInteraction(this, screenView, configuration);
-      }
       return new CanvasResizeInteraction(this, screenView, configuration);
     }
 

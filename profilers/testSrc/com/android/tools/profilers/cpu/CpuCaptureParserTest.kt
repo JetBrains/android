@@ -248,7 +248,7 @@ class CpuCaptureParserTest {
   fun parsingPerfettoWithProcessNameHintAutoSelectsProcess() {
     val services = FakeIdeProfilerServices()
     val parser = CpuCaptureParser(services)
-    parser.setProcessNameHint("surfaceflinger")
+    parser.setProcessNameHint("surfaceflinger", 0)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     // Now enable the flag and try to parse it again, assume the user canceled the dialog. If the dialog is shown.
     services.setListBoxOptionsIndex(-1)

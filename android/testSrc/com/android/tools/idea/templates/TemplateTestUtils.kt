@@ -22,6 +22,7 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
 import com.android.tools.idea.lint.LintIdeClient
 import com.android.tools.idea.lint.LintIdeIssueRegistry
@@ -32,12 +33,15 @@ import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.templates.Parameter.Type
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.Template.CATEGORY_PROJECTS
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_TOOLS_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_LANGUAGE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_RES_OUT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_BUILD_API
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
@@ -84,6 +88,12 @@ internal fun isBroken(templateName: String): Boolean {
   if (SystemInfo.isWindows) {
     if ("AidlFile" == templateName) return true
   }
+
+  if ("ComposeActivity" == templateName && !StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()) {
+    // TODO(parentej) b/141304798 (needs dependencies in prebuilts + kotlin with compose)
+    return true
+  }
+
   return false
 }
 
@@ -254,7 +264,7 @@ internal fun addIconsIfNecessary(activityState: TestTemplateWizardState) {
   if (activityState.template.metadata?.iconName == null) {
     return
   }
-  val drawableFolder = File(FileUtil.join(activityState.getString(TemplateMetadata.ATTR_RES_OUT)), FileUtil.join("drawable"))
+  val drawableFolder = File(FileUtil.join(activityState.getString(ATTR_RES_OUT)), FileUtil.join("drawable"))
   drawableFolder.mkdirs()
   val fileName = StringEvaluator().evaluate(activityState.template.metadata!!.iconName!!, activityState.templateValues)
   val sourceFile = File(AndroidTestBase.getTestDataPath(), FileUtil.join("drawables", "progress_horizontal.xml"))
@@ -339,8 +349,8 @@ private fun Element.readSdkAttribute(sdkAttr: String): Int {
 
 internal fun Element.toOption() = Option(
   id = getAttribute(SdkConstants.ATTR_ID),
-  minSdk = readSdkAttribute(TemplateMetadata.ATTR_MIN_API),
-  minBuild =  readSdkAttribute(TemplateMetadata.ATTR_MIN_BUILD_API)
+  minSdk = readSdkAttribute(ATTR_MIN_API),
+  minBuild =  readSdkAttribute(ATTR_MIN_BUILD_API)
   )
 
 internal fun getCheckKey(category: String, name: String, createWithProject: Boolean) = "$category:$name:$createWithProject"

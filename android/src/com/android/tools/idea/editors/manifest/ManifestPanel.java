@@ -1044,7 +1044,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     if (file != null) {
       String source = null;
 
-      Module libraryModule = null;
       Module[] modules = ModuleManager.getInstance(facet.getModule().getProject()).getModules();
       VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
       if (vFile != null) {
@@ -1101,29 +1100,12 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
       sb.addHtml("<a href=\"");
 
-      boolean redirected = false;
-      if (libraryModule != null) {
-        AndroidFacet libraryFacet = AndroidFacet.getInstance(libraryModule);
-        if (libraryFacet != null) {
-          File manifestFile = SourceProviderManager.getInstance(libraryFacet).getMainSourceProvider().getManifestFile();
-          if (manifestFile.exists()) {
-            sb.add(manifestFile.toURI().toString());
-            redirected = true;
-            // Line numbers probably aren't right
-            sourcePosition = SourcePosition.UNKNOWN;
-            // TODO: Set URL which points to the element/attribute path
-          }
-        }
-      }
-
-      if (!redirected) {
-        sb.add(file.toURI().toString());
-        if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
-          sb.add(":");
-          sb.add(String.valueOf(sourcePosition.getStartLine()));
-          sb.add(":");
-          sb.add(String.valueOf(sourcePosition.getStartColumn()));
-        }
+      sb.add(file.toURI().toString());
+      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
+        sb.add(":");
+        sb.add(String.valueOf(sourcePosition.getStartLine()));
+        sb.add(":");
+        sb.add(String.valueOf(sourcePosition.getStartColumn()));
       }
       sb.addHtml("\">");
 

@@ -21,6 +21,7 @@ import com.android.tools.property.panel.impl.ui.WatermarkPanel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil.escapeProperty
 import java.awt.BorderLayout
@@ -105,6 +106,7 @@ class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposabl
       activeView = view
     }
     mainPage.clear()
+    mainPage.dataProviderDelegate = activeModel as? DataProvider
     view.main.attachToInspector(mainPage)
     if (view.tabs.isNotEmpty()) {
       mainPage.addSeparatorBeforeTabs()
@@ -115,6 +117,7 @@ class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposabl
       val page = lookupPage(index)
       tab.attachToInspector(page)
       page.component.putClientProperty(PROPERTY_TAB_NAME, tab.name)
+      page.dataProviderDelegate = activeModel as? DataProvider
     }
     pages.subList(view.tabs.size, pages.size).clear()
     val preferredTab = PropertiesComponent.getInstance().getValue(RECENT_TAB_PREFIX + escapeProperty(view.id, true))

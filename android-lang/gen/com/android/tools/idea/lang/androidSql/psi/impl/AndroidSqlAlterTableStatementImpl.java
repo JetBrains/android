@@ -18,9 +18,13 @@
 
 package com.android.tools.idea.lang.androidSql.psi.impl;
 
+import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.util.PsiTreeUtil;
+import static com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.androidSql.psi.*;
 
@@ -47,20 +51,50 @@ public class AndroidSqlAlterTableStatementImpl extends ASTWrapperPsiElement impl
 
   @Override
   @Nullable
-  public AndroidSqlDatabaseName getDatabaseName() {
-    return findChildByClass(AndroidSqlDatabaseName.class);
+  public AndroidSqlColumnName getColumnName() {
+    return findChildByClass(AndroidSqlColumnName.class);
   }
 
   @Override
   @NotNull
-  public AndroidSqlDefinedTableName getDefinedTableName() {
-    return findNotNullChildByClass(AndroidSqlDefinedTableName.class);
+  public AndroidSqlSingleTableStatementTable getSingleTableStatementTable() {
+    return findNotNullChildByClass(AndroidSqlSingleTableStatementTable.class);
   }
 
   @Override
   @Nullable
   public AndroidSqlTableDefinitionName getTableDefinitionName() {
     return findChildByClass(AndroidSqlTableDefinitionName.class);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getBacktickLiteral() {
+    return findChildByType(BACKTICK_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getDoubleQuoteStringLiteral() {
+    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getIdentifier() {
+    return findChildByType(IDENTIFIER);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getSingleQuoteStringLiteral() {
+    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
   }
 
 }

@@ -15,10 +15,19 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.stubs.android.*;
+import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
+import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.DependenciesStub;
+import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -26,16 +35,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.testFramework.PlatformTestCase;
+import java.io.File;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-
-import java.io.File;
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.tools.idea.Projects.getBaseDirPath;
 
 
 
@@ -161,7 +165,7 @@ public class ConflictResolutionTest extends PlatformTestCase {
       File rootDirPath = getBaseDirPath(myProject);
       AndroidModuleModel model =
         AndroidModuleModel.create(myModule.getName(), rootDirPath, myAppModel, appVariant.getName(), myDependenciesFactory);
-      facet.getConfiguration().setModel(model);
+      AndroidModel.set(facet, model);
       facetModel.addFacet(facet);
     }
     finally {
@@ -178,7 +182,7 @@ public class ConflictResolutionTest extends PlatformTestCase {
       File moduleFilePath = new File(myLibModule.getModuleFilePath());
       AndroidModuleModel model = AndroidModuleModel
         .create(myModule.getName(), moduleFilePath.getParentFile(), myLibModel, libVariant.getName(), myDependenciesFactory);
-      androidFacet.getConfiguration().setModel(model);
+      AndroidModel.set(androidFacet, model);
 
       facetModel.addFacet(androidFacet);
 

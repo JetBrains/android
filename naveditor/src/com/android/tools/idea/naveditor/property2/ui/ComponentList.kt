@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property2.ui
 
+import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.property.inspector.NAV_LIST_COMPONENT_NAME
 import com.intellij.ui.ColoredListCellRenderer
@@ -23,7 +24,6 @@ import com.intellij.ui.components.JBList
 import java.awt.BorderLayout
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
-import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 
 /**
@@ -32,7 +32,8 @@ import javax.swing.ListSelectionModel
  * [model]: the list of NlComponents to display
  * [cellRenderer]: the renderer to apply to each list item
  */
-class ComponentList(model: SortedListModel<NlComponent>, cellRenderer: ColoredListCellRenderer<NlComponent>) : JPanel(BorderLayout()) {
+class ComponentList(model: SortedListModel<NlComponent>, cellRenderer: ColoredListCellRenderer<NlComponent>)
+  : AdtSecondaryPanel(BorderLayout()) {
   val list = JBList<NlComponent>(model)
 
   init {
@@ -44,7 +45,7 @@ class ComponentList(model: SortedListModel<NlComponent>, cellRenderer: ColoredLi
 
     list.addFocusListener(object : FocusAdapter() {
       override fun focusGained(event: FocusEvent?) {
-        if(list.model.size > 0 && list.selectedIndex < 0) {
+        if (list.model.size > 0 && list.selectedIndex < 0) {
           list.selectedIndex = 0
         }
       }

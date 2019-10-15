@@ -56,7 +56,8 @@ class ResourceExplorerDialog(
     val resourceValue = initialResourceUrl?.let {
       ResourceValue.reference(initialResourceUrl)?.takeIf { it.resourceName != null && it.type != null }
     }
-    val resourceType = resourceValue?.type?.takeIf { supportedTypes.contains(it) } ?: preferredType
+    // Check if the inferred ResourceType is valid for the supported types, fallback to the preferred type value.
+    val resourceType = resourceValue?.type?.takeIf { supportedTypes.contains(it) } ?: preferredType?.takeIf { supportedTypes.contains(it) }
     return@run ResourceExplorer.createResourcePicker(facet,
                                                      getSortedResourceTypes(supportedTypes),
                                                      resourceValue?.resourceName,

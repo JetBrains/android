@@ -24,6 +24,10 @@ import com.intellij.psi.PsiElement;
 
 public class ProguardR8Visitor extends PsiElementVisitor {
 
+  public void visitAccessModifier(@NotNull ProguardR8AccessModifier o) {
+    visitPsiElement(o);
+  }
+
   public void visitAnnotationName(@NotNull ProguardR8AnnotationName o) {
     visitPsiElement(o);
   }
@@ -64,12 +68,12 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitField(@NotNull ProguardR8Field o) {
-    visitClassMember(o);
+  public void visitConstructorName(@NotNull ProguardR8ConstructorName o) {
+    visitClassMemberName(o);
   }
 
-  public void visitFieldsModifier(@NotNull ProguardR8FieldsModifier o) {
-    visitPsiElement(o);
+  public void visitField(@NotNull ProguardR8Field o) {
+    visitClassMember(o);
   }
 
   public void visitFieldsSpecification(@NotNull ProguardR8FieldsSpecification o) {
@@ -82,6 +86,10 @@ public class ProguardR8Visitor extends PsiElementVisitor {
 
   public void visitFlagArgument(@NotNull ProguardR8FlagArgument o) {
     visitPsiElement(o);
+  }
+
+  public void visitFullyQualifiedNameConstructor(@NotNull ProguardR8FullyQualifiedNameConstructor o) {
+    visitClassMember(o);
   }
 
   public void visitJavaPrimitive(@NotNull ProguardR8JavaPrimitive o) {
@@ -98,10 +106,6 @@ public class ProguardR8Visitor extends PsiElementVisitor {
 
   public void visitMethod(@NotNull ProguardR8Method o) {
     visitClassMember(o);
-  }
-
-  public void visitMethodModifier(@NotNull ProguardR8MethodModifier o) {
-    visitPsiElement(o);
   }
 
   public void visitMethodSpecification(@NotNull ProguardR8MethodSpecification o) {

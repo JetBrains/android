@@ -1523,6 +1523,52 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                           provider.generateDoc(docTargetElement, originalElement))
   }
 
+  fun testMipMapCompletionInDrawableXML() {
+    myFixture.addFileToProject(
+      "res/mipmap/mipmap.xml",
+      //language=XML
+      """
+      <adaptive-icon></adaptive-icon>
+      """.trimIndent())
+    myFixture.addFileToProject(
+        "res/mipmap/launcher.xml",
+      //language=XML
+      """
+      <adaptive-icon></adaptive-icon>
+      """.trimIndent())
+    val valuesFile = myFixture.addFileToProject(
+      "res/drawable/testDrawable.xml",
+      //language=XML
+      """
+      <selector xmlns:android="http://schemas.android.com/apk/res/android">
+           <item android:drawable="@mipmap/${caret}" />
+      </selector>
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(valuesFile.virtualFile)
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsAllOf("@mipmap/launcher", "@mipmap/mipmap")
+  }
+
+  fun testMipMapCompletionNotInValuesXML() {
+    myFixture.addFileToProject(
+      "res/mipmap/launcher.xml",
+      //language=XML
+      """
+      <adaptive-icon></adaptive-icon>
+      """.trimIndent())
+    val valuesFile = myFixture.addFileToProject(
+      "res/values/styles.xml",
+      //language=XML
+      """
+      <resources>
+        <drawable name="alias_for_mipmap">@mipmap/${caret}</drawable>
+      </resources>
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(valuesFile.virtualFile)
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).doesNotContain("@mipmap/launcher")
+  }
+
   fun testAttributeValueAttrCompletionDocumentation() {
     val file = myFixture.addFileToProject(
       "res/layout/activity_main.xml",

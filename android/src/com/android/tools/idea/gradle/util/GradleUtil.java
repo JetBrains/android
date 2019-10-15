@@ -39,21 +39,16 @@ import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
-import static com.intellij.openapi.ui.Messages.getQuestionIcon;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
 import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
@@ -88,7 +83,6 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfigurati
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -110,7 +104,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
@@ -131,7 +124,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
@@ -166,48 +158,6 @@ public final class GradleUtil {
   @NotNull
   public static File getCacheFolderRootPath(@NotNull Project project) {
     return new File(project.getBasePath(), join(DIRECTORY_STORE_NAME, "caches"));
-  }
-
-  public static void clearStoredGradleJvmArgs(@NotNull Project project) {
-    GradleSettings settings = GradleSettings.getInstance(project);
-    String existingJvmArgs = settings.getGradleVmOptions();
-    settings.setGradleVmOptions(null);
-    if (!isEmptyOrSpaces(existingJvmArgs)) {
-      invokeAndWaitIfNeeded((Runnable)() -> {
-        String jvmArgs = existingJvmArgs.trim();
-        String msg =
-          String.format("Starting with version 1.3, Android Studio no longer supports IDE-specific Gradle JVM arguments.\n\n" +
-                        "Android Studio will now remove any stored Gradle JVM arguments.\n\n" +
-                        "Would you like to copy these JVM arguments:\n%1$s\n" +
-                        "to the project's gradle.properties file?\n\n" +
-                        "(Any existing JVM arguments in the gradle.properties file will be overwritten.)", jvmArgs);
-
-        int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", getQuestionIcon());
-        if (result == Messages.YES) {
-          try {
-            GradleProperties gradleProperties = new GradleProperties(project);
-            gradleProperties.setJvmArgs(jvmArgs);
-            gradleProperties.save();
-          }
-          catch (IOException e) {
-            String err = String.format("Failed to copy JVM arguments '%1$s' to the project's gradle.properties file.", existingJvmArgs);
-            LOG.info(err, e);
-
-            String cause = e.getMessage();
-            if (isNotEmpty(cause)) {
-              err += String.format("<br>\nCause: %1$s", cause);
-            }
-
-            AndroidNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
-          }
-        }
-        else {
-          String text =
-            String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
-          AndroidNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
-        }
-      });
-    }
   }
 
   public static boolean isSupportedGradleVersion(@NotNull GradleVersion gradleVersion) {

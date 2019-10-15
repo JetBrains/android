@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -34,9 +35,15 @@ import com.intellij.ide.dnd.DnDManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -51,6 +58,7 @@ import com.intellij.ui.speedSearch.NameFilteringListModel
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
@@ -80,10 +88,12 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
+private const val DEFAULT_GRID_MODE = false
+
+private val DEFAULT_LIST_MODE_WIDTH get() = JBUI.scale(60)
 private val MAX_CELL_WIDTH get() = JBUI.scale(300)
 private val LIST_CELL_SIZE get() = JBUI.scale(60)
 private val MIN_CELL_WIDTH get() = JBUI.scale(150)
-private const val DEFAULT_GRID_MODE = false
 private val DEFAULT_CELL_WIDTH get() = LIST_CELL_SIZE
 private val SECTION_HEADER_SECONDARY_COLOR get() = JBColor.border()
 
@@ -143,7 +153,7 @@ class ResourceExplorerListView(
   private var fileToSelect: VirtualFile? = null
   private var resourceToSelect: String? = null
 
-  var previewSize = DEFAULT_CELL_WIDTH
+  private var previewSize = DEFAULT_CELL_WIDTH
     set(value) {
       if (value != field) {
         field = value
@@ -153,7 +163,7 @@ class ResourceExplorerListView(
       }
     }
 
-  var gridMode: Boolean by Delegates.observable(
+  private var gridMode: Boolean by Delegates.observable(
     DEFAULT_GRID_MODE) { _, _, newValue ->
     val backgroundColor = if (newValue) GRID_MODE_BACKGROUND else LIST_MODE_BACKGROUND
     centerPanel.background = backgroundColor
@@ -208,6 +218,21 @@ class ResourceExplorerListView(
       add(moduleSearchView)
     }
   }
+
+  private val footerPanel = JPanel(BorderLayout()).apply {
+    border = JBUI.Borders.customLine(JBColor.border(), 1, 0, 0, 0)
+
+    add(ActionManager.getInstance().createActionToolbar(
+      "resourceExplorer",
+      createBottomActions(), true).component, BorderLayout.EAST)
+  }
+
+  private val contentPanel: JPanel =
+    JPanel(BorderLayout()).apply {
+      add(topActionsPanel, BorderLayout.NORTH)
+      add(centerPanel)
+      add(footerPanel, BorderLayout.SOUTH)
+    }
 
   /**
    * Mouse listener to invoke the popup menu.
@@ -278,21 +303,17 @@ class ResourceExplorerListView(
   }
 
   private fun showDetailView(designAssetSet: ResourceAssetSet) {
-    val parent = parent
-    parent.remove(this)
     val previousSelectedValue = sectionList.selectedValue
 
-    val detailView = ResourceDetailView(designAssetSet, viewModel) { detailView ->
-      parent.remove(detailView)
-      parent.add(this@ResourceExplorerListView)
-      parent.revalidate()
-      parent.repaint()
+    val detailView = ResourceDetailView(designAssetSet, viewModel) {
+      setContentPanel()
       sectionList.selectedValue = previousSelectedValue
     }
 
-    parent.add(detailView)
-    parent.revalidate()
-    parent.repaint()
+    removeAll()
+    add(detailView)
+    revalidate()
+    repaint()
     detailView.requestFocusInWindow()
   }
 
@@ -346,7 +367,10 @@ class ResourceExplorerListView(
   init {
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
 
-    viewModel.resourceChangedCallback = {
+    viewModel.updateUiCallback = { reason ->
+      if (reason == UpdateUiReason.RESOURCE_TYPE_CHANGED) {
+        setContentPanel()
+      }
       populateExternalActions()
       populateResourcesLists()
       populateSearchLinkLabels()
@@ -364,7 +388,7 @@ class ResourceExplorerListView(
       populateSearchLinkLabels()
     }
 
-    add(getContentPanel())
+    setContentPanel()
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
       override fun getFirstComponent(p0: Container?): Component {
@@ -373,11 +397,12 @@ class ResourceExplorerListView(
     }
   }
 
-  private fun getContentPanel(): JPanel =
-    JPanel(BorderLayout()).apply {
-      add(topActionsPanel, BorderLayout.NORTH)
-      add(centerPanel)
-    }
+  private fun setContentPanel() {
+    removeAll()
+    add(contentPanel)
+    revalidate()
+    repaint()
+  }
 
   private fun getSelectedAssets(): List<Asset> {
     return sectionList.getLists()
@@ -661,5 +686,79 @@ class ResourceExplorerListView(
     DnDManager.getInstance().unregisterTarget(resourceImportDragTarget, this)
     populateResourcesFuture?.cancel(true)
     searchFuture?.cancel(true)
+  }
+
+  private fun createBottomActions(): DefaultActionGroup {
+    return DefaultActionGroup(
+      ListModeButton(),
+      GridModeButton(),
+      Separator(),
+      ZoomMinus(),
+      ZoomPlus()
+    )
+  }
+
+  /**
+   * Button to enable the list view
+   */
+  private inner class ListModeButton
+    : ToggleAction("List mode", "Switch to list mode", StudioIcons.Common.LIST_VIEW),
+      DumbAware {
+
+    override fun isSelected(e: AnActionEvent) = !gridMode
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      if (state) {
+        ResourceManagerTracking.logSwitchToListMode()
+        gridMode = false
+        previewSize = DEFAULT_LIST_MODE_WIDTH
+      }
+    }
+  }
+
+  /**
+   * Button to enable the grid view
+   */
+  private inner class GridModeButton
+    : ToggleAction("Grid mode", "Switch to grid mode", StudioIcons.Common.GRID_VIEW),
+      DumbAware {
+
+    override fun isSelected(e: AnActionEvent) = gridMode
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      if (state) {
+        ResourceManagerTracking.logSwitchToGridMode()
+        gridMode = true
+        previewSize = MIN_CELL_WIDTH
+      }
+    }
+  }
+
+  /**
+   * Button to scale down the icons. It is only enabled in grid mode.
+   */
+  private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", AllIcons.General.ZoomOut), DumbAware {
+
+    override fun actionPerformed(e: AnActionEvent) {
+      previewSize = max(MIN_CELL_WIDTH, (previewSize * 0.9).roundToInt())
+    }
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = gridMode && previewSize > MIN_CELL_WIDTH
+    }
+  }
+
+  /**
+   * Button to scale up the icons. It is only enabled in grid mode.
+   */
+  private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", AllIcons.General.ZoomIn), DumbAware {
+
+    override fun actionPerformed(e: AnActionEvent) {
+      previewSize = min(MAX_CELL_WIDTH, (previewSize * 1.1).roundToInt())
+    }
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = gridMode && previewSize < MAX_CELL_WIDTH
+    }
   }
 }

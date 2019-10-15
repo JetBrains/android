@@ -34,6 +34,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.util.IncorrectOperationException
+import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
+import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
 import org.jetbrains.kotlin.idea.intentions.branchedTransformations.isNullExpressionOrEmptyBlock
 import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.name.Name
@@ -249,8 +251,10 @@ fun gradleNameFor(expression: KtExpression): String? {
     override fun visitReferenceExpression(expression: KtReferenceExpression) {
       when (expression) {
         is KtSimpleNameExpression -> {
-          lastExtra = (expression.text == "extra")
-          sb.append(if (lastExtra) "ext" else expression.text)
+          when (val text = expression.text) {
+            "extra" -> { lastExtra = true; sb.append("ext") }
+            else -> sb.append(text)
+          }
         }
         else -> super.visitReferenceExpression(expression)
       }
@@ -413,6 +417,11 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
           psiElement.delete()
         }
       }
+      is KtDotQualifiedExpression -> {
+        if (psiElement.selectorExpression == null) {
+          psiElement.delete()
+        }
+      }
     }
   }
 
@@ -455,7 +464,8 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
 
   val psiFactory = KtPsiFactory(parentPsiElement.project)
   val expressionRightValue =
-    if (expressionValue is KtConstantExpression) expressionValue.text else StringUtil.unquoteString(expressionValue.text).addQuotes(true)
+    if (expressionValue is KtConstantExpression || expressionValue is KtNameReferenceExpression) expressionValue.text
+    else StringUtil.unquoteString(expressionValue.text).addQuotes(true)
   val argumentStringExpression =
     "${expression.name.addQuotes(true)} to $expressionRightValue"
   val mapArgument = psiFactory.createExpression(argumentStringExpression)
@@ -531,10 +541,13 @@ internal fun getKtBlockExpression(psiElement: PsiElement) : KtBlockExpression? {
   return (psiElement as? KtCallExpression)?.lambdaArguments?.lastOrNull()?.getLambdaExpression()?.bodyExpression
 }
 
-internal fun maybeUpdateName(element : GradleDslElement) {
-  val oldName = element.nameElement.namedPsiElement
-  val newName = element.nameElement.localName
-  if (newName == null || oldName == null) return
+internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter) {
+  val oldName = element.nameElement.namedPsiElement ?: return
+  val localName = element.nameElement.localName ?: return
+  val newName = when (val parent = element.parent) {
+    null -> localName
+    else -> writer.externalNameForParent(localName, parent)
+  }
 
   val newElement : PsiElement
   if (oldName is PsiNamedElement) {
@@ -542,16 +555,26 @@ internal fun maybeUpdateName(element : GradleDslElement) {
     newElement = oldName
   }
   else {
+    val project = element.psiElement?.project ?: return
+    val factory = KtPsiFactory(project)
     val psiElement : PsiElement = if (oldName.node.elementType == IDENTIFIER) {
-      KtPsiFactory(element.psiElement?.project).createNameIdentifier(newName)
+      factory.createNameIdentifier(newName)
+    } else if (oldName.node.elementType == STRING_TEMPLATE) {
+      factory.createExpression(StringUtil.unquoteString(newName).addQuotes(true))
+    }
+    // TODO(b/141842964): this is a bandage over the fact that we don't (yet) have a principled translation from Psi to Dsl to Psi.  We
+    //  parse extra["foo"] to ext.foo, so when writing we have to do the reverse.
+    else if (oldName.node.elementType == ARRAY_ACCESS_EXPRESSION && newName.startsWith("ext.")) {
+      val extraExpression = "extra[\"${newName.substring("ext.".length, newName.length)}\"]"
+      factory.createExpression(extraExpression)
     } else {
-      KtPsiFactory(element.psiElement?.project).createExpression(newName)
+      factory.createExpression(newName)
     }
 
     // For Kotlin, committing changes is a bit different, and if the psiElement is invalid, it throws an exception (unlike Groovy), so we
     // need to check if the oldName is still valid, otherwise, we use the psiElement created to update the name.
     if (!oldName.isValid) {
-      element.nameElement.commitNameChange(psiElement)
+      element.nameElement.commitNameChange(psiElement, writer, element.parent)
       return
     }
     else {
@@ -559,7 +582,7 @@ internal fun maybeUpdateName(element : GradleDslElement) {
     }
   }
 
-  element.nameElement.commitNameChange(newElement)
+  element.nameElement.commitNameChange(newElement, writer, element.parent)
 }
 
 internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDslElement) {

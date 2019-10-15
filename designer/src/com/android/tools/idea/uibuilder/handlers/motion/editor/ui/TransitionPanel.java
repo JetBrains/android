@@ -121,4 +121,8 @@ public class TransitionPanel extends JPanel {
   public void clearSelection() {
     mTimeLinePanel.clearSelection();
   }
+
+  public void setActionListener(MTagActionListener listener) {
+    mTimeLinePanel.setActionListener(listener);
+  }
 }

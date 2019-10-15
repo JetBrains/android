@@ -32,9 +32,25 @@ import java.util.concurrent.CompletableFuture
  */
 interface ResourceExplorerListViewModel {
   /**
-   * callback called when the resource model has change. This happens when the facet is changed.
+   * The reason why [updateUiCallback] is being called.
    */
-  var resourceChangedCallback: (() -> Unit)?
+  enum class UpdateUiReason {
+    /**
+     * Resource information has changed, caused by adding/editing/removing resources or from changing Module, so the list of resources has
+     * to be refreshed.
+     */
+    RESOURCES_CHANGED,
+    /**
+     * Resource Type of the model has changed, after this, the view should reset back to showing the list of resources if it was in any
+     * other state, like showing resource configurations.
+     */
+    RESOURCE_TYPE_CHANGED
+  }
+
+  /**
+   * Callback called when the model has changed. Could happened for anything listed in [UpdateUiReason].
+   */
+  var updateUiCallback: ((UpdateUiReason) -> Unit)?
 
   /**
    * Callback called when the [AndroidFacet] is changed.

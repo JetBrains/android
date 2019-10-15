@@ -21,7 +21,9 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getKotlinVersionForTests;
+import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.write;
@@ -114,7 +116,7 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
 
-      String kotlinVersion = getKotlinVersionForTests().split("-")[0];
+      String kotlinVersion = getKotlinVersionForTests(); //.split("-")[0]; // for compose
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
       // App compat version needs to match compile SDK
@@ -148,7 +150,7 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
       contents = replaceRegexGroup(contents, "compileSdkVersion\\((.+)\\)", buildEnvironment.getCompileSdkVersion());
       contents = replaceRegexGroup(contents, "targetSdkVersion\\((.+)\\)", buildEnvironment.getTargetSdkVersion());
-
+      contents = replaceRegexGroup(contents, "minSdkVersion\\((.*)\\)", buildEnvironment.getMinSdkVersion());
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
@@ -164,17 +166,17 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String updateCompileSdkVersion(@NotNull String contents) {
-    return replaceRegexGroup(contents, "compileSdkVersion ([0-9]+)", BuildEnvironment.getInstance().getCompileSdkVersion());
+    return replaceRegexGroup(contents, "compileSdkVersion[ (]([0-9]+)", BuildEnvironment.getInstance().getCompileSdkVersion());
   }
 
   @NotNull
   public static String updateTargetSdkVersion(@NotNull String contents) {
-    return replaceRegexGroup(contents, "targetSdkVersion ([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+    return replaceRegexGroup(contents, "targetSdkVersion[ (]([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
   }
 
   @NotNull
   public static String updateMinSdkVersion(@NotNull String contents) {
-    String regex = "minSdkVersion ([0-9]+)";
+    String regex = "minSdkVersion[ (]([0-9]+)";
     Pattern pattern = Pattern.compile(regex);
     Matcher matcher = pattern.matcher(contents);
     String minSdkVersion = BuildEnvironment.getInstance().getMinSdkVersion();
@@ -415,5 +417,16 @@ public class AndroidGradleTests {
         !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
       TestCase.fail(cause);
     }
+  }
+
+  public static void defaultPatchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion,
+                                                 @Nullable String gradlePluginVersion) throws IOException {
+    // Override settings just for tests (e.g. sdk.dir)
+    updateLocalProperties(projectRoot, getSdk());
+    // We need the wrapper for import to succeed
+    createGradleWrapper(projectRoot, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
+
+    // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
+    updateGradleVersions(projectRoot, gradlePluginVersion);
   }
 }

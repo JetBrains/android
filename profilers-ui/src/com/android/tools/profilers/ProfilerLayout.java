@@ -91,6 +91,11 @@ public class ProfilerLayout {
   public static final int CPU_HIDEABLE_PANEL_TITLE_LEFT_PADDING = 7;
   public static final int CPU_HIDEABLE_PANEL_TITLE_ICON_TEXT_GAP = 6;
 
+  /**
+   * Used in CustomEventTrackRenderer to set the preferred height.
+   */
+  public static final int CUSTOM_EVENT_VISUALIZATION_TRACK_HEIGHT = 100;
+
   private ProfilerLayout() {
     // Static class designed to hold constants only
   }

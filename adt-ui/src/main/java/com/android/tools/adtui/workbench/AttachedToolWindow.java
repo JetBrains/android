@@ -36,7 +36,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.accessibility.ScreenReader;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -100,16 +99,14 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
                      @NotNull ButtonDragListener<T> dragListener,
                      @NotNull WorkBench<T> workBench,
-                     @NotNull SideModel<T> model) {
+                     @NotNull SideModel<T> model,
+                     boolean minimizedByDefault) {
     myWorkBench = workBench;
     myDefinition = definition;
     myDragListener = dragListener;
     myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = model;
     myPanel = new JPanel(new BorderLayout());
-    if (!ScreenReader.isActive()) {
-      myPanel.setFocusCycleRoot(true);
-    }
     myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myActionButtons = new ArrayList<>(4);
     myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
@@ -118,6 +115,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     setDefaultProperty(PropertyType.LEFT, definition.getSide().isLeft());
     setDefaultProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
+    setDefaultProperty(PropertyType.MINIMIZED, minimizedByDefault);
     updateContent();
     DumbService.getInstance(model.getProject()).smartInvokeLater(this::updateActions);
     AnAction globalFindAction = ActionManager.getInstance().getAction(ACTION_FIND);

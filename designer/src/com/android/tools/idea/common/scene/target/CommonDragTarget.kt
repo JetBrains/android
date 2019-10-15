@@ -30,6 +30,8 @@ import com.android.tools.idea.common.scene.draw.ColorSet
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
+import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutPlaceholder
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
@@ -318,9 +320,9 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       draggedComponents.forEachIndexed { index, it ->
         val expectedX = if (index == 0) targetSnapperX else targetSnapperX + offsets[0].x - offsets[index].x
         val expectedY = if (index == 0) targetSnapperY else targetSnapperY + offsets[0].y - offsets[index].y
-        val trans = it.authoritativeNlComponent.startAttributeTransaction()
-        ph!!.updateLiveAttribute(it, trans, expectedX, expectedY)
-        trans.apply()
+        var modification = ComponentModification(it.authoritativeNlComponent, "Dragging component")
+        ph!!.updateLiveAttribute(it, modification, expectedX, expectedY)
+        modification.apply()
       }
 
       if (myComponent.scene.isLiveRenderingEnabled) {
@@ -384,12 +386,12 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     val anchor = placeholder.findNextSibling(myComponent, placeholder.host)?.nlComponent
 
     val attributesTransactions = draggedComponents.map {
-      val transaction = it.authoritativeNlComponent.startAttributeTransaction()
-      if (!isPlaceholderLiveUpdatable(placeholder)) {
+      val modification = ComponentModification(it.authoritativeNlComponent, "Drag component")
+      if (!isPlaceholderLiveUpdatable(placeholder) || placeholder is MotionLayoutPlaceholder) {
         // In constraint layout case, the attributes are updated during mouse dragging.
-        placeholder.updateAttribute(it, transaction)
+        placeholder.updateAttribute(it, modification)
       }
-      transaction
+      modification
     }
     model.addComponents(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface) {
       attributesTransactions.forEach { it.commit() }

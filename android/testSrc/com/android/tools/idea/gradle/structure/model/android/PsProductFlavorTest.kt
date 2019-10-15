@@ -33,9 +33,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 class PsProductFlavorTest : AndroidGradleTestCase() {
 
-  fun testDescriptor() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
-
+  private fun doTestDescriptor() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -49,9 +47,17 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
                equalTo(PsProductFlavor.ProductFlavorDescriptors.testEnumerateProperties()))
   }
 
-  fun testProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+  fun testDescriptorGroovy() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestDescriptor()
+  }
 
+  fun testDescriptorKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestDescriptor()
+  }
+
+  private fun doTestProperties() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -114,7 +120,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
         PsProductFlavor.ProductFlavorDescriptors.getParsed(productFlavor)?.targetSdkVersion()?.valueType,
         equalTo(GradlePropertyModel.ValueType.INTEGER))
       assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("20"))
-      // TODO(b/71988818) assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("19"))
+      assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("20"))
 
       assertThat(testApplicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.paid.test"))
@@ -180,9 +186,17 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     }
   }
 
-  fun testDimensions() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+  fun testPropertiesGroovy() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestProperties()
+  }
 
+  fun testPropertiesKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestProperties()
+  }
+
+  private fun doTestDimensions() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
 
@@ -197,9 +211,17 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       hasItems(ValueDescriptor("foo", "foo"), ValueDescriptor("bar", "bar")))
   }
 
-  fun testChangingDimensions() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+  fun testDimensionsGroovy() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestDimensions()
+  }
 
+  fun testDimensionsKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestDimensions()
+  }
+
+  private fun doTestChangingDimensions() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
 
@@ -212,15 +234,24 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     assertThat(productFlavor.configuredDimension, equalTo("foo".asParsed()))
 
     var changed = false
-    appModule.productFlavors.onChange(testRootDisposable) { changed = true}
+    appModule.productFlavors.onChange(testRootDisposable) { changed = true }
 
     productFlavor.configuredDimension = "bar".asParsed()
     assertThat(productFlavor.configuredDimension, equalTo("bar".asParsed()))
     assertThat(changed, equalTo(true))
   }
 
-  fun testEffectiveDimensions() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+  fun testChangingDimensionsGroovy() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestChangingDimensions()
+  }
+
+  fun testChangingDimensionsKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestChangingDimensions()
+  }
+
+  private fun doTestEffectiveDimensions() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
 
@@ -254,8 +285,18 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     }
   }
 
+  fun testEffectiveDimensionsGroovy() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestEffectiveDimensions()
+  }
+
+  fun testEffectiveDimensionsKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestEffectiveDimensions()
+  }
+
   fun testSetProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -329,7 +370,6 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(
         signingConfig.parsedValue,
         equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.myConfig")).annotated()))
-      // TODO(b/71988818)
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
       assertThat(matchingFallbacks.parsedValue.asTestValue(), equalTo(listOf("free")))
@@ -351,7 +391,6 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
         assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(minSdkVersion.resolved.asTestValue()))
         assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))
         // TODO(b/79142681) signingConfig resolved value is always null.
-        // TODO(b/71988818)
         assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(targetSdkVersion.resolved.asTestValue()))
         assertThat(testApplicationId.parsedValue.asTestValue(), equalTo(testApplicationId.resolved.asTestValue()))
         // Note: Resolved values of matchingFallbacks property are not available.

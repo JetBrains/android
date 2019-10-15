@@ -33,6 +33,8 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_EMPTY_FAKE_ARTIFACT_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_FOLLOW_MULTIPLE_REFERENCES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_GET_ONLY_ARTIFACTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_INSERTION_ORDER;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_INSERTION_ORDER_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MALFORMED_FAKE_ARTIFACT_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MAP_NOTATION_PSI_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_METHOD_CALL_COMPACT_PSI_ELEMENT;
@@ -301,10 +303,10 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
     expected.setClassifier("jdk14");
     expected.setExtension("jar");
-    expected.assertMatches(dependencies.get(0));
+    expected.assertMatches(dependencies.get(1));
 
     expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
-    expected.assertMatches(dependencies.get(1));
+    expected.assertMatches(dependencies.get(0));
   }
 
   @Test
@@ -331,14 +333,14 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
-    ArtifactDependencyModel jdkDependency = dependencies.get(0);
+    ArtifactDependencyModel jdkDependency = dependencies.get(1);
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
     expected.setClassifier("jdk14");
     expected.setExtension("jar");
     expected.assertMatches(jdkDependency);
     assertNull(jdkDependency.configuration());
 
-    ArtifactDependencyModel espressoDependency = dependencies.get(1);
+    ArtifactDependencyModel espressoDependency = dependencies.get(0);
     expected = new ExpectedArtifactDependency(ANDROID_TEST_COMPILE, "espresso-contrib", "com.android.support.test.espresso", "2.2.2");
     expected.assertMatches(espressoDependency);
 
@@ -1896,6 +1898,21 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertThat(artifacts.get(10).configurationName()).isEqualTo("api");
     assertThat(artifacts.get(10).compactNotation()).isEqualTo("com.example.libs:lib3:2.0");
+  }
+
+  @Test
+  public void testInsertionOrder() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_INSERTION_ORDER);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    buildModel.dependencies().addArtifact("api", "com.example.libs1:lib1:1.0");
+    buildModel.dependencies().addArtifact("feature", "com.example.libs3:lib3:3.0");
+    buildModel.dependencies().addArtifact("testCompile", "com.example.libs2:lib2:2.0");
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_INSERTION_ORDER_EXPECTED);
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {

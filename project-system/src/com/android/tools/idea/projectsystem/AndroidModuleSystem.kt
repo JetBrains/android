@@ -18,6 +18,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.Library
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -155,6 +156,14 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   fun canGeneratePngFromVectorGraphics(): CapabilityStatus
 
   /**
+   * Returns the overrides that the underlying build system applies when computing the module's
+   * merged manifest.
+   *
+   * @see ManifestOverrides
+   */
+  fun getManifestOverrides(): ManifestOverrides
+
+  /**
    * Returns the module's resource package name, or null if it could not be determined.
    *
    * The resource package name is equivalent to the "package" attribute of the module's
@@ -175,6 +184,23 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   /** Returns an [TestArtifactSearchScopes] instance for a given module, if multiple test types are supported. */
   @JvmDefault
   fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = null
+}
+
+/**
+ * Overrides to be applied when computing the merged manifest, as determined by the build system.
+ *
+ * These overrides are divided into two categories: [directOverrides], known properties of the merged manifest
+ * that are directly overridden (e.g. the application ID), and [placeholders], identifiers in the contributing
+ * manifest which the build system replaces with arbitrary plain text during merged manifest computation.
+ */
+data class ManifestOverrides(
+  val directOverrides: Map<ManifestSystemProperty, String> = mapOf(),
+  val placeholders: Map<String, String> = mapOf()
+) {
+  companion object {
+    private val PLACEHOLDER_REGEX = Regex("\\$\\{([^}]*)}") // e.g. matches "${placeholder}" and extracts "placeholder"
+  }
+  fun resolvePlaceholders(string: String) = string.replace(PLACEHOLDER_REGEX) { placeholders[it.groupValues[1]].orEmpty() }
 }
 
 /** Types of dependencies that [AndroidModuleSystem.registerDependency] can add */

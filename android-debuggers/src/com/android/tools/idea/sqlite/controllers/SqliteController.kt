@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrent.FutureCallbackExecutor
-import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.SqliteServiceFactory
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
@@ -27,6 +26,7 @@ import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactory
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.SqliteView
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewListener
+import com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService
 import com.google.common.util.concurrent.FutureCallback
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -39,8 +39,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
-import java.util.Collections
-import java.util.TreeMap
 import java.util.concurrent.Executor
 
 /**
@@ -51,12 +49,13 @@ import java.util.concurrent.Executor
 @UiThread
 class SqliteController(
   private val project: Project,
+  private val sqliteExplorerProjectService: SqliteExplorerProjectService,
   private val sqliteServiceFactory: SqliteServiceFactory,
   private val viewFactory: SqliteEditorViewFactory,
   val sqliteView: SqliteView,
   edtExecutor: EdtExecutorService,
   taskExecutor: Executor
-) : Disposable, SchemaProvider {
+) : Disposable {
   private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val taskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
 
@@ -70,14 +69,6 @@ class SqliteController(
 
   private val sqliteViewListener = SqliteViewListenerImpl()
 
-  private val databaseComparator = Comparator.comparing { database: SqliteDatabase -> database.name }
-  /**
-   * Maps each open database to its [SqliteSchema].
-   * The keys are sorted in alphabetical order on the name of the database.
-   */
-  private val openDatabases: TreeMap<SqliteDatabase, SqliteSchema>
-    = TreeMap(databaseComparator)
-
   private val virtualFileListener: BulkFileListener
 
   init {
@@ -85,13 +76,15 @@ class SqliteController(
 
     virtualFileListener = object : BulkFileListener {
       override fun before(events: MutableList<out VFileEvent>) {
+        val openDatabases = sqliteExplorerProjectService.getOpenDatabases()
+
         if (openDatabases.isEmpty()) return
 
         val toClose = mutableListOf<SqliteDatabase>()
         for (event in events) {
           if (event !is VFileDeleteEvent) continue
 
-          for (database in openDatabases.keys) {
+          for (database in openDatabases) {
             if (VfsUtil.isAncestor(event.file, database.virtualFile, false)) {
               toClose.add(database)
             }
@@ -133,12 +126,6 @@ class SqliteController(
     })
   }
 
-  fun hasOpenDatabase() = openDatabases.isNotEmpty()
-
-  fun getOpenDatabases() = Collections.unmodifiableSet(openDatabases.keys)
-
-  override fun getSchema(database: SqliteDatabase) = openDatabases[database]
-
   fun runSqlStatement(database: SqliteDatabase, query: String) {
     val sqliteEvaluatorController = openNewEvaluatorTab()
     sqliteEvaluatorController.evaluateSqlStatement(database, query)
@@ -177,14 +164,14 @@ class SqliteController(
 
   private fun addNewDatabaseSchema(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
     if (Disposer.isDisposed(this)) return
-    val index = openDatabases.headMap(database).size
+    val index = sqliteExplorerProjectService.getSortedIndexOf(database)
     sqliteView.addDatabaseSchema(database, sqliteSchema, index)
 
     resultSetControllers.values
       .asSequence()
       .filterIsInstance<SqliteEvaluatorController>()
       .forEach { it.addDatabase(database, index) }
-    openDatabases[database] = sqliteSchema
+    sqliteExplorerProjectService.add(database, sqliteSchema)
   }
 
   private fun closeDatabase(database: SqliteDatabase) {
@@ -194,7 +181,7 @@ class SqliteController(
 
     tabsToClose.forEach { closeTab(it) }
 
-    val index = openDatabases.headMap(database).size
+    val index = sqliteExplorerProjectService.getSortedIndexOf(database)
     resultSetControllers.values
       .asSequence()
       .filterIsInstance<SqliteEvaluatorController>()
@@ -202,7 +189,7 @@ class SqliteController(
 
     sqliteView.removeDatabaseSchema(database)
 
-    openDatabases.remove(database)
+    sqliteExplorerProjectService.remove(database)
     Disposer.dispose(database)
   }
 
@@ -213,10 +200,10 @@ class SqliteController(
   }
 
   private fun updateDatabaseSchema(database: SqliteDatabase) {
-    val oldSchema = openDatabases[database] ?: return
+    val oldSchema = sqliteExplorerProjectService.getSchema(database) ?: return
     readDatabaseSchema(database) { newSchema ->
       updateExistingDatabaseSchemaView(database, oldSchema, newSchema)
-      openDatabases[database] = newSchema
+      sqliteExplorerProjectService.add(database, newSchema)
     }
   }
 
@@ -232,7 +219,8 @@ class SqliteController(
   private fun openNewEvaluatorTab(): SqliteEvaluatorController {
     val tabId = TabId.AdHocQueryTab()
 
-    val sqliteEvaluatorView = viewFactory.createEvaluatorView(project, this)
+    val sqliteEvaluatorView = viewFactory.createEvaluatorView(project, sqliteExplorerProjectService)
+
     // TODO(b/136556640) What name should we use for these tabs?
     sqliteView.displayResultSet(tabId, "New Query", sqliteEvaluatorView.component)
 
@@ -244,7 +232,7 @@ class SqliteController(
 
     resultSetControllers[tabId] = sqliteEvaluatorController
 
-    openDatabases.keys.forEachIndexed { index, sqliteDatabase ->
+    sqliteExplorerProjectService.getOpenDatabases().forEachIndexed { index, sqliteDatabase ->
       sqliteEvaluatorController.addDatabase(sqliteDatabase, index)
     }
 

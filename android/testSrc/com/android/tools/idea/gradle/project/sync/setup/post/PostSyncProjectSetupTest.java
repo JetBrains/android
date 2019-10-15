@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.android.tools.idea.testing.IdeComponents;
@@ -289,7 +290,7 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
   private void createAndroidModuleWithLanguageLevel(@NotNull String moduleName, @NotNull LanguageLevel level) {
     AndroidFacet facet = createAndAddAndroidFacet(createModule(moduleName));
     AndroidModuleModel model = mock(AndroidModuleModel.class);
-    facet.getConfiguration().setModel(model);
+    AndroidModel.set(facet, model);
     when(model.getJavaLanguageLevel()).thenReturn(level);
 
     // Setup the fields that are necessary to run mySetup.SetUpProject.

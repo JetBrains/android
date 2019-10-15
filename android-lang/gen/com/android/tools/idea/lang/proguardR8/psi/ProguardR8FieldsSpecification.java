@@ -24,6 +24,9 @@ import com.intellij.psi.PsiElement;
 
 public interface ProguardR8FieldsSpecification extends PsiElement {
 
+  @NotNull
+  List<ProguardR8AccessModifier> getAccessModifierList();
+
   @Nullable
   ProguardR8AnnotationName getAnnotationName();
 
@@ -32,8 +35,5 @@ public interface ProguardR8FieldsSpecification extends PsiElement {
 
   @Nullable
   ProguardR8Field getField();
-
-  @NotNull
-  List<ProguardR8FieldsModifier> getFieldsModifierList();
 
 }

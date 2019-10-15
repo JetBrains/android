@@ -177,7 +177,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
   private class TemplateRendererWithDescription(
     template: TemplateHandle?, internal val isCppTemplate: Boolean
-  ) : ChooseGalleryItemStep.TemplateRenderer(template) {
+  ) : ChooseGalleryItemStep.OldTemplateRenderer(template) {
     override val label: String get() = getTemplateImageLabel(template, isCppTemplate)
     override val icon: Icon? get() = getTemplateIcon(template, isCppTemplate)
     internal val description: String get() = getTemplateDescription(template, isCppTemplate)
@@ -187,7 +187,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     // To have the sequence specified by design, we hardcode the sequence.
     private val ORDERED_ACTIVITY_NAMES = arrayOf(
       "Basic Activity", "Empty Activity", "Bottom Navigation Activity", "Fragment + ViewModel", "Fullscreen Activity", "Master/Detail Flow",
-      "Navigation Drawer Activity", "Google Maps Activity", "Login Activity", "Scrolling Activity", "Tabbed Activity"
+      "Navigation Drawer Activity", "Google Maps Activity", "Login Activity", "Scrolling Activity", "Tabbed Activity", "Compose Activity"
     )
 
     private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> {

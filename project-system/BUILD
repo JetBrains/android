@@ -37,6 +37,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
+        "//tools/base/build-system:studio.android.sdktools.manifest-merger[module]",
     ],
 )
 

@@ -28,10 +28,12 @@ import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.JavaClassNameCompletionContributor
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.lookup.PackageLookupItem
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.StandardPatterns.and
 import com.intellij.patterns.StandardPatterns.or
 import com.intellij.patterns.StandardPatterns.string
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.impl.source.tree.CompositeElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
@@ -141,9 +143,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
         processingContext: ProcessingContext,
         resultSet: CompletionResultSet
       ) {
-        resultSet
-          .withPrefixMatcher("<")
-          .addAllElements(FIELD_METHOD_WILDCARDS.map { LookupElementBuilder.create(it.key).withTailText(" " + it.value) })
+        resultSet.addAllElements(FIELD_METHOD_WILDCARDS.map { LookupElementBuilder.create(it.key).withTailText(" " + it.value) })
       }
     }
 
@@ -154,6 +154,17 @@ class ProguardR8CompletionContributor : CompletionContributor() {
         resultSet: CompletionResultSet
       ) {
         resultSet.addAllElements(CLASS_TYPE.map { LookupElementBuilder.create(it) })
+      }
+    }
+
+    private val packageCompletionProvider = object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(
+        parameters: CompletionParameters,
+        processingContext: ProcessingContext,
+        resultSet: CompletionResultSet
+      ) {
+        val root = JavaPsiFacade.getInstance(parameters.position.project).findPackage("") ?: return
+        resultSet.addAllElements(root.subPackages.map(::PackageLookupItem))
       }
     }
 
@@ -186,28 +197,35 @@ class ProguardR8CompletionContributor : CompletionContributor() {
   }
 
   init {
-    // Add autocompletion for "flag names".
+    // Add completion for "flag names".
     extend(
       CompletionType.BASIC,
       psiElement(ProguardR8PsiTypes.FLAG),
       flagCompletionProvider
     )
 
-    // Add autocompletion for java key words ("private", "public" ...) inside class specification body
+    // Add completion for java key words ("private", "public" ...) inside class specification body
     extend(
       CompletionType.BASIC,
       or(startOfNewJavaRule, afterFieldOrMethodModifier),
       methodModifierCompletionProvider
     )
 
-    // Add autocompletion for keywords like <methods> <fields> <init>.
+    // Add completion for keywords like <methods> <fields> <init>.
     extend(
       CompletionType.BASIC,
-      or(startOfNewJavaRule, afterFieldOrMethodModifier),
+      or(startOfNewJavaRule, afterFieldOrMethodModifier, psiElement().afterLeaf(psiElement().withText("<"))),
       fieldsAndMethodsWildcardsCompletionProvider
     )
 
-    // Add autocompletion for qualified class names by typing short class name
+    // Add completion for packages
+    extend(
+      CompletionType.BASIC,
+      or(startOfNewJavaRule, afterFieldOrMethodModifier),
+      packageCompletionProvider
+    )
+
+    // Add completion for qualified class names by typing short class name
     extend(
       CompletionType.BASIC,
       or(
@@ -219,7 +237,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       classNameCompletionProvider
     )
 
-    // Add autocompletion for CLASS_TYPE keywords in class specification header.
+    // Add completion for CLASS_TYPE keywords in class specification header.
     extend(
       CompletionType.BASIC,
       and(

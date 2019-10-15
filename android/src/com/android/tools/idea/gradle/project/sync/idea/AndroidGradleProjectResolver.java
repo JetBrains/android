@@ -39,7 +39,6 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isI
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static java.util.Collections.emptyList;
-import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleConfigPath;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
@@ -91,17 +90,13 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.PathsList;
 import java.io.File;
 import java.io.IOException;
@@ -123,12 +118,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
-import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
  * Imports Android-Gradle projects into IDEA.
@@ -139,7 +131,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private static final Logger LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
-  @NotNull private final ProjectImportErrorHandler myErrorHandler;
   @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final VariantSelector myVariantSelector;
   @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
@@ -150,21 +141,18 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(), new ProjectImportErrorHandler(), new ProjectFinder(),
-         new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(), new IdeaJavaModuleModelFactory(),
-         new IdeDependenciesFactory());
+    this(new CommandLineArgs(), new ProjectFinder(), new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(),
+         new IdeaJavaModuleModelFactory(), new IdeDependenciesFactory());
   }
 
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
-                               @NotNull ProjectImportErrorHandler errorHandler,
                                @NotNull ProjectFinder projectFinder,
                                @NotNull VariantSelector variantSelector,
                                @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                                @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory,
                                @NotNull IdeDependenciesFactory dependenciesFactory) {
     myCommandLineArgs = commandLineArgs;
-    myErrorHandler = errorHandler;
     myProjectFinder = projectFinder;
     myVariantSelector = variantSelector;
     myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
@@ -191,48 +179,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
       throw new IllegalStateException(msg);
     }
-    if (isAndroidGradleProject()) {
-      return doCreateModule(gradleModule, projectDataNode);
-    }
-    else {
-      return nextResolver.createModule(gradleModule, projectDataNode);
-    }
-  }
-
-  // A copy from BaseGradleProjectResolverExtension.
-  @NotNull
-  private static String[] getIdeModuleGroup(String moduleName, IdeaModule gradleModule) {
-    String[] moduleGroup;
-    final String gradlePath = gradleModule.getGradleProject().getPath();
-    final String rootName = gradleModule.getProject().getName();
-    final boolean isRootModule = StringUtil.isEmpty(gradlePath) || ":".equals(gradlePath);
-    moduleGroup = isRootModule
-                  ? new String[]{moduleName}
-                  : (rootName + gradlePath).split(":");
-    return moduleGroup;
-  }
-
-  @NotNull
-  private DataNode<ModuleData> doCreateModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
-    String moduleName = gradleModule.getName();
-    if (moduleName == null) {
-      throw new IllegalStateException("Module with undefined name detected: " + gradleModule);
-    }
-
-    String projectPath = projectDataNode.getData().getLinkedExternalProjectPath();
-    String moduleConfigPath = getModuleConfigPath(resolverCtx, gradleModule, projectPath);
-
-    String moduleId = GradleProjectResolverUtil.getModuleId(resolverCtx, gradleModule);
-    ProjectSystemId owner = GradleConstants.SYSTEM_ID;
-    String typeId = StdModuleTypes.JAVA.getId();
-
-    ModuleData moduleData = new ModuleData(moduleId, owner, typeId, moduleName, moduleConfigPath, moduleConfigPath);
-    moduleData.setIdeModuleGroup(getIdeModuleGroup(moduleName, gradleModule));
-    ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
-    if (externalProject != null) {
-      moduleData.setDescription(externalProject.getDescription());
-    }
-    return projectDataNode.createChild(ProjectKeys.MODULE, moduleData);
+    return nextResolver.createModule(gradleModule, projectDataNode);
   }
 
   @Override
@@ -647,9 +594,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         }
       }
     }
-    ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(null, error, projectPath, buildFilePath);
-    assert userFriendlyError != null;
-    return userFriendlyError;
+    return super.getUserFriendlyError(buildEnvironment, error, projectPath, buildFilePath);
   }
 
   private static boolean isUsingUnsupportedGradleVersion(@Nullable String errorMessage) {

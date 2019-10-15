@@ -15,6 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
+import static com.android.tools.idea.gradle.util.BuildMode.APK_FROM_BUNDLE;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
+import static com.android.tools.idea.gradle.util.BuildMode.BUNDLE;
+import static com.android.tools.idea.gradle.util.BuildMode.CLEAN;
+import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
+import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddJavaFacet;
+import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.emptyList;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
@@ -26,6 +46,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
@@ -33,29 +54,16 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
+import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.mockito.Mock;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
-import static com.android.tools.idea.gradle.util.BuildMode.*;
-import static com.android.tools.idea.testing.Facets.*;
-import static com.google.common.truth.Truth.assertThat;
-import static java.util.Collections.emptyList;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleTaskFinder}.
@@ -269,7 +277,7 @@ public class GradleTaskFinderTest extends PlatformTestCase {
     state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet("afterSyncTask1", "afterSyncTask2");
     state.COMPILE_JAVA_TASK_NAME = "compileTask2";
 
-    androidFacet.getConfiguration().setModel(androidModel);
+    AndroidModel.set(androidFacet, androidModel);
   }
 
   public void testFindTasksToExecuteForAssemblingJavaModule() {

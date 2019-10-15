@@ -39,6 +39,11 @@ public class JavaCompileOptionsStub implements JavaCompileOptions {
     return "1.6";
   }
 
+  @Override
+  public boolean isCoreLibraryDesugaringEnabled() {
+    return false;
+  }
+
   public void setEncoding(@NotNull String encoding) {
     myEncoding = encoding;
   }

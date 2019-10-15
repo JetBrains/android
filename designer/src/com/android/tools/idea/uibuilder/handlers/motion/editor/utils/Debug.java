@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.utils;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
+
 /**
  * Provides utilities used in debugging
  */
@@ -53,5 +56,23 @@ public class Debug {
   public static String getLocation() {
     StackTraceElement s = new Throwable().getStackTrace()[1];
     return ".(" + s.getFileName() + ":" + s.getLineNumber() + ")";
+  }
+
+  public static String toString(MTag[] tags) {
+    if (tags == null) {
+      return " null";
+    }
+    if (tags.length == 0) {
+      return " []";
+    }
+    String str = " [";
+    for (int i = 0; i < tags.length; i++) {
+      MTag tag = tags[i];
+      if (i > 0) {
+        str += ",";
+      }
+      str += Utils.stripID(tag.getAttributeValue("id"));
+    }
+    return str + "]";
   }
 }

@@ -6,6 +6,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.build.BuildConfigGenerator;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.compiler.impl.CompilerUtil;
 import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,6 +45,7 @@ import java.util.*;
 /**
  * @author Eugene.Kudelevsky
  */
+@SuppressWarnings("deprecation")
 public class AndroidAutogenerator {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidAutogenerator");
 
@@ -75,7 +77,7 @@ public class AndroidAutogenerator {
   public static boolean supportsAutogeneration(@NotNull AndroidFacet facet) {
     // This is a cheap way to figure out that a module has the Android-Gradle facet.
     // Don't generate anything if a module has an Android-Gradle facet.
-    return !facet.requiresAndroidModel();
+    return !AndroidModel.isRequired(facet);
   }
 
   public static void run(@NotNull AndroidAutogeneratorMode mode,
@@ -123,6 +125,7 @@ public class AndroidAutogenerator {
 
     final BuildconfigAutogenerationItem item = ApplicationManager.getApplication().runReadAction(
       new Computable<BuildconfigAutogenerationItem>() {
+        @SuppressWarnings("deprecation")
         @Nullable
         @Override
         public BuildconfigAutogenerationItem compute() {
@@ -585,6 +588,7 @@ public class AndroidAutogenerator {
     for (final VirtualFile file : files) {
       final RenderscriptAutogenerationItem item =
         ApplicationManager.getApplication().runReadAction(new Computable<RenderscriptAutogenerationItem>() {
+          @SuppressWarnings("deprecation")
           @Nullable
           @Override
           public RenderscriptAutogenerationItem compute() {

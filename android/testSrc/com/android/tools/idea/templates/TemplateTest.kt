@@ -291,6 +291,16 @@ open class TemplateTest : TemplateTestBase() {
     checkCreateTemplate("other", "AutomotiveMediaService", true, withKotlin)
   }
 
+  @TemplateCheck
+  fun testNewProjectWithComposeActivity() {
+    checkCreateTemplate("activities", "ComposeActivity", true, withKotlin) // Compose is always kotlin
+  }
+
+  @TemplateCheck
+  fun testComposeActivity() {
+    checkCreateTemplate("activities", "ComposeActivity", false, withKotlin) // Compose is always kotlin
+  }
+
   //--- Non-activity templates ---
 
   @TemplateCheck

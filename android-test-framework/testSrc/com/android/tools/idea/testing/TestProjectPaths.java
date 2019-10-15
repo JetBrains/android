@@ -10,6 +10,7 @@ public final class TestProjectPaths {
   public static final String BUDDY_APKS = "projects/buddyApks";
   public static final String CENTRAL_BUILD_DIRECTORY = "projects/centralBuildDirectory";
   public static final String CIRCULAR_MODULE_DEPS = "projects/circularModuleDeps";
+  public static final String COMPATIBILITY_TESTS_AS_36 = "projects/compatibility_tests/AS36";
   public static final String COMPOSITE_BUILD = "projects/compositeBuild";
   public static final String DEPENDENT_MODULES = "projects/dependentModules";
   public static final String DEPENDENT_NATIVE_MODULES = "projects/dependentNativeModules";
@@ -26,6 +27,7 @@ public final class TestProjectPaths {
   public static final String JPS_WITH_QUALIFIED_NAMES = "projects/jpsWithQualifiedNames";
   public static final String KOTLIN_GRADLE_DSL = "projects/kotlinGradleDsl";
   public static final String KOTLIN_KAPT = "projects/kotlinKapt";
+  public static final String KOTLIN_MPP = "projects/kotlinMpp";
   public static final String LINT_CUSTOM_CHECKS = "projects/lintCustomChecks";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
   public static final String LOCAL_JARS_AS_MODULES = "projects/localJarsAsModules";
@@ -44,6 +46,7 @@ public final class TestProjectPaths {
   public static final String MODULE_INFO_MERGE = "projects/moduleInfo/merge";
   public static final String MOVE_WITH_RESOURCES = "projects/moveWithResources";
   public static final String MULTI_FEATURE = "projects/multiFeature";
+  public static final String MULTI_FLAVOR = "projects/multiFlavor";
   public static final String MULTIPLE_LINKED = "projects/multipleLinked";
   public static final String NAMESPACES = "projects/namespaces";
   public static final String NAMESPACES_WITH_APPCOMPAT = "projects/namespaces_with_appcompat";
@@ -61,7 +64,8 @@ public final class TestProjectPaths {
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PSD_DEPENDENCY = "projects/psdDependency";
   public static final String PSD_PROJECT_DIR = "projects/psdProjectDir";
-  public static final String PSD_SAMPLE = "projects/psdSample";
+  public static final String PSD_SAMPLE_GROOVY = "projects/psdSample/Groovy";
+  public static final String PSD_SAMPLE_KOTLIN = "projects/psdSample/Kotlin";
   public static final String PSD_SAMPLE_REPO = "projects/psdSampleRepo";
   public static final String PSD_UPGRADE = "projects/psdUpgrade";
   public static final String PSD_VARIANT_COLLISIONS = "projects/psdVariantCollisions";

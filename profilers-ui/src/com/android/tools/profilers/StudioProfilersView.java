@@ -219,6 +219,11 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     return mySessionsView;
   }
 
+  @NotNull
+  public StudioProfilers getStudioProfilers() {
+    return myProfiler;
+  }
+
   private void initializeSessionUi() {
     mySessionsView = new SessionsView(myProfiler, myIdeProfilerComponents);
     JComponent sessionsComponent = mySessionsView.getComponent();

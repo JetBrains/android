@@ -17,7 +17,7 @@ package com.android.tools.idea.templates
 
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_JAVA_VERSION
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem

@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB
-import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
 import com.android.tools.idea.testing.TestProjectPaths.PSD_VARIANT_COLLISIONS
 import com.android.tools.idea.testing.TestProjectPaths.SCRIPTED_DIMENSIONS
 import com.google.common.truth.Truth.assertThat
@@ -48,7 +48,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   private val DISALLOWED_NAME_CHARS = "/\\:<>\"?*|"
 
   fun testFlavorDimensions() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -62,7 +62,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testFallbackFlavorDimensions() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -100,7 +100,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testValidateFlavorDimensionName() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -121,7 +121,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testAddFlavorDimension() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -147,7 +147,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testAddFirstFlavorDimension() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -173,7 +173,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testRemoveFlavorDimension() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -250,7 +250,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testValidateProductFlavorName() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -398,7 +398,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testRemoveProductFlavor() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -430,7 +430,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testRenameProductFlavor() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -503,7 +503,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testValidateBuildTypeName() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -602,7 +602,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testRemoveBuildType() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -638,7 +638,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testRenameBuildType() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -744,7 +744,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testValidateSigningConfigName() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -885,7 +885,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testApplyChangesAndSyncReloadsResolvedValues() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -967,7 +967,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testResolvingProjectReloadsCollections() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -988,7 +988,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testModuleChanged() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -1014,7 +1014,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testImportantConfigurations() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -1055,7 +1055,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testConfigurations() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -1299,7 +1299,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   }
 
   fun testConfigurationRequiresWorkaround() {
-    loadProject(PSD_SAMPLE)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }

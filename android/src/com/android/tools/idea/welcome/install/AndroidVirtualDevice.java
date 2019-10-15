@@ -122,13 +122,13 @@ public class AndroidVirtualDevice extends InstallableComponent {
     SystemImageDescription systemImageDescription = getSystemImageDescription(sdkHandler);
 
     String cardSize = EmulatedProperties.DEFAULT_INTERNAL_STORAGE.toIniString();
-    File hardwareSkinPath = pathToUpdatedSkins(d.getDefaultHardware().getSkinFile(), systemImageDescription, myFileOp);
+    File hardwareSkinPath = pathToUpdatedSkins(d.getDefaultHardware().getSkinFile(), systemImageDescription, fileOp);
     String displayName =
       String.format("%1$s %2$s %3$s", d.getDisplayName(), systemImageDescription.getVersion(), systemImageDescription.getAbiType());
     displayName = connection.uniquifyDisplayName(displayName);
     String internalName = cleanAvdName(connection, displayName, true);
     Abi abi = Abi.getEnum(systemImageDescription.getAbiType());
-    boolean useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription, myFileOp);
+    boolean useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription, fileOp);
     boolean supportsSmp = abi != null && abi.supportsMultipleCpuCores() && getMaxCpuCores() > 1;
     Map<String, String> settings = getAvdSettings(internalName, d);
     settings.put(AVD_INI_DISPLAY_NAME, displayName);
@@ -210,19 +210,19 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   @Override
   protected boolean isSelectedByDefault() {
-    if (mySdkHandler == null) {
+    if (sdkHandler == null) {
       return false;
     }
     SystemImageDescription desired;
     try {
-      desired = getSystemImageDescription(mySdkHandler);
+      desired = getSystemImageDescription(sdkHandler);
     }
     catch (WizardException e) {
       // ignore, error will be shown during configure if they opt to try to create.
       return false;
     }
 
-    AvdManagerConnection connection = AvdManagerConnection.getAvdManagerConnection(mySdkHandler);
+    AvdManagerConnection connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler);
     List<AvdInfo> avds = connection.getAvds(false);
     for (AvdInfo avd : avds) {
       if (avd.getAbiType().equals(desired.getAbiType()) &&

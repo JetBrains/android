@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.explorer;
 
+import static org.jetbrains.android.AsyncTestUtils.pumpEventsAndWaitForFuture;
+import static org.jetbrains.android.AsyncTestUtils.pumpEventsAndWaitForFutureException;
+import static org.jetbrains.android.AsyncTestUtils.pumpEventsAndWaitForFutures;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -25,8 +28,10 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
+import com.android.tools.idea.device.fs.DownloadedFileData;
 import com.android.tools.idea.deviceExplorer.FileHandler;
 import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
+import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
@@ -36,9 +41,8 @@ import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService;
-import com.android.tools.idea.util.FutureUtils;
+import com.android.tools.idea.explorer.mocks.MockFileOpener;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.ClipboardSynchronizer;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -89,7 +93,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -114,7 +117,6 @@ import org.jetbrains.ide.PooledThreadExecutor;
 import org.picocontainer.MutablePicoContainer;
 
 public class DeviceExplorerControllerTest extends AndroidTestCase {
-  private static final long TIMEOUT_MILLISECONDS = 30_000;
 
   private DeviceExplorerModel myModel;
   private MockDeviceExplorerView myMockView;
@@ -136,6 +138,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   private FutureCallbackExecutor myEdtExecutor;
   private FutureCallbackExecutor myTaskExecutor;
   private boolean myTearingDown;
+  private MockFileOpener myMockFileOpener;
 
   @Override
   protected void setUp() throws Exception {
@@ -157,12 +160,14 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         super.setActiveDeviceTreeModel(device, treeModel, treeSelectionModel);
       }
     };
-    myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor);
+    myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor, myTaskExecutor);
     myMockView = new MockDeviceExplorerView(getProject(), new MockDeviceFileSystemRendererFactory(), myModel);
     File downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true);
     myDownloadLocationSupplier = mock(Supplier.class);
     when(myDownloadLocationSupplier.get()).thenReturn(downloadPath.toPath());
-    myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myEdtExecutor, myDownloadLocationSupplier);
+    myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myEdtExecutor, myTaskExecutor, myDownloadLocationSupplier);
+
+    myMockFileOpener = new MockFileOpener();
 
     myDevice1 = myMockService.addDevice("TestDevice-1");
     myFoo = myDevice1.getRoot().addDirectory("Foo");
@@ -263,7 +268,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
     when(service.start(any()))
       .thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
-    DeviceExplorerController controller = createController(myMockView, service);
+    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener);
 
     // Act
     controller.setup();
@@ -279,7 +284,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     DeviceFileSystemService service = mock(DeviceFileSystemService.class);
     when(service.start(any()))
       .thenReturn(Futures.immediateFailedFuture(new RuntimeException()));
-    DeviceExplorerController controller = createController(myMockView, service);
+    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener);
 
     // Act
     controller.setup();
@@ -313,7 +318,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     when(service.start(any())).thenReturn(Futures.immediateFuture(null));
     when(service.restart(any())).thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
     when(service.getDevices()).thenReturn(Futures.immediateFuture(new ArrayList<>()));
-    DeviceExplorerController controller = createController(myMockView, service);
+    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener);
 
     // Act
     controller.setup();
@@ -332,7 +337,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     when(service.start(any()))
       .thenReturn(Futures.immediateFuture(null));
     when(service.getDevices()).thenReturn(Futures.immediateFailedFuture(new RuntimeException(setupErrorMessage)));
-    DeviceExplorerController controller = createController(myMockView, service);
+    DeviceExplorerController controller = createController(myMockView, service, myMockFileOpener);
 
     // Act
     controller.setup();
@@ -439,7 +444,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
       pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
-    pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
+    pumpEventsAndWaitForFuture(myMockFileOpener.getOpenFileTracker().consume());
   }
 
   public void testFileHandlerExtensionIsCalled() throws Exception {
@@ -452,7 +457,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
       pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
-    pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
+    pumpEventsAndWaitForFuture(myMockFileOpener.getOpenFileTracker().consume());
 
     verify(mockFileHandler).getAdditionalDevicePaths(
       eq(myFile1.getFullPath()),
@@ -471,7 +476,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
       pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
-    pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
+    pumpEventsAndWaitForFuture(myMockFileOpener.getOpenFileTracker().consume());
   }
 
   public void testDownloadFileLocationWithMouseClick() throws Exception {
@@ -486,9 +491,9 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
       pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
-    Path downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
-    assertTrue(downloadPath.toString()
-                           .endsWith("device-explorer-temp/TestDevice-1/file1.txt"));
+    Path downloadPath = pumpEventsAndWaitForFuture(myMockFileOpener.getOpenFileTracker().consume());
+    assertTrue(FileUtil.toSystemIndependentName(downloadPath.toString())
+                 .endsWith("device-explorer-temp/TestDevice-1/file1.txt"));
 
     // Change the setting to an alternate directory, ensure that changing during runtime works
     Path changedPath = FileUtil.createTempDirectory("device-explorer-temp-2","", true).toPath();
@@ -505,9 +510,9 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
       pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
-    downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
-    assertTrue(downloadPath.toString()
-                           .endsWith("device-explorer-temp-2/TestDevice-1/file1.txt"));
+    downloadPath = pumpEventsAndWaitForFuture(myMockFileOpener.getOpenFileTracker().consume());
+    assertTrue(FileUtil.toSystemIndependentName(downloadPath.toString())
+                 .endsWith("device-explorer-temp-2/TestDevice-1/file1.txt"));
   }
 
   public void testDownloadFileFailure() throws InterruptedException, ExecutionException, TimeoutException {
@@ -535,34 +540,6 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Assert
     assertNotNull(t);
-    assertNotNull(loadingError);
-    assertTrue(loadingError.contains(errorMessage));
-  }
-
-  public void testOpenFileInEditorFailure() throws InterruptedException, ExecutionException, TimeoutException {
-    // Prepare
-    DeviceExplorerController controller = createController();
-
-    // Act
-    controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
-    checkMockViewInitialState(controller, myDevice1);
-
-    String errorMessage = "<Expected test error>";
-    myMockFileManager.setOpenFileInEditorError(new RuntimeException(errorMessage));
-
-    // Select node
-    myMockView.getTree().setSelectionPath(getFileEntryPath(myFile1));
-
-    // Send a VK_ENTER key event
-    fireEnterKey(myMockView.getTree());
-    pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
-
-    pumpEventsAndWaitForFuture(myMockFileManager.getDownloadFileEntryTracker().consume());
-    pumpEventsAndWaitForFuture(myMockFileManager.getDownloadFileEntryCompletionTracker().consume());
-    String loadingError = pumpEventsAndWaitForFuture(myMockView.getReportErrorRelatedToNodeTracker().consume());
-
-    // Assert
     assertNotNull(loadingError);
     assertTrue(loadingError.contains(errorMessage));
   }
@@ -714,7 +691,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       // Assert
       pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
-    pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
+    pumpEventsAndWaitForFuture(myMockFileOpener.getOpenFileTracker().consume());
   }
 
   public void testFileSystemTree_ContextMenu_SaveFileAs_Works() throws Exception {
@@ -1678,7 +1655,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
                  activeDevice.getRoot().getMockEntries().size(), rootEntry.getChildCount());
   }
 
-  public void downloadFile(Runnable trigger) throws Exception {
+  public DownloadedFileData downloadFile(Runnable trigger) throws Exception {
     // Prepare
     DeviceExplorerController controller = createController();
 
@@ -1702,7 +1679,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Assert
     pumpEventsAndWaitForFuture(myMockFileManager.getDownloadFileEntryTracker().consume());
-    pumpEventsAndWaitForFuture(myMockFileManager.getDownloadFileEntryCompletionTracker().consume());
+    return pumpEventsAndWaitForFuture(myMockFileManager.getDownloadFileEntryCompletionTracker().consume());
   }
 
   private void expandEntry(@NotNull MockDeviceFileEntry entry) {
@@ -1717,37 +1694,13 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   }
 
   private DeviceExplorerController createController() {
-    return createController(myMockView, myMockService);
+    return createController(myMockView, myMockService, myMockFileOpener);
   }
 
-  private DeviceExplorerController createController(DeviceExplorerView view, DeviceFileSystemService service) {
-    return new DeviceExplorerController(getProject(), myModel, view, service, myMockFileManager, myEdtExecutor, myTaskExecutor);
-  }
-
-  private static <V> List<V> pumpEventsAndWaitForFutures(List<ListenableFuture<V>> futures) {
-    return pumpEventsAndWaitForFuture(Futures.allAsList(futures));
-  }
-
-  private static <V> V pumpEventsAndWaitForFuture(ListenableFuture<V> future) {
-    try {
-      return FutureUtils.pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private static <V> Throwable pumpEventsAndWaitForFutureException(ListenableFuture<V> future) {
-    try {
-      FutureUtils.pumpEventsAndWaitForFuture(future, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
-      throw new RuntimeException("Expected ExecutionException from future, got value instead");
-    }
-    catch (ExecutionException e) {
-      return e;
-    }
-    catch (Throwable t) {
-      throw new RuntimeException("Expected ExecutionException from future, got Throwable instead", t);
-    }
+  private DeviceExplorerController createController(DeviceExplorerView view,
+                                                    DeviceFileSystemService service,
+                                                    DeviceExplorerController.FileOpener fileOpener) {
+    return new DeviceExplorerController(getProject(), myModel, view, service, myMockFileManager, fileOpener, myEdtExecutor, myTaskExecutor);
   }
 
   /**

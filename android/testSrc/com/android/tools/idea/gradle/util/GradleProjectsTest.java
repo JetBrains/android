@@ -36,6 +36,7 @@ public class GradleProjectsTest extends PlatformTestCase {
 
   public void testIsGradleProject() {
     AndroidFacet facet = createAndAddAndroidFacet(myModule);
+    //noinspection deprecation
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     assertTrue(AndroidProjectInfo.getInstance(myProject).requiresAndroidModel());

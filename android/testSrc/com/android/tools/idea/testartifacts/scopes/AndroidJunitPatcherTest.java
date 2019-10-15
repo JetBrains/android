@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -242,6 +243,6 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     AndroidModuleModel model = AndroidModuleModel
       .create(myAndroidProject.getName(), myAndroidProject.getRootDir(), myAndroidProject, mySelectedVariant.getName(),
               new IdeDependenciesFactory());
-    myFacet.getConfiguration().setModel(model);
+    AndroidModel.set(myFacet, model);
   }
 }

@@ -160,7 +160,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     mySurface = designSurface;
     if (mySurface != null) {
       mySurface.getSelectionModel().addListener(this);
-      mySurface.getActionManager().registerActionsShortcuts(this, null);
+      mySurface.getActionManager().registerActionsShortcuts(this);
       mySurface.addListener(this);
       overrideCtrlClick();
     }

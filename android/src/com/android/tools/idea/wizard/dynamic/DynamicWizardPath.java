@@ -219,7 +219,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    * which may depend on those changed values.
    * @param modified set of the changed keys
    */
-  public void deriveValues(Set<Key> modified) {
+  public void deriveValues(Set<? extends Key> modified) {
 
   }
 

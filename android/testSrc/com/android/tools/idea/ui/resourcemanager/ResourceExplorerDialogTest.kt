@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.resources.ResourceType
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -47,6 +48,7 @@ class ResourceExplorerDialogTest {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = getTestDataDirectory()
+    projectRule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML, FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
     pickerDialog = createResourcePickerDialog(false)
     Disposer.register(projectRule.project, pickerDialog.disposable)

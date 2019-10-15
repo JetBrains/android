@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.android.productFlavors.ExternalNati
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.NdkOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.VectorDrawablesOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

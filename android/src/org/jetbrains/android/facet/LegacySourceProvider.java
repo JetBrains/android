@@ -16,6 +16,7 @@
 package org.jetbrains.android.facet;
 
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -35,6 +36,7 @@ import static org.jetbrains.android.facet.AndroidRootUtil.*;
  * Compatibility bridge for old (non-AndroidProject-backed) projects. Also used in AndroidProject-backed projects before the module has
  * been synced and for testing.
  */
+@SuppressWarnings("deprecation")
 public class LegacySourceProvider implements SourceProvider {
   @NotNull private final AndroidFacet myAndroidFacet;
 
@@ -54,7 +56,7 @@ public class LegacySourceProvider implements SourceProvider {
     Module module = myAndroidFacet.getModule();
     VirtualFile manifestFile = getFileByRelativeModulePath(module, myAndroidFacet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
     if (manifestFile == null) {
-      VirtualFile root = !myAndroidFacet.requiresAndroidModel() ? getMainContentRoot(myAndroidFacet) : null;
+      VirtualFile root = !AndroidModel.isRequired(myAndroidFacet) ? getMainContentRoot(myAndroidFacet) : null;
       if (root != null) {
         return new File(virtualToIoFile(root), ANDROID_MANIFEST_XML);
       }

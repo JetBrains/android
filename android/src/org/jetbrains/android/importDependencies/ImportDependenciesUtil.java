@@ -40,6 +40,7 @@ import java.util.*;
 /**
  * @author Eugene.Kudelevsky
  */
+@SuppressWarnings("deprecation")
 public class ImportDependenciesUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.importDependencies.ImportDependenciesUtil");
   private static final Key<Boolean> WAIT_FOR_IMPORTING_DEPENDENCIES_KEY = new Key<Boolean>("WAIT_FOR_IMPORTING_DEPENDENCIES_KEY");

@@ -70,7 +70,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.ColorIcon
-import com.intellij.util.ui.TwoColorsIcon
+import com.intellij.util.ui.ColorsIcon
 import icons.StudioIcons
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestBase
@@ -224,7 +224,7 @@ class NelePropertyItemTest {
     assertThat(property.type).isEqualTo(NelePropertyType.COLOR_STATE_LIST)
     assertThat(property.value).isEqualTo("@android:color/primary_text_dark")
     assertThat(property.isReference).isTrue()
-    val colorIcon = TwoColorsIcon(16, Color(0xFFFFFF), Color(0x000000))
+    val colorIcon = ColorsIcon(16, Color(0xFFFFFF), Color(0x000000))
     val colorButton = property.colorButton!!
     assertThat(colorButton.actionIcon).isEqualTo(colorIcon)
     val browseButton = property.browseButton!!

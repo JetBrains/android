@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -125,7 +126,8 @@ public class DeploymentTest {
     myProject = null;
 
     if (myAdbServer != null) {
-      myAdbServer.stop().get();
+      boolean status =  myAdbServer.awaitServerTermination(WAIT_TIME, TimeUnit.SECONDS);
+      assertThat(status).isTrue();
     }
 
     AdbService.getInstance().dispose();
@@ -142,9 +144,11 @@ public class DeploymentTest {
     IdeFrameFixture ideFrameFixture = myGuiTest.ideFrame();
     List<DeviceState> deviceStates = myAdbServer.getDeviceListCopy().get();
     List<DeviceBinder> deviceBinders = new ArrayList<>(deviceStates.size());
-    DeviceSelectorFixture deviceSelector = new DeviceSelectorFixture(myGuiTest.robot());
+    DeviceSelectorFixture deviceSelector = new DeviceSelectorFixture(myGuiTest.robot(), ideFrameFixture);
     for (DeviceState state : deviceStates) {
-      deviceBinders.add(new DeviceBinder(state));
+      DeviceBinder binder = new DeviceBinder(state);
+      deviceBinders.add(binder);
+      deviceSelector.selectDevice(binder.getIDevice()); // Ensure that the combo box has the device.
     }
 
     for (DeviceBinder deviceBinder : deviceBinders) {

@@ -38,17 +38,21 @@ public class Track {
     trackComponent.setBorder(new JBEmptyBorder(4, 0, 4, 0));
 
     myComponent = new JPanel(new TabularLayout("150px,*", "Fit"));
-    myComponent.add(titleLabel, new TabularLayout.Constraint(0, 0));
-    myComponent.add(trackComponent, new TabularLayout.Constraint(0, 1));
+    if (trackModel.getHideHeader()) {
+      myComponent.add(trackComponent, new TabularLayout.Constraint(0, 0, 2));
+    } else {
+      myComponent.add(titleLabel, new TabularLayout.Constraint(0, 0));
+      myComponent.add(trackComponent, new TabularLayout.Constraint(0, 1));
+    }
   }
 
   /**
    * Factory method to instantiate a Track.
    *
-   * @param trackModel    data model
-   * @param trackRenderer UI renderer
    * @param <M>           data model type
    * @param <R>           renderer enum type
+   * @param trackModel    data model
+   * @param trackRenderer UI renderer
    * @return a Track that visualizes the given {@link TrackModel} using the provided {@link TrackRenderer}
    */
   @NotNull

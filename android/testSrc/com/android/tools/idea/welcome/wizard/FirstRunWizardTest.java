@@ -33,6 +33,7 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.File;
+import java.util.Collections;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import org.jetbrains.android.AndroidTestBase;
@@ -52,8 +53,10 @@ public final class FirstRunWizardTest extends AndroidTestBase {
     GlobalInstallerData.set(data);
     FirstRunWizardMode mode = data == null ? FirstRunWizardMode.NEW_INSTALL : FirstRunWizardMode.INSTALL_HANDOFF;
     assertVisible(
-      new SdkComponentsStep(new ComponentCategory("test", "test"), KEY_TRUE, createKey(String.class), mode, getTestRootDisposable()),
-      data, isComponentsStepVisible);
+      new SdkComponentsStep(
+        new ComponentCategory("test", "test", Collections.emptyList()),
+        KEY_TRUE, createKey(String.class), mode, getTestRootDisposable()), data, isComponentsStepVisible
+    );
 
     if (data != null) {
       assertEquals(data.toString(), hasAndroidSdkPath, data.hasValidSdkLocation());

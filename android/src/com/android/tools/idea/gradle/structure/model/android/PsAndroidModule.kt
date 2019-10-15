@@ -64,6 +64,7 @@ class PsAndroidModule(
   var compileSdkVersion by AndroidModuleDescriptors.compileSdkVersion
   var sourceCompatibility by AndroidModuleDescriptors.sourceCompatibility
   var targetCompatibility by AndroidModuleDescriptors.targetCompatibility
+  var viewBindingEnabled by AndroidModuleDescriptors.viewBindingEnabled
 
   fun init(
     name: String,

@@ -1070,7 +1070,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick2="@{vie<caret>w_id.getText()}"/>
+            android:onClick2="@{vie<caret>wId.getText()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1091,7 +1091,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{view_id.getText().le<caret>ngth()}"/>
+            android:onClick="@{viewId.getText().le<caret>ngth()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1199,5 +1199,31 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(referencedMethod.isReferenceTo(methodInSourceCode)).isTrue()
     assertThat(referencedMethod.resolve()).isEqualTo(methodInSourceCode)
+  }
+
+  @Test
+  fun dbReferencesMethodBestMatchedWithArguments() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public Object confusingFunction(Object object) {}
+        public String confusingFunction(String str) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.confu<caret>singFunction(`string`)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
   }
 }

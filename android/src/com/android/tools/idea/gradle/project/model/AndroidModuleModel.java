@@ -128,7 +128,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Nullable
   public static AndroidModuleModel get(@NotNull AndroidFacet androidFacet) {
-    AndroidModel androidModel = androidFacet.getConfiguration().getModel();
+    AndroidModel androidModel = AndroidModel.get(androidFacet);
     return androidModel instanceof AndroidModuleModel ? (AndroidModuleModel)androidModel : null;
   }
 
@@ -913,7 +913,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       return Desugaring.NONE;
     }
 
-    return getGradleDesugaring(version, getJavaLanguageLevel());
+    return getGradleDesugaring(version, getJavaLanguageLevel(), myAndroidProject.getJavaCompileOptions().isCoreLibraryDesugaringEnabled());
   }
 
   @Override

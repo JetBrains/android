@@ -37,12 +37,14 @@ public class MockDeviceFileSystemService implements DeviceFileSystemService<Devi
 
   @NotNull private final Project myProject;
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
+  @NotNull private final FutureCallbackExecutor myTaskExecutor;
   @NotNull private final List<DeviceFileSystemServiceListener> myListeners = new ArrayList<>();
   @NotNull private final List<MockDeviceFileSystem> myDevices = new ArrayList<>();
 
-  public MockDeviceFileSystemService(@NotNull Project project, @NotNull Executor edtExecutor) {
+  public MockDeviceFileSystemService(@NotNull Project project, @NotNull Executor edtExecutor, @NotNull Executor taskExecutor) {
     myProject = project;
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
+    myTaskExecutor = new FutureCallbackExecutor(taskExecutor);
   }
 
   @NotNull
@@ -100,7 +102,7 @@ public class MockDeviceFileSystemService implements DeviceFileSystemService<Devi
   }
 
   public MockDeviceFileSystem addDevice(String deviceName) {
-    MockDeviceFileSystem device = new MockDeviceFileSystem(this, deviceName);
+    MockDeviceFileSystem device = new MockDeviceFileSystem(this, deviceName, myTaskExecutor);
     myDevices.add(device);
     myListeners.forEach(l -> l.deviceAdded(device));
     return device;

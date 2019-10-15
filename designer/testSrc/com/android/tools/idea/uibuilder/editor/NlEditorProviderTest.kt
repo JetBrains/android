@@ -37,6 +37,11 @@ class NlEditorProviderTest : AndroidTestCase() {
     provider = NlEditorProvider()
   }
 
+  override fun tearDown() {
+    super.tearDown()
+    DesignerTypeRegistrar.clearRegisteredTypes()
+  }
+
   fun testDoNotAcceptNonLayoutFile() {
     val file = myFixture.addFileToProject("src/SomeFile.kt", "")
     assertFalse(provider.accept(project, file.virtualFile))

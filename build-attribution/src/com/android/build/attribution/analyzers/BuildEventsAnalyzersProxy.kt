@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
@@ -72,7 +73,7 @@ class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter, 
     return projectConfigurationAnalyzer.pluginsSlowingConfiguration
   }
 
-  fun getAlwaysRunTasks(): List<AlwaysRunTasksAnalyzer.AlwaysRunTaskData> {
+  fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {
     return alwaysRunTasksAnalyzer.alwaysRunTasks
   }
 

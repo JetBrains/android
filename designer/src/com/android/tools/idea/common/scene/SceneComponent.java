@@ -23,7 +23,6 @@ import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.*;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
@@ -31,6 +30,7 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import java.awt.Rectangle;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -740,7 +740,7 @@ public class SceneComponent {
     return rectangle;
   }
 
-  public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker) {
+  public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker, @JdkConstants.InputEventMask int modifiersEx) {
     if (myIsToolLocked) {
       return; // skip this if hidden
     }
@@ -751,7 +751,7 @@ public class SceneComponent {
     int num = targets.size();
     for (int i = 0; i < num; i++) {
       Target target = targets.get(i);
-      target.addHit(sceneTransform, picker);
+      target.addHit(sceneTransform, picker, modifiersEx);
     }
     int childCount = myChildren.size();
     for (int i = 0; i < childCount; i++) {
@@ -759,7 +759,7 @@ public class SceneComponent {
       if (child instanceof TemporarySceneComponent) {
         continue;
       }
-      child.addHit(sceneTransform, picker);
+      child.addHit(sceneTransform, picker, modifiersEx);
     }
   }
 

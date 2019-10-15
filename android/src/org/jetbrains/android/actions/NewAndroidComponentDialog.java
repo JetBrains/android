@@ -265,7 +265,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
                                           String label,
                                           boolean startupActivity) {
 
-    final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
+    final VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(facet);
     if (manifestFile == null ||
         !ReadonlyStatusHandler.ensureFilesWritable(facet.getModule().getProject(), manifestFile)) {
       return;

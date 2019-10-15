@@ -24,8 +24,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.lang.RuntimeException
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Future
 import kotlin.test.fail
 
 @RunWith(JUnit4::class)
@@ -47,6 +50,16 @@ class ThrottlingAsyncSupplierTest {
     isUpToDate = isUpToDate,
     mergingPeriod = Duration.ofMillis(1)
   ).disposeAfterTest()
+
+  private fun <T> Future<T>.assertCompletesExceptionally(cause: Throwable) {
+    try {
+      get()
+    } catch (e: ExecutionException) {
+      assertThat(e.cause).isEqualTo(cause)
+      return
+    }
+    fail("Future was not completed exceptionally as excepted.")
+  }
 
   @Test
   fun now_matchesLastComputation() {
@@ -77,6 +90,20 @@ class ThrottlingAsyncSupplierTest {
     lastModificationCount = supplier.modificationCount.also {
       assertThat(it).isGreaterThan(lastModificationCount)
     }
+  }
+
+  @Test
+  fun get_propagatesException() {
+    val computeError = RuntimeException("computation failed")
+    val supplier = ThrottlingAsyncSupplier<Any>(
+      compute = { throw computeError },
+      isUpToDate = { false },
+      mergingPeriod = Duration.ofMillis(1)
+    ).disposeAfterTest()
+
+    supplier.get().assertCompletesExceptionally(computeError)
+    assertThat(supplier.now).isNull()
+    assertThat(supplier.modificationCount).isLessThan(0L)
   }
 
   @Test
@@ -111,6 +138,35 @@ class ThrottlingAsyncSupplierTest {
     // All the futures returned by get() during the first merging period should end up with the same value.
     assertThat(merged.toSet().size).isEqualTo(1)
     // The next computation must not start until after the second merging period.
+    assertThat(timeBetweenComputations).isAtLeast(100)
+  }
+
+  @Test
+  fun get_mergesSuccessiveRequestsWithException() {
+    // Define a compute function which fails on its first invocation and
+    // returns the system time for any subsequent invocations.
+    val computeError = RuntimeException("computation failed")
+    var firstComputeTime: Long? = null
+    val getTime = {
+      if (firstComputeTime == null) {
+        firstComputeTime = System.currentTimeMillis()
+        throw computeError
+      }
+      System.currentTimeMillis()
+    }
+    val supplier = ThrottlingAsyncSupplier(
+      compute = getTime,
+      isUpToDate = { false },
+      mergingPeriod = Duration.ofMillis(100)
+    ).disposeAfterTest()
+
+    // The successive calls to get() should be merged into a single invocation
+    //  of getTime() which completes exceptionally.
+    (1..5).map { supplier.get() }
+      .forEach { it.assertCompletesExceptionally(computeError) }
+
+    // Ensure that we wait the full merging period before invoking getTime() again.
+    val timeBetweenComputations = supplier.get().get() - firstComputeTime!!
     assertThat(timeBetweenComputations).isAtLeast(100)
   }
 

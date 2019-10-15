@@ -3,15 +3,24 @@ package org.jetbrains.android.util;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
 
 import com.android.tools.idea.res.AndroidProjectRootListener;
+import com.intellij.ProjectTopics;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetManagerAdapter;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ModuleListener;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
-import com.intellij.reference.SoftReference;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.messages.MessageBusConnection;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -23,8 +32,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDependenciesCache {
-  private static final Key<SoftReference<AndroidDependenciesCache>> KEY = Key.create("ANDROID_DEPENDENCIES_CACHE");
+public class AndroidDependenciesCache implements Disposable {
+  private static final Key<AndroidDependenciesCache> KEY = Key.create(AndroidDependenciesCache.class.getName());
 
   private final Module myModule;
   private final Ref<List<WeakReference<AndroidFacet>>> myAllDependencies = Ref.create();
@@ -34,7 +43,44 @@ public class AndroidDependenciesCache {
     myModule = module;
 
     AndroidProjectRootListener.ensureSubscribed(module.getProject());
+
+    // ProjectTopics.MODULES publishes on the project bus, FACETS_TOPIC is per module but broadcasts to parent buses. For this
+    // AndroidDependenciesCache we are interested in any changes in the project.
+    MessageBusConnection busConnection = module.getProject().getMessageBus().connect(this);
+
+    //noinspection rawtypes: FacetManagerAdapter uses raw types.
+    busConnection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerAdapter() {
+      @Override
+      public void facetAdded(@NotNull Facet facet) {
+        dropCache();
+      }
+
+      @Override
+      public void facetRemoved(@NotNull Facet facet) {
+        dropCache();
+      }
+
+      @Override
+      public void facetConfigurationChanged(@NotNull Facet facet) {
+        dropCache();
+      }
+    });
+
+    busConnection.subscribe(ProjectTopics.MODULES, new ModuleListener() {
+      @Override
+      public void moduleAdded(@NotNull Project project, @NotNull Module module) {
+        dropCache();
+      }
+
+      @Override
+      public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
+        dropCache();
+      }
+    });
   }
+
+  @Override
+  public void dispose() {}
 
   /**
    * This method is called by {@link AndroidProjectRootListener} when module dependencies change.
@@ -45,12 +91,13 @@ public class AndroidDependenciesCache {
   }
 
   @NotNull
-  public static AndroidDependenciesCache getInstance(@NotNull Module module) {
-    AndroidDependenciesCache cache = SoftReference.dereference(module.getUserData(KEY));
+  public static synchronized AndroidDependenciesCache getInstance(@NotNull Module module) {
+    AndroidDependenciesCache cache = module.getUserData(KEY);
 
     if (cache == null) {
       cache = new AndroidDependenciesCache(module);
-      module.putUserData(KEY, new SoftReference<>(cache));
+      Disposer.register(module, cache);
+      module.putUserData(KEY, cache);
     }
     return cache;
   }
@@ -83,7 +130,31 @@ public class AndroidDependenciesCache {
 
   @NotNull
   private static List<AndroidFacet> dereference(@NotNull List<WeakReference<AndroidFacet>> refs) {
-    return ContainerUtil.mapNotNull(refs, ref -> ref.get());
+    return ContainerUtil.mapNotNull(refs, ref -> {
+      AndroidFacet facet = ref.get();
+      if (facet == null) {
+        Logger.getInstance(AndroidDependenciesCache.class).error("null in dereference");
+        return null;
+      }
+
+      if (facet.isDisposed()) {
+        Logger.getInstance(AndroidDependenciesCache.class).error("disposed facet");
+        return null;
+      }
+
+      AndroidFacet facetFromModule = AndroidFacet.getInstance(facet.getModule());
+      if (facetFromModule == null) {
+        Logger.getInstance(AndroidDependenciesCache.class).error("non-Android module");
+        return null;
+      }
+
+      if (facetFromModule != facet) {
+        Logger.getInstance(AndroidDependenciesCache.class).error("left-over facet");
+        return null;
+      }
+
+      return facet;
+    });
   }
 
   private static void collectAllAndroidDependencies(@NotNull Module module,

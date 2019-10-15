@@ -215,7 +215,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   }
 
   @Override
-  public void deriveValues(Set<ScopedStateStore.Key> modified) {
+  public void deriveValues(Set<? extends ScopedStateStore.Key> modified) {
     super.deriveValues(modified);
     if (modified.contains(WizardConstants.KEY_SDK_INSTALL_LOCATION)) {
       String sdkPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);

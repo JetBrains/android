@@ -30,6 +30,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
@@ -117,14 +118,12 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
       return
 
     val virtualFile = drawableFileGenerator.generateColorsFile(colors.toMutableList())
-    val resFolder = SourceProviderManager.getInstance(facet).mainSourceProvider.resDirectories.let { resDirs ->
-      resDirs.firstOrNull { it.exists() }
-      ?: resDirs.first().also { it.createNewFile() }
-    }
+    val sourceProvider = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider
+    val resFolder = sourceProvider.resDirectories.firstOrNull()
+                    ?: VfsUtil.createDirectories(VfsUtilCore.urlToPath(sourceProvider.resDirectoryUrls.first()))
 
     WriteCommandAction.runWriteCommandAction(facet.module.project) {
-      val folder = VfsUtil.findFileByIoFile(resFolder, true)
-      val directory = VfsUtil.createDirectoryIfMissing(folder, valuesFolder)
+      val directory = VfsUtil.createDirectoryIfMissing(resFolder, valuesFolder)
       if (virtualFile.fileSystem.protocol != LocalFileSystem.getInstance().protocol) {
         directory.findChild(colorsFileName)?.delete(this)
         val projectFile = directory.createChildData(this, colorsFileName)

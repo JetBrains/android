@@ -16,58 +16,68 @@
 package com.android.tools.adtui.model.trackgroup;
 
 import com.android.tools.adtui.model.DragAndDropListModel;
-import com.android.tools.adtui.model.DragAndDropModelListElement;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Data model for TrackGroup, a collapsible UI component that contains a list of Tracks.
  */
-public class TrackGroupModel extends DragAndDropListModel<TrackModel> implements DragAndDropModelListElement {
+public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   /**
    * Use this to generate unique (within this group) IDs for {@link TrackModel}s in this group.
    */
   private static final AtomicInteger TRACK_ID_GENERATOR = new AtomicInteger();
 
-  private int myId;
-  private String myTitle;
-  private boolean myCollapsedInitially;
+  private final String myTitle;
+  private final boolean myCollapsedInitially;
+  private final boolean myHideHeader;
+  private final int myTrackLimit;
 
   /**
    * Use builder to instantiate this class.
    */
-  private TrackGroupModel(int id, String title, boolean collapsedInitially) {
-    myId = id;
-    myTitle = title;
-    myCollapsedInitially = collapsedInitially;
+  private TrackGroupModel(Builder builder) {
+    myTitle = builder.myTitle;
+    myCollapsedInitially = builder.myCollapsedInitially;
+    myHideHeader = builder.myHideHeader;
+    myTrackLimit = builder.myTrackLimit;
   }
 
   /**
    * Add a {@link TrackModel} to the group.
    *
-   * @param trackModel {@link TrackModel} to add
+   * @param builder    to build the {@link TrackModel} to add
    * @param <M>        data model type
    * @param <R>        renderer enum type
    */
-  public <M, R extends Enum> void addTrackModel(@NotNull TrackModel<M, R> trackModel) {
+  public <M, R extends Enum> void addTrackModel(@NotNull TrackModel.Builder<M, R> builder) {
     // add() is disabled in DragAndDropListModel to support dynamically reordering elements. Use insertOrderedElement() instead.
-    insertOrderedElement(trackModel.setId(TRACK_ID_GENERATOR.getAndIncrement()));
+    insertOrderedElement(builder.setId(TRACK_ID_GENERATOR.getAndIncrement()).build());
   }
 
   public String getTitle() {
     return myTitle;
   }
 
+  /**
+   * @return whether the track group is collapsed initially.
+   */
   public boolean isCollapsedInitially() {
     return myCollapsedInitially;
   }
 
   /**
-   * @return a unique ID needed for being in a drag and drop list. -1 if it's not in a {@link TrackGroupListModel} yet.
+   * @return whether to hide the group header.
    */
-  @Override
-  public int getId() {
-    return myId;
+  public boolean getHideHeader() {
+    return myHideHeader;
+  }
+
+  /**
+   * @return the number limit of tracks to display.
+   */
+  public int getTrackLimit() {
+    return myTrackLimit;
   }
 
   public static Builder newBuilder() {
@@ -75,22 +85,16 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> implements
   }
 
   public static class Builder {
-    private int myId;
     private String myTitle;
     private boolean myCollapsedInitially;
+    private boolean myHideHeader;
+    private int myTrackLimit;
 
     private Builder() {
-      myId = -1;
       myTitle = "";
       myCollapsedInitially = false;
-    }
-
-    /**
-     * Used by container (e.g. {@link TrackGroupListModel}) to set unique IDs automatically.
-     */
-    public Builder setId(int id) {
-      myId = id;
-      return this;
+      myHideHeader = false;
+      myTrackLimit = Integer.MAX_VALUE;
     }
 
     /**
@@ -101,16 +105,23 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> implements
       return this;
     }
 
-    /**
-     * @param collapsedInitially true if the track group is collapsed initially
-     */
     public Builder setCollapsedInitially(boolean collapsedInitially) {
       myCollapsedInitially = collapsedInitially;
       return this;
     }
 
+    public Builder setHideHeader(boolean hideHeader) {
+      myHideHeader = hideHeader;
+      return this;
+    }
+
+    public Builder setTrackLimit(int trackLimit) {
+      myTrackLimit = trackLimit;
+      return this;
+    }
+
     public TrackGroupModel build() {
-      return new TrackGroupModel(myId, myTitle, myCollapsedInitially);
+      return new TrackGroupModel(this);
     }
   }
 }

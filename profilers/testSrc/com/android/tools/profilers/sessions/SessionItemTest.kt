@@ -33,18 +33,31 @@ import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth
+import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.util.concurrent.TimeUnit
 
-class SessionItemTest {
+@RunWith(Parameterized::class)
+class SessionItemTest(newPipeline: Boolean) {
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters
+    fun data(): Collection<Boolean> {
+      return listOf(false, true)
+    }
+  }
+
   private val myTimer = FakeTimer()
+  private val myTransportService = FakeTransportService(myTimer, false)
   private val myMemoryService = FakeMemoryService()
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel(
     "SessionItemTestChannel",
-    FakeTransportService(myTimer, false),
+    myTransportService,
     FakeProfilerService(myTimer),
     myMemoryService,
     FakeCpuService(),
@@ -53,77 +66,73 @@ class SessionItemTest {
   )
 
   private val myProfilerClient = ProfilerClient(myGrpcChannel.name)
+  private val myIdeServices = FakeIdeProfilerServices().apply {
+    enableEventsPipeline(newPipeline)
+  }
+  private val myProfilers = StudioProfilers(myProfilerClient, myIdeServices, myTimer)
 
   @Test
   fun testNavigateToStudioMonitorStage() {
-    val profilers = StudioProfilers(
-      myProfilerClient,
-      FakeIdeProfilerServices(),
-      FakeTimer()
-    )
-    Truth.assertThat(profilers.stageClass).isEqualTo(NullMonitorStage::class.java)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(NullMonitorStage::class.java)
 
-    val sessionsManager = profilers.sessionsManager
+    val sessionsManager = myProfilers.sessionsManager
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Common.Process.newBuilder().setPid(2).setState(Common.Process.State.ALIVE).build()
-    sessionsManager.beginSession(device, process)
-    Truth.assertThat(profilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
+    sessionsManager.beginSession(device.deviceId, device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
 
     // Navigate to a random stage, and make sure selecting the session item will go back to StudioMonitorStage.
-    profilers.stage = MemoryProfilerStage(profilers)
-    Truth.assertThat(profilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
+    myProfilers.stage = MemoryProfilerStage(myProfilers)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
     sessionItem.onSelect()
-    Truth.assertThat(profilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
   }
 
   @Test
   fun testAvoidRedundantNavigationToMonitorStage() {
-    val profilers = StudioProfilers(
-      myProfilerClient,
-      FakeIdeProfilerServices(),
-      FakeTimer()
-    )
-    Truth.assertThat(profilers.stageClass).isEqualTo(NullMonitorStage::class.java)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(NullMonitorStage::class.java)
 
-    val sessionsManager = profilers.sessionsManager
+    val sessionsManager = myProfilers.sessionsManager
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Common.Process.newBuilder().setPid(2).setState(Common.Process.State.ALIVE).build()
-    sessionsManager.beginSession(device, process)
-    Truth.assertThat(profilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
+    sessionsManager.beginSession(device.deviceId, device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(StudioMonitorStage::class.java)
 
-    val stage = profilers.stage
+    val stage = myProfilers.stage
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
     sessionItem.onSelect()
-    Truth.assertThat(profilers.stage).isEqualTo(stage)
+    Truth.assertThat(myProfilers.stage).isEqualTo(stage)
   }
 
   @Test
   fun testNonFullSessionNavigation() {
-    val profilers = StudioProfilers(
-      myProfilerClient,
-      FakeIdeProfilerServices(),
-      FakeTimer()
-    )
-    Truth.assertThat(profilers.stageClass).isEqualTo(NullMonitorStage::class.java)
+    // TODO b/136292864
+    Assume.assumeFalse(myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled)
 
-    val sessionsManager = profilers.sessionsManager
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(NullMonitorStage::class.java)
+
+    val sessionsManager = myProfilers.sessionsManager
     val session = sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
     sessionsManager.update()
     sessionsManager.setSession(session)
-    Truth.assertThat(profilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
 
     Truth.assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
     sessionItem.onSelect()
     // Selecting a memory capture session should not navigate to StudioMonitorStage
-    Truth.assertThat(profilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(MemoryProfilerStage::class.java)
   }
 
   @Test
   fun testImportedHprofSessionName() {
-    val profilers = StudioProfilers(myProfilerClient, FakeIdeProfilerServices(), FakeTimer())
-    val sessionsManager = profilers.sessionsManager
+    // TODO b/136292864
+    Assume.assumeFalse(myProfilers.ideServices.featureConfig.isUnifiedPipelineEnabled)
+
+    val sessionsManager = myProfilers.sessionsManager
     sessionsManager.createImportedSessionLegacy("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
     sessionsManager.update()
     Truth.assertThat(sessionsManager.sessionArtifacts.size).isEqualTo(1)
@@ -138,18 +147,12 @@ class SessionItemTest {
 
   @Test
   fun testDurationUpdates() {
-    val profilers = StudioProfilers(
-      myProfilerClient,
-      FakeIdeProfilerServices(),
-      FakeTimer()
-    )
-
     var aspectChangeCount1 = 0
     val observer1 = AspectObserver()
     val finishedSession = Common.Session.newBuilder()
       .setStartTimestamp(TimeUnit.SECONDS.toNanos(5))
       .setEndTimestamp(TimeUnit.SECONDS.toNanos(10)).build()
-    val finishedSessionItem = SessionItem(profilers, finishedSession,
+    val finishedSessionItem = SessionItem(myProfilers, finishedSession,
                                           Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build())
     finishedSessionItem.addDependency(observer1)
       .onChange(SessionItem.Aspect.MODEL, { aspectChangeCount1++ })
@@ -165,7 +168,7 @@ class SessionItemTest {
     val ongoingSession = Common.Session.newBuilder()
       .setStartTimestamp(TimeUnit.SECONDS.toNanos(5))
       .setEndTimestamp(Long.MAX_VALUE).build()
-    val ongoingSessionItem = SessionItem(profilers, ongoingSession,
+    val ongoingSessionItem = SessionItem(myProfilers, ongoingSession,
                                          Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build())
     ongoingSessionItem.addDependency(observer2)
       .onChange(SessionItem.Aspect.MODEL, { aspectChangeCount2++ })

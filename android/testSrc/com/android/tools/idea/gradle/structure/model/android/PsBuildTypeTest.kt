@@ -21,13 +21,12 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Ignore
 import java.io.File
 
 class PsBuildTypeTest : AndroidGradleTestCase() {
 
   fun testDescriptor() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -42,7 +41,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
   }
 
   fun testProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -157,7 +156,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
   }
 
   fun testProperties_defaultResolved() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -217,7 +216,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
   }
 
   fun testSetProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -330,7 +329,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
   }
 
   fun testSetProperties_undeclaredDebug() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -366,7 +365,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
   }
 
   fun testEditLists_undeclaredDebug() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -405,7 +404,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
   }
 
   fun testEditMaps_undeclaredDebug() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -443,7 +442,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
   }
 
   fun testInsertingProguardFiles() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
@@ -497,7 +496,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
   /** TODO(b/72853928): Enable this test */
   fun /*test*/SetListReferences() {
-    loadProject(TestProjectPaths.PSD_SAMPLE)
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }

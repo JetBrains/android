@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
+import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
@@ -87,7 +88,7 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
 
     myConfiguration = new AndroidFacetConfiguration();
     myAndroidFacet = new AndroidFacet(myModule, AndroidFacet.NAME, myConfiguration);
-    myConfiguration.setModel(androidModel);
+    AndroidModel.set(myAndroidFacet, androidModel);
 
     List<AndroidArtifactOutput> mainOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
     List<AndroidArtifactOutput> testOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));

@@ -28,8 +28,8 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
 
   fun testSanityCheck() {
     myFixture.configureByText(
-        JavaFileType.INSTANCE,
-        """
+      JavaFileType.INSTANCE,
+      """
         package com.example;
 
         import androidx.room.Query;
@@ -45,8 +45,8 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
 
   fun testSimpleQuery() {
     myFixture.configureByText(
-        JavaFileType.INSTANCE,
-        """
+      JavaFileType.INSTANCE,
+      """
         package com.example;
 
         import androidx.room.Query;
@@ -79,8 +79,8 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
 
   fun testConcatenation() {
     myFixture.configureByText(
-        JavaFileType.INSTANCE,
-        """
+      JavaFileType.INSTANCE,
+      """
         package com.example;
 
         import androidx.room.Query;
@@ -100,8 +100,8 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
 
   fun testStringConstants() {
     myFixture.configureByText(
-        JavaFileType.INSTANCE,
-        """
+      JavaFileType.INSTANCE,
+      """
         package com.example;
 
         import androidx.room.Query;
@@ -129,7 +129,7 @@ class OtherApisInjectionTest : RoomLightTestCase() {
 
   fun testSqliteDatabase() {
     myFixture.addClass(
-        """
+      """
         package com.example;
 
         import android.database.sqlite.SQLiteDatabase;
@@ -149,7 +149,7 @@ class OtherApisInjectionTest : RoomLightTestCase() {
 
   fun testSqliteDatabase_nested() {
     myFixture.addClass(
-        """
+      """
         package com.example;
 
         import android.database.sqlite.SQLiteDatabase;
@@ -169,7 +169,7 @@ class OtherApisInjectionTest : RoomLightTestCase() {
 
   fun testSqliteDatabase_wrongArgument() {
     myFixture.addClass(
-        """
+      """
         package com.example;
 
         import android.database.sqlite.SQLiteDatabase;

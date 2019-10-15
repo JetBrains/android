@@ -170,7 +170,7 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   }
 
   private fun setUpAppCompat() {
-    MockAppCompat.setUp(this, myFacet, myFixture)
+    MockAppCompat.setUp(myFacet, myFixture)
   }
 
   private fun createViewTagComponent(): List<NlComponent> {

@@ -158,6 +158,14 @@ class ResourceLookupResolver(
   }
 
   /**
+   * Find the location of the specified [view].
+   */
+  fun findFileLocation(view: ViewNode): SourceLocation? {
+    val tag = findViewTagInFile(view, view.layout) ?: return null
+    return createFileLocation(tag)
+  }
+
+  /**
    * Resolve this drawable property as an icon.
    */
   fun resolveAsIcon(property: InspectorPropertyItem): Icon? {
@@ -400,18 +408,15 @@ class ResourceLookupResolver(
   }
 
   private fun findLayoutAttribute(property: InspectorPropertyItem, layout: ResourceReference): XmlAttribute? {
-    val reference = mapReference(layout) ?: return null
-    val tag = findViewTagInFile(property.view, reference)
+    val tag = findViewTagInFile(property.view, layout)
     return tag?.getAttribute(property.attrName, property.namespace)
   }
 
   private fun findViewTagInFile(view: ViewNode, layout: ResourceReference?): XmlTag? {
-    if (layout == null) {
-      return null
-    }
     view.tag?.let { return it }
 
-    val layoutValue = resolver.getUnresolvedResource(layout)
+    val reference = mapReference(layout) ?: return null
+    val layoutValue = resolver.getUnresolvedResource(reference)
     val file = resolver.resolveLayout(layoutValue) ?: return null
     val xmlFile = (AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile) ?: return null
     val locator = ViewLocator(view)
