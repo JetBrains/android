@@ -51,6 +51,7 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/.idea/libraries:protobuf",
+        "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module]",
     ],
 )
 
