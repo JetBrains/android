@@ -32,4 +32,5 @@
   <xi:include href="/META-INF/whats-new-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/compose-designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/customview.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

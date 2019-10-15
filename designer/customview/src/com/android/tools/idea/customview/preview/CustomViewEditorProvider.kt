@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.editor
+package com.android.tools.idea.customview.preview
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.actions.DropDownAction
@@ -46,7 +46,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
