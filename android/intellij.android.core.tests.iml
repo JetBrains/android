@@ -35,7 +35,7 @@
     <orderEntry type="module" module-name="intellij.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.groovy.psi" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layoutlibLoader" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.diff.impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
@@ -101,10 +101,10 @@
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.resources-aar" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.resourcesAar" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-plugin" level="project" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.resources-aar.tests" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.resourcesAar.tests" scope="RUNTIME" />
   </component>
 </module>
