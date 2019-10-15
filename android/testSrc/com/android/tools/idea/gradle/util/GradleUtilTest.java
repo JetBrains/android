@@ -257,6 +257,7 @@ public class GradleUtilTest {
     assertTrue(GradleUtil.isDirectChild(":libs:lib1", ":libs"));
     assertTrue(GradleUtil.isDirectChild(":libs:java:lib2", ":libs:java"));
 
+    assertFalse(GradleUtil.isDirectChild(":", ":"));
     assertFalse(GradleUtil.isDirectChild(":libs:lib1", ":"));
     assertFalse(GradleUtil.isDirectChild(":libs", ":app"));
     assertFalse(GradleUtil.isDirectChild(":libs:lib1", ":app"));
