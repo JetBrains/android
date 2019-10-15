@@ -129,7 +129,7 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
  * This is to avoid `@Preview` methods to be instance methods of classes that we can not instantiate.
  */
 class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
-  override fun getDisplayName() = message("inspection.top.level.method")
+  override fun getDisplayName() = message("inspection.top.level.function")
 
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
@@ -137,7 +137,7 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
                                              functionAnnotations: Map<String, KtAnnotationEntry>) {
     if (!function.isTopLevel) {
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
-                             message("inspection.top.level.method"),
+                             message("inspection.top.level.function"),
                              ProblemHighlightType.ERROR)
     }
   }

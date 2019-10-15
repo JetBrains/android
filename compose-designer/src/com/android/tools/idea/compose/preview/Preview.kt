@@ -149,7 +149,7 @@ private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = 
 
 /**
  * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used as adapter
- * to be able to preview composable methods.
+ * to be able to preview composable functions.
  * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
  */
 private class ComposeAdapterLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
@@ -232,9 +232,9 @@ private fun configureExistingModel(existingModel: NlModel,
 /**
  * A [FileEditor] that displays a preview of composable elements defined in the given [psiFile].
  *
- * The editor will display previews for all declared `@Composable` methods that also use the `@Preview` (see [PREVIEW_ANNOTATION_FQN])
+ * The editor will display previews for all declared `@Composable` functions that also use the `@Preview` (see [PREVIEW_ANNOTATION_FQN])
  * annotation.
- * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` method.
+ * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
  * @param previewProvider call to obtain the [PreviewElement]s from the file.
