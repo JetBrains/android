@@ -47,7 +47,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   public void tearDown() throws Exception {
     try {
       StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.clearOverride();
-      StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.clearOverride();
     } finally {
       super.tearDown();
     }
@@ -191,7 +190,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testIndexStrategy_onBackgroundThread() throws Exception {
-    StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.override(true);
     StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
     MergedManifestModificationListener.ensureSubscribed(getProject());
 
@@ -205,7 +203,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testIndexStrategy_onEdt() {
-    StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.override(true);
     StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
     MergedManifestModificationListener.ensureSubscribed(getProject());
     ApplicationManager.getApplication().assertIsDispatchThread();
@@ -220,7 +217,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testIndexStrategy_cacheHit() {
-    StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.override(true);
     StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
     MergedManifestModificationListener.ensureSubscribed(getProject());
 

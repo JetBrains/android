@@ -102,7 +102,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
     val NAME: ID<Int, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
 
     @JvmStatic
-    fun indexEnabled() = StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.get()
+    fun indexEnabled() = ApplicationManager.getApplication().isUnitTestMode || StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.get()
 
     /**
      * Returns the [AndroidManifestRawText] for the given [manifestFile], or null
