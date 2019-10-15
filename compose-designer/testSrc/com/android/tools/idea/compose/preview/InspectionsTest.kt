@@ -75,4 +75,34 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
                               "Preview methods must not have parameters."),
                       inspections)
   }
+
+  fun testPreviewMustBeTopLevel() {
+    myFixture.enableInspections(PreviewMustBeTopLevelFunction() as InspectionProfileEntry)
+
+    @Language("kotlin")
+    val fileContent = """
+      import androidx.ui.tooling.preview.Preview
+      import androidx.compose.Composable
+
+      @Composable
+      @Preview(name = "top level preview")
+      fun TopLevelPreview() {
+      }
+
+      class aClass {
+        @Preview(name = "preview2", apiLevel = 12)
+        @Composable
+        fun ClassMethodPreview() {
+        }
+      }
+    """.trimIndent()
+
+    myFixture.configureByText("Test.kt", fileContent)
+    val inspections = myFixture.doHighlighting(HighlightSeverity.ERROR)
+      .sortedByDescending { -it.startOffset }
+      .map { it.description }
+      .toArray(emptyArray())
+
+    assertEquals("Preview methods must be top level declarations.", inspections.single())
+  }
 }
