@@ -53,7 +53,7 @@ public class NewInstantAppTest {
       .getConfigureNewAndroidProjectStep()
       .setSourceLanguage(JAVA)
       .enterName(projectName)
-      .selectMinimumSdkApi("23")
+      .selectMinimumSdkApi(23)
       .wizard()
       .clickFinish();
 

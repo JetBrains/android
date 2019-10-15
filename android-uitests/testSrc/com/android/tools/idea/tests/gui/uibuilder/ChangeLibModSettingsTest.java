@@ -74,8 +74,8 @@ public class ChangeLibModSettingsTest {
    */
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
-  public void changeLibraryModuleSettings() throws Exception {
-    new NewProjectDescriptor("MyTestApp").withMinSdk("24").create(guiTest)
+  public void changeLibraryModuleSettings() {
+    new NewProjectDescriptor("MyTestApp").withMinSdk(24).create(guiTest)
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToAndroidLibrary()
       .enterModuleName("library_module")

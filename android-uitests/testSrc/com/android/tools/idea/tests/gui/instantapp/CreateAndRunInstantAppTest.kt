@@ -114,7 +114,7 @@ class CreateAndRunInstantAppTest {
       .clickNext()
       .configureNewAndroidProjectStep
       .enterPackageName(projectApplicationId)
-      .selectMinimumSdkApi("23")
+      .selectMinimumSdkApi(23)
       .wizard()
       .clickFinish()
 

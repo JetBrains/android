@@ -93,7 +93,7 @@ class AddComposeTest {
     NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module..."))
       .clickNextPhoneAndTabletModule()
       .setSourceLanguage(KOTLIN)
-      .selectMinimumSdkApi("28")
+      .selectMinimumSdkApi(28)
       .enterModuleName("compose")
       .wizard()
       .clickNext()

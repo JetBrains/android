@@ -79,7 +79,7 @@ class NewWearProjectTest {
       .clickNext()
       .configureNewAndroidProjectStep
       .setSourceLanguage(language)
-      .selectMinimumSdkApi(FormFactor.WEAR, "28")
+      .selectMinimumSdkApi(FormFactor.WEAR, 28)
       .setPairWithPhoneApp(pairWithPhone)
       .wizard()
       .clickFinish()

@@ -48,7 +48,7 @@ public final class WizardUtils {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .selectMinimumSdkApi("23")
+      .selectMinimumSdkApi(23)
       .setSourceLanguage(language)
       .enterPackageName("com.google.myapplication")
       .wizard()
