@@ -464,18 +464,6 @@ public final class StudioFlags {
     false);
   //endregion
 
-  //region Resource Manager
-  private static final FlagGroup RESOURCES_MANAGEMENT = new FlagGroup(FLAGS, "res.manag", "Resource Management");
-  public static final Flag<Boolean> RESOURCE_MANAGER_ENABLED = Flag.create(
-    RESOURCES_MANAGEMENT, "enabled", "Enable the new resources management tools",
-    "If enabled, the new resource management tools are enabled. Subflags will also need to be enabled to enable all available new tools",
-    true);
-  public static final Flag<Boolean> RESOURCE_EXPLORER_PICKER = Flag.create(
-    RESOURCES_MANAGEMENT, "picker", "Enable the resource explorer as picker",
-    "If enabled, the new resource management tools are used for the resource picker in the property panel.",
-    true);
-  //endregion
-
   //region Layout Inspector
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(

@@ -239,7 +239,6 @@ class ResourcePasteProvider : PasteProvider {
       ?.getTransferData(RESOURCE_URL_FLAVOR) as ResourceUrl?
 
   override fun isPastePossible(dataContext: DataContext): Boolean {
-    if (!StudioFlags.RESOURCE_MANAGER_ENABLED.get()) return false
     return PasteAction.TRANSFERABLE_PROVIDER.getData(dataContext)
              ?.produce()
              ?.isDataFlavorSupported(RESOURCE_URL_FLAVOR) ?: false

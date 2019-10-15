@@ -16,17 +16,20 @@
 package com.android.tools.idea.tests.gui.framework.fixture
 
 import com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton
-import com.android.tools.idea.ui.resourcemanager.ResourceExplorerDialog
+import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import org.fest.swing.core.Robot
 
-class ResourceExplorerDialogFixture private constructor(
+/**
+ * Test fixture for the [ResourcePickerDialog].
+ */
+class ResourcePickerDialogFixture private constructor(
   robot: Robot,
-  dialogAndWrapper: DialogAndWrapper<ResourceExplorerDialog>
-) : IdeaDialogFixture<ResourceExplorerDialog>(robot, dialogAndWrapper) {
+  dialogAndWrapper: DialogAndWrapper<ResourcePickerDialog>
+) : IdeaDialogFixture<ResourcePickerDialog>(robot, dialogAndWrapper) {
   companion object {
     @JvmStatic
-    fun find(robot: Robot): ResourceExplorerDialogFixture {
-      return ResourceExplorerDialogFixture(robot, find(robot, ResourceExplorerDialog::class.java))
+    fun find(robot: Robot): ResourcePickerDialogFixture {
+      return ResourcePickerDialogFixture(robot, find(robot, ResourcePickerDialog::class.java))
     }
   }
 
@@ -35,5 +38,4 @@ class ResourceExplorerDialogFixture private constructor(
   fun clickOk() {
     findAndClickOkButton(this)
   }
-
 }

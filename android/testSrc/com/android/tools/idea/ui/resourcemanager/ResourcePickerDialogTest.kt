@@ -38,12 +38,12 @@ import kotlin.test.assertNull
 
 private const val WAIT_TIMEOUT = 3000
 
-class ResourceExplorerDialogTest {
+class ResourcePickerDialogTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk()
 
-  private lateinit var pickerDialog: ResourceExplorerDialog
+  private lateinit var pickerDialog: ResourcePickerDialog
 
   @Before
   fun setUp() {
@@ -176,15 +176,15 @@ class ResourceExplorerDialogTest {
                                          initialResourceUrl: String? = null,
                                          supportedTypes: Set<ResourceType> = setOf(ResourceType.DRAWABLE),
                                          preferredType: ResourceType = ResourceType.DRAWABLE
-  ): ResourceExplorerDialog {
-    var explorerDialog: ResourceExplorerDialog? = null
+  ): ResourcePickerDialog {
+    var explorerDialog: ResourcePickerDialog? = null
     runInEdtAndWait {
-      explorerDialog = ResourceExplorerDialog(facet = AndroidFacet.getInstance(projectRule.module)!!,
-                                              initialResourceUrl = initialResourceUrl,
-                                              supportedTypes = supportedTypes,
-                                              preferredType = preferredType,
-                                              showSampleData = showSampleData,
-                                              currentFile = null)
+      explorerDialog = ResourcePickerDialog(facet = AndroidFacet.getInstance(projectRule.module)!!,
+                                            initialResourceUrl = initialResourceUrl,
+                                            supportedTypes = supportedTypes,
+                                            preferredType = preferredType,
+                                            showSampleData = showSampleData,
+                                            currentFile = null)
     }
     assertThat(explorerDialog).isNotNull()
     explorerDialog?.let { view ->
