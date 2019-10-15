@@ -29,6 +29,7 @@ import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.res.getDrawableResources
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.ui.resourcemanager.importer.QualifierMatcher
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -37,6 +38,9 @@ import com.intellij.openapi.vfs.VirtualFile
 
 val externalResourceNamespace = ResourceNamespace.fromPackageName("external.design.resource")
 private val LOG = Logger.getInstance(Asset::class.java)
+
+/** [DataKey] to pass an array of [DesignAsset]s. */
+val RESOURCE_DESIGN_ASSETS_KEY: DataKey<Array<DesignAsset>> = DataKey.create("Design Assets Key")
 
 /** The base interface for displaying resources in the Resource Explorer. */
 interface Asset {

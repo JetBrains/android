@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.ui.resourcemanager.actions.RefreshDesignAssetAction
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarget
 import com.android.tools.idea.ui.resourcemanager.model.Asset
@@ -242,7 +243,11 @@ class ResourceExplorerListView(
    */
   private val popupHandler = object : PopupHandler() {
     val actionManager = ActionManager.getInstance()
-    val group = actionManager.getAction("ResourceExplorer") as ActionGroup
+    val group = DefaultActionGroup().apply {
+      add(RefreshDesignAssetAction { assets -> assets.forEach { viewModel.clearImageCache(it) } })
+      addSeparator()
+      add(actionManager.getAction("ResourceExplorer") as ActionGroup)
+    }
 
     override fun invokePopup(comp: Component?, x: Int, y: Int) {
       val list = comp as JList<*>
