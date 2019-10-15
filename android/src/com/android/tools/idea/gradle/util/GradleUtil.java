@@ -474,7 +474,7 @@ public final class GradleUtil {
    */
   public static boolean isDirectChild(String childPath, String parentPath) {
     List<String> childSegments = getPathSegments(childPath);
-    return childSegments.subList(0, childSegments.size() - 1).equals(getPathSegments(parentPath));
+    return !childSegments.isEmpty() && childSegments.subList(0, childSegments.size() - 1).equals(getPathSegments(parentPath));
   }
 
 
