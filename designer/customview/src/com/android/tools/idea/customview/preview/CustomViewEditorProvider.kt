@@ -32,6 +32,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.compose.preview.ComposeFileEditorProvider
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -176,8 +177,9 @@ class CustomViewEditorProvider : FileEditorProvider, DumbAware {
     })
   }
 
+  // TODO(b/143067434): remove ComposeFileEditorProvider check and rework it so that Compose and custom View previews work together
   override fun accept(project: Project, file: VirtualFile) =
-    StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.get() && file.hasSourceFileExtension()
+    !ComposeFileEditorProvider().accept(project, file) && StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.get() && file.hasSourceFileExtension()
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
