@@ -70,7 +70,7 @@ import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 
 /** TODO: overlay android on some other icon? */
-private val COMPOSABLE_FUNCTION_ICON = LayeredIcon(AndroidIcons.Android)
+private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Misc.COMPOSABLE_FUNCTION
 
 private val signaturesFlags = listOf(
   COMPOSE_COMPLETION_REQUIRED_ONLY,
