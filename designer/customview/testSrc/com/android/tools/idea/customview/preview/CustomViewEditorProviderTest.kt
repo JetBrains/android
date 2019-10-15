@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.editor
+package com.android.tools.idea.customview.preview
 
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.flags.StudioFlags
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 
 
-class CustomViewEditorProviderTest : AndroidTestCase() {
+class CustomViewEditorProviderTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var provider : CustomViewEditorProvider
 
   override fun setUp() {

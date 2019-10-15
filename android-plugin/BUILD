@@ -52,6 +52,7 @@ iml_module(
         "//tools/adt/idea/naveditor:intellij.android.naveditor[module]",
         "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module]",
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module]",
+        "//tools/adt/idea/designer/customview:intellij.android.designer.customview[module]",
         "//tools/adt/idea/room:intellij.android.room[module]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module]",
     ],
