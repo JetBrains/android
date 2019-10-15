@@ -15,20 +15,22 @@
  */
 package com.android.tools.idea.emulator
 
-import java.awt.Color
-import java.awt.Graphics
-import javax.swing.JComponent
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.wm.ToolWindowManager
 
-// TODO: Add tabs to support multiple running emulators simultaneously
-class EmulatorComponent : JComponent() {
-  override fun paintComponent(g: Graphics) {
-    super.paintComponent(g)
-
-    // TODO: Paint emulator here
-    g.color = Color.RED
-    g.fillRect(0, 0, width, height)
-
-    g.color = Color.BLUE
-    g.fillRect(100, 100, width - 200, height - 200)
+class ToggleEmulatorWindowAction : AnAction("Toggle Emulator Window") {
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
+    val activateWindow = true
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(EmulatorToolWindow.ID)
+    if (toolWindow.isVisible) {
+      toolWindow.hide(null)
+    } else {
+      toolWindow.show(null)
+      if (activateWindow && !toolWindow.isActive) {
+        toolWindow.activate(null)
+      }
+    }
   }
 }

@@ -506,6 +506,14 @@ public final class StudioFlags {
     "If enabled and this is a locally-built studio instance, use the locally-built skia server instead of one from the SDK.", false);
   //endregion
 
+  //region Embedded Emulator
+  private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_ENABLED = Flag.create(
+    EMBEDDED_EMULATOR, "embedded.emulator.enabled", "Enable Embedded Emulator",
+    "Enables the Embedded Emulator tool window",
+    false);
+  //endregion
+
   //region Refactorings
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
   public static final Flag<Boolean> MIGRATE_TO_RESOURCE_NAMESPACES_REFACTORING_ENABLED = Flag.create(

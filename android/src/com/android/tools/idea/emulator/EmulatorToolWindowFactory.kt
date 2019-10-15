@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -26,7 +27,7 @@ class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val view = EmulatorToolWindow(project)
     val contentFactory = ContentFactory.SERVICE.getInstance()
-    val content = contentFactory.createContent(view.getComponent(), null, false)
+    val content = contentFactory.createContent(view.component, null, false)
     toolWindow.contentManager.addContent(content)
   }
 
@@ -35,10 +36,10 @@ class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
 
   // Only show in Android projects
   override fun shouldBeAvailable(project: Project): Boolean {
-    return AndroidUtils.hasAndroidFacets(project)
+    return StudioFlags.EMBEDDED_EMULATOR_ENABLED.get() && AndroidUtils.hasAndroidFacets(project)
   }
 
   override fun init(window: ToolWindow) {
-    window.title = "Emulator"
+    window.title = EmulatorJarLoader.getCurrentAvdName(null)
   }
 }

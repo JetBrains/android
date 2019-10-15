@@ -17,20 +17,19 @@ package com.android.tools.idea.emulator;
 
 
 import com.android.tools.idea.sdk.IdeSdks;
-import javax.swing.*;
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.io.File;
-import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.logging.Logger;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EmulatorJarLoader {
 
@@ -41,9 +40,19 @@ public class EmulatorJarLoader {
   private static final String EMULATOR_VIEW_CLASS = "android.emulation.studio.InteractiveEmulatorView";
 
   private static Path getAndroidSdkRoot() {
-    Path sdkRoot = IdeSdks.getInstance().getAndroidSdkPath().toPath();
-    return Paths.get(sdkRoot.toString(), "emulator", "lib64");
+    File sdk = IdeSdks.getInstance().getAndroidSdkPath();
+    if (sdk != null) {
+      File root = new File(sdk, "emulator" + File.separator + "lib64");
+      if (root.isDirectory()) {
+        return root.toPath();
+      }
+    }
+
+    return Paths.get("");
   }
+
+  @Nullable
+  private static Constructor<?> constructor = null;
 
   /**
    * Creates the emulator view.
@@ -57,26 +66,41 @@ public class EmulatorJarLoader {
    *
    * @port The telnet port of the emulator we are connecting to.
    */
+  @NotNull
   public static JPanel createView(int port)
     throws MalformedURLException, ClassNotFoundException, NoSuchMethodException,
            IllegalAccessException, InstantiationException, InvocationTargetException {
-    Path paths[] = new Path[]{Paths.get("."), getAndroidSdkRoot()};
-    for (Path option : paths) {
-      if (Files.exists(option.resolve(EMULATOR_VIEW_JAR))) {
-        URLClassLoader child =
-          new URLClassLoader(
-            new URL[]{option.resolve(EMULATOR_VIEW_JAR).toUri().toURL()},
-            EmulatorJarLoader.class.getClassLoader());
-        Class classToLoad =
-          Class.forName(EMULATOR_VIEW_CLASS, true, child);
-        for (Constructor c : classToLoad.getConstructors()) {
-          LOGGER.info("Const: " + c);
+    if (constructor == null) {
+      Path[] paths = new Path[]{Paths.get("."), getAndroidSdkRoot()};
+      for (Path option : paths) {
+        if (Files.exists(option.resolve(EMULATOR_VIEW_JAR))) {
+          URLClassLoader child =
+            new URLClassLoader(
+              new URL[]{option.resolve(EMULATOR_VIEW_JAR).toUri().toURL()},
+              EmulatorJarLoader.class.getClassLoader());
+          Class<?> classToLoad =
+            Class.forName(EMULATOR_VIEW_CLASS, true, child);
+          for (Constructor<?> c : classToLoad.getConstructors()) {
+            LOGGER.info("Const: " + c);
+          }
+          constructor = classToLoad.getDeclaredConstructor(Integer.TYPE);
+          break;
         }
-        Constructor constructor = classToLoad.getDeclaredConstructor(new Class[]{Integer.TYPE});
-        return (JPanel)constructor.newInstance(port);
       }
     }
-    throw new FileSystemNotFoundException(
-      "Cannot find " + EMULATOR_VIEW_JAR + " in any of " + Arrays.toString(paths));
+    if (constructor != null) {
+      return (JPanel)constructor.newInstance(port);
+    }
+    else {
+      throw new IllegalStateException("Couldn't initialize embedded emulator");
+    }
+  }
+
+  public static String getCurrentAvdName(@Nullable JPanel view) {
+    if (view == null) {
+      return "Emulator";
+    }
+    // TODO: Look up somehow AVD name from the InteractiveEmulatorView.
+    return "Pixel 3 API 29";
   }
 }
