@@ -426,7 +426,7 @@ class AddDynamicFeatureTest {
       .enterFeatureModuleName("MyDynamicFeature")
       .enterPackageName("com.example.mydynamicfeature")
       .selectBaseApplication("app")
-      .selectMinimumSdkApi("26")
+      .selectMinimumSdkApi(26)
       .clickNextToConfigureConditionalDelivery()
       .enterName("My Dynamic Feature Title")
       .setFusing(false)

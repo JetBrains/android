@@ -133,7 +133,7 @@ public class NewProjectTest {
 
   @Test
   public void testLanguageLevelForApi21() {
-    newProject("Test Application").withBriefNames().withMinSdk("21").create(guiTest);
+    newProject("Test Application").withBriefNames().withMinSdk(21).create(guiTest);
 
     AndroidModuleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
 
@@ -176,7 +176,7 @@ public class NewProjectTest {
   @RunIn(TestGroup.QA)
   @Test
   public void latestSupportLibraryWhileDndLayouts() {
-    IdeFrameFixture ideFrameFixture = newProject("Test Application").withMinSdk("26").create(guiTest);
+    IdeFrameFixture ideFrameFixture = newProject("Test Application").withMinSdk(26).create(guiTest);
 
     ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN)
@@ -224,7 +224,7 @@ public class NewProjectTest {
   }
 
   @Test
-  public void hasProjectNameInGradleSettings() throws IOException {
+  public void hasProjectNameInGradleSettings() {
     newProject("P").create(guiTest);
     assertThat(guiTest.getProjectFileText("settings.gradle")).contains("rootProject.name='P'");
   }

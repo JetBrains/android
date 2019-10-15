@@ -45,7 +45,7 @@ import org.junit.Before;
 public class DependenciesTestUtil {
 
   protected static final String APP_NAME = "App";
-  protected static final String MIN_SDK = "18";
+  protected static final int MIN_SDK_API = 18;
   protected static final String CLASS_NAME_1 = "ModuleA";
   protected static final String CLASS_NAME_2 = "ModuleB";
 
@@ -62,7 +62,7 @@ public class DependenciesTestUtil {
   @NotNull
   protected static IdeFrameFixture createNewProject(@NotNull GuiTestRule guiTest,
                                                     @NotNull String appName,
-                                                    @NotNull String minSdk,
+                                                    int minSdkApi,
                                                     @NotNull Language language) {
     guiTest
       .welcomeFrame()
@@ -74,7 +74,7 @@ public class DependenciesTestUtil {
       .getConfigureNewAndroidProjectStep()
       .enterName(appName)
       .enterPackageName("android.com.app")
-      .selectMinimumSdkApi(minSdk)
+      .selectMinimumSdkApi(minSdkApi)
       .setSourceLanguage(language)
       .wizard()
       .clickFinish();

@@ -55,7 +55,7 @@ public class NameWithSpaceTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void createNewProjectNameWithSpace() {
-    EditorFixture editor = new NewProjectDescriptor("Test Application").withMinSdk("23").create(guiTest)
+    EditorFixture editor = new NewProjectDescriptor("Test Application").withMinSdk(23).create(guiTest)
       .getEditor()
       .open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
     String text = editor.getCurrentFileContents();

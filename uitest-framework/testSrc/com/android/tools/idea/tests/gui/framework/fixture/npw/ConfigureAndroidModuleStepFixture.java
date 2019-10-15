@@ -40,9 +40,9 @@ public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture<W> selectMinimumSdkApi(@NotNull String api) {
+  public ConfigureAndroidModuleStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
     new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "Mobile.minSdk", JComboBox.class))
-      .selectApiLevel(api);
+      .selectApiLevel(minSdkApi);
     return this;
   }
 
