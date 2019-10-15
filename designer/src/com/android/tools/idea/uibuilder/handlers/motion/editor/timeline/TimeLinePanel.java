@@ -39,6 +39,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.LayoutManager;
+import java.awt.RenderingHints;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -90,6 +91,8 @@ public class TimeLinePanel extends JPanel {
   private boolean mIsPlaying = false;
   private ArrayList<TimeLineListener> mTimeLineListeners = new ArrayList<>();
   private int mDirection = 1;
+  int []myXPoints = new int[5];
+  int []myYPoints = new int[5];
   private MTagActionListener mListener;
 
   public TimeLinePanel() {
@@ -601,10 +604,25 @@ public class TimeLinePanel extends JPanel {
       }
       FontMetrics fm = g2.getFontMetrics();
       Color orig = g.getColor();
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g.setColor(lineColor);
       Rectangle2D bounds = fm.getStringBounds(digits, g2);
-      g2.fillRoundRect((int)(x - bounds.getWidth() / 2 - inset), 0, 2 * inset + (int)bounds.getWidth(),
-                       2 * inset + (int)bounds.getHeight() + 2, 5, 5);
+      int xStart = (int)(x - bounds.getWidth() / 2 - inset);
+      int halfWidth = (2 * inset + (int)bounds.getWidth())/2;
+      int yHeight = 2 * inset + (int)bounds.getHeight() + 2;
+
+      myXPoints[0] = xStart;
+      myYPoints[0] = 0;
+      myXPoints[1] = xStart;
+      myYPoints[1] = yHeight;
+      myXPoints[2] = xStart + halfWidth;
+      myYPoints[2] = yHeight + 10;
+      myXPoints[3] = xStart + halfWidth * 2;
+      myYPoints[3] = yHeight;
+      myXPoints[4] = xStart + halfWidth * 2;
+      myYPoints[4] = 0;
+
+      g2.fillPolygon(myXPoints, myYPoints, 5);
       g.setColor(orig);
       g2.drawString(digits, (int)(x - bounds.getWidth() / 2), (int)(fm.getAscent() + inset));
       y = (int)(inset * 2 + bounds.getHeight());
@@ -800,7 +818,7 @@ public class TimeLinePanel extends JPanel {
       public void paintComponent(Graphics g) {
         g.setColor(MEUI.ourAvgBackground);
         g.fillRect(0, 0, getWidth(), getHeight());
-        g.setColor(MEUI.ourTextColor);
+        g.setColor(MEUI.myGridColor);
         TimeLineRow.drawTicks(g, mTimelineStructure, getHeight());
       }
     };

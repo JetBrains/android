@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMT
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -147,8 +148,10 @@ class ConstraintSetPanel extends JPanel {
     JPanel top = new JPanel(new BorderLayout());
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
-    mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(16));
+    mConstraintSetTable.setRowHeight(MEUI.scale(18));
     mConstraintSetTable.setShowHorizontalLines(false);
+    top.setPreferredSize(new Dimension(0, MEUI.scale(32)));
+
     JCheckBox cbox = new JCheckBox("All");
 
     cbox.setSelected(true);

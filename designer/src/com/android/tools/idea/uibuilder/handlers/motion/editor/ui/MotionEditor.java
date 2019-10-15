@@ -313,12 +313,15 @@ public class MotionEditor extends JPanel {
   }
 
   public void setMTag(@NotNull MTag motionScene, @NotNull MTag layout, @Nullable String layoutFileName,
-                      @Nullable String motionSceneFileName) {
-    if (myErrorPanel.validateMotionScene(motionScene)) {
+                      @Nullable String motionSceneFileName,String setupError) {
+    if (setupError == null && myErrorPanel.validateMotionScene(motionScene)) {
       mErrorSwitchCard.show(this, MAIN_PANEL);
       setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
     }
     else {
+      if (setupError != null) {
+        myErrorPanel.myErrorLabel.setText( "<HTML>MotionScene error:<ul>"+setupError+"</ul></HTML>");
+      }
       mErrorSwitchCard.show(this, ERROR_PANEL);
     }
   }

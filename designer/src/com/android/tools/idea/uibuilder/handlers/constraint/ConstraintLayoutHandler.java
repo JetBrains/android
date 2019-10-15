@@ -365,8 +365,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           if (((EnabledAction)action).isEnabled(selected)) {
             return true;
           }
-        }
-        else {
+        } else {
           return true;
         }
       }
@@ -557,7 +556,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @InputEventMask int modifiers) {
       getAnalyticsManager(editor).trackClearAllConstraints();
 
-      ViewGroupHandler constraintHandler = (ViewGroupHandler) handler;
+      ViewGroupHandler constraintHandler = (ViewGroupHandler)handler;
       constraintHandler.clearAttributes(component.getChildren());
       // Clear selection.
       editor.getScene().select(Collections.emptyList());
@@ -572,7 +571,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      ViewGroupHandler constraintHandler = (ViewGroupHandler) handler;
+      ViewGroupHandler constraintHandler = (ViewGroupHandler)handler;
       constraintHandler.clearAttributes(selectedChildren);
       getAnalyticsManager(editor).trackRemoveConstraint();
       ensureLayersAreShown(editor, 1000);
@@ -611,7 +610,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                  getLabel());
         return;
       }
-      if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Convert to MotionLayout?", "Motion Editor",null) ==
+      if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Convert to MotionLayout?", "Motion Editor", null) ==
           Messages.YES) {
 
         ScoutMotionConvert.convert(component);
@@ -626,7 +625,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiersEx) {
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD);
+      boolean show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 2, 0, 0, 2);
       presentation.setLabel("Convert to MotionLayout");
+      presentation.setVisible(show);
     }
   }
 
@@ -1024,8 +1025,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           }
           if (barriers == 1 && other > 0) {
             presentation.setLabel(ADD_TO_BARRIER);
-          }
-          else {
+          } else {
             presentation.setLabel(myType == VERTICAL_BARRIER ? ADD_VERTICAL_BARRIER : ADD_HORIZONTAL_BARRIER);
           }
         }
@@ -1222,7 +1222,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         try {
           int marginInInt = Integer.parseInt(marginDp);
           setMargin(resourceRef, marginInInt);
-        } catch (NumberFormatException nfe) {
+        }
+        catch (NumberFormatException nfe) {
           Messages.showWarningDialog(
             "\"" + resourceRef + "\' is not a valid dimension. Please choose a resource with correct dimension value instead.",
             "Warning");
@@ -1251,11 +1252,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
       String toReturn = null;
       if (value.endsWith("dp") ||
-        value.endsWith("px") ||
-        value.endsWith("pt") ||
-        value.endsWith("in") ||
-        value.endsWith("mm") ||
-        value.endsWith("sp")) {
+          value.endsWith("px") ||
+          value.endsWith("pt") ||
+          value.endsWith("in") ||
+          value.endsWith("mm") ||
+          value.endsWith("sp")) {
         toReturn = value.substring(0, value.length() - 2);
       } else if (value.endsWith("dip")) {
         toReturn = value.substring(0, value.length() - 3);
@@ -1736,8 +1737,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         presentation.setIcon(icon);
         if (mToParent) {
           presentation.setLabel(myToolTip);
-        }
-        else {
+        } else {
           String name = selectedChildren.get((mReverse) ? 0 : 1).getId();
           if (name == null) {
             name = "(" + selectedChildren.get((mReverse) ? 0 : 1).getTagName() + ")";
@@ -1779,8 +1779,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           if (label == null) {
             label = selectedChildren.get(mIndex).getTagName();
           }
-        }
-        else {
+        } else {
           label = getLabel();
         }
 
