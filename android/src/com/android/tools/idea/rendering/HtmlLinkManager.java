@@ -38,7 +38,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
-import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog;
+import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
@@ -811,9 +811,7 @@ public class HtmlLinkManager {
       null,
       true,
       false,
-      file.getVirtualFile(),
-      file,
-      null
+      file.getVirtualFile()
     );
 
     if (dialog.showAndGet()) {

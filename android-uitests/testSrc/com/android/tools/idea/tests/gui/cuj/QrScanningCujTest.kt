@@ -24,7 +24,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MoveFilesOrDirectoriesDialogFixture
-import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixture
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
@@ -130,7 +130,7 @@ class QrScanningCujTest {
     ide.editor
       .getLayoutEditor(false).run {
         dragComponentToSurface("Common", "ImageView")
-        ResourceExplorerDialogFixture.find(robot()).run {
+        ResourcePickerDialogFixture.find(robot()).run {
           resourceExplorer.searchField.setText("ic_qr")
           resourceExplorer.selectResource("ic_qr_code")
           clickOk()
@@ -198,7 +198,7 @@ class QrScanningCujTest {
     ide.editor
       .getLayoutEditor(false).run {
         dragComponentToSurface("Common", "ImageView")
-        ResourceExplorerDialogFixture.find(robot()).run {
+        ResourcePickerDialogFixture.find(robot()).run {
           resourceExplorer.searchField.setText("ic_baseline_flash_on")
           resourceExplorer.selectResource("ic_baseline_flash_on_24")
           clickOk()

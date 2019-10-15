@@ -153,16 +153,16 @@ class ColorResourcePicker(configuration: Configuration, initialResourceReference
           border = JBUI.Borders.empty(HORIZONTAL_MARGIN_TO_PICKER_BORDER / 2, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
 
           addActionListener {
-            val dialog = createResourcePickerDialog("Pick a Color",
-                                                    initialResourceReference?.resourceUrl?.toString(),
-                                                    facet,
-                                                    setOf(ResourceType.COLOR),
-                                                    ResourceType.COLOR,
-                                                    showColorStateLists = false,
-                                                    showSampleData = false,
-                                                    file = configuration.file,
-                                                    xmlFile = null,
-                                                    tag = null)
+            val dialog = createResourcePickerDialog(
+              "Pick a Color",
+              initialResourceReference?.resourceUrl?.toString(),
+              facet,
+              setOf(ResourceType.COLOR),
+              ResourceType.COLOR,
+              showColorStateLists = false,
+              showSampleData = false,
+              file = configuration.file
+            )
             // TODO: Use resource reference instead of resource string when using resource management to pickup resource.
             if (dialog.showAndGet()) dialog.resourceName?.let { pickedResourceName ->
               ResourceUrl.parse(pickedResourceName)

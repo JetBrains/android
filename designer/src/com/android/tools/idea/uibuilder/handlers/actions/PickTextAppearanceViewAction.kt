@@ -45,9 +45,7 @@ class PickTextAppearanceViewAction(private val namespace: String?, private val a
       defaultResourceType = null,
       showColorStateLists = true,
       showSampleData = false,
-      file = tag.containingFile.virtualFile,
-      xmlFile = null,
-      tag = tag
+      file = tag.containingFile.virtualFile
     )
 
     if (dialog.showAndGet()) {

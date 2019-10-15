@@ -20,7 +20,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.editors.theme.ResolutionUtils
-import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.JBUI
@@ -35,19 +35,19 @@ import javax.swing.BorderFactory
  * @param facet The current [AndroidFacet], used to determine the module in the ResourceExplorer.
  * @param initialResourceUrl The resourceUrl (@string/name) of the initial value, if any.
  * @param supportedTypes The supported [ResourceType]s that can be picked.
- * @param preferredType The preferred [ResourceType] to show when the [ResourceExplorerDialog] opens, this may be ignored if there's a
+ * @param preferredType The preferred [ResourceType] to show when the [ResourcePickerDialog] opens, this may be ignored if there's a
  * valid initialResourceUrl given. Eg: "@drawable/foo" will open the dialog in [ResourceType.DRAWABLE].
  * @param showSampleData Includes [ResourceType.SAMPLE_DATA] resources as options to pick.
  * @param currentFile The [VirtualFile] that may have an specific preview configuration.
  */
-class ResourceExplorerDialog(
+class ResourcePickerDialog(
   facet: AndroidFacet,
   initialResourceUrl: String?,
   supportedTypes: Set<ResourceType>,
   preferredType: ResourceType?,
   showSampleData: Boolean,
   currentFile: VirtualFile?
-): ResourcePickerDialog(facet.module.project) {
+): DialogWrapper(facet.module.project) {
 
   @TestOnly // TODO: consider getting this for tests in a better way.
   val resourceExplorerPanel = kotlin.run {
@@ -85,7 +85,8 @@ class ResourceExplorerDialog(
     Disposer.dispose(resourceExplorerPanel)
   }
 
-  override val resourceName: String?
+  /** The resource reference of the selected resource. */
+  val resourceName: String?
     get() = pickedResourceName
 
   private fun updateSelectedResource(resource: ResourceItem) {

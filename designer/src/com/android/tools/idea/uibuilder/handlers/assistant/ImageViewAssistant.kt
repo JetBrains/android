@@ -218,9 +218,7 @@ class ImageViewAssistant(
       defaultResourceType = null,
       showColorStateLists = true,
       showSampleData = true,
-      file = virtualFile,
-      xmlFile = null,
-      tag = tag
+      file = virtualFile
     )
 
     if (dialog.showAndGet()) {

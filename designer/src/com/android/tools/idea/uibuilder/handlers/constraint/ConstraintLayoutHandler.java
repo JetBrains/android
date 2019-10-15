@@ -80,7 +80,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
-import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog;
+import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
@@ -1188,9 +1188,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           ResourceType.DIMEN,
           true,
           false,
-          tag != null ? tag.getContainingFile().getVirtualFile() : null,
-          null,
-          tag
+          tag != null ? tag.getContainingFile().getVirtualFile() : null
         );
 
         if (myMarginPopup != null) {
