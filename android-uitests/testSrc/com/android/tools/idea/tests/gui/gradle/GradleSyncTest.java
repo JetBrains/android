@@ -17,12 +17,10 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getFilePathPropertyOrSkipTest;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getGradleHomePathOrSkipTest;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getUnsupportedGradleHomeOrSkipTest;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.skipTest;
 import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
 import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
@@ -50,13 +48,9 @@ import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.LibraryFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
@@ -84,14 +78,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.net.HttpConfigurable;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -100,7 +90,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -244,40 +233,6 @@ public class GradleSyncTest {
     }
 
     assertThat(moduleDependency.getModuleName()).isEqualTo("library2");
-  }
-
-  // See https://code.google.com/p/android/issues/detail?id=73087
-  @Ignore("b/37109081")
-  @RunIn(TestGroup.UNRELIABLE)  // b/37109081
-  @Test
-  public void withUserDefinedLibraryAttachments() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-
-    File javadocJarPath = guiTest.getProjectPath("fake-javadoc.jar");
-    try (ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(javadocJarPath)))) {
-      zos.putNextEntry(new ZipEntry("allclasses-frame.html"));
-      zos.putNextEntry(new ZipEntry("allclasses-noframe.html"));
-    }
-    refreshFiles();
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    LibraryPropertiesDialogFixture propertiesDialog = ideFrame.showPropertiesForLibrary("guava-18.0");
-    propertiesDialog.addAttachment(javadocJarPath).clickOk();
-
-    guiTest.waitForBackgroundTasks();
-
-    String javadocJarUrl = pathToIdeaUrl(javadocJarPath);
-
-    // Verify that the library has the Javadoc attachment we just added.
-    LibraryFixture library = propertiesDialog.getLibrary();
-    library.requireJavadocUrls(javadocJarUrl);
-
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-
-    // Verify that the library still has the Javadoc attachment after sync.
-    library = propertiesDialog.getLibrary();
-    library.requireJavadocUrls(javadocJarUrl);
   }
 
   // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
