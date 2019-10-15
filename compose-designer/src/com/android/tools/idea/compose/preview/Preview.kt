@@ -280,7 +280,14 @@ private class PreviewEditor(private val psiFile: PsiFile,
    */
   var previewElements: List<PreviewElement> = emptyList()
 
-  var isRefreshingPreview = true
+  var isRefreshingPreview = false
+
+  /**
+   * This field will be false until the preview has rendered at least once. If the preview has not rendered once
+   * we do not have enough information about errors and the rendering to show the preview. Once it has rendered,
+   * even with errors, we can display additional information about the state of the preview.
+   */
+  var hasRenderedAtLeastOnce = false
 
   /**
    * Callback called after refresh has happened
@@ -320,7 +327,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
     }, this)
   }
 
-  private fun hasErrorsAndNeedsBuild(): Boolean = surface.models.asSequence()
+  private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce || surface.models.asSequence()
       .mapNotNull { surface.getSceneManager(it) }
       .filterIsInstance<LayoutlibSceneManager>()
       .mapNotNull { it.renderResult?.logger?.brokenClasses?.values }
@@ -494,6 +501,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
         }
 
         isRefreshingPreview = false
+        hasRenderedAtLeastOnce = true
         // Make sure all notifications are cleared-up
         EditorNotifications.getInstance(project).updateNotifications(file)
 
