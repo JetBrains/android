@@ -68,9 +68,6 @@ fun Template.doRender(c: RenderingContext2, e: RecipeExecutor): Boolean {
   try {
     writeCommandAction(c.project).withName(c.commandName).run<IOException> {
       recipe(e, c.templateData)
-      if (e is DefaultRecipeExecutor2 && !c.dependencies.isEmpty) {
-        e.mergeDependenciesIntoGradle()
-      }
     }
   }
   catch (e: IOException) {

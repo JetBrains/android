@@ -106,20 +106,23 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     else
       defaultConfigurations
 
-    val isArtifactInDependencies = configurations.any { conf ->
-      context.dependencies.get(conf).any { it.contains(mavenCoordinate) }
+    val buildFile = getBuildFilePath(context)
+    val buildModel = getBuildModel(buildFile, project)!!
+
+    val isArtifactInDependencies = configurations.any { c ->
+      buildModel.dependencies().containsArtifact(c, ArtifactDependencySpec.create(mavenCoordinate)!!)
     }
 
     if (isArtifactInDependencies) {
       return true
     }
 
+    // TODO(qumeric): Do we need it at all?
     fun findCorrespondingModule(): Boolean? {
       val modulePath = (context.templateData as? ModuleTemplateData)?.rootDir ?: return null
-      // TODO rewrite findModule to accept a file
       val module = findModule(modulePath.toString()) ?: return null
       val facet = AndroidFacet.getInstance(module) ?: return null
-      // TODO: b/23032990
+      // TODO(b/23032990)
       val androidModel = AndroidModuleModel.get(facet) ?: return null
       return when (configurations[0]) {
         in defaultConfigurations ->
@@ -260,13 +263,16 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     // Translate from "compile" to "implementation" based on the parameter map context
     val newConfiguration = convertConfiguration(templateData.projectTemplateData.gradlePluginVersion, configuration)
     referencesExecutor.addDependency(newConfiguration, mavenCoordinate)
-    context.dependencies.put(newConfiguration, mavenCoordinate)
-    return
-    // TODO(qumeric): use buildModel
+    //context.dependencies.put(newConfiguration, mavenCoordinate)
 
     val buildFile = getBuildFilePath(context)
 
     val configuration = GradleUtil.mapConfigurationName(configuration, context.templateData.projectTemplateData.gradlePluginVersion, false)
+    val mavenCoordinate = resolveDependency(RepositoryUrlManager.get(), convertToAndroidX (mavenCoordinate), null)
+
+    if (hasDependency(mavenCoordinate)) {
+      return
+    }
 
     val buildModel = getBuildModel(buildFile, project) ?: return
     buildModel.dependencies().addArtifact(configuration, mavenCoordinate)
@@ -372,60 +378,11 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     io.applyChanges(buildModel)
   }
 
-  /**
-   * Merge the URLs from our gradle template into the target module's build.gradle file
-   */
-  // TODO(qumeric): remove it. We want finer-grained merge.
-  fun mergeDependenciesIntoGradle() {
-    // Note: ATTR_BASE_FEATURE_DIR has a value set for Instant App/Dynamic Feature modules.
-    val baseFeatureRoot = "" // TODO
-    val featureBuildFile = getBuildFilePath(context)
-    if (baseFeatureRoot.isNullOrEmpty()) {
-      writeDependencies(featureBuildFile)
-      return
-    }
-    // The new gradle API deprecates the "compile" keyword by two new keywords: "implementation" and "api"
-    var configName = convertConfiguration(templateData.projectTemplateData.gradlePluginVersion, "compile")
-    if ("implementation" == configName) {
-      // For the base module, we want to use "api" instead of "implementation"
-      for (apiDependency in context.dependencies.removeAll("implementation")) {
-        context.dependencies.put("api", apiDependency)
-      }
-      configName = "api"
-    }
-
-    // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
-    // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
-    val baseBuildFile = getGradleBuildFilePath(File(baseFeatureRoot))
-    val configuration = configName
-    writeDependencies(baseBuildFile) { it == configuration }
-    writeDependencies(featureBuildFile) { it != configuration }
-  }
-
-  private fun writeDependencies(buildFile: File, configurationFilter: (String) -> Boolean = { true }) {
-    fun convertToAndroidX(dep: String): String =
-      if (templateData.projectTemplateData.androidXSupport)
-        AndroidxNameUtils.getVersionedCoordinateMapping(dep)
-      else
-        dep
-
-    fun formatDependencies(configurationFilter: (String) -> Boolean): String =
-      context.dependencies.entries().asSequence()
-        .filter { (configuration, _) -> configurationFilter(configuration) }
-        .joinToString("\n", "dependencies {\n", "\n}\n") { (configuration, mavenCoordinate) ->
-          val dependencyValue = convertToAndroidX(mavenCoordinate)
-          // Interpolated values need to be in double quotes
-          val delimiter = if (dependencyValue.contains("$")) '"' else '\''
-          "  $configuration $delimiter$dependencyValue$delimiter"
-        }
-
-    mergeBuildFilesAndWrite(
-      dependencies = formatDependencies(configurationFilter),
-      content = if (buildFile.exists()) nullToEmpty(readTextFile(buildFile)) else "",
-      project = project,
-      buildFile = buildFile,
-      supportLibVersionFilter = templateData.projectTemplateData.buildApi.toString())
-  }
+  private fun convertToAndroidX(mavenCoordinate: String): String =
+    if (templateData.projectTemplateData.androidXSupport)
+      AndroidxNameUtils.getVersionedCoordinateMapping(mavenCoordinate)
+    else
+      mavenCoordinate
 
   /**
    * [VfsUtil.copyDirectory] messes up the undo stack, most likely by trying to create a directory even if it already exists.
@@ -664,3 +621,4 @@ fun CharSequence.squishEmptyLines(): String {
     }
   }.joinToString("\n")
 }
+
