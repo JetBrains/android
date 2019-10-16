@@ -129,7 +129,10 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
     myTrimmed.set(state.get(TRIMMED_PROPERTY, false));
     myPaddingPercent.set(state.get(PADDING_PERCENT_PROPERTY, 0));
     myScalingPercent.set(state.get(SCALING_PERCENT_PROPERTY, 100));
-    myColor.setNullableValue(state.getDecoded(COLOR_PROPERTY, rgb -> ColorUtil.fromHex(rgb)));
+    Color color = state.getDecoded(COLOR_PROPERTY, rgb -> ColorUtil.fromHex(rgb));
+    if (color != null) {
+      myColor.setValue(color);
+    }
     myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, 100));
   }
 }

@@ -25,6 +25,7 @@ import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator;
 import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
+import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentStateUtil;
@@ -200,7 +201,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   @NotNull private final ObjectProperty<BaseAsset> myActiveAsset;
   @NotNull private final StringProperty myOutputName;
   @NotNull private final AbstractProperty<AssetType> myAssetType;
-  private AbstractProperty<Color> myForegroundColor;
+  private ColorProperty myForegroundColor;
   private AbstractProperty<Color> myBackgroundColor;
   private AbstractProperty<Shape> myShape;
   private BoolProperty myCropped;
@@ -218,6 +219,8 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myIconType = iconType;
     myDefaultOutputName = myIconType.toOutputName("name");
     myIconGenerator = createIconGenerator(facet.getModule().getProject(), iconType, minSdkVersion, renderer);
+
+    myTextAssetEditor.setDefaultText(TextAsset.DEFAULT_TEXT);
 
     DefaultComboBoxModel<ActionBarIconGenerator.Theme> themesModel = new DefaultComboBoxModel<>(ActionBarIconGenerator.Theme.values());
     myThemeComboBox.setModel(themesModel);
@@ -359,7 +362,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     StringProperty paddingValueString = new TextProperty(myPaddingValueLabel);
     myGeneralBindings.bind(paddingValueString, new FormatExpression("%d %%", paddingPercent));
 
-    myForegroundColor = ObjectProperty.wrap(new ColorProperty(myForegroundColorPanel));
+    myForegroundColor = new ColorProperty(myForegroundColorPanel);
     myBackgroundColor = ObjectProperty.wrap(new ColorProperty(myBackgroundColorPanel));
 
     myCropped = new SelectedProperty(myCropRadioButton);
@@ -400,9 +403,9 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
       myActiveAssetBindings.bindTwoWay(paddingPercent, asset.paddingPercent());
       OptionalValueProperty<Color> assetColor = asset.color();
       if (assetColor.getValueOrNull() == null) {
-        assetColor.setValue(myForegroundColor.get());
+        assetColor.setNullableValue(myForegroundColor.getValueOrNull());
       }
-      myActiveAssetBindings.bindTwoWay(myForegroundColor, ObjectProperty.wrap(assetColor));
+      myActiveAssetBindings.bindTwoWay(myForegroundColor, assetColor);
 
       getIconGenerator().sourceAsset().setValue(asset);
       onAssetModified.run();
