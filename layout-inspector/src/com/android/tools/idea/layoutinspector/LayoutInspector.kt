@@ -28,6 +28,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
 import com.intellij.util.ui.UIUtil
 import java.awt.Image
+import java.awt.Rectangle
+import java.awt.image.BufferedImage
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
@@ -130,8 +132,8 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
         val isChildNode = view.id != child.id && nodeMap.containsKey(child.id.toLong())
         when {
           isChildNode -> beforeChildren = false
-          beforeChildren -> node.imageBottom = combine(node.imageBottom, child)
-          else -> node.imageTop = combine(node.imageTop, child)
+          beforeChildren -> node.imageBottom = combine(node.imageBottom, child, node.bounds)
+          else -> node.imageTop = combine(node.imageTop, child, node.bounds)
         }
         if (!isChildNode) {
           // Some Skia views are several levels deep:
@@ -140,18 +142,19 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
       }
     }
 
-    private fun combine(image: Image?, view: InspectorView): Image? =
-      when {
-        view.image == null -> image
-        image == null -> view.image
-        else -> {
-          // Combine the images...
-          val g = image.graphics
-          UIUtil.drawImage(g, view.image!!, 0, 0, null)
-          g.dispose()
-          image
-        }
+    private fun combine(image: Image?,
+                        view: InspectorView,
+                        bounds: Rectangle): Image? {
+      if (view.image == null) {
+        return image
       }
+      val result = image ?: BufferedImage(bounds.width, bounds.height, (view.image as BufferedImage).type)
+      // Combine the images...
+      val g = result.graphics
+      UIUtil.drawImage(g, view.image!!, view.x - bounds.x, view.y - bounds.y, null)
+      g.dispose()
+      return result
+    }
   }
 
   private class ComponentTreeLoader(private val tree: LayoutInspectorProto.ComponentTreeEvent, private val resourceLookup: ResourceLookup?) {
