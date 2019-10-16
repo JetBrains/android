@@ -300,14 +300,6 @@ public class CanvasResizeInteraction extends Interaction {
    */
   private class ResizeLayer extends Layer {
     @Override
-    public void create() {
-    }
-
-    @Override
-    public void dispose() {
-    }
-
-    @Override
     public void paint(@NotNull Graphics2D g2d) {
       int x = myScreenView.getX();
       int y = myScreenView.getY();
