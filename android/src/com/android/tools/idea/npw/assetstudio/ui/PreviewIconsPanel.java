@@ -201,14 +201,13 @@ public class PreviewIconsPanel extends JPanel {
   }
 
   private void initializeIconComponents(@NotNull List<String> labels) {
-    // Ensure the list of components matches the list of labels, updating
-    // incrementally.
+    // Ensure the list of components matches the list of labels, updating incrementally.
     int labelIndex = 0;
     for (; labelIndex < labels.size(); labelIndex++) {
       String label = labels.get(labelIndex);
       int iconIndex = findIconPanel(labelIndex, label);
       if (iconIndex < 0) {
-        // The is no existing panel for this label, create a new one
+        // The is no existing panel for this label, create a new one.
         JPanel iconPanel = new JPanel(new VerticalFlowLayout(false, false));
         iconPanel.setName("IconPanel"); // for UI Tests
         iconPanel.setBackground(myTheme.getMainColor());

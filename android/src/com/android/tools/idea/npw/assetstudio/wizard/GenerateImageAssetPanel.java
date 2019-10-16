@@ -33,6 +33,7 @@ import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconView;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureLauncherIconPanel;
+import com.android.tools.idea.npw.assetstudio.ui.ConfigureTvBannerPanel;
 import com.android.tools.idea.npw.assetstudio.ui.PreviewIconsPanel;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
@@ -220,6 +221,10 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
         case NOTIFICATION:
           view = new ConfigureIconPanel(this, facet, iconType, minSdkVersion, renderer);
           break;
+        case TV_BANNER:
+          view = new ConfigureTvBannerPanel(this, facet,
+                                            myPreviewDensityProperty, myValidatorPanel, renderer);
+          break;
         default:
           throw new IllegalArgumentException("Invalid icon type");
       }
@@ -227,12 +232,13 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       myConfigureIconPanels.add(view.getRootComponent(), iconType.toString());
     }
 
-    // Create an output preview panel for each icon type
+    // Create an output preview panel for each icon type.
     ImmutableMap.Builder<AndroidIconType, PreviewIconsPanel> previewPanelBuilder = ImmutableMap.builder();
     previewPanelBuilder.put(AndroidIconType.LAUNCHER, new LauncherIconsPreviewPanel());
     previewPanelBuilder.put(AndroidIconType.LAUNCHER_LEGACY, new LauncherLegacyIconsPreviewPanel());
     previewPanelBuilder.put(AndroidIconType.ACTIONBAR, new ActionBarIconsPreviewPanel());
     previewPanelBuilder.put(AndroidIconType.NOTIFICATION, new NotificationIconsPreviewPanel());
+    previewPanelBuilder.put(AndroidIconType.TV_BANNER, new TvBannerPreviewPanel());
     myOutputPreviewPanels = previewPanelBuilder.build();
 
     WrappedFlowLayout previewLayout = new WrappedFlowLayout(FlowLayout.LEADING);

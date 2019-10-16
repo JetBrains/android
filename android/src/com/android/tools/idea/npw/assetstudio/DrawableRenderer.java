@@ -114,7 +114,7 @@ public class DrawableRenderer implements Disposable {
    */
   @NotNull
   public CompletableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
-    String xmlText = VectorDrawableTransformer.transform(xmlDrawableText, size, 1, null, null, 1);
+    String xmlText = VectorDrawableTransformer.transform(xmlDrawableText, size);
     String resourceName = String.format("preview_%x.xml", myCounter.getAndIncrement());
     ResourceValue value = new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "ic_image_preview",
                                                 "file://" + resourceName);

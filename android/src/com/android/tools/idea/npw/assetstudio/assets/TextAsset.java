@@ -60,6 +60,8 @@ public final class TextAsset extends BaseAsset {
     };
     myText.addListener(listener);
     myFontFamily.addListener(listener);
+    color().setValue(Color.BLACK);
+    color().addListener(listener);
   }
 
   private void selectFontFamily(@NotNull String fontFamily) {
