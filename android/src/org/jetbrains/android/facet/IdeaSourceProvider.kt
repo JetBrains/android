@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("IdeaSourceProviderUtil")
 package org.jetbrains.android.facet
 
 import com.android.builder.model.SourceProvider
@@ -69,52 +70,63 @@ interface IdeaSourceProvider {
      * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
      * the given folder.
      */
-    /**
-     * Returns true iff this SourceProvider provides the source folder that contains the given file.
-     */
     @JvmStatic
-    fun containsFile(provider: IdeaSourceProvider, file: VirtualFile): Boolean {
-      val srcDirectories = provider.allSourceFolders
-      if (provider.manifestFile == file) {
-        return true
-      }
-
-      for (container in srcDirectories) {
-        // Check the flavor root directories
-        val parent = container.parent
-        if (parent != null && parent.isDirectory && parent == file) {
-          return true
-        }
-
-        // Don't do ancestry checking if this file doesn't exist
-        if (!container.exists()) {
-          continue
-        }
-
-        if (isAncestor(container, file, false /* allow them to be the same */)) {
-          return true
-        }
-      }
-      return false
-    }
+    fun containsFile(provider: IdeaSourceProvider, file: VirtualFile): Boolean = org.jetbrains.android.facet.containsFile(provider, file)
 
     @JvmStatic
-    fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-      return SourceProviderManager.getInstance(facet).currentTestSourceProviders.any { containsFile(it, candidate) }
-    }
+    fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean = org.jetbrains.android.facet.isTestFile(facet, candidate)
 
     /** Returns true if the given candidate file is a manifest file in the given module  */
     @JvmStatic
-    fun isManifestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-      return SourceProviderManager.getInstance(facet).currentSourceProviders.any { candidate == it.manifestFile }
-    }
+    fun isManifestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean = org.jetbrains.android.facet.isManifestFile(facet, candidate)
 
     /** Returns the manifest files in the given module  */
     @JvmStatic
-    fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> {
-      return SourceProviderManager.getInstance(facet).currentSourceProviders.mapNotNull { it.manifestFile }
+    fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> = org.jetbrains.android.facet.getManifestFiles(facet)
+  }
+}
+
+/**
+ * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
+ * the given folder.
+ */
+fun containsFile(provider: IdeaSourceProvider, file: VirtualFile): Boolean {
+  val srcDirectories = provider.allSourceFolders
+  if (provider.manifestFile == file) {
+    return true
+  }
+
+  for (container in srcDirectories) {
+    // Check the flavor root directories
+    val parent = container.parent
+    if (parent != null && parent.isDirectory && parent == file) {
+      return true
+    }
+
+    // Don't do ancestry checking if this file doesn't exist
+    if (!container.exists()) {
+      continue
+    }
+
+    if (isAncestor(container, file, false /* allow them to be the same */)) {
+      return true
     }
   }
+  return false
+}
+
+fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
+  return SourceProviderManager.getInstance(facet).currentTestSourceProviders.any { containsFile(it, candidate) }
+}
+
+/** Returns true if the given candidate file is a manifest file in the given module  */
+fun isManifestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
+  return SourceProviderManager.getInstance(facet).currentSourceProviders.any { candidate == it.manifestFile }
+}
+
+/** Returns the manifest files in the given module  */
+fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> {
+  return SourceProviderManager.getInstance(facet).currentSourceProviders.mapNotNull { it.manifestFile }
 }
 
 val IdeaSourceProvider.allSourceFolders: Collection<VirtualFile>
