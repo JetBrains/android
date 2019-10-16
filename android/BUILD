@@ -451,7 +451,6 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module, test]",
-        "//tools/idea/.idea/libraries:kotlin-plugin[test]",
         "//tools/idea/.idea/libraries:NanoXML[test]",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
