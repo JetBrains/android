@@ -314,7 +314,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   protected abstract SceneManager createSceneManager(@NotNull NlModel model);
 
-  protected abstract void layoutContent();
+  public abstract void layoutContent();
 
   /**
    * When not null, returns a {@link JPanel} to be rendered next to the primary panel of the editor.
