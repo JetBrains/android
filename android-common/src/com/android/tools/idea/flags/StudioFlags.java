@@ -598,7 +598,7 @@ public final class StudioFlags {
     EDITOR, "r8.support.enabled",
     "Enable support for R8 in editor",
     "If enabled, it offers support (such as code completion) for the R8 format.",
-    false
+    true
   );
 
   public static final Flag<Boolean> TRANSITIVE_R_CLASSES = Flag.create(
