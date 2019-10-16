@@ -34,6 +34,7 @@ import static com.android.tools.idea.resources.base.ResourceSerializationUtil.wr
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.FileResourceNameValidator;
@@ -84,6 +85,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileFilter;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
@@ -640,6 +642,30 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     synchronized (SCAN_LOCK) {
       myPendingScans = null;
     }
+  }
+
+  /**
+   * Recursively scans the files under the resource directory that match the filter. Replaces the
+   * {@link BasicResourceItem BasicResourceItems} in this repository with {@link PsiResourceItem PsiResourceItems}.
+   */
+  @Slow
+  public void scanRecursively(@NotNull VirtualFileFilter filter) {
+    PsiManager manager = PsiManager.getInstance(myFacet.getModule().getProject());
+
+    VfsUtilCore.iterateChildrenRecursively(myResourceDir, filter, virtualFile -> {
+      if (virtualFile.isDirectory()) {
+        return true;
+      }
+
+      PsiFile psiFile = manager.findFile(virtualFile);
+      assert psiFile != null;
+
+      ResourceFolderType type = ResourceHelper.getFolderType(virtualFile);
+      assert type != null;
+
+      scan(psiFile, type);
+      return true;
+    });
   }
 
   private void scan(@NotNull PsiFile psiFile, @NotNull ResourceFolderType folderType) {
