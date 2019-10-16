@@ -40,7 +40,8 @@ interface TableView {
   /**
    * Updates the UI to show the number of rows loaded per page.
    */
-  fun showRowCount(maxRowCount: Int)
+  fun showPageSizeValue(maxRowCount: Int)
+
   fun startTableLoading()
   fun showTableColumns(columns: List<SqliteColumn>)
   fun showTableRowBatch(rows: List<SqliteRow>)

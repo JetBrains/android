@@ -38,14 +38,13 @@ import com.intellij.util.containers.ComparatorUtil.max
 @UiThread
 class ResultSetController(
   parentDisposable: Disposable,
-  private var rowBatchSize: Int = 10,
+  private var rowBatchSize: Int = 50,
   private val view: TableView,
   private val tableName: String?,
   private val resultSet: SqliteResultSet,
   private val edtExecutor: FutureCallbackExecutor
 ) : Disposable {
   private val listener = TableViewListenerImpl()
-
   private var start = 0
 
   init {
@@ -56,9 +55,8 @@ class ResultSetController(
   fun setUp() {
     if (Disposer.isDisposed(this)) throw ProcessCanceledException()
 
+    view.showPageSizeValue(rowBatchSize)
     view.addListener(listener)
-
-    view.showRowCount(rowBatchSize)
     view.startTableLoading()
 
     val futureDisplayRows = edtExecutor.transformAsync(resultSet.columns) { columns ->

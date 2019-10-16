@@ -26,8 +26,8 @@ import org.mockito.Mockito.spy
 import javax.swing.JComponent
 
 open class MockSqliteEditorViewFactory : SqliteEditorViewFactory {
-  val sqliteEvaluatorView = spy(MockSqliteEvaluatorView::class.java)
-  private val tableView: TableView = mock(TableView::class.java)
+  val sqliteEvaluatorView: MockSqliteEvaluatorView = spy(MockSqliteEvaluatorView::class.java)
+  val tableView: TableView = mock(TableView::class.java)
 
   init {
     `when`(tableView.component).thenReturn(mock(JComponent::class.java))
@@ -35,5 +35,9 @@ open class MockSqliteEditorViewFactory : SqliteEditorViewFactory {
 
   override fun createTableView(): TableView = tableView
 
-  override fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider): SqliteEvaluatorView = sqliteEvaluatorView
+  override fun createEvaluatorView(
+    project: Project,
+    schemaProvider: SchemaProvider,
+    tableView: TableView
+  ): SqliteEvaluatorView = sqliteEvaluatorView
 }

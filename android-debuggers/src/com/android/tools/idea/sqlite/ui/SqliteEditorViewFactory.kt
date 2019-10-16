@@ -29,5 +29,5 @@ interface SqliteEditorViewFactory {
   /**
    * Returns a [SqliteEvaluatorView].
    */
-  fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider): SqliteEvaluatorView
+  fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider, tableView: TableView): SqliteEvaluatorView
 }

@@ -34,6 +34,7 @@ import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
+import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
@@ -299,7 +300,7 @@ class SqliteControllerTest : PlatformTestCase() {
     sqliteView.viewListeners.single().closeTabActionInvoked(tabId!!)
 
     // Assert
-    verify(viewFactory).createEvaluatorView(any(Project::class.java), any(SchemaProvider::class.java))
+    verify(viewFactory).createEvaluatorView(any(Project::class.java), any(SchemaProvider::class.java), any(TableView::class.java))
     verify(sqliteView).closeTab(eq(tabId))
   }
 
@@ -363,7 +364,7 @@ class SqliteControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    val evaluatorView = viewFactory.createEvaluatorView(project, MockSchemaProvider())
+    val evaluatorView = viewFactory.createEvaluatorView(project, MockSchemaProvider(), viewFactory.tableView)
     verify(evaluatorView).addDatabase(sqliteDatabase1, 0)
     verify(evaluatorView).addDatabase(sqliteDatabase2, 1)
     verify(evaluatorView).addDatabase(sqliteDatabase3, 0)
@@ -376,7 +377,7 @@ class SqliteControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     sqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
-    val evaluatorView = viewFactory.createEvaluatorView(project, MockSchemaProvider())
+    val evaluatorView = viewFactory.createEvaluatorView(project, MockSchemaProvider(), viewFactory.tableView)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act

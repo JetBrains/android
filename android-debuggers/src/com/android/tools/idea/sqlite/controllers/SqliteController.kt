@@ -43,8 +43,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
 import java.nio.file.Path
-import java.util.Collections
-import java.util.TreeMap
 import java.util.concurrent.Executor
 import java.util.function.Consumer
 
@@ -227,14 +225,19 @@ class SqliteController(
   private fun openNewEvaluatorTab(): SqliteEvaluatorController {
     val tabId = TabId.AdHocQueryTab()
 
-    val sqliteEvaluatorView = viewFactory.createEvaluatorView(project, sqliteExplorerProjectService)
+    val sqliteEvaluatorView = viewFactory.createEvaluatorView(
+      project,
+      sqliteExplorerProjectService,
+      viewFactory.createTableView()
+    )
 
     // TODO(b/136556640) What name should we use for these tabs?
     sqliteView.displayResultSet(tabId, "New Query", sqliteEvaluatorView.component)
 
     val sqliteEvaluatorController = SqliteEvaluatorController(
       this@SqliteController,
-      sqliteEvaluatorView, edtExecutor
+      sqliteEvaluatorView,
+      edtExecutor
     ).also { it.setUp() }
     sqliteEvaluatorController.addListener(SqliteEvaluatorControllerListenerImpl())
 

@@ -113,7 +113,7 @@ class ResultSetControllerTest : UsefulTestCase() {
 
     // Assert
     verify(tableView).addListener(any(TableViewListener::class.java))
-    verify(tableView).showRowCount(any(Int::class.java))
+    verify(tableView).showPageSizeValue(any(Int::class.java))
     verify(tableView).startTableLoading()
     verify(tableView).removeListener(any(TableViewListener::class.java))
     verifyNoMoreInteractions(tableView)
