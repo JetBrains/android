@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.PopupHandler
@@ -43,6 +44,13 @@ private const val MARGIN = 50
 private const val NORMAL_BORDER_THICKNESS = 1f
 private const val EMPHASIZED_BORDER_THICKNESS = 5f
 private const val LABEL_FONT_SIZE = 30f
+
+private val EMPHASIZED_LINE_COLOR = JBColor.blue
+private val EMPHASIZED_LINE_STROKE = BasicStroke(EMPHASIZED_BORDER_THICKNESS)
+private val SELECTED_LINE_COLOR = JBColor.red
+private val SELECTED_LINE_STROKE = EMPHASIZED_LINE_STROKE
+private val NORMAL_LINE_COLOR = JBColor(Gray.get(128, 128), Gray.get(212, 128))
+private val NORMAL_LINE_STROKE = BasicStroke(NORMAL_BORDER_THICKNESS)
 
 class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
 
@@ -145,16 +153,16 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
     if (viewSettings.drawBorders) {
       when (view) {
         selection -> {
-          g2.color = JBColor.RED
-          g2.stroke = BasicStroke(EMPHASIZED_BORDER_THICKNESS)
+          g2.color = SELECTED_LINE_COLOR
+          g2.stroke = SELECTED_LINE_STROKE
         }
         inspectorModel.hoveredNode -> {
-          g2.color = JBColor.BLUE
-          g2.stroke = BasicStroke(EMPHASIZED_BORDER_THICKNESS)
+          g2.color = EMPHASIZED_LINE_COLOR
+          g2.stroke = EMPHASIZED_LINE_STROKE
         }
         else -> {
-          g2.color = JBColor.BLUE.brighter()
-          g2.stroke = BasicStroke(NORMAL_BORDER_THICKNESS)
+          g2.color = NORMAL_LINE_COLOR
+          g2.stroke = NORMAL_LINE_STROKE
         }
       }
       g2.draw(drawInfo.bounds)
