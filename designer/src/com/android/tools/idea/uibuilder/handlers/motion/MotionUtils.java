@@ -74,7 +74,7 @@ public class MotionUtils {
       return;
     }
 
-    MotionLayoutComponentHelper motionLayout = new MotionLayoutComponentHelper(motionLayoutComponent);
+    MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(motionLayoutComponent);
     if (motionLayout.isInTransition()) {
       return;
     }
@@ -120,7 +120,7 @@ public class MotionUtils {
       return;
     }
 
-    MotionLayoutComponentHelper motionLayout = new MotionLayoutComponentHelper(motionLayoutComponent);
+    MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(motionLayoutComponent);
     if (motionLayout.isInTransition()) {
       return;
     }
@@ -198,7 +198,7 @@ public class MotionUtils {
       return;
     }
 
-    MotionLayoutComponentHelper motionLayout = new MotionLayoutComponentHelper(motionLayoutComponent);
+    MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(motionLayoutComponent);
     if (motionLayout.isInTransition()) {
       return;
     }

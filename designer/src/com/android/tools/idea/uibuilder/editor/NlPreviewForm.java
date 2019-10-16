@@ -350,7 +350,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
         .findAny()
         .orElse(null);
       MotionLayoutComponentHelper helper = transitionLayout != null ?
-                                           new MotionLayoutComponentHelper(transitionLayout) :
+                                           MotionLayoutComponentHelper.create(transitionLayout) :
                                            null;
       long maxTimeMs = helper != null ? helper.getMaxTimeMs() : -1;
 

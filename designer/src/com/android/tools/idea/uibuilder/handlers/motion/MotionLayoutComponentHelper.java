@@ -32,9 +32,12 @@ import com.android.utils.Pair;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 
 public class MotionLayoutComponentHelper {
+
+  private static final boolean USE_MOTIONLAYOUT_HELPER_CACHE = true;
 
   private Method myCallSetTransitionPosition;
   private Method myCallSetState;
@@ -69,7 +72,26 @@ public class MotionLayoutComponentHelper {
   private final boolean DEBUG = false;
   private static boolean mShowPaths = false;
 
-  public MotionLayoutComponentHelper(@NotNull NlComponent component) {
+  static WeakHashMap<NlComponent, MotionLayoutComponentHelper> sCache = new WeakHashMap<>();
+
+  public static void clearCache() {
+    sCache.clear();
+  }
+
+  public static MotionLayoutComponentHelper create(@NotNull NlComponent component) {
+    if (USE_MOTIONLAYOUT_HELPER_CACHE) {
+      MotionLayoutComponentHelper helper = sCache.get(component);
+      if (helper == null) {
+        helper = new MotionLayoutComponentHelper(component);
+        sCache.put(component, helper);
+      }
+      return helper;
+    } else {
+      return new MotionLayoutComponentHelper(component);
+    }
+  }
+
+  private MotionLayoutComponentHelper(@NotNull NlComponent component) {
     ViewInfo info = NlComponentHelperKt.getViewInfo(component);
     if (info == null) {
       myDesignTool = null;

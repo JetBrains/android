@@ -29,7 +29,7 @@ class MotionLayoutAssistantPanel(val designSurface: DesignSurface, val component
   init {
     layout = BorderLayout()
 
-    val helper = MotionLayoutComponentHelper(component)
+    val helper = MotionLayoutComponentHelper.create(component)
     val maxTimeMs = helper.maxTimeMs
     toolbar = AnimationToolbar.createAnimationToolbar({}, { timeMs ->
       val sceneManager = designSurface.sceneManager as? LayoutlibSceneManager

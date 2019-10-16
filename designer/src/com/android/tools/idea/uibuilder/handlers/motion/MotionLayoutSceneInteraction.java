@@ -71,7 +71,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
         transitionLayoutComponent = parent;
       }
     }
-    myMotionHelper = transitionLayoutComponent != null ? new MotionLayoutComponentHelper(transitionLayoutComponent) : null;
+    myMotionHelper = transitionLayoutComponent != null ? MotionLayoutComponentHelper.create(transitionLayoutComponent) : null;
   }
 
   MotionLayoutTimelinePanel.State getState() {

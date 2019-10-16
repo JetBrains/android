@@ -244,7 +244,7 @@ public abstract class MotionLayoutResizeBaseTarget extends BaseTarget {
   @Override
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     NlComponent component = myComponent.getAuthoritativeNlComponent();
-    MotionLayoutComponentHelper motionLayout = new MotionLayoutComponentHelper(myComponent.getNlComponent().getParent());
+    MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(myComponent.getNlComponent().getParent());
     if (!motionLayout.isInTransition()) {
       ComponentModification modification = new ComponentModification(component, "Resize " + StringUtil.getShortName(component.getTagName()));
       updateAttributes(modification, x, y);
@@ -255,7 +255,7 @@ public abstract class MotionLayoutResizeBaseTarget extends BaseTarget {
 
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
-    MotionLayoutComponentHelper motionLayout = new MotionLayoutComponentHelper(myComponent.getNlComponent().getParent());
+    MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(myComponent.getNlComponent().getParent());
     if (!motionLayout.isInTransition()) {
       String state = motionLayout.getState();
       if (state == null) {
