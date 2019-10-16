@@ -19,7 +19,7 @@ import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
-import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.LanguageTextField
@@ -30,10 +30,13 @@ import javax.swing.JComponent
 /**
  * @see SqliteEvaluatorView
  */
-class SqliteEvaluatorViewImpl(override val project: Project, private val schemaProvider: SchemaProvider) : SqliteEvaluatorView {
+class SqliteEvaluatorViewImpl(
+  override val project: Project,
+  override val tableView: TableView,
+  private val schemaProvider: SchemaProvider
+) : SqliteEvaluatorView {
   private val evaluatorPanel = SqliteEvaluatorPanel()
   override val component: JComponent = evaluatorPanel.root
-  override val tableView = TableViewImpl()
 
   private val editorTextField = LanguageTextField(AndroidSqlLanguage.INSTANCE, project, "")
 

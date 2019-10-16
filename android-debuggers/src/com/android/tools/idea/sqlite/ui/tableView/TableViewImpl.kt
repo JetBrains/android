@@ -23,9 +23,9 @@ import com.android.tools.idea.sqlite.ui.notifyError
 import com.android.tools.idea.sqlite.ui.setResultSetTableColumns
 import com.android.tools.idea.sqlite.ui.setupResultSetTable
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.ui.ComboBox
 import java.util.Vector
 import javax.swing.JComponent
-import javax.swing.JTextField
 import javax.swing.table.DefaultTableModel
 
 /**
@@ -40,6 +40,7 @@ class TableViewImpl : TableView {
   }
 
   private val listeners = mutableListOf<TableViewListener>()
+  private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
 
   private val panel = TablePanel()
   override val component: JComponent = panel.root
@@ -49,7 +50,8 @@ class TableViewImpl : TableView {
 
   private val previousRowsPageButton = CommonButton("Previous", AllIcons.Actions.Play_back)
   private val nextRowsPageButton = CommonButton("Next", AllIcons.Actions.Play_forward)
-  private val maxRowsCountTextFiled = JTextField()
+
+  private val pageSizeComboBox = ComboBox<Int>()
 
   init {
     firstRowsPageButton.toolTipText = "First"
@@ -60,8 +62,10 @@ class TableViewImpl : TableView {
     panel.controlsPanel.add(previousRowsPageButton)
     previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() }}
 
-    panel.controlsPanel.add(maxRowsCountTextFiled)
-    maxRowsCountTextFiled.addActionListener { listeners.forEach { it.rowCountChanged(maxRowsCountTextFiled.text.toInt()) } }
+    pageSizeComboBox.isEditable = true
+    pageSizeDefaultValues.forEach { pageSizeComboBox.addItem(it) }
+    panel.controlsPanel.add(pageSizeComboBox)
+    pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem as Int)) } }
 
     nextRowsPageButton.toolTipText = "Next"
     panel.controlsPanel.add(nextRowsPageButton)
@@ -72,8 +76,8 @@ class TableViewImpl : TableView {
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() }}
   }
 
-  override fun showRowCount(maxRowCount: Int) {
-    maxRowsCountTextFiled.text = maxRowCount.toString()
+  override fun showPageSizeValue(maxRowCount: Int) {
+    pageSizeComboBox.selectedItem = maxRowCount
   }
 
   override fun resetView() {
