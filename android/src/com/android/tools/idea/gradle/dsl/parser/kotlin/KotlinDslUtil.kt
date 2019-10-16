@@ -542,8 +542,12 @@ internal fun getKtBlockExpression(psiElement: PsiElement) : KtBlockExpression? {
 }
 
 internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter) {
-  val oldName = element.nameElement.namedPsiElement ?: return
-  val localName = element.nameElement.localName ?: return
+  val nameElement = element.nameElement
+
+  val localName = nameElement.localName ?: return
+  if (localName == nameElement.originalName) return
+
+  val oldName = nameElement.namedPsiElement ?: return
   val newName = when (val parent = element.parent) {
     null -> localName
     else -> writer.externalNameForParent(localName, parent)
