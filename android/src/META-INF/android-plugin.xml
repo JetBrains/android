@@ -560,6 +560,7 @@
 
     <colorSettingsPage implementation="com.android.tools.idea.logcat.AndroidLogcatColorPage"/>
     <findUsagesHandlerFactory implementation="org.jetbrains.android.AndroidFindUsagesHandlerFactory"/>
+    <findUsagesHandlerFactory implementation="org.jetbrains.android.AndroidResourcesFindUsagesHandlerFactory"/>
 
     <!-- `language=""` means this is applicable to Language.ANY which is what images and other binary files use. -->
     <lang.findUsagesProvider language="" implementationClass="org.jetbrains.android.refactoring.AndroidFallbackFindUsagesProvider" />
