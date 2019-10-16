@@ -26,6 +26,7 @@ import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.MultiResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,10 +50,11 @@ public class StringResourceRepository {
     LocalResourceRepository dynamicResourceRepository = null;
 
     for (LocalResourceRepository child : localResources) {
-      child.sync();
-
       if (child instanceof ResourceFolderRepository) {
-        resourceDirectoryRepositoryMap.put(((ResourceFolderRepository)child).getResourceDir(), child);
+        ResourceFolderRepository repository = (ResourceFolderRepository)child;
+
+        ReadAction.run(() -> repository.scanRecursively(StringResourceRepository::isDirectoryOrStringResourceFile));
+        resourceDirectoryRepositoryMap.put(repository.getResourceDir(), child);
       }
       else {
         assert dynamicResourceRepository == null;
@@ -65,7 +67,7 @@ public class StringResourceRepository {
   }
 
   private StringResourceRepository(@NotNull ResourceFolderRepository repository) {
-    repository.sync();
+    ReadAction.run(() -> repository.scanRecursively(StringResourceRepository::isDirectoryOrStringResourceFile));
 
     myResourceDirectoryRepositoryMap = Collections.singletonMap(repository.getResourceDir(), repository);
     myDynamicResourceRepository = null;
@@ -76,6 +78,10 @@ public class StringResourceRepository {
 
     myResourceDirectoryRepositoryMap = Collections.emptyMap();
     myDynamicResourceRepository = repository;
+  }
+
+  private static boolean isDirectoryOrStringResourceFile(@NotNull VirtualFile file) {
+    return file.isDirectory() || file.getName().equals("strings.xml");
   }
 
   @NotNull
