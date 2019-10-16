@@ -60,6 +60,7 @@ public class MotionEditorSelector {
     MOTION_PROGRESS,
     MOTION_PLAY,
     MOTION_STOP,
+    MOTION_SCRUB
   }
 
   public interface TimeLineListener {
