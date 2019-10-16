@@ -237,8 +237,7 @@ public class TimeLinePanel extends JPanel {
   }
 
   public void stopAnimation() {
-    destroyTimer();
-    mTimeLineTopLeft.displayPlay();
+    performCommand(TimelineCommands.PAUSE, 0);
   }
 
   private static String buildKey(MTag keyFrame) {
@@ -363,6 +362,7 @@ public class TimeLinePanel extends JPanel {
         mIsPlaying = false;
         destroyTimer();
         notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
+        mTimeLineTopLeft.displayPlay();
         break;
       case END:
         mIsPlaying = false;
@@ -713,7 +713,7 @@ public class TimeLinePanel extends JPanel {
       case MouseEvent.MOUSE_PRESSED: {
         mMouseDown = (progress >= 0.0f && progress <= 1.0f);
         if (mMouseDown) {
-          notifyTimeLineListeners(TimeLineCmd.MOTION_PLAY, mMotionProgress);
+          notifyTimeLineListeners(TimeLineCmd.MOTION_SCRUB, mMotionProgress);
         }
         repaint();
       }

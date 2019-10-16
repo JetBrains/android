@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.Display;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -60,6 +61,12 @@ public class SceneLayer extends Layer {
     SceneContext sceneContext = SceneContext.get(mySceneView);
     if (!myTemporaryShow && !myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
       return;
+    }
+    if (!myShowAlways && getSceneView().getSurface() instanceof NlDesignSurface) {
+      NlDesignSurface designSurface = (NlDesignSurface) getSceneView().getSurface();
+      if (designSurface.isInAnimationMode() && !designSurface.isInAnimationScrubbing()) {
+        return;
+      }
     }
     sceneContext.setShowOnlySelection(!myTemporaryShow &&
                                       !myShowOnHover &&
