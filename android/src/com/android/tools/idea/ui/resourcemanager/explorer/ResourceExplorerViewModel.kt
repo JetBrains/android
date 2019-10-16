@@ -24,30 +24,27 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.MergedManifestManager
-import com.android.tools.idea.project.getLastSyncTimestamp
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.getFolderType
-import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
-import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.update.MergingUpdateQueue
+import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
 import kotlin.properties.Delegates
@@ -161,25 +158,8 @@ class ResourceExplorerViewModel private constructor(
       }
     }
 
-  private val resetPreviewsOnNextSuccessfulSync = Runnable {
-    defaultFacet.module.project.runWhenSmartAndSyncedOnEdt(this, Consumer { result ->
-      if (result.isSuccessful) {
-        listViewImageCache.clear()
-      }
-    })
-  }
-
   init {
     subscribeListener(defaultFacet)
-    val project = defaultFacet.module.project
-    if (project.getLastSyncTimestamp() < 0L) {
-      // No existing successful sync, since there's a fair chance of having rendering errors, wait for next successful sync and reset cache,
-      // then re-render all assets.
-      ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(
-        onCacheClean = resetPreviewsOnNextSuccessfulSync,
-        onSourceGenerationError = EmptyRunnable.INSTANCE
-      )
-    }
   }
 
   fun getTabIndexForFile(virtualFile: VirtualFile): Int {
@@ -424,8 +404,8 @@ private fun getConfiguration(facet: AndroidFacet, contextFile: VirtualFile? = nu
       configuration = configManager.getConfiguration(contextFile)
     }
     if (configuration == null) {
-      facet.module.project.projectFile?.let { projectFile ->
-        configuration = configManager.getConfiguration(projectFile)
+      runReadAction { facet.getPrimaryManifestXml() }?.let { manifestFile ->
+        configuration = configManager.getConfiguration(manifestFile.virtualFile)
       }
     }
     return@Supplier configuration
