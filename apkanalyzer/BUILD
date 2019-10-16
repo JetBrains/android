@@ -70,5 +70,6 @@ iml_module(
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )

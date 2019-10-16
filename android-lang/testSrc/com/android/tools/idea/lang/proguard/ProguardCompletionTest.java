@@ -23,13 +23,11 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-public class ProguardCompletionTest extends LightJavaCodeInsightFixtureTestCase {
+public class ProguardCompletionTest extends ProguardTestCase {
   private static final String TEST_FOLDER = FileUtil.join(LangTestDataKt.getTestDataPath(), "lang/proguard");
 
   @Override
