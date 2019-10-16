@@ -49,50 +49,6 @@ import com.intellij.util.ProcessingContext
  */
 class ProguardR8CompletionContributor : CompletionContributor() {
   companion object {
-    val VALID_FLAGS = setOf(
-      "adaptclassstrings",
-      "adaptresourcefilecontents",
-      "adaptresourcefilenames",
-      "addconfigurationdebugging",
-      "allowaccessmodification",
-      "alwaysinline",
-      "applymapping",
-      "assumenosideeffects",
-      "assumevalues",
-      "basedirectory",
-      "checkdiscard",
-      "classobfuscationdictionary",
-      "dontnote",
-      "dontobfuscate",
-      "dontoptimize",
-      "dontshrink",
-      "dontusemixedcaseclassnames",
-      "dontwarn",
-      "flattenpackagehierarchy",
-      "identifiernamestring",
-      "if",
-      "ignorewarnings",
-      "include",
-      "injars",
-      "keep",
-      "keepattributes",
-      "keepdirectories",
-      "keeppackagenames",
-      "keepparameternames",
-      "libraryjars",
-      "obfuscationdictionary",
-      "optimizationpasses",
-      "overloadaggressively",
-      "packageobfuscationdictionary",
-      "printconfiguration",
-      "printmapping",
-      "printseeds",
-      "printusage",
-      "renamesourcefileattribute",
-      "repackageclasses",
-      "verbose",
-      "whyareyoukeeping"
-    )
 
     private val FIELD_METHOD_MODIFIERS = setOf(
       "abstract",
@@ -139,7 +95,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
         processingContext: ProcessingContext,
         resultSet: CompletionResultSet
       ) {
-        resultSet.addAllElements(VALID_FLAGS.map { LookupElementBuilder.create(it) })
+        resultSet.addAllElements(PROGUARD_FLAGS.map { LookupElementBuilder.create(it) })
       }
     }
 
