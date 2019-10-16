@@ -58,7 +58,7 @@ public class MotionLayoutResizeTarget extends MotionLayoutResizeBaseTarget {
     }
 
     if (myComponent.getNlComponent().getParent() != null) {
-      MotionLayoutComponentHelper motionLayout = new MotionLayoutComponentHelper(myComponent.getParent().getNlComponent());
+      MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(myComponent.getParent().getNlComponent());
       if (motionLayout.isInTransition()) {
         return;
       }

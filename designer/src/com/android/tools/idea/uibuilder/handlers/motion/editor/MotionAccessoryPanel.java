@@ -127,7 +127,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     myMotionLayoutNlComponent = parent;
     myMotionLayoutTag = new NlComponentTag(parent, null);
     mVisibility = visibility;
-    myMotionHelper = new MotionLayoutComponentHelper(myMotionLayoutNlComponent);
+    MotionLayoutComponentHelper.clearCache();
+    myMotionHelper = MotionLayoutComponentHelper.create(myMotionLayoutNlComponent);
     myListeners = new ArrayList<>();
 
     Track.init(myDesignSurface);
@@ -527,11 +528,13 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   @Override
   public void deactivate() {
     myMotionLayout = null;
+    MotionLayoutComponentHelper.clearCache();
   }
 
   @Override
   public void updateAfterModelDerivedDataChanged() {
-    myMotionHelper = new MotionLayoutComponentHelper(myMotionLayoutNlComponent);
+    MotionLayoutComponentHelper.clearCache();
+    myMotionHelper = MotionLayoutComponentHelper.create(myMotionLayoutNlComponent);
 
     // ok, so I found out why the live edit wasn't working -- actually everything was working, but...
     // live edit works by editing the layoutParams of the view. Which is ok as normally this is

@@ -208,7 +208,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
    * @param dirType
    */
   private static void getConnection(SceneComponent component, SceneComponent child, String[] attributes, String dir, String dirType) {
-    MotionLayoutComponentHelper motionLayout = new MotionLayoutComponentHelper(component.getNlComponent());
+    MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(component.getNlComponent());
 
     if (motionLayout.isInTransition()) {
       child.myCache.clear();
@@ -320,7 +320,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
   }
 
   private void buildListPaths(@NotNull SceneComponent component, @NotNull DisplayList list) {
-    MotionLayoutComponentHelper helper = new MotionLayoutComponentHelper(component.getNlComponent());
+    MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(component.getNlComponent());
 
     if (helper.isInTransition() && helper.getShowPaths()) {
       List<SceneComponent> children = component.getChildren();

@@ -99,7 +99,7 @@ public class MotionLayoutDragTarget extends DragBaseTarget implements MultiCompo
                                  @NotNull SceneComponent parent,
                                  @AndroidDpCoordinate int x,
                                  @AndroidDpCoordinate int y) {
-      MotionLayoutComponentHelper motionLayout = new MotionLayoutComponentHelper(parent.getNlComponent());
+      MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(parent.getNlComponent());
       if (motionLayout.isInTransition()) {
         return;
       }

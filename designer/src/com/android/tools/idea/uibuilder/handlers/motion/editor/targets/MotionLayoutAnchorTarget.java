@@ -191,7 +191,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
     }
 
     if (myComponent.getNlComponent().getParent() != null) {
-      MotionLayoutComponentHelper motionLayout = new MotionLayoutComponentHelper(myComponent.getParent().getNlComponent());
+      MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(myComponent.getParent().getNlComponent());
       if (motionLayout.isInTransition()) {
         return;
       }
@@ -657,7 +657,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
     if (motionLayoutComponent == null) {
       fillInPreviousAttributesFromNlComponent();
     } else {
-      MotionLayoutComponentHelper motionLayout = new MotionLayoutComponentHelper(motionLayoutComponent);
+      MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(motionLayoutComponent);
       String state = motionLayout.getState();
       if (state != null) {
         fillInPreviousAttributes();
