@@ -74,11 +74,10 @@ public class AndroidProjectInfoTest extends PlatformTestCase {
     assertFalse(myProjectInfo.requiresAndroidModel());
   }
 
-  public void testRequiresAndroidModelWithApkFacet() {
+  public void testDoesNotRequireAndroidModelWithApkFacet() {
+    //Note: ApkFacet modules are configured with ALLOW_USER_CONFIGURATION = true and do not require android model.
     Module module = getModule();
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    //noinspection deprecation
-    facet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     createAndAddApkFacet(module);
 

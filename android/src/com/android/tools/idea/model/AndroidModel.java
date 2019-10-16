@@ -19,7 +19,6 @@ import com.android.builder.model.AaptOptions;
 import com.android.builder.model.SourceProvider;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.intellij.facet.FacetManager;
@@ -59,7 +58,7 @@ public interface AndroidModel {
 
   static boolean isRequired(@NotNull AndroidFacet facet) {
     //noinspection deprecation  This is one of legitimate usages of this property.
-    return !facet.getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(facet.getModule()) == null;
+    return !facet.getProperties().ALLOW_USER_CONFIGURATION;
   }
 
   /**
