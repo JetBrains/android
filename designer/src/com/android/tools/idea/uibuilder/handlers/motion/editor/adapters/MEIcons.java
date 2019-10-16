@@ -34,7 +34,7 @@ public class MEIcons {
   public static final Icon LIST_LAYOUT = StudioIcons.LayoutEditor.Motion.BASE_LAYOUT; // TODO fix
   public static final Icon LIST_STATE =  StudioIcons.Common.CHECKED;
   public static final Icon CONSTRAINT_SET = StudioIcons.LayoutEditor.Motion.CONSTRAINT_SET; // TODO fix
-  public static final Icon LIST_TRANSITION = StudioIcons.LayoutEditor.Toolbar.ARROW_RIGHT; // TODO fix
+  public static final Icon LIST_TRANSITION = StudioIcons.LayoutEditor.Motion.TRANSITION; // TODO fix
   public static final Icon LIST_GRAY_STATE = StudioIcons.LayoutEditor.Toolbar.EXPAND_TO_FIT; // TODO fix
   public static final Icon CREATE_MENU = StudioIcons.LayoutEditor.Toolbar.ADD_COMPONENT; // TODO fix
   public static final Icon CYCLE_LAYOUT =  AllIcons.Actions.SwapPanels; // TODO fix

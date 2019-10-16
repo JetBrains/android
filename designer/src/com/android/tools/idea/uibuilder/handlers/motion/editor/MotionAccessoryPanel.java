@@ -41,6 +41,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSe
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
@@ -266,6 +267,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             mLastProgress = pos;
             break;
           case MOTION_PLAY:
+            LayoutlibSceneManager manager = surface.getSceneManager();
+            manager.updateSceneView();
+            manager.requestLayoutAndRender(false);
             surface.setAnimationMode(true);
             break;
           case MOTION_STOP:

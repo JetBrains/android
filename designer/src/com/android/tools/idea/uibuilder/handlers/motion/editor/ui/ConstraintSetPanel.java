@@ -150,6 +150,7 @@ class ConstraintSetPanel extends JPanel {
     top.add(right, BorderLayout.EAST);
     mConstraintSetTable.setRowHeight(MEUI.scale(18));
     mConstraintSetTable.setShowHorizontalLines(false);
+    mConstraintSetTable.setAlignmentY(0.0f);
     top.setPreferredSize(new Dimension(0, MEUI.scale(32)));
 
     JCheckBox cbox = new JCheckBox("All");

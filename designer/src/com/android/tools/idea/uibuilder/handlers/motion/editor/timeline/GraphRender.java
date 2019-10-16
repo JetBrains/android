@@ -169,11 +169,11 @@ public class GraphRender {
     int gw = w - mTimelineStructure.mTimeLineInsetLeft - mTimelineStructure.mTimeLineInsetRight;
     Color c = g.getColor();
 
-    g.setColor(new Color(0xF2F7FC));
+    g.setColor(MEUI.Graph.ourG_Background);
     g.fillRect(x + 1, y, w - 1, h);
     g.setColor(MEUI.ourBorder);
     g.drawRect(x, y, w, h - 1);
-    g.setColor(MEUI.ourGraphColor);
+    g.setColor(MEUI.Graph.ourG_line);
 
     if (mCycle != null) {
       mCycle.plot(g, gx, y, gw, h);
@@ -400,7 +400,7 @@ public class GraphRender {
     }
 
     void plot(Graphics g, int x, int y, int w, int h) {
-      g.setColor(MEUI.ourGraphColor);
+      g.setColor(MEUI.Graph.ourG_line);
 
       for (int i = 0; i < xpos.length; i++) {
         int xp = (int)(w * xpos[i] + x);

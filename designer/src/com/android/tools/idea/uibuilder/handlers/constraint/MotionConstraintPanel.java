@@ -75,6 +75,9 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
         return null;
       }
       HashMap<String, MotionAttributes.DefinedAttribute> map = attr.getAttrMap();
+      if (map == null) {
+        return null;
+      }
       MotionAttributes.DefinedAttribute v = map.get(attribute);
       if (v == null) {
         return null;
