@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
@@ -222,17 +223,14 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
       final String newName = myIsPackage
                              ? ((PsiPackage)element).getQualifiedName()
                              : ((PsiClass)element).getQualifiedName();
-      final ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myNameElement);
       final TextRange range = new TextRange(0, myRangeInNameElement.getEndOffset());
-      return manipulator != null ? manipulator.handleContentChange(myNameElement, range, newName) : element;
+      return ElementManipulators.handleContentChange(myNameElement, range, newName);
     }
 
     @Nullable
     @Override
     public PsiElement handleElementRename(@NotNull String newElementName) throws IncorrectOperationException {
-      final ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myNameElement);
-      assert manipulator != null : "Cannot find manipulator for " + myNameElement;
-      return manipulator.handleContentChange(myNameElement, myRangeInNameElement, newElementName);
+      return ElementManipulators.handleContentChange(myNameElement, myRangeInNameElement, newElementName);
     }
   }
 }
