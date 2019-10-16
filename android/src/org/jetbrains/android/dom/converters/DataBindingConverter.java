@@ -312,10 +312,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
       if (element instanceof PsiClass) {
         PsiClass psiClass = (PsiClass)element;
         String newName = psiClass.getQualifiedName();
-        ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myElement);
-        if (manipulator != null) {
-          return manipulator.handleContentChange(myElement, newName);
-        }
+        return ElementManipulators.handleContentChange(myElement, newName);
       }
       return super.bindToElement(element);
     }
