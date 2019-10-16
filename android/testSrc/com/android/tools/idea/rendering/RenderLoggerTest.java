@@ -15,12 +15,26 @@
  */
 package com.android.tools.idea.rendering;
 
-import org.junit.After;
-import org.junit.Test;
+import static com.android.tools.idea.rendering.RenderLogger.RENDER_PROBLEMS_LIMIT;
+import static com.android.tools.idea.rendering.RenderLogger.STACK_OVERFLOW_TRACE_LIMIT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import static org.junit.Assert.*;
+import com.google.common.collect.Iterables;
+import com.intellij.lang.annotation.HighlightSeverity;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.junit.After;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestName;
 
 public class RenderLoggerTest {
+  @Rule
+  public final TestName nameRule = new TestName();
+
   @After
   public void tearDown() {
     RenderLogger.resetFidelityErrorsFilters();
@@ -54,5 +68,82 @@ public class RenderLoggerTest {
     logger.fidelityWarning(TAG, "This should be ignored", null, null, null);
     logger.fidelityWarning(TAG, "And this", new Throwable("Test"), null, null);
     assertEquals(0, logger.getFidelityWarnings().size());
+  }
+
+  @Test
+  public void testMessageLogging() {
+    RenderLogger logger = new RenderLogger(null, null, null);
+    for (int i = 0; i < 20; i++) {
+      logger.error("TAG" + i, "Message " + i, null, null, null);
+    }
+
+    List<RenderProblem> problems = logger.getMessages();
+    assertEquals(20, problems.size());
+    for (int i = 0; i < 20; i++) {
+      assertEquals("TAG" + i, problems.get(i).getTag());
+      assertEquals("Message " + i, problems.get(i).getHtml());
+    }
+  }
+
+  /**
+   * Throws an exception that contains at least `length` [StackTraceElement]s.
+   *
+   * @param writableStackTrace whether the stack trace of the generated exception should be writable
+   */
+  private static void generateLongStackOverflowException(int length) {
+    if (length > 0) {
+      generateLongStackOverflowException(length - 1);
+    }
+
+    throw new StackOverflowError();
+  }
+
+  /**
+   * Check that very long {@link StackOverflowError} exceptions are correctly summarized to not waste memory.
+   */
+  @Test
+  public void testStackOverflowSummarizing() {
+    RenderLogger logger = new RenderLogger(null, null, null);
+    try {
+      generateLongStackOverflowException(STACK_OVERFLOW_TRACE_LIMIT + 200);
+    }
+    catch (StackOverflowError e) {
+      logger.error("TAG", "StackOverflow", e, null, null);
+    }
+
+    RenderProblem stackOverFlowProblem = Iterables.getOnlyElement(logger.getMessages());
+    StackOverflowError overflowError = (StackOverflowError)stackOverFlowProblem.getThrowable();
+    assertEquals(STACK_OVERFLOW_TRACE_LIMIT + 1, overflowError.getStackTrace().length);
+    StackTraceElement omitted = overflowError.getStackTrace()[STACK_OVERFLOW_TRACE_LIMIT/2];
+    assertEquals("omitted", omitted.getClassName());
+    assertEquals("omitted", omitted.getMethodName());
+    assertEquals("omitted", omitted.getFileName());
+
+    StackTraceElement notOmitted = overflowError.getStackTrace()[STACK_OVERFLOW_TRACE_LIMIT/2 - 1];
+    assertEquals(RenderLoggerTest.class.getName(), notOmitted.getClassName());
+    assertEquals("generateLongStackOverflowException", notOmitted.getMethodName());
+    Set<String> methodNames = Arrays.stream(overflowError.getStackTrace())
+      .map(StackTraceElement::getMethodName)
+      .collect(Collectors.toSet());
+    // Check that we keep the beginning of the stacktrace by checking the test method name is in there
+    assertTrue(methodNames.contains(nameRule.getMethodName()));
+  }
+
+  /**
+   * Check that the number of {@link RenderProblem}s is limited in the render logger. When the limit is hit, we just log one extra
+   * problem indicating that more problems were found.
+   */
+  @Test
+  public void testMessageOverflow() {
+    RenderLogger logger = new RenderLogger(null, null, null);
+    for (int i = 0; i < RENDER_PROBLEMS_LIMIT + 150; i++) {
+      logger.error("TAG", "Message " + i, null, null, null);
+    }
+
+    List<RenderProblem> problems = logger.getMessages();
+    assertEquals(RENDER_PROBLEMS_LIMIT + 1, problems.size());
+    RenderProblem tooManyProblemsElement = problems.get(problems.size() - 1);
+    assertEquals(HighlightSeverity.WARNING, tooManyProblemsElement.getSeverity());
+    assertEquals("Too many errors (150 more errors not displayed)", tooManyProblemsElement.getHtml());
   }
 }
