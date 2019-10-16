@@ -220,13 +220,60 @@ PROJECT             : testMultiFlavor
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0@jar
+        LIBRARY             : Gradle: androidx.activity:activity:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Test
+            Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.annotation:annotation:1.0.0@jar [=]
-            *CLASSES            : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/
+            Name                : Gradle: androidx.activity:activity:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-activity-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-activity-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.annotation:annotation:1.1.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.annotation:annotation:1.1.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/annotation/annotation/1.1.0/annotation-1.1.0.jar!/
+        LIBRARY             : Gradle: androidx.appcompat:appcompat-resources:1.1.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.appcompat:appcompat-resources:1.1.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-appcompat-resources-1.1.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-appcompat-resources-1.1.0/res
+        LIBRARY             : Gradle: androidx.appcompat:appcompat:1.1.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.appcompat:appcompat:1.1.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.1.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.1.0/res
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.1.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.arch.core:core-common:2.1.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.arch.core:core-common:2.1.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar!/
+        LIBRARY             : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.collection:collection:1.1.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.collection:collection:1.1.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar!/
         LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -242,13 +289,112 @@ PROJECT             : testMultiFlavor
             Name                : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/res
-        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar
+        LIBRARY             : Gradle: androidx.core:core:1.1.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
-            Scope               : Test
+            Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar [=]
-            *CLASSES            : jar://<M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar!/
+            Name                : Gradle: androidx.core:core:1.1.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.1.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.1.0/res
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.1.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.customview:customview:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.customview:customview:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/res [-]
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.fragment:fragment:1.1.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.fragment:fragment:1.1.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.1.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.1.0/res [-]
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.1.0/annotations.zip!/
+        LIBRARY             : Gradle: androidx.interpolator:interpolator:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.1.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-common:2.1.0@jar [=]
+            *CLASSES            : jar://<M2>/androidx/lifecycle/lifecycle-common/2.1.0/lifecycle-common-2.1.0.jar!/
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-runtime:2.1.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-runtime:2.1.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.1.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.1.0/res [-]
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.1.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.1.0/res [-]
+        LIBRARY             : Gradle: androidx.loader:loader:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.loader:loader:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/res [-]
+        LIBRARY             : Gradle: androidx.savedstate:savedstate:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.savedstate:savedstate:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-savedstate-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-savedstate-1.0.0/res [-]
         LIBRARY             : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -297,6 +443,38 @@ PROJECT             : testMultiFlavor
             Name                : Gradle: androidx.test:runner:1.2.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/res [-]
+        LIBRARY             : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.1.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.1.0/res [-]
+        LIBRARY             : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.1.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.1.0/res [-]
+        LIBRARY             : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.1.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.1.0/res [-]
+        LIBRARY             : Gradle: androidx.viewpager:viewpager:1.0.0@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/res [-]
         LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar
             LibraryLevel        : project
             IsModuleLevel       : false
