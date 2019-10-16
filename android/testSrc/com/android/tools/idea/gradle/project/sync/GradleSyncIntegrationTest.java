@@ -882,6 +882,25 @@ b/137231583 */
     assertFalse(rootModel.isKaptEnabled());
   }
 
+  public void testExceptionsCreateFailedBuildFinishedEvent() throws Exception {
+    loadSimpleApplication();
+    SyncViewManager viewManager = mock(SyncViewManager.class);
+    new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, viewManager);
+    SimulatedSyncErrors.registerSyncErrorToSimulate(new Throwable("Fake sync error"));
+
+    requestSyncAndGetExpectedFailure();
+
+    ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
+    verify(viewManager, atLeastOnce()).onEvent(any(), eventCaptor.capture());
+
+    FinishBuildEvent event =
+      eventCaptor.getAllValues().stream().filter(e -> e instanceof FinishBuildEvent).map(e -> (FinishBuildEvent)e).findFirst().orElse(null);
+    assertThat(event).isNotNull();
+    FailureResult failureResult = (FailureResult)event.getResult();
+    assertThat(failureResult.getFailures()).isNotEmpty();
+    assertThat(failureResult.getFailures().get(0).getMessage()).isNotEqualTo("Fake sync error");
+  }
+
   @NotNull
   private List<NativeArtifact> getNativeArtifacts() {
     return NdkModuleModel.get(getModule("app")).getVariants().stream()
