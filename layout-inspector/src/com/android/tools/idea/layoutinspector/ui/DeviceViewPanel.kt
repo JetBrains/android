@@ -253,32 +253,41 @@ class DeviceViewPanel(
       }
       else {
         for (stream in processesMap.keys) {
-          val deviceAction = object : DropDownAction(buildDeviceName(stream.device), null, null) {
-            override fun displayTextInToolbar() = true
-          }
-          val processes = processesMap[stream]
-          if (processes == null || processes.isEmpty()) {
-            val noProcessAction = object : AnAction("No debuggable processes detected") {
-              override fun actionPerformed(event: AnActionEvent) {}
-            }
-            noProcessAction.templatePresentation.isEnabled = false
-            deviceAction.add(noProcessAction)
+          val deviceName = buildDeviceName(stream.device)
+          val deviceAction = if (stream.device.featureLevel < 29) {
+            object : AnAction("$deviceName (Unsupported for API < 29)") {
+              override fun actionPerformed(e: AnActionEvent) {}
+            }.apply { templatePresentation.isEnabled = false }
           }
           else {
-            val sortedProcessList = processes.sortedWith(compareBy({ it.name }, { it.pid }))
-            for (process in sortedProcessList) {
-              val processAction = object : ToggleAction("${process.name} (${process.pid})") {
-                override fun isSelected(event: AnActionEvent): Boolean {
-                  return process == client.selectedProcess && stream == client.selectedStream
+            object : DropDownAction(deviceName, null, null) {
+              override fun displayTextInToolbar() = true
+            }.apply {
+              val processes = processesMap[stream]
+              if (processes == null || processes.isEmpty()) {
+                val noProcessAction = object : AnAction("No debuggable processes detected") {
+                  override fun actionPerformed(event: AnActionEvent) {}
                 }
+                noProcessAction.templatePresentation.isEnabled = false
+                add(noProcessAction)
+              }
+              else {
+                val sortedProcessList = processes.sortedWith(compareBy({ it.name }, { it.pid }))
+                for (process in sortedProcessList) {
+                  val processAction = object : ToggleAction("${process.name} (${process.pid})") {
+                    override fun isSelected(event: AnActionEvent): Boolean {
+                      return process == client.selectedProcess && stream == client.selectedStream
+                    }
 
-                override fun setSelected(event: AnActionEvent, state: Boolean) {
-                  if (state) {
-                    client.attach(stream, process)
+                    override fun setSelected(event: AnActionEvent, state: Boolean) {
+                      if (state) {
+                        client.attach(stream, process)
+                      }
+                    }
                   }
+                  add(processAction)
                 }
               }
-              deviceAction.add(processAction)
             }
           }
           add(deviceAction)
