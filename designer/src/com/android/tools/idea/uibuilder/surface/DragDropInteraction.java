@@ -392,21 +392,6 @@ public class DragDropInteraction extends Interaction {
    * the current drag handler, if any
    */
   private class DragLayer extends Layer {
-
-    /**
-     * Constructs a new {@link DragLayer}.
-     */
-    public DragLayer() {
-    }
-
-    @Override
-    public void create() {
-    }
-
-    @Override
-    public void dispose() {
-    }
-
     @Override
     public void paint(@NotNull Graphics2D gc) {
       if (myDragHandler != null) {

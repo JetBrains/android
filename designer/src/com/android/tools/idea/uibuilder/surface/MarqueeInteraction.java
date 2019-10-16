@@ -145,14 +145,6 @@ public class MarqueeInteraction extends Interaction {
     }
 
     @Override
-    public void create() {
-    }
-
-    @Override
-    public void dispose() {
-    }
-
-    @Override
     public void paint(@NotNull Graphics2D gc) {
       DrawLassoUtil.drawLasso(gc, myColorSet, x, y, w, h, mouseX, mouseY, androidWidth, androidHeight, true);
     }
