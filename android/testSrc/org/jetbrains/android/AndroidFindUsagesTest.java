@@ -669,20 +669,16 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
     }
 
     public void testStyleInheritance1() {
-      super.testStyleInheritance1("Usage (8 usages)\n" +
-                                  " Found usages (8 usages)\n" +
-                                  "  Usage in Android resources XML (8 usages)\n" +
-                                  "   app (8 usages)\n" +
-                                  "    res/values (8 usages)\n" +
-                                  "     f11_values.xml (8 usages)\n" +
+      super.testStyleInheritance1("Usage (4 usages)\n" +
+                                  " Found usages (4 usages)\n" +
+                                  "  Usage in Android resources XML (4 usages)\n" +
+                                  "   app (4 usages)\n" +
+                                  "    res/values (4 usages)\n" +
+                                  "     f11_values.xml (4 usages)\n" +
                                   "      2<style name=\"myStyle\">\n" +
-                                  "      4</style>\n" +
                                   "      6<style name=\"myStyle.s\">\n" +
-                                  "      8</style>\n" +
                                   "      10<style name=\"style1\" parent=\"myStyle\">\n" +
-                                  "      12</style>\n" +
-                                  "      14<style name=\"myStyle.s.a\">\n" +
-                                  "      16</style>\n");
+                                  "      14<style name=\"myStyle.s.a\">\n");
     }
 
     public void testStyleInheritance2() {
@@ -755,6 +751,63 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                               "      2<string name=\"hello\">hello</string>\n");
     }
 
+    public void testValueResource1() {
+      super.testValueResource1("Usage (3 usages)\n" +
+                               " Found usages (3 usages)\n" +
+                               "  Resource reference in code (1 usage)\n" +
+                               "   app (1 usage)\n" +
+                               "    p1.p2 (1 usage)\n" +
+                               "     Class1 (1 usage)\n" +
+                               "      f() (1 usage)\n" +
+                               "       6int id2 = R.string.hello;\n" +
+                               "  Usage in Android resources XML (2 usages)\n" +
+                               "   app (2 usages)\n" +
+                               "    res/layout (1 usage)\n" +
+                               "     layout.xml (1 usage)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "    res/values (1 usage)\n" +
+                               "     fu1_values.xml (1 usage)\n" +
+                               "      2<string name=\"hello\">hello</string>\n");
+    }
+
+    public void testValueResource2() {
+      super.testValueResource2("Usage (3 usages)\n" +
+                               " Found usages (3 usages)\n" +
+                               "  Resource reference in code (1 usage)\n" +
+                               "   app (1 usage)\n" +
+                               "    p1.p2 (1 usage)\n" +
+                               "     Class1 (1 usage)\n" +
+                               "      f() (1 usage)\n" +
+                               "       6int id2 = R.string.hello;\n" +
+                               "  Usage in Android resources XML (2 usages)\n" +
+                               "   app (2 usages)\n" +
+                               "    res/layout (1 usage)\n" +
+                               "     layout.xml (1 usage)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "    res/values (1 usage)\n" +
+                               "     fu2_values.xml (1 usage)\n" +
+                               "      2<string name=\"hello\">hello</string>\n");
+    }
+
+    public void testValueResource3() {
+      super.testValueResource3("Usage (3 usages)\n" +
+                               " Found usages (3 usages)\n" +
+                               "  Resource reference in code (1 usage)\n" +
+                               "   app (1 usage)\n" +
+                               "    p1.p2 (1 usage)\n" +
+                               "     Class1 (1 usage)\n" +
+                               "      f() (1 usage)\n" +
+                               "       6int id2 = R.string.hello;\n" +
+                               "  Usage in Android resources XML (2 usages)\n" +
+                               "   app (2 usages)\n" +
+                               "    res/layout (1 usage)\n" +
+                               "     layout.xml (1 usage)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "    res/values (1 usage)\n" +
+                               "     fu3_values.xml (1 usage)\n" +
+                               "      2<string name=\"hello\">hello</string>\n");
+    }
+
     public void testValueResource4() {
       super.testValueResource4("Usage (3 usages)\n" +
                                " Found usages (3 usages)\n" +
@@ -771,6 +824,82 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
                                "    res/values (1 usage)\n" +
                                "     fu4_values.xml (1 usage)\n" +
+                               "      2<string name=\"hello\">hello</string>\n");
+    }
+
+    public void testValueResource5() {
+      super.testValueResource5("Usage (3 usages)\n" +
+                               " Found usages (3 usages)\n" +
+                               "  Resource reference in code (1 usage)\n" +
+                               "   app (1 usage)\n" +
+                               "    p1.p2 (1 usage)\n" +
+                               "     Class1 (1 usage)\n" +
+                               "      f() (1 usage)\n" +
+                               "       6int id2 = R.string.hello;\n" +
+                               "  Usage in Android resources XML (2 usages)\n" +
+                               "   app (2 usages)\n" +
+                               "    res/layout (1 usage)\n" +
+                               "     layout.xml (1 usage)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "    res/values (1 usage)\n" +
+                               "     fu5_values.xml (1 usage)\n" +
+                               "      2<string name=\"hello\">hello</string>\n");
+    }
+
+    public void testValueResource6() {
+      super.testValueResource6("Usage (3 usages)\n" +
+                               " Found usages (3 usages)\n" +
+                               "  Resource reference in code (1 usage)\n" +
+                               "   app (1 usage)\n" +
+                               "    p1.p2 (1 usage)\n" +
+                               "     Class1 (1 usage)\n" +
+                               "      f() (1 usage)\n" +
+                               "       6int id2 = R.string.hello;\n" +
+                               "  Usage in Android resources XML (2 usages)\n" +
+                               "   app (2 usages)\n" +
+                               "    res/layout (1 usage)\n" +
+                               "     layout.xml (1 usage)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "    res/values (1 usage)\n" +
+                               "     fu6_values.xml (1 usage)\n" +
+                               "      2<string name=\"hello\">hello</string>\n");
+    }
+
+    public void testValueResource7() {
+      super.testValueResource7("Usage (3 usages)\n" +
+                               " Found usages (3 usages)\n" +
+                               "  Resource reference in code (1 usage)\n" +
+                               "   app (1 usage)\n" +
+                               "    p1.p2 (1 usage)\n" +
+                               "     Class1 (1 usage)\n" +
+                               "      f() (1 usage)\n" +
+                               "       6int id2 = R.string.hello;\n" +
+                               "  Usage in Android resources XML (2 usages)\n" +
+                               "   app (2 usages)\n" +
+                               "    res/layout (1 usage)\n" +
+                               "     layout.xml (1 usage)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "    res/values (1 usage)\n" +
+                               "     fu7_values.xml (1 usage)\n" +
+                               "      2<string name=\"hello\">hello</string>\n");
+    }
+
+    public void testValueResource8() {
+      super.testValueResource8("Usage (3 usages)\n" +
+                               " Found usages (3 usages)\n" +
+                               "  Resource reference in code (1 usage)\n" +
+                               "   app (1 usage)\n" +
+                               "    p1.p2 (1 usage)\n" +
+                               "     Class1 (1 usage)\n" +
+                               "      f() (1 usage)\n" +
+                               "       6int id2 = R.string.hello;\n" +
+                               "  Usage in Android resources XML (2 usages)\n" +
+                               "   app (2 usages)\n" +
+                               "    res/layout (1 usage)\n" +
+                               "     layout.xml (1 usage)\n" +
+                               "      5<TextView android:text=\"@string/hello\"/>\n" +
+                               "    res/values (1 usage)\n" +
+                               "     f8_values.xml (1 usage)\n" +
                                "      2<string name=\"hello\">hello</string>\n");
     }
 
@@ -793,23 +922,6 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                "      4<string name=\"hello\">hello</string>\n" +
                                "      9<item>@string/hello</item>\n");
     }
-
-    // These tests below are related to find usages where the caret is near the resource value name, but not directly on it. This is a
-    // feature not yet implemented on new FindUsages pipeline.
-
-    public void testValueResource1_TODO() {}
-
-    public void testValueResource2_TODO() {}
-
-    public void testValueResource3_TODO() {}
-
-    public void testValueResource5_TODO() {}
-
-    public void testValueResource6_TODO() {}
-
-    public void testValueResource7_TODO() {}
-
-    public void testValueResource8_TODO() {}
 
     public void testValueResourceField() {
       super.testValueResourceField("Usage (3 usages)\n" +
