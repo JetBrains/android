@@ -66,7 +66,7 @@ import javax.swing.plaf.LayerUI;
  * The panel that displays the timeline
  */
 public class TimeLinePanel extends JPanel {
-  private static int PLAY_TIMEOUT = 5*60*1000;
+  private static int PLAY_TIMEOUT = 60 * 60 * 1000;
   private static int MS_PER_FRAME = 15;
   private static float TIMELINE_MIN = 0.0f;
   private static float TIMELINE_MAX = 100.0f;
@@ -91,8 +91,8 @@ public class TimeLinePanel extends JPanel {
   private boolean mIsPlaying = false;
   private ArrayList<TimeLineListener> mTimeLineListeners = new ArrayList<>();
   private int mDirection = 1;
-  int []myXPoints = new int[5];
-  int []myYPoints = new int[5];
+  int[] myXPoints = new int[5];
+  int[] myYPoints = new int[5];
   private MTagActionListener mListener;
 
   public TimeLinePanel() {
@@ -131,7 +131,7 @@ public class TimeLinePanel extends JPanel {
           case KeyEvent.VK_BACK_SPACE:
             if (mListener != null) {
               if (mSelectedKeyFrame != null) {
-                mListener.delete(new MTag[]{mSelectedKeyFrame},0);
+                mListener.delete(new MTag[]{mSelectedKeyFrame}, 0);
               }
             }
             break;
@@ -284,7 +284,7 @@ public class TimeLinePanel extends JPanel {
 
   public void clearSelection() {
     mSelectedKeyFrame = null;
-    int  n = mTimeLine.getComponentCount();
+    int n = mTimeLine.getComponentCount();
     if (n == 0 || mTimeLine.mSelectedIndex >= n) {
       return;
     }
@@ -394,7 +394,7 @@ public class TimeLinePanel extends JPanel {
         break;
       case 1:
         long time = System.nanoTime();
-        mMotionProgress -= myProgressPerMillisecond*((time-last_time)*1E-6f);
+        mMotionProgress -= myProgressPerMillisecond * ((time - last_time) * 1E-6f);
         last_time = time;
         if (mMotionProgress < 0f) {
           notifyTimeLineListeners(TimeLineCmd.MOTION_PROGRESS, 0f);
@@ -586,31 +586,31 @@ public class TimeLinePanel extends JPanel {
     int y = 0;
     int x = timeStart + (int)(mMotionProgress * (timeWidth));
     Color lineColor = MEUI.myTimeCursorColor;
-    if (mMouseDown) {
-      lineColor = lineColor.brighter();
-      int inset = 2;
-      int d = (int)(mMotionProgress * 100);
-      String digits = Integer.toString(d);
-      switch (digits.length()) {
-        case 1:
-          digits = ".0" + digits;
-          break;
-        case 2:
-          digits = "." + digits;
-          break;
-        case 3:
-          digits = "1.0";
-          break;
-      }
-      FontMetrics fm = g2.getFontMetrics();
-      Color orig = g.getColor();
-      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g.setColor(lineColor);
-      Rectangle2D bounds = fm.getStringBounds(digits, g2);
-      int xStart = (int)(x - bounds.getWidth() / 2 - inset);
-      int halfWidth = (2 * inset + (int)bounds.getWidth())/2;
-      int yHeight = 2 * inset + (int)bounds.getHeight() + 2;
 
+    lineColor = lineColor.brighter();
+    int inset = 2;
+    int d = (int)(mMotionProgress * 100);
+    String digits = Integer.toString(d);
+    switch (digits.length()) {
+      case 1:
+        digits = ".0" + digits;
+        break;
+      case 2:
+        digits = "." + digits;
+        break;
+      case 3:
+        digits = "1.0";
+        break;
+    }
+    FontMetrics fm = g2.getFontMetrics();
+    Color orig = g.getColor();
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g.setColor(lineColor);
+    Rectangle2D bounds = fm.getStringBounds(digits, g2);
+    int xStart = (int)(x - bounds.getWidth() / 2 - inset);
+    int halfWidth = (2 * inset + (int)bounds.getWidth()) / 2;
+    int yHeight = 2 * inset + (int)bounds.getHeight() + 2;
+    if (mMouseDown) {
       myXPoints[0] = xStart;
       myYPoints[0] = 0;
       myXPoints[1] = xStart;
@@ -625,10 +625,19 @@ public class TimeLinePanel extends JPanel {
       g2.fillPolygon(myXPoints, myYPoints, 5);
       g.setColor(orig);
       g2.drawString(digits, (int)(x - bounds.getWidth() / 2), (int)(fm.getAscent() + inset));
-      y = (int)(inset * 2 + bounds.getHeight());
     }
+    else {
+      myXPoints[0] = xStart;
+      myYPoints[0] = yHeight;
+      myXPoints[1] = xStart + halfWidth;
+      myYPoints[1] = yHeight + 10;
+      myXPoints[2] = xStart + halfWidth * 2;
+      myYPoints[2] = yHeight;
+      g2.fillPolygon(myXPoints, myYPoints, 3);
+    }
+
     g2.setColor(lineColor);
-    g2.drawLine(x, y, x, h);
+    g2.drawLine(x, yHeight, x, h);
   }
 
   /**
@@ -675,10 +684,16 @@ public class TimeLinePanel extends JPanel {
       break;
       case MouseEvent.MOUSE_PRESSED: {
         mMouseDown = (progress >= 0.0f && progress <= 1.0f);
+        if (mMouseDown) {
+          notifyTimeLineListeners(TimeLineCmd.MOTION_PLAY, mMotionProgress);
+        }
         repaint();
       }
       break;
       case MouseEvent.MOUSE_RELEASED: {
+        if (mMouseDown) {
+          notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
+        }
         mMouseDown = false;
         repaint();
       }
