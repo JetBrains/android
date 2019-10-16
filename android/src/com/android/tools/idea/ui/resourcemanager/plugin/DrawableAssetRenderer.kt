@@ -25,7 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.xml.sax.SAXParseException
 import java.awt.Dimension
-import java.awt.Image
+import java.awt.image.BufferedImage
 import java.lang.ref.WeakReference
 import java.text.ParseException
 import java.util.concurrent.CompletableFuture
@@ -111,7 +111,7 @@ class DrawableAssetRenderer : DesignAssetRenderer {
     file: VirtualFile,
     module: Module?,
     dimension: Dimension
-  ): CompletableFuture<out Image?> {
+  ): CompletableFuture<out BufferedImage?> {
     try {
       if (module == null) {
         throw NullPointerException("Module cannot be null to render a Drawable.")
@@ -131,9 +131,9 @@ class DrawableAssetRenderer : DesignAssetRenderer {
     }
   }
 
-  private fun failedFuture(exception: Throwable): CompletableFuture<out Image?> {
+  private fun failedFuture(exception: Throwable): CompletableFuture<out BufferedImage?> {
     LOG.warn(exception)
-    val failedFuture = CompletableFuture<Image?>()
+    val failedFuture = CompletableFuture<BufferedImage?>()
     failedFuture.completeExceptionally(exception)
     return failedFuture
   }

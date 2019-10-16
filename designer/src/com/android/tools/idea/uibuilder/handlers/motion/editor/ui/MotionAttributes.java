@@ -49,10 +49,16 @@ public class MotionAttributes {
   private boolean mDefinedTransform = false;
   private boolean mDefinedMotion = false;
   private String mId;
+  private String mLayoutFrom = "undefined";
+
   private HashMap<String , DefinedAttribute> definedAttributes = new HashMap<>();
 
   public String getId() {
     return mId;
+  }
+
+  public String getLayoutSource() {
+    return mLayoutFrom;
   }
 
   public static class DefinedAttribute {
@@ -146,6 +152,7 @@ public class MotionAttributes {
         definedAttributes.put(newAttribute.name , newAttribute);
       }
       if (!mDefinedLayout && MotionSceneAttrs.isLayoutAttribute(attr)) {
+        mLayoutFrom = "MotionLayout";
         DefinedAttribute newAttribute = new DefinedAttribute();
         newAttribute.source_id = null;
         newAttribute.nameSpace = attr.mNamespace;
@@ -268,6 +275,7 @@ public class MotionAttributes {
         if (mDefinedLayout) {
           return;
         }
+        mLayoutFrom = constraintSetId;
         mDefinedLayout = true;
         break;
       case PROPERTY_SET:
@@ -289,6 +297,9 @@ public class MotionAttributes {
         mDefinedMotion = true;
         break;
       case ALL:
+        if (!mDefinedLayout) {
+          mLayoutFrom = constraintSetId;
+        }
         mDefinedLayout = true;
         mDefinedPropertySet = true;
         mDefinedMotion = true;

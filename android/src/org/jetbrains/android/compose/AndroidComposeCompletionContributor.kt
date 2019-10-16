@@ -63,6 +63,7 @@ import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
 import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -70,7 +71,7 @@ import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 
 /** TODO: overlay android on some other icon? */
-private val COMPOSABLE_FUNCTION_ICON = LayeredIcon(AndroidIcons.Android)
+private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Misc.COMPOSABLE_FUNCTION
 
 private val signaturesFlags = listOf(
   COMPOSE_COMPLETION_REQUIRED_ONLY,
@@ -106,14 +107,17 @@ private fun LookupElement.getFunctionDescriptor(): FunctionDescriptor? {
     ?.castSafelyTo<FunctionDescriptor>()
 }
 
-private val List<ValueParameterDescriptor>.hasTrailingFunction: Boolean get() = lastOrNull()?.type?.isBuiltinFunctionalType == true
+private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean get() {
+  val lastArgType = lastOrNull()?.type ?: return false
+  return lastArgType.isBuiltinFunctionalType && lastArgType.annotations.hasAnnotation(FqName(COMPOSABLE_FQ_NAME))
+}
 
 /**
  * Modifies [LookupElement]s for composable functions, to improve Compose editing UX.
  */
 class AndroidComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
-    if (allFlags.all { !it.isOverridden } || !parameters.isInsideComposableCode()) return
+    if (allFlags.all { !it.get() } || !parameters.isInsideComposableCode()) return
 
     if (COMPOSE_COMPLETION_BANNER.get()) {
       ApplicationManager.getApplication().invokeLater {
@@ -147,7 +151,7 @@ class AndroidComposeCompletionContributor : CompletionContributor() {
   private fun LookupElement.isForSpecialLambdaLookupElement(): Boolean {
     val presentation = LookupElementPresentation()
     renderElement(presentation)
-    return presentation.tailText?.startsWith(" {") ?: false
+    return presentation.tailText?.startsWith(" {...} (..., ") ?: false
   }
 }
 
@@ -179,7 +183,7 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
       }
       val icon = when {
         !COMPOSE_COMPLETION_LAYOUT_ICON.get() -> presentation.typeIcon
-        descriptor.valueParameters.hasTrailingFunction -> StudioIcons.LayoutEditor.Palette.VIEW_STUB
+        descriptor.valueParameters.hasComposableChildren -> StudioIcons.LayoutEditor.Palette.VIEW_STUB
         else -> presentation.typeIcon
       }
       presentation.setTypeText(text, icon)
@@ -204,12 +208,12 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
     val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
     val visibleParameters = if (COMPOSE_COMPLETION_REQUIRED_ONLY.get()) requiredParameters else allParameters
     val inParens = when {
-      visibleParameters.hasTrailingFunction && COMPOSE_COMPLETION_TRAILING_LAMBDA.get() -> visibleParameters.dropLast(1)
+      visibleParameters.hasComposableChildren && COMPOSE_COMPLETION_TRAILING_LAMBDA.get() -> visibleParameters.dropLast(1)
       else -> visibleParameters
     }
     val renderer = when {
       COMPOSE_COMPLETION_DOTS_FOR_OPTIONAL.get() && visibleParameters.size < allParameters.size -> SHORT_NAMES_WITH_DOTS
-      !COMPOSE_COMPLETION_DOTS_FOR_OPTIONAL.get() && inParens.isEmpty() && visibleParameters.hasTrailingFunction -> {
+      inParens.isEmpty() && visibleParameters.hasComposableChildren -> {
         // Don't render an empty pair of parenthesis if we're rendering a lambda afterwards.
         null
       }
@@ -221,7 +225,7 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
       ?.renderValueParameters(inParens, false)
       ?.let { presentation.appendTailTextItalic(it, false) }
 
-    if (COMPOSE_COMPLETION_TRAILING_LAMBDA.get() && visibleParameters.hasTrailingFunction) {
+    if (COMPOSE_COMPLETION_TRAILING_LAMBDA.get() && visibleParameters.hasComposableChildren) {
       presentation.appendTailText(" " + LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION, true)
     }
   }
@@ -297,8 +301,9 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
     psiDocumentManager.doPostponedOperationsAndUnblockDocument(document)
 
     val templateManager = TemplateManager.getInstance(project)
-    val requiredParameters = descriptor.valueParameters.filter { !it.declaresDefaultValue() }
-    val insertLambda = requiredParameters.hasTrailingFunction
+    val allParameters = descriptor.valueParameters
+    val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
+    val insertLambda = requiredParameters.hasComposableChildren
     val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
 
     val template = templateManager.createTemplate("", "").apply {
@@ -317,12 +322,12 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
           }
           addTextSegment(")")
         }
-        insertLambda && COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL.get() -> {
+        !insertLambda -> addTextSegment("()")
+        requiredParameters.size < allParameters.size && COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL.get() -> {
           addTextSegment("(")
           addVariable(EmptyExpression(), true)
           addTextSegment(")")
         }
-        !insertLambda -> addTextSegment("()")
       }
 
       if (insertLambda) {

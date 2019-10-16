@@ -92,6 +92,7 @@ object MavenClassRegistry {
         "com.android.support:versionedparcelable"
 
       "ViewPager" -> "com.android.support:viewpager"
+      "ViewPager2" -> "androidx.viewpager2:viewpager2"
 
       "SwipeRefreshLayout" -> "com.android.support:swiperefreshlayout"
 

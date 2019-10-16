@@ -75,26 +75,24 @@ public class TimeLineTopLeft extends JPanel {
 
     }
     mBackward.addActionListener(e -> {
-        mIsPlaying = false;
-        mPlay.setIcon(MEIcons.PLAY);
+        displayPlay();
         command(TimelineCommands.START, 0);
     });
     mForward.addActionListener(e -> {
-      mIsPlaying = false;
-      mPlay.setIcon(MEIcons.PLAY);
+      displayPlay();
       command(TimelineCommands.END, 0);
     });
 
     mPlay.addActionListener(e -> {
         if (mIsPlaying) {
-          mPlay.setIcon(MEIcons.PLAY);
+          displayPlay();
           command(TimelineCommands.PAUSE, 0);
         } else {
-          mPlay.setIcon(MEIcons.PAUSE);
+          displayPause();
           command(TimelineCommands.PLAY, 0);
         }
-        mIsPlaying = !mIsPlaying;
     });
+
     mSlow.addActionListener(e -> {
         command(TimelineCommands.SPEED, 0);
     });
@@ -125,4 +123,15 @@ public class TimeLineTopLeft extends JPanel {
       listener.action(cmd, mode);
     }
   }
+
+  public void displayPlay() {
+    mIsPlaying = false;
+    mPlay.setIcon(MEIcons.PLAY);
+  }
+
+  public void displayPause() {
+    mIsPlaying = true;
+    mPlay.setIcon(MEIcons.PAUSE);
+  }
+
 }

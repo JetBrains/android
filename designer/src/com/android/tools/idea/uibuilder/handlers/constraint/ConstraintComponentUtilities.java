@@ -863,7 +863,9 @@ public final class ConstraintComponentUtilities {
     GradleVersion v = NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
     return (versionGreaterThan(v, major,
                                (version.length > 0) ? version[0] : -1,
-                               (version.length > 1) ? version[1] : -1, 0, 0));
+                               (version.length > 1) ? version[1] : -1,
+                               (version.length > 2) ? version[2] : -1,
+                               (version.length > 3) ? version[3] : -1 ));
   }
 
   /**

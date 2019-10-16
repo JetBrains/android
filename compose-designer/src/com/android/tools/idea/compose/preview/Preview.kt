@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.actions.IssueNotificationAction
@@ -53,6 +54,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -63,6 +66,7 @@ import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
@@ -73,15 +77,14 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
-import com.intellij.util.ui.update.MergingUpdateQueue
-import com.intellij.util.ui.update.Update
+import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtImportDirective
 import java.awt.BorderLayout
+import java.lang.RuntimeException
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import javax.swing.JPanel
 
@@ -102,14 +105,8 @@ const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
 /** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
 const val COMPOSABLE_NAME_ATTR = "tools:composableName"
 
-private val WHITE_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
-                                                                            JBColor(0x6E6E6E, 0xAFB1B3))
-private val BLUE_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
-                                                                           JBColor(0x389FD6, 0x3592C4))
 private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                             JBColor(0x59A869, 0x499C54))
-private val RED_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
-                                                                          JBColor(0xDB5860, 0xC75450))
 
 /** Old FQN to lookup and throw a warning. This import should not be used anymore after migrating to using ui-tooling */
 const val OLD_PREVIEW_ANNOTATION_FQN = "com.android.tools.preview.Preview"
@@ -125,42 +122,25 @@ else {
   "${dimension}dp"
 }
 
-const val BORDER_DEFINITION = """
-<aapt:attr name="android:background">
-  <shape
-    android:shape="rectangle">
-    <stroke
-        android:width="1dp"
-        android:color="#55AAAAAA" />
-  </shape>
-</aapt:attr>"""
-
 /**
  * Generates the XML string wrapper for one [PreviewElement]
  */
-private fun PreviewElement.toPreviewXmlString(withBorder: Boolean = true) =
+private fun PreviewElement.toPreviewXmlString() =
   """
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp">
-      <$COMPOSE_VIEW_ADAPTER
-        xmlns:tools="http://schemas.android.com/tools"
-        xmlns:aapt="http://schemas.android.com/aapt"
-        android:layout_width="${dimensionToString(configuration.width)}"
-        android:layout_height="${dimensionToString(configuration.height)}"
-        android:padding="5dp"
-        $COMPOSABLE_NAME_ATTR="$composableMethodFqn">
-        ${if (withBorder) BORDER_DEFINITION else ""}
-      </$COMPOSE_VIEW_ADAPTER>
-    </LinearLayout>
+    <$COMPOSE_VIEW_ADAPTER
+      xmlns:tools="http://schemas.android.com/tools"
+      xmlns:aapt="http://schemas.android.com/aapt"
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      android:layout_width="${dimensionToString(configuration.width)}"
+      android:layout_height="${dimensionToString(configuration.height)}"
+      android:padding="5dp"
+      $COMPOSABLE_NAME_ATTR="$composableMethodFqn" />
   """.trimIndent()
 
 val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
 
 /**
- * [ComposePreviewManager.Status] result for when the preview is refreshing. Only [isRefreshing] will be true.
+ * [ComposePreviewManager.Status] result for when the preview is refreshing. Only [ComposePreviewManager.Status.isRefreshing] will be true.
  */
 private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = false,
                                                              hasSyntaxErrors = false,
@@ -169,7 +149,7 @@ private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = 
 
 /**
  * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used as adapter
- * to be able to preview composable methods.
+ * to be able to preview composable functions.
  * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
  */
 private class ComposeAdapterLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
@@ -194,11 +174,6 @@ interface ComposePreviewManager {
      * True if the preview has errors that will need a refresh
      */
     val hasErrors = hasRuntimeErrors || hasSyntaxErrors
-
-    /**
-     * True if the Preview needs a refresh to display more up to date content.
-     */
-    val needsRefresh = hasErrors || isOutOfDate
   }
 
   fun status(): Status
@@ -236,13 +211,18 @@ private fun configureExistingModel(existingModel: NlModel,
                                    displayName: String,
                                    fileContents: String,
                                    surface: NlDesignSurface): NlModel {
+  val psiFileManager = PsiManager.getInstance(existingModel.project)
   // Reconfigure the model by setting the new display name and applying the configuration values
   existingModel.modelDisplayName = displayName
   val file = existingModel.virtualFile as ComposeAdapterLightVirtualFile
-  // Update the contents of the VirtualFile associated to the NlModel. fireEvent value is currently ignored, just set to true in case
-  // that changes in the future.
-  file.setContent(null, fileContents, true)
-
+  ApplicationManager.getApplication().invokeAndWait {
+    WriteAction.run<RuntimeException>  {
+      // Update the contents of the VirtualFile associated to the NlModel. fireEvent value is currently ignored, just set to true in case
+      // that changes in the future.
+      file.setContent(null, fileContents, true)
+      psiFileManager.reloadFromDisk(existingModel.file)
+    }
+  }
   configureLayoutlibSceneManager(surface.getSceneManager(existingModel) as LayoutlibSceneManager,
                                  RenderSettings.getProjectSettings(existingModel.project).showDecorations)
 
@@ -252,9 +232,9 @@ private fun configureExistingModel(existingModel: NlModel,
 /**
  * A [FileEditor] that displays a preview of composable elements defined in the given [psiFile].
  *
- * The editor will display previews for all declared `@Composable` methods that also use the `@Preview` (see [PREVIEW_ANNOTATION_FQN])
+ * The editor will display previews for all declared `@Composable` functions that also use the `@Preview` (see [PREVIEW_ANNOTATION_FQN])
  * annotation.
- * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` method.
+ * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
  * @param previewProvider call to obtain the [PreviewElement]s from the file.
@@ -284,7 +264,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
       configureLayoutlibSceneManager(LayoutlibSceneManager(model, surface, settingsProvider),
                                      fullDeviceSize = currentRenderSettings.showDecorations)
     }
-    .setEditable(false)
+    .setEditable(true)
     .build()
     .apply {
       setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true)
@@ -298,6 +278,13 @@ private class PreviewEditor(private val psiFile: PsiFile,
   var previewElements: List<PreviewElement> = emptyList()
 
   var isRefreshingPreview = false
+
+  /**
+   * This field will be false until the preview has rendered at least once. If the preview has not rendered once
+   * we do not have enough information about errors and the rendering to show the preview. Once it has rendered,
+   * even with errors, we can display additional information about the state of the preview.
+   */
+  var hasRenderedAtLeastOnce = false
 
   /**
    * Callback called after refresh has happened
@@ -320,12 +307,12 @@ private class PreviewEditor(private val psiFile: PsiFile,
     showLoading(message("panel.building"))
   }
 
-  /**
-   * Calls refresh method on the the successful gradle build
-   */
-  private val refresher = SmartAutoRefresher(psiFile, this) { isRefreshingPreview = true }
-
   init {
+    /**
+     * Calls refresh method on the successful gradle build
+     */
+    SmartAutoRefresher(psiFile, this) { isRefreshingPreview = true }
+
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       override fun buildStarted(context: BuildContext) {
         //  Show a loading message only if the content is not already displaying to avoid hiding it.
@@ -337,7 +324,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
     }, this)
   }
 
-  private fun hasErrorsAndNeedsBuild(): Boolean = surface.models.asSequence()
+  private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce || surface.models.asSequence()
       .mapNotNull { surface.getSceneManager(it) }
       .filterIsInstance<LayoutlibSceneManager>()
       .mapNotNull { it.renderResult?.logger?.brokenClasses?.values }
@@ -361,10 +348,10 @@ private class PreviewEditor(private val psiFile: PsiFile,
       LOG.debug("modificationStamp=${modificationStamp}, lastBuildTimestamp=${lastBuildTimestamp}")
     }
 
-    return lastBuildTimestamp in 1 until modificationStamp;
+    return lastBuildTimestamp in 1 until modificationStamp
   }
 
-  override fun status(): ComposePreviewManager.Status = if (isRefreshingPreview)
+  override fun status(): ComposePreviewManager.Status = if (isRefreshingPreview || DumbService.isDumb(project))
     REFRESHING_STATUS
   else
     ComposePreviewManager.Status(hasErrorsAndNeedsBuild(), hasSyntaxErrors(), isOutOfDate(), false)
@@ -376,7 +363,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
     .mapNotNull { surface.getSceneManager(it) }
     .filterIsInstance<LayoutlibSceneManager>()
     .mapNotNull { it.renderResult }
-    .any { it.renderResult.isSuccess && it.logger?.brokenClasses?.values?.isEmpty() }
+    .any { it.renderResult.isSuccess && it.logger.brokenClasses.values.isEmpty() }
 
   /**
    * Hides the preview content and shows an error message on the surface.
@@ -425,12 +412,14 @@ private class PreviewEditor(private val psiFile: PsiFile,
       .onEach {
         if (LOG.isDebugEnabled) {
           LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
+              displayName=${it.displayName}
+              methodName=${it.composableMethodFqn}
 
-              ${it.toPreviewXmlString(withBorder = false)}
+              ${it.toPreviewXmlString()}
           """.trimIndent())
         }
       }
-      .map { Pair(it, it.toPreviewXmlString(withBorder = showBorder)) }
+      .map { Pair(it, it.toPreviewXmlString()) }
       .map {
         val (previewElement, fileContents) = it
 
@@ -509,6 +498,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
         }
 
         isRefreshingPreview = false
+        hasRenderedAtLeastOnce = true
         // Make sure all notifications are cleared-up
         EditorNotifications.getInstance(project).updateNotifications(file)
 
@@ -521,6 +511,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
   override fun refresh() {
+    isRefreshingPreview = true
     val filePreviewElements = previewProvider()
 
     if (filePreviewElements == previewElements) {
@@ -577,7 +568,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
    * of the surface.
    */
   private inner class ForceCompileAndRefreshAction :
-    AnAction(message("notification.action.build.and.refresh"), null, WHITE_REFRESH_BUTTON) {
+    AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
     override fun actionPerformed(e: AnActionEvent) {
       val module = surface.model?.module ?: return
       requestBuild(surface.project, module)
@@ -585,15 +576,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
 
     override fun update(e: AnActionEvent) {
       val presentation = e.presentation
-      presentation.isEnabled = true
-      when {
-        GradleBuildState.getInstance(surface.project).isBuildInProgress -> {
-          presentation.icon = BLUE_REFRESH_BUTTON
-          presentation.isEnabled = false
-        }
-        findComposePreviewManagerForSurface(surface)?.status()?.hasErrors == true -> presentation.icon = RED_REFRESH_BUTTON
-        else -> presentation.icon = GREEN_REFRESH_BUTTON
-      }
+      val isRefreshing = findComposePreviewManagerForSurface(surface)?.status()?.isRefreshing == true
+      presentation.isEnabled = !isRefreshing && !GradleBuildState.getInstance(surface.project).isBuildInProgress
     }
   }
 
@@ -604,7 +588,12 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       .map { it.preview }
       .singleOrNull()
 
-  // TODO(http://b/140948062): needs icon
+  private inner class ViewOptionsAction : DropDownAction(message("action.view.options.title"), null, StudioIcons.Common.VISIBILITY_INLINE) {
+    init {
+      add(ToggleShowDecorationAction())
+    }
+  }
+
   private inner class ToggleShowDecorationAction :
     ToggleAction(message("action.show.decorations.title"), message("action.show.decorations.description"), null) {
 
@@ -622,8 +611,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   }
 
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(listOf(
-    ForceCompileAndRefreshAction(),
-    ToggleShowDecorationAction()
+    ViewOptionsAction(),
+    ForceCompileAndRefreshAction()
   ))
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
@@ -710,35 +699,11 @@ class ComposeFileEditorProvider(
     }
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = getInstance().createEditor(project, file) as TextEditor
-    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = { previewElementProvider.findPreviewMethods(project, file) })
+    val previewProvider = {
+      if (DumbService.isDumb(project)) emptyList() else previewElementProvider.findPreviewMethods(project, file)
+    }
+    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewProvider)
     val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor, previewEditor)
-
-    // Queue to avoid refreshing notifications on every key stroke
-    val modificationQueue = MergingUpdateQueue("Notifications Update queue",
-                                               TimeUnit.SECONDS.toMillis(1).toInt(),
-                                               true,
-                                               null,
-                                               composeEditorWithPreview)
-      .apply {
-        setRestartTimerOnAdd(true)
-      }
-
-    // Update that triggers a preview refresh. It does not trigger a recompile.
-    val refreshPreview = object : Update("refreshPreview") {
-      override fun run() {
-        LOG.debug("refreshPreview requested")
-        previewEditor.refresh()
-      }
-    }
-
-    val updateNotifications = object : Update("updateNotifications") {
-      override fun run() {
-        LOG.debug("updateNotifications requested")
-        if (composeEditorWithPreview.isModified) {
-          EditorNotifications.getInstance(project).updateNotifications(file)
-        }
-      }
-    }
 
     previewEditor.onRefresh = {
       composeEditorWithPreview.isPureTextEditor = previewEditor.previewElements.isEmpty()
@@ -747,9 +712,11 @@ class ComposeFileEditorProvider(
     setupChangeListener(
       project,
       psiFile,
-      { previewEditor.previewElements },
-      { modificationQueue.queue(refreshPreview) },
-      { modificationQueue.queue(updateNotifications) },
+      previewProvider,
+      { previewEditor.refresh() },
+      { if (composeEditorWithPreview.textEditor.isModified) {
+        EditorNotifications.getInstance(project).updateNotifications(file)
+      } },
       composeEditorWithPreview)
 
     return composeEditorWithPreview

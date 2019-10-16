@@ -16,7 +16,8 @@
 package com.android.tools.idea.explorer
 
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.concurrent.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.AsyncTestUtils
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.deviceExplorer.FileHandler
 import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry
@@ -29,7 +30,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.AsyncTestUtils
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.argThat

@@ -123,7 +123,7 @@ fun GradleDslFile.getBlockElement(
   nameElement: GradleNameElement? = null
 ): GradlePropertiesDslElement? {
   return nameParts.map { namePart -> namePart.trim { it <= ' ' } }.fold(parentElement) { resultElement, nestedElementName ->
-    val canonicalNestedElementName = resultElement.getExternalToModelMap(converter).getOrDefault(nestedElementName, nestedElementName)
+    val canonicalNestedElementName = converter.modelNameForParent(nestedElementName, resultElement)
     val elementName = nameElement ?: GradleNameElement.fake(canonicalNestedElementName)
     var element = resultElement.getElement(canonicalNestedElementName)
 

@@ -21,6 +21,7 @@ import static com.android.SdkConstants.FD_MAIN;
 import static com.android.SdkConstants.FD_RESOURCES;
 import static com.android.SdkConstants.FD_SOURCES;
 import static com.android.SdkConstants.FD_TEST;
+import static com.android.tools.idea.templates.SourceProviderUtilKt.getSourceProvidersForFile;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.module.ModuleModelKt;
@@ -150,11 +151,11 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
   private static Collection<IdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet,
                                                                    @Nullable VirtualFile targetDirectory) {
     if (targetDirectory != null) {
-      return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory,
-                                                          SourceProviderManager.getInstance(androidFacet).getMainIdeaSourceProvider());
+      return getSourceProvidersForFile(androidFacet, targetDirectory,
+                                       SourceProviderManager.getInstance(androidFacet).getMainIdeaSourceProvider());
     }
     else {
-      return IdeaSourceProvider.getAllIdeaSourceProviders(androidFacet);
+      return SourceProviderManager.getInstance(androidFacet).getAllSourceProviders();
     }
   }
 

@@ -43,15 +43,11 @@ import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintPlaceholder;
-import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
+import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintResizeTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget;
@@ -64,8 +60,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLay
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutResizeTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
@@ -96,6 +92,7 @@ public class MotionLayoutHandler extends ViewGroupHandler {
 
     return (context) -> new MotionLayoutAssistantPanel(surface, context.getComponent());
   }
+
 
   @NotNull
   @Override
@@ -203,13 +200,14 @@ public class MotionLayoutHandler extends ViewGroupHandler {
                                                       @NotNull AccessoryPanel.Type type,
                                                       @NotNull NlComponent parent,
                                                       @NotNull AccessoryPanelVisibility panelVisibility) {
+    assert surface instanceof NlDesignSurface : "MotionLayoutHandler needs an NlDesignSurface";
     if (true) {
       switch (type) {
         case SOUTH_PANEL:
           if (DEBUG) {
             Debug.println("SOUTH PANEL");
           }
-          return new MotionAccessoryPanel(surface, parent, panelVisibility);
+          return new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
         //return new MotionLayoutTimelinePanel(surface, parent, panelVisibility);
         case EAST_PANEL:
           if (DEBUG) {
@@ -218,13 +216,12 @@ public class MotionLayoutHandler extends ViewGroupHandler {
           return new MotionAttributePanel(parent, panelVisibility);
         //return  new MotionLayoutAttributePanel(parent, panelVisibility);
       }
-    }
-    else {
+    } else {
       switch (type) {
         case SOUTH_PANEL:
-          return new MotionAccessoryPanel(surface, parent, panelVisibility);
+          return new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
         case EAST_PANEL:
-          return new MotionAccessoryPanel(surface, parent, panelVisibility);
+          return new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
       }
     }
     throw new IllegalArgumentException("Unsupported type");
@@ -256,6 +253,6 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   @Override
   @NotNull
   public CustomPanel getLayoutCustomPanel() {
-    return new WidgetConstraintPanel(ImmutableList.of());
+    return new MotionConstraintPanel(ImmutableList.of());
   }
 }

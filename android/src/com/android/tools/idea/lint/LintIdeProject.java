@@ -55,6 +55,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
@@ -776,7 +777,7 @@ public class LintIdeProject extends Project {
     public List<File> getManifestFiles() {
       if (manifestFiles == null) {
         manifestFiles = Lists.newArrayList();
-        for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
+        for (IdeaSourceProvider sourceProvider : SourceProviderManager.getInstance(myFacet).getCurrentSourceProviders()) {
           VirtualFile manifestFile = sourceProvider.getManifestFile();
           if (manifestFile != null) {
             manifestFiles.add(VfsUtilCore.virtualToIoFile(manifestFile));
@@ -791,7 +792,7 @@ public class LintIdeProject extends Project {
     public List<File> getAssetFolders() {
       if (assetFolders == null) {
         assetFolders = Lists.newArrayList();
-        for (IdeaSourceProvider provider : IdeaSourceProvider.getAllIdeaSourceProviders(myFacet)) {
+        for (IdeaSourceProvider provider : SourceProviderManager.getInstance(myFacet).getAllSourceProviders()) {
           Collection<VirtualFile> dirs = provider.getAssetsDirectories();
           for (VirtualFile dir : dirs) {
             assetFolders.add(VfsUtilCore.virtualToIoFile(dir));

@@ -60,55 +60,38 @@ public class RecommendedPluginVersionUpgradeStep implements PluginVersionUpgrade
   }
 
   @Override
-  @Slow
   public boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
-    if (myUpgradeReminder.shouldRecommendUpgrade(project) && shouldRecommendUpgrade(pluginInfo)) {
-      GradleVersion current = pluginInfo.getPluginVersion();
-      assert current != null;
-      GradleVersion recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
-
-      AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
-      if (updater.canDetectPluginVersionToUpdate(recommended)) {
-        return true;
-      }
-    }
-    return false;
+    return myUpgradeReminder.shouldRecommendUpgrade(project) && shouldRecommendUpgrade(pluginInfo);
   }
 
   @Override
   @Slow
   public boolean performUpgradeAndSync(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
-    if (!checkUpgradable(project, pluginInfo)) {
-      return false;
-    }
-
     GradleVersion current = pluginInfo.getPluginVersion();
     assert current != null;
     GradleVersion recommended = GradleVersion.parse(pluginInfo.getLatestKnownPluginVersionProvider().get());
 
     AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
-    if (updater.canDetectPluginVersionToUpdate(recommended)) {
-      Computable<Boolean> promptUserTask = () -> {
-        RecommendedPluginVersionUpgradeDialog updateDialog = myUpgradeDialogFactory.create(project, current, recommended);
-        return updateDialog.showAndGet();
-      };
-      boolean userAcceptsUpgrade;
-      if (ApplicationManager.getApplication().isUnitTestMode()) {
-        userAcceptsUpgrade = promptUserTask.compute();
-      }
-      else {
-        final Ref<Boolean> result = Ref.create();
-        ApplicationManager.getApplication().invokeAndWait(() -> result.set(promptUserTask.compute()), ModalityState.NON_MODAL);
-        userAcceptsUpgrade = result.get();
-      }
+    Computable<Boolean> promptUserTask = () -> {
+      RecommendedPluginVersionUpgradeDialog updateDialog = myUpgradeDialogFactory.create(project, current, recommended);
+      return updateDialog.showAndGet();
+    };
+    boolean userAcceptsUpgrade;
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      userAcceptsUpgrade = promptUserTask.compute();
+    }
+    else {
+      final Ref<Boolean> result = Ref.create();
+      ApplicationManager.getApplication().invokeAndWait(() -> result.set(promptUserTask.compute()), ModalityState.NON_MODAL);
+      userAcceptsUpgrade = result.get();
+    }
 
-      if (userAcceptsUpgrade) {
-        GradleVersion latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-        UpdateResult result = updater.updatePluginVersionAndSync(recommended, latestGradleVersion, current);
-        if (result.versionUpdateSuccess()) {
-          // plugin version updated and a project sync was requested. No need to continue.
-          return true;
-        }
+    if (userAcceptsUpgrade) {
+      GradleVersion latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
+      UpdateResult result = updater.updatePluginVersionAndSync(recommended, latestGradleVersion, current);
+      if (result.versionUpdateSuccess()) {
+        // plugin version updated and a project sync was requested. No need to continue.
+        return true;
       }
     }
     return false;
@@ -116,7 +99,7 @@ public class RecommendedPluginVersionUpgradeStep implements PluginVersionUpgrade
 
   private static boolean shouldRecommendUpgrade(@NotNull AndroidPluginInfo androidPluginInfo) {
     GradleVersion current = androidPluginInfo.getPluginVersion();
-    GradleVersion recommended = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
+    GradleVersion recommended = GradleVersion.parse(androidPluginInfo.getLatestKnownPluginVersionProvider().get());
     return shouldRecommendUpgrade(recommended, current);
   }
 

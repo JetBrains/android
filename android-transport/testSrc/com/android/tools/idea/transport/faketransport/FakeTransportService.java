@@ -17,6 +17,7 @@ package com.android.tools.idea.transport.faketransport;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.datastore.DataStoreService;
@@ -43,8 +44,14 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import javax.annotation.concurrent.ThreadSafe;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ *  This class is thread-safe, allowing {@link CommandHandler} to publish new events on one thread (usually test) and
+ *  {@link com.android.tools.idea.transport.poller.TransportEventPoller} to poll on a thread from itsown thread-pool
+ */
+@ThreadSafe
 public class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
   public static final String VERSION = "3141592";
   public static final long FAKE_DEVICE_ID = 1234;
@@ -71,6 +78,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   private final Map<Long, Common.Device> myDevices;
   private final MultiMap<Common.Device, Common.Process> myProcesses;
   private final Map<String, ByteString> myCache;
+  @GuardedBy("myStreamEvents")
   private final Map<Long, List<Common.Event>> myStreamEvents;
   private final Map<Command.CommandType, CommandHandler> myCommandHandlers;
   private final FakeTimer myTimer;
@@ -316,6 +324,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
    * Helper method for appending to the event list of a stream.
    */
   public void addEventToStream(long streamId, Common.Event event) {
+    // getListForStream - is guarded by lock, but we add to resulting array  => should be behind lock too
     synchronized (myStreamEvents) {
       getListForStream(streamId).add(event);
     }
@@ -325,7 +334,9 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
    * Helper method for creating a list of events for a stream if it does not exist, otherwise returning the event list.
    */
   private List<Common.Event> getListForStream(long streamId) {
-    return myStreamEvents.computeIfAbsent(streamId, id -> new ArrayList<>());
+    synchronized (myStreamEvents) {
+      return myStreamEvents.computeIfAbsent(streamId, id -> new ArrayList<>());
+    }
   }
 
   @Override
@@ -333,7 +344,11 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     assertThat(myCommandHandlers.containsKey(request.getCommand().getType()))
       .named("Missing command handler for: %s", request.getCommand().getType().toString()).isTrue();
     Command command = request.getCommand().toBuilder().setCommandId(myNextCommandId.incrementAndGet()).build();
-    myCommandHandlers.get(command.getType()).handleCommand(command, getListForStream(command.getStreamId()));
+    // getListForStream - is guarded by lock, but handleCommand modifies resulting array  => should be behind lock too
+    // TODO(b/142524939): improve CommandHandler API
+    synchronized (myStreamEvents) {
+      myCommandHandlers.get(command.getType()).handleCommand(command, getListForStream(command.getStreamId()));
+    }
     responseObserver.onNext(Transport.ExecuteResponse.newBuilder().setCommandId(command.getCommandId()).build());
     responseObserver.onCompleted();
   }

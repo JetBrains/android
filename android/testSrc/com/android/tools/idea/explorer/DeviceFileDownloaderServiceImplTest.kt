@@ -26,7 +26,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.AsyncTestUtils
+import com.android.tools.idea.concurrency.AsyncTestUtils
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock

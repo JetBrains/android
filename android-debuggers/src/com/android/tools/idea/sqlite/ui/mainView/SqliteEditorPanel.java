@@ -21,15 +21,14 @@ import javax.swing.JPanel;
 public class SqliteEditorPanel {
   private JPanel mainPanel;
   private JPanel headerPanel;
-  private JButton openSqliteEvaluator;
   private JPanel tabsRoot;
 
   public JPanel getMainPanel() {
     return mainPanel;
   }
 
-  public JButton getOpenSqliteEvaluator() {
-    return openSqliteEvaluator;
+  public JPanel getHeaderPanel() {
+    return headerPanel;
   }
 
   public JPanel getTabsRoot() {

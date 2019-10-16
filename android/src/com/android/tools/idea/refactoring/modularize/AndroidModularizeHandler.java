@@ -70,6 +70,7 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -101,7 +102,8 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
-          if (!IdeaSourceProvider.getCurrentSourceProviders(facet).isEmpty() && !ResourceFolderManager.getInstance(facet).getFolders().isEmpty()) {
+          if (!SourceProviderManager.getInstance(facet).getCurrentSourceProviders().isEmpty() &&
+              !ResourceFolderManager.getInstance(facet).getFolders().isEmpty()) {
             suitableModules.add(module);
           }
         }
@@ -394,7 +396,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         if (target instanceof PsiClass) {
           if (!(target instanceof PsiTypeParameter) && !(target instanceof SyntheticElement)) {
             VirtualFile source = target.getContainingFile().getVirtualFile();
-            for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
+            for (IdeaSourceProvider sourceProvider : SourceProviderManager.getInstance(myFacet).getCurrentSourceProviders()) {
               if (IdeaSourceProvider.containsFile(sourceProvider, source)) {
                 // This is a local source file, therefore a candidate to be moved
                 if (myClassRefSet.add((PsiClass)target)) {

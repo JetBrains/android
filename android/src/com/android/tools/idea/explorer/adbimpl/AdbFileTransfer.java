@@ -20,7 +20,7 @@ import static com.android.tools.idea.explorer.adbimpl.AdbPathUtil.DEVICE_TEMP_DI
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.SyncService;
-import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.android.tools.idea.explorer.fs.ThrottledProgress;
 import com.google.common.util.concurrent.Futures;

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.explorer;
 
-import static org.jetbrains.android.AsyncTestUtils.pumpEventsAndWaitForFuture;
-import static org.jetbrains.android.AsyncTestUtils.pumpEventsAndWaitForFutureException;
-import static org.jetbrains.android.AsyncTestUtils.pumpEventsAndWaitForFutures;
+import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture;
+import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException;
+import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutures;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.device.fs.DownloadedFileData;
 import com.android.tools.idea.deviceExplorer.FileHandler;

@@ -17,6 +17,8 @@ package com.android.build.attribution
 
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
+import com.android.build.attribution.data.PluginConfigurationData
+import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.google.common.annotations.VisibleForTesting
@@ -32,8 +34,10 @@ class BuildAttributionManagerImpl(
   private val myBuildContentManager: BuildContentManager
 ) : BuildAttributionManager {
   private val taskContainer = TaskContainer()
+  private val pluginContainer = PluginContainer()
+
   @get:VisibleForTesting
-  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(myProject), taskContainer)
+  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(myProject), taskContainer, pluginContainer)
   private val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getBuildEventsAnalyzers(),
                                                              analyzersProxy.getBuildAttributionReportAnalyzers())
 
@@ -94,17 +98,29 @@ class BuildAttributionManagerImpl(
       }
     }
 
-    analyzersProxy.getPluginsSlowingConfiguration().let {
+    fun printPluginConfigurationData(pluginConfigurationData: PluginConfigurationData, stringBuilder: StringBuilder, prefix: String) {
+      stringBuilder.append(prefix + "${pluginConfigurationData.plugin} (${pluginConfigurationData.configurationDuration})")
+      if (pluginConfigurationData.isSlowingConfiguration) {
+        stringBuilder.append(" *SLOW*")
+      }
+      if (pluginConfigurationData.nestedPluginsConfigurationData.isEmpty()) {
+        stringBuilder.appendln()
+      }
+      else {
+        stringBuilder.appendln(" {")
+        pluginConfigurationData.nestedPluginsConfigurationData.forEach { printPluginConfigurationData(it, stringBuilder, "$prefix  ") }
+        stringBuilder.appendln("$prefix}")
+      }
+    }
+
+    analyzersProxy.getProjectsConfigurationData().let {
       if (it.isNotEmpty()) {
-        stringBuilder.appendln("Plugins slowing configuration:")
+        stringBuilder.appendln("Project configuration:")
         it.forEach { projectConfigurationData ->
-          stringBuilder.appendln("> project ${projectConfigurationData.project}:")
+          stringBuilder.appendln("project ${projectConfigurationData.project} (${projectConfigurationData.totalConfigurationTime}):")
 
           projectConfigurationData.pluginsConfigurationData.forEach { pluginConfigurationData ->
-            val percentage = pluginConfigurationData.configurationDuration.toMillis() * 100 / projectConfigurationData.totalConfigurationTime
-
-            stringBuilder.append("> ${pluginConfigurationData.plugin} took ${pluginConfigurationData.configurationDuration} ")
-              .appendln("($percentage%)")
+            printPluginConfigurationData(pluginConfigurationData, stringBuilder, " ")
           }
         }
       }

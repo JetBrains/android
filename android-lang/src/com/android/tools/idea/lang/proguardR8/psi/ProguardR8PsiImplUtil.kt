@@ -35,7 +35,10 @@ import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassRe
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 
-private class ProguardR8JavaClassReferenceProvider(val scope: GlobalSearchScope) : JavaClassReferenceProvider() {
+private class ProguardR8JavaClassReferenceProvider(
+  val scope: GlobalSearchScope,
+  val isAllowDollar: Boolean
+) : JavaClassReferenceProvider() {
 
   override fun getScope(project: Project): GlobalSearchScope = scope
 
@@ -47,7 +50,7 @@ private class ProguardR8JavaClassReferenceProvider(val scope: GlobalSearchScope)
         // Allows inner classes be separated by a dollar sign "$", e.g.java.lang.Thread$State
         // We can't just use ALLOW_DOLLAR_NAMES flag because to make JavaClassReferenceSet work in the way we want;
         // language of PsiElement that we parse should be instanceof XMLLanguage.
-        override fun isAllowDollarInNames() = true
+        override fun isAllowDollarInNames() = isAllowDollar
 
       }.allReferences as Array<PsiReference>
     }
@@ -55,9 +58,14 @@ private class ProguardR8JavaClassReferenceProvider(val scope: GlobalSearchScope)
 }
 
 fun getReferences(className: ProguardR8QualifiedName): Array<PsiReference> {
-  val provider = ProguardR8JavaClassReferenceProvider(className.resolveScope)
-
-  return provider.getReferencesByElement(className)
+  val provider = ProguardR8JavaClassReferenceProvider(className.resolveScope, true)
+  var referenceSet = provider.getReferencesByElement(className)
+  if (className.lastChild.textContains('$')) {
+    // If there is $ in last part we want to add reference for a name_with_dollar.
+    // We already have references for class + inner class. See [isAllowDollarInNames] and [JavaClassReferenceSet.reparse]
+    referenceSet += ProguardR8JavaClassReferenceProvider(className.resolveScope, false).getReferencesByElement(className).last()
+  }
+  return referenceSet
 }
 
 fun resolveToPsiClass(className: ProguardR8QualifiedName): PsiClass? {
@@ -162,12 +170,24 @@ fun containsWildcards(member: ProguardR8ClassMemberName): Boolean {
 
 fun getReference(member: ProguardR8ClassMemberName) = if (member.containsWildcards()) null else ProguardR8ClassMemberNameReference(member)
 
-fun isNegated(modifier: ProguardR8AccessModifier) = modifier.firstChild.node.elementType == ProguardR8PsiTypes.EM
+private val accessModifiers = setOf(PsiModifier.PRIVATE, PsiModifier.PROTECTED, PsiModifier.PUBLIC)
 
-fun toPsiModifier(modifier: ProguardR8AccessModifier) = when {
+fun isNegated(modifier: ProguardR8Modifier) = modifier.firstChild.node.elementType == ProguardR8PsiTypes.EM
+
+fun isAccessModifier(modifier: ProguardR8Modifier) = accessModifiers.contains(modifier.toPsiModifier())
+
+fun toPsiModifier(modifier: ProguardR8Modifier) = when {
   modifier.node.findChildByType(ProguardR8PsiTypes.PRIVATE) != null -> PsiModifier.PRIVATE
   modifier.node.findChildByType(ProguardR8PsiTypes.PROTECTED) != null -> PsiModifier.PROTECTED
   modifier.node.findChildByType(ProguardR8PsiTypes.PUBLIC) != null -> PsiModifier.PUBLIC
+  modifier.node.findChildByType(ProguardR8PsiTypes.STATIC) != null -> PsiModifier.STATIC
+  modifier.node.findChildByType(ProguardR8PsiTypes.FINAL) != null -> PsiModifier.FINAL
+  modifier.node.findChildByType(ProguardR8PsiTypes.ABSTRACT) != null -> PsiModifier.ABSTRACT
+  modifier.node.findChildByType(ProguardR8PsiTypes.VOLATILE) != null -> PsiModifier.VOLATILE
+  modifier.node.findChildByType(ProguardR8PsiTypes.TRANSIENT) != null -> PsiModifier.TRANSIENT
+  modifier.node.findChildByType(ProguardR8PsiTypes.SYNCHRONIZED) != null -> PsiModifier.SYNCHRONIZED
+  modifier.node.findChildByType(ProguardR8PsiTypes.NATIVE) != null -> PsiModifier.NATIVE
+  modifier.node.findChildByType(ProguardR8PsiTypes.STRICTFP) != null -> PsiModifier.STRICTFP
   else -> error("Couldn't match ProguardR8AccessModifier \"${modifier.text}\" to PsiModifier")
 }
 

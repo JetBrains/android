@@ -56,7 +56,7 @@ class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
         structuralChange = updater.update()
       }
     }
-    modificationListeners.forEach { it(oldRoot, newRoot, structuralChange) }
+    modificationListeners.forEach { it(oldRoot, root, structuralChange) }
   }
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {

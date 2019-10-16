@@ -17,6 +17,8 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.ResourceFile
+import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
@@ -78,7 +80,7 @@ class ResourceExplorerListViewModelImplTest {
     val latch = CountDownLatch(1)
     val pngDrawable = projectRule.getPNGResourceItem()
     val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
-    val asset = Asset.fromResourceItem(pngDrawable)!! as DesignAsset
+    val asset = Asset.fromResourceItem(pngDrawable) as DesignAsset
     val iconSize = 32 // To compensate the 10% margin around the icon
     Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
     viewModel.assetPreviewManager
@@ -97,7 +99,7 @@ class ResourceExplorerListViewModelImplTest {
   fun getPngDrawableSummary() {
     val pngDrawable = projectRule.getPNGResourceItem()
     val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
-    val asset = Asset.fromResourceItem(pngDrawable)!! as DesignAsset
+    val asset = Asset.fromResourceItem(pngDrawable) as DesignAsset
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
     Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
 
@@ -113,8 +115,9 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun getDataBindingLayoutSummary() {
     projectRule.fixture.copyFileToProject("res/layout/data_binding_layout.xml", "res/layout/data_binding_layout.xml")
-    val layoutResource = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT).values().first()
-    val asset = Asset.fromResourceItem(layoutResource)!! as DesignAsset
+    val layoutResource = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
+      ResourceNamespace.RES_AUTO, ResourceType.LAYOUT).values().first()
+    val asset = Asset.fromResourceItem(layoutResource) as DesignAsset
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
     Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
 
@@ -125,6 +128,43 @@ class ResourceExplorerListViewModelImplTest {
     Truth.assertThat(summary).containsEntry("Type", "Data Binding (TextView)")
     Truth.assertThat(summary).containsEntry("Configuration", "default")
     Truth.assertThat(summary).containsEntry("Value", "data_binding_layout.xml")
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
+  }
+
+  @Test
+  fun getSampleDataSummary() {
+    val sampleResource = ResourceRepositoryManager.getAppResources(projectRule.module.androidFacet!!).getResources(
+      ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values().first { it.name == "avatars" }
+    val asset = Asset.fromResourceItem(sampleResource, ResourceType.DRAWABLE)
+    val assetSet = ResourceAssetSet(asset.name, listOf(asset))
+    Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
+
+    val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
+    Truth.assertThat(summary).containsEntry("Name", "avatars")
+    Truth.assertThat(summary).containsEntry("Reference", "@tools:sample/avatars")
+    Truth.assertThat(summary).containsEntry("Configuration", "default")
+    Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
+  }
+
+  @Test
+  fun getThemeAttributeSummary() {
+    projectRule.fixture.copyFileToProject("/res/values/colors.xml", "/res/values/colors.xml")
+    val colorResource = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
+      ResourceNamespace.RES_AUTO, ResourceType.COLOR).values().first { it.name == "colorPrimary" }
+    val attrResource = ResourceMergerItem("my_attr", ResourceNamespace.RES_AUTO, ResourceType.ATTR, null, null, null)
+    ResourceFile.createSingle(File("res/values/attrs.xml"), attrResource, "")
+    val asset = Asset.fromResourceItem(attrResource, ResourceType.COLOR)
+    val assetSet = ResourceAssetSet(asset.name, listOf(asset))
+    Mockito.`when`(resourceResolver.findItemInTheme(asset.resourceItem.referenceToSelf)).thenReturn(colorResource.resourceValue)
+    Mockito.`when`(resourceResolver.resolveResValue(colorResource.resourceValue)).thenReturn(colorResource.resourceValue)
+
+    val viewModel = createViewModel(projectRule.module, ResourceType.COLOR)
+    val summary = viewModel.getResourceSummaryMap(assetSet).get(5L, TimeUnit.MINUTES)
+    Truth.assertThat(summary).containsEntry("Name", "my_attr")
+    Truth.assertThat(summary).containsEntry("Reference", "?attr/my_attr")
+    Truth.assertThat(summary).containsEntry("Configuration", "default")
+    Truth.assertThat(summary).containsEntry("Value", "#3F51B5")
     Truth.assertThat(viewModel.getResourceConfigurationMap(assetSet).get(5L, TimeUnit.MINUTES)).isEmpty()
   }
 
@@ -202,7 +242,7 @@ class ResourceExplorerListViewModelImplTest {
 
   private fun createViewModel(module: Module, resourceType: ResourceType): ResourceExplorerListViewModelImpl {
     val facet = AndroidFacet.getInstance(module)!!
-    val viewModel = ResourceExplorerListViewModelImpl(
+    return ResourceExplorerListViewModelImpl(
       facet,
       null,
       resourceResolver,
@@ -211,6 +251,5 @@ class ResourceExplorerListViewModelImplTest {
       ImageCache.createLargeImageCache(disposable),
       ImageCache.createSmallImageCache(disposable)
     )
-    return viewModel
   }
 }

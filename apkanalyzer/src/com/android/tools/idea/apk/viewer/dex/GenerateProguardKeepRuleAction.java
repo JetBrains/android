@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.lang.proguardR8.ProguardR8FileType;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.apk.analyzer.dex.KeepRuleBuilder;
 import com.android.tools.apk.analyzer.dex.tree.*;
@@ -31,6 +33,7 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
 import com.intellij.openapi.editor.impl.EditorFactoryImpl;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.SyntaxHighlighter;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory;
 import com.intellij.openapi.project.Project;
@@ -153,7 +156,8 @@ public class GenerateProguardKeepRuleAction extends AnAction {
     Editor editor = factory.createEditor(doc, project);
 
     EditorHighlighterFactory editorHighlighterFactory = EditorHighlighterFactory.getInstance();
-    final SyntaxHighlighter syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(ProguardFileType.INSTANCE, project, null);
+    FileType proguardFileType = StudioFlags.R8_SUPPORT_ENABLED.get() ? ProguardR8FileType.INSTANCE : ProguardFileType.INSTANCE;
+    final SyntaxHighlighter syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(proguardFileType, project, null);
     ((EditorEx)editor).setHighlighter(
       editorHighlighterFactory.createEditorHighlighter(syntaxHighlighter, EditorColorsManager.getInstance().getGlobalScheme()));
     ((EditorEx)editor).setCaretVisible(true);

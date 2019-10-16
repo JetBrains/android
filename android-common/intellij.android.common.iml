@@ -18,7 +18,7 @@
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="android.sdktools.ninepatch" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="android.sdktools.flags" />

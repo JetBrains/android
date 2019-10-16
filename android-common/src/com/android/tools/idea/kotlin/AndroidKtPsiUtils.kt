@@ -45,7 +45,7 @@ fun KtProperty.hasBackingField(): Boolean {
 
 /** Computes the qualified name of this [KtAnnotationEntry]. */
 fun KtAnnotationEntry.getQualifiedName(): String? {
-  return analyze().get(BindingContext.ANNOTATION, this)?.fqName?.asString()
+  return analyze(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)?.fqName?.asString()
 }
 
 /**

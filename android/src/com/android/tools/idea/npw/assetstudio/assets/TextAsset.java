@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.annotations.concurrency.AnyThread;
-import com.android.tools.idea.concurrent.FutureUtils;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.npw.assetstudio.TextRenderUtil;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.core.StringProperty;

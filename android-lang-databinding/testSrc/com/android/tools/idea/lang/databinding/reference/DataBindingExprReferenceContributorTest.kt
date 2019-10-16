@@ -1226,4 +1226,121 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val reference = fixture.getReferenceAtCaretPosition()!!
     assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
   }
+
+  @Test
+  fun dbReferencesStringPluralResource() {
+    fixture.addFileToProject("res/values/strings.xml", """
+      <resources>
+        <plurals name="orange">
+            <item quantity="one">orange</item>
+            <item quantity="other">oranges</item>
+        </plurals>
+      </resources>
+    """.trimIndent())
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <TextView android:text="@{@plurals/oran<caret>ge(count)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+  }
+
+  @Test
+  fun dbReferencesStringResource() {
+    fixture.addFileToProject("res/values/strings.xml", """
+      <resources>
+        <string name="nameWithTitle">title</string>
+      </resources>
+    """.trimIndent())
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <TextView android:text="@{@string/nameWi<caret>thTitle}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+  }
+
+  @Test
+  fun dbReferencesFractionResource() {
+    fixture.addFileToProject("res/values/fractions.xml", """
+      <resources>
+        <fraction name="myFraction">150%</fraction>
+      </resources>
+    """.trimIndent())
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <TextView android:text="@{@fraction/myFrac<caret>tion}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("float")
+  }
+
+  @Test
+  fun dbReferencesTextResource() {
+    fixture.addFileToProject("res/values/strings.xml", """
+      <resources>
+        <string name="zero">there are <b>zero</b></string>
+      </resources>
+    """.trimIndent())
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <TextView android:text="@{@text/ze<caret>ro}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.CharSequence")
+  }
+
+  @Test
+  fun dbReferencesIdResource() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <TextView
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:text="@{@id/view<caret>_id}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("int")
+  }
+
+  @Test
+  fun dbReferencesDrawableResource() {
+    fixture.addFileToProject("res/drawable/pic.png", "0000000")
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <ImageView
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:src="@{@drawable/p<caret>ic}" />
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("android.graphics.drawable.Drawable")
+  }
 }

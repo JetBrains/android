@@ -54,7 +54,7 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
-import com.android.tools.idea.util.FutureUtils;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.util.PropertiesComponent;

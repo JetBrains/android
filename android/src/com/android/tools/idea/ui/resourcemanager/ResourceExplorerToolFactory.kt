@@ -57,12 +57,12 @@ class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Any>
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }
 
-  override fun shouldBeAvailable(project: Project) = StudioFlags.RESOURCE_MANAGER_ENABLED.get()
+  override fun shouldBeAvailable(project: Project) = true
 
   /**
    * Implementation of [Condition].
    */
-  override fun value(o: Any) = StudioFlags.RESOURCE_MANAGER_ENABLED.get()
+  override fun value(o: Any) = true
 }
 
 private fun connectListeners(toolWindow: ToolWindow,

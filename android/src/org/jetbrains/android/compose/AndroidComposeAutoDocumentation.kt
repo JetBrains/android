@@ -22,6 +22,7 @@ import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.lookup.LookupEvent
 import com.intellij.codeInsight.lookup.LookupListener
 import com.intellij.codeInsight.lookup.LookupManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.IndexNotReadyException
 import java.beans.PropertyChangeListener
 
@@ -48,7 +49,7 @@ class AndroidComposeAutoDocumentation(
   }
 
   init {
-    if (COMPOSE_AUTO_DOCUMENTATION.get()) {
+    if (COMPOSE_AUTO_DOCUMENTATION.get() && !ApplicationManager.getApplication().isUnitTestMode) {
       lookupManager.addPropertyChangeListener(lookupListener)
     }
   }

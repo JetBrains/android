@@ -18,7 +18,7 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
-import com.android.tools.idea.concurrent.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.mocks.MockSqliteEvaluatorView
 import com.android.tools.idea.sqlite.model.SqliteDatabase

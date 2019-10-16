@@ -36,68 +36,77 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
 
 
   public void testMotionEditorPanel() {
-    MotionEditor motionEditor  = new MotionEditor();
-    assertTrue(motionEditor!=null);
+    MotionEditor motionEditor = new MotionEditor();
+    assertTrue(motionEditor != null);
 
     MeModel model = getModel();
     MTag[] trans = model.motionScene.getChildTags("Transition");
     motionEditor.setMTag(model);
-    motionEditor.selectTag(trans[0]);
+    motionEditor.selectTag(trans[0], 0);
     int size = 1000;
-    motionEditor.setBounds(0,0,size,size);
-    BufferedImage bufferedImage = new BufferedImage(size,size,BufferedImage.TYPE_INT_RGB);
+    motionEditor.setBounds(0, 0, size, size);
+    BufferedImage bufferedImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
     Graphics2D g2d = bufferedImage.createGraphics();
     long time = System.nanoTime();
     motionEditor.paint(g2d);
-    time = System.nanoTime()-time;
+    time = System.nanoTime() - time;
     assertTrue(time < 1E9);
   }
-  class DummyPanel extends  JPanel {
-    DummyPanel(){
+
+  class DummyPanel extends JPanel {
+    DummyPanel() {
       super(new BorderLayout());
     }
-    public  void sendMouse(MouseEvent e) {
+
+    public void sendMouse(MouseEvent e) {
       super.processMouseEvent(e);
     }
-    public void down(int x, int y){
-      MouseEvent event = new MouseEvent(this, MouseEvent.MOUSE_PRESSED,System.currentTimeMillis(),x,y,0,1,false);
+
+    public void down(int x, int y) {
+      MouseEvent event = new MouseEvent(this, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), x, y, 0, 1, false);
     }
-    public void up(int x, int y){
-      MouseEvent event = new MouseEvent(this, MouseEvent.MOUSE_RELEASED,System.currentTimeMillis(),x,y,0,1,false);
+
+    public void up(int x, int y) {
+      MouseEvent event = new MouseEvent(this, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), x, y, 0, 1, false);
     }
-    public void click(int x, int y){
-      MouseEvent event = new MouseEvent(this, MouseEvent.MOUSE_CLICKED,System.currentTimeMillis(),x,y,0,1,false);
+
+    public void click(int x, int y) {
+      MouseEvent event = new MouseEvent(this, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), x, y, 0, 1, false);
     }
   }
 
   public void testTimeLinePanel() {
     DummyPanel dummyPanel = new DummyPanel();
-    TimeLinePanel timeLinePanel = new TimeLinePanel( );
+    TimeLinePanel timeLinePanel = new TimeLinePanel();
     int[] selectionChanges = new int[]{0};
     MotionEditorSelector selector = new MotionEditorSelector();
     selector.addSelectionListener(new MotionEditorSelector.Listener() {
       @Override
-      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
+      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag, int flags) {
         selectionChanges[0]++;
       }
     });
     timeLinePanel.setListeners(selector);
 
-    assertTrue(timeLinePanel!=null);
+    assertTrue(timeLinePanel != null);
 
     MeModel model = getModel();
     MTag[] trans = model.motionScene.getChildTags("Transition");
     dummyPanel.add(timeLinePanel);
     int size = 1000;
-    TimeLineTopLeft topLeft = (TimeLineTopLeft) find(timeLinePanel, e->{return e instanceof TimeLineTopLeft;});
-    TimeLinePanel.METimeLine tl = (TimeLinePanel.METimeLine) find(timeLinePanel, e->{return e instanceof TimeLinePanel.METimeLine;});
+    TimeLineTopLeft topLeft = (TimeLineTopLeft)find(timeLinePanel, e -> {
+      return e instanceof TimeLineTopLeft;
+    });
+    TimeLinePanel.METimeLine tl = (TimeLinePanel.METimeLine)find(timeLinePanel, e -> {
+      return e instanceof TimeLinePanel.METimeLine;
+    });
 
-    dummyPanel.setBounds(0,0,size,size);
+    dummyPanel.setBounds(0, 0, size, size);
 
     for (int i = 0; i < trans.length; i++) {
       MTag tran = trans[i];
-      size/=2;
-      dummyPanel.setBounds(0,0,size,size);
+      size /= 2;
+      dummyPanel.setBounds(0, 0, size, size);
 
       dummyPanel.revalidate();
 
@@ -110,7 +119,7 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
 
       time = System.nanoTime() - time;
       timeLinePanel.setMTag(trans[i], model);
-      for (int j = 0; j < dummyPanel.getHeight(); j+=10) {
+      for (int j = 0; j < dummyPanel.getHeight(); j += 10) {
         for (int k = 0; k < dummyPanel.getWidth(); k += 10) {
           dummyPanel.down(k, j);
           dummyPanel.up(k, j);
@@ -119,7 +128,7 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
       }
 
       TimeLineRowData rowData = tl.getSelectedValue();
-      TimeLineRow row  = tl.getTimeLineRow(0);
+      TimeLineRow row = tl.getTimeLineRow(0);
       assertNotNull(rowData);
       assertNotNull(row);
       row.toggleGraph();
@@ -144,15 +153,16 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
   static interface Test {
     boolean test(Component c);
   }
+
   static Component find(Component component, Test test) {
-    if (test.test(component)){
+    if (test.test(component)) {
       return component;
     }
     if (component instanceof Container) {
-      Container container = (Container) component;
+      Container container = (Container)component;
       int n = container.getComponentCount();
       for (int i = 0; i < n; i++) {
-        Component found = find(container.getComponent(i),test);
+        Component found = find(container.getComponent(i), test);
         if (found != null) {
           return found;
         }

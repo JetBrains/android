@@ -248,7 +248,7 @@ public class LintIdeUtils {
   @NotNull
   public static List<File> getResourceDirectories(@NotNull AndroidFacet facet) {
     List<File> resDirectories = new ArrayList<>();
-    for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
+    for (IdeaSourceProvider sourceProvider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
       for (VirtualFile resDirectory : sourceProvider.getResDirectories()) {
         resDirectories.add(VfsUtilCore.virtualToIoFile(resDirectory));
       }

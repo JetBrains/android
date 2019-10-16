@@ -36,7 +36,13 @@ class InspectorModelTest {
       }
     }
     var isModified = false
-    model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
+    var newRootReported: ViewNode? = null
+    model.modificationListeners.add { _, newRoot, structuralChange ->
+      run {
+        newRootReported = newRoot
+        isModified = structuralChange
+      }
+    }
 
     val model2 = model {
       view(ROOT, 2, 4, 6, 8, "rootType") {
@@ -60,6 +66,7 @@ class InspectorModelTest {
     }
     assertEquals(2, newNodes[ROOT]?.x)
     assertEquals(6, newNodes[VIEW3]?.height)
+    assertSame(model.root, newRootReported)
   }
 
   @Test

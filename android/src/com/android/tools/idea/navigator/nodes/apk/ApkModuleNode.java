@@ -86,6 +86,8 @@ public class ApkModuleNode extends ProjectViewModuleNode {
       Pattern dexFilePattern = Pattern.compile(REGEX_APK_CLASSES_DEX);
       for (VirtualFile child : apkRootFile.getChildren()) {
         if (dexFilePattern.matcher(child.getName()).matches()) {
+          // We refresh dex files in case any changes to it were not picked up.
+          child.refresh(false, false);
           myDexFiles.add(child);
         }
       }
@@ -133,9 +135,9 @@ public class ApkModuleNode extends ProjectViewModuleNode {
       for (VirtualFile dexFile : myDexFiles) {
         DexGroupNode node = new DexGroupNode(myProject, settings, dexFile);
         myDexGroupNodes.add(node);
-        children.add(node);
       }
     }
+    children.addAll(myDexGroupNodes);
 
     // "Native libraries" folder
     VirtualFile found = LibraryFolder.findIn(myProject);

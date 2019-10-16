@@ -88,7 +88,7 @@ public class TimeLineTopPanel extends JPanel {
       RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(getBackground());
     g.fillRect(0, 0, w, h);
-    g.setColor(getForeground());
+    g.setColor(MEUI.myGridColor);
     int n = mTickMarkCalculator.getCount();
     if (mTimelineStructure.myXTicksPixels.length > 0) {
       mXTickCount = mTickMarkCalculator.paint(g2d, w, h, mTimelineStructure.myXTicksPixels);

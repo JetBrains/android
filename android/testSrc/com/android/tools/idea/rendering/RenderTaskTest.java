@@ -17,12 +17,15 @@ package com.android.tools.idea.rendering;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.Result;
@@ -31,10 +34,25 @@ import com.android.resources.ResourceType;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.model.AndroidModel;
+import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.roots.CompilerProjectExtension;
+import com.intellij.openapi.roots.SourceFolder;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PsiTestUtil;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -49,6 +67,8 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.imageio.ImageIO;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -135,6 +155,44 @@ public class RenderTaskTest extends AndroidTestCase {
     }
 
     ImageDiffUtil.assertImageSimilar("drawable", goldenImage, result, 0.1);
+
+    task.dispose().get(5, TimeUnit.SECONDS);
+  }
+
+  public void testCustomDrawableRender() throws Exception {
+    File tmpDir = Files.createTempDir();
+    File srcDir = new File(tmpDir, "src");
+    File customDrawable = new File(srcDir, "com/google/test/CustomDrawable.java");
+    FileUtil.writeToFile(customDrawable, "package com.google.test;\n" +
+                                         "import android.graphics.Color;\n" +
+                                         "import android.graphics.drawable.GradientDrawable;\n" +
+                                         "public class CustomDrawable extends GradientDrawable {\n" +
+                                         "  public CustomDrawable() {\n" +
+                                         "    super(Orientation.TOP_BOTTOM, new int[] {Color.RED, Color.BLUE});\n" +
+                                         "  }\n" +
+                                         "}");
+    ApplicationManager.getApplication().runWriteAction(
+      (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(myModule, VfsUtil.findFileByIoFile(srcDir, true)));
+    ToolProvider.getSystemJavaCompiler().run(null, null, null, customDrawable.getAbsolutePath());
+    File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + myModule.getName());
+    CompilerProjectExtension.getInstance(getProject()).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
+    FileUtil.copy(new File(srcDir, "com/google/test/CustomDrawable.class"), new File(outputDir, "com/google/test/CustomDrawable.class"));
+
+    VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
+                                                          "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                          "<drawable class=\"com.google.test.CustomDrawable\" />")
+      .getVirtualFile();
+
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, drawableFile);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask task = RenderTestUtil.createRenderTask(myFacet, drawableFile, configuration, logger);
+    ResourceValue resourceValue = new ResourceValueImpl(RES_AUTO, ResourceType.DRAWABLE, "test", "@drawable/test");
+    BufferedImage result = task.renderDrawable(resourceValue).get();
+    assertNotNull(result);
+
+    File goldenImage = new File(getTestDataPath() + "/drawables/custom-golden.png");
+    ImageDiffUtil.assertImageSimilar(goldenImage, result, 0.1);
 
     task.dispose().get(5, TimeUnit.SECONDS);
   }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.explorer;
 
-import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DeviceFileId;
 import com.android.tools.idea.device.fs.DownloadProgress;
 import com.android.tools.idea.device.fs.DownloadedFileData;

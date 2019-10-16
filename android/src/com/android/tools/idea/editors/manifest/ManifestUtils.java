@@ -40,6 +40,7 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -213,7 +214,7 @@ public class ManifestUtils {
 
   @Nullable/*this file is not from the main module*/
   public static IdeaSourceProvider findManifestSourceProvider(@NotNull AndroidFacet facet, @NotNull VirtualFile manifestFile) {
-    for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
+    for (IdeaSourceProvider provider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
       if (manifestFile.equals(provider.getManifestFile())) {
         return provider;
       }

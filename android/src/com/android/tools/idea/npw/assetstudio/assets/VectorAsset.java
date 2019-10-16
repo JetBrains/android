@@ -23,7 +23,7 @@ import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.Validator.Severity;
-import com.android.tools.idea.concurrent.FutureUtils;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;

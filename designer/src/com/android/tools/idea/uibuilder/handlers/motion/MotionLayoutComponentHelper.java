@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
+import android.view.View;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -31,9 +32,12 @@ import com.android.utils.Pair;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 
 public class MotionLayoutComponentHelper {
+
+  private static final boolean USE_MOTIONLAYOUT_HELPER_CACHE = true;
 
   private Method myCallSetTransitionPosition;
   private Method myCallSetState;
@@ -66,8 +70,28 @@ public class MotionLayoutComponentHelper {
   private final Object myDesignTool;
   private final NlComponent myMotionLayoutComponent;
   private final boolean DEBUG = false;
+  private static boolean mShowPaths = false;
 
-  public MotionLayoutComponentHelper(@NotNull NlComponent component) {
+  static WeakHashMap<NlComponent, MotionLayoutComponentHelper> sCache = new WeakHashMap<>();
+
+  public static void clearCache() {
+    sCache.clear();
+  }
+
+  public static MotionLayoutComponentHelper create(@NotNull NlComponent component) {
+    if (USE_MOTIONLAYOUT_HELPER_CACHE) {
+      MotionLayoutComponentHelper helper = sCache.get(component);
+      if (helper == null) {
+        helper = new MotionLayoutComponentHelper(component);
+        sCache.put(component, helper);
+      }
+      return helper;
+    } else {
+      return new MotionLayoutComponentHelper(component);
+    }
+  }
+
+  private MotionLayoutComponentHelper(@NotNull NlComponent component) {
     ViewInfo info = NlComponentHelperKt.getViewInfo(component);
     if (info == null) {
       myDesignTool = null;
@@ -440,6 +464,7 @@ public class MotionLayoutComponentHelper {
       return false;
     }
     model.notifyLiveUpdate(false);
+    refresh(myMotionLayoutComponent);
     return true;
   }
 
@@ -915,7 +940,7 @@ public class MotionLayoutComponentHelper {
     setAttributes(dpiValue, state, info.getViewObject(), attributes);
   }
 
-  public int getKeyframePos(NlComponent component, int[] type, float[]pos) {
+  public int getKeyframePos(NlComponent component, int[] type, float[] pos) {
     if (myDesignTool == null) {
       return -1;
     }
@@ -928,7 +953,7 @@ public class MotionLayoutComponentHelper {
     if (myGetKeyFramePositionsMethod == null) {
       try {
         myGetKeyFramePositionsMethod = myDesignTool.getClass().getMethod("getKeyFramePositions",
-                                                                         Object.class, int[].class,float[].class);
+                                                                         Object.class, int[].class, float[].class);
       }
       catch (NoSuchMethodException e) {
         if (true) {
@@ -960,5 +985,20 @@ public class MotionLayoutComponentHelper {
     }
 
     return -1;
+  }
+
+  public void setShowPaths(boolean show) {
+    mShowPaths = show;
+  }
+
+  public boolean getShowPaths() {
+    return mShowPaths;
+  }
+
+  public static void refresh(NlComponent component) {
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
+    if (viewInfo != null) {
+      ((View)viewInfo.getViewObject()).forceLayout();
+    }
   }
 }

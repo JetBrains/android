@@ -53,6 +53,8 @@ open class MockSqliteView : SqliteView {
     lastDisplayedResultSetTabId = tableId
   }
 
+  override fun reportSyncProgress(message: String) {}
+
   override fun focusTab(tabId: TabId) { }
 
   override fun closeTab(tabId: TabId) { }

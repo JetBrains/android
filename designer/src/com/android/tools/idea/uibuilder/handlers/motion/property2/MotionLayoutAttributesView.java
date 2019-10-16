@@ -20,6 +20,7 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory;
 
+import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
@@ -111,6 +112,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
       switch (selection.getType()) {
         case CONSTRAINT:
+          MotionConstraintPanel panel = new MotionConstraintPanel(ImmutableList.of(selection.getComponent()));
+          inspector.addComponent(panel,null);
+
           NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
           addPropertyTable(inspector, selection, MotionSceneAttrs.Tags.CONSTRAINT, myModel, true, false, targetId);
           addSubTagSections(inspector, selection, myModel);

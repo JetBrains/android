@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.concurrent.transform
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase

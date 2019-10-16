@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference
+import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
@@ -164,6 +165,29 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           else -> unquoteString(literal.text)
         }
       }
+      is KtCallExpression -> {
+        if (literal.name() == "kotlin") {
+          val argumentList = literal.valueArgumentList ?: return literal.text
+          // If the method has two arguments then it should automatically resolve to a dependency.
+          if (argumentList.arguments.size == 2) {
+            val moduleName = argumentList.arguments[0]?.getArgumentExpression() ?: return null
+            val version = argumentList.arguments[1].getArgumentExpression() ?: return null
+            // TODO(b/142530879): fix version value injection from import statements.
+            return "org.jetbrains.kotlin:kotlin-${unquoteString(moduleName.text)}:${unquoteString(version.text)}"
+          }
+          // If the method has one argument, we should check if it's declared under a plugins block in order to resolve it to a plugin,
+          // to a dependency if declared under dependencies block, or not resolve it for other cases.
+          else if (argumentList.arguments.size == 1) {
+            val nameExpression = argumentList.arguments[0].getArgumentExpression() ?: return null
+            return when (context.parent?.fullName) {
+              "plugins" -> "kotlin-${unquoteString(nameExpression.text)}"
+              "dependencies" -> "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
+              else -> literal.text
+            }
+          }
+        }
+        return literal.text
+      }
       else -> return ReferenceTo(literal.text)
     }
   }
@@ -218,13 +242,13 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     parent: GradlePropertiesDslElement,
     name: GradleNameElement? = null): GradlePropertiesDslElement? {
     val blockName = methodCallBlockName(expression) ?: return null
-    val blockElement = dslFile.getBlockElement(listOf(blockName), this, parent, name) ?: return null
+    val blockElement = getBlockElement(listOf(blockName), parent, name) ?: return null
     if (blockElement is AbstractFlavorTypeDslElement) {
       // TODO(xof): this way of keeping track of how we got hold of the block (which method name) only works once
-      blockElement.setMethodName(expression.name())
+      blockElement.methodName = blockElement.methodName ?: expression.name()
     }
     if (blockElement is SigningConfigDslElement) {
-      blockElement.methodName = expression.name()
+      blockElement.methodName = blockElement.methodName ?: expression.name()
     }
     return blockElement
   }
@@ -256,7 +280,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         // Then the block should be applied to subprojects.
         referenceName = "subprojects"
       }
-      val blockElement = methodCallBlock(expression, parent, name) ?: dslFile.getBlockElement(listOf(referenceName), this, parent, name) ?: return
+      val blockElement = methodCallBlock(expression, parent, name) ?: getBlockElement(listOf(referenceName), parent, name) ?: return
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
 
       blockElement.setPsiElement(argumentsBlock)
@@ -294,11 +318,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     fun parentBlockFromReceiver(receiver: KtExpression): GradlePropertiesDslElement? {
       var current = parent
       receiver.accept(object : KtTreeVisitorVoid() {
-        // TODO(xof): need to handle android.getByName("buildTypes").release { ... }
         override fun visitReferenceExpression(expression: KtReferenceExpression) {
           when (expression) {
             is KtNameReferenceExpression -> {
-              current = dslFile.getBlockElement(listOf(expression.text), this@KotlinDslParser, current) ?: return
+              current = getBlockElement(listOf(expression.text), current, null) ?: return
             }
             else -> Unit
           }
@@ -312,8 +335,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
     // android.buildTypes.release { minify_enabled true }
     val receiver = expression.receiverExpression
-    val selector = expression.selectorExpression
-    when (selector) {
+    when (val selector = expression.selectorExpression) {
       is KtCallExpression -> {
         val parentBlock = parentBlockFromReceiver(receiver)
         if (parentBlock == null) {
@@ -326,7 +348,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }
   }
 
-  fun getDotQualifiedExpression(
+  private fun getDotQualifiedExpression(
     parent: GradleDslElement,
     expression: KtDotQualifiedExpression,
     name: GradleNameElement) : GradleDslExpression? {
@@ -430,32 +452,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral)
     }
     else if (methodName == "kotlin") {
-      // If the method has one argument, we should check if it's declared under a dependency block in order to resolve it to a dependency,
-      // or to a plugin otherwise.
-      if (argumentsList.arguments.size == 1) {
-        val nameExpression = argumentsList.arguments[0].getArgumentExpression() ?: return null
-        if (parentElement.fullName == "plugins") {
-          val pluginName = "kotlin-${unquoteString(nameExpression.text)}"
-          val literalExpression = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
-          literalExpression.setValue(pluginName)
-          return literalExpression
-        }
-        else {
-          val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
-          val dependencyLiteral = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
-          dependencyLiteral.setValue(dependencyName)
-          return dependencyLiteral
-        }
-      }
-      // If the method has two arguments then it should automatically resolve to a dependency.
-      else if (argumentsList.arguments.size == 2) {
-        val moduleName = argumentsList.arguments[0].getArgumentExpression() ?: return null
-        val version = argumentsList.arguments[1].getArgumentExpression() ?: return null
-        val dependencyName = "org.jetbrains.kotlin:kotlin-${unquoteString(moduleName.text)}:${unquoteString(version.text)}"
-        val dependencyLiteral = GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
-        dependencyLiteral.setValue(dependencyName)
-        return dependencyLiteral
-      }
+      return GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
     }
 
     // If the CallExpression has one argument only that is a callExpression, we skip the current CallExpression.
@@ -574,6 +571,11 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
                                    psiElement : PsiElement,
                                    propertyName: GradleNameElement,
                                    propertyExpression : KtElement) : GradleDslExpression {
+    fun unknownElement() : GradleDslExpression {
+      parentElement.notification(INCOMPLETE_PARSING).addUnknownElement(propertyExpression)
+      return GradleDslUnknownElement(parentElement, propertyExpression, propertyName)
+    }
+
     return when (propertyExpression) {
       // Ex: versionName = 1.0. isQualified = false.
       is KtStringTemplateExpression, is KtConstantExpression -> GradleDslLiteral(
@@ -583,24 +585,20 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // Ex: KotlinCompilerVersion.VERSION.
       is KtDotQualifiedExpression -> GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true)
       // Ex: Delete::class.
-      is KtClassLiteralExpression -> GradleDslLiteral(
-        parentElement, psiElement, propertyName, propertyExpression.receiverExpression as PsiElement, true)
-      // Ex: extra["COMPILE_SDK_VERSION"]
-      is KtArrayAccessExpression -> GradleDslLiteral(
-        parentElement, psiElement, propertyName, propertyExpression, true)
-      // Ex: extra["COMPILE_SDK_VERSION"]!!
-      is KtPostfixExpression -> GradleDslLiteral(
-        parentElement, psiElement, propertyName, propertyExpression.baseExpression as PsiElement, true
-      )
-      // Ex: extra["foo"] as Boolean
-      is KtBinaryExpressionWithTypeRHS -> GradleDslLiteral(
-        parentElement, psiElement, propertyName, propertyExpression.left as PsiElement, true
-      )
-      else -> {
-        // The expression is not supported.
-        parentElement.notification(NotificationTypeReference.INCOMPLETE_PARSING).addUnknownElement(propertyExpression)
-        return GradleDslUnknownElement(parentElement, propertyExpression, propertyName)
+      is KtClassLiteralExpression -> when (val receiverExpression = propertyExpression.receiverExpression) {
+        null -> unknownElement()
+        else -> GradleDslLiteral(parentElement, psiElement, propertyName, receiverExpression, true)
       }
+      // Ex: extra["COMPILE_SDK_VERSION"]
+      is KtArrayAccessExpression -> GradleDslLiteral(parentElement, psiElement, propertyName, propertyExpression, true)
+      // Ex: extra["COMPILE_SDK_VERSION"]!!, false!!
+      is KtPostfixExpression -> when (val baseExpression = propertyExpression.baseExpression) {
+        null -> unknownElement()
+        else -> getExpressionElement(parentElement, psiElement, propertyName, baseExpression)
+      }
+      // Ex: extra["foo"] as Boolean, false as Boolean
+      is KtBinaryExpressionWithTypeRHS -> getExpressionElement(parentElement, psiElement, propertyName, propertyExpression.left)
+      else -> unknownElement()
     }
   }
 

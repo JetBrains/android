@@ -37,8 +37,10 @@ class ProguardR8ClassMemberNameReference(
   private val containingMember = classMemberName.parentOfType(ProguardR8ClassMember::class)!!
   private val type = containingMember.type
   private val parameters = containingMember.parameters
-  private val accessModifiers = containingMember.accessModifierList.filter { !it.isNegated }.map(::toPsiModifier)
-  private val negatedAccessModifiers = containingMember.accessModifierList.filter { it.isNegated }.map(::toPsiModifier)
+  private val accessModifiers = containingMember.modifierList.filter { it.isAccessModifier && !it.isNegated }.map(::toPsiModifier)
+  private val negatedAccessModifiers = containingMember.modifierList.filter { it.isAccessModifier && it.isNegated }.map(::toPsiModifier)
+  private val modifiers = containingMember.modifierList.filter { !it.isAccessModifier && !it.isNegated }.map(::toPsiModifier)
+  private val negatedModifiers = containingMember.modifierList.filter { !it.isAccessModifier && it.isNegated }.map(::toPsiModifier)
 
   private fun List<String>.overlaps(psiModifierList: PsiModifierList): Boolean {
     return any { psiModifierList.hasModifierProperty(it) }
@@ -56,11 +58,19 @@ class ProguardR8ClassMemberNameReference(
     return true
   }
 
+  private fun matchesModifiers(psiElement: PsiModifierListOwner): Boolean {
+    val psiModifierList = psiElement.modifierList ?: return false
+    if (modifiers.any { !psiModifierList.hasModifierProperty(it) }) return false
+    if (negatedModifiers.any { psiModifierList.hasModifierProperty(it) }) return false
+    return true
+  }
+
   private fun getFields(): Collection<PsiField> {
     return containingMember.resolveParentClasses().asSequence()
       .flatMap { it.fields.asSequence() }
       .filter { type == null || type.matchesPsiType(it.type) }
       .filter(::matchesAccessLevel)
+      .filter(::matchesModifiers)
       .toList()
   }
 
@@ -71,6 +81,7 @@ class ProguardR8ClassMemberNameReference(
       .filter { type == null || type.matchesPsiType(it.returnType!!) } // match return type
       .filter { parameters == null || parameters.matchesPsiParameterList(it.parameterList) } // match parameters
       .filter(::matchesAccessLevel)
+      .filter(::matchesModifiers)
       .toList()
   }
 
@@ -81,7 +92,8 @@ class ProguardR8ClassMemberNameReference(
     return containingMember.resolveParentClasses().asSequence()
       .flatMap { it.constructors.asSequence() }
       .filter { parameters.matchesPsiParameterList(it.parameterList) } // match parameters
-      .filter { matchesAccessLevel(it) }
+      .filter(::matchesAccessLevel)
+      .filter(::matchesModifiers)
       .toList()
   }
 

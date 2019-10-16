@@ -28,6 +28,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.IdeaSourceProvider
+import org.jetbrains.android.facet.SourceProviderManager
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -54,8 +55,8 @@ class CreateClassActionTest {
   fun testGetDestinationDirectoryIdeDoesntHaveOneDirectory() {
     val oldModel = AndroidModel.get(facet)
 
-    val psiDirectories = IdeaSourceProvider
-      .getCurrentSourceProviders(facet)
+    val psiDirectories = SourceProviderManager.getInstance(facet)
+      .currentSourceProviders
       .flatMap { it.javaDirectoryUrls }
       .map { VfsUtil.createDirectories(VfsUtilCore.urlToPath(it)) }
       .map { PsiManager.getInstance(projectRule.project).findDirectory(it)!! }

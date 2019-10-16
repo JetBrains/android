@@ -211,18 +211,6 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       myFixture.checkResultByFile(BASE_PATH + "MyView2_after.java", true);
     }
 
-    public void testValueResource2() throws Throwable {
-      doTestStringRename("strings2.xml");
-    }
-
-    public void testValueResource3() throws Throwable {
-      doTestStringRename("strings3.xml");
-    }
-
-    public void testValueResource4() throws Throwable {
-      doTestStringRename("strings4.xml");
-    }
-
     public void testXmlReferenceToFileResource() throws Throwable {
       createManifest();
       VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml");
@@ -653,6 +641,18 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
 
   public void testValueResource1() throws Throwable {
     doTestStringRename("strings1.xml");
+  }
+
+  public void testValueResource2() throws Throwable {
+    doTestStringRename("strings2.xml");
+  }
+
+  public void testValueResource3() throws Throwable {
+    doTestStringRename("strings3.xml");
+  }
+
+  public void testValueResource4() throws Throwable {
+    doTestStringRename("strings4.xml");
   }
 
   public void testValueResource5() throws Throwable {

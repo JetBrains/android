@@ -16,22 +16,33 @@
 package com.android.tools.idea.npw.assetstudio
 
 import com.android.tools.idea.material.icons.MaterialIconsUrlProvider
+import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.google.common.truth.Truth
 import org.junit.Test
 import java.net.URL
 import java.util.Locale
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 private const val TEST_PATH = "images/material/icons/"
 private const val METADATA_FILE_NAME = "icons_metadata_test.txt"
+private const val WAIT_TIMEOUT = 30L
+private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
 class MaterialVdIconsProviderTest {
 
   @Test
   fun testGetMaterialIcons() {
-    val materialIcons = with(MaterialVdIconsProvider(MaterialIconsMetadataTestUrlProvider(), MaterialIconsTestUrlProvider())) {
-      getMaterialIcons().get()
+    val latch = CountDownLatch(2) // A call for each style: "Style 1", "Style 2"
+    var materialIcons = MaterialVdIcons.EMPTY
+    val uiCallback: (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit = { icons, _ ->
+      materialIcons = icons
+      latch.countDown()
     }
+    MaterialVdIconsProvider(uiCallback, MaterialIconsMetadataTestUrlProvider(), MaterialIconsTestUrlProvider())
+    assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
     Truth.assertThat(materialIcons.styles).hasLength(2)
     assertEquals(materialIcons.styles[0], "Style 1")
     assertEquals(materialIcons.styles[1], "Style 2")
@@ -44,24 +55,34 @@ class MaterialVdIconsProviderTest {
 
   @Test
   fun testBadMetadataProviderReturnsEmptyStyles() {
-    val materialIcons = with(MaterialVdIconsProvider(object : MaterialIconsMetadataUrlProvider {
-      override fun getMetadataUrl(): URL? = null
-    })) {
-      getMaterialIcons().get()
+    val latch = CountDownLatch(1) // 1 call from having a provider that doesn't return a metadata
+    var materialIcons: MaterialVdIcons? = null
+    val uiCallback: (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit = { icons, status ->
+      materialIcons = icons
+      assertEquals(status, MaterialVdIconsProvider.Status.FINISHED)
+      latch.countDown()
     }
-
-    Truth.assertThat(materialIcons.styles).isEmpty()
+    MaterialVdIconsProvider(uiCallback, object : MaterialIconsMetadataUrlProvider {
+      override fun getMetadataUrl(): URL? = null
+    })
+    assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
+    Truth.assertThat(materialIcons!!.styles).isEmpty()
   }
 
   @Test
   fun testBadLoaderProviderReturnsEmptyIcons() {
-    val materialIcons = with(MaterialVdIconsProvider(MaterialIconsMetadataTestUrlProvider(), object : MaterialIconsUrlProvider {
+    val latch = CountDownLatch(2) // A call for each style: "Style 1", "Style 2"
+    var icons: MaterialVdIcons? = null
+    val uiCallback: (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit = { materialIcons, _ ->
+      icons = materialIcons
+      latch.countDown()
+    }
+    MaterialVdIconsProvider(uiCallback, MaterialIconsMetadataTestUrlProvider(), object : MaterialIconsUrlProvider {
       override fun getStyleUrl(style: String): URL? = null
       override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? = null
-    })) {
-      getMaterialIcons().get()
-    }
-
+    })
+    assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
+    val materialIcons = icons!!
     Truth.assertThat(materialIcons.styles).hasLength(2)
     assertEquals(materialIcons.styles[0], "Style 1")
     assertEquals(materialIcons.styles[1], "Style 2")

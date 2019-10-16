@@ -60,8 +60,8 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
       .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() }
 
   /**
-   * Returns all the `@Composable` methods in the [uFile] that are also tagged with `@Preview`.
-   * The order of the elements will be the same as the order of the composable methods.
+   * Returns all the `@Composable` functions in the [uFile] that are also tagged with `@Preview`.
+   * The order of the elements will be the same as the order of the composable functions.
    */
   override fun findPreviewMethods(uFile: UFile): List<PreviewElement> {
     val previewMethodsFqName = mutableSetOf<String>()
@@ -78,7 +78,7 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
         val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
         val previewName = previewAnnotation.findAttributeValue("name")?.evaluateString() ?: ""
 
-        // If the same composable method is found multiple times, only keep the first one. This usually will happen during
+        // If the same composable functions is found multiple times, only keep the first one. This usually will happen during
         // copy & paste and both the compiler and Studio will flag it as an error.
         if (previewMethodsFqName.add(composableMethod)) {
           previewElements.add(PreviewElement(previewName, composableMethod,
@@ -92,13 +92,13 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
         if (PREVIEW_ANNOTATION_FQN == node.qualifiedName) {
           val uMethod = node.getContainingUMethod()
           uMethod?.let {
-            if (!it.parameterList.isEmpty) {
+            if (it.uastParameters.isNotEmpty()) {
               // We do not fail here. The ComposeViewAdapter will throw an exception that will be surfaced to the user
-              Logger.getInstance(AnnotationPreviewElementFinder::class.java).debug("Preview methods must not have any parameters")
+              Logger.getInstance(AnnotationPreviewElementFinder::class.java).debug("Preview functions must not have any parameters")
             }
 
             // The method must also be annotated with @Composable
-            if (it.annotations.any { COMPOSABLE_ANNOTATION_FQN == it.qualifiedName }) {
+            if (it.annotations.any { annotation -> COMPOSABLE_ANNOTATION_FQN == annotation.qualifiedName }) {
               visitPreviewAnnotation(node, it)
             }
           }

@@ -161,14 +161,31 @@
           </grid>
         </constraints>
       </vspacer>
-      <component id="f1f3c" class="com.intellij.ui.components.JBCheckBox" binding="myAppCompatCheck">
+      <grid id="e2759" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="0">
         <constraints>
-          <grid row="14" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="14" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <text value="Use legacy android.support libraries"/>
-        </properties>
-      </component>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="f7d6d" class="com.intellij.ui.components.JBCheckBox" binding="myAppCompatCheck">
+            <constraints/>
+            <properties>
+              <margin top="2" left="2" bottom="2" right="2"/>
+              <text value="Use legacy android.support libraries"/>
+            </properties>
+          </component>
+          <component id="bfae4" class="com.intellij.ui.components.JBLabel" binding="myAppCompatHelp">
+            <constraints/>
+            <properties>
+              <horizontalTextPosition value="2"/>
+              <labelFor value="f7d6d"/>
+              <text value=" "/>
+              <toolTipText value=" "/>
+            </properties>
+          </component>
+        </children>
+      </grid>
       <vspacer id="45f83">
         <constraints>
           <grid row="17" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>

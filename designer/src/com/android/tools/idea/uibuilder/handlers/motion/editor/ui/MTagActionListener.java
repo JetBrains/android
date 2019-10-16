@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
  * A small interface to handle keyboard commands that can come from anywhere
  */
 public interface MTagActionListener {
-  void select(MTag selected);
-  void delete(MTag[] tags);
+  int CONTROL_FLAG = 1;
+  void select(MTag selected, int flags);
+  void delete(MTag[] tags, int flags);
 }

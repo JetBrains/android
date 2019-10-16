@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.android.tools.idea.npw.platform.Language.JAVA;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 class NewProjectDescriptor {
   private String myActivity = "MainActivity";
   private String myPkg = "com.android.test.app";
-  private String myMinSdk = "15";
+  private int myMinSdkApi = 15;
   private String myName = "TestProject";
   private String myDomain = "com.android";
 
@@ -57,8 +59,8 @@ class NewProjectDescriptor {
   /**
    * Set a custom minimum SDK version to use in the new project
    */
-  NewProjectDescriptor withMinSdk(@NotNull String minSdk) {
-    myMinSdk = minSdk;
+  NewProjectDescriptor withMinSdk(int minSdkApi) {
+    myMinSdkApi = minSdkApi;
     return this;
   }
 
@@ -89,9 +91,9 @@ class NewProjectDescriptor {
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .enterName(myName)
-      .setSourceLanguage("Java")
+      .setSourceLanguage(JAVA)
       .enterPackageName(myPkg)
-      .selectMinimumSdkApi(myMinSdk)
+      .selectMinimumSdkApi(myMinSdkApi)
       .wizard()
       .clickFinish();
 

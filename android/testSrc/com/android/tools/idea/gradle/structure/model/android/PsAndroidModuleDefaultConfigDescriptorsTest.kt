@@ -30,6 +30,8 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.plugins.groovy.GroovyLanguage
 
 class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
@@ -176,9 +178,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     doTestProperties()
   }
 
-  fun testSetProperties() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-
+  private fun doTestSetProperties() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject)
 
@@ -202,8 +202,14 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     // defaultConfig.versionCode = "3".asParsed()
     defaultConfig.versionName = "3.0".asParsed()
     defaultConfig.versionNameSuffix = "newVns".asParsed()
+    // TODO(b/142454204): DslText is not language-agnostic
+    val mySigningConfigDslText = when (appModule.parsedModel?.psiFile?.language) {
+      is GroovyLanguage -> "signingConfigs.myConfig"
+      is KotlinLanguage -> "signingConfigs.getByName(\"myConfig\")"
+      else -> "***unknown language for signingConfig Dsl text***"
+    }
     PsAndroidModuleDefaultConfigDescriptors.signingConfig.bind(defaultConfig).setParsedValue(
-      ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")))
+      ParsedValue.Set.Parsed(Unit, DslText.Reference(mySigningConfigDslText)))
     PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.bind(defaultConfig).run {
       getEditableValues()["aa"]?.setParsedValue("EEE".asParsed())
       changeEntryKey("aa", "ee")
@@ -243,7 +249,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(
         signingConfig.parsedValue,
-        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.myConfig")).annotated()))
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))
@@ -284,9 +290,17 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     verifyValues(appModule.defaultConfig, afterSync = true)
   }
 
-  fun testMapProperties_delete() {
+  fun testSetPropertiesGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestSetProperties()
+  }
 
+  fun testSetPropertiesKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestSetProperties()
+  }
+
+  private fun doTestDeleteMapProperties() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -320,9 +334,17 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     verifyValues(appModule.defaultConfig, afterSync = true)
   }
 
-  fun testMapProperties_editorInserting() {
+  fun testDeleteMapPropertiesGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestDeleteMapProperties()
+  }
 
+  fun testDeleteMapPropertiesKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestDeleteMapProperties()
+  }
+
+  private fun doTestEditorInsertMapProperties() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -357,6 +379,18 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     verifyValues(appModule.defaultConfig, afterSync = true)
   }
 
+  fun testEditorInsertMapPropertiesGroovy() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestEditorInsertMapProperties()
+  }
+
+  fun testEditorInsertMapPropertiesKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestEditorInsertMapProperties()
+  }
+
+  // TODO(b/142454204): when we have a language-agnostic set of known values for proguardFiles, port this test to also apply to
+  //  PSD_SAMPLE_KOTLIN.
   fun testProGuardKnownValues() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
 

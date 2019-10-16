@@ -17,10 +17,18 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEJTable;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
-
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -28,13 +36,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Shows list of views used when some one clicks on the layout in the overview.
@@ -64,6 +65,7 @@ class LayoutPanel extends JPanel {
     JPanel top = new JPanel(new BorderLayout());
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
+    top.setPreferredSize(new Dimension(0, MEUI.scale(32)));
     mConstraintSetTable.setShowHorizontalLines(false);
 
     left.add(mTitle = new JLabel("Layout ", MEIcons.LIST_LAYOUT, SwingConstants.LEFT));
@@ -85,15 +87,15 @@ class LayoutPanel extends JPanel {
     if (tag.length != 0) {
       mMeModel.setSelectedViewIDs(Arrays.asList(Utils.stripID(tag[0].getAttributeValue("id"))));
     }
-    mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.LAYOUT_VIEW, tag);
-   }
+    mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.LAYOUT_VIEW, tag, 0);
+  }
 
   String buildListString(MTag tag) {
     String cid = tag.getAttributeValue("id");
     int noc = tag.getChildTags().length;
     String end = tag.getAttributeValue("constraintSetEnd");
     return "<html> <b> " + cid + " </b><br>" + noc + " Constraint" + ((noc == 1) ? "" : "s")
-      + "</html>";
+           + "</html>";
   }
 
   static String[] ourLayoutDir = {"Left_", "Right_", "Start_", "End_", "Top_", "Bottom_",
@@ -106,7 +108,6 @@ class LayoutPanel extends JPanel {
     for (int i = 0; i < ourLayoutDir.length; i++) {
       labelType.put(ourLayoutDir[i], ourConstraintLabel[i]);
     }
-
   }
 
   public void buildTable() {
@@ -115,7 +116,8 @@ class LayoutPanel extends JPanel {
     mDisplayedRows.clear();
     if (mMotionLayout == null) {
       return;
-    } else {
+    }
+    else {
       MTag[] sets = mMotionLayout.getChildTags();
       for (int i = 0; i < sets.length; i++) {
         MTag view = sets[i];
@@ -134,7 +136,6 @@ class LayoutPanel extends JPanel {
                 constrained_sides.add(labelType.get(s));
               }
             }
-
           }
         }
         row[2] = Arrays.toString(constrained_sides.toArray(new String[0]));
@@ -168,14 +169,14 @@ class LayoutPanel extends JPanel {
   private String getMask(ArrayList<MTag> children, HashMap<String, Attribute> attrs, String id) {
     if (children.size() == 0 || attrs.size() > 1 && id != null) {
       return "all";
-    } else {
+    }
+    else {
       String mask = "";
       for (MTag child : children) {
         mask += (mask.equals("") ? "" : "|") + child.getTagName();
       }
       return mask;
     }
-
   }
 
   public void setMTag(MTag layout, MeModel meModel) {
@@ -211,7 +212,7 @@ class LayoutPanel extends JPanel {
     }
   }
 
-  public void clearSelection(){
+  public void clearSelection() {
     mConstraintSetTable.clearSelection();
   }
 }

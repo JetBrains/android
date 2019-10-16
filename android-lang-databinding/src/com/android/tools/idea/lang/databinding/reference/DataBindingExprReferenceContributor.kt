@@ -38,6 +38,8 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbInferredFormalParameterL
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaParameters
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbResourcesExpr
+import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -57,6 +59,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.util.ProcessingContext
 import org.jetbrains.android.dom.converters.DataBindingVariableTypeConverter
+import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -73,6 +76,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbInferredFormalParameter::class.java),
                                         InferredFormalParameterReferenceProvider())
     registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbLambdaParameters::class.java), LambdaParametersReferenceProvider())
+    registrar.registerReferenceProvider(PlatformPatterns.psiElement(PsiDbResourcesExpr::class.java), ResourceReferenceProvider())
   }
 
   /**
@@ -431,6 +435,65 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         else -> return arrayOf()
       }
       return arrayOf(PsiLiteralReference(element, psiType))
+    }
+  }
+
+  /**
+   * Provides references for [PsiDbLiteralExpr]
+   *
+   * From db.bnf:
+   * ```
+   * resourcesExpr ::= RESOURCE_REFERENCE resourceParameters?
+   * ```
+   *
+   * From _DbLexer.flex:
+   * ```
+   * RESOURCE_REFERENCE="@" (({IDENTIFIER} | "android") ":")? {RESOURCE_TYPE} "/" "android:"? {IDENTIFIER}
+   * ```
+   *
+   * Example: `@string/str`, `@android:text/text1`, `string/android:id(parameters)`
+   */
+  private class ResourceReferenceProvider : PsiReferenceProvider() {
+    companion object {
+      /**
+       * Maps resource type keywords from data binding expressions to their references.
+       * If a keyword is not in the keys of the map, it should be mapped to itself.
+       *
+       * Example: `text` in `@text/zero` -> `string` in `<string name="zero">there are <b>zero</b></string>`
+       */
+      private val DATA_BINDING_RESOURCE_TO_XML_DECLARATION = mutableMapOf<String, String>().apply {
+        put("colorStateList", "color");
+        put("dimenOffset", "dimen");
+        put("dimenSize", "dimen");
+        put("intArray", "array");
+        put("stateListAnimator", "animator");
+        put("stringArray", "array");
+        put("text", "string");
+        put("typedArray", "array");
+      }
+    }
+
+    override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+      val facet = AndroidFacet.getInstance(element) ?: return PsiReference.EMPTY_ARRAY
+      val xmlContext = element.containingFile.context?.parent as? XmlAttribute ?: return PsiReference.EMPTY_ARRAY
+      val resourceReferenceText = element.firstChild.text
+      val resourceValue = ResourceValue.parse(resourceReferenceText, false, true, false)
+                          ?: return PsiReference.EMPTY_ARRAY
+
+      val dataBindingResourceType = resourceValue.resourceType ?: return PsiReference.EMPTY_ARRAY
+
+      // Change type keywords for the resource value before resolving it with [AndroidResourceToPsiResolver]
+      val xmlDeclaration = DATA_BINDING_RESOURCE_TO_XML_DECLARATION[dataBindingResourceType]
+      if (xmlDeclaration != null) {
+        resourceValue.setResourceType(xmlDeclaration)
+      }
+      val resolvedResource = AndroidResourceToPsiResolver.getInstance().resolveReference(resourceValue, xmlContext, facet)
+                               .getOrNull(0)?.element?.navigationElement ?: return PsiReference.EMPTY_ARRAY
+      // Restore the keywords after getting the resource.
+      if (xmlDeclaration != null) {
+        resourceValue.setResourceType(dataBindingResourceType)
+      }
+      return arrayOf(PsiResourceReference(element, resolvedResource, resourceValue))
     }
   }
 

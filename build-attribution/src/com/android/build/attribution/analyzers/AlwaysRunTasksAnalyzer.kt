@@ -17,6 +17,7 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
+import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -25,8 +26,10 @@ import org.gradle.tooling.events.task.TaskSuccessResult
 /**
  * Analyzer for reporting tasks that always run due to misconfiguration.
  */
-class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter, taskContainer: TaskContainer)
-  : BaseTasksAnalyzer(taskContainer), BuildEventsAnalyzer {
+class AlwaysRunTasksAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
+                             taskContainer: TaskContainer,
+                             pluginContainer: PluginContainer)
+  : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
   private val alwaysRunTasksSet = HashSet<AlwaysRunTaskData>()
   lateinit var alwaysRunTasks: List<AlwaysRunTaskData>
     private set

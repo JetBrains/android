@@ -60,11 +60,11 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
 /**
  * Contain settings for rendering
  */
-data class PreviewConfiguration private constructor(val apiLevel: Int,
-                                                    val theme: String?,
-                                                    val width: Int,
-                                                    val height: Int,
-                                                    val fontScale: Float) {
+data class PreviewConfiguration internal constructor(val apiLevel: Int,
+                                                     val theme: String?,
+                                                     val width: Int,
+                                                     val height: Int,
+                                                     val fontScale: Float) {
   fun applyTo(renderConfiguration: Configuration) {
     if (apiLevel != UNDEFINED_API_LEVEL) {
       val highestTarget = renderConfiguration.configurationManager.highestApiTarget!!
@@ -128,7 +128,7 @@ interface PreviewElementFinder {
   fun findPreviewMethods(project: Project, vFile: VirtualFile): List<PreviewElement> {
     assert(!DumbService.getInstance(project).isDumb) { "findPreviewMethods can not be called on dumb mode" }
 
-    val uFile: UFile = PsiManager.getInstance(project).findFile(vFile)?.toUElement() as? UFile ?: return emptyList<PreviewElement>()
+    val uFile: UFile = PsiManager.getInstance(project).findFile(vFile)?.toUElement() as? UFile ?: return emptyList()
 
     return findPreviewMethods(uFile)
   }

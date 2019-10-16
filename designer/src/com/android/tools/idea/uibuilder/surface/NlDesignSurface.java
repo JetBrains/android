@@ -243,6 +243,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Nullable private final NavigationHandler myNavigationHandler;
 
+  private boolean myIsAnimationMode = false;
+
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
@@ -545,18 +547,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  @SwingCoordinate
-  public int getContentOriginX() {
-    return getSceneViews().stream().mapToInt(it -> it.getX()).min().orElse(0);
-  }
-
-  @Override
-  @SwingCoordinate
-  public int getContentOriginY() {
-    return getSceneViews().stream().mapToInt(it -> it.getY()).min().orElse(0);
-  }
-
-  @Override
   public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (isPreviewSurface()) {
       // Highlight the clicked widget but keep focus in DesignSurface.
@@ -595,17 +585,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (component != null) {
       navigateToComponent(component, needsFocusEditor);
     }
-  }
-
-  @Override
-  @NotNull
-  public Dimension getContentSize(@Nullable Dimension dimension) {
-    List<SceneView> sceneViews = getSceneViews();
-    dimension = myLayoutManager.getRequiredSize(sceneViews, myScrollPane.getWidth(), myScrollPane.getHeight(), dimension);
-    if (dimension.width == 0 && dimension.height == 0) {
-      dimension.setSize(0, 0);
-    }
-    return dimension;
   }
 
   @SwingCoordinate
@@ -673,6 +652,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * has been rendered (possibly with errors)
    */
   public void updateErrorDisplay() {
+    if (myIsAnimationMode) {
+      // No errors update while we are in the middle of playing an animation
+      return;
+    }
+
     assert ApplicationManager.getApplication().isDispatchThread() ||
            !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock when calling updateErrorDisplay!";
 
@@ -937,5 +921,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     return root.flatten().collect(Collectors.toList());
+  }
+
+  /**
+   * When the surface is in "Animation Mode", the error display is not updated. This allows for the surface
+   * to render results faster without triggering updates of the issue panel per frame.
+   */
+  public void setAnimationMode(boolean enabled) {
+    myIsAnimationMode = enabled;
   }
 }

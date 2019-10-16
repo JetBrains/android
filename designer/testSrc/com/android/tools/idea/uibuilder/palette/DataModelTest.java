@@ -41,7 +41,7 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
-import com.android.tools.idea.util.FutureUtils;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -193,7 +193,7 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
-      "Spinner", "RecyclerView", "ScrollView", "HorizontalScrollView", "NestedScrollView", "ViewPager", "CardView",
+      "Spinner", "RecyclerView", "ScrollView", "HorizontalScrollView", "NestedScrollView", "ViewPager2", "CardView",
       "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "Toolbar", "TabLayout", "TabItem", "ViewStub",
       "<include>", "<fragment>", "NavHostFragment", "<view>", "<requestFocus>").inOrder();
   }

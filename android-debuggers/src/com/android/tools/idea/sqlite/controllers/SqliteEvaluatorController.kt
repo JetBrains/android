@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrent.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
@@ -113,9 +113,11 @@ class SqliteEvaluatorController(
         if (sqliteResultSet == null) return
 
         currentQueryResultSetController = ResultSetController(
-          this@SqliteEvaluatorController,
-          view.tableView, null, sqliteResultSet,
-          edtExecutor
+          parentDisposable = this@SqliteEvaluatorController,
+          view = view.tableView,
+          tableName = null,
+          resultSet = sqliteResultSet,
+          edtExecutor = edtExecutor
         ).also { it.setUp() }
         currentQueryResultSetController
       }

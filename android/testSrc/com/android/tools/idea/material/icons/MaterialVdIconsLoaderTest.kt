@@ -17,6 +17,7 @@ package com.android.tools.idea.material.icons
 
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
@@ -30,19 +31,21 @@ import java.util.Locale
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.stream.Stream
+import kotlin.test.assertFailsWith
 
 private const val PATH = "images/material/icons/"
-private const val SIMPLE_VD = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                              "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                              "    android:height=\"100dp\"\n" +
-                              "    android:width=\"100dp\"\n" +
-                              "    android:viewportHeight=\"100\"\n" +
-                              "    android:viewportWidth=\"100\">\n" +
-                              "  <path\n" +
-                              "      android:fillColor=\"#FF000000\"\n" +
-                              "      android:pathData=\"M 0,0 L 100,0 0,100 z\" />\n" +
-                              "\n" +
-                              "</vector>"
+private const val SIMPLE_VD =
+  "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+    "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+    "    android:height=\"100dp\"\n" +
+    "    android:width=\"100dp\"\n" +
+    "    android:viewportHeight=\"100\"\n" +
+    "    android:viewportWidth=\"100\">\n" +
+    "  <path\n" +
+    "      android:fillColor=\"#FF000000\"\n" +
+    "      android:pathData=\"M 0,0 L 100,0 0,100 z\" />\n" +
+    "\n" +
+    "</vector>"
 
 class MaterialVdIconsLoaderTest {
 
@@ -50,21 +53,59 @@ class MaterialVdIconsLoaderTest {
   fun testLoaderWithMockJarProvider() {
     val metadata = createMaterialIconsMetadata()
     val loader = MaterialVdIconsLoader(metadata, MockStyleJarUrlProvider())
-    checkIcons(loader.getMaterialVdIcons())
+    var icons = MaterialVdIcons.EMPTY
+    metadata.families.forEach { icons = loader.loadMaterialVdIcons(it) }
+    checkIcons(icons)
   }
 
   @Test
   fun testLoaderWithMockFileProvider() {
     val metadata = createMaterialIconsMetadata()
     val loader = MaterialVdIconsLoader(metadata, FakeStyleFileUrlProvider())
-    checkIcons(loader.getMaterialVdIcons())
+    var icons = MaterialVdIcons.EMPTY
+    metadata.families.forEach { icons = loader.loadMaterialVdIcons(it) }
+    checkIcons(icons)
+  }
+
+  @Test
+  fun testIllegalArgumentException() {
+    val metadata = createMaterialIconsMetadata()
+    val loader = MaterialVdIconsLoader(metadata, MaterialIconsTestUrlProvider())
+    val exception = assertFailsWith<IllegalArgumentException> { loader.loadMaterialVdIcons("style") }
+    Truth.assertThat(exception.message).isEqualTo("Style: style not part of the metadata.")
   }
 
   @Test
   fun testLoaderWithTestProvider() {
     val metadata = createMaterialIconsMetadata()
     val loader = MaterialVdIconsLoader(metadata, MaterialIconsTestUrlProvider())
-    checkIcons(loader.getMaterialVdIcons())
+    var icons = MaterialVdIcons.EMPTY
+    metadata.families.forEach { icons = loader.loadMaterialVdIcons(it) }
+    checkIcons(icons)
+  }
+
+  @Test
+  fun testIncrementalLoadWithTestProvider() {
+    val metadata = createMaterialIconsMetadata()
+    var icons: MaterialVdIcons
+
+    val loader1 = MaterialVdIconsLoader(metadata, MaterialIconsTestUrlProvider())
+    // Load only "style 1" icons
+    icons = loader1.loadMaterialVdIcons("style 1")
+    checkStyle1Icons(icons)
+    assertFalse(icons.styles.contains("style 2"))
+
+    val loader2 = MaterialVdIconsLoader(metadata, MaterialIconsTestUrlProvider())
+    // Load only "style 2" icons with a new loader
+    icons = loader2.loadMaterialVdIcons("style 2")
+    checkStyle2Icons(icons)
+    assertFalse(icons.styles.contains("style 1"))
+
+    // Check all icons are loaded by re-using the loaders
+    icons = loader2.loadMaterialVdIcons("style 1")
+    checkIcons(icons)
+    icons = loader1.loadMaterialVdIcons("style 2")
+    checkIcons(icons)
   }
 
   /**
@@ -79,8 +120,12 @@ class MaterialVdIconsLoaderTest {
    */
   private fun checkIcons(icons: MaterialVdIcons) {
     Truth.assertThat(icons.styles).hasLength(2)
+    checkStyle1Icons(icons)
+    checkStyle2Icons(icons)
+  }
+
+  private fun checkStyle1Icons(icons: MaterialVdIcons) {
     assertTrue(icons.styles.contains("style 1"))
-    assertTrue(icons.styles.contains("style 2"))
     val style1Categories = icons.getCategories("style 1")
     Truth.assertThat(style1Categories).hasLength(3)
     Truth.assertThat(style1Categories[0]).isEqualTo("category1")
@@ -93,7 +138,10 @@ class MaterialVdIconsLoaderTest {
     Truth.assertThat(icons.getIcons("style 1", "category1")).hasLength(2)
     Truth.assertThat(icons.getIcons("style 1", "category2")).hasLength(1)
     Truth.assertThat(icons.getIcons("style 1", "category2")).hasLength(1)
+  }
 
+  private fun checkStyle2Icons(icons: MaterialVdIcons) {
+    assertTrue(icons.styles.contains("style 2"))
     val style2Categories = icons.getCategories("style 2")
     Truth.assertThat(style2Categories).hasLength(3)
     Truth.assertThat(style2Categories[0]).isEqualTo("category1")
@@ -121,7 +169,8 @@ private class MockStyleJarUrlProvider : MaterialIconsUrlProvider {
 
   override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
     return MaterialVdIconsLoaderTest::class.java.classLoader.getResource(
-      "${PATH}${style.toLowerCase(Locale.US).replace(" ", "")}/$iconName/$iconFileName")
+      "${PATH}${style.toLowerCase(Locale.US).replace(" ", "")}/$iconName/$iconFileName"
+    )
   }
 
   private fun createMockJarUrl(style: String): URL {
@@ -158,7 +207,8 @@ private class FakeStyleFileUrlProvider : MaterialIconsUrlProvider {
 
   override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
     return MaterialVdIconsLoaderTest::class.java.classLoader.getResource(
-      "${PATH}${style.toLowerCase(Locale.US).replace(" ", "")}/$iconName/$iconFileName")
+      "${PATH}${style.toLowerCase(Locale.US).replace(" ", "")}/$iconName/$iconFileName"
+    )
   }
 
   private fun createFakeFileUrl(styleDir: String): URL {

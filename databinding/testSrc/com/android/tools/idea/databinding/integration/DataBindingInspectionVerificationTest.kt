@@ -63,14 +63,10 @@ class DataBindingInspectionVerificationTest {
   private val excludedFiles = setOf(
     "app/src/androidTest/java/android/databinding/testapp/InstanceAdapterTest.java",
     "app/src/androidTest/java/androidx/databinding/DataBindingMapperTest.java",
-    "app/src/main/res/layout/conditional_binding.xml",
-    "app/src/main/res/layout/find_method_test.xml",
-    "app/src/main/res/layout/fragment_main.xml",
     "app/src/main/res/layout/observable_field_test.xml",
-    "app/src/main/res/layout/resource_test.xml",
-    "app/src/main/res/layout/static_access_import_on_demand_with_conflict.xml",
-    "app/src/main/res/layout/use_default.xml"
+    "app/src/main/res/layout/static_access_import_on_demand_with_conflict.xml"
   )
+
 
   @Before
   fun setUp() {
@@ -118,6 +114,7 @@ class DataBindingInspectionVerificationTest {
   }
 
   private data class FileEntry(val virtualFile: VirtualFile, val relativePath: String)
+
   private val allFileEntriesUnderRoots: Sequence<FileEntry>
     get() {
       val testAppRoot = projectRule.project.guessProjectDir()!!.path

@@ -44,10 +44,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
     myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
-    myAnalysisPanel = new CpuAnalysisPanel(stage);
+    myAnalysisPanel = new CpuAnalysisPanel(view, stage);
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
-    stage.getMinimapModel().getRangeSelectionModel().addDependency(this)
-      .onChange(RangeSelectionModel.Aspect.SELECTION, this::updateTrackGroupList);
     updateComponents();
   }
 
@@ -62,9 +60,29 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       getComponent().add(new StatusPanel(getStage().getCaptureHandler(), "Parsing", "Abort"));
     }
     else {
+      // If we had any previously registered analyzing events we unregister them first.
+      // Note: This should only be done in the analyzing state since objects may not be created/setup before the model has transitioned
+      // to this state.
+      unregisterAnalyzingEvents();
+      registerAnalyzingEvents();
       getComponent().add(createAnalyzingComponents());
       getComponent().revalidate();
     }
+  }
+
+  /**
+   * Helper function for registering listeners on objects that may not be initialized until the capture has been parsed.
+   */
+  private void registerAnalyzingEvents() {
+    getStage().getMinimapModel().getRangeSelectionModel().addDependency(this)
+      .onChange(RangeSelectionModel.Aspect.SELECTION, this::updateTrackGroupList);
+  }
+
+  /**
+   * Helper function for unregistering listeners that get set when we enter the analyzing state for a capture.
+   */
+  private void unregisterAnalyzingEvents() {
+    getStage().getMinimapModel().getRangeSelectionModel().removeDependencies(this);
   }
 
   private JComponent createAnalyzingComponents() {

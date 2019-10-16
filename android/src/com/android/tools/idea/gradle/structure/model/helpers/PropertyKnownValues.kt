@@ -17,9 +17,9 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.tools.idea.concurrent.transform
+import com.android.tools.idea.concurrency.transform
 import com.google.common.annotations.VisibleForTesting
-import com.android.tools.idea.gradle.structure.configurables.ui.readOnPooledThread
+import com.android.tools.idea.concurrency.readOnPooledThread
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject

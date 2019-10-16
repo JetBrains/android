@@ -39,6 +39,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.LayoutManager;
+import java.awt.RenderingHints;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -65,7 +66,8 @@ import javax.swing.plaf.LayerUI;
  * The panel that displays the timeline
  */
 public class TimeLinePanel extends JPanel {
-
+  private static int PLAY_TIMEOUT = 5*60*1000;
+  private static int MS_PER_FRAME = 15;
   private static float TIMELINE_MIN = 0.0f;
   private static float TIMELINE_MAX = 100.0f;
   private static float[] ourSpeeds = {0.01f, 0.02f, 0.04f};
@@ -83,11 +85,14 @@ public class TimeLinePanel extends JPanel {
   private Timer myTimer;
   private Timer myPlayLimiter;
   private int myYoyo = 0;
-  private float myProgressPerFrame = 0.01f;
+  private float myProgressPerMillisecond = 0.01f;
+  private long last_time;
   private int mCurrentSpeed = 0;
   private boolean mIsPlaying = false;
   private ArrayList<TimeLineListener> mTimeLineListeners = new ArrayList<>();
   private int mDirection = 1;
+  int []myXPoints = new int[5];
+  int []myYPoints = new int[5];
   private MTagActionListener mListener;
 
   public TimeLinePanel() {
@@ -97,6 +102,7 @@ public class TimeLinePanel extends JPanel {
     top.add(mTimeLineTopLeft, BorderLayout.WEST);
     myScrollPane.setColumnHeaderView(top);
     myScrollPane.setBorder(BorderFactory.createEmptyBorder());
+    int flags = 0;
     mTimeLine.addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
@@ -125,7 +131,7 @@ public class TimeLinePanel extends JPanel {
           case KeyEvent.VK_BACK_SPACE:
             if (mListener != null) {
               if (mSelectedKeyFrame != null) {
-                mListener.delete(new MTag[]{mSelectedKeyFrame});
+                mListener.delete(new MTag[]{mSelectedKeyFrame},0);
               }
             }
             break;
@@ -144,9 +150,9 @@ public class TimeLinePanel extends JPanel {
             mSelectedKeyFrame = rowData.mKeyFrames.get(selIndex);
 
             mTimeLine.getTimeLineRow(mTimeLine.getSelectedIndex()).setSelectedKeyFrame(mSelectedKeyFrame);
-            mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{mSelectedKeyFrame});
+            mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{mSelectedKeyFrame}, flags);
             if (mListener != null && mSelectedKeyFrame != null) {
-              mListener.select(mSelectedKeyFrame);
+              mListener.select(mSelectedKeyFrame, 0);
             }
           }
           break;
@@ -164,9 +170,9 @@ public class TimeLinePanel extends JPanel {
             mSelectedKeyFrame = rowData.mKeyFrames.get(selIndex);
             mTimeLine.getTimeLineRow(mTimeLine.getSelectedIndex()).setSelectedKeyFrame(mSelectedKeyFrame);
 
-            mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{mSelectedKeyFrame});
+            mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{mSelectedKeyFrame}, flags);
             if (mListener != null && mSelectedKeyFrame != null) {
-              mListener.select(mSelectedKeyFrame);
+              mListener.select(mSelectedKeyFrame, 0);
             }
           }
           break;
@@ -229,6 +235,11 @@ public class TimeLinePanel extends JPanel {
     mListener = l;
   }
 
+  public void stopAnimation() {
+    destroyTimer();
+    mTimeLineTopLeft.displayPlay();
+  }
+
   private static String buildKey(MTag keyFrame) {
     String targetKey;
     String target = keyFrame.getAttributeValue("motionTarget");
@@ -273,6 +284,10 @@ public class TimeLinePanel extends JPanel {
 
   public void clearSelection() {
     mSelectedKeyFrame = null;
+    int  n = mTimeLine.getComponentCount();
+    if (n == 0 || mTimeLine.mSelectedIndex >= n) {
+      return;
+    }
     Component component = mTimeLine.getComponent(mTimeLine.mSelectedIndex);
     if (component instanceof TimeLineRow) {
       TimeLineRow child = ((TimeLineRow)component);
@@ -293,14 +308,14 @@ public class TimeLinePanel extends JPanel {
 
   private void createTimer() {
     if (myTimer == null) {
-      myTimer = new Timer(30, e -> {
+      myTimer = new Timer(MS_PER_FRAME, e -> {
         progress();
       });
       myTimer.setRepeats(true);
       myTimer.start();
     }
     if (myPlayLimiter == null) {
-      myPlayLimiter = new Timer(60000, e -> {
+      myPlayLimiter = new Timer(PLAY_TIMEOUT, e -> {
         destroyTimer();
       });
       myPlayLimiter.setRepeats(false);
@@ -329,6 +344,7 @@ public class TimeLinePanel extends JPanel {
     watchdog();
     switch (e) {
       case PLAY:
+        last_time = System.nanoTime();
         Track.playAnimation();
         createTimer();
         notifyTimeLineListeners(TimeLineCmd.MOTION_PLAY, mMotionProgress);
@@ -336,7 +352,7 @@ public class TimeLinePanel extends JPanel {
         break;
       case SPEED:
         mCurrentSpeed = (mCurrentSpeed + 1) % ourSpeeds.length;
-        myProgressPerFrame = ourSpeeds[mCurrentSpeed];
+        myProgressPerMillisecond = ourSpeeds[mCurrentSpeed];
         break;
       case LOOP:
         myYoyo = mode;
@@ -349,14 +365,16 @@ public class TimeLinePanel extends JPanel {
       case END:
         mIsPlaying = false;
         destroyTimer();
-        notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
         mMotionProgress = 1;
+        notifyTimeLineListeners(TimeLineCmd.MOTION_PROGRESS, mMotionProgress);
+        notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
         break;
       case START:
         mIsPlaying = false;
         destroyTimer();
-        notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
         mMotionProgress = 0;
+        notifyTimeLineListeners(TimeLineCmd.MOTION_PROGRESS, mMotionProgress);
+        notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
         break;
     }
   }
@@ -367,7 +385,7 @@ public class TimeLinePanel extends JPanel {
     }
     switch (myYoyo) {
       case 0:
-        mMotionProgress += myProgressPerFrame;
+        mMotionProgress += myProgressPerMillisecond;
         if (mMotionProgress > 1f) {
           notifyTimeLineListeners(TimeLineCmd.MOTION_PROGRESS, 1f);
 
@@ -375,14 +393,16 @@ public class TimeLinePanel extends JPanel {
         }
         break;
       case 1:
-        mMotionProgress -= myProgressPerFrame;
+        long time = System.nanoTime();
+        mMotionProgress -= myProgressPerMillisecond*((time-last_time)*1E-6f);
+        last_time = time;
         if (mMotionProgress < 0f) {
           notifyTimeLineListeners(TimeLineCmd.MOTION_PROGRESS, 0f);
           mMotionProgress = 1 + mMotionProgress;
         }
         break;
       case 2:
-        mMotionProgress += (mDirection) * myProgressPerFrame;
+        mMotionProgress += (mDirection) * myProgressPerMillisecond;
         if (mMotionProgress < 0f) {
           notifyTimeLineListeners(TimeLineCmd.MOTION_PROGRESS, 0f);
           mDirection = +1;
@@ -405,13 +425,13 @@ public class TimeLinePanel extends JPanel {
         || mTimeLine.getSelectedValue().mKeyFrames == null) {
       if (mTransitionTag != null) {
         mMotionEditorSelector
-          .notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{mTransitionTag});
+          .notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{mTransitionTag}, 0);
       }
       return;
     }
 
     mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME_GROUP,
-                                          mTimeLine.getSelectedValue().mKeyFrames.toArray(new MTag[0]));
+                                          mTimeLine.getSelectedValue().mKeyFrames.toArray(new MTag[0]), 0);
   }
 
   public void setMTag(MTag transitionTag, MeModel model) {
@@ -423,14 +443,14 @@ public class TimeLinePanel extends JPanel {
     List<TimeLineRowData> list = transitionTag != null ? buildTransitionList() : Collections.emptyList();
     mTimeLine.setListData(list, model);
     if (transitionTag != null) {
-      mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{transitionTag});
+      mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{transitionTag}, 0);
     }
 
     if (newSelection != null) {
       int index = findKeyFrameInRows(list, newSelection);
       if (index >= 0) {
         mTimeLine.setSelectedIndex(index);
-        mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{newSelection});
+        mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{newSelection}, 0);
         mSelectedKeyFrame = newSelection;
       }
     }
@@ -584,10 +604,25 @@ public class TimeLinePanel extends JPanel {
       }
       FontMetrics fm = g2.getFontMetrics();
       Color orig = g.getColor();
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g.setColor(lineColor);
       Rectangle2D bounds = fm.getStringBounds(digits, g2);
-      g2.fillRoundRect((int)(x - bounds.getWidth() / 2 - inset), 0, 2 * inset + (int)bounds.getWidth(),
-                       2 * inset + (int)bounds.getHeight() + 2, 5, 5);
+      int xStart = (int)(x - bounds.getWidth() / 2 - inset);
+      int halfWidth = (2 * inset + (int)bounds.getWidth())/2;
+      int yHeight = 2 * inset + (int)bounds.getHeight() + 2;
+
+      myXPoints[0] = xStart;
+      myYPoints[0] = 0;
+      myXPoints[1] = xStart;
+      myYPoints[1] = yHeight;
+      myXPoints[2] = xStart + halfWidth;
+      myYPoints[2] = yHeight + 10;
+      myXPoints[3] = xStart + halfWidth * 2;
+      myYPoints[3] = yHeight;
+      myXPoints[4] = xStart + halfWidth * 2;
+      myYPoints[4] = 0;
+
+      g2.fillPolygon(myXPoints, myYPoints, 5);
       g.setColor(orig);
       g2.drawString(digits, (int)(x - bounds.getWidth() / 2), (int)(fm.getAscent() + inset));
       y = (int)(inset * 2 + bounds.getHeight());
@@ -628,7 +663,7 @@ public class TimeLinePanel extends JPanel {
 
           }
         }
-        if (e.getX() < 20) {
+        if (e.getX() < mTimeLineTopLeft.getWidth() && e.getY() > mTimeLineTopLeft.getHeight()) {
           int index = mTimeLine.getSelectedIndex();
 
           TimeLineRow row = mTimeLine.getTimeLineRow(index);
@@ -693,7 +728,7 @@ public class TimeLinePanel extends JPanel {
       }
     }
     if (minDist < 0.1f) {
-      mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{minTag});
+      mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{minTag}, 0);
       mSelectedKeyFrame = minTag;
       repaint();
     }
@@ -783,7 +818,7 @@ public class TimeLinePanel extends JPanel {
       public void paintComponent(Graphics g) {
         g.setColor(MEUI.ourAvgBackground);
         g.fillRect(0, 0, getWidth(), getHeight());
-        g.setColor(MEUI.ourTextColor);
+        g.setColor(MEUI.myGridColor);
         TimeLineRow.drawTicks(g, mTimelineStructure, getHeight());
       }
     };

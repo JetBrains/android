@@ -98,6 +98,11 @@ public class ErrorPanel extends JPanel {
 
   public boolean validateMotionScene(MTag scene) {
     String str = null;
+    if (scene == null) {
+      myErrorLabel.setText( "<HTML>MotionScene Syntax error:<ul>No valid LayoutDescription</ul></HTML>");
+      return false;
+    }
+
     MTag[] layer0 = scene.getChildTags();
     for (int i = 0; i < layer0.length; i++) {
       String tagName = layer0[i].getTagName();

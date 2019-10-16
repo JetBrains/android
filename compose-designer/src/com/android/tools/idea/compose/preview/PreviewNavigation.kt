@@ -67,7 +67,7 @@ class PreviewModelUpdater(val surface: NlDesignSurface) : DefaultModelUpdater() 
     // the scene manager is set though.
     surface.sceneManager!!.addRenderListener(object : RenderListener {
       override fun onRenderCompleted() {
-        // Make sure you deregister after.
+        // Make sure you de-register after.
         surface.sceneManager!!.removeRenderListener(this)
 
         if (model.components.isEmpty()) {

@@ -33,23 +33,30 @@ import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManag
 import com.android.tools.idea.ui.resourcemanager.plugin.FrameworkDrawableRenderer
 import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderer
 import com.android.tools.idea.util.toVirtualFile
+import com.google.common.util.concurrent.ThreadFactoryBuilder
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.ImageUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.Dimension
-import java.awt.Image
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import javax.swing.ImageIcon
 import kotlin.math.min
 
 private val LOG = Logger.getInstance(DrawableIconProvider::class.java)
 
-typealias AsyncImageProvider = ((dimension: Dimension, designAsset: DesignAsset) -> CompletableFuture<Image?>)?
+typealias AsyncImageProvider = ((dimension: Dimension, designAsset: DesignAsset) -> CompletableFuture<BufferedImage?>)?
 
 /**
  * [AssetIconProvider] that renders images of Layouts and Drawable and update
@@ -67,13 +74,14 @@ class DrawableIconProvider(
   private val imageCache: ImageCache,
   private val alternateImageProvider: AsyncImageProvider = null
 ) : AssetIconProvider {
+  private val fetchImageExecutor = facet.module.project.service<FetchImageExecutor>()
 
   private val imageIcon = ImageIcon(EMPTY_ICON)
   private val contentRatio = 0.1
   override var supportsTransparency: Boolean = true
   val project = facet.module.project
 
-  private fun getDrawableImage(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?>? {
+  private fun getDrawableImage(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out BufferedImage?>? {
     val resolveValue = resourceResolver.resolveValue(designAsset) ?: return null
     if (resolveValue.isFramework) {
       // Delegate framework resources to FrameworkDrawableRenderer. DesignAssetRendererManager fails to provide an image for framework xml
@@ -89,7 +97,7 @@ class DrawableIconProvider(
   /**
    * Returns an image of the provided [DesignAsset] representing a Layout.
    */
-  private fun getLayoutImage(designAsset: DesignAsset): CompletableFuture<out Image?>? {
+  private fun getLayoutImage(designAsset: DesignAsset): CompletableFuture<out BufferedImage?>? {
     val file = resourceResolver.getResolvedLayoutFile(designAsset) ?: return null
     val psiFile = AndroidPsiUtils.getPsiFileSafely(facet.module.project, file)
     return if (psiFile is XmlFile) {
@@ -100,7 +108,7 @@ class DrawableIconProvider(
     else null
   }
 
-  private fun renderImage(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out Image?> =
+  private fun renderImage(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out BufferedImage?> =
     alternateImageProvider?.invoke(dimension, designAsset)
     ?: when (designAsset.type) {
       ResourceType.MENU,
@@ -129,7 +137,8 @@ class DrawableIconProvider(
         if (scale < 1) {
           // Prefer to scale down a high quality image.
           image = ImageUtils.scale(bufferedImage, scale, scale)
-        } else {
+        }
+        else {
           // Return a low quality scaled version, then trigger a callback to request high quality version.
           image = ImageUtils.lowQualityFastScale(bufferedImage, scale, scale)
           fetchImage(assetToRender, refreshCallback, shouldBeRendered, targetSize, true)
@@ -175,17 +184,27 @@ class DrawableIconProvider(
                          refreshCallBack: () -> Unit,
                          isStillVisible: () -> Boolean,
                          targetSize: Dimension,
-                         forceImageRender: Boolean = false): Image {
+                         forceImageRender: Boolean = false): BufferedImage {
     return imageCache.computeAndGet(designAsset, EMPTY_ICON, forceImageRender, refreshCallBack) {
       if (isStillVisible()) {
-        renderImage(targetSize, designAsset)
-          .thenApplyAsync { image -> image ?: throw Exception("Failed to resolve resource") }
-          .thenApply { image -> scaleToFitIfNeeded(image, targetSize) }
-          .exceptionally { throwable ->
-            LOG.error("Error while rendering $designAsset", throwable); ERROR_ICON
+        CompletableFuture.supplyAsync(Supplier {
+          // Check for visibility again right before rendering.
+          if (isStillVisible()) {
+            renderImage(targetSize, designAsset)
+              .thenApplyAsync { image -> image ?: throw Exception("Failed to resolve resource") }
+              .thenApply { image -> scaleToFitIfNeeded(image, targetSize) }
+              .exceptionally { throwable ->
+                LOG.error("Error while rendering $designAsset", throwable); ERROR_ICON
+              }.get()
           }
+          else {
+            null
+          }
+        }, fetchImageExecutor)
       }
-      else CompletableFuture.completedFuture(null)
+      else {
+        CompletableFuture.completedFuture(null)
+      }
     }
   }
 
@@ -193,15 +212,18 @@ class DrawableIconProvider(
    * Scale the provided [image] to fit into [targetSize] if needed. It might be converted to a
    * [BufferedImage] before being scaled
    */
-  private fun scaleToFitIfNeeded(image: Image, targetSize: Dimension): Image {
+  private fun scaleToFitIfNeeded(image: BufferedImage, targetSize: Dimension): BufferedImage {
     val imageSize = Dimension(image.getWidth(null), image.getHeight(null))
     val scale = getScale(targetSize, imageSize)
     if (shouldScale(scale)) {
       val newWidth = (imageSize.width * scale).toInt()
       val newHeight = (imageSize.height * scale).toInt()
       if (newWidth > 0 && newHeight > 0) {
-        return ImageUtil.toBufferedImage(image)
-          .getScaledInstance(newWidth, newHeight, BufferedImage.SCALE_SMOOTH)
+        val scaledImage = ImageUtil.scaleImage(image, scale)
+        if (scaledImage !is BufferedImage) {
+          Logger.getInstance(DrawableIconProvider::class.java).error("Not BufferedImage")
+        }
+        return ImageUtil.toBufferedImage(scaledImage)
       }
     }
     return image
@@ -209,7 +231,7 @@ class DrawableIconProvider(
 
   private fun renderFrameworkDrawable(resolvedValue: ResourceValue,
                                       designAsset: DesignAsset,
-                                      dimension: Dimension): CompletableFuture<out Image?>? {
+                                      dimension: Dimension): CompletableFuture<out BufferedImage?>? {
     val frameworkValue =
       if (designAsset.resourceItem.type == ResourceType.ATTR) {
         // For theme attributes, we can just use the already resolved value.
@@ -234,3 +256,23 @@ private fun ResourceResolver.getResolvedLayoutFile(designAsset: DesignAsset): Vi
   else {
     designAsset.file
   }
+
+/**
+ * Single-threaded queued executor, to render previews for [DrawableIconProvider] one after another.
+ */
+private class FetchImageExecutor(project: Project) : ThreadPoolExecutor(0,
+                                                                1,
+                                                                1,
+                                                                TimeUnit.MINUTES,
+                                                                LinkedBlockingQueue<Runnable>(),
+                                                                ThreadFactoryBuilder().setNameFormat(
+                                                                  "DrawableIconProvider-fetchImage-%d").build()),
+                                             Disposable {
+  init {
+    Disposer.register(project, this)
+  }
+
+  override fun dispose() {
+    shutdownNow()
+  }
+}

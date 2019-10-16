@@ -49,6 +49,7 @@ import com.android.tools.idea.wizard.template.WizardParameterData
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.module.Module
@@ -102,7 +103,8 @@ class RenderTemplateModel private constructor(
   val wizardParameterData = WizardParameterData(
     packageName.get(),
     module == null,
-    template.get().name
+    template.get().name,
+    newTemplate.parameters
   )
   var iconGenerator: IconGenerator? = null
   val renderLanguage = ObjectValueProperty(getInitialSourceLanguage(project.valueOrNull)).apply {
@@ -141,11 +143,6 @@ class RenderTemplateModel private constructor(
       if (paths.moduleRoot == null) {
         log.error("RenderTemplateModel can't create files because module root is not found. Please report this error.")
         return
-      }
-
-      if (StudioFlags.COMPOSE_WIZARD_TEMPLATES.get() && templateHandle?.metadata?.category == CATEGORY_COMPOSE) {
-        // TODO(parentej) ag/q/topic:kotlin-1.3.50-compose-20190920 - This should not be needed when the kotlin plugin is merged.
-        moduleTemplateValues["isCompose"] = true
       }
 
       templateValues.putAll(moduleTemplateValues)

@@ -530,7 +530,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @return The new {@link Dimension} of the LayeredPane (SceneView)
    */
   @Nullable
-  public abstract Dimension getScrolledAreaSize();
+  protected abstract Dimension getScrolledAreaSize();
 
   public void updateScrolledAreaSize() {
     final Dimension dimension = getScrolledAreaSize();
@@ -543,21 +543,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     SceneView view = getFocusedSceneView();
     if (view != null) {
-      myProgressPanel.setBounds(getContentOriginX(), getContentOriginY(), view.getSize().width, view.getSize().height);
+      myProgressPanel.setBounds(view.getX(), view.getY(), view.getSize().width, view.getSize().height);
     }
   }
-
-  /**
-   * The x (swing) coordinate of the origin of this DesignSurface's content.
-   */
-  @SwingCoordinate
-  public abstract int getContentOriginX();
-
-  /**
-   * The y (swing) coordinate of the origin of this DesignSurface's content.
-   */
-  @SwingCoordinate
-  public abstract int getContentOriginY();
 
   public JComponent getPreferredFocusedComponent() {
     return myGlassPane;
@@ -691,13 +679,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     }
   }
-
-  /**
-   * @param dimension the Dimension object to reuse to avoid reallocation
-   * @return The total size of all the ScreenViews in the DesignSurface
-   */
-  @NotNull
-  public abstract Dimension getContentSize(@Nullable Dimension dimension);
 
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
     for (Layer layer : myLayers) {

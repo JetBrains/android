@@ -122,7 +122,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     myVisibilityCallback = visibility;
     myListeners = new ArrayList<>();
 
-    myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(parent);
+    myMotionLayoutComponentHelper = MotionLayoutComponentHelper.create(parent);
     parent.putClientProperty(TIMELINE, this);
     updateModel(parent.getModel());
     mySurface.getSelectionModel().addListener((model, selection) -> handleSelectionChanged(model, selection));
@@ -255,7 +255,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       parseMotionScene(myMotionLayout, referencedFile);
     }
 
-    myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
+    myMotionLayoutComponentHelper = MotionLayoutComponentHelper.create(myMotionLayout);
     switch (myPanel.getMode()) {
       case START:
         setState(State.TL_START);
@@ -351,7 +351,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   @Override
   public void setProgress(float percent) {
     if (!myMotionLayoutComponentHelper.setProgress(percent)) {
-      myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
+      myMotionLayoutComponentHelper = MotionLayoutComponentHelper.create(myMotionLayout);
     }
     fireSelectionChanged();
   }
@@ -441,7 +441,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       }
       myLastPos = value;
       if (!myMotionLayoutComponentHelper.setProgress(value)) {
-        myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
+        myMotionLayoutComponentHelper = MotionLayoutComponentHelper.create(myMotionLayout);
       }
       if (mGanttCommands != null) {
         mGanttCommands.setProgress(value);

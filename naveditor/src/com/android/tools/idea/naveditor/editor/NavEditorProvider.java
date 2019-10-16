@@ -19,6 +19,7 @@ import com.android.tools.idea.common.editor.DesignerEditor;
 import com.android.tools.idea.common.editor.DesignerEditorProvider;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -30,7 +31,6 @@ import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class NavEditorProvider extends DesignerEditorProvider {
 
@@ -60,6 +60,11 @@ public class NavEditorProvider extends DesignerEditorProvider {
     @Override
     public DefaultActionGroup getSelectionContextToolbar(@NotNull DesignSurface surface, @NotNull List<? extends NlComponent> selection) {
       return surface.getActionManager().getToolbarActions(null, selection);
+    }
+
+    @Override
+    public void setTypePrerequisites(@NotNull NlModel model) {
+      // DesignerEditorFileType interface is written in Kotlin, so the default implementation needs to be overridden by Java implementors.
     }
 
     public static NavigationFileType getInstance() {

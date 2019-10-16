@@ -37,12 +37,11 @@ class SqliteJdbcResultSet(
 ) : SqliteResultSet {
 
   /**
-   * It is safe to use [LazyThreadSafetyMode.NONE] because
-   * the property is accessed from a [SequentialTaskExecutor] with a single thread.
+   * It's safe to use [LazyThreadSafetyMode.NONE] because the property is accessed from a [SequentialTaskExecutor] with a single thread.
    */
   private val _columns: List<SqliteColumn> by lazy(LazyThreadSafetyMode.NONE) {
     val metaData = resultSet.metaData
-    (1..metaData.columnCount).map { i -> SqliteColumn(metaData.getColumnName(i), JDBCType.valueOf(metaData.getColumnType(i)))  }
+    (1..metaData.columnCount).map { i -> SqliteColumn(metaData.getColumnName(i), JDBCType.valueOf(metaData.getColumnType(i))) }
   }
 
   override val columns get() = service.sequentialTaskExecutor.executeAsync { _columns }
@@ -52,19 +51,18 @@ class SqliteJdbcResultSet(
     true
   }
 
-  override fun nextRowBatch(): ListenableFuture<List<SqliteRow>> = service.sequentialTaskExecutor.executeAsync {
-    check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
+  override fun nextRowBatch(): ListenableFuture<List<SqliteRow>> {
+    return service.sequentialTaskExecutor.executeAsync {
+      check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
 
-    val rows = ArrayList<SqliteRow>()
-    repeat(rowBatchSize) {
-      if (!resultSet.next())
-        return@repeat
-      rows.add(currentRow())
+      val rows = ArrayList<SqliteRow>()
+      repeat(rowBatchSize) {
+        if (!resultSet.next()) return@repeat
+        rows.add(createCurrentRow())
+      }
+      rows
     }
-    rows
   }
-
-  private fun currentRow() = SqliteRow(_columns.mapIndexed { i, column -> SqliteColumnValue(column, resultSet.getObject(i+1)) })
 
   override fun dispose() {
     service.sequentialTaskExecutor.executeAndAwait {
@@ -72,4 +70,8 @@ class SqliteJdbcResultSet(
       statement.close()
     }
   }
+
+  private fun createCurrentRow() = SqliteRow(_columns.mapIndexed { i, column ->
+    SqliteColumnValue(column, resultSet.getObject(i + 1))
+  })
 }

@@ -18,6 +18,10 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
+import com.android.tools.idea.device.fs.DeviceFileDownloaderService
+import com.android.tools.idea.device.fs.DeviceFileId
+import com.android.tools.idea.device.fs.DownloadProgress
+import com.android.tools.idea.device.fs.DownloadedFileData
 import com.android.tools.idea.editors.sqlite.SqliteTestUtil
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.SqliteService
@@ -31,14 +35,17 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SameThreadExecutor
 import org.mockito.InOrder
@@ -49,7 +56,9 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import java.io.File
 import java.util.concurrent.Executor
+import java.util.function.Consumer
 import javax.swing.JComponent
 
 class SqliteControllerTest : PlatformTestCase() {
@@ -72,6 +81,7 @@ class SqliteControllerTest : PlatformTestCase() {
   private lateinit var sqliteDatabase1: SqliteDatabase
   private lateinit var sqliteDatabase2: SqliteDatabase
   private lateinit var sqliteDatabase3: SqliteDatabase
+  private lateinit var sqliteDatabaseMockVirtualFile: SqliteDatabase
 
   private lateinit var testSqliteSchema1: SqliteSchema
   private lateinit var testSqliteSchema2: SqliteSchema
@@ -81,6 +91,8 @@ class SqliteControllerTest : PlatformTestCase() {
 
   private val testSqliteTable = SqliteTable("testTable", arrayListOf(), true)
   private lateinit var sqliteResultSet: SqliteResultSet
+
+  private lateinit var openedFiles: MutableList<VirtualFile>
 
   override fun setUp() {
     super.setUp()
@@ -102,12 +114,15 @@ class SqliteControllerTest : PlatformTestCase() {
     sqliteView = spy(MockSqliteView::class.java)
     edtExecutor = EdtExecutorService.getInstance()
     taskExecutor = SameThreadExecutor.INSTANCE
+
+    openedFiles = mutableListOf<VirtualFile>()
     sqliteController = SqliteController(
       project,
       SqliteExplorerProjectService.getInstance(project),
       sqliteServiceFactory,
       viewFactory,
       sqliteView,
+      Consumer { openedFiles.add(it) },
       edtExecutor,
       taskExecutor
     )
@@ -125,9 +140,16 @@ class SqliteControllerTest : PlatformTestCase() {
     sqliteDatabase2 = SqliteDatabase(sqliteFile2, mockSqliteService)
     sqliteDatabase3 = SqliteDatabase(sqliteFile3, mockSqliteService)
 
+    val tempPath = FileUtil.createTempDirectory("sqliteControllerTest/deviceId", "", true)
+    val file = File(tempPath, "filePath").apply { createNewFile() }
+    val virtualFile = getVirtualFile(file)
+    virtualFile.putUserData(DeviceFileId.KEY, DeviceFileId("deviceId", "filePath"))
+    sqliteDatabaseMockVirtualFile = SqliteDatabase(virtualFile, mockSqliteService)
+
     Disposer.register(project, sqliteDatabase1)
     Disposer.register(project, sqliteDatabase2)
     Disposer.register(project, sqliteDatabase3)
+    Disposer.register(project, sqliteDatabaseMockVirtualFile)
 
     orderVerifier = inOrder(sqliteView, mockSqliteService)
   }
@@ -455,5 +477,29 @@ class SqliteControllerTest : PlatformTestCase() {
     // Assert
     verify(sqliteView).removeDatabaseSchema(sqliteDatabase1)
     verify(mockSqliteService).closeDatabase()
+  }
+
+  fun testSyncUpdatesView() {
+    // Prepare
+    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    sqliteController.openSqliteDatabase(sqliteFile1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    val mockDownloaderService = mock(DeviceFileDownloaderService::class.java)
+    `when`(mockDownloaderService.downloadFile(any(DeviceFileId::class.java), any(DownloadProgress::class.java)))
+      .thenReturn(Futures.immediateFuture(
+        DownloadedFileData(
+          DeviceFileId("deviceId", "filePath"),
+          sqliteDatabaseMockVirtualFile.virtualFile, emptyList()
+        )
+      ))
+    project.registerServiceInstance(DeviceFileDownloaderService::class.java, mockDownloaderService)
+
+    // Act
+    sqliteView.viewListeners.single().syncDatabaseActionInvoked(sqliteDatabaseMockVirtualFile)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    assertThat(openedFiles).containsExactly(sqliteDatabaseMockVirtualFile.virtualFile)
   }
 }

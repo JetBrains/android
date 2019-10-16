@@ -19,7 +19,6 @@ import com.android.builder.model.AaptOptions;
 import com.android.builder.model.SourceProvider;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.intellij.facet.FacetManager;
@@ -52,14 +51,24 @@ public interface AndroidModel {
     return facet == null ? null : get(facet);
   }
 
+  /**
+   * Sets the model used by this AndroidFacet. This method is meant to be called from build-system specific code that sets up the project
+   * during sync.
+   *
+   * <p>NOTE: Please consider using {@link AndroidProjectRule#withAndroidModel()} or similar methods to configure a test project before using
+   * this method.
+   */
   static void set(@NotNull AndroidFacet facet, @Nullable AndroidModel androidModel) {
     facet.putUserData(KEY, androidModel);
     facet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
   }
 
+  /**
+   * Returns {@code true} if {@code facet} has been configured from and is kept in sync with an external model of the project.
+   */
   static boolean isRequired(@NotNull AndroidFacet facet) {
     //noinspection deprecation  This is one of legitimate usages of this property.
-    return !facet.getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(facet.getModule()) == null;
+    return !facet.getProperties().ALLOW_USER_CONFIGURATION;
   }
 
   /**
@@ -73,7 +82,7 @@ public interface AndroidModel {
   /**
    * @return the currently active (non-test) source providers for this Android module in overlay order (meaning that later providers
    * override earlier providers when they redefine resources).
-   * {@link org.jetbrains.android.facet.IdeaSourceProvider#getCurrentSourceProviders}
+   * {@link org.jetbrains.android.facet.SourceProviderManager#getCurrentSourceProviders}
    */
   @Deprecated
   @NotNull
@@ -81,7 +90,7 @@ public interface AndroidModel {
 
   /**
    * @return the currently active test source providers for this Android module in overlay order.
-   * {@link org.jetbrains.android.facet.IdeaSourceProvider#getCurrentTestSourceProviders}
+   * {@link org.jetbrains.android.facet.SourceProviderManager#getCurrentTestSourceProviders}
    */
   @Deprecated
   @NotNull

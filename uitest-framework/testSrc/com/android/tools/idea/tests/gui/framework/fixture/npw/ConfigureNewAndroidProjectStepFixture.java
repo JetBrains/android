@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
@@ -46,22 +49,30 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
   }
 
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> setSourceLanguage(@NotNull String sourceLanguage) {
-    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Language", JComboBox.class, true))
-      .selectItem(sourceLanguage);
+  public ConfigureNewAndroidProjectStepFixture<W> setSourceLanguage(@NotNull Language language) {
+    JComboBoxFixture comboBoxFixture =
+      new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Language", JComboBox.class, true));
+
+    // Language comboBox may be disabled, depending on the Activity (eg "Compose Activity")
+    if (comboBoxFixture.isEnabled()) {
+      comboBoxFixture.selectItem(language.toString());
+    }
+    else {
+      assertThat(comboBoxFixture.selectedItem()).isEqualTo(language.toString());
+    }
     return this;
   }
 
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> selectMinimumSdkApi(@NotNull FormFactor formFactor, @NotNull String api) {
+  public ConfigureNewAndroidProjectStepFixture<W> selectMinimumSdkApi(@NotNull FormFactor formFactor, int minSdkApi) {
     String name = formFactor.id + ".minSdk";
-    new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), name, JComboBox.class)).selectApiLevel(api);
+    new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), name, JComboBox.class)).selectApiLevel(minSdkApi);
     return this;
   }
 
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> selectMinimumSdkApi(@NotNull String api) {
-    return selectMinimumSdkApi(FormFactor.MOBILE, api);
+  public ConfigureNewAndroidProjectStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
+    return selectMinimumSdkApi(FormFactor.MOBILE, minSdkApi);
   }
 
   @NotNull

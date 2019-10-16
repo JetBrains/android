@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.naveditor
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
-import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -53,7 +53,7 @@ class HostPanelTest {
       .getLayoutEditor(true)
       .dragComponentToSurface("Containers", "NavHostFragment")
 
-    val dialog = ResourceExplorerDialogFixture.find(guiTest.robot())
+    val dialog = ResourcePickerDialogFixture.find(guiTest.robot())
     dialog.resourceExplorer.searchField.enterText("mobile_navigation")
     dialog.resourceExplorer.selectResource("mobile_navigation")
     dialog.clickOk()

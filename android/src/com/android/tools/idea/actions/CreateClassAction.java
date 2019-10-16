@@ -38,6 +38,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
 import java.util.stream.Collectors;
+import javax.xml.transform.Source;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.SourceProviderManager;
@@ -134,10 +135,11 @@ public final class CreateClassAction extends AnAction {
       return ide.getOrChooseDirectory();
     }
 
+    SourceProviderManager sourceProviderManager = SourceProviderManager.getInstance(facet);
     Collection<VirtualFile> files =
       Streams.concat(
-        IdeaSourceProvider.getCurrentSourceProviders(facet).stream(),
-        IdeaSourceProvider.getCurrentTestSourceProviders(facet).stream()
+        sourceProviderManager.getCurrentSourceProviders().stream(),
+        sourceProviderManager.getCurrentTestSourceProviders().stream()
       )
         .flatMap(it -> it.getJavaDirectories().stream())
         .collect(Collectors.toList());

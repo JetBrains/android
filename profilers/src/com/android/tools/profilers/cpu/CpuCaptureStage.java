@@ -29,8 +29,10 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
+import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.AtraceFrameFilterConfig;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
@@ -42,9 +44,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,9 +56,6 @@ import org.jetbrains.annotations.Nullable;
  * This stage is set when a capture is selected from the {@link CpuProfilerStage}, or when a capture is imported.
  */
 public class CpuCaptureStage extends Stage {
-  @VisibleForTesting
-  static final String DEFAULT_ANALYSIS_NAME = "Full trace";
-
   public enum Aspect {
     /**
      * Triggered when the stage changes state from parsing to analyzing. This can also be viewed as capture parsing completed.
@@ -118,7 +118,7 @@ public class CpuCaptureStage extends Stage {
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
   private final List<CpuAnalysisModel> myAnalysisModels = new ArrayList<>();
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
-  private final CpuCaptureMinimapModel myMinimapModel;
+  private CpuCaptureMinimapModel myMinimapModel;
   private State myState = State.PARSING;
 
   // Accessible only when in state analyzing
@@ -157,7 +157,6 @@ public class CpuCaptureStage extends Stage {
     super(profilers);
     myCpuCaptureHandler =
       new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configurationName, captureProcessNameHint, captureProcessIdHint);
-    myMinimapModel = new CpuCaptureMinimapModel(profilers);
   }
 
   public State getState() {
@@ -181,6 +180,7 @@ public class CpuCaptureStage extends Stage {
 
   @NotNull
   public CpuCaptureMinimapModel getMinimapModel() {
+    assert myState == State.ANALYZING;
     return myMinimapModel;
   }
 
@@ -233,17 +233,12 @@ public class CpuCaptureStage extends Stage {
   }
 
   private void onCaptureParsed(@NotNull CpuCapture capture) {
+    myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture);
     myMinimapModel.setMaxRange(capture.getRange());
     initTrackGroupList(myMinimapModel.getRangeSelectionModel().getSelectionRange(), capture);
-    buildAnalysisTabs(capture);
-  }
-
-  private void buildAnalysisTabs(@NotNull CpuCapture capture) {
-    CpuAnalysisModel fullTraceModel = new CpuAnalysisModel(DEFAULT_ANALYSIS_NAME);
-    CpuAnalysisTabModel<CpuCapture> summaryModel = new CpuAnalysisTabModel<>(CpuAnalysisTabModel.Type.SUMMARY);
-    summaryModel.addData(capture);
-    fullTraceModel.getTabs().add(summaryModel);
-    addCpuAnalysisModel(fullTraceModel);
+    addCpuAnalysisModel(
+      new CpuFullTraceAnalysisModel(capture, myMinimapModel.getRangeSelectionModel().getSelectionRange()));
+    // TODO (b/138408053): Add new models based on selected items when we have that concept.
   }
 
   /**
@@ -310,7 +305,7 @@ public class CpuCaptureStage extends Stage {
   }
 
   private TrackGroupModel createThreadsTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
-    Set<CpuThreadInfo> threadInfos = capture.getThreads();
+    List<CpuThreadInfo> threadInfos = capture.getThreads().stream().sorted().collect(Collectors.toList());
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     TrackGroupModel threads = TrackGroupModel.newBuilder().setTitle(threadsTitle).build();
     for (CpuThreadInfo threadInfo : threadInfos) {

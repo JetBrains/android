@@ -46,9 +46,9 @@ public class BorderLayer extends Layer {
 
   private static class BorderPainter {
 
-    private static final int SHADOW_SIZE = JBUI.scale(6);
+    private static final int SHADOW_SIZE = JBUI.scale(4);
     private static final Color COLOR_OUTSIDE = UIUtil.TRANSPARENT_COLOR;
-    private static final Color COLOR_INSIDE = new JBColor(new Color(70, 70, 70, 10), new Color(10, 10, 10, 20));
+    private static final Color COLOR_INSIDE = JBColor.namedColor("ScreenView.borderColor", new JBColor(new Color(0, 0, 0, 40), new Color(0, 0, 0, 80)));
     private static final Paint GRAD_LEFT = new GradientPaint(0, 0, COLOR_OUTSIDE, SHADOW_SIZE, 0, COLOR_INSIDE);
     private static final Paint GRAD_TOP = new GradientPaint(0, 0, COLOR_OUTSIDE, 0, SHADOW_SIZE, COLOR_INSIDE);
     private static final Paint GRAD_RIGHT = new GradientPaint(0, 0, COLOR_INSIDE, SHADOW_SIZE, 0, COLOR_OUTSIDE);

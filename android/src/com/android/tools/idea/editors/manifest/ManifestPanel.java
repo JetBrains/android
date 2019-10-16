@@ -1011,7 +1011,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       File resDir = file.getParentFile() == null ? null : file.getParentFile().getParentFile();
       VirtualFile vResDir = resDir == null ? null : LocalFileSystem.getInstance().findFileByIoFile(resDir);
       if (vResDir != null) {
-        for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
+        for (IdeaSourceProvider provider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
           if (provider.getResDirectories().contains(vResDir)) {
             source += provider.getName() + " ";
             break;

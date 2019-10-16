@@ -22,7 +22,7 @@ import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.concurrent.FutureUtils;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;

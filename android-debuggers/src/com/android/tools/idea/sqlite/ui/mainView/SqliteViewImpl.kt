@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
@@ -37,7 +38,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.UIBundle
@@ -53,6 +53,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
 import javax.swing.tree.DefaultMutableTreeNode
@@ -90,7 +91,11 @@ class SqliteViewImpl(
     defaultUiPanel.label.font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT
     defaultUiPanel.label.foreground = UIUtil.getInactiveTextColor()
 
-    sqliteEditorPanel.openSqliteEvaluator.addActionListener { listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
+    val openSqliteEvaluatorButton = CommonButton("Open SQLite evaluator", AllIcons.Actions.Search)
+    openSqliteEvaluatorButton.toolTipText = "Open SQLite evaluator"
+    sqliteEditorPanel.headerPanel.add(openSqliteEvaluatorButton)
+
+    openSqliteEvaluatorButton.addActionListener { listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
 
     tabs.apply {
       isTabDraggingEnabled = true
@@ -206,6 +211,10 @@ class SqliteViewImpl(
     workBench.loadingStopped(errorMessage)
   }
 
+  override fun reportSyncProgress(message: String) {
+    viewContext.syncLabel?.text = message
+  }
+
   private fun createSqliteExplorerTab(tableId: TabId, tableName: String, tabContent: JComponent): TabInfo {
     val tab = TabInfo(tabContent)
 
@@ -278,12 +287,28 @@ class SqliteViewImpl(
 
     private val schemaPanel = SqliteSchemaPanel()
     private val tree = schemaPanel.tree
+    private val syncProgressLabel = JLabel()
 
     init {
-      schemaPanel.removeDatabaseButton.addActionListener {
+      val closeDatabaseButton = CommonButton("Close db", AllIcons.Actions.Close)
+      closeDatabaseButton.toolTipText = "Close db"
+      schemaPanel.controlsPanel.add(closeDatabaseButton)
+
+      closeDatabaseButton.addActionListener {
         val databaseToRemove = tree?.selectionPaths?.mapNotNull { findDatabaseNode(it) }
         listeners.forEach { databaseToRemove?.forEach { database -> it.removeDatabaseActionInvoked(database) } }
       }
+
+      val syncButton = CommonButton("Sync", AllIcons.Actions.SynchronizeFS)
+      syncButton.toolTipText = "Sync"
+      schemaPanel.controlsPanel.add(syncButton)
+
+      syncButton.addActionListener {
+        val databaseToSync = tree?.selectionPaths?.mapNotNull { findDatabaseNode(it) }?.first() ?: return@addActionListener
+        listeners.forEach { it.syncDatabaseActionInvoked(databaseToSync) }
+      }
+
+      schemaPanel.controlsPanel.add(syncProgressLabel)
 
       setUpSchemaTree(tree)
     }
@@ -320,10 +345,12 @@ class SqliteViewImpl(
      */
     override fun setToolContext(toolContext: SqliteViewContext?) {
       toolContext?.schemaTree = schemaPanel.tree
+      toolContext?.syncLabel = syncProgressLabel
     }
   }
 
   class SqliteViewContext {
     var schemaTree: Tree? = null
+    var syncLabel: JLabel? = null
   }
 }

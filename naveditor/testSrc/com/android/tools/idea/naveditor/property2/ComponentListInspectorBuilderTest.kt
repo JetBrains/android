@@ -38,9 +38,9 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1") {
-          action("action1", destination = "fragment2")
           action("action2", destination = "activity1")
           action("action3", destination = "fragment1")
+          action("action1", destination = "fragment2")
         }
         fragment("fragment2")
         activity("activity1")
@@ -48,7 +48,7 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
     }
 
     val fragment1 = model.find("fragment1")!!
-    val expected = arrayOf("action1", "action2", "action3").mapNotNull(model::find)
+    val expected = arrayOf("action2", "action3", "action1").mapNotNull(model::find)
     val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, ActionListInspectorBuilder(propertiesModel), expected)
   }
@@ -57,15 +57,15 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1") {
-          argument("argument1")
           argument("argument2")
           argument("argument3")
+          argument("argument1")
         }
       }
     }
 
     val fragment1 = model.find("fragment1")!!
-    val expected = arrayOf("argument1", "argument2", "argument3").map { name -> fragment1.children.first { it.argumentName == name } }
+    val expected = arrayOf("argument2", "argument3", "argument1").map { name -> fragment1.children.first { it.argumentName == name } }
     val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, ArgumentInspectorBuilder(), expected)
   }
@@ -74,15 +74,15 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1") {
-          deeplink("deepLink1", "www.foo.com", true)
           deeplink("deepLink2", "www.bar.com", true)
           deeplink("deepLink3", "www.baz.com", true)
+          deeplink("deepLink1", "www.foo.com", true)
         }
       }
     }
 
     val fragment1 = model.find("fragment1")!!
-    val expected = arrayOf("deepLink1", "deepLink2", "deepLink3").mapNotNull(model::find)
+    val expected = arrayOf("deepLink2", "deepLink3", "deepLink1").mapNotNull(model::find)
     val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, DeepLinkInspectorBuilder(), expected)
   }

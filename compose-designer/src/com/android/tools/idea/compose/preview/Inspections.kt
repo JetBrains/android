@@ -107,8 +107,8 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
 }
 
 /**
-* Inspection that checks that any function annotated with `@Preview` is also annotated with `@Composable`.
-*/
+ * Inspection that checks that any function annotated with `@Preview` is also annotated with `@Composable`.
+ */
 class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspection() {
   override fun getDisplayName() = message("inspection.no.composable.name")
 
@@ -119,6 +119,25 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
     if (!functionAnnotations.contains(COMPOSABLE_ANNOTATION_FQN)) {
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
                              message("inspection.no.composable.description"),
+                             ProblemHighlightType.ERROR)
+    }
+  }
+}
+
+/**
+ * Inspection that checks that any `@Preview` is a top level method.
+ * This is to avoid `@Preview` methods to be instance methods of classes that we can not instantiate.
+ */
+class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
+  override fun getDisplayName() = message("inspection.top.level.function")
+
+  override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
+                                             function: KtNamedFunction,
+                                             previewAnnotation: KtAnnotationEntry,
+                                             functionAnnotations: Map<String, KtAnnotationEntry>) {
+    if (!function.isTopLevel) {
+      holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
+                             message("inspection.top.level.function"),
                              ProblemHighlightType.ERROR)
     }
   }

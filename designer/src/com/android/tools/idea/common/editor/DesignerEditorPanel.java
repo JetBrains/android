@@ -249,6 +249,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     if (Disposer.isDisposed(model)) {
       return;
     }
+    model.getType().setTypePrerequisites(model);
 
     CompletableFuture<Void> modelSetFuture = mySurface.setModel(model);
 

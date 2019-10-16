@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import static junit.framework.TestCase.assertTrue;
+import static org.fest.swing.awt.AWT.translate;
 
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.editor.DesignerEditor;
@@ -28,7 +29,6 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirectoryDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
@@ -44,6 +44,7 @@ import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import java.awt.AWTException;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -74,6 +75,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   private NlPaletteFixture myPaletteFixture;
   private WorkBenchLoadingPanelFixture myLoadingPanelFixture;
   private final ComponentDragAndDrop myDragAndDrop;
+  private java.awt.Robot myAwtRobot;
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull DesignerEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
@@ -150,17 +152,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     return !myLoadingPanelFixture.hasError() && myDesignSurfaceFixture.target().isShowing();
   }
 
-  public NlEditorFixture assertCanInteractWithSurface() {
+  public void assertCanInteractWithSurface() {
     assertTrue(canInteractWithSurface());
-    return this;
-  }
-
-  public boolean hasRenderErrors() {
-    return myDesignSurfaceFixture.hasRenderErrors();
-  }
-
-  public void waitForErrorPanelToContain(@NotNull String errorText) {
-    myDesignSurfaceFixture.waitForErrorPanelToContain(errorText);
   }
 
   @NotNull
@@ -185,11 +178,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   @NotNull
-  public CreateResourceDirectoryDialogFixture getSelectResourceDirectoryDialog() {
-    return new CreateResourceDirectoryDialogFixture(robot());
-  }
-
-  @NotNull
   public NlPropertyInspectorFixture getPropertiesPanel() {
     if (myPropertyFixture == null) {
       myPropertyFixture = new NlPropertyInspectorFixture(robot(), NlPropertyInspectorFixture.create(robot()));
@@ -208,9 +196,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   public JTreeFixture getComponentTree() {
     JTreeFixture fixture = new JTreeFixture(robot(), (JTree)robot().finder().findByName(target(), "componentTree"));
 
-    fixture.replaceCellReader((tree, value) -> {
-      return ((NlComponent)value).getTagName();
-    });
+    fixture.replaceCellReader((tree, value) -> ((NlComponent)value).getTagName());
 
     Wait.seconds(10)
       .expecting("component tree to be populated")
@@ -358,6 +344,46 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     robot().moveMouse(surface, surface.getWidth() / 2 + dx, surface.getHeight() / 2 + dy);
     robot().releaseMouseButtons();
     robot().releaseKey(keyCode);
+  }
+
+  @NotNull
+  public Point getAdaptiveIconTopLeftCorner() {
+    DesignSurface surface = myDesignSurfaceFixture.target();
+
+    SceneView view = surface.getFocusedSceneView();
+    Dimension contentDimension = view.getSize();
+    // The square icon is placed in the center of a portrait ImageView, shift the y-axis to make the position same as icon's.
+    return new Point(view.getX(), view.getY() + (contentDimension.height - contentDimension.width + 1) / 2);
+  }
+
+  @NotNull
+  public String getAdaptiveIconPathDescription() {
+    DesignSurface surface = myDesignSurfaceFixture.target();
+    if (surface instanceof NlDesignSurface) {
+      return ((NlDesignSurface)surface).getAdaptiveIconShape().getPathDescription();
+    }
+    else {
+      throw new RuntimeException("Unsupported DesignSurface type " + surface.getClass().getName());
+    }
+  }
+
+  /**
+   * Returns an HEX string corresponding to the value of the color of the pixel at a given point in the design surface reference frame.
+   */
+  @NotNull
+  public String getPixelColor(@NotNull Point p) {
+    DesignSurface surface = myDesignSurfaceFixture.target();
+    Point centerLeftPoint = translate(surface, p.x, p.y);
+
+    if (myAwtRobot == null) {
+      try {
+        myAwtRobot = new java.awt.Robot();
+      }
+      catch (AWTException e) {
+        e.printStackTrace();
+      }
+    }
+    return Integer.toHexString(myAwtRobot.getPixelColor(centerLeftPoint.x, centerLeftPoint.y).getRGB());
   }
 
   @NotNull

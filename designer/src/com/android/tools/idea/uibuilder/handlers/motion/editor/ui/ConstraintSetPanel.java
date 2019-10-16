@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMT
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -74,7 +75,7 @@ class ConstraintSetPanel extends JPanel {
   JPopupMenu myPopupMenu = new JPopupMenu();
 
   DefaultTableModel mConstraintSetModel = new DefaultTableModel(
-    new String[]{"Included", "ID", "Defined In"}, 0) {
+    new String[]{"Constraint", "ID", "Source"}, 0) {
 
     @Override
     public Class getColumnClass(int column) {
@@ -147,8 +148,10 @@ class ConstraintSetPanel extends JPanel {
     JPanel top = new JPanel(new BorderLayout());
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
-    mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(16));
+    mConstraintSetTable.setRowHeight(MEUI.scale(18));
     mConstraintSetTable.setShowHorizontalLines(false);
+    top.setPreferredSize(new Dimension(0, MEUI.scale(32)));
+
     JCheckBox cbox = new JCheckBox("All");
 
     cbox.setSelected(true);
@@ -172,7 +175,7 @@ class ConstraintSetPanel extends JPanel {
     };
     mConstraintSetTable.registerKeyboardAction(copyListener, "Copy", copy, JComponent.WHEN_FOCUSED);
     mConstraintSetTable.registerKeyboardAction(pasteListener, "Paste", paste, JComponent.WHEN_FOCUSED);
- 
+
     mConstraintSetTable.getSelectionModel().addListSelectionListener(
       e -> {
         if (mBuildingTable) {
@@ -188,7 +191,7 @@ class ConstraintSetPanel extends JPanel {
           mSelectedTag = null;
           if (mConstraintSet != null) {
             mListeners
-              .notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{mConstraintSet});
+              .notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{mConstraintSet}, 0);
           }
           return;
         }
@@ -198,7 +201,7 @@ class ConstraintSetPanel extends JPanel {
           mMultiSelectedTag[i] = mDisplayedRows.get(k);
         }
         MTag[] tag = mDisplayedRows.isEmpty() ? new MTag[0] : new MTag[]{mSelectedTag = mDisplayedRows.get(index)};
-        mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT, tag);
+        mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT, tag, 0);
         enableMenuItems(tag);
       }
     );
@@ -410,7 +413,7 @@ class ConstraintSetPanel extends JPanel {
             row[1] = layoutId;
             //row[2] = "";
             row[2] = row[3] = (derived == null) ? "layout" : findFirstDefOfView(layoutId, mConstraintSet);
-            row[0] = ("layout".equals(row[3])) ? null : MEIcons.LIST_GRAY_STATE;
+            row[0] = ("layout".equals(row[3])) ? null : Utils.computeLiteIcon(MEIcons.LIST_STATE);
             mDisplayedRows.add(view);
             mConstraintSetModel.addRow(row);
           }
@@ -476,7 +479,7 @@ class ConstraintSetPanel extends JPanel {
     mDerived = null;
     if (mConstraintSet != null) {
       mMeModel.setSelected(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{constraintSet});
-      mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{constraintSet});
+      mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{constraintSet}, 0);
       String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
       if (derived != null) {
         mDerived = Utils.stripID(derived);
@@ -533,7 +536,7 @@ class ConstraintSetPanel extends JPanel {
       boolean in = false;
 
       @Override
-      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag) {
+      public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag, int flags) {
         ArrayList<String> selectedIds = new ArrayList<>();
         if (in) { // simple block for selection triggering selection.
           return;

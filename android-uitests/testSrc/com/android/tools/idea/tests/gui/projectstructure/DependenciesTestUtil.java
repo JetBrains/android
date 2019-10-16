@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -44,11 +45,9 @@ import org.junit.Before;
 public class DependenciesTestUtil {
 
   protected static final String APP_NAME = "App";
-  protected static final String MIN_SDK = "18";
+  protected static final int MIN_SDK_API = 18;
   protected static final String CLASS_NAME_1 = "ModuleA";
   protected static final String CLASS_NAME_2 = "ModuleB";
-  protected static final String LANGUAGE_JAVA = "Java";
-  protected static final String LANGUAGE_KOTLIN = "Kotlin";
 
   @Before
   public void setUp() {
@@ -63,8 +62,8 @@ public class DependenciesTestUtil {
   @NotNull
   protected static IdeFrameFixture createNewProject(@NotNull GuiTestRule guiTest,
                                                     @NotNull String appName,
-                                                    @NotNull String minSdk,
-                                                    @NotNull String language) {
+                                                    int minSdkApi,
+                                                    @NotNull Language language) {
     guiTest
       .welcomeFrame()
       .createNewProject()
@@ -75,7 +74,7 @@ public class DependenciesTestUtil {
       .getConfigureNewAndroidProjectStep()
       .enterName(appName)
       .enterPackageName("android.com.app")
-      .selectMinimumSdkApi(minSdk)
+      .selectMinimumSdkApi(minSdkApi)
       .setSourceLanguage(language)
       .wizard()
       .clickFinish();

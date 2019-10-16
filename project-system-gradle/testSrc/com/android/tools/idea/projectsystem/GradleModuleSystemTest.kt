@@ -66,7 +66,8 @@ class GradleModuleSystemTest : AndroidTestCase() {
     override fun error(throwable: Throwable, message: String?) {}
   }
 
-  private val repoUrlManager = RepositoryUrlManager(mavenRepository, mavenRepository, false)
+  private val repoUrlManager = RepositoryUrlManager(mavenRepository, mavenRepository, forceRepositoryChecksInTests = false,
+                                                    useEmbeddedStudioRepo = false)
 
   private val library1ModuleName = "library1"
   private val library1Path = AndroidTestCase.getAdditionalModulePath(library1ModuleName)

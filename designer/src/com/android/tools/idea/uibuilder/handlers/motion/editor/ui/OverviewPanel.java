@@ -81,6 +81,7 @@ class OverviewPanel extends JPanel {
   private static final Stroke ourSelectedStroke = new BasicStroke(2f);
   private MTag mMouseOverDerived;
   private float mTransitionProgress = Float.NaN;
+  private boolean mControlDown = false;
 
   /**
    * Defines the progress along the selected Transition
@@ -127,6 +128,7 @@ class OverviewPanel extends JPanel {
 
       @Override
       public void mouseReleased(MouseEvent e) {
+        mControlDown = e.isControlDown();
         updateFromMouse(e.getX(), e.getY(), true);
       }
     });
@@ -159,11 +161,13 @@ class OverviewPanel extends JPanel {
 
                      @Override
                      public void keyPressed(KeyEvent e) {
+                       mControlDown = e.isControlDown();
+                       int flag = mControlDown ? MTagActionListener.CONTROL_FLAG : 0;
                        if (mTransitionSelected >= 0) {
-                         switch (e.getKeyCode()) {
+                         switch (e.getExtendedKeyCode()) {
                            case KeyEvent.VK_DELETE:
                            case KeyEvent.VK_BACK_SPACE:
-                             mListener.delete(new MTag[]{mTransitions[mTransitionSelected]});
+                             mListener.delete(new MTag[]{mTransitions[mTransitionSelected]}, 0);
                              return;
                            case KeyEvent.VK_UP:
                              setTransitionSetIndex((mTransitionSelected - 1 + mTransitions.length) % mTransitions.length);
@@ -171,7 +175,7 @@ class OverviewPanel extends JPanel {
                            case KeyEvent.VK_DOWN:
                              setConstraintSetIndex(0);
                              if (mListener != null) {
-                               mListener.select(mConstraintSet[0]);
+                               mListener.select(mConstraintSet[0], flag);
                              }
                              break;
                            case KeyEvent.VK_LEFT:
@@ -182,21 +186,21 @@ class OverviewPanel extends JPanel {
                              break;
                          }
                          if (mTransitionSelected >= 0 && mListener != null) {
-                           mListener.select(mTransitions[mTransitionSelected]);
+                           mListener.select(mTransitions[mTransitionSelected], flag);
                          }
                        }
                        else if (mConstraintSetSelected >= 0) {
                          switch (e.getKeyCode()) {
                            case KeyEvent.VK_DELETE:
                              if (mConstraintSetSelected > 0) {
-                               mListener.delete(new MTag[]{mConstraintSet[mConstraintSetSelected - 1]});
+                               mListener.delete(new MTag[]{mConstraintSet[mConstraintSetSelected - 1]}, 0);
                              }
                              return;
                            case KeyEvent.VK_UP:
                              if (mTransitions.length > 0) {
                                setTransitionSetIndex(0);
                                if (mListener != null) {
-                                 mListener.select(mTransitions[0]);
+                                 mListener.select(mTransitions[0], flag);
                                }
                              }
                              break;
@@ -212,10 +216,10 @@ class OverviewPanel extends JPanel {
                          }
                          if (mListener != null) {
                            if (mConstraintSetSelected == 0) {
-                             mListener.select(mLayout);
+                             mListener.select(mLayout, flag);
                            }
                            else if (mConstraintSetSelected > 0) {
-                             mListener.select(mConstraintSet[mConstraintSetSelected - 1]);
+                             mListener.select(mConstraintSet[mConstraintSetSelected - 1], flag);
                            }
                          }
                        }
@@ -264,7 +268,7 @@ class OverviewPanel extends JPanel {
 
     MTag found = objects[0];
     if (select && mListener != null) {
-      mListener.select(found);
+      mListener.select(found, mControlDown ? MTagActionListener.CONTROL_FLAG : 0);
     }
     else {
       if (mMouseOverObject != found) {
@@ -408,7 +412,7 @@ class OverviewPanel extends JPanel {
       }
 
       boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
-      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], Float.NaN,0);
+      drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], Float.NaN, 0);
       if ((clicks > 0) || (swipes > 0)) {
         mOnActionSize[i] = drawActions(g, swipes, clicks, x1, x2, y);
       }
@@ -775,7 +779,7 @@ class OverviewPanel extends JPanel {
       stagger = Math.abs(stagger);
       float scale = 1 / (1 - stagger);
       float startProgress = progress * scale;
-      float endProgress = (progress- stagger ) * scale  ;
+      float endProgress = (progress - stagger) * scale;
       float startx = mRectPathX[0] + startProgress * (mRectPathX[3] - mRectPathX[0]) - 4;
       float endx = mRectPathX[0] + endProgress * (mRectPathX[3] - mRectPathX[0]) + 4;
       int clipy = (int)mRectPathY[3] + (progress < 0.3 ? 3 : 0);

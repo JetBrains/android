@@ -346,6 +346,11 @@ public final class StudioFlags {
     NELE, "visualisation", "Layout Visualisation Tool",
     "Enable Visualisation Tool to preview layout in multiple devices at the same time",
     true);
+
+  public static final Flag<Boolean> NELE_COLOR_BLIND_MODE = Flag.create(
+    NELE, "color.blind.mode", "Color Blind Mode",
+    "Enable Visualisation Tool to preview layouts in multiple color blind modes at the same time",
+    false);
   //endregion
 
   //region Navigation Editor
@@ -457,18 +462,6 @@ public final class StudioFlags {
     SQLITE_VIEWER, "enabled", "Enable the SQLite database viewer",
     "If enabled, SQLite files downloaded from Android devices or emulators are open in a custom SQLite editor window",
     false);
-  //endregion
-
-  //region Resource Manager
-  private static final FlagGroup RESOURCES_MANAGEMENT = new FlagGroup(FLAGS, "res.manag", "Resource Management");
-  public static final Flag<Boolean> RESOURCE_MANAGER_ENABLED = Flag.create(
-    RESOURCES_MANAGEMENT, "enabled", "Enable the new resources management tools",
-    "If enabled, the new resource management tools are enabled. Subflags will also need to be enabled to enable all available new tools",
-    true);
-  public static final Flag<Boolean> RESOURCE_EXPLORER_PICKER = Flag.create(
-    RESOURCES_MANAGEMENT, "picker", "Enable the resource explorer as picker",
-    "If enabled, the new resource management tools are used for the resource picker in the property panel.",
-    true);
   //endregion
 
   //region Layout Inspector
@@ -605,7 +598,7 @@ public final class StudioFlags {
     EDITOR, "r8.support.enabled",
     "Enable support for R8 in editor",
     "If enabled, it offers support (such as code completion) for the R8 format.",
-    false
+    true
   );
 
   public static final Flag<Boolean> TRANSITIVE_R_CLASSES = Flag.create(
@@ -804,7 +797,7 @@ public final class StudioFlags {
     COMPOSE, "wizard.templates",
     "Show Compose Wizards",
     "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(

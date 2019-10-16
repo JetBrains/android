@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.APP_NAME;
+import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.MIN_SDK_API;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
@@ -74,7 +77,7 @@ public class AndroidDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveDependenciesResolve() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK, DependenciesTestUtil.LANGUAGE_JAVA);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, JAVA);
 
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextToAndroidLibrary()
@@ -90,7 +93,7 @@ public class AndroidDepTest {
 
     ideFrame.getProjectView()
       .selectProjectPane()
-      .clickPath(RIGHT_BUTTON, DependenciesTestUtil.APP_NAME, "app");
+      .clickPath(RIGHT_BUTTON, APP_NAME, "app");
 
     ideFrame.invokeMenuPath("Open Module Settings");
 
@@ -112,7 +115,7 @@ public class AndroidDepTest {
     // Create a class in the library and check the build.
     ideFrame.getProjectView()
       .selectProjectPane()
-      .clickPath(DependenciesTestUtil.APP_NAME, "library_module", "src", "main", "java", "android.com.library_module");
+      .clickPath(APP_NAME, "library_module", "src", "main", "java", "android.com.library_module");
 
     invokeNewFileDialog().setName("LibraryClass").clickOk();
     editor.open("/library_module/src/main/java/android/com/library_module/LibraryClass.java")

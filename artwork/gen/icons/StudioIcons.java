@@ -450,6 +450,7 @@ public class StudioIcons {
 
   public static class Misc {
     public static final Icon BUILD_TYPE = load("/studio/icons/misc/build-type.svg"); // 16x16
+    public static final Icon COMPOSABLE_FUNCTION = load("/studio/icons/misc/composable-function.svg"); // 16x16
     public static final Icon GRADLE_VARIABLE = load("/studio/icons/misc/gradle-variable.svg"); // 16x16
     public static final Icon PRODUCT_FLAVOR_DIMENSION = load("/studio/icons/misc/product-flavor-dimension.svg"); // 16x16
     public static final Icon PRODUCT_FLAVOR = load("/studio/icons/misc/product-flavor.svg"); // 16x16

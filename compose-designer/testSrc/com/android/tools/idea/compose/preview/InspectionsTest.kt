@@ -42,7 +42,7 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     """.trimIndent()
 
     myFixture.configureByText("Test.kt", fileContent)
-    assertEquals("Preview methods must be @Composable.",
+    assertEquals("Preview only works with Composable functions.",
                  myFixture.doHighlighting(HighlightSeverity.ERROR).single().description)
   }
 
@@ -71,8 +71,38 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       .map { it.description }
       .toArray(emptyArray())
 
-    assertArrayEquals(arrayOf("Preview methods must not have parameters.",
-                              "Preview methods must not have parameters."),
+    assertArrayEquals(arrayOf("Composable functions with parameters are not supported in Preview.",
+                              "Composable functions with parameters are not supported in Preview."),
                       inspections)
+  }
+
+  fun testPreviewMustBeTopLevel() {
+    myFixture.enableInspections(PreviewMustBeTopLevelFunction() as InspectionProfileEntry)
+
+    @Language("kotlin")
+    val fileContent = """
+      import androidx.ui.tooling.preview.Preview
+      import androidx.compose.Composable
+
+      @Composable
+      @Preview(name = "top level preview")
+      fun TopLevelPreview() {
+      }
+
+      class aClass {
+        @Preview(name = "preview2", apiLevel = 12)
+        @Composable
+        fun ClassMethodPreview() {
+        }
+      }
+    """.trimIndent()
+
+    myFixture.configureByText("Test.kt", fileContent)
+    val inspections = myFixture.doHighlighting(HighlightSeverity.ERROR)
+      .sortedByDescending { -it.startOffset }
+      .map { it.description }
+      .toArray(emptyArray())
+
+    assertEquals("Preview must be a top level declarations.", inspections.single())
   }
 }

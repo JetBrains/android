@@ -17,13 +17,10 @@ package com.android.tools.idea.compose.preview
 
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
-import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 
 internal fun UFile.declaredMethods(): Sequence<UMethod> =
   classes

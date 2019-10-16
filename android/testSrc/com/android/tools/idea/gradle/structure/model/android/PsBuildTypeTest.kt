@@ -21,13 +21,13 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.plugins.groovy.GroovyLanguage
 import java.io.File
 
 class PsBuildTypeTest : AndroidGradleTestCase() {
 
-  fun testDescriptor() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
-
+  private fun doTestDescriptor() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -40,9 +40,17 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     assertThat(buildType.descriptor.testEnumerateProperties(), equalTo(PsBuildType.BuildTypeDescriptors.testEnumerateProperties()))
   }
 
-  fun testProperties() {
+  fun testDescriptorGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestDescriptor()
+  }
 
+  fun testDescriptorKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestDescriptor()
+  }
+
+  private fun doTestProperties() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -92,9 +100,15 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(renderscriptOptimLevel.parsedValue.asTestValue(), equalTo(2))
 
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
+      // TODO(b/142454204): DslText is not language-agnostic
+      val mySigningConfigDslText = when (appModule.parsedModel?.psiFile?.language) {
+        is GroovyLanguage -> "signingConfigs.myConfig"
+        is KotlinLanguage -> "signingConfigs.getByName(\"myConfig\")"
+        else -> "***unknown language for signingConfig Dsl text***"
+      }
       assertThat(
         signingConfig.parsedValue,
-        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.myConfig")).annotated()))
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
 
       assertThat(versionNameSuffix.resolved.asTestValue(), equalTo("vsuffix"))
       assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("vsuffix"))
@@ -155,9 +169,17 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     }
   }
 
-  fun testProperties_defaultResolved() {
+  fun testPropertiesGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestProperties()
+  }
 
+  fun testPropertiesKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestProperties()
+  }
+
+  private fun doTestDefaultResolvedProperties() {
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -215,9 +237,17 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
   }
 
-  fun testSetProperties() {
+  fun testDefaultResolvedPropertiesGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestDefaultResolvedProperties()
+  }
 
+  fun testDefaultResolvedPropertiesKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestDefaultResolvedProperties()
+  }
+
+  private fun doTestSetProperties() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -288,7 +318,13 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(matchingFallbacks.map { it.parsedValue.asTestValue() }, equalTo<List<String?>>(listOf("debug")))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
-      assertThat(proGuardFiles[0].parsedValue.asUnparsedValue(), equalTo("getDefaultProguardFile('proguard-android.txt')"))
+      // TODO(b/142454204): DslText is not language-agnostic
+      val myDefaultProguardFilesText = when (appModule.parsedModel?.psiFile?.language) {
+        is GroovyLanguage -> "getDefaultProguardFile('proguard-android.txt')"
+        is KotlinLanguage -> "getDefaultProguardFile(\"proguard-android.txt\")"
+        else -> "***unknown language for defaultProguardFile Dsl text***"
+      }
+      assertThat(proGuardFiles[0].parsedValue.asUnparsedValue(), equalTo(myDefaultProguardFilesText))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
       assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(File("a.txt")))
@@ -328,9 +364,17 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(appModule.findBuildType("release")!!, afterSync = true)
   }
 
-  fun testSetProperties_undeclaredDebug() {
+  fun testSetPropertiesGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestSetProperties()
+  }
 
+  fun testSetPropertiesKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestSetProperties()
+  }
+
+  private fun doTestUndeclaredDebugSetProperties() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -364,9 +408,17 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
   }
 
-  fun testEditLists_undeclaredDebug() {
+  fun testUndeclaredDebugSetPropertiesGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestUndeclaredDebugSetProperties()
+  }
 
+  fun testUndeclaredDebugSetPropertiesKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestUndeclaredDebugSetProperties()
+  }
+
+  private fun doTestUndeclaredDebugEditLists() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -403,9 +455,17 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
   }
 
-  fun testEditMaps_undeclaredDebug() {
+  fun testUndeclaredDebugEditListsGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestUndeclaredDebugEditLists()
+  }
 
+  fun testUndeclaredDebugEditListsKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestUndeclaredDebugEditLists()
+  }
+
+  private fun doTestUndeclaredDebugEditMaps() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -441,9 +501,17 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(appModule.findBuildType("debug")!!, afterSync = true)
   }
 
-  fun testInsertingProguardFiles() {
+  fun testUndeclaredDebugEditMapsGroovy() {
     loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestUndeclaredDebugEditMaps()
+  }
 
+  fun testUndeclaredDebugEditMapsKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestUndeclaredDebugEditMaps()
+  }
+
+  private fun doTestInsertingProguardFiles() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -469,7 +537,13 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(File("z.txt")))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
-      assertThat(proGuardFiles[1].parsedValue.asUnparsedValue(), equalTo("getDefaultProguardFile('proguard-android.txt')"))
+      // TODO(b/142454204): DslText is not language-agnostic
+      val myDefaultProguardFilesText = when (appModule.parsedModel?.psiFile?.language) {
+        is GroovyLanguage -> "getDefaultProguardFile('proguard-android.txt')"
+        is KotlinLanguage -> "getDefaultProguardFile(\"proguard-android.txt\")"
+        else -> "***unknown language for defaultProguardFile Dsl text***"
+      }
+      assertThat(proGuardFiles[1].parsedValue.asUnparsedValue(), equalTo(myDefaultProguardFilesText))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[2].resolved.asTestValue(), nullValue())
       assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("a.txt")))
@@ -492,6 +566,16 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     appModule = project.findModuleByName("app") as PsAndroidModule
     // Verify nothing bad happened to the values after the re-parsing.
     verifyValues(appModule.findBuildType("release")!!, afterSync = true)
+  }
+
+  fun testInsertingProguardFilesGroovy() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    doTestInsertingProguardFiles()
+  }
+
+  fun testInsertingProguardFilesKotlin() {
+    loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
+    doTestInsertingProguardFiles()
   }
 
   /** TODO(b/72853928): Enable this test */

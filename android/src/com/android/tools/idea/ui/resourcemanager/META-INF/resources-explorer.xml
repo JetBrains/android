@@ -35,6 +35,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.android.tools.idea.ui.resourcemanager.rendering.FetchImageExecutor"/>
     <applicationService serviceImplementation="com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager"/>
     <customPasteProvider implementation="com.android.tools.idea.ui.resourcemanager.model.ResourcePasteProvider"/>
   </extensions>

@@ -44,6 +44,15 @@
                             implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8CompletionContributor"
                             order="before javaClassReference"
     />
+    <idIndexer filetype="ProGuard/R8 File" implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8IdIndexer"/>
+    <annotator language="PROGUARD_R8" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8Annotator"/>
+    <lang.braceMatcher language="PROGUARD_R8" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8PairedBraceMatcher"/>
+    <lang.quoteHandler language="PROGUARD_R8" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8QuoteHandler"/>
+    <lang.commenter language="PROGUARD_R8" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8Commenter"/>
+    <lang.findUsagesProvider language="PROGUARD_R8"
+                             implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8FindUsagesProvider"/>
+    <usageTypeProvider implementation="com.android.tools.idea.lang.proguardR8.psi.ProguardR8UsageTypeProvider"/>
+    <useScopeEnlarger implementation="com.android.tools.idea.lang.proguardR8.ProguardR8UseScopeEnlarger"/>
     <typedHandler implementation="com.android.tools.idea.lang.proguardR8.ProguardR8TypedHandler" id="proguardR8CompletionAutoPopup"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName"
                              implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedNameManipulator"/>

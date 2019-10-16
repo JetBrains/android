@@ -39,8 +39,12 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ED
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_READ_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_CREATE_BUILD_TYPE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_CREATE_BUILD_TYPE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_RESET_ELEMENTS;
@@ -70,6 +74,8 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -1386,6 +1392,44 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigPropertyModel.getRawValue(STRING_TYPE), 
                isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
     assertThat(signingConfigPropertyModel.toSigningConfig().name(), equalTo("myConfig"));
+  }
+
+  @Test
+  public void testRemoveAndApplyCreateBuildType() throws Exception {
+    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_APPLY_CREATE_BUILD_TYPE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertSize(2, android.buildTypes());
+
+    BuildTypeModel xyzModel = android.buildTypes().stream().filter(type -> type.name().equals("xyz")).findFirst().orElse(null);
+    assertThat(xyzModel, is(notNullValue()));
+    BuildTypeModel releaseModel = android.buildTypes().stream().filter(type -> type.name().equals("release")).findFirst().orElse(null);
+    assertThat(releaseModel, is(notNullValue()));
+
+    xyzModel.debuggable().delete();
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_AND_APPLY_CREATE_BUILD_TYPE_EXPECTED);
+  }
+
+  @Test
+  public void testRemoveAndApplyGetByNameBuildType() throws Exception {
+    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertSize(2, android.buildTypes());
+
+    BuildTypeModel debugModel = android.buildTypes().stream().filter(type -> type.name().equals("debug")).findFirst().orElse(null);
+    assertThat(debugModel, is(notNullValue()));
+    BuildTypeModel releaseModel = android.buildTypes().stream().filter(type -> type.name().equals("release")).findFirst().orElse(null);
+    assertThat(releaseModel, is(notNullValue()));
+
+    debugModel.debuggable().delete();
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE_EXPECTED);
   }
 
   // This test just makes sure its parsed correctly, if we decide to support these this test should be changed to

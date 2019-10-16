@@ -74,7 +74,7 @@ iml_module(
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module, test]",
+        "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",

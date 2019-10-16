@@ -671,11 +671,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public LibraryPropertiesDialogFixture showPropertiesForLibrary(@NotNull String libraryName) {
-    return getProjectView().showPropertiesForLibrary(libraryName);
-  }
-
-  @NotNull
   public MessagesFixture findMessageDialog(@NotNull String title) {
     return MessagesFixture.findByTitle(robot(), title);
   }

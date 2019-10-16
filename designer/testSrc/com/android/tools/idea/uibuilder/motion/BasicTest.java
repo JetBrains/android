@@ -32,7 +32,7 @@ public class BasicTest extends BaseMotionEditorTest {
   public void testFoo() {
     MotionEditor motionSceneUi = new MotionEditor();
     MeModel model = new MeModel(scene, layout, "foo", "bar");
-    motionSceneUi.setMTag(scene, layout, "foo", "bar");
+    motionSceneUi.setMTag(scene, layout, "foo", "bar", null);
     motionSceneUi.setMTag(model);
   }
 

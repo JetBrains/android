@@ -32,6 +32,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
+import org.jetbrains.android.facet.SourceProviderManager
 
 
 /**
@@ -72,7 +73,7 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
     if (!file.isDirectory && !couldBeNavigationFile) return false
 
     val couldBeRelevantNavigationFolder = file.couldBeNavigationFolder() && file.children.isNotEmpty()
-    return IdeaSourceProvider.getCurrentSourceProviders(facet)
+    return SourceProviderManager.getInstance(facet).currentSourceProviders
       .asSequence()
       .flatMap { it.resDirectories.asSequence() }
       .any { resDir ->
