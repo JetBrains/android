@@ -262,19 +262,25 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       @Override
       public void command(MotionEditorSelector.TimeLineCmd cmd, float pos) {
         switch (cmd) {
-          case MOTION_PROGRESS:
+          case MOTION_PROGRESS: {
             myMotionHelper.setProgress(pos);
             mLastProgress = pos;
-            break;
-          case MOTION_PLAY:
+          }  break;
+          case MOTION_SCRUB:
+            surface.setAnimationScrubbing(true);
+            //noinspection fallthrough
+          case MOTION_PLAY: {
             LayoutlibSceneManager manager = surface.getSceneManager();
             manager.updateSceneView();
             manager.requestLayoutAndRender(false);
             surface.setAnimationMode(true);
-            break;
-          case MOTION_STOP:
+          }  break;
+          case MOTION_STOP: {
             surface.setAnimationMode(false);
-            break;
+            surface.setAnimationScrubbing(false);
+            LayoutlibSceneManager manager = surface.getSceneManager();
+            manager.requestLayoutAndRender(false);
+          } break;
         }
       }
     });
@@ -531,6 +537,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
   @Override
   public void deactivate() {
+    mMotionEditor.stopAnimation();
     myMotionLayout = null;
     MotionLayoutComponentHelper.clearCache();
   }
