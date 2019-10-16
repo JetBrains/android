@@ -22,6 +22,8 @@ import com.android.ide.common.resources.StringResourceUnescaper;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.DynamicValueResourceItem;
+import com.android.tools.idea.res.PsiResourceItem;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -63,6 +65,7 @@ public final class StringResource {
     Map<Locale, ResourceItemEntry> localeToTranslationMap = new HashMap<>();
 
     for (ResourceItem item : data.getRepository().getItems(key)) {
+      assert item instanceof PsiResourceItem || item instanceof DynamicValueResourceItem : item.getClass();
       XmlTag tag = AndroidResourceUtil.getItemTag(project, item);
 
       if (tag != null && "false".equals(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))) {
