@@ -85,6 +85,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -116,6 +117,7 @@ import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.XmlElementFactory;
@@ -1400,6 +1402,32 @@ public class AndroidResourceUtil {
       }
     }
 
+    return null;
+  }
+
+  @Nullable
+  public static ResourceReferencePsiElement getResourceElementFromSurroundingValuesTag(@NotNull PsiElement element) {
+    PsiFile file = element.getContainingFile();
+    if (file != null && isInResourceSubdirectory(file, ResourceFolderType.VALUES.getName()) &&
+        (element.getText() == null || ResourceUrl.parse(element.getText()) == null)) {
+      XmlTag valuesResource = PsiTreeUtil.getParentOfType(element, XmlTag.class);
+      if (valuesResource != null && VALUE_RESOURCE_TYPES.contains(getResourceTypeForResourceTag(valuesResource))) {
+        XmlAttribute attribute = valuesResource.getAttribute(ATTR_NAME);
+        if (attribute == null) {
+          return null;
+        }
+        XmlAttributeValue valueElement = attribute.getValueElement();
+        if (valueElement == null) {
+          return null;
+        }
+        PsiReference elementReference = valueElement.getReference();
+        if (elementReference == null) {
+          return null;
+        }
+        PsiElement resolvedElement = elementReference.resolve();
+        return resolvedElement instanceof ResourceReferencePsiElement ? (ResourceReferencePsiElement)resolvedElement : null;
+      }
+    }
     return null;
   }
 
