@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.google.common.collect.ImmutableList;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -160,8 +161,10 @@ public class IdeaGradleSync implements GradleSync {
     for (String rootPath : androidProjectCandidatesPaths) {
       ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, false);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
-      refreshProject(myProject, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
-                     executionMode, true /* always report import errors */);
+      refreshProject(rootPath,
+                     new ImportSpecBuilder(myProject, GRADLE_SYSTEM_ID)
+                       .callback(setUpTask)
+                       .use(executionMode));
     }
   }
 
