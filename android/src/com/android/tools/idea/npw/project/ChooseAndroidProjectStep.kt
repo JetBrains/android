@@ -186,8 +186,8 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   companion object {
     // To have the sequence specified by design, we hardcode the sequence.
     private val ORDERED_ACTIVITY_NAMES = arrayOf(
-      "Basic Activity", "Empty Activity", "Bottom Navigation Activity", "Fragment + ViewModel", "Fullscreen Activity", "Master/Detail Flow",
-      "Navigation Drawer Activity", "Google Maps Activity", "Login Activity", "Scrolling Activity", "Tabbed Activity", "Compose Activity"
+      "Basic Activity", "Empty Activity", "Empty Compose Activity", "Bottom Navigation Activity", "Fragment + ViewModel", "Fullscreen Activity", "Master/Detail Flow",
+      "Navigation Drawer Activity", "Google Maps Activity", "Login Activity", "Scrolling Activity", "Tabbed Activity"
     )
 
     private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> {
