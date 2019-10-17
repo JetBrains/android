@@ -60,7 +60,7 @@ interface SqliteView {
    * Removes the [SqliteSchema] corresponding to the [SqliteDatabase] passed as argument.
    */
   fun removeDatabaseSchema(database: SqliteDatabase)
-  fun displayResultSet(tableId: TabId, tableName: String, component: JComponent)
+  fun openTab(tableId: TabId, tabName: String, component: JComponent)
   fun focusTab(tabId: TabId)
   fun closeTab(tabId: TabId)
 

@@ -27,7 +27,6 @@ import com.intellij.openapi.Disposable
  * The [dispose] method cancels all pending operations and releases all resources associated with
  * the result set.
  */
-// TODO(b/142708737) Sort by column
 interface SqliteResultSet : Disposable {
   val columns: ListenableFuture<List<SqliteColumn>>
   val rowCount: ListenableFuture<Int>

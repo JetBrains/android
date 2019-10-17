@@ -24,6 +24,8 @@ import com.android.tools.idea.sqlite.ui.setResultSetTableColumns
 import com.android.tools.idea.sqlite.ui.setupResultSetTable
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.util.Vector
 import javax.swing.JComponent
 import javax.swing.table.DefaultTableModel
@@ -41,6 +43,9 @@ class TableViewImpl : TableView {
 
   private val listeners = mutableListOf<TableViewListener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
+  private var isLoading = false
+
+  private lateinit var columns: List<SqliteColumn>
 
   private val panel = TablePanel()
   override val component: JComponent = panel.root
@@ -74,6 +79,18 @@ class TableViewImpl : TableView {
     lastRowsPageButton.toolTipText = "Last"
     panel.controlsPanel.add(lastRowsPageButton)
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() }}
+
+    panel.table.tableHeader.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent) {
+        if (isLoading) return
+
+        val point = e.point
+        val columnIndex = panel.table.columnAtPoint(point)
+        listeners.forEach { it.toggleOrderByColumnInvoked(columns[columnIndex]) }
+      }
+    })
+
+    // TODO(next CL) add UI stuff
   }
 
   override fun showPageSizeValue(maxRowCount: Int) {
@@ -95,9 +112,12 @@ class TableViewImpl : TableView {
     tableModel.rowCount = 0
     tableModel.columnCount = 0
     panel.table.setPaintBusy(true)
+
+    isLoading = true
   }
 
   override fun showTableColumns(columns: List<SqliteColumn>) {
+    this.columns = columns
     columns.forEach { tableModel.addColumn(it.name) }
     panel.table.setResultSetTableColumns()
   }
@@ -112,6 +132,8 @@ class TableViewImpl : TableView {
 
   override fun stopTableLoading() {
     panel.table.setPaintBusy(false)
+
+    isLoading = false
   }
 
   override fun reportError(message: String, t: Throwable?) {

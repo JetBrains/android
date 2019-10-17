@@ -113,10 +113,6 @@ class SqliteJdbcService(
     return columns
   }
 
-  override fun readTable(table: SqliteTable): ListenableFuture<SqliteResultSet> {
-    return executeQuery("select * from " + escapeName(table.name))
-  }
-
   override fun executeQuery(query: String): ListenableFuture<SqliteResultSet> {
     val newSqliteResultSet = SqliteJdbcResultSet(this, connection!!, query)
     return Futures.immediateFuture(newSqliteResultSet)
@@ -134,9 +130,5 @@ class SqliteJdbcService(
         logger.info("SQL statement \"$query\" executed with success.")
       }
     }
-  }
-
-  private fun escapeName(tableName: String): String {
-    return "'${tableName.replace("\'", "")}'"
   }
 }

@@ -190,8 +190,8 @@ class SqliteViewImpl(
     treeModel.removeNodeFromParent(databaseNode)
   }
 
-  override fun displayResultSet(tableId: TabId, tableName: String, component: JComponent) {
-    val tab = createSqliteExplorerTab(tableId, tableName, component)
+  override fun openTab(tableId: TabId, tabName: String, component: JComponent) {
+    val tab = createSqliteExplorerTab(tableId, tabName, component)
     tabs.addTab(tab)
     tabs.select(tab, true)
     openTabs[tableId] = tab

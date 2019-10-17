@@ -20,9 +20,9 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.SqliteServiceFactory
 import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactory
@@ -232,7 +232,7 @@ class SqliteController(
     )
 
     // TODO(b/136556640) What name should we use for these tabs?
-    sqliteView.displayResultSet(tabId, "New Query", sqliteEvaluatorView.component)
+    sqliteView.openTab(tabId, "New Query", sqliteEvaluatorView.component)
 
     val sqliteEvaluatorController = SqliteEvaluatorController(
       this@SqliteController,
@@ -260,23 +260,21 @@ class SqliteController(
 
       val sqliteService = database.sqliteService
 
-      edtExecutor.addCallback(sqliteService.readTable(table), object : FutureCallback<SqliteResultSet> {
-        override fun onSuccess(sqliteResultSet: SqliteResultSet?) {
-          if (sqliteResultSet != null) {
+      val tableView = viewFactory.createTableView()
+      sqliteView.openTab(tableId, table.name, tableView.component)
 
-            val tableView = viewFactory.createTableView()
-            sqliteView.displayResultSet(tableId, table.name, tableView.component)
+      val tableController = TableController(
+        parentDisposable = this@SqliteController,
+        view = tableView,
+        tableName = table.name,
+        query = "SELECT * FROM ${AndroidSqlLexer.getValidName(table.name)}",
+        sqliteService = sqliteService,
+        edtExecutor = edtExecutor
+      )
 
-            val resultSetController = ResultSetController(
-              parentDisposable = this@SqliteController,
-              view = tableView,
-              tableName = table.name,
-              resultSet = sqliteResultSet,
-              edtExecutor = edtExecutor
-            ).also { it.setUp() }
-
-            resultSetControllers[tableId] = resultSetController
-          }
+      edtExecutor.addCallback(tableController.setUp(), object : FutureCallback<Unit> {
+        override fun onSuccess(result: Unit?) {
+          resultSetControllers[tableId] = tableController
         }
 
         override fun onFailure(t: Throwable) {
