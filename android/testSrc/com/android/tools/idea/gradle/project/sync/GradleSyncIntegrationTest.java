@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.ContentEntries.findChildContentEntries;
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC;
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
 import static com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
@@ -68,12 +69,10 @@ import static org.mockito.Mockito.when;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.actions.SyncProjectAction;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -112,6 +111,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -821,14 +821,8 @@ b/137231583 */
     assertEquals(finishIdCaptor.getValue(), startIdCaptor.getValue());
   }
 
-  public void testContentRootDataNodeWithBuildSrcModule() throws Exception {
-    loadSimpleApplication();
-
-    // Create buildSrc folder under root project.
-    File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
-    File buildFile = new File(buildSrcDir, "build.gradle");
-    writeToFile(buildFile, "repositories {}");
-
+  public void testSyncWithBuildSrcModule() throws Exception {
+    loadProject(APP_WITH_BUILDSRC);
     // Request Gradle sync.
     requestSyncAndWait();
 
@@ -841,7 +835,12 @@ b/137231583 */
     // Verify that ContentRootData DataNode is created for buildSrc module.
     Collection<DataNode<ContentRootData>> contentRootData = ExternalSystemApiUtil.findAll(moduleData, ProjectKeys.CONTENT_ROOT);
     assertThat(contentRootData).hasSize(1);
+    File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
     assertThat(contentRootData.iterator().next().getData().getRootPath()).isEqualTo(buildSrcDir.getPath());
+
+    // Verify that buildSrc/lib1 has dependency on buildSrc/lib2.
+    Module lib1Module = getModule(getName() + "_lib1");
+    assertAbout(moduleDependencies()).that(lib1Module).hasDependency(getName() + "_lib2", DependencyScope.COMPILE, true);
   }
 
   public void testViewBindingOptionsAreCorrectlyVisibleFromIDE() throws Exception {

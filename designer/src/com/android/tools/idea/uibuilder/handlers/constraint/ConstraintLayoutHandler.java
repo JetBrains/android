@@ -36,6 +36,7 @@ import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
+import static com.android.SdkConstants.CLASS_MOTION_LAYOUT;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
@@ -365,7 +366,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           if (((EnabledAction)action).isEnabled(selected)) {
             return true;
           }
-        } else {
+        }
+        else {
           return true;
         }
       }
@@ -591,6 +593,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   private static class ConvertToMotionLayoutComponentsAction extends DirectViewAction {
     @Override
+    public boolean affectsUndo() {
+      return false;
+    }
+
+    @Override
     public void perform(@NotNull ViewEditor editor,
                         @NotNull ViewHandler handler,
                         @NotNull NlComponent component,
@@ -604,16 +611,40 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           component = parent;
         }
       }
+      final NlComponent componentToConvert = component;
       if (!component.getTagName().equals(cl_name)) {
         Messages.showErrorDialog(editor.getScene().getDesignSurface(),
                                  "You can only convert ConstraintLayout not " + component.getTagName(),
                                  getLabel());
         return;
       }
-      if (Messages.showYesNoDialog(editor.getScene().getDesignSurface(), "Convert to MotionLayout?", "Motion Editor", null) ==
+      if (Messages.showYesNoDialog(editor.getScene().getDesignSurface().getProject(),
+                                   "<html>This action will convert your layout into a MotionLayout<br> " +
+                                   "and create a separate MotionScene file.</html>",
+                                   "Motion Editor", "Convert", "Cancel", null) ==
           Messages.YES) {
+        NlWriteCommandActionUtil.run(componentToConvert, "Convert to MotionLayout", () ->
+        {
+          ScoutMotionConvert.convert(componentToConvert);
+        });
 
-        ScoutMotionConvert.convert(component);
+        DesignSurface designSurface = editor.getScene().getDesignSurface();
+
+        Timer t = new Timer(300, new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            Collection<SceneComponent> components = designSurface.getScene().getSceneComponents();
+            for (SceneComponent sceneComponent : components) {
+              NlComponent nlComponent = sceneComponent.getNlComponent();
+              if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CLASS_MOTION_LAYOUT)) {
+                designSurface.getSelectionModel().setSelection(Arrays.asList(nlComponent));
+                ((Timer)e.getSource()).stop();
+                break;
+              }
+            }
+          }
+        });
+        t.start();
       }
     }
 
@@ -1025,7 +1056,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           }
           if (barriers == 1 && other > 0) {
             presentation.setLabel(ADD_TO_BARRIER);
-          } else {
+          }
+          else {
             presentation.setLabel(myType == VERTICAL_BARRIER ? ADD_VERTICAL_BARRIER : ADD_HORIZONTAL_BARRIER);
           }
         }
@@ -1256,7 +1288,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           value.endsWith("mm") ||
           value.endsWith("sp")) {
         toReturn = value.substring(0, value.length() - 2);
-      } else if (value.endsWith("dip")) {
+      }
+      else if (value.endsWith("dip")) {
         toReturn = value.substring(0, value.length() - 3);
       }
       return toReturn;
@@ -1325,7 +1358,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         .setCancelOnMouseOutCallback((event) -> !withinComponent(event))
         .setCancelOnClickOutside(true)
         .setCancelOnOtherWindowOpen(true)
-        .setCancelCallback(() -> { myMarginPopup.cancel(); return Boolean.TRUE; })
+        .setCancelCallback(() -> {
+          myMarginPopup.cancel();
+          return Boolean.TRUE;
+        })
         .createPopup();
       myMarginPopup.setPopup(popup);
       Disposer.register(popup, this::popupClosed);
@@ -1735,7 +1771,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         presentation.setIcon(icon);
         if (mToParent) {
           presentation.setLabel(myToolTip);
-        } else {
+        }
+        else {
           String name = selectedChildren.get((mReverse) ? 0 : 1).getId();
           if (name == null) {
             name = "(" + selectedChildren.get((mReverse) ? 0 : 1).getTagName() + ")";
@@ -1777,7 +1814,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           if (label == null) {
             label = selectedChildren.get(mIndex).getTagName();
           }
-        } else {
+        }
+        else {
           label = getLabel();
         }
 

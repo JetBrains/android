@@ -82,7 +82,7 @@ public class ScoutMotionConvert {
 
     AttributesTransaction transaction = layout.startAttributeTransaction();
 
-    layout.getTagDeprecated().setName(DependencyManagementUtil.mapAndroidxName(layout.getModel().getModule(), CLASS_MOTION_LAYOUT));
+    layout.getTag().setName(DependencyManagementUtil.mapAndroidxName(layout.getModel().getModule(), CLASS_MOTION_LAYOUT));
 
     transaction.setAttribute(SHERPA_URI, ATTR_CONSTRAINT_LAYOUT_DESCRIPTION, "@xml/" + motion_scene_name);
 

@@ -48,7 +48,8 @@ public class CustomEventTrackRenderer implements TrackRenderer<CustomEventTrackM
   @Override
   public JComponent render(@NotNull TrackModel<CustomEventTrackModel, ProfilerTrackRendererType> trackModel) {
     JPanel container = new JPanel();
-    container.setLayout(new TabularLayout("*", "*"));
+    // Line up Custom Event graph with the start Interaction track group so that timelines are synced
+    container.setLayout(new TabularLayout("150px,*", "*"));
     container.setFocusable(true);
 
     // LineChart Panel
@@ -72,8 +73,7 @@ public class CustomEventTrackRenderer implements TrackRenderer<CustomEventTrackM
     // Track heights are fixed, so must manually set track height here.
     lineChartPanel
       .setPreferredSize(JBDimension.create(lineChartPanel.getPreferredSize()).withHeight(CUSTOM_EVENT_VISUALIZATION_TRACK_HEIGHT));
-    //add a line to separate each track at the bottom
-    lineChartPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.COMBOBOX_BORDER));
+
 
     // Axis Panel
     final JPanel axisPanel = new JBPanel(new BorderLayout());
@@ -88,8 +88,10 @@ public class CustomEventTrackRenderer implements TrackRenderer<CustomEventTrackM
 
     // TODO (b/141710789) Add in legend for the track
 
-    container.add(leftAxis, new TabularLayout.Constraint(0, 0));
-    container.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
+    container.add(leftAxis, new TabularLayout.Constraint(0, 1));
+    container.add(lineChartPanel, new TabularLayout.Constraint(0, 1));
+    // Add a line to separate each track at the bottom.
+    container.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.COMBOBOX_BORDER));
     container.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     return container;
   }

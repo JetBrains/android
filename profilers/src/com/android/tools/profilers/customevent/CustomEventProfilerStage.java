@@ -15,15 +15,19 @@
  */
 package com.android.tools.profilers.customevent;
 
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.event.EventModel;
+import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
+import com.android.tools.profilers.event.LifecycleEventDataSeries;
+import com.android.tools.profilers.event.UserEventDataSeries;
 import com.google.common.annotations.VisibleForTesting;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +66,8 @@ public class CustomEventProfilerStage extends Stage {
    */
   private void initTrackGroupList() {
     myTrackGroupModels.clear();
+    myTrackGroupModels.add(createInteractionTrackGroup());
+
     TrackGroupModel eventTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Custom Events").build();
     myTrackGroupModels.add(eventTrackGroupModel);
 
@@ -79,6 +85,25 @@ public class CustomEventProfilerStage extends Stage {
                          ProfilerTrackRendererType.CUSTOM_EVENTS,
                          eventName).setHideHeader(true));
     }
+  }
+
+
+  private TrackGroupModel createInteractionTrackGroup() {
+    Range viewRange = getStudioProfilers().getTimeline().getViewRange();
+    TrackGroupModel interaction = TrackGroupModel.newBuilder().setTitle("Interaction").build();
+    interaction.addTrackModel(
+      TrackModel.newBuilder(
+        new EventModel<>(new RangedSeries<>(viewRange, new UserEventDataSeries(getStudioProfilers()))),
+        ProfilerTrackRendererType.USER_INTERACTION,
+        "User"));
+    interaction.addTrackModel(
+      TrackModel.newBuilder(
+        new LifecycleEventModel(
+          new RangedSeries<>(viewRange, new LifecycleEventDataSeries(getStudioProfilers(), false)),
+          new RangedSeries<>(viewRange, new LifecycleEventDataSeries(getStudioProfilers(), true))),
+        ProfilerTrackRendererType.APP_LIFECYCLE,
+        "Lifecycle"));
+    return interaction;
   }
 
   @NotNull

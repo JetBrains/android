@@ -16,25 +16,142 @@
 package com.android.tools.profilers.customevent
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.CustomEventProfiler
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.energy.FakeEnergyService
+import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 
 class CustomEventMonitorTest {
+
+  private val USER_EVENTS = ImmutableList.of<Common.Event>(
+    // A light number of events at 1000ms.
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1000))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build(),
+    // A medium number of events at 2000ms.
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2000))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build(),
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2001))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build(),
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2002))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build(),
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(2003))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build(),
+    // A heavy number of events at 3000ms.
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3000))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build(),
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3000))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build(),
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3001))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build(),
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3001))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build(),
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3001))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build(),
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3002))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build(),
+    Common.Event.newBuilder()
+      .setGroupId(1)
+      .setTimestamp(TimeUnit.MILLISECONDS.toNanos(3002))
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .setUserCounters(
+        CustomEventProfiler.UserCounterData.newBuilder())
+      .setIsEnded(true)
+      .build()
+  )
   private val timer = FakeTimer()
-  private val ideProfilerServices = FakeIdeProfilerServices()
+  private val transportService = FakeTransportService(timer,true)
 
   private lateinit var profilers: StudioProfilers
   private lateinit var monitor: CustomEventMonitor
 
+  @get:Rule
+  var grpcChannel = FakeGrpcChannel("CustomEventMonitorTest", transportService, FakeProfilerService(timer),
+                                    FakeEnergyService(eventList = USER_EVENTS))
   @Before
   fun setUp() {
-    profilers = StudioProfilers(ProfilerClient("CustomEventMonitorTestChannel"), ideProfilerServices, timer)
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    val services = FakeIdeProfilerServices().apply {
+      enableCustomEventVisualization(true)
+    }
+    profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
+    USER_EVENTS.forEach { event -> transportService.addEventToStream(1, event) }
     monitor = CustomEventMonitor(profilers)
   }
 
@@ -50,8 +167,13 @@ class CustomEventMonitorTest {
   fun testLegend() {
     val legend = monitor.legend
 
-    // Currently the UserCounterDataSeries returns a count of 0 for all data ranges.
-    // Test will change one the logic for counting events has been added.
     assertThat(legend.usageLegend.value).isEqualTo("None")
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(legend.usageLegend.value).isEqualTo("Light")
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(legend.usageLegend.value).isEqualTo("Medium")
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(legend.usageLegend.value).isEqualTo("Heavy")
+
   }
 }

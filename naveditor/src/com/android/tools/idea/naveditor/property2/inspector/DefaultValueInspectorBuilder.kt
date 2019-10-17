@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.property2.inspector
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.actionDestination
-import com.android.tools.idea.naveditor.model.argumentName
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isArgument
 import com.android.tools.idea.naveditor.model.isInclude
@@ -55,7 +54,6 @@ class DefaultValueInspectorBuilder : InspectorBuilder<NelePropertyItem> {
 
     return destination.children
       .filter { it.isArgument }
-      .sortedBy { it.argumentName ?: "" }
   }
 
   private fun getDestination(component: NlComponent): NlComponent? {
