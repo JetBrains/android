@@ -54,7 +54,8 @@ public class CustomEventMonitorView extends ProfilerMonitorView<CustomEventMonit
     CustomEventMonitor.CustomEventMonitorLegend legends = getMonitor().getLegend();
     LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(MONITOR_LEGEND_RIGHT_PADDING).build();
     legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    legend.configure(legends.getUsageLegend(), new LegendConfig(LegendConfig.IconType.NONE, ProfilerColors.USER_COUNTER_EVENT_COUNT));
+    // Color here does not matter, since the legend icon is none.
+    legend.configure(legends.getUsageLegend(), new LegendConfig(LegendConfig.IconType.NONE, ProfilerColors.USER_COUNTER_EVENT_LIGHT));
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
