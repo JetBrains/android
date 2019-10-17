@@ -85,7 +85,6 @@ public class MEUI {
   public static final int ourHeaderHeight = JBUI.scale(30);
   public static final int ourGraphHeight = scale(60);
 
-
   public static final Color ourErrorColor = makeColor("UIDesigner.motion.ErrorColor", 0x8f831b, 0xffa31b);
   public static final Color ourBannerColor = makeColor("UIDesigner.motion.NotificationBackground", 0xfff8d1, 0x1d3857);
   public static final Color myTimeCursorColor = makeColor("UIDesigner.motion.TimeCursorColor", 0xff3d81e1, 0xff3d81e1);
@@ -112,23 +111,15 @@ public class MEUI {
     public static final Color ourCS = makeColor("UIDesigner.motion.ConstraintSet", 0xFFFFFF, 0x515658);
     public static final Color ourCSText = makeColor("UIDesigner.motion.ConstraintSetText", 0x000000, 0xC7C7C7);
     public static final Color ourCS_Hover = makeColor("UIDesigner.motion.HoverColor", 0XEAF2FE, 0X6E869B);
-
-
-    public static final Color ourCS_HoverBorder = makeColor("UIDesigner.motion.HoverColor", 0x989898, 0xA1A1A1);
-
-    public static final Color ourCS_SelectedFocusBorder = makeColor("UIDesigner.motion.ourCS_SelectedFocusBorder", 0x1886F7, 0x9ccdff);
-    public static final Color ourCS_SelectedBorder = makeColor("UIDesigner.motion.ourCS_SelectedBorder", 0x7a7a7a, 0xdbdbdb);
+    public static final Color ourCS_HoverBorder = makeColor("UIDesigner.motion.HoverColor", 0x7A7A7A, 0xA1A1A1);
+    public static final Color ourCS_SelectedFocusBorder = makeColor("UIDesigner.motion.ourCS_SelectedFocusBorder", 0x1886F7, 0x9CCDFF);
+    public static final Color ourCS_SelectedBorder = makeColor("UIDesigner.motion.ourCS_SelectedBorder", 0x7A7A7A, 0xA1A1A1);
+    public static final Color ourCS_SelectedFocusBackground = makeColor("UIDesigner.motion.ourCS_SelectedFocusBackground", 0xD1E7FD, 0x7691AB);
+    public static final Color ourCS_SelectedBackground = makeColor("UIDesigner.motion.ourCS_SelectedBackground", 0xD3D3D3, 0x797B7C);
     public static final Color ourCS_Border = makeColor("UIDesigner.motion.ourCS_Border", 0xBEBEBE, 0x6D6D6E);
     public static final Color ourCS_Background = makeColor("UIDesigner.motion.ourCS_Background", 0xFFFFFF, 0x515658);
     public static final Color ourCS_TextColor= makeColor("UIDesigner.motion.ourCS_TextColor", 0x686868, 0xc7c7c7);
     public static final Color ourML_BarColor = makeColor("UIDesigner.motion.ourML_BarColor", 0xd8d8d8, 0x808385);
-
-    //public static final Color ourCS_Select = makeColor("UIDesigner.motion.SelectedSetColor", 0xE1E2E1, 0X7792AC);
-    //public static final Color ourLayoutHeaderColor = makeColor("UIDesigner.motion.LayoutHeaderColor", 0xD8D8D8, 0x808385);
-    //public static final Color ourLayoutColor = makeColor("UIDesigner.motion.LayoutColor", 0xFFFFFF, 0x515658);
-    //public static final Color ourHoverColor = makeColor("UIDesigner.motion.HoverColor", 0xD0D1D0, 0xD0D1D0);
-    //public static final Color ourSelectedLineColor = makeColor("UIDesigner.motion.SelectedLineColor", 0x1886F7, 0x9CCDFF);
-    //public static final Color ourHoverLineColor = makeColor("UIDesigner.motion.LineColor", 0xBEBEBE, 0x6D6D6E);
     public static final Color ourPositionColor = makeColor("UIDesigner.motion.PositionMarkColor", 0XF0A732, 0XF0A732);
   }
 
@@ -157,7 +148,6 @@ public class MEUI {
     ret.setUI(new CommonPopupMenuUI());
     return ret;
   }
-
 
   public interface Popup {
     void dismiss();
