@@ -79,28 +79,47 @@ public class AndroidGradleTests {
   private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
   private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
 
+  /**
+   * @deprecated use {@link AndroidGradleTests#updateToolingVersionsAndPaths(java.io.File) instead.}.
+   */
+  @Deprecated
   public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
-    updateGradleVersions(folderRootPath, null);
+    updateToolingVersionsAndPaths(folderRootPath, null, null);
   }
 
-  public static void updateGradleVersions(@NotNull File folderRootPath, @Nullable String gradlePluginVersion) throws IOException {
-    doUpdateGradleVersionsAndRepositories(folderRootPath, null, gradlePluginVersion);
+  public static void updateToolingVersionsAndPaths(@NotNull File folderRootPath) throws IOException {
+    updateToolingVersionsAndPaths(folderRootPath, null, null);
   }
 
-  public static void updateGradleVersionsAndRepositories(@NotNull File path,
-                                                         @NotNull String repositories,
-                                                         @Nullable String gradlePluginVersion)
+  public static void updateToolingVersionsAndPaths(@NotNull File folderRootPath,
+                                                   @Nullable String gradleVersion,
+                                                   @Nullable String gradlePluginVersion) throws IOException {
+    updateToolingVersionsAndPaths(folderRootPath, null, gradleVersion, gradlePluginVersion);
+  }
+
+  public static void updateToolingVersionsAndPaths(@NotNull File path,
+                                                   @Nullable String repositories,
+                                                   @Nullable String gradleVersion,
+                                                   @Nullable String gradlePluginVersion)
     throws IOException {
-    doUpdateGradleVersionsAndRepositories(path, repositories, gradlePluginVersion);
+    updateToolingVersionsAndPaths(path, true, repositories, gradleVersion, gradlePluginVersion);
   }
 
-  private static void doUpdateGradleVersionsAndRepositories(@NotNull File path,
-                                                            @Nullable String localRepositories,
-                                                            @Nullable String gradlePluginVersion)
+  private static void updateToolingVersionsAndPaths(@NotNull File path,
+                                                    boolean isRoot,
+                                                    @Nullable String localRepositories,
+                                                    @Nullable String gradleVersion,
+                                                    @Nullable String gradlePluginVersion)
     throws IOException {
     if (path.isDirectory()) {
+      if (isRoot || new File(path, FN_SETTINGS_GRADLE).exists() || new File(path, FN_SETTINGS_GRADLE_KTS).exists()) {
+        // Override settings just for tests (e.g. sdk.dir)
+        updateLocalProperties(path, getSdk());
+        // We need the wrapper for import to succeed
+        createGradleWrapper(path, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
+      }
       for (File child : notNullize(path.listFiles())) {
-        doUpdateGradleVersionsAndRepositories(child, localRepositories, gradlePluginVersion);
+        updateToolingVersionsAndPaths(child, false, localRepositories, gradleVersion, gradlePluginVersion);
       }
     }
     else if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
@@ -421,12 +440,7 @@ public class AndroidGradleTests {
 
   public static void defaultPatchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion,
                                                  @Nullable String gradlePluginVersion) throws IOException {
-    // Override settings just for tests (e.g. sdk.dir)
-    updateLocalProperties(projectRoot, getSdk());
-    // We need the wrapper for import to succeed
-    createGradleWrapper(projectRoot, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
-
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    updateGradleVersions(projectRoot, gradlePluginVersion);
+    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion);
   }
 }

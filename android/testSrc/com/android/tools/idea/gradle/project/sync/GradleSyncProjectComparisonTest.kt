@@ -242,7 +242,7 @@ b/137231583 */
       }
       $localRepositories
       """
-      AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
+      AndroidGradleTests.updateToolingVersionsAndPaths(projectRoot, repositories, null, null)
     }
     val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
       val jModuleMFile = project.guessProjectDir()?.findFileByRelativePath("jModuleM/build.gradle")!!
@@ -309,7 +309,7 @@ b/137231583 */
       }
       $localRepositories
       """
-      AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
+      AndroidGradleTests.updateToolingVersionsAndPaths(projectRoot, repositories, null, null)
     }
     PsProjectImpl(project).let { projectModel ->
       projectModel
@@ -402,7 +402,7 @@ b/137231583 */
         }
         $localRepositories
         """
-    AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectRoot, repositories, null, null)
   }
 }
 
