@@ -49,7 +49,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
   override fun tearDown() {
     try {
-      sqliteService.closeDatabase()
+      pumpEventsAndWaitForFuture(sqliteService.closeDatabase())
       sqliteUtil.tearDown()
       SqliteViewer.enableFeature(previouslyEnabled)
     }
@@ -102,32 +102,6 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
     // Assert
     assertThat(sqliteFile.exists()).isFalse()
-  }
-
-  fun testReadTableReturnsResultSet() {
-    // Prepare
-    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
-
-    // Act
-    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
-
-    // Assert
-    assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
-    assertThat(resultSet.hasColumn("title", JDBCType.VARCHAR)).isTrue()
-    assertThat(resultSet.hasColumn("isbn", JDBCType.VARCHAR)).isTrue()
-    assertThat(resultSet.hasColumn("author_id", JDBCType.INTEGER)).isTrue()
-
-    // Act
-    var rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 3))
-
-    // Assert
-    assertThat(rows.count()).isEqualTo(3)
-
-    // Act
-    rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 1))
-
-    // Assert
-    assertThat(rows.count()).isEqualTo(1)
   }
 
   fun testExecuteQuerySelectAllReturnsResultSet() {
@@ -188,7 +162,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(sqliteService.executeUpdate("DROP TABLE Book"))
-    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery("SELECT * FROM Book"))
     val error = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0, 1))
 
     // Assert
@@ -200,7 +174,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("Book", listOf(), false)))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery("SELECT * FROM Book"))
     Disposer.dispose(resultSet)
     val error = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0,3))
 
@@ -208,12 +182,12 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     assertThat(error).isNotNull()
   }
 
-  fun testReadTableFailsWhenIncorrectTableName() {
+  fun testExecuteQueryFailsWhenIncorrectTableName() {
     // Prepare
     pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(sqliteService.readTable(SqliteTable("IncorrectTableName", listOf(), false)))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery("SELECTE * FROM IncorrectTableName"))
     val future = resultSet.getRowBatch(0, 1)
     val error = pumpEventsAndWaitForFutureException(future)
 
@@ -227,9 +201,5 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
   private fun SqliteTable.hasColumn(name: String, type: JDBCType) : Boolean {
     return this.columns.find { it.name == name }?.type?.equals(type) ?: false
-  }
-
-  companion object {
-    const val TIMEOUT_MILLISECONDS: Long = 30000
   }
 }

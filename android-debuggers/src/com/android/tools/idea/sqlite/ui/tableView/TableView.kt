@@ -72,4 +72,9 @@ interface TableViewListener {
    * Invoked when the user changes the number of rows to display per page.
    */
   fun rowCountChanged(rowCount: Int)
+
+  /**
+   * Invoked when the user wants to order the data by a specific column
+   */
+  fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn)
 }

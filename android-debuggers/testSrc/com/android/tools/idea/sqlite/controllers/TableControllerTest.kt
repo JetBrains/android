@@ -18,18 +18,23 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.editors.sqlite.SqliteTestUtil
+import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.jdbc.SqliteJdbcService
 import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockTableView
+import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteRow
-import com.android.tools.idea.sqlite.ui.tableView.TableViewListener
 import com.google.common.util.concurrent.Futures
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.UsefulTestCase
-import com.intellij.testFramework.UsefulTestCase.assertThrows
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.util.concurrency.EdtExecutorService
 import org.mockito.InOrder
 import org.mockito.Mockito.`when`
@@ -38,31 +43,94 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
+import java.sql.JDBCType
 
-class ResultSetControllerTest : UsefulTestCase() {
+class TableControllerTest : PlatformTestCase() {
 
   private lateinit var tableView: MockTableView
   private lateinit var mockResultSet: MockSqliteResultSet
   private lateinit var edtExecutor: FutureCallbackExecutor
-  private lateinit var resultSetController: ResultSetController
+  private lateinit var tableController: TableController
+  private lateinit var mockSqliteService: SqliteService
+
   private lateinit var orderVerifier: InOrder
 
+  private lateinit var sqliteUtil: SqliteTestUtil
+  private lateinit var realSqliteService: SqliteService
+
+  private lateinit var authorIdColumn: SqliteColumn
+  private lateinit var authorsRow1: SqliteRow
+  private lateinit var authorsRow2: SqliteRow
+  private lateinit var authorsRow4: SqliteRow
+  private lateinit var authorsRow5: SqliteRow
+  
   override fun setUp() {
     super.setUp()
     tableView = spy(MockTableView::class.java)
     mockResultSet = MockSqliteResultSet()
     edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+    mockSqliteService = mock(SqliteService::class.java)
     orderVerifier = inOrder(tableView)
+
+    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil.setUp()
+
+    val sqliteFile = sqliteUtil.createTestSqliteDatabase()
+    realSqliteService = SqliteJdbcService(sqliteFile, edtExecutor)
+
+    authorIdColumn = SqliteColumn("author_id", JDBCType.INTEGER)
+    val authorNameColumn = SqliteColumn("first_name", JDBCType.VARCHAR)
+    val authorLastColumn = SqliteColumn("last_name", JDBCType.VARCHAR)
+
+    authorsRow1 = SqliteRow(
+      listOf(
+        SqliteColumnValue(authorIdColumn, 1),
+        SqliteColumnValue(authorNameColumn, "Joe1"),
+        SqliteColumnValue(authorLastColumn, "LastName1")
+      )
+    )
+
+    authorsRow2 = SqliteRow(
+      listOf(
+        SqliteColumnValue(authorIdColumn, 2),
+        SqliteColumnValue(authorNameColumn, "Joe2"),
+        SqliteColumnValue(authorLastColumn, "LastName2")
+      )
+    )
+
+    authorsRow4 = SqliteRow(
+      listOf(
+        SqliteColumnValue(authorIdColumn, 4),
+        SqliteColumnValue(authorNameColumn, "Joe4"),
+        SqliteColumnValue(authorLastColumn, "LastName4")
+      )
+    )
+
+    authorsRow5 = SqliteRow(
+      listOf(
+        SqliteColumnValue(authorIdColumn, 5),
+        SqliteColumnValue(authorNameColumn, "Joe5"),
+        SqliteColumnValue(authorLastColumn, "LastName5")
+      )
+    )
+  }
+
+  override fun tearDown() {
+    try {
+      pumpEventsAndWaitForFuture(realSqliteService.closeDatabase())
+      sqliteUtil.tearDown()
+    } finally {
+      super.tearDown()
+    }
   }
 
   fun testSetUp() {
     // Prepare
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
@@ -75,10 +143,11 @@ class ResultSetControllerTest : UsefulTestCase() {
 
   fun testSetUpTableNameIsNull() {
     // Prepare
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, null, mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, null, mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
+    pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
     verify(tableView).startTableLoading()
@@ -89,11 +158,11 @@ class ResultSetControllerTest : UsefulTestCase() {
     val mockResultSet = mock(SqliteResultSet::class.java)
     val throwable = Throwable()
     `when`(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(throwable))
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
@@ -104,41 +173,35 @@ class ResultSetControllerTest : UsefulTestCase() {
 
   fun testSetUpIsDisposed() {
     // Prepare
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    Disposer.dispose(resultSetController)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    verify(tableView).addListener(any(TableViewListener::class.java))
-    verify(tableView).showPageSizeValue(any(Int::class.java))
-    verify(tableView).startTableLoading()
-    verify(tableView).removeListener(any(TableViewListener::class.java))
-    verifyNoMoreInteractions(tableView)
+    Disposer.dispose(tableController)
+    val future = tableController.setUp()
+    pumpEventsAndWaitForFutureException(future)
   }
 
   fun testSetUpErrorIsDisposed() {
     // Prepare
     val mockResultSet = mock(SqliteResultSet::class.java)
     `when`(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(Throwable()))
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act/Assert
-    Disposer.dispose(resultSetController)
-    assertThrows<ProcessCanceledException>(ProcessCanceledException::class.java) { resultSetController.setUp() }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    Disposer.dispose(tableController)
+    pumpEventsAndWaitForFutureException(tableController.setUp())
   }
 
   fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnSetup`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(10)
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
     verify(tableView, times(2)).setFetchNextRowsButtonState(false)
@@ -147,11 +210,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnNext`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(2)
-    resultSetController = ResultSetController(testRootDisposable, 1, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 1, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -164,11 +227,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test Next`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
@@ -187,11 +250,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test NextBatchOf5`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    resultSetController = ResultSetController(testRootDisposable, 5, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 5, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
@@ -210,11 +273,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test Next Prev`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
@@ -239,11 +302,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test Next Prev Next`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
@@ -274,11 +337,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test ChangeBatchSize`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
@@ -300,11 +363,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test ChangeBatchSize At End`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(20)
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().rowCountChanged(11)
@@ -323,11 +386,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `testChangeBatchSize DisablesPreviousButton`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().rowCountChanged(1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -345,11 +408,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test ChangeBatchSize DisablesNextButton`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(50)
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().rowCountChanged(100)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -367,11 +430,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test ChangeBatchSize Max Min`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(50)
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().rowCountChanged(100)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().rowCountChanged(1)
@@ -392,11 +455,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test ChangeBatchSize Next`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
@@ -421,11 +484,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test ChangeBatchSize Prev`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
@@ -450,11 +513,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test ChangeBatchSize Prev ChangeBatchSize Prev Next`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
@@ -491,11 +554,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test First`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadNextRowsInvoked()
@@ -517,11 +580,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test First ChangeBatchSize`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadNextRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadFirstRowsInvoked()
@@ -543,11 +606,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test Last`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(50)
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadLastRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -563,11 +626,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test Last LastPage Not Full`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(61)
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadLastRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
@@ -583,11 +646,11 @@ class ResultSetControllerTest : UsefulTestCase() {
   fun `test Last Prev ChangeBatchSize First`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(50)
-    resultSetController = ResultSetController(testRootDisposable, 10, tableView, "tableName", mockResultSet, edtExecutor)
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(testRootDisposable, 10, tableView, "tableName", mockSqliteService, "", edtExecutor)
 
     // Act
-    resultSetController.setUp()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    pumpEventsAndWaitForFuture(tableController.setUp())
     tableView.listeners.first().loadLastRowsInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     tableView.listeners.first().loadPreviousRowsInvoked()
@@ -607,6 +670,78 @@ class ResultSetControllerTest : UsefulTestCase() {
     )
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun testSetUpOnRealDb() {
+    // Prepare
+    pumpEventsAndWaitForFuture(realSqliteService.openDatabase())
+
+    tableController = TableController(
+      testRootDisposable,
+      2,
+      tableView,
+      "tableName",
+      realSqliteService,
+      "SELECT * FROM author",
+      edtExecutor
+    )
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Assert
+    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
+  }
+
+  fun testSort() {
+    // Prepare
+    pumpEventsAndWaitForFuture(realSqliteService.openDatabase())
+
+    tableController = TableController(
+      testRootDisposable,
+      2,
+      tableView,
+      "tableName",
+      realSqliteService,
+      "SELECT * FROM author",
+      edtExecutor
+    )
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
+    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
+    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow5, authorsRow4))
+  }
+
+  fun testSortOnSortedQuery() {
+    // Prepare
+    pumpEventsAndWaitForFuture(realSqliteService.openDatabase())
+
+    tableController = TableController(
+      testRootDisposable,
+      2,
+      tableView,
+      "tableName",
+      realSqliteService,
+      "SELECT * FROM author ORDER BY author_id DESC",
+      edtExecutor
+    )
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow5, authorsRow4))
+    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
   }
 
   private fun assertRowSequence(invocations: List<List<SqliteRow>>, expectedInvocations: List<List<Int>>) {

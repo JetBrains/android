@@ -17,6 +17,9 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
+import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewListener
@@ -30,52 +33,71 @@ import com.intellij.util.containers.ComparatorUtil.max
 /**
  * Controller specialized in displaying rows and columns from a [SqliteResultSet].
  *
- * The ownership of the [SqliteResultSet] is transferred to the [ResultSetController],
+ * The ownership of the [SqliteResultSet] is transferred to the [TableController],
  * i.e. it is closed when [dispose] is called.
  *
  * The [SqliteResultSet] is not necessarily associated with a real table in the database, in those cases the [tableName] will be null.
  */
 @UiThread
-class ResultSetController(
+class TableController(
   parentDisposable: Disposable,
   private var rowBatchSize: Int = 50,
   private val view: TableView,
   private val tableName: String?,
-  private val resultSet: SqliteResultSet,
+  private val sqliteService: SqliteService,
+  private val query: String,
   private val edtExecutor: FutureCallbackExecutor
 ) : Disposable {
   private val listener = TableViewListenerImpl()
+
+  private lateinit var resultSet: SqliteResultSet
+  private var orderBy: OrderBy? = null
   private var start = 0
 
   init {
     Disposer.register(parentDisposable, this)
-    Disposer.register(this, resultSet)
   }
 
-  fun setUp() {
-    if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+  fun setUp(): ListenableFuture<Unit> {
 
-    view.showPageSizeValue(rowBatchSize)
-    view.addListener(listener)
     view.startTableLoading()
 
-    val futureDisplayRows = edtExecutor.transformAsync(resultSet.columns) { columns ->
+    return edtExecutor.transform(sqliteService.executeQuery(query)) { newResultSet ->
+      if (Disposer.isDisposed(this)) {
+        newResultSet.dispose()
+        throw ProcessCanceledException()
+      }
+
+      view.showPageSizeValue(rowBatchSize)
+      view.addListener(listener)
+
+      resultSet = newResultSet
+      Disposer.register(this, newResultSet)
+
+      fetchAndDisplayTableData()
+
+      return@transform
+    }
+  }
+
+  override fun dispose() {
+    view.removeListener(listener)
+  }
+
+  private fun fetchAndDisplayTableData() {
+    val fetchTableDataFuture = edtExecutor.transformAsync(resultSet.columns) { columns ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       view.showTableColumns(columns!!)
 
       updateDataAndButtons()
     }
 
-    val futureCatching = handleFetchRowsError(futureDisplayRows)
+    val futureCatching = handleFetchRowsError(fetchTableDataFuture)
 
     edtExecutor.finallySync(futureCatching) {
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       view.stopTableLoading()
     }
-  }
-
-  override fun dispose() {
-    view.removeListener(listener)
   }
 
   private fun updateDataAndButtons(): ListenableFuture<Unit> {
@@ -119,6 +141,33 @@ class ResultSetController(
   }
 
   private inner class TableViewListenerImpl : TableViewListener {
+    override fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn) {
+      if (orderBy != null && orderBy!!.column == sqliteColumn) {
+        orderBy = OrderBy(sqliteColumn, !orderBy!!.asc)
+      } else {
+        orderBy = OrderBy(sqliteColumn, true)
+      }
+
+      val order = if (orderBy!!.asc) "ASC" else "DESC"
+      val newQuery = "SELECT * FROM ($query) ORDER BY ${AndroidSqlLexer.getValidName(orderBy!!.column.name)} $order"
+
+      view.startTableLoading()
+      Disposer.dispose(resultSet)
+
+      edtExecutor.transform(sqliteService.executeQuery(newQuery)) { newResultSet ->
+        if (Disposer.isDisposed(this@TableController)) {
+          newResultSet.dispose()
+          throw ProcessCanceledException()
+        }
+
+        resultSet = newResultSet
+        Disposer.register(this@TableController, newResultSet)
+
+        start = 0
+        fetchAndDisplayTableData()
+      }
+    }
+
     override fun rowCountChanged(rowCount: Int) {
       if (rowCount < 0) {
         view.reportError("Row count must be non-negative", null)
@@ -164,3 +213,5 @@ class ResultSetController(
     }
   }
 }
+
+data class OrderBy(val column: SqliteColumn, val asc: Boolean)

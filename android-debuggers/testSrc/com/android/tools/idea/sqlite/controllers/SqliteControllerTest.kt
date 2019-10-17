@@ -116,7 +116,7 @@ class SqliteControllerTest : PlatformTestCase() {
     edtExecutor = EdtExecutorService.getInstance()
     taskExecutor = SameThreadExecutor.INSTANCE
 
-    openedFiles = mutableListOf<VirtualFile>()
+    openedFiles = mutableListOf()
     sqliteController = SqliteController(
       project,
       SqliteExplorerProjectService.getInstance(project),
@@ -135,7 +135,7 @@ class SqliteControllerTest : PlatformTestCase() {
     mockSqliteService = sqliteServiceFactory.sqliteService
     `when`(mockSqliteService.openDatabase()).thenReturn(Futures.immediateFuture(Unit))
     `when`(mockSqliteService.closeDatabase()).thenReturn(Futures.immediateFuture(null))
-    `when`(mockSqliteService.readTable(testSqliteTable)).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
     sqliteDatabase1 = SqliteDatabase(sqliteFile1, mockSqliteService)
     sqliteDatabase2 = SqliteDatabase(sqliteFile2, mockSqliteService)
@@ -249,7 +249,7 @@ class SqliteControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(sqliteView).displayResultSet(
+    verify(sqliteView).openTab(
       eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)),
       eq(testSqliteTable.name), any(JComponent::class.java)
     )
@@ -267,7 +267,7 @@ class SqliteControllerTest : PlatformTestCase() {
 
     // Assert
     verify(sqliteView)
-      .displayResultSet(any(TabId.AdHocQueryTab::class.java), any(String::class.java), any(JComponent::class.java))
+      .openTab(any(TabId.AdHocQueryTab::class.java), any(String::class.java), any(JComponent::class.java))
   }
 
   fun testCloseTabIsCalledForTable() {
@@ -318,7 +318,7 @@ class SqliteControllerTest : PlatformTestCase() {
     // Assert
     verify(viewFactory).createTableView()
     verify(sqliteView)
-      .displayResultSet(
+      .openTab(
         eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)),
         eq(testSqliteTable.name), any(JComponent::class.java)
       )

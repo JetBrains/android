@@ -49,7 +49,7 @@ open class MockSqliteView : SqliteView {
 
   override fun removeDatabaseSchema(database: SqliteDatabase) { }
 
-  override fun displayResultSet(tableId: TabId, tableName: String, component: JComponent) {
+  override fun openTab(tableId: TabId, tabName: String, component: JComponent) {
     lastDisplayedResultSetTabId = tableId
   }
 
