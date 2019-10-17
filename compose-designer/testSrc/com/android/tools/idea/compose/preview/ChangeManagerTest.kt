@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 /**
  * Helper class do test change tracking and asserting on specific types of changes.
