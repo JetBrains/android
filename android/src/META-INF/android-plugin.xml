@@ -75,6 +75,9 @@
       <implementation-class>com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionComponent</implementation-class>
     </component>
     <component>
+      <implementation-class>com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionComponent</implementation-class>
+    </component>
+    <component>
       <implementation-class>com.android.tools.idea.project.SyncTimestamp</implementation-class>
     </component>
     <component>

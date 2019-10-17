@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager
-import com.android.tools.idea.util.LazyVirtualFileListenerSubscriber
+import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.diagnostic.Logger
@@ -61,10 +61,10 @@ internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileLi
 
   /** Project service responsible for subscribing a new [SampleDataListener] to listen for both VFS and PSI changes. */
   private class Subscriber(val project: Project) :
-    LazyVirtualFileListenerSubscriber<SampleDataListener>(SampleDataListener(project), project) {
+    LazyFileListenerSubscriber<SampleDataListener>(SampleDataListener(project), project) {
 
     override fun subscribe() {
-      super.subscribe()
+      VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
       AndroidFileChangeListener.getInstance(project).setSampleDataListener(listener)
     }
   }
