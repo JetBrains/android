@@ -172,11 +172,11 @@ public class GradleSpecificInitializer implements Runnable {
     ActionManager actionManager = ActionManager.getInstance();
 
     moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
-               "WelcomeScreen.QuickStart", new Constraints(AFTER, "WelcomeScreen.GetFromVcs"), actionManager);
+               "WelcomeScreen.QuickStart", new Constraints(AFTER, "Vcs.VcsClone"), actionManager);
 
-    AnAction getFromVcsAction = actionManager.getAction("WelcomeScreen.GetFromVcs");
+    AnAction getFromVcsAction = actionManager.getAction("Vcs.VcsClone");
     if (getFromVcsAction != null) {
-      getFromVcsAction.getTemplatePresentation().setText("Check out project from Version Control");
+      getFromVcsAction.getTemplatePresentation().setText("Get project from Version Control");
     }
 
     AnAction configureIdeaAction = actionManager.getAction("WelcomeScreen.Configure.IDEA");
