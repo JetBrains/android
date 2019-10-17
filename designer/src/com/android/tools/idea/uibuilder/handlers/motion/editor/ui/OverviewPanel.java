@@ -508,6 +508,7 @@ class OverviewPanel extends JPanel {
     FontMetrics fm = g.getFontMetrics();
     String maxString = "Layout";
     int maxStringWidth = maxString.length();
+
     for (int i = 0; i < mConstraintSetNames.length; i++) {
       int width = mConstraintSetNames[i].length();
       if (width > maxStringWidth) {
@@ -528,62 +529,62 @@ class OverviewPanel extends JPanel {
     g.setColor(colorNormalLine);
     g.drawLine(line_x, line_y, line_x, line_y + cs_height);
 
-    // ---------  Draw Rectangles -------------
+    // ---------  Draw ConstraintSet Rectangles -------------
     for (int i = 0; i <= mConstraintSet.length; i++) {
       int setIndex = i - 1;
       if (i == 0) setIndex = mConstraintSet.length;
       int x = getmConstraintSetX(i);
       int y = constraintSetY;
       boolean hover = false;
+      boolean drawLayout = i == 0;
+      boolean selected = (mConstraintSetSelected == i);
+       if (selectedEnd == setIndex || selectedStart == setIndex) {
+         selected = true;
+       }
+      boolean transitionHighlightStart = mHighlightStart && (selectedStart == setIndex);
+      boolean transitionHighlightEnd = mHighlightEnd && (selectedEnd == setIndex);
+
       if (mMouseOverObject != null) {
-        if (i == 0) {
-          if (mLayout == mMouseOverObject) {
-            hover = true;
-          }
-        }
-        else {
-          if (mConstraintSet[setIndex] == mMouseOverObject) {
-            hover = true;
-          }
-        }
+        hover = ((drawLayout) ? mLayout : mConstraintSet[setIndex]) == mMouseOverObject;
       }
-      if (i != 0) {
+      if (!drawLayout) {
         picker.addRect(mConstraintSet[setIndex], 3, x, y, x + csWidth, y + csHeight);
       }
       else {
         picker.addRect(mLayout, 3, x, y, x + csWidth, y + csHeight);
       }
-      boolean isLayout = (i == 0);
-      String name = isLayout ? "Layout" : mConstraintSetNames[setIndex];
-      g.setColor(MEUI.Overview.ourCS_Background);
 
-      g.setColor(MEUI.Overview.ourCS_Background);
+      String name = drawLayout ? "Layout" : mConstraintSetNames[setIndex];
+      Color colorBackground = MEUI.Overview.ourCS_Background;
+      if (mConstraintSetSelected == i) {
+        if (focus) {
+          colorBackground = MEUI.Overview.ourCS_SelectedFocusBackground;
+        }
+        else {
+          colorBackground = MEUI.Overview.ourCS_SelectedBackground;
+        }
+      }
+
+      g.setColor(colorBackground);
       g.fillRoundRect(x, y, csWidth, csHeight, space, space);
 
       Color color = colorNormalLine;
-      if (mConstraintSetSelected == i) {
-        color = colorSelectedLine;
-      }
-      else {
-        if (selectedEnd == setIndex || selectedStart == setIndex) { // selected transitions start or ends
-          color = colorSelectedLine;
-          if (selectedEnd == setIndex && mHighlightEnd) { // selected transition end
-            color = MEUI.Overview.ourPositionColor;
-          }
-          else if (selectedStart == setIndex && mHighlightStart) { // selected transition
-            color = MEUI.Overview.ourPositionColor;
-          }
-        }
-      }
       if (hover) {
         color = colorHoverLine;
       }
+      if (selected) {
+        color = colorSelectedLine;
+      }
+      if (transitionHighlightStart || transitionHighlightEnd) { // selected transition end
+        color = MEUI.Overview.ourPositionColor;
+      }
+
       g.setColor(color);
       g.drawRoundRect(x, y, csWidth, csHeight, space, space);
 
       if (i == 0) {
         //  g.setColor((hover) ? MEUI.Overview.ourCS_Hover : MEUI.Overview.ourLayoutColor);
-        g.setColor(MEUI.Overview.ourCS_Background);
+        g.setColor(colorBackground);
 
         g.fillRoundRect(x, y, csWidth, csHeight, space, space);
         g.setColor(MEUI.Overview.ourML_BarColor);
@@ -594,7 +595,7 @@ class OverviewPanel extends JPanel {
       }
       g.setColor(MEUI.Overview.ourCS_TextColor);
 
-      if (isLayout) {
+      if (drawLayout) {
         int stringWidth = fm.stringWidth("Motion");
         int mx = x + (csWidth - stringWidth) / 2;
         int my = y + csHeight / 2 - fm.getHeight() + fm.getAscent();
