@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
+import static com.intellij.ide.util.projectWizard.importSources.JavaSourceRootDetectionUtil.suggestRoots;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
+import com.android.tools.idea.util.SwingWorker;
 import com.intellij.ide.util.projectWizard.importSources.JavaModuleSourceRoot;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -29,17 +35,17 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.concurrency.SwingWorker;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
-import static com.intellij.ide.util.projectWizard.importSources.JavaSourceRootDetectionUtil.suggestRoots;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class ExternalSourceFolders {
   @NotNull private final ModifiableRootModel myModuleModel;

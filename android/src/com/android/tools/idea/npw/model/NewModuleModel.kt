@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.sdklib.AndroidVersion.VersionCodes.P
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.getModuleRoot
@@ -31,6 +32,7 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME
@@ -54,6 +56,7 @@ class ExistingNewProjectModelData(project: Project, override val projectSyncInvo
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
   override val enableCppSupport: BoolValueProperty = BoolValueProperty()
   override val cppFlags: StringValueProperty = StringValueProperty("")
+  override val useAppCompat = BoolValueProperty()
   override val project: OptionalValueProperty<Project> = OptionalValueProperty(project)
   override val isNewProject = false
   override val projectTemplateValues: MutableMap<String, Any> = mutableMapOf()
@@ -157,6 +160,13 @@ class NewModuleModel(
           setLanguage(language.value)
         }
       }
+
+      if (useAppCompat.get()) {
+        // The highest supported/recommended appCompact version is P(28)
+        moduleTemplateValues[ATTR_BUILD_API] =  androidSdkInfo.value.buildApiLevel.coerceAtMost(P)
+      }
+
+      moduleTemplateValues.putAll(projectTemplateValues)
     }
 
     @WorkerThread

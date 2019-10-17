@@ -135,7 +135,7 @@ class AndroidTestApplicationLaunchTask private constructor(
     printer.stdout("$ adb shell ${runner.amInstrumentCommand}")
 
     // Run "am instrument" command in a separate thread.
-    ApplicationManager.getApplication().executeOnPooledThread {
+    val testExecutionFuture = ApplicationManager.getApplication().executeOnPooledThread {
       try {
         runner.run(AndroidTestListener(launchStatus, printer), UsageTrackerTestRunListener(myArtifact, device))
       }
@@ -143,6 +143,10 @@ class AndroidTestApplicationLaunchTask private constructor(
         LOG.info(e)
       }
     }
+    // Add launch termination condition so that the launch is not considered as terminated until the test execution
+    // is fully finished. This is required because test process on device might finish earlier than AndroidTestListener
+    // is notified.
+    launchStatus.addLaunchTerminationCondition(testExecutionFuture::isDone)
 
     return LaunchResult.success()
   }

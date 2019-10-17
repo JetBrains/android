@@ -109,7 +109,10 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     mySurface = surface.apply(this);
     Disposer.register(this, mySurface);
     // Update the workbench context on state change, so we can have different contexts for each mode.
-    mySurface.setStateChangeListener((state) -> myWorkBench.setContext(mySurface.getState().name()));
+    mySurface.setStateChangeListener((state) -> {
+      myWorkBench.setContext(mySurface.getState().name());
+      myWorkBench.setDefaultPropertiesForContext(mySurface.getState() == DesignSurface.State.SPLIT);
+    });
 
     myAccessoryPanel = mySurface.getAccessoryPanel();
     myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
@@ -262,7 +265,8 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       (result, ex) -> {
         // Update the workbench context to make sure it initializes accordingly to the current surface state.
         myWorkBench.setContext(mySurface.getState().name());
-        myWorkBench.init(myContentPanel, mySurface, myToolWindowDefinitions.apply(model.getFacet()));
+        myWorkBench.init(myContentPanel, mySurface, myToolWindowDefinitions.apply(model.getFacet()),
+                         mySurface.getState() == DesignSurface.State.SPLIT);
       },
       EdtExecutorService.getInstance());
   }
