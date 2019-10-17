@@ -73,6 +73,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -156,7 +157,7 @@ public class IdeSdks {
   }
 
   /**
-   * Prefix is a string prefix match on SDK package can be like 'ndk', 'ndk:19', or a full package name like 'ndk;19.1.2'
+   * Prefix is a string prefix match on SDK package can be like 'ndk', 'ndk;19', or a full package name like 'ndk;19.1.2'
    */
   @Nullable
   public LocalPackage getSpecificLocalPackage(@NotNull String prefix) {
@@ -183,23 +184,36 @@ public class IdeSdks {
 
   @Nullable
   public LocalPackage getHighestLocalNdkPackage(boolean allowPreview) {
+    return getHighestLocalNdkPackage(allowPreview, null);
+  }
+  @Nullable
+  public LocalPackage getHighestLocalNdkPackage(boolean allowPreview, @Nullable Predicate<Revision> filter) {
     AndroidSdkHandler sdkHandler = myAndroidSdks.tryToChooseSdkHandler();
     // Look first at NDK side-by-side locations.
     // See go/ndk-sxs
     LocalPackage ndk = sdkHandler.getLatestLocalPackageForPrefix(
       SdkConstants.FD_NDK_SIDE_BY_SIDE,
-      null,
+      filter,
       allowPreview,
       new StudioLoggerProgressIndicator(IdeSdks.class));
     if (ndk != null) {
       return ndk;
     }
-    return sdkHandler.getLocalPackage(SdkConstants.FD_NDK, new StudioLoggerProgressIndicator(IdeSdks.class));
+    LocalPackage ndkPackage = sdkHandler.getLocalPackage(SdkConstants.FD_NDK, new StudioLoggerProgressIndicator(IdeSdks.class));
+    if (filter != null && ndkPackage != null && filter.test(ndkPackage.getVersion())) {
+      return ndkPackage;
+    }
+    return null;
   }
 
   @Nullable
   public File getAndroidNdkPath() {
-    LocalPackage ndk = getHighestLocalNdkPackage(false);
+    return getAndroidNdkPath(null);
+  }
+
+  @Nullable
+  public File getAndroidNdkPath(@Nullable Predicate<Revision> filter) {
+    LocalPackage ndk = getHighestLocalNdkPackage(false, filter);
     if (ndk != null) {
       return ndk.getLocation();
     }

@@ -22,16 +22,20 @@ import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.codeHighlighting.HighlightingPass;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorState;
+import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.fileEditor.TextEditorWithPreview;
 import com.intellij.openapi.project.Project;
@@ -42,6 +46,7 @@ import com.intellij.util.ArrayUtil;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -59,8 +64,13 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
   @VisibleForTesting
   static final int ACTION_SHORTCUT_MODIFIERS = (SystemInfo.isMac ? CTRL_DOWN_MASK : ALT_DOWN_MASK) | SHIFT_DOWN_MASK;
 
+  private static final String SPLIT_MODE_PROPERTY_PREFIX = "SPLIT_EDITOR_MODE";
+
   @NotNull
   private final Project myProject;
+
+  @NotNull
+  private final PropertiesComponent myPropertiesComponent = PropertiesComponent.getInstance();
 
   @NotNull
   private final DesignerEditor myDesignerEditor;
@@ -77,6 +87,8 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
   private final MyToolBarAction mySplitViewAction =
     new MyToolBarAction("Split", AllIcons.General.LayoutEditorPreview, super.getShowEditorAndPreviewAction(), DesignSurface.State.SPLIT);
 
+  private final List<MyToolBarAction> myActions = ImmutableList.of(myTextViewAction, mySplitViewAction, myDesignViewAction);
+
   public SplitEditor(@NotNull TextEditor textEditor,
                      @NotNull DesignerEditor designerEditor,
                      @NotNull String editorName,
@@ -89,16 +101,11 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
   }
 
   private void restoreSurfaceState() {
-    DesignSurface surface = myDesignerEditor.getComponent().getSurface();
-    if (isTextMode()) {
-      surface.setState(DesignSurface.State.DEACTIVATED);
-    }
-    else if (isSplitMode()) {
-      surface.setState(DesignSurface.State.SPLIT);
-    }
-    else { // Design mode
-      surface.setState(DesignSurface.State.FULL);
-    }
+    myActions.forEach((action -> {
+      if (action.isSelected(getDummyActionEvent())) {
+        myDesignerEditor.getComponent().getSurface().setState(action.mySurfaceState);
+      }
+    }));
   }
 
   @NotNull
@@ -165,18 +172,27 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
                              0);
   }
 
+  @NotNull
+  private MyToolBarAction getSelectedAction() {
+    for (MyToolBarAction action : myActions) {
+      if (action.isSelected(getDummyActionEvent())) {
+        return action;
+      }
+    }
+    throw new IllegalStateException("No mode selected in SplitEditor.");
+  }
+
   private void registerModeNavigationShortcuts() {
+    myTextViewAction.setRightAction(mySplitViewAction);
+    mySplitViewAction.setRightAction(myDesignViewAction);
+    myDesignViewAction.setRightAction(myTextViewAction);
+
     Action navigateLeftAction = new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (isTextMode()) {
-          selectDesignMode(true);
-        }
-        else if (isSplitMode()) {
-          selectTextMode(true);
-        }
-        else { // Design mode
-          selectSplitMode(true);
+        MyToolBarAction action = getSelectedAction();
+        if (action.myLeftAction != null) {
+          selectAction(action.myLeftAction, true);
         }
       }
     };
@@ -188,14 +204,9 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
     Action navigateRightAction = new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (isTextMode()) {
-          selectSplitMode(true);
-        }
-        else if (isSplitMode()) {
-          selectDesignMode(true);
-        }
-        else { // Design mode
-          selectTextMode(true);
+        MyToolBarAction action = getSelectedAction();
+        if (action.myRightAction != null) {
+          selectAction(action.myRightAction, true);
         }
       }
     };
@@ -250,6 +261,8 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
   private class MyToolBarAction extends ToggleAction {
     @NotNull private final ToggleAction myDelegate;
     @NotNull private final DesignSurface.State mySurfaceState;
+    @Nullable private MyToolBarAction myRightAction;
+    @Nullable private MyToolBarAction myLeftAction;
 
     MyToolBarAction(@NotNull String name, @NotNull Icon icon, @NotNull ToggleAction delegate, @NotNull DesignSurface.State surfaceState) {
       super(name, name, icon);
@@ -277,7 +290,69 @@ public class SplitEditor extends TextEditorWithPreview implements TextEditor {
         surface.getAnalyticsManager().trackSelectEditorMode();
       }
       getComponent().requestFocus();
+      setModeProperty(mySurfaceState);
     }
+
+    /**
+     * Sets the action that's on the right of the current action. Also sets the current action as its left action to keep things consistent.
+     */
+    public void setRightAction(@NotNull MyToolBarAction action) {
+      myRightAction = action;
+      action.myLeftAction = this;
+    }
+  }
+
+  /**
+   * Persist the mode in order to restore it next time we open the editor.
+   */
+  private void setModeProperty(@NotNull DesignSurface.State state) {
+    String propertyName = getModePropertyName();
+    if (propertyName != null) {
+      myPropertiesComponent.setValue(propertyName, state.name());
+    }
+  }
+
+  @Nullable
+  private String getModePropertyName() {
+    VirtualFile file = getFile();
+    if (file == null) {
+      return null;
+    }
+    return String.format("%s_%s", SPLIT_MODE_PROPERTY_PREFIX, file.getPath());
+  }
+
+  @NotNull
+  @Override
+  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
+    // Override getState to make sure getState(FileEditorStateLevel.UNDO) works properly, otherwise we'd be defaulting to the implementation
+    // of TextEditorWithPreview#getState, which returns a new instance every time, causing issues in undoing the editor's state because it
+    // will return a different state even if nothing relevant has changed. Consequently, we need to implement setState below to make sure we
+    // restore the selected action when reopening this editor, which was previously taken care by TextEditorWithPreview#setState, but with a
+    // logic too tied to its getState implementation.
+    return myEditor.getState(level);
+  }
+
+  @Override
+  public void setState(@NotNull FileEditorState state) {
+    // Restore the surface mode persisted.
+    final String propertyName = getModePropertyName();
+    String propertyValue = null;
+    if (propertyName != null) {
+      propertyValue = myPropertiesComponent.getValue(propertyName);
+    }
+
+    if (propertyValue == null) {
+      return;
+    }
+    // Select the action saved if the mode saved is different than the current one.
+    DesignSurface.State surfaceState = DesignSurface.State.valueOf(propertyValue);
+    if (surfaceState == myDesignerEditor.getComponent().getSurface().getState()) {
+      return;
+    }
+    myActions.stream()
+      .filter((action) -> action.mySurfaceState == surfaceState)
+      .findFirst()
+      .ifPresent(action -> selectAction(action, false));
   }
 
   private class CompoundBackgroundHighlighter implements BackgroundEditorHighlighter {

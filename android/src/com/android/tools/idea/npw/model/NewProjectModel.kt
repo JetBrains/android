@@ -33,6 +33,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.Template
+import com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT
@@ -73,6 +74,7 @@ interface ProjectModelData {
   val packageName: StringValueProperty
   val projectLocation: StringValueProperty
   val enableCppSupport: BoolValueProperty
+  val useAppCompat: BoolValueProperty
   val cppFlags: StringValueProperty
   val project: OptionalValueProperty<Project>
   val isNewProject: Boolean
@@ -87,6 +89,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
   override val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
+  override val useAppCompat = BoolValueProperty()
   override val cppFlags = StringValueProperty()
   override val project = OptionalValueProperty<Project>()
   override val isNewProject = true
@@ -171,6 +174,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       projectTemplateValues[ATTR_TOP_OUT] = project.value.basePath ?: ""
       projectTemplateValues[ATTR_IS_NEW_PROJECT] = true
       projectTemplateValues[ATTR_APP_TITLE] = applicationName.get()
+
+      if (useAppCompat.get()) {
+        projectTemplateValues[ATTR_ANDROIDX_SUPPORT] = false
+      }
 
       TemplateValueInjector(projectTemplateValues)
         .setProjectDefaults(project.value, isNewProject)

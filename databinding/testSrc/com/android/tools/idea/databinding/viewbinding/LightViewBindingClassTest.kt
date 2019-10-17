@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding.viewbinding
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -24,6 +25,7 @@ import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
+import com.intellij.lang.jvm.JvmModifier
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -101,4 +103,35 @@ class LightViewBindingClassTest {
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)
     assertThat(binding).isNull()
   }
+
+  @Test
+  fun expectedStaticMethodsAreGenerated() {
+    fixture.addFileToProject("src/main/res/layout/view_root_activity.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <view xmlns:android="http://schemas.android.com/apk/res/android" />
+    """.trimIndent())
+    fixture.addFileToProject("src/main/res/layout/merge_root_activity.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <merge xmlns:android="http://schemas.android.com/apk/res/android" />
+    """.trimIndent())
+    val context = fixture.addClass("public class ViewRootActivity {}")
+
+    (fixture.findClass("test.db.databinding.ViewRootActivityBinding", context) as LightBindingClass).let { binding ->
+      val methods = binding.methods.filter { it.hasModifier(JvmModifier.STATIC) }
+      assertThat(methods.map { it.presentation!!.presentableText }).containsExactly(
+        "inflate(LayoutInflater)",
+        "inflate(LayoutInflater, ViewGroup, boolean)",
+        "bind(View)"
+      )
+    }
+
+    (fixture.findClass("test.db.databinding.MergeRootActivityBinding", context) as LightBindingClass).let { binding ->
+      val methods = binding.methods.filter { it.hasModifier(JvmModifier.STATIC) }
+      assertThat(methods.map { it.presentation!!.presentableText }).containsExactly(
+        "inflate(LayoutInflater, ViewGroup)",
+        "bind(View)"
+      )
+    }
+  }
+
 }
