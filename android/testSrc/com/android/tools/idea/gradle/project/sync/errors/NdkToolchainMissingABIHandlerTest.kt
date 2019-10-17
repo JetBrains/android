@@ -72,7 +72,7 @@ class NdkToolchainMissingABIHandlerTest : AndroidGradleTestCase() {
     registerSyncErrorToSimulate(errMsg)
 
     prepareProjectForImport(SIMPLE_APPLICATION_PRE30)
-    AndroidGradleTests.updateGradleVersions(projectFolderPath, "3.0.0")
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectFolderPath, null, "3.0.0")
     requestSyncAndGetExpectedFailure()
 
     val notificationUpdate = syncMessagesStub!!.notificationUpdate
