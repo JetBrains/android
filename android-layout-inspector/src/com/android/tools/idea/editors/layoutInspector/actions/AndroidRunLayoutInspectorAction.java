@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.layoutInspector.actions;
 
 import com.android.ddmlib.Client;
 import com.android.tools.idea.editors.layoutInspector.AndroidLayoutInspectorService;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.components.ServiceManager;
@@ -32,7 +33,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunLayoutInspectorAction extends AnAction {
   public AndroidRunLayoutInspectorAction() {
-    super(AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
+    super((StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get() ? "Legacy " : "") +
+          AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
           AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
           StudioIcons.Shell.Menu.LAYOUT_INSPECTOR);
   }
