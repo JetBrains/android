@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.layoutInspector.actions;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.layoutinspector.model.ClientWindow;
@@ -40,6 +41,7 @@ public class LayoutInspectorAction extends AbstractClientAction {
 
   public LayoutInspectorAction(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     super(deviceContext,
+          (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get() ? "Legacy " : "") +
           AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
           AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
           StudioIcons.Shell.Menu.LAYOUT_INSPECTOR);
