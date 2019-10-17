@@ -51,14 +51,14 @@ class AddComposeTest {
    * new project wizard.
    *
    * Test steps:
-   * 1. Create new default "Compose Activity" Project
+   * 1. Create new default "Empty Compose Activity" Project
    * Verify:
    * 1. Check that app/build.gradle has dependencies for "androidx.ui:ui-framework" and "androidx.ui:ui-tooling"
    * 2. Check that the main activity has functions annotated with @Composable and @Preview
    */
   @Test
   fun newComposeProject() {
-    createNewProject(guiTest, "Compose Activity", KOTLIN)
+    createNewProject(guiTest, "Empty Compose Activity", KOTLIN)
 
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("implementation 'androidx.ui:ui-framework:")
@@ -76,7 +76,7 @@ class AddComposeTest {
    *
    * Test steps:
    * 1. Create new default "Empty Activity" Project
-   * 2. Add new "Compose Activity" Module, with name: "compose"
+   * 2. Add new "Empty Compose Activity" Module, with name: "compose"
    * Verify:
    * 1. Check that app/build.gradle does NOT have dependencies for "androidx.ui:ui-framework" and "androidx.ui:ui-tooling"
    * 2. Check that compose/build.gradle has dependencies for "androidx.ui:ui-framework" and "androidx.ui:ui-tooling"
@@ -97,7 +97,7 @@ class AddComposeTest {
       .enterModuleName("compose")
       .wizard()
       .clickNext()
-      .chooseActivity("Compose Activity")
+      .chooseActivity("Empty Compose Activity")
       .clickNext()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
@@ -121,7 +121,7 @@ class AddComposeTest {
    *
    * Test`   steps:
    * 1. Create new default "Empty Activity" Project
-   * 2. Add new "Compose Activity" Activity to "app" module, with name "ComposeActivity"
+   * 2. Add new "Empty Compose Activity" Activity to "app" module, with name "ComposeActivity"
    * Verify:
    * 1. Check that app/build.gradle has dependencies for "androidx.ui:ui-framework" and "androidx.ui:ui-tooling"
    * 2. Check that ComposeActivity has functions annotated with @Composable and @Preview
@@ -134,7 +134,7 @@ class AddComposeTest {
       assertThat(this).doesNotContain("implementation 'androidx.ui:ui-tooling:")
     }
 
-    NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Compose Activity"))
+    NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Empty Compose Activity"))
       .configureActivityStep
       .enterTextFieldValue(NAME, "ComposeActivity")
       .wizard()

@@ -368,7 +368,7 @@ public class Template {
         return TemplateRenderer.FRAGMENT_SETTINGS;
       case "Fragment (with ViewModel)":
         return TemplateRenderer.FRAGMENT_VIEWMODEL;
-      case "Compose Activity":
+      case "Empty Compose Activity":
         return TemplateRenderer.COMPOSE_EMPTY_ACTIVITY;
       default:
         return TemplateRenderer.CUSTOM_TEMPLATE_RENDERER;
