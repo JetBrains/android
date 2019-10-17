@@ -24,11 +24,18 @@ import com.android.tools.idea.sqlite.ui.setResultSetTableColumns
 import com.android.tools.idea.sqlite.ui.setupResultSetTable
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Component
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.Vector
 import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JTable
+import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
+import javax.swing.table.TableCellRenderer
 
 /**
  * Abstraction on the UI component used to display tables.
@@ -80,6 +87,8 @@ class TableViewImpl : TableView {
     panel.controlsPanel.add(lastRowsPageButton)
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() }}
 
+    panel.table.tableHeader.defaultRenderer = HeaderRenderer()
+
     panel.table.tableHeader.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
         if (isLoading) return
@@ -89,8 +98,6 @@ class TableViewImpl : TableView {
         listeners.forEach { it.toggleOrderByColumnInvoked(columns[columnIndex]) }
       }
     })
-
-    // TODO(next CL) add UI stuff
   }
 
   override fun showPageSizeValue(maxRowCount: Int) {
@@ -156,5 +163,33 @@ class TableViewImpl : TableView {
 
   override fun removeListener(listener: TableViewListener) {
     listeners.remove(listener)
+  }
+
+  private class HeaderRenderer : TableCellRenderer {
+    private val columnNameLabel = DefaultTableCellRenderer()
+    private val panel = JPanel(BorderLayout())
+
+    init {
+      val sortIcon = DefaultTableCellRenderer()
+      sortIcon.icon = AllIcons.General.ArrowSplitCenterV
+      columnNameLabel.icon = AllIcons.Nodes.DataColumn
+      columnNameLabel.iconTextGap = 8
+
+      panel.background = Color(0, 0, 0, 0)
+      panel.add(columnNameLabel, BorderLayout.CENTER)
+      panel.add(sortIcon, BorderLayout.EAST)
+    }
+
+    override fun getTableCellRendererComponent(
+      table: JTable,
+      value: Any,
+      selected: Boolean,
+      focused: Boolean,
+      viewRowIndex: Int,
+      viewColumnIndex: Int
+    ): Component {
+      columnNameLabel.text = value as String
+      return panel
+    }
   }
 }
