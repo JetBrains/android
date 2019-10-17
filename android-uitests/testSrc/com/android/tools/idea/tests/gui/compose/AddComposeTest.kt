@@ -61,7 +61,8 @@ class AddComposeTest {
     createNewProject(guiTest, "Empty Compose Activity", KOTLIN)
 
     guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).contains("implementation 'androidx.ui:ui-framework:")
+      assertThat(this).contains("implementation 'androidx.ui:ui-layout:")
+      assertThat(this).contains("implementation 'androidx.ui:ui-material:")
       assertThat(this).contains("implementation 'androidx.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity.kt").run {
@@ -106,7 +107,8 @@ class AddComposeTest {
       .clickPath("compose")
 
     guiTest.getProjectFileText("compose/build.gradle").run {
-      assertThat(this).contains("implementation 'androidx.ui:ui-framework:")
+      assertThat(this).contains("implementation 'androidx.ui:ui-layout:")
+      assertThat(this).contains("implementation 'androidx.ui:ui-material:")
       assertThat(this).contains("implementation 'androidx.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("compose/src/main/java/com/google/compose/MainActivity.kt").run {
@@ -142,7 +144,8 @@ class AddComposeTest {
       .waitForGradleProjectSyncToFinish()
 
     guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).contains("implementation 'androidx.ui:ui-framework:")
+      assertThat(this).contains("implementation 'androidx.ui:ui-layout:")
+      assertThat(this).contains("implementation 'androidx.ui:ui-material:")
       assertThat(this).contains("implementation 'androidx.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/ComposeActivity.kt").run {
