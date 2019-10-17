@@ -96,7 +96,6 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     configsModel.addConfiguration("otherNewConfig").transitive().setValue(true)
 
     applyChangesAndReparse(buildModel)
-
     verifyFileContents(myBuildFile, CONFIGURATIONS_ADD_NEW_CONFIG_FROM_EMPTY_EXPECTED)
 
     run {
@@ -128,6 +127,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, CONFIGURATIONS_ADD_NEW_CONFIG_EXPECTED)
 
     run {
       val configs = buildModel.configurations().all()
@@ -144,7 +144,6 @@ class ConfigurationsTest : GradleFileModelTestCase() {
       verifyPropertyModel(second.visible(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1)
     }
 
-    verifyFileContents(myBuildFile, CONFIGURATIONS_ADD_NEW_CONFIG_EXPECTED)
   }
 
   @Test
@@ -156,7 +155,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     run {
       val configModel = buildModel.configurations()
       val configs = configModel.all()
-      assertSize(3, configs)
+      assertThat(configs.map { it.name() }.toSet(), equalTo(setOf("badConfig", "worseConfig", "worstConfig")))
 
       assertThat("badConfig", equalTo(configs[0].name()))
       verifyPropertyModel(configs[0].transitive(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0)
@@ -176,13 +175,12 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, "")
 
     assertSize(0, buildModel.configurations().all())
-    val expected = ""
-    verifyFileContents(myBuildFile, expected)
   }
 
-  private fun checkParseNonEmptyConfiguration(testFileName: TestFileName) {
+  private fun checkParseNonEmptyConfiguration(testFileName: TestFileName, vararg expectedConfigurations: String) {
     writeToBuildFile(testFileName)
     val buildModel = gradleBuildModel
 
@@ -193,51 +191,52 @@ class ConfigurationsTest : GradleFileModelTestCase() {
       configs.forEach { config ->
         assertNotEmpty(config.declaredProperties)
       }
+      assertThat(configs.map { it.name() }.toSet(), equalTo(expectedConfigurations.toSet()))
     }
   }
 
   @Test
   fun testParseGradleManualExample315() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE315)
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE315, "smokeTest")
   }
 
   @Test
   fun testParseGradleManualExample319() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE319)
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE319, "implementation")
   }
 
   @Test
   fun testParseGradleManualExample321() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE321)
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE321, "compileClasspath")
   }
 
   @Test
   fun testParseGradleManualExample345() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE345)
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE345, "compileClasspath")
   }
 
   @Test
   fun testParseGradleManualExample364() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE364)
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE364, "rejectConfig")
   }
 
   @Test
   fun testParseGradleManualExample369() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE369)
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE369, "pluginTool")
   }
 
   @Test
   fun testParseGradleManualExample377() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE377)
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE377, "compileClasspath", "runtimeClasspath")
   }
 
   @Test
   fun testParseGradleManualExample378() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE378)
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE378, "exposedApi", "exposedRuntime")
   }
 
   @Test
   fun testParseGradleFailOnVersionConflict() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_FAIL_ON_VERSION_CONFLICT)
+    checkParseNonEmptyConfiguration(CONFIGURATIONS_FAIL_ON_VERSION_CONFLICT, "implementation")
   }
 }
