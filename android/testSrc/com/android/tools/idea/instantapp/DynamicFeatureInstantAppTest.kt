@@ -37,7 +37,9 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
+import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.MockitoAnnotations
 
 class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
   private lateinit var configSettings : RunnerAndConfigurationSettings
@@ -53,13 +55,16 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
   private lateinit var launchOptionsBuilder : LaunchOptions.Builder
 
   private lateinit var device : IDevice
-  private val launchStatus = StubLaunchStatus()
+  @Mock
+  private lateinit var launchStatus: LaunchStatus
   private val consolePrinter = StubConsolePrinter()
 
   private lateinit var instantAppSdks : InstantAppSdks
 
   override fun setUp() {
     super.setUp()
+
+    MockitoAnnotations.initMocks(this)
 
     loadProject(INSTANT_APP_WITH_DYNAMIC_FEATURES, "app")
 
@@ -163,15 +168,6 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
     }
 
     override fun stderr(message: String) {
-    }
-  }
-
-  class StubLaunchStatus : LaunchStatus {
-    override fun isLaunchTerminated(): Boolean {
-      return false
-    }
-
-    override fun terminateLaunch(reason: String?, destroyProcess: Boolean) {
     }
   }
 }

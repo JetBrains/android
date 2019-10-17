@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL
@@ -509,7 +509,7 @@ open class GradleSyncState(
       areSyncNotificationsEnabled = true
     }
 
-    // TODO: Move out of GradleSyncState
+    // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
     if (!skipped) {
       changeNotification.notifyStateChanged()
       ApplicationManager.getApplication().invokeAndWait { warnIfNotJdkHome() }
@@ -528,17 +528,16 @@ open class GradleSyncState(
     if (ideSdks.isUsingJavaHomeJdk) return
 
     val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."))
-    val javaHomeHyperlink = UseJavaHomeAsJdkHyperlink.create()
-    if (javaHomeHyperlink != null) quickFixes += javaHomeHyperlink
+    val selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project)
+    if (selectJdkHyperlink != null) quickFixes += selectJdkHyperlink
     quickFixes.add(DoNotShowJdkHomeWarningAgainHyperlink())
 
     val message = """
-      Android Studio is using this JDK location:
-      ${ideSdks.jdkPath}
-      which is different to what Gradle uses by default:
-      ${IdeSdks.getJdkFromJavaHome()}
-      Using different locations may spawn multiple Gradle daemons if
-      Gradle tasks are run from the command line while using Android Studio.
+      Android Studio and Gradle are using different locations for the JDK.
+      Android Studio: ${ideSdks.jdkPath}
+      Gradle: ${IdeSdks.getJdkFromJavaHome()}
+      Using different JDK locations might cause Gradle to spawn multiple daemons
+      when executing tasks for Android Studio and other external processes.
     """.trimIndent()
     addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, MessageType.WARNING, quickFixes)
   }
