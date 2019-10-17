@@ -35,10 +35,12 @@ import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION
 import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
 import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.fail
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 private const val TIMEOUT_MILLISECONDS: Long = 10000
@@ -82,13 +84,21 @@ class AppInspectorConnectionTest {
   private val stream = Common.Stream.getDefaultInstance()
   private val process = Common.Process.getDefaultInstance()
 
+  private val executorService = Executors.newSingleThreadExecutor()
+
+  @After
+  fun tearDown() {
+    assertThat(executorService.shutdownNow()).isEmpty()
+  }
 
   private fun setUpServiceAndConnection(
     appInspectionHandler: CommandHandler,
     listener: EventListener = TestInspectorEventListener()
   ): AppInspectorClient.CommandMessenger {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, appInspectionHandler)
-    val client = launchInspectorForTest(INSPECTOR_ID, TransportClient(gRpcServerRule.name), stream, process) { TestInspectorClient(it, listener)}
+    val client = launchInspectorForTest(
+      INSPECTOR_ID, TransportClient(gRpcServerRule.name), stream, process,
+      executorService) { TestInspectorClient(it, listener) }
     return client.messenger
   }
 
@@ -125,10 +135,8 @@ class AppInspectorConnectionTest {
   fun sendRawCommandFailWithCallback() {
     val connection = setUpServiceAndConnection(TestInspectorCommandHandler(timer, false, "error"))
 
-/* TODO(b/142762693): fails sporadically
     assertThat(connection.sendRawCommand("TestData".toByteArray()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
       .isEqualTo("error".toByteArray())
-TODO(b/142762693): fails sporadically */
   }
 
   @Test
@@ -164,6 +172,16 @@ TODO(b/142762693): fails sporadically */
       fail("Test interrupted")
     }
     assertThat(eventListener.rawEvents[0]).isEqualTo(byteArrayOf(0x12, 0x15))
+  }
+
+  @Test
+  fun rawEventWithCommandIdOnlyTriggersEventListener() {
+    val eventListener = TestInspectorEventListener()
+    val connection = setUpServiceAndConnection(/* doesn't matter */TestInspectorCommandHandler(timer), eventListener)
+
+    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
+      .isEqualTo("TestData".toByteArray())
+    assertThat(eventListener.rawEvents).isEmpty()
   }
 
   @Test

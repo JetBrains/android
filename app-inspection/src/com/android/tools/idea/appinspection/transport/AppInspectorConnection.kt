@@ -52,7 +52,9 @@ internal class AppInspectorConnection(
   private val inspectorEventListener = transport.createEventListener(
     executor = MoreExecutors.directExecutor(),
     filter = { event: Event ->
-      (event.appInspectionEvent.hasRawEvent() && event.appInspectionEvent.rawEvent.inspectorId == inspectorId)
+      (event.appInspectionEvent.commandId == 0
+       && event.appInspectionEvent.hasRawEvent()
+       && event.appInspectionEvent.rawEvent.inspectorId == inspectorId)
       || (event.appInspectionEvent.hasCrashEvent() && event.appInspectionEvent.crashEvent.inspectorId == inspectorId)
     }
   ) { event ->
@@ -73,9 +75,9 @@ internal class AppInspectorConnection(
 
   private val responsesListener = transport.createEventListener(
     executor = MoreExecutors.directExecutor(),
-    filter = { it.commandId != 0 && it.appInspectionEvent.hasRawEvent() }
+    filter = { it.appInspectionEvent.commandId != 0 && it.appInspectionEvent.hasRawEvent() }
   ) { event ->
-    pendingCommands.remove(event.commandId)?.set(event.appInspectionEvent.rawEvent.content.toByteArray())
+    pendingCommands.remove(event.appInspectionEvent.commandId)?.set(event.appInspectionEvent.rawEvent.content.toByteArray())
     false
   }
 
@@ -98,8 +100,8 @@ internal class AppInspectorConnection(
       if (disposeCalled.compareAndSet(false, true)) {
         val disposeInspectorCommand = DisposeInspectorCommand.newBuilder().setInspectorId(inspectorId).build()
         val appInspectionCommand = AppInspectionCommand.newBuilder().setDisposeInspectorCommand(disposeInspectorCommand).build()
-        val response = transport.executeCommand(appInspectionCommand)
-        val listener = transport.registerEventListener(MoreExecutors.directExecutor(), { it.commandId == response.commandId }) {
+        val commandId = transport.executeCommand(appInspectionCommand)
+        val listener = transport.registerEventListener(MoreExecutors.directExecutor(), { it.appInspectionEvent.commandId == commandId }) {
           disposeFuture.set(it.appInspectionEvent.response)
           cleanup("Inspector $inspectorId was disposed.")
           // we manually call unregister, because future can be completed from other places, so we clean up the listeners there
@@ -119,8 +121,8 @@ internal class AppInspectorConnection(
     val settableFuture = SettableFuture.create<ByteArray>()
     val rawCommand = RawCommand.newBuilder().setInspectorId(inspectorId).setContent(ByteString.copyFrom(rawData)).build()
     val appInspectionCommand = AppInspectionCommand.newBuilder().setRawInspectorCommand(rawCommand).build()
-    val response = transport.executeCommand(appInspectionCommand)
-    pendingCommands[response.commandId] = settableFuture
+    val commandId = transport.executeCommand(appInspectionCommand)
+    pendingCommands[commandId] = settableFuture
 
     // cleanup() might have gotten called from a different thread, so we double-check if connection is disposed by now.
     // if it is disposed, then there is a race between pendingCommands.clear / future completion in cleanup method and
@@ -128,7 +130,7 @@ internal class AppInspectorConnection(
     // and complete it with an exception.
     // if it isn't disposed, then cleanup didn't happen yet and it will be able properly clear [pendingCommands].
     if (isDisposed.get()) {
-      pendingCommands.remove(response.commandId)
+      pendingCommands.remove(commandId)
       settableFuture.setException(IllegalStateException(connectionClosedMessage))
     }
 
