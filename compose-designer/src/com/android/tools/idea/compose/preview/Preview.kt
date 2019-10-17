@@ -31,7 +31,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.compose.preview.ComposePreviewToolbar.ForceCompileAndRefreshAction
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
@@ -52,7 +51,9 @@ import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ShortcutSet
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
@@ -65,6 +66,7 @@ import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider.getInstance
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -83,7 +85,6 @@ import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtImportDirective
 import java.awt.BorderLayout
-import java.lang.RuntimeException
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import javax.swing.JPanel
@@ -110,6 +111,12 @@ private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllI
 
 /** Old FQN to lookup and throw a warning. This import should not be used anymore after migrating to using ui-tooling */
 const val OLD_PREVIEW_ANNOTATION_FQN = "com.android.tools.preview.Preview"
+
+/** Action ID of the IDE declared force refresh action (see PlatformActions.xml). This allows us to re-use the shortcut of the declared action. */
+const val FORCE_REFRESH_ACTION_ID = "ForceRefresh"
+
+/** [ShortcutSet] that triggers a build and refreshes the preview */
+internal fun getBuildAndRefreshShortcut(): ShortcutSet = KeymapUtil.getActiveKeymapShortcuts(FORCE_REFRESH_ACTION_ID)
 
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
@@ -188,6 +195,11 @@ interface ComposePreviewManager {
    * Invalidates the last cached [PreviewElement]s and forces a refresh
    */
   fun invalidateAndRefresh()
+
+  /**
+   * Same as [invalidateAndRefresh] but triggers a build first.
+   */
+  fun buildAndRefresh()
 }
 
 /**
@@ -227,6 +239,33 @@ private fun configureExistingModel(existingModel: NlModel,
                                  RenderSettings.getProjectSettings(existingModel.project).showDecorations)
 
   return existingModel
+}
+
+/**
+ * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
+ * of the surface.
+ */
+private class ForceCompileAndRefreshAction :
+  AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
+  override fun actionPerformed(e: AnActionEvent) {
+    findComposePreviewManagerForAction(e)?.buildAndRefresh()
+  }
+
+  override fun update(e: AnActionEvent) {
+    val project = e.project ?: return
+    val presentation = e.presentation
+    val isRefreshing = findComposePreviewManagerForAction(e)?.status()?.isRefreshing == true
+    presentation.isEnabled = !isRefreshing && !GradleBuildState.getInstance(project).isBuildInProgress
+  }
+}
+
+private fun findComposePreviewManagerForAction(e: AnActionEvent): ComposePreviewManager? {
+  val project = e.project ?: return null
+  val file = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return null
+  return FileEditorManager.getInstance(project)?.getEditors(file)
+    ?.filterIsInstance<ComposeTextEditorWithPreview>()
+    ?.map { it.preview }
+    ?.firstOrNull()
 }
 
 /**
@@ -546,6 +585,11 @@ private class PreviewEditor(private val psiFile: PsiFile,
     doRefresh(previewProvider())
   }
 
+  override fun buildAndRefresh() {
+    val module = surface.model?.module ?: return
+    requestBuild(surface.project, module)
+  }
+
   override fun getName(): String = "Compose Preview"
 
   fun isEditorForSurface(surface: DesignSurface) = surface == this.surface
@@ -563,31 +607,6 @@ private fun VirtualFile.isKotlinFileType(): Boolean =
  */
 private class ComposePreviewToolbar(private val surface: DesignSurface) :
   ToolbarActionGroups(surface) {
-  /**
-   * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
-   * of the surface.
-   */
-  private inner class ForceCompileAndRefreshAction :
-    AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
-    override fun actionPerformed(e: AnActionEvent) {
-      val module = surface.model?.module ?: return
-      requestBuild(surface.project, module)
-    }
-
-    override fun update(e: AnActionEvent) {
-      val presentation = e.presentation
-      val isRefreshing = findComposePreviewManagerForSurface(surface)?.status()?.isRefreshing == true
-      presentation.isEnabled = !isRefreshing && !GradleBuildState.getInstance(surface.project).isBuildInProgress
-    }
-  }
-
-  private fun findComposePreviewManagerForSurface(surface: DesignSurface): ComposePreviewManager? =
-    FileEditorManager.getInstance(surface.project).allEditors
-      .filterIsInstance<ComposeTextEditorWithPreview>()
-      .filter { it.preview.isEditorForSurface(surface) }
-      .map { it.preview }
-      .singleOrNull()
-
   private inner class ViewOptionsAction : DropDownAction(message("action.view.options.title"), null, StudioIcons.Common.VISIBILITY_INLINE) {
     init {
       add(ToggleShowDecorationAction())
@@ -603,7 +622,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       if (settings.showDecorations != state) {
         // We also persist the settings to the RenderSettings
         settings.showDecorations = state
-        findComposePreviewManagerForSurface(surface)?.invalidateAndRefresh()
+        findComposePreviewManagerForAction(e)?.invalidateAndRefresh()
       }
     }
 
@@ -625,6 +644,10 @@ private class ComposeTextEditorWithPreview constructor(
   val composeTextEditor: TextEditor,
   val preview: PreviewEditor) :
   SeamlessTextEditorWithPreview(composeTextEditor, preview, "Compose Editor"), TextEditor {
+  init {
+    ForceCompileAndRefreshAction().registerCustomShortcutSet(getBuildAndRefreshShortcut(), component, this)
+  }
+
   override fun canNavigateTo(navigatable: Navigatable): Boolean {
     return composeTextEditor.canNavigateTo(navigatable)
   }

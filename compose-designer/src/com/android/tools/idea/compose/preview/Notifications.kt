@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
+import com.intellij.openapi.actionSystem.ShortcutSet
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -31,10 +31,20 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.ui.LightColors
 import java.awt.Color
 
+/**
+ * Returns the textual representation of the given [ShortcutSet]. If there is no shortcut, this method will return an empty string.
+ * An optional [prefix] and [suffix] can be specified. These are only returned if there is a shortcut and the result string is not empty.
+ */
+private fun ShortcutSet.asString(prefix: String = " (", suffix: String = ")"): String {
+  val shortcutString = KeymapUtil.getFirstKeyboardShortcutText(this)
+  return if (shortcutString.isNotEmpty()) "${prefix}${shortcutString}${suffix}" else ""
+}
+
 private fun createBuildNotificationPanel(project: Project,
                                          file: VirtualFile,
                                          text: String,
-                                         buildActionLabel: String = message("notification.action.build"),
+                                         buildActionLabel: String = "${message(
+                                           "notification.action.build")}${getBuildAndRefreshShortcut().asString()}",
                                          color: Color? = null): EditorNotificationPanel? {
   val module = ModuleUtil.findModuleForFile(file, project) ?: return null
   return EditorNotificationPanel(color).apply {
@@ -92,7 +102,7 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
         project,
         file,
         text = message("notification.preview.out.of.date"),
-        buildActionLabel = message("notification.action.build.and.refresh"))
+        buildActionLabel = "${message("notification.action.build.and.refresh")}${getBuildAndRefreshShortcut().asString()}")
 
       // If the project has compiled, it could be that we are missing a class because we need to recompile.
       // Check for errors from missing classes
