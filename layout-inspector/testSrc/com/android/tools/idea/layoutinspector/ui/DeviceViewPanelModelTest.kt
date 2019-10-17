@@ -71,28 +71,28 @@ class DeviceViewPanelModelTest {
   @Test
   fun testOverlappingRects() {
     val rects = listOf(
-      Rectangle(0, 0, 100, 200),
-      Rectangle(0, 0, 50, 60),
-      Rectangle(0, 70, 10, 10),
-      Rectangle(0, 10, 50, 60),
-      Rectangle(10, 20, 30, 40))
+      Rectangle(0, 0, 100, 100),
+      Rectangle(0, 0, 100, 50),
+      Rectangle(0, 50, 100, 50),
+      Rectangle(0, 0, 100, 50),
+      Rectangle(40, 40, 20, 20))
 
     val model = model {
       view(ROOT, rects[0]) {
         view(VIEW1, rects[1]) {
-          view(VIEW4, rects[4])
+          view(VIEW2, rects[3])
         }
-        view(VIEW2, rects[3])
         view(VIEW3, rects[2])
+        view(VIEW4, rects[4])
       }
     }
 
     val expectedTransforms = mutableListOf(
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -100.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -100.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -100.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, -5.801, -100.0),
-      ComparingTransform(0.866, 0.0, 0.0, 1.0, 31.698, -100.0)
+      ComparingTransform(0.866, 0.0, 0.0, 1.0, -193.301, -50.0),
+      ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
+      ComparingTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
+      ComparingTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
+      ComparingTransform(0.866, 0.0, 0.0, 1.0, 31.698, -50.0)
     )
 
     checkModel(model, 0.5, 0.0, expectedTransforms, rects)

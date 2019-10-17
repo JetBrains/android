@@ -25,6 +25,38 @@ import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 
 class DefaultValueInspectorBuilderTest : NavTestCase() {
+  fun testValues() {
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1", layout = "activity_main") {
+          argument("argument1", "int", value = "10")
+          argument("argument3", "float", value = "20f")
+          argument("argument2", "string", value = "foo")
+        }
+        action("action1", "fragment1") {
+          argument("argument1", value = "15")
+        }
+      }
+    }
+
+    val action1 = model.find("action1")!!
+
+    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    val provider = NelePropertiesProvider(myFacet)
+    val propertiesTable = provider.getProperties(propertiesModel, null, listOf(action1))
+    val panel = FakeInspectorPanel()
+    val builder = DefaultValueInspectorBuilder()
+    builder.attachToInspector(panel, propertiesTable)
+
+    val lineModel = panel.lines[1]
+    val defaultValuePanel = lineModel.component as DefaultValuePanel
+    val tableModel = defaultValuePanel.table.model as DefaultValueTableModel
+    assertEquals(3, tableModel.rowCount)
+    assertEquals(tableModel, 0, "argument1", "int", "15")
+    assertEquals(tableModel, 1, "argument3", "float", "")
+    assertEquals(tableModel, 2, "argument2", "string", "")
+  }
+
   fun testUpdates() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
@@ -50,18 +82,18 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
     val defaultValuePanel = lineModel.component as DefaultValuePanel
     val tableModel = defaultValuePanel.table.model as DefaultValueTableModel
     assertEquals(1, tableModel.rowCount)
-    assertEquals(tableModel, "15")
+    assertEquals(tableModel, 0, "argument1", "int", "15")
 
     action1.model.delete(listOf(action1.children[0]))
     lineModel.refresh()
     assertEquals(1, tableModel.rowCount)
-    assertEquals(tableModel, "")
+    assertEquals(tableModel, 0, "argument1", "int", "")
   }
 
-  private fun assertEquals(table: DefaultValueTableModel, defaultValue: String) {
-    assertEquals(table.getValueAt(0, 0), "argument1")
-    assertEquals(table.getValueAt(0, 1), "int")
-    assertEquals(table.getValueAt(0, 2), defaultValue)
+  private fun assertEquals(table: DefaultValueTableModel, row: Int, name: String, type: String, defaultValue: String) {
+    assertEquals(table.getValueAt(row, 0), name)
+    assertEquals(table.getValueAt(row, 1), type)
+    assertEquals(table.getValueAt(row, 2), defaultValue)
   }
 }
 

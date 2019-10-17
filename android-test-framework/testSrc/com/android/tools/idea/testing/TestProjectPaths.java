@@ -6,6 +6,7 @@ package com.android.tools.idea.testing;
 public final class TestProjectPaths {
   public static final String ANDROIDX_SIMPLE = "projects/androidxSimple";
   public static final String APK_SAN_ANGELES = "projects/apk/sanAngeles";
+  public static final String APP_WITH_BUILDSRC = "projects/appWithBuildSrc";
   public static final String BASIC = "projects/basic";
   public static final String BUDDY_APKS = "projects/buddyApks";
   public static final String CENTRAL_BUILD_DIRECTORY = "projects/centralBuildDirectory";

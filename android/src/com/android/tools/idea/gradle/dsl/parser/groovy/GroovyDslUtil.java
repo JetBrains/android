@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -714,11 +715,17 @@ public final class GroovyDslUtil {
   }
 
   static void maybeUpdateName(@NotNull GradleDslElement element, GroovyDslWriter writer) {
+    GradleNameElement nameElement = element.getNameElement();
+
+    String localName = nameElement.getLocalName();
+    if (localName == null) return;
+    if (localName.equals(nameElement.getOriginalName())) return;
+
     PsiElement oldName = element.getNameElement().getNamedPsiElement();
     if (oldName == null) return;
-    String localName = element.getNameElement().getLocalName();
-    if (localName == null) return;
-    String newName = writer.externalNameForParent(localName, element.getParent());
+
+    GradleDslElement parent = element.getParent();
+    String newName = (parent == null) ? localName : writer.externalNameForParent(localName, parent);
 
     PsiElement newElement;
     if (oldName instanceof PsiNamedElement) {

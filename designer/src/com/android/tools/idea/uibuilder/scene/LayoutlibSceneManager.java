@@ -489,17 +489,7 @@ public class LayoutlibSceneManager extends SceneManager {
     @Override
     public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
       NlDesignSurface surface = getDesignSurface();
-
-      /*
-      We only need to render if we are not in Blueprint mode. If we are in blueprint mode only, we only need a layout.
-       */
-      boolean needsRender = (surface.getSceneMode() != SceneMode.BLUEPRINT_ONLY);
-      if (needsRender) {
-        requestLayoutAndRender(animate);
-      }
-      else {
-        requestLayout(animate);
-      }
+      requestLayoutAndRender(animate);
     }
   }
 
