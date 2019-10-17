@@ -42,6 +42,7 @@ internal class TestInspectorCommandHandler(timer: FakeTimer,
                    .setCommandId(command.commandId)
                    .setIsEnded(true)
                    .setAppInspectionEvent(AppInspectionEvent.newBuilder()
+                                            .setCommandId(command.appInspectionCommand.commandId)
                                             .setResponse(ServiceResponse.newBuilder()
                                                            .setStatus(
                                                              if (success) SUCCESS else ERROR)
@@ -59,6 +60,7 @@ internal class TestInspectorCommandHandler(timer: FakeTimer,
                    .setCommandId(command.commandId)
                    .setIsEnded(true)
                    .setAppInspectionEvent(AppInspectionEvent.newBuilder()
+                                            .setCommandId(command.appInspectionCommand.commandId)
                                             .setRawEvent(AppInspection.RawEvent.newBuilder()
                                                            .setInspectorId(
                                                              command.appInspectionCommand.rawInspectorCommand.inspectorId)

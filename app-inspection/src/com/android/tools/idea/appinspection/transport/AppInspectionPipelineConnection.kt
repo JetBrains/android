@@ -22,6 +22,7 @@ import com.android.tools.profiler.proto.Common.Process
 import com.android.tools.profiler.proto.Common.Stream
 import com.google.common.util.concurrent.ListenableFuture
 import java.nio.file.Path
+import java.util.concurrent.ExecutorService
 
 /**
  * Represents the connection interface between studio and the app-inspection pipeline per process.
@@ -53,7 +54,8 @@ interface AppInspectionPipelineConnection {
     fun attach(
       stream: Stream,
       process: Process,
-      client: TransportClient = TransportClient(TransportService.getInstance().channelName)
-      ): ListenableFuture<AppInspectionPipelineConnection> = attachAppInspectionPipelineConnection(client, stream, process)
+      client: TransportClient = TransportClient(TransportService.getInstance().channelName),
+      executorService: ExecutorService
+    ): ListenableFuture<AppInspectionPipelineConnection> = attachAppInspectionPipelineConnection(client, stream, process, executorService)
   }
 }

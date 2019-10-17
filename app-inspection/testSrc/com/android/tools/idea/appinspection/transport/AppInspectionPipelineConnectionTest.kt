@@ -35,18 +35,26 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.AsyncFunction
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Paths
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import com.android.tools.profiler.proto.Commands.Command.CommandType.APP_INSPECTION as APP_INSPECTION_COMMAND
 
 class AppInspectionPipelineConnectionTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
+  private val executorService = Executors.newSingleThreadExecutor()
 
   @get:Rule
   val gRpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorPipelineConnectionTest", transportService, transportService)!!
+
+  @After
+  fun tearDown() {
+    assertThat(executorService.shutdownNow()).isEmpty()
+  }
 
   @Test
   fun launchInspector() {
@@ -83,7 +91,7 @@ class AppInspectionPipelineConnectionTest {
         }
       })
     val connection = AppInspectionPipelineConnection.attach(
-       Common.Stream.getDefaultInstance(), Common.Process.getDefaultInstance(), TransportClient(gRpcServerRule.name))
+       Common.Stream.getDefaultInstance(), Common.Process.getDefaultInstance(), TransportClient(gRpcServerRule.name), executorService)
     val clientFuture = Futures.transformAsync(connection, AsyncFunction<AppInspectionPipelineConnection, TestInspectorClient> {
       it!!.launchInspector(
         "test.inspector",
