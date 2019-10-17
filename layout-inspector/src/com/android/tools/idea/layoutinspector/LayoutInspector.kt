@@ -60,7 +60,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
       }
     }
   }
-  
+
   private fun clearComponentTreeWhenProcessEnds() {
     if (client.isConnected) {
       return

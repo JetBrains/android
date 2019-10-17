@@ -86,7 +86,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
 
     transform.translate(rootDimension.width / 2.0 - root.x, rootDimension.height / 2.0 - root.y)
     transform.rotate(angle)
-    val levelLists = mutableListOf<MutableList<MutableList<Pair<ViewNode, Rectangle>>>>()
+    val levelLists = mutableListOf<MutableList<Pair<ViewNode, Rectangle>>>()
     buildLevelLists(root, root.bounds, levelLists)
 
     rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
@@ -96,39 +96,32 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
 
   private fun buildLevelLists(root: ViewNode,
                               parentClip: Rectangle,
-                              levelListCollector: MutableList<MutableList<MutableList<Pair<ViewNode, Rectangle>>>>,
+                              levelListCollector: MutableList<MutableList<Pair<ViewNode, Rectangle>>>,
                               level: Int = 0) {
-    val levelList = levelListCollector.getOrNull(level)
-                    ?: mutableListOf<MutableList<Pair<ViewNode, Rectangle>>>().also { levelListCollector.add(it) }
+    val levelList = levelListCollector.find { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
+                ?: mutableListOf<Pair<ViewNode, Rectangle>>().also { levelListCollector.add(it) }
     val clip = parentClip.intersection(root.bounds)
-    // add to the first sub level list with no rects that intersect ours
-    val subLevelList = levelList.find { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
-                       ?: mutableListOf<Pair<ViewNode, Rectangle>>().also { levelList.add(it) }
-    subLevelList.add(Pair(root, clip))
+    levelList.add(Pair(root, clip))
     root.children.forEach { buildLevelLists(it, clip, levelListCollector, level + 1) }
   }
 
   private fun rebuildRectsForLevel(transform: AffineTransform,
                                    magnitude: Double,
                                    angle: Double,
-                                   allLevels: List<List<List<Pair<ViewNode, Rectangle>>>>,
+                                   allLevels: List<List<Pair<ViewNode, Rectangle>>>,
                                    newHitRects: MutableList<ViewDrawInfo>) {
     allLevels.forEachIndexed { level, levelList ->
-      levelList.forEachIndexed { subLevel, subLevelList ->
-        subLevelList.forEach { (view, clip) ->
-          val viewTransform = AffineTransform(transform)
+      levelList.forEach { (view, clip) ->
+        val viewTransform = AffineTransform(transform)
 
-          val sign = if (xOff < 0) -1 else 1
-          viewTransform.translate(
-            magnitude * ((level - maxDepth / 2) + (subLevel.toFloat() / levelList.size.toFloat())) * LAYER_SPACING * sign,
-            0.0)
-          viewTransform.scale(sqrt(1.0 - magnitude * magnitude), 1.0)
-          viewTransform.rotate(-angle)
-          viewTransform.translate(-rootDimension.width / 2.0, -rootDimension.height / 2.0)
+        val sign = if (xOff < 0) -1 else 1
+        viewTransform.translate(magnitude * (level - maxDepth / 2) * LAYER_SPACING * sign, 0.0)
+        viewTransform.scale(sqrt(1.0 - magnitude * magnitude), 1.0)
+        viewTransform.rotate(-angle)
+        viewTransform.translate(-rootDimension.width / 2.0, -rootDimension.height / 2.0)
 
-          val rect = viewTransform.createTransformedShape(view.bounds)
-          newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip))
-        }
+        val rect = viewTransform.createTransformedShape(view.bounds)
+        newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip))
       }
     }
   }
