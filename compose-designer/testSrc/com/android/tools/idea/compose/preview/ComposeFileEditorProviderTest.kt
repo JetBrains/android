@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.psi.PsiFile
 import com.intellij.util.ThrowableRunnable
@@ -115,7 +114,7 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
   fun testOldPackageImportsCalled() {
     var handlerCalled = 0
     val provider = ComposeFileEditorProvider(projectContainsOldPackageImportsHandler = { _ ->
-      handlerCalled
+      handlerCalled++
     })
 
     @Language("kotlin")
@@ -131,5 +130,6 @@ class ComposeFileEditorProviderTest : ComposeLightJavaCodeInsightFixtureTestCase
     """.trimIndent())
 
     assertFalse(provider.accept(previewFile))
+    assertEquals(1, handlerCalled)
   }
 }
