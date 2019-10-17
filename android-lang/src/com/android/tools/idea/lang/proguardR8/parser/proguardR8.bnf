@@ -106,8 +106,8 @@ type ::= any_type|any_primitive_type|((java_primitive|qualifiedName) "[]"?) {
 
 type_list ::= (type ("," type)* ("," ANY_TYPE_AND_NUM_OF_ARGS)?)? {pin(".*")=not_close_brace recoverWhile=not_right_paren}
 
-private java ::= (java_rule SEMICOLON)* {pin(".*")=1 recoverWhile=not_close_brace}
-java_rule ::= !(<<eof>>|CLOSE_BRACE|WHITE_SPACE) (fields_specification|method_specification) {pin=1 recoverWhile=not_semicolon}
+private java ::= (java_rule ';')* {pin(".*")=1}
+java_rule ::= !(<<eof>>|CLOSE_BRACE|WHITE_SPACE) (fields_specification|method_specification) &';' {pin=1 recoverWhile=not_semicolon_or_brace}
 class_specification_body ::= OPEN_BRACE java CLOSE_BRACE {pin=1}
 
 class_modifier ::= ("!"?(public|final|abstract))
@@ -177,7 +177,7 @@ fully_qualified_name_constructor ::= method_modifier* constructor_name parameter
 method_specification ::= method | fully_qualified_name_constructor | (annotation_name? method_modifier* (<methods> | init_description | any_field_or_method))
 
 //recover rules
-private not_semicolon ::= !SEMICOLON
+private not_semicolon_or_brace ::= !(SEMICOLON|CLOSE_BRACE)
 private not_open_brace_or_new_flag ::= !(OPEN_BRACE|FLAG)
 private not_close_brace ::= !CLOSE_BRACE
 private not_flag ::= !FLAG
