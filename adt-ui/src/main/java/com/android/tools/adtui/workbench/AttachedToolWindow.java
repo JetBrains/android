@@ -100,7 +100,8 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
                      @NotNull ButtonDragListener<T> dragListener,
                      @NotNull WorkBench<T> workBench,
-                     @NotNull SideModel<T> model) {
+                     @NotNull SideModel<T> model,
+                     boolean minimizedByDefault) {
     myWorkBench = workBench;
     myDefinition = definition;
     myDragListener = dragListener;
@@ -118,6 +119,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     setDefaultProperty(PropertyType.LEFT, definition.getSide().isLeft());
     setDefaultProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
+    setDefaultProperty(PropertyType.MINIMIZED, minimizedByDefault);
     updateContent();
     DumbService.getInstance(model.getProject()).smartInvokeLater(this::updateActions);
     AnAction globalFindAction = ActionManager.getInstance().getAction(ACTION_FIND);

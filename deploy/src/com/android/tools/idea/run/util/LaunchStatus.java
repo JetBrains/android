@@ -15,9 +15,32 @@
  */
 package com.android.tools.idea.run.util;
 
+import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Describes the state of launch (execution of {@link com.intellij.execution.configurations.RunConfiguration}).
+ */
 public interface LaunchStatus {
+  /**
+   * Returns true if all termination conditions registered by {@link #addLaunchTerminationCondition} are met, or when the launch is
+   * Forcefully terminated by {@link #terminateLaunch}. Otherwise returns false.
+   */
   boolean isLaunchTerminated();
-  void terminateLaunch(@Nullable String reason, boolean destroyProcess);
+
+  /**
+   * Adds a launch termination condition to the status.
+   *
+   * @param launchTerminatedCondition a function which returns true when the launch should consider be terminated otherwise false.
+   */
+  void addLaunchTerminationCondition(BooleanSupplier launchTerminatedCondition);
+
+  /**
+   * Forcefully terminates this launch regardless of {@link #isLaunchTerminated()} value.
+   *
+   * @param errorMessage an optional error message to be shown to users to explain why the launch is terminated. Set null or
+   *                     empty string if this termination is not an error.
+   * @param destroyProcess if this is true, the underlying processes (if any) will be destroyed as well.
+   */
+  void terminateLaunch(@Nullable String errorMessage, boolean destroyProcess);
 }
