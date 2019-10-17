@@ -64,7 +64,7 @@ public class CustomEventTrackRenderer implements TrackRenderer<CustomEventTrackM
     LineChart lineChart = new LineChart(lineChartModel);
 
     LineConfig config =
-      new LineConfig(ProfilerColors.USER_COUNTER_EVENT_COUNT).setLegendIconType(LegendConfig.IconType.LINE).setFilled(true);
+      new LineConfig(ProfilerColors.USER_COUNTER_EVENT_USAGE).setLegendIconType(LegendConfig.IconType.LINE).setFilled(true);
     lineChart.configure(rangedContinuousSeries, config);
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChart.setFillEndGap(true);
@@ -73,7 +73,6 @@ public class CustomEventTrackRenderer implements TrackRenderer<CustomEventTrackM
     // Track heights are fixed, so must manually set track height here.
     lineChartPanel
       .setPreferredSize(JBDimension.create(lineChartPanel.getPreferredSize()).withHeight(CUSTOM_EVENT_VISUALIZATION_TRACK_HEIGHT));
-
 
     // Axis Panel
     final JPanel axisPanel = new JBPanel(new BorderLayout());
