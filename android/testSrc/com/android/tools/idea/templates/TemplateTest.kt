@@ -28,6 +28,11 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareNewBasicActivity() {
+    checkCreateTemplate("activities", "BasicActivity", false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewBasicActivityWithKotlin() {
     checkCreateTemplate("activities", "BasicActivity", false, withKotlin)
   }

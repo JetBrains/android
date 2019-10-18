@@ -169,7 +169,7 @@ data class ProjectChecker(
    * Compare the contents of the generated files between the old and new RenderingContexts
    */
   private fun compareProject(projectName: String) {
-    val modifiedProjectName = getModifiedProjectName(projectName, activityState)
+    val modifiedProjectName = getModifiedProjectName(projectName, activityState, true)
     val fixtureForOld = setUpFixtureForProject(modifiedProjectName)
     val oldProject = fixtureForOld.project!!
     val oldTempDirFixture = TempDirTestFixtureImpl().apply {
@@ -234,7 +234,7 @@ data class ProjectChecker(
     val packageName = activityState.getString(ATTR_PACKAGE_NAME)
     val generateLayout = activityState["generateLayout"] as Boolean?
     val projectRoot = VfsUtilCore.virtualToIoFile(project.guessProjectDir()!!)
-    val modifiedProjectName = getModifiedProjectName(project.name, activityState)
+    val modifiedProjectName = getModifiedProjectName(project.name, activityState, true)
     val moduleRoot = File(projectRoot, modifiedProjectName)
     val projectTemplateDataBuilder = ProjectTemplateDataBuilder(!createActivity).apply {
       minApi = activityState.getString(ATTR_MIN_API)
