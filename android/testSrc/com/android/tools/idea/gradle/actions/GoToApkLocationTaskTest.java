@@ -25,10 +25,8 @@ import com.android.tools.idea.gradle.actions.GoToApkLocationTask.OpenFolderNotif
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
@@ -51,7 +49,7 @@ import org.mockito.MockitoAnnotations;
  */
 public class GoToApkLocationTaskTest extends JavaProjectTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
-  private boolean isShowFilePathActionSupported;
+  private boolean isRevealFileActionSupported;
   @Mock private AndroidNotification myMockNotification;
   private GoToApkLocationTask myTask;
   private File myApkPath;
@@ -62,20 +60,19 @@ public class GoToApkLocationTaskTest extends JavaProjectTestCase {
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
-    isShowFilePathActionSupported = true;
+    isRevealFileActionSupported = true;
     modules = new ArrayList<>();
     // Simulate the path of the APK for the project's module.
     myApkPath = createTempDir("apkLocation");
     modulesToPaths = new TreeMap<>();
     modulesToPaths.put(getModule().getName(), myApkPath);
     modules.add(getModule());
-    IdeComponents ideComponents = new IdeComponents(getProject(), getTestRootDisposable());
-    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(myProject, BuildsToPathsMapper.class, getTestRootDisposable());
+    BuildsToPathsMapper mockGenerator = IdeComponents.mockProjectService(myProject, BuildsToPathsMapper.class, getTestRootDisposable());
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), any())).thenReturn(modulesToPaths);
     myTask = new GoToApkLocationTask(getProject(), modules, NOTIFICATION_TITLE) {
       @Override
-      boolean isShowFilePathActionSupported() {
-        return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
+      boolean isRevealFileActionSupported() {
+        return isRevealFileActionSupported;  // Inject ability to simulate both behaviors.
       }
     };
     ServiceContainerUtil
@@ -104,10 +101,10 @@ public class GoToApkLocationTaskTest extends JavaProjectTestCase {
             new OpenFolderNotificationListener(apkPathsPerModule, myProject));
   }
 
-  public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
-    isShowFilePathActionSupported = false;
+  public void testExecuteWithSuccessfulBuildNoRevealFileAction() {
+    isRevealFileActionSupported = false;
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    String message = getExpectedModuleNotificationMessageNoShowFilePathAction();
+    String message = getExpectedModuleNotificationMessageNoRevealFileAction();
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
             new GoToApkLocationTask.OpenEventLogHyperlink());
   }
@@ -155,7 +152,7 @@ public class GoToApkLocationTaskTest extends JavaProjectTestCase {
   }
 
   @NotNull
-  private static String getExpectedModuleNotificationMessageNoShowFilePathAction() {
+  private static String getExpectedModuleNotificationMessageNoRevealFileAction() {
     return "APK(s) generated successfully for 1 module";
   }
 

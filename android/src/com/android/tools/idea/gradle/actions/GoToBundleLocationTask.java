@@ -130,7 +130,7 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
     }
 
     builder.append(":<br/>");
-    if (isShowFilePathActionSupported()) {
+    if (isRevealFileActionSupported()) {
       for (Iterator<String> iterator = bundleBuildsToPath.keySet().iterator(); iterator.hasNext(); ) {
         String moduleOrBuildVariant = iterator.next();
         if (isSigned) {
@@ -177,8 +177,7 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
   }
 
   @VisibleForTesting
-  boolean isShowFilePathActionSupported() {
-    // FIXME-ank: rename method!
+  boolean isRevealFileActionSupported() {
     return RevealFileAction.isSupported();
   }
 

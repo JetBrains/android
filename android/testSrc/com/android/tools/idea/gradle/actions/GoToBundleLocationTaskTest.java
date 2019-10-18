@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.actions.GoToBundleLocationTask.OpenFolderNo
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.JavaProjectTestCase;
@@ -45,7 +44,7 @@ import org.mockito.MockitoAnnotations;
  */
 public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
   private static final String NOTIFICATION_TITLE = "Build Bundle(s)";
-  boolean isShowFilePathActionSupported;
+  boolean isRevealFileActionSupported;
   @Mock private AndroidNotification myMockNotification;
   private GoToBundleLocationTask myTask;
   private Map<String, File> modulesToPaths;
@@ -55,17 +54,16 @@ public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
     super.setUp();
     MockitoAnnotations.initMocks(this);
     List<Module> modules = Collections.singletonList(getModule());
-    isShowFilePathActionSupported = true;
+    isRevealFileActionSupported = true;
     // Simulate the path of the bundle file for the project's module.
     File myBundleFilePath = createTempDir("bundleFileLocation");
     modulesToPaths = Collections.singletonMap(getModule().getName(), myBundleFilePath);
-    IdeComponents ideComponents = new IdeComponents(getProject(), getTestRootDisposable());
-    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(myProject, BuildsToPathsMapper.class, getTestRootDisposable());
+    BuildsToPathsMapper mockGenerator = IdeComponents.mockProjectService(myProject, BuildsToPathsMapper.class, getTestRootDisposable());
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), any())).thenReturn(modulesToPaths);
     myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE) {
       @Override
-      boolean isShowFilePathActionSupported() {
-        return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
+      boolean isRevealFileActionSupported() {
+        return isRevealFileActionSupported;  // Inject ability to simulate both behaviors.
       }
     };
     ServiceContainerUtil
@@ -93,10 +91,10 @@ public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
             new OpenFolderNotificationListener(myProject, modulesToPaths, null));
   }
 
-  public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
-    isShowFilePathActionSupported = false;
+  public void testExecuteWithSuccessfulBuildNoRevealFileAction() {
+    isRevealFileActionSupported = false;
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    String message = getExpectedModuleNotificationMessageNoShowFilePathAction();
+    String message = getExpectedModuleNotificationMessageNoRevealFileAction();
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION, new GoToBundleLocationTask.OpenEventLogHyperlink());
   }
 
@@ -121,7 +119,7 @@ public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
   }
 
   @NotNull
-  private static String getExpectedModuleNotificationMessageNoShowFilePathAction() {
+  private static String getExpectedModuleNotificationMessageNoRevealFileAction() {
     return "App bundle(s) generated successfully for 1 module";
   }
 
