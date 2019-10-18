@@ -38,11 +38,9 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
@@ -57,7 +55,6 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
@@ -76,7 +73,6 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
@@ -418,8 +414,7 @@ public class InteractionManager implements Disposable {
       }
 
       if (event.isPopupTrigger()) {
-        NlComponent component = selectComponentAt(x, y, false, true);
-        mySurface.getActionManager().showPopup(event, component);
+        mySurface.onPopupMenuTrigger(event, true);
       }
     }
 
@@ -436,8 +431,7 @@ public class InteractionManager implements Disposable {
       myLastModifiersEx = event.getModifiersEx();
 
       if (event.isPopupTrigger()) {
-        NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
-        mySurface.getActionManager().showPopup(event, selected);
+        mySurface.onPopupMenuTrigger(event, true);
         event.consume();
         return;
       }
@@ -459,9 +453,7 @@ public class InteractionManager implements Disposable {
         return;
       }
       if (event.isPopupTrigger()) {
-        NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
-        mySurface.repaint();
-        mySurface.getActionManager().showPopup(event, selected);
+        mySurface.onPopupMenuTrigger(event, true);
         return;
       }
       else if (interceptPanInteraction(event)) {
@@ -482,11 +474,7 @@ public class InteractionManager implements Disposable {
       int modifiersEx = event.getModifiersEx();
 
       if (myCurrentInteraction == null) {
-        boolean allowToggle = (modifiersEx & (InputEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) != 0;
-        selectComponentAt(x, y, allowToggle, false);
-        mySurface.repaint();
-      }
-      if (myCurrentInteraction == null) {
+        mySurface.onMouseReleaseWithoutInteraction(x, y, modifiersEx);
         updateCursor(x, y, modifiersEx);
       }
       else {
@@ -494,80 +482,6 @@ public class InteractionManager implements Disposable {
         myCurrentInteraction = null;
       }
       mySurface.repaint();
-    }
-
-    /**
-     * Selects the component under the given x,y coordinate, optionally
-     * toggling or replacing the selection.
-     *
-     * @param x                       The mouse click x coordinate, in Swing coordinates.
-     * @param y                       The mouse click y coordinate, in Swing coordinates.
-     * @param allowToggle             If true, clicking an unselected component adds it to the selection,
-     *                                and clicking a selected component removes it from the selection. If not,
-     *                                the selection is replaced.
-     * @param ignoreIfAlreadySelected If true, and the clicked component is already selected, leave the
-     *                                selection (including possibly other selected components) alone
-     */
-    @Nullable
-    private NlComponent selectComponentAt(@SwingCoordinate int x, @SwingCoordinate int y, boolean allowToggle,
-                                          boolean ignoreIfAlreadySelected) {
-      // Just a click, select
-      SceneView sceneView = mySurface.getSceneView(x, y);
-      if (sceneView == null) {
-        return null;
-      }
-
-      SceneContext context = SceneContext.get(sceneView);
-      int xDip = getAndroidXDip(sceneView, x);
-      int yDip = getAndroidYDip(sceneView, y);
-      Scene scene = sceneView.getScene();
-      Target clickedTarget = scene.findTarget(context, xDip, yDip, myLastModifiersEx);
-      SceneComponent clicked;
-      if (clickedTarget != null) {
-        clicked = clickedTarget.getComponent();
-      }
-      else {
-        clicked = scene.findComponent(context, xDip, yDip);
-      }
-      NlComponent component = null;
-      if (clicked != null) {
-        component = clicked.getNlComponent();
-      }
-
-      SecondarySelector secondarySelector = Scene.getSecondarySelector(context, xDip, yDip);
-      boolean useSecondarySelector = component != null && secondarySelector != null;
-      if (useSecondarySelector) {
-        // Change clicked component to the secondary selection.
-        component = secondarySelector.getComponent();
-      }
-
-      SelectionModel selectionModel = sceneView.getSelectionModel();
-      if (ignoreIfAlreadySelected && secondarySelector == null && component != null && selectionModel.isSelected(component)) {
-        return component;
-      }
-
-      if (component == null) {
-        selectionModel.clear();
-      }
-      else if (allowToggle) {
-        selectionModel.toggle(component);
-      }
-      else if (useSecondarySelector) {
-        selectionModel.setSecondarySelection(component, secondarySelector.getConstraint());
-      }
-      else {
-        selectionModel.setSelection(Collections.singletonList(component));
-      }
-      return component;
-    }
-
-    @Nullable
-    private NlComponent getComponentAt(@SwingCoordinate int x, @SwingCoordinate int y) {
-      SceneView sceneView = mySurface.getSceneView(x, y);
-      if (sceneView == null) {
-        return null;
-      }
-      return Coordinates.findComponent(sceneView, x, y);
     }
 
     @Override
