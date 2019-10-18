@@ -404,7 +404,7 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  protected void layoutContent() {
+  public void layoutContent() {
     requestRender();
   }
 

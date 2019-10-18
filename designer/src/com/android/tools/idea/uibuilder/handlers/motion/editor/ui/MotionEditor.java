@@ -152,6 +152,10 @@ public class MotionEditor extends JPanel {
     }
   }
 
+  public void stopAnimation() {
+    mTransitionPanel.mTimeLinePanel.stopAnimation();
+  }
+
   enum LayoutMode {
     VERTICAL_LAYOUT,
     HORIZONTAL_LAYOUT,
@@ -214,10 +218,10 @@ public class MotionEditor extends JPanel {
       @Override
       public void command(MotionEditorSelector.TimeLineCmd cmd, float pos) {
         switch (cmd) {
-
           case MOTION_PROGRESS:
             mOverviewPanel.setTransitionProgress(pos);
             break;
+          case MOTION_SCRUB:
           case MOTION_PLAY:
             break;
           case MOTION_STOP:
@@ -424,7 +428,6 @@ public class MotionEditor extends JPanel {
   }
 
   void constraintSetSelection() {
-
     int index = mCombinedListPanel.getSelectedConstraintSet();
     mOverviewPanel.setConstraintSetIndex(index);
     mTransitionPanel.stopAnimation();

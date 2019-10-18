@@ -41,7 +41,7 @@ public class MECreateKeyCycleTest extends BaseMotionEditorTest {
 
   public void testCreateKeyCycleLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,189,322\n" +
+    String layout = "0,CreatorAccess,0,0,189,282\n" +
                     "1,JLabel,5,2,179,15\n" +
                     "1,JSeparator,5,20,179,2\n" +
                     "1,JRadioButton,5,25,52,23\n" +
@@ -57,10 +57,8 @@ public class MECreateKeyCycleTest extends BaseMotionEditorTest {
                     "1,JLabel,5,168,179,15\n" +
                     "1,PromptedTextField,5,186,179,19\n" +
                     "1,JLabel,5,208,179,15\n" +
-                    "1,PromptedTextField,5,226,179,19\n" +
-                    "1,JLabel,5,248,179,15\n" +
-                    "1,MEComboBox,5,266,179,24\n" +
-                    "1,JButton,5,296,179,25\n";
+                    "1,MEComboBox,5,226,179,24\n" +
+                    "1,JButton,5,256,179,25\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
@@ -93,8 +91,6 @@ public class MECreateKeyCycleTest extends BaseMotionEditorTest {
                   "1,MEComboBox,sin,square,triangle,sawtooth,reverseSawtooth,cos,bounce\n" +
                   "1,JLabel,Wave Period\n" +
                   "1,PromptedTextField,1\n" +
-                  "1,JLabel,Wave Offset\n" +
-                  "1,PromptedTextField,float\n" +
                   "1,JLabel,Attribute to cycle\n" +
                   "1,MEComboBox,alpha,elevation,rotation,rotationX,rotationY,scaleX,scaleY,translationX,translationY,translationZ,transitionPathRotate\n" +
                   "1,JButton,Add\n";
@@ -102,11 +98,12 @@ public class MECreateKeyCycleTest extends BaseMotionEditorTest {
     panel.fillAttributes();
     MTag tag = panel.create();
     String created = "\n" +
-      "<KeyCycle\n" +
-      "   android:alpha=\"0\"\n" +
-      "   motion:framePosition=\"0\"\n" +
-      "   motion:motionTarget=\"test32\"\n" +
-      "   motion:wavePeriod=\"1\" />\n";
+                     "<KeyCycle\n" +
+                     "   android:alpha=\"0.5\"\n" +
+                     "   motion:framePosition=\"0\"\n" +
+                     "   motion:motionTarget=\"@+id/number\"\n" +
+                     "   motion:waveOffset=\"0.5\"\n" +
+                     "   motion:wavePeriod=\"1\" />\n";
     assertEquals(created, tag.toFormalXmlString(""));
   }
 }

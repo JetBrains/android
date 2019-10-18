@@ -132,7 +132,6 @@ public class CreateKeyAttribute extends BaseCreateKey {
     if (DEBUG) {
       Debug.log("create");
     }
-    String tag = mMatchTag.getText();
     MTag.TagWriter toCommit;
     MTag.TagWriter keyPosition;
     if (mKeyFrameSet == null) {
@@ -147,7 +146,7 @@ public class CreateKeyAttribute extends BaseCreateKey {
       return null;
     }
 
-    keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.MOTION_TARGET, tag);
+    keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.MOTION_TARGET, getMotionTarget());
     try {
       int posInt = Integer.parseInt(pos.trim());
       keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.FRAME_POSITION, pos.trim());
@@ -155,8 +154,11 @@ public class CreateKeyAttribute extends BaseCreateKey {
       showErrorDialog("was not able to parse \"" + pos.trim() + "\"");
       return null;
     }
-    keyPosition.setAttribute(optionsNameSpace[comboBox.getSelectedIndex()], (String) comboBox.getSelectedItem(), "0");
 
+    int index = comboBox.getSelectedIndex();
+    String value =  MotionSceneAttrs.KeyAttributeOptionsDefaultValue[index];
+    keyPosition.setAttribute(optionsNameSpace[index], (String) comboBox.getSelectedItem(), value);
+    String offset =  MotionSceneAttrs.KeyCycleOptionsDefaultOffset[index];
     MTag ret = toCommit.commit("Create KeyAttribute");
     Track.createKeyAttribute();
     mMotionEditor.dataChanged();

@@ -574,7 +574,12 @@ public class LayoutlibSceneManager extends SceneManager {
       return;
     }
 
-    doRequestLayoutAndRender(animate);
+    if (getDesignSurface().isInAnimationMode()) {
+      render(getTriggerFromChangeType(getModel().getLastChangeType()));
+      notifyListenersModelLayoutComplete(animate);
+    } else {
+      doRequestLayoutAndRender(animate);
+    }
   }
 
   void doRequestLayoutAndRender(boolean animate) {

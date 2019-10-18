@@ -94,6 +94,7 @@ import org.jetbrains.annotations.Nullable;
  * or more device renderings, etc
  */
 public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility {
+
   public static class Builder {
     private final Project myProject;
     private final Disposable myParentDisposable;
@@ -244,6 +245,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Nullable private final NavigationHandler myNavigationHandler;
 
   private boolean myIsAnimationMode = false;
+  private boolean myIsAnimationScrubbing = false;
 
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
@@ -523,7 +525,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  protected void layoutContent() {
+  public void layoutContent() {
     int availableWidth = myScrollPane.getWidth();
     int availableHeight = myScrollPane.getHeight();
     myLayoutManager.layout(getSceneViews(), availableWidth, availableHeight, myIsCanvasResizing);
@@ -930,4 +932,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public void setAnimationMode(boolean enabled) {
     myIsAnimationMode = enabled;
   }
+
+  public boolean isInAnimationMode() { return myIsAnimationMode; }
+
+  public void setAnimationScrubbing(boolean value) {
+    myIsAnimationScrubbing = value;
+  }
+
+  public boolean isInAnimationScrubbing() { return myIsAnimationScrubbing; }
+
 }

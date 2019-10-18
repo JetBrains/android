@@ -70,7 +70,7 @@ public class TimeLinePanel extends JPanel {
   private static int MS_PER_FRAME = 15;
   private static float TIMELINE_MIN = 0.0f;
   private static float TIMELINE_MAX = 100.0f;
-  private static float[] ourSpeeds = {0.01f, 0.02f, 0.04f};
+  private static float[] ourSpeedsMultipliers = {0.25f, 0.5f, 1f, 2f,4f};
   MotionEditorSelector mMotionEditorSelector;
   private TimelineStructure mTimelineStructure = new TimelineStructure();
   private TimeLineTopPanel myTimeLineTopPanel = new TimeLineTopPanel(mTimelineStructure);
@@ -85,9 +85,10 @@ public class TimeLinePanel extends JPanel {
   private Timer myTimer;
   private Timer myPlayLimiter;
   private int myYoyo = 0;
-  private float myProgressPerMillisecond = 0.01f;
+  private int mDuration = 1000;
+  private float myProgressPerMillisecond = 1/(float)mDuration;
   private long last_time;
-  private int mCurrentSpeed = 0;
+  private int mCurrentSpeed = 2;
   private boolean mIsPlaying = false;
   private ArrayList<TimeLineListener> mTimeLineListeners = new ArrayList<>();
   private int mDirection = 1;
@@ -236,8 +237,7 @@ public class TimeLinePanel extends JPanel {
   }
 
   public void stopAnimation() {
-    destroyTimer();
-    mTimeLineTopLeft.displayPlay();
+    performCommand(TimelineCommands.PAUSE, 0);
   }
 
   private static String buildKey(MTag keyFrame) {
@@ -351,8 +351,9 @@ public class TimeLinePanel extends JPanel {
         mIsPlaying = true;
         break;
       case SPEED:
-        mCurrentSpeed = (mCurrentSpeed + 1) % ourSpeeds.length;
-        myProgressPerMillisecond = ourSpeeds[mCurrentSpeed];
+        mCurrentSpeed = (mCurrentSpeed + 1) % ourSpeedsMultipliers.length;
+        myProgressPerMillisecond = ourSpeedsMultipliers[mCurrentSpeed]/(float)mDuration;
+        mTimeLineTopLeft.mSlow.setToolTipText(mDuration+" x "+ourSpeedsMultipliers[mCurrentSpeed]);
         break;
       case LOOP:
         myYoyo = mode;
@@ -361,6 +362,7 @@ public class TimeLinePanel extends JPanel {
         mIsPlaying = false;
         destroyTimer();
         notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
+        mTimeLineTopLeft.displayPlay();
         break;
       case END:
         mIsPlaying = false;
@@ -383,9 +385,11 @@ public class TimeLinePanel extends JPanel {
     if (!mIsPlaying || mMouseDown) {
       return;
     }
+    long time = System.nanoTime();
+
     switch (myYoyo) {
       case 0:
-        mMotionProgress += myProgressPerMillisecond;
+        mMotionProgress += myProgressPerMillisecond * ((time - last_time) * 1E-6f);
         if (mMotionProgress > 1f) {
           notifyTimeLineListeners(TimeLineCmd.MOTION_PROGRESS, 1f);
 
@@ -393,16 +397,14 @@ public class TimeLinePanel extends JPanel {
         }
         break;
       case 1:
-        long time = System.nanoTime();
         mMotionProgress -= myProgressPerMillisecond * ((time - last_time) * 1E-6f);
-        last_time = time;
         if (mMotionProgress < 0f) {
           notifyTimeLineListeners(TimeLineCmd.MOTION_PROGRESS, 0f);
           mMotionProgress = 1 + mMotionProgress;
         }
         break;
       case 2:
-        mMotionProgress += (mDirection) * myProgressPerMillisecond;
+        mMotionProgress += (mDirection) * myProgressPerMillisecond * ((time - last_time) * 1E-6f);
         if (mMotionProgress < 0f) {
           notifyTimeLineListeners(TimeLineCmd.MOTION_PROGRESS, 0f);
           mDirection = +1;
@@ -415,6 +417,7 @@ public class TimeLinePanel extends JPanel {
         }
         break;
     }
+    last_time = time;
 
     notifyTimeLineListeners(TimeLineCmd.MOTION_PROGRESS, mMotionProgress);
     repaint();
@@ -438,6 +441,31 @@ public class TimeLinePanel extends JPanel {
     MTag newSelection = findSelectedKeyFrameInNewModel(model);
 
     mTransitionTag = transitionTag;
+    if (mTransitionTag != null) {
+      String duration = mTransitionTag.getAttributeValue("duration");
+      if (duration != null) {
+        try {
+          int durationInt = Integer.parseInt(duration);
+          mDuration = durationInt;
+          if (mDuration == 0) {
+            mDuration = 1000;
+          }
+          mCurrentSpeed = 2;
+          myProgressPerMillisecond = 1 / (float)mDuration;
+        }
+        catch (NumberFormatException e) {
+        }
+      }
+    } else {
+      mDuration = 1000;
+      mCurrentSpeed = 2;
+      myProgressPerMillisecond = 1 / (float)mDuration;
+    }
+
+    if (mTimeLineTopLeft != null && mTimeLineTopLeft.mSlow != null) {
+      mTimeLineTopLeft.mSlow.setToolTipText(mDuration + " x " + ourSpeedsMultipliers[mCurrentSpeed]);
+    }
+
     mSelectedKeyFrame = null;
     mMeModel = model;
     List<TimeLineRowData> list = transitionTag != null ? buildTransitionList() : Collections.emptyList();
@@ -685,7 +713,7 @@ public class TimeLinePanel extends JPanel {
       case MouseEvent.MOUSE_PRESSED: {
         mMouseDown = (progress >= 0.0f && progress <= 1.0f);
         if (mMouseDown) {
-          notifyTimeLineListeners(TimeLineCmd.MOTION_PLAY, mMotionProgress);
+          notifyTimeLineListeners(TimeLineCmd.MOTION_SCRUB, mMotionProgress);
         }
         repaint();
       }
