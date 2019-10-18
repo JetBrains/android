@@ -123,7 +123,7 @@ public final class GradleInitScripts {
 
   public void addApplyBuildScriptClasspathModelBuilderInitScript(@NotNull List<String> allArgs) {
     try {
-      Class buildScriptModelBuilderClass = ModelBuildScriptClasspathBuilderImpl.class;
+      Class<?> buildScriptModelBuilderClass = ModelBuildScriptClasspathBuilderImpl.class;
       List<String> paths = new ArrayList<>();
       paths.add(getJarPathForClass(buildScriptModelBuilderClass));
       paths.add(getJarPathForClass(ModelBuilderService.class));
@@ -149,7 +149,7 @@ public final class GradleInitScripts {
 
   @NotNull
   private File createKaptModelBuilderInitScriptFile() throws IOException {
-    Class kaptModelBuilderClass = KaptModelBuilderService.class;
+    Class<?> kaptModelBuilderClass = KaptModelBuilderService.class;
     List<String> paths = new ArrayList<>();
     paths.add(getJarPathForClass(kaptModelBuilderClass));
     paths.add(getJarPathForClass(Unit.class));
@@ -245,14 +245,14 @@ public final class GradleInitScripts {
       return "import javax.inject.Inject\n" +
              "import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry\n" +
              "import org.gradle.tooling.provider.model.ToolingModelBuilder\n" +
-             "import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext\n" + // FIXME-ank
-             "import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext.DataProvider\n" + // FIXME-ank
-             "import java.util.IdentityHashMap;\n" + // FIXME-ank
-             "import java.util.List;\n" + // FIXME-ank
-             "import java.util.Map;\n" + // FIXME-ank
-             "import java.util.ServiceLoader;\n" + // FIXME-ank
-             "\n" + // FIXME-ank
-             "initscript {\n" + // FIXME-ank
+             "import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext\n" +
+             "import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext.DataProvider\n" +
+             "import java.util.IdentityHashMap;\n" +
+             "import java.util.List;\n" +
+             "import java.util.Map;\n" +
+             "import java.util.ServiceLoader;\n" +
+             "\n" +
+             "initscript {\n" +
              "  dependencies {\n" +
              "      " +
              createClassPathString(paths) +
@@ -263,7 +263,7 @@ public final class GradleInitScripts {
              "  apply plugin: " + modelName + "ModelBuilderPlugin\n" +
              "}\n" +
              "class " + modelName + "ModelBuilder implements ToolingModelBuilder {\n" +
-             "  public MyModelBuilderContext context;\n" + // FIXME-ank
+             "  public MyModelBuilderContext context;\n" +
              "  public " + modelBuilderClassName + " builder;\n" +
              "\n" +
              "  public " + modelName + "ModelBuilder() {\n" +
@@ -273,7 +273,7 @@ public final class GradleInitScripts {
              "    return builder.canBuild(modelName);\n" +
              "  }\n" +
              "  public Object buildAll(String modelName, Project project) {\n" +
-             (modelName.equals("Kapt") ? kapt() : classpath()) + // FIXME-ank
+             (modelName.equals("Kapt") ? buildAllBodyKapt() : buildAllBodyClasspath()) +
              "  }\n" +
              "}\n" +
              "class " + modelName + "ModelBuilderPlugin implements Plugin<Project>{ \n" +
@@ -290,46 +290,43 @@ public final class GradleInitScripts {
              "\n" +
 
 
-             "  class MyModelBuilderContext implements ModelBuilderContext {\n" + // FIXME-ank
-             "    private final Map<DataProvider, Object> myMap = new IdentityHashMap<DataProvider, Object>();\n" + // FIXME-ank
-             "    private final Gradle myGradle;\n" + // FIXME-ank
-             "\n" + // FIXME-ank
-             "    private MyModelBuilderContext(Gradle gradle) {\n" + // FIXME-ank
-             "      myGradle = gradle;\n" + // FIXME-ank
-             "    }\n" + // FIXME-ank
-             "\n" + // FIXME-ank
-             "    @Override\n" + // FIXME-ank
-             "    public Gradle getRootGradle() {\n" + // FIXME-ank
-             "      return myGradle;\n" + // FIXME-ank
-             "    }\n" + // FIXME-ank
-             "\n" + // FIXME-ank
-             "    @Override\n" + // FIXME-ank
-             "    public <T> T getData(DataProvider<T> provider) {\n" + // FIXME-ank
-             "      Object data = myMap.get(provider);\n" + // FIXME-ank
-             "      if (data == null) {\n" + // FIXME-ank
-             "        T value = provider.create(myGradle);\n" + // FIXME-ank
-             "        myMap.put(provider, value);\n" + // FIXME-ank
-             "        return value;\n" + // FIXME-ank
-             "      }\n" + // FIXME-ank
-             "      else {\n" + // FIXME-ank
-             "        return (T)data;\n" + // FIXME-ank
-             "      }\n" + // FIXME-ank
-             "    }\n" + // FIXME-ank
-             "  }\n" + // FIXME-ank
-             "";
+             "  class MyModelBuilderContext implements ModelBuilderContext {\n" +
+             "    private final Map<DataProvider, Object> myMap = new IdentityHashMap<DataProvider, Object>();\n" +
+             "    private final Gradle myGradle;\n" +
+             "\n" +
+             "    private MyModelBuilderContext(Gradle gradle) {\n" +
+             "      myGradle = gradle;\n" +
+             "    }\n" +
+             "\n" +
+             "    @Override\n" +
+             "    public Gradle getRootGradle() {\n" +
+             "      return myGradle;\n" +
+             "    }\n" +
+             "\n" +
+             "    @Override\n" +
+             "    public <T> T getData(DataProvider<T> provider) {\n" +
+             "      Object data = myMap.get(provider);\n" +
+             "      if (data == null) {\n" +
+             "        T value = provider.create(myGradle);\n" +
+             "        myMap.put(provider, value);\n" +
+             "        return value;\n" +
+             "      }\n" +
+             "      else {\n" +
+             "        return (T)data;\n" +
+             "      }\n" +
+             "    }\n" +
+             "  }\n";
     }
 
-    // FIXME-ank;
-    private String classpath() {
+    private String buildAllBodyClasspath() {
       return
-        "    if (context == null){\n" + // FIXME-ank
-        "       context = new MyModelBuilderContext(project.getGradle())\n" + // FIXME-ank
-        "    }\n" + // FIXME-ank
-        "    return builder.buildAll(modelName, project, context);\n"; // FIXME-ank;
+        "    if (context == null){\n" +
+        "       context = new MyModelBuilderContext(project.getGradle())\n" +
+        "    }\n" +
+        "    return builder.buildAll(modelName, project, context);\n";
     }
 
-    // FIXME-ank
-    private String kapt() {
+    private String buildAllBodyKapt() {
       return "    return builder.buildAll(modelName, project);\n";
     }
 
