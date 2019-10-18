@@ -23,9 +23,6 @@ import org.jetbrains.annotations.NotNull;
 abstract class AndroidStudioCleanUpTask extends ProjectCleanUpTask {
   @Override
   void cleanUp(@NotNull Project project) {
-    //if (!IdeInfo.getInstance().isAndroidStudio()) { // FIXME-ank-g
-    //  return;  // FIXME-ank-g
-    //}  // FIXME-ank-g
     try {
       doCleanUp(project);
     }
