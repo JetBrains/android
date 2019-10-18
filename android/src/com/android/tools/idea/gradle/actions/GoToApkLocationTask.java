@@ -110,7 +110,7 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
       }
 
       builder.append(":<br/>");
-      if (isShowFilePathActionSupported()) {
+      if (isRevealFileActionSupported()) {
         for (Iterator<String> iterator = apkBuildsToPaths.keySet().iterator(); iterator.hasNext(); ) {
           String moduleOrBuildVariant = iterator.next();
           if (isSigned) {
@@ -161,8 +161,7 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
   }
 
   @VisibleForTesting
-  boolean isShowFilePathActionSupported() {
-    // FIXME-ank: rename method!
+  boolean isRevealFileActionSupported() {
     return RevealFileAction.isSupported();
   }
 
