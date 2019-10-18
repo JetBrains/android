@@ -23,7 +23,10 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotati
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -111,12 +114,14 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
 
   private void update(@NotNull MotionSceneTag.Root root, @Nullable String commandName) {
     WriteCommandAction.runWriteCommandAction(root.mProject, commandName, null, () -> {
+      CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mModel.getFile().getVirtualFile());
+      CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mXmlFile.getVirtualFile());
       for (String key : mNewAttrList.keySet()) {
         Attribute attr = mNewAttrList.get(key);
         String namespace = MotionSceneAttrs.lookupName(attr);
         myXmlTag.setAttribute(attr.mAttribute, namespace, attr.mValue);
       }
-    }, root.mXmlFile);
+    }, root.mXmlFile, root.mModel.getFile());
 
     saveAndNotify(root.mXmlFile, root.mModel);
   }
@@ -147,11 +152,26 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     return null;
   }
 
+  /**
+   * Utility method to pass multiple files to a WriteCommandAction
+   * @param root
+   * @param commandName
+   * @param computable
+   * @param files
+   * @return
+   */
+  private static XmlTag writeAction(MotionSceneTag.Root root, String commandName,
+                                    final Computable<XmlTag> computable,
+                                    PsiFile... files) {
+    return WriteCommandAction.writeCommandAction(root.mProject, files)
+      .withName(commandName).withGroupId(null).compute(() -> computable.compute());
+  }
+
   public static XmlTag createConstraint(String type, MotionSceneTagWriter tag, MotionSceneTag.Root root) {
 
-    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(root.mProject, root.mVirtualFile);
-
-    XmlTag createdTag = WriteCommandAction.<XmlTag>runWriteCommandAction(root.mProject, () -> {
+    XmlTag createdTag = writeAction(root, "Create Constraints", () -> {
+      CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mModel.getFile().getVirtualFile());
+      CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mXmlFile.getVirtualFile());
       XmlTag transitionTag = ((MotionSceneTag)tag.getParent()).myXmlTag;
       XmlTag child = transitionTag.createChildTag(type, null, null, false);
       child = transitionTag.addSubTag(child, false);
@@ -161,8 +181,9 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
         child.setAttribute(attr.mAttribute, namespace, attr.mValue);
       }
       return child;
-    });
+    }, root.mXmlFile, root.mModel.getFile());
 
+    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(root.mProject, root.mVirtualFile);
     saveAndNotify(xmlFile, root.mModel);
 
     return createdTag;
@@ -186,8 +207,10 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
       @Override
       public void delete(String cmd) {
         WriteCommandAction.<XmlTag>runWriteCommandAction(root.mProject, cmd, null, () -> {
+          CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mModel.getFile().getVirtualFile());
+          CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mXmlFile.getVirtualFile());
           myXmlTag.delete();
-        }, xmlFile );
+        }, xmlFile, root.mModel.getFile());
       }
     };
     return this;

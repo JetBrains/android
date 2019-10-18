@@ -70,7 +70,7 @@ public class MotionLayoutComponentHelper {
   private final Object myDesignTool;
   private final NlComponent myMotionLayoutComponent;
   private final boolean DEBUG = false;
-  private static boolean mShowPaths = false;
+  private static boolean mShowPaths = true;
 
   static WeakHashMap<NlComponent, MotionLayoutComponentHelper> sCache = new WeakHashMap<>();
 

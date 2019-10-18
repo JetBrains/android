@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
+import com.intellij.openapi.application.TransactionGuard;
 import java.util.HashMap;
 import java.util.List;
 import javax.swing.Timer;
@@ -52,7 +53,7 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
 
     MTag.TagWriter mTagWriter;
     private Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
-      commit();
+      TransactionGuard.getInstance().submitTransaction(myComponent.getModel(), () -> commit());
     });
 
     public MotionWidgetConstraintModel(@NotNull Runnable modelUpdateCallback) {
@@ -101,7 +102,7 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
       if (mTagWriter == null) {
         return;
       }
-      mTagWriter.commit("Mod");
+      mTagWriter.commit("Constraint modified");
       mTagWriter = null;
     }
   }
