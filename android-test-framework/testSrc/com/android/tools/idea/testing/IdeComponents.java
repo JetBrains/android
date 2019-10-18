@@ -36,7 +36,6 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.stubbing.Answer;
 import org.picocontainer.ComponentAdapter;
 
 public final class IdeComponents implements Disposable {
@@ -70,12 +69,6 @@ public final class IdeComponents implements Disposable {
   @NotNull
   public <T> T mockApplicationService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
-    doReplaceService(ApplicationManager.getApplication(), serviceType, mock, myUndoQueue);
-    return mock;
-  }
-  @NotNull
-  public <T> T mockApplicationServiceWithAnswer(@NotNull Class<T> serviceType, Answer<Object> runtimeExceptionAnswer) {
-    T mock = mock(serviceType, runtimeExceptionAnswer);
     doReplaceService(ApplicationManager.getApplication(), serviceType, mock, myUndoQueue);
     return mock;
   }
