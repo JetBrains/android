@@ -823,8 +823,6 @@ b/137231583 */
 
   public void testSyncWithBuildSrcModule() throws Exception {
     loadProject(APP_WITH_BUILDSRC);
-    // Request Gradle sync.
-    requestSyncAndWait();
 
     // Verify that buildSrc modules exists.
     Module buildSrcModule = getModule(getName() + "_buildSrc");
