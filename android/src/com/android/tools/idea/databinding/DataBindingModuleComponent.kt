@@ -26,7 +26,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex // FIXME-ank: KotlinPlugin appears as compile-time dependency here and in few other places
+import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.evaluateString

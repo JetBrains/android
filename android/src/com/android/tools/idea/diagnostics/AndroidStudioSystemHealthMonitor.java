@@ -23,6 +23,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.BaseComponent;
 import java.nio.file.Paths;
@@ -75,5 +76,27 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     public MyNotification(@NotNull String content) {
       super(myGroup.getDisplayId(), "", content, NotificationType.WARNING);
     }
+  }
+
+  /**
+   * Gets an action name based on its class. For Android Studio code, we use simple names for plugins we use canonical names.
+   */
+  static String getActionName(@NotNull Class actionClass, @NotNull Presentation templatePresentation) {
+    Class currentClass = actionClass;
+    while (currentClass.isAnonymousClass()) {
+      currentClass = currentClass.getEnclosingClass();
+    }
+    String packageName = currentClass.getPackage().getName();
+    if (packageName.startsWith("com.android.") || packageName.startsWith("com.intellij.") || packageName.startsWith("org.jetbrains.") ||
+        packageName.startsWith("or.intellij.") || packageName.startsWith("com.jetbrains.") || packageName.startsWith("git4idea.")) {
+
+      String actionName = currentClass.getSimpleName();
+      // ExecutorAction points to many different Run/Debug actions, we use the template text to distinguish.
+      if (actionName.equals("ExecutorAction")) {
+        actionName += "#" + templatePresentation.getText();
+      }
+      return actionName;
+    }
+    return currentClass.getCanonicalName();
   }
 }
