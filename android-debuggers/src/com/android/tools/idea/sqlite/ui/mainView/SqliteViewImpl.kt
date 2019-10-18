@@ -290,7 +290,7 @@ class SqliteViewImpl(
     private val syncProgressLabel = JLabel()
 
     init {
-      val closeDatabaseButton = CommonButton("Close db", AllIcons.Actions.Close)
+      val closeDatabaseButton = CommonButton("Close db", AllIcons.Diff.Remove)
       closeDatabaseButton.toolTipText = "Close db"
       schemaPanel.controlsPanel.add(closeDatabaseButton)
 
@@ -299,7 +299,7 @@ class SqliteViewImpl(
         listeners.forEach { databaseToRemove?.forEach { database -> it.removeDatabaseActionInvoked(database) } }
       }
 
-      val syncButton = CommonButton("Sync", AllIcons.Actions.SynchronizeFS)
+      val syncButton = CommonButton("Sync", AllIcons.Actions.Refresh)
       syncButton.toolTipText = "Sync"
       schemaPanel.controlsPanel.add(syncButton)
 
