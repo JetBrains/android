@@ -1700,6 +1700,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return ConfigurationManager.getOrCreateInstance(facet);
   }
 
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (myModelToSceneManagers != null) {
+      // updateUI() is called in the parent constructor, at that time all class member in this class has not initialized.
+      for (SceneManager manager : myModelToSceneManagers.values()) {
+        manager.getSceneView().updateUI();
+      }
+    }
+  }
+
   /**
    * Returns all the selectable components in the design surface
    *

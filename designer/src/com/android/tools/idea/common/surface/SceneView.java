@@ -230,6 +230,12 @@ public abstract class SceneView {
   }
 
   /**
+   * Called when {@link DesignSurface#updateUI()} is called.
+   */
+  public void updateUI() {
+  }
+
+  /**
    * The {@link SceneContext} based on a {@link SceneView}.
    *
    * TODO: b/140160277
