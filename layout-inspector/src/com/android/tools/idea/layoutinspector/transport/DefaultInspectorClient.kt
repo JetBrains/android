@@ -40,6 +40,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.dialog
 import com.intellij.ui.layout.panel
@@ -74,6 +76,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
   private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private val lastResponseTimePerGroup = mutableMapOf<Long, Long>()
   private var adb: ListenableFuture<AndroidDebugBridge>? = null
+  private var adbBridge: AndroidDebugBridge? = null
 
   private var attachListener: TransportEventListener? = null
 
@@ -85,6 +88,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
 
   init {
     registerProcessEnded()
+    registerProjectClosed(project)
     adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance().getDebugBridge(it) }
   }
 
@@ -128,15 +132,20 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
       processId = selectedProcess::getPid) {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() && isConnected && it.isEnded) {
-        setDebugViewAttributes(selectedStream, false)
-        selectedStream = Common.Stream.getDefaultInstance()
-        selectedProcess = Common.Process.getDefaultInstance()
-        isConnected = false
-        isCapturing = false
-        processChangedListeners.forEach { it() }
+        disconnectNow()
       }
       false
     })
+  }
+
+  private fun registerProjectClosed(project: Project) {
+    val projectManagerListener = object : ProjectManagerListener {
+      override fun projectClosed(project: Project) {
+        disconnectNow()
+        ProjectManager.getInstance().removeProjectManagerListener(project, this)
+      }
+    }
+    ProjectManager.getInstance().addProjectManagerListener(project, projectManagerListener)
   }
 
   override fun execute(command: LayoutInspectorCommand) {
@@ -303,30 +312,39 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
 
   override fun disconnect() {
     ApplicationManager.getApplication().executeOnPooledThread {
-      if (selectedStream != Common.Stream.getDefaultInstance() &&
-          selectedProcess != Common.Process.getDefaultInstance()) {
+      execute(LayoutInspectorCommand.Type.STOP)
+      disconnectNow()
+    }
+  }
 
-        execute(LayoutInspectorCommand.Type.STOP)
-
-        selectedStream = Common.Stream.getDefaultInstance()
-        selectedProcess = Common.Process.getDefaultInstance()
-        isConnected = false
-        isCapturing = false
-        processChangedListeners.forEach { it() }
-      }
+  private fun disconnectNow() {
+    if (selectedStream != Common.Stream.getDefaultInstance() &&
+        selectedProcess != Common.Process.getDefaultInstance()) {
+      setDebugViewAttributes(selectedStream, false)
+      selectedStream = Common.Stream.getDefaultInstance()
+      selectedProcess = Common.Process.getDefaultInstance()
+      isConnected = false
+      isCapturing = false
+      processChangedListeners.forEach { it() }
     }
   }
 
   private fun setDebugViewAttributes(stream: Common.Stream, enable: Boolean) {
+    adbBridge?.let {
+      if (!setDebugViewAttributes(it, stream, enable) && !enable) {
+        reportUnableToResetGlobalSettings()
+      }
+      return
+    }
+
     adb?.let { future ->
       Futures.addCallback(future, object : FutureCallback<AndroidDebugBridge> {
         override fun onSuccess(bridge: AndroidDebugBridge?) {
-          var success = false
-          try {
-            success = bridge?.let { setDebugViewAttributes(it, stream, enable) } ?: false
+          adbBridge = bridge
+          if (stream != selectedStream) {
+            return
           }
-          catch (ex: Exception) {
-          }
+          val success = bridge?.let { setDebugViewAttributes(it, stream, enable) } ?: false
           if (!success && !enable) {
             reportUnableToResetGlobalSettings()
           }
@@ -373,25 +391,32 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
     }
   }
 
-
   private fun setDebugViewAttributes(bridge: AndroidDebugBridge, stream: Common.Stream, enable: Boolean): Boolean {
-    val device = bridge.devices.find { isDeviceMatch(stream.device, it) } ?: return false
-    val receiver = CollectingOutputReceiver()
-    val commands = createAdbDebugViewCommand(enable)
-    if (!enable || selectedStream == stream) {
-      commands.forEach { device.executeShellCommand(it, receiver) }
+    try {
+      val device = bridge.devices.find { isDeviceMatch(stream.device, it) } ?: return false
+      val receiver = CollectingOutputReceiver()
+      val commands = createAdbDebugViewCommand(enable)
+      if (!enable || selectedStream == stream) {
+        commands.forEach { device.executeShellCommand(it, receiver) }
+      }
+      return true
     }
-    return true
+    catch (ex: Exception) {
+      Logger.getInstance(DefaultInspectorClient::class.java).warn(ex)
+      return false
+    }
   }
 
   private fun createAdbDebugViewCommand(enable: Boolean): List<String> {
-    val packageName = findPackageName()
-    return when {
-      !enable -> listOf("settings delete global debug_view_attributes",
-                        "settings delete global debug_view_attributes_application_package")
-      packageName.isNotEmpty() -> listOf("settings put global debug_view_attributes_application_package $packageName")
-      else -> listOf("settings put global debug_view_attributes 1")
+    if (!enable) {
+      return listOf("settings delete global debug_view_attributes",
+                    "settings delete global debug_view_attributes_application_package")
     }
+    val packageName = findPackageName()
+    return if (packageName.isNotEmpty())
+      listOf("settings put global debug_view_attributes_application_package $packageName")
+    else
+      listOf("settings put global debug_view_attributes 1")
   }
 
   private fun findPackageName(): String {
