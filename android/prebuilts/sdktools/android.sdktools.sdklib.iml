@@ -16,14 +16,14 @@
     <orderEntry type="module" module-name="android.sdktools.testutils" exported="" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="org.jetbrains.intellij.deps.android.tools:sdklib-tests:26.5.0" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:sdklib-tests:26.5.0" />
+      <library name="org.jetbrains.intellij.deps.android.tools:sdklib-tests:26.5.0.1" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:sdklib-tests:26.5.0.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdklib-tests/26.5.0/sdklib-tests-26.5.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdklib-tests/26.5.0.1/sdklib-tests-26.5.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdklib-tests/26.5.0/sdklib-tests-26.5.0-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdklib-tests/26.5.0.1/sdklib-tests-26.5.0.1-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
