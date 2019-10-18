@@ -79,6 +79,7 @@ public class AndroidGradleTests {
   private static final Pattern REPOSITORIES_PATTERN = Pattern.compile("repositories[ ]+\\{");
   private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
   private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
+  private static final Pattern MAVEN_REPOSITORY_PATTERN = Pattern.compile("maven \\{.*http.*\\}");
 
   /**
    * @deprecated use {@link AndroidGradleTests#updateToolingVersionsAndPaths(java.io.File) instead.}.
@@ -226,9 +227,13 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String updateLocalRepositories(@NotNull String contents, @NotNull String localRepositories) {
-    String newContents = REPOSITORIES_PATTERN.matcher(contents).replaceAll("repositories {\n" + localRepositories);
+    String newContents = contents;
     newContents = GOOGLE_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
     newContents = JCENTER_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
+    newContents = MAVEN_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
+
+    // Last, as it has maven repos
+    newContents = REPOSITORIES_PATTERN.matcher(newContents).replaceAll("repositories {\n" + localRepositories);
     return newContents;
   }
 
