@@ -88,6 +88,11 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  fun testWithBuildSrc() {
+    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testDependentNativeModules() {
     val text = importSyncAndDumpProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, initialState = false) { element, state ->
       // Drop any file nodes under IncludesViewNode node.

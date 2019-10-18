@@ -71,6 +71,11 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
     assertIsEqualToSnapshot(text)
   }
 
+  fun testWithBuildSrc() {
+    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testDependentNativeModules() {
     val text = importSyncAndDumpProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES)
     assertIsEqualToSnapshot(text)

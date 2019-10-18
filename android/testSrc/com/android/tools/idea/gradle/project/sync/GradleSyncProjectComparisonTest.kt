@@ -348,6 +348,11 @@ b/137231583 */
     assertIsEqualToSnapshot(text)
   }
 
+  fun testWithBuildSrc() {
+    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testSwitchingVariants_simpleApplication() {
     val debugBefore = importSyncAndDumpProject(SIMPLE_APPLICATION)
     BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release")
