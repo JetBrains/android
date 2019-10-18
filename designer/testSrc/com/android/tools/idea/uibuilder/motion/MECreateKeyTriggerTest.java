@@ -96,10 +96,10 @@ public class MECreateKeyTriggerTest extends BaseMotionEditorTest {
     panel.fillAttributes();
     MTag tag = panel.create();
     String created = "\n" +
-      "<KeyTrigger\n" +
-      "   motion:framePosition=\"0\"\n" +
-      "   motion:motionTarget=\"test32\"\n" +
-      "   motion:onCross=\"method\" />\n";
+                     "<KeyTrigger\n" +
+                     "   motion:framePosition=\"0\"\n" +
+                     "   motion:motionTarget=\"@+id/number\"\n" +
+                     "   motion:onCross=\"method\" />\n";
     assertEquals(created, tag.toFormalXmlString(""));
   }
 }

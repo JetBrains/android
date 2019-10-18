@@ -379,7 +379,13 @@ public class GraphRender {
         xpos[i] = (float)(i / (xpos.length - 1.0f));
         double amp = mMonotoneSpline.getPos(xpos[i], 0);
         double off = mMonotoneSpline.getPos(xpos[i], 1);
-        ypos[i] = mOscillator.getValue(xpos[i]) * amp + off;
+        try {
+          ypos[i] = mOscillator.getValue(xpos[i]) * amp + off;
+        }
+        catch (Exception e) {
+          ypos[i] = Math.random(); // visual hint that it is broken
+        }
+
         yMax[i] = (float)(amp + off);
         yMin[i] = (float)(-amp + off);
         mMaxY = Math.max(mMaxY, (float)ypos[i]);
