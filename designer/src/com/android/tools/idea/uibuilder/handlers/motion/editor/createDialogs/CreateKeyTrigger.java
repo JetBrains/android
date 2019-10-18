@@ -152,7 +152,6 @@ public class CreateKeyTrigger extends BaseCreateKey {
     if (DEBUG) {
       Debug.log("create");
     }
-    String tag = mMatchTag.getText();
     MTag.TagWriter toCommit;
     MTag.TagWriter keyPosition;
     if (mKeyFrameSet == null) {
@@ -161,7 +160,7 @@ public class CreateKeyTrigger extends BaseCreateKey {
     } else {
       toCommit = keyPosition = mKeyFrameSet.getChildTagWriter(KEY_TAG);
     }
-    keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.MOTION_TARGET, tag);
+    keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.MOTION_TARGET, getMotionTarget());
 
     if (comboBox.getSelectedIndex() == 0) {
       String pos = mMainParameter.getText();

@@ -90,10 +90,10 @@ public class MECreateKeyAttributeTest extends BaseMotionEditorTest {
     panel.fillAttributes();
     MTag tag = panel.create();
     String created = "\n" +
-      "<KeyAttribute\n" +
-      "   android:alpha=\"0\"\n" +
-      "   motion:framePosition=\"0\"\n" +
-      "   motion:motionTarget=\"test32\" />\n";
+                     "<KeyAttribute\n" +
+                     "   android:alpha=\"0.5\"\n" +
+                     "   motion:framePosition=\"0\"\n" +
+                     "   motion:motionTarget=\"@+id/button1\" />\n";
     assertEquals(created, tag.toFormalXmlString(""));
   }
 }
