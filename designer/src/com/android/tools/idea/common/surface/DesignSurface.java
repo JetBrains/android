@@ -89,9 +89,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
@@ -582,12 +584,40 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           if (sceneView == null) {
             return;
           }
+          // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
           NlComponent component = Coordinates.findComponent(sceneView, x, y);
           if (component != null) {
            navigateToComponent(component, false);
           }
         }
       }
+    }
+  }
+
+  /**
+   * Called by {@link InteractionManager} when mouse is released without any interaction.
+   */
+  public void onMouseReleaseWithoutInteraction(@SwingCoordinate int x,
+                                               @SwingCoordinate int y,
+                                               @JdkConstants.InputEventMask int modifierEx) {
+    boolean allowToggle = (modifierEx & (InputEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) != 0;
+    SceneView sceneView = getSceneView(x, y);
+    if (sceneView != null) {
+      SceneViewHelper.selectComponentAt(sceneView, x, y, modifierEx, allowToggle, false);
+    }
+  }
+
+  /**
+   * Called by {@link InteractionManager} when the popup context menu event is triggered. (e.g. right click on a component)
+   */
+  public void onPopupMenuTrigger(@NotNull MouseEvent mouseEvent, boolean ignoredIfAlreadySelected) {
+    int x = mouseEvent.getX();
+    int y = mouseEvent.getY();
+    int modifiersEx = mouseEvent.getModifiersEx();
+    SceneView sceneView = getSceneView(x, y);
+    if (sceneView != null) {
+      NlComponent component = SceneViewHelper.selectComponentAt(sceneView, x, y, modifiersEx, false, ignoredIfAlreadySelected);
+      getActionManager().showPopup(mouseEvent, component);
     }
   }
 
@@ -608,6 +638,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return;
     }
 
+    // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
     NlComponent component = Coordinates.findComponent(sceneView, x, y);
     if (component != null) {
       // Notify that the user is interested in a component.
