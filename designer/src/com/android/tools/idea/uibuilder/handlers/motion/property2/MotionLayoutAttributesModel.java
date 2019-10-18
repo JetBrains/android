@@ -36,7 +36,6 @@ import com.android.tools.property.panel.api.PropertiesModel;
 import com.android.tools.property.panel.api.PropertiesTable;
 import com.google.common.base.Predicates;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -57,7 +56,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * {@link PropertiesModel} for motion layout property editor.
  */
-public class MotionLayoutAttributesModel extends NelePropertiesModel implements DataProvider {
+public class MotionLayoutAttributesModel extends NelePropertiesModel {
   private final MotionLayoutPropertyProvider myMotionLayoutPropertyProvider;
   private Map<String, PropertiesTable<NelePropertyItem>> myAllProperties;
 
@@ -167,16 +166,6 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel implements 
       tagWriter.setAttribute(property.getNamespace(), attributeName, newValue);
       tagWriter.commit(String.format("Set %1$s.%2$s to %3$s", tagWriter.getTagName(), property.getName(), String.valueOf(newValue)));
     }
-  }
-
-  @Override
-  @Nullable
-  public Object getData(@NotNull String dataId) {
-    Object panel = getActivePanel();
-    if (panel instanceof DataProvider) {
-      return ((DataProvider)panel).getData(dataId);
-    }
-    return null;
   }
 
   public static MTag.TagWriter createSubTag(@NotNull MotionSelection selection,
