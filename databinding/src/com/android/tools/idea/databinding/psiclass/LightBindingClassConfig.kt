@@ -18,12 +18,12 @@ package com.android.tools.idea.databinding.psiclass
 import com.android.tools.idea.databinding.BindingLayout
 import com.android.tools.idea.databinding.BindingLayoutGroup
 import com.android.tools.idea.databinding.ModuleDataBinding
-import com.android.tools.idea.databinding.util.findVariableTag
-import com.android.tools.idea.databinding.util.getViewBindingClassName
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.VariableData
 import com.android.tools.idea.databinding.index.ViewIdData
+import com.android.tools.idea.databinding.util.findVariableTag
+import com.android.tools.idea.databinding.util.getViewBindingClassName
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -63,11 +63,12 @@ interface LightBindingClassConfig {
 
   /**
    * Returns a list of all views with IDs that fields should be created for,
-   * e.g. `<Button android:id="@+id/example_button">` -> "exampleButton"
+   * e.g. `<Button android:id="@+id/example_button">` -> "exampleButton",
+   * scoped by the binding layout they were defined in.
    *
    * Note: These fields should only get generated for the base "Binding" class.
    */
-  val viewIds: List<ViewIdData>
+  val scopedViewIds: Map<BindingLayout, Collection<ViewIdData>>
 
   /**
    * Returns `true` if the generated light binding class should have a full method API, e.g.
@@ -126,11 +127,14 @@ class BindingClassConfig(override val facet: AndroidFacet, private val group: Bi
   override val variableTags: List<Pair<VariableData, XmlTag>>
     get() = group.getAggregatedVariables()
 
-  override val viewIds: List<ViewIdData>
+  override val scopedViewIds: Map<BindingLayout, Collection<ViewIdData>>
     get() {
-      return group.layouts
-        .mapNotNull { layout -> BindingXmlIndex.getDataForFile(layout.toXmlFile()) }
-        .flatMap { data -> data.viewIds }
+      val viewIds = mutableMapOf<BindingLayout, Collection<ViewIdData>>()
+      for (layout in group.layouts) {
+        val xmlData = BindingXmlIndex.getDataForFile(layout.toXmlFile()) ?: continue
+        viewIds[layout] = xmlData.viewIds
+      }
+      return viewIds
     }
 
   override fun shouldGenerateGettersAndStaticMethods() = true
@@ -166,8 +170,8 @@ class BindingImplClassConfig(override val facet: AndroidFacet,
   override val variableTags: List<Pair<VariableData, XmlTag>>
     get() = group.getAggregatedVariables()
 
-  override val viewIds: List<ViewIdData>
-    get() = listOf() // Only provided by base "Binding" class.
+  override val scopedViewIds: Map<BindingLayout, Collection<ViewIdData>>
+    get() = mapOf() // Only provided by base "Binding" class.
 
   override fun shouldGenerateGettersAndStaticMethods() = false
   override fun settersShouldBeAbstract() = false
