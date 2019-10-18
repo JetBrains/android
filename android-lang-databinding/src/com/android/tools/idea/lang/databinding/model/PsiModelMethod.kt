@@ -25,7 +25,7 @@ import java.lang.Integer.min
  *
  * Note: This class is adapted from [android.databinding.tool.reflection.ModelMethod] from db-compiler.
  */
-class PsiModelMethod(val containingClass: PsiModelClass, val psiMethod: PsiMethod) {
+class PsiModelMethod(override val containingClass: PsiModelClass, val psiMethod: PsiMethod) : PsiModelMember {
 
   val parameterTypes by lazy(LazyThreadSafetyMode.NONE) {
     psiMethod.parameterList.parameters.map { PsiModelClass(it.type, containingClass.mode) }.toTypedArray()

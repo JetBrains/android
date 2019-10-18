@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.lang.databinding.model
 
+import com.intellij.psi.PsiMember
 
 /**
- * For Callable that could be either Method or Field.
- * see [android.databinding.tool.reflection.Callable]
+ * PSI wrapper around a [PsiMember] of a Java class (for example, a field or a method).
  */
-class PsiCallable(val type: Type, val name: String) {
-  enum class Type {
-    METHOD,
-    FIELD
-  }
+interface PsiModelMember {
+  val containingClass: PsiModelClass
 }
