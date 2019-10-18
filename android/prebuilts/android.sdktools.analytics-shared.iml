@@ -15,14 +15,14 @@
     <orderEntry type="library" name="analytics-proto" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="org.jetbrains.intellij.deps.android.tools:analytics-shared-tests:26.5.0" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:analytics-shared-tests:26.5.0" />
+      <library name="org.jetbrains.intellij.deps.android.tools:analytics-shared-tests:26.5.0.1" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:analytics-shared-tests:26.5.0.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/analytics-shared-tests/26.5.0/analytics-shared-tests-26.5.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/analytics-shared-tests/26.5.0.1/analytics-shared-tests-26.5.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/analytics-shared-tests/26.5.0/analytics-shared-tests-26.5.0-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/analytics-shared-tests/26.5.0.1/analytics-shared-tests-26.5.0.1-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

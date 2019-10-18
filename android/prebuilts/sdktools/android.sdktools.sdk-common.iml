@@ -25,13 +25,13 @@
     <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
     <orderEntry type="module-library">
       <library name="aia-manifest-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:aia-manifest-proto:26.5.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:aia-manifest-proto:26.5.0.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/aia-manifest-proto/26.5.0/aia-manifest-proto-26.5.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/aia-manifest-proto/26.5.0.1/aia-manifest-proto-26.5.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/aia-manifest-proto/26.5.0/aia-manifest-proto-26.5.0-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/aia-manifest-proto/26.5.0.1/aia-manifest-proto-26.5.0.1-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -42,14 +42,14 @@
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="analytics-proto" level="project" />
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="com.android.tools:sdk-common-tests:26.5.0" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:sdk-common-tests:26.5.0" />
+      <library name="com.android.tools:sdk-common-tests:26.5.0.1" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:sdk-common-tests:26.5.0.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.5.0/sdk-common-tests-26.5.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.5.0.1/sdk-common-tests-26.5.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.5.0/sdk-common-tests-26.5.0-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.5.0.1/sdk-common-tests-26.5.0.1-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
