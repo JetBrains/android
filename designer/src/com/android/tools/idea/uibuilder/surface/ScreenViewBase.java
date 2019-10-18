@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
@@ -27,6 +26,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -43,8 +43,12 @@ abstract class ScreenViewBase extends SceneView {
   private final ColorSet myColorSet = new AndroidColorSet();
   protected boolean myIsSecondary;
 
+  // Use cached to avoid deriving same font multiple times.
+  @NotNull private Font myLabelFont;
+
   public ScreenViewBase(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
     super(surface, manager);
+    myLabelFont = createLabelFont();
   }
 
   @Override
@@ -52,8 +56,7 @@ abstract class ScreenViewBase extends SceneView {
     if (getSurface().isShowModelNames()) {
       Graphics graphics = getSurface().getGraphics();
       if (graphics != null) {
-        Font font = graphics.getFont();
-        FontMetrics metrics = graphics.getFontMetrics(font);
+        FontMetrics metrics = graphics.getFontMetrics(myLabelFont);
         return metrics.getHeight() + NlConstants.NAME_LABEL_BOTTOM_MARGIN_PX;
       }
     }
@@ -122,5 +125,21 @@ abstract class ScreenViewBase extends SceneView {
    */
   protected final boolean isSecondary() {
     return myIsSecondary;
+  }
+
+  /**
+   * This function is called when the UI of the {@link com.android.tools.idea.common.surface.DesignSurface} is changes such like
+   * switching to presentation mode, changing Studio Look & Feel, or change appearance of preferences.
+   */
+  @Override
+  public void updateUI() {
+    myLabelFont = createLabelFont();
+  }
+
+  @NotNull
+  private static Font createLabelFont() {
+    @SuppressWarnings("StaticMethodReferencedViaSubclass") // For coding convention, using UIUtil instead of StartupUiUtil
+    Font labelFont = UIUtil.getLabelFont();
+    return labelFont.deriveFont((float) labelFont.getSize());
   }
 }
