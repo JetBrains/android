@@ -17,31 +17,30 @@ package com.android.tools.idea.diagnostics;
 
 import com.android.tools.idea.diagnostics.error.ErrorReporter;
 import com.intellij.diagnostic.IdeErrorsDialog;
-import com.intellij.ide.SystemHealthMonitor;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 
 /**
- * Tests for {@link SystemHealthMonitor}.
+ * Tests for {@link AndroidStudioSystemHealthMonitor}.
  */
-public class AndroidStudioSystemHealthMonitorTest extends PlatformTestCase {
+public class AndroidStudioSystemHealthMonitorTest extends LightPlatformTestCase {
 
   public void testGetActionName() {
     // normal class in our packages should yield simple name
-    //assertEquals("AndroidStudioSystemHealthMonitorTest", AndroidStudioSystemHealthMonitor.getActionName(AndroidStudioSystemHealthMonitorTest.class, new Presentation("foo"))); // FIXME-ank
+    assertEquals("AndroidStudioSystemHealthMonitorTest", AndroidStudioSystemHealthMonitor.getActionName(AndroidStudioSystemHealthMonitorTest.class, new Presentation("foo")));
     // ExecutorAction class should yield simple name plus presentation text.
-    //assertEquals("ExecutorAction#Run", AndroidStudioSystemHealthMonitor.getActionName(ExecutorAction.class, new Presentation("Run"))); // FIXME-ank
+    assertEquals("ExecutorAction#Run", AndroidStudioSystemHealthMonitor.getActionName(ExecutorAction.class, new Presentation("Run")));
     // Anonymous inner-class should yield name of enclosing class.
-    //assertEquals("AndroidStudioSystemHealthMonitorTest", AndroidStudioSystemHealthMonitor.getActionName(new AnAction(){ // FIXME-ank
-    //  @Override
-    //  public void actionPerformed(AnActionEvent e) {
-    //
-    //  }
-    //}.getClass(), new Presentation("foo")));
+    assertEquals("AndroidStudioSystemHealthMonitorTest", AndroidStudioSystemHealthMonitor.getActionName(new AnAction(){
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+
+      }
+    }.getClass(), new Presentation("foo")));
     // class outside of our packages should yield full class name.
-    //assertEquals("java.lang.String", AndroidStudioSystemHealthMonitor.getActionName(String.class, new Presentation("Foo"))); // FIXME-ank
+    assertEquals("java.lang.String", AndroidStudioSystemHealthMonitor.getActionName(String.class, new Presentation("Foo")));
   }
 
   public void testAndroidErrorReporter() {
