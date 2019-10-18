@@ -214,6 +214,7 @@ public class MotionSceneAttrs {
   public static class KeyCycle {
     public static final String WAVE_PERIOD = "wavePeriod";
     public static final String WAVE_SHAPE = "waveShape";
+    public static final String WAVE_OFFSET = "waveOffset";
   }
 
   public static class KeyTrigger {
@@ -222,7 +223,6 @@ public class MotionSceneAttrs {
   }
 
   public static String[] KeyAttributeOptions = {
-
     "alpha",
     "elevation",
     "rotation",
@@ -234,6 +234,48 @@ public class MotionSceneAttrs {
     "translationY",
     "translationZ",
     "transitionPathRotate",
+  };
+  public static String[] KeyAttributeOptionsDefaultValue = {
+
+    "0.5",
+    "3dp",
+    "45",
+    "5",
+    "5",
+    "1.2",
+    "1.2",
+    "30dp",
+    "30dp",
+    "6dp",
+    "90",
+  };
+  public static String[] KeyCycleOptionsDefaultValue = {
+
+    "0.5",
+    "3dp",
+    "90",
+    "5",
+    "5",
+    "0.2",
+    "0.2",
+    "10dp",
+    "10dp",
+    "6dp",
+    "45",
+  };
+  public static String[] KeyCycleOptionsDefaultOffset = {
+
+    "0.5",
+    "3dp",
+    "0",
+    "0",
+    "0",
+    "1",
+    "1",
+    "0dp",
+    "0dp",
+    "3dp",
+    "90",
   };
 
   public static String[]  KeyAttributeOptionsNameSpace = {

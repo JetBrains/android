@@ -106,14 +106,6 @@ public class CreateKeyCycle extends BaseCreateKey {
     add(mWavePeriod = newTextField("1", 15), gbc);
 
     grid(gbc, 0, y++, 2, 1);
-    gbc.weighty = 0;
-    gbc.anchor = GridBagConstraints.CENTER;
-    add(new JLabel("Wave Offset"), gbc);
-    grid(gbc, 0, y++, 2, 1);
-    gbc.anchor = GridBagConstraints.CENTER;
-    add(newTextField("float", 15), gbc);
-
-    grid(gbc, 0, y++, 2, 1);
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Attribute to cycle"), gbc);
     grid(gbc, 0, y++, 2, 1);
@@ -149,8 +141,7 @@ public class CreateKeyCycle extends BaseCreateKey {
 
         for (int i = 0; i < attributeOptions.length; i++) {
           String str = selected[0].getAttributeValue(attributeOptions[i]);
-          System.out.println(str + " = " + attributeOptions[i]);
-          if (str != null) {
+           if (str != null) {
             attribute.setSelectedIndex(i);
             break;
           }
@@ -186,8 +177,7 @@ public class CreateKeyCycle extends BaseCreateKey {
     if (DEBUG) {
       Debug.log("create");
     }
-    String tag = mMatchTag.getText();
-    MTag.TagWriter toCommit;
+     MTag.TagWriter toCommit;
     MTag.TagWriter keyPosition;
     if (mKeyFrameSet == null) {
       mKeyFrameSet = toCommit = mSelectedTransition.getChildTagWriter(MotionSceneAttrs.Tags.KEY_FRAME_SET);
@@ -201,7 +191,7 @@ public class CreateKeyCycle extends BaseCreateKey {
       return null;
     }
 
-    keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.MOTION_TARGET, tag);
+    keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.MOTION_TARGET, getMotionTarget());
     try {
       int posInt = Integer.parseInt(pos.trim());
       keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.Key.FRAME_POSITION, pos.trim());
@@ -213,7 +203,11 @@ public class CreateKeyCycle extends BaseCreateKey {
     if (waveShape.getSelectedIndex() != 0) {
       keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.KeyCycle.WAVE_SHAPE, (String) attribute.getSelectedItem());
     }
-    keyPosition.setAttribute(optionsNameSpace[attribute.getSelectedIndex()], (String) attribute.getSelectedItem(), "0");
+    int index = attribute.getSelectedIndex();
+    String value =  MotionSceneAttrs.KeyCycleOptionsDefaultValue[index];
+    keyPosition.setAttribute(optionsNameSpace[index], (String) attribute.getSelectedItem(), value);
+    String offset =  MotionSceneAttrs.KeyCycleOptionsDefaultOffset[index];
+    keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.KeyCycle.WAVE_OFFSET , offset);
 
     MTag ret = toCommit.commit("Create KeyCycle");
     if (KEY_TAG.equals( MotionSceneAttrs.Tags.KEY_TIME_CYCLE)) {
