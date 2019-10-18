@@ -24,7 +24,6 @@ import com.android.tools.idea.databinding.util.findImportTag
 import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
-import com.android.tools.idea.lang.databinding.model.PsiCallable
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.lang.databinding.model.PsiModelField
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
@@ -204,22 +203,14 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       // Resolve fully qualified methods / fields, e.g. "variable.value" or "variable.method"
       val psiClass = psiModelClass.psiClass ?: return PsiReference.EMPTY_ARRAY
 
-
       // Find the reference to a field or its getter e.g. "var.field" may reference "var.field", "var.isField()" or "var.getField()".
       val getterOrField = psiModelClass.findGetterOrField(fieldText, modelResolvable.isStatic)
-      when (getterOrField?.type) {
-        PsiCallable.Type.METHOD -> {
-          val methodsByName = psiClass.findMethodsByName(getterOrField.name, true)
-          if (methodsByName.isNotEmpty()) {
-            return arrayOf(
-              PsiMethodReference(refExpr, PsiModelMethod(psiModelClass, methodsByName[0]), PsiMethodReference.Kind.METHOD_CALL))
-          }
+      when (getterOrField) {
+        is PsiModelMethod -> {
+          return arrayOf(PsiMethodReference(refExpr, getterOrField, PsiMethodReference.Kind.METHOD_CALL))
         }
-        PsiCallable.Type.FIELD -> {
-          val fieldsByName = psiClass.findFieldByName(getterOrField.name, true)
-          if (fieldsByName != null) {
-            return arrayOf(PsiFieldReference(refExpr, PsiModelField(psiModelClass, fieldsByName)))
-          }
+        is PsiModelField -> {
+          return arrayOf(PsiFieldReference(refExpr, getterOrField))
         }
       }
 
