@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -314,6 +315,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
         }
         fireSelectionChanged(Collections.singletonList(mySelection));
+        LayoutPullParsers.saveFileIfNecessary(motionScene.mXmlFile);
       }
     }, facet, myMotionSceneFile, null);
     handleSelectionChanged(designSurfaceSelection, dsSelection);
