@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorPanel
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+
 
 const val TOOL_WINDOW_ID = "Layout Inspector"
 
@@ -58,11 +62,16 @@ private class LayoutInspectorToolWindowManagerListener(private val project: Proj
   private var wasWindowVisible = false
 
   override fun stateChanged() {
-    val preferredProcess = getPreferredInspectorProcess(project) ?: return
     val window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return
     val isWindowVisible = window.isVisible // Layout Inspector tool window is expanded.
     val windowVisibilityChanged = isWindowVisible != wasWindowVisible
     wasWindowVisible = isWindowVisible
+    if (windowVisibilityChanged && isWindowVisible) {
+      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
+                         .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder()
+                                                    .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN)))
+    }
+    val preferredProcess = getPreferredInspectorProcess(project) ?: return
     if (!windowVisibilityChanged || !isWindowVisible) {
       return
     }
