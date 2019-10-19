@@ -64,26 +64,6 @@ interface IdeaSourceProvider {
 
   val shadersDirectoryUrls: Collection<String>
   val shadersDirectories: Collection<VirtualFile>
-
-  companion object {
-    /**
-     * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
-     * the given folder.
-     */
-    @JvmStatic
-    fun containsFile(provider: IdeaSourceProvider, file: VirtualFile): Boolean = org.jetbrains.android.facet.containsFile(provider, file)
-
-    @JvmStatic
-    fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean = org.jetbrains.android.facet.isTestFile(facet, candidate)
-
-    /** Returns true if the given candidate file is a manifest file in the given module  */
-    @JvmStatic
-    fun isManifestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean = org.jetbrains.android.facet.isManifestFile(facet, candidate)
-
-    /** Returns the manifest files in the given module  */
-    @JvmStatic
-    fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> = org.jetbrains.android.facet.getManifestFiles(facet)
-  }
 }
 
 /**
