@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.databinding.model
 import android.databinding.tool.util.StringUtils
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
+import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
@@ -308,6 +309,17 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       .firstOrNull { method -> method.returnType?.isVoid == false }
     // could not find a method. Look for a public field
     return method ?: getField(name, staticOnly)
+  }
+
+  fun findSetter(fieldName: String, staticOnly: Boolean, parameterType: PsiModelClass): PsiModelMethod? {
+    val setterName = "set${fieldName.usLocaleCapitalize()}"
+    return allMethods.firstOrNull { method ->
+      method.isPublic
+      && (!staticOnly || method.isStatic)
+      && setterName == method.name
+      && method.parameterTypes.size == 1
+      && method.parameterTypes[0] == parameterType
+    }
   }
 
   override fun equals(other: Any?): Boolean {

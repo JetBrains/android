@@ -1344,4 +1344,33 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val reference = fixture.getReferenceAtCaretPosition()!!
     assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("android.graphics.drawable.Drawable")
   }
+
+  @Test
+  fun dbFieldReferencesGetterAndSetter() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public String getValue() {}
+        public void setValue(String value) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@={model.val${caret}ue}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val references = (fixture.getReferenceAtCaretPosition() as PsiMultiReference).references
+    assertThat(references.any { (it.resolve() as PsiMethod).name == "getValue" }).isTrue()
+    assertThat(references.any {
+      (it.resolve() as PsiMethod).name == "setValue" && (it as ModelClassResolvable).resolvedType == null
+    }).isTrue()
+  }
 }
