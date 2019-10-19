@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -45,8 +46,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -71,7 +70,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * This provides the main MotionEditor Panel and interfaces it with the rest of the system.
  */
-public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayoutInterface, MotionDesignSurfaceEdits, DataProvider {
+public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayoutInterface, MotionDesignSurfaceEdits {
   private static final boolean DEBUG = false;
   private static final boolean TEMP_HACK_FORCE_APPLY = false;
   private final Project myProject;
@@ -85,7 +84,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   MotionEditor mMotionEditor = new MotionEditor();
   public static final String TIMELINE = "Timeline";
   private SmartPsiElementPointer<XmlTag> mSelectedConstraintTag;
-  private MotionFileEditor myFileEditor;
 
   MotionLayoutComponentHelper myMotionHelper;
   private String mSelectedStartConstraintId;
@@ -289,13 +287,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     myMotionScene = motionScene;
 
     myMotionSceneFile = (motionScene == null) ? null : motionScene.mVirtualFile;
-    if (myMotionSceneFile != null) {
-      myFileEditor = new MotionFileEditor(mMotionEditor, myMotionSceneFile);
-    } else {
-      myFileEditor = null;
-    }
-
-
     mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
     if (myMotionScene == null) {
       return;
@@ -320,15 +311,11 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         MotionSceneTag.Root motionScene = getMotionScene(myMotionLayoutNlComponent);
         if (motionScene != null) {
           myMotionScene = motionScene;
-          myMotionSceneFile = (motionScene == null) ? null : motionScene.mVirtualFile;
-          if (myMotionSceneFile != null) {
-            myFileEditor = new MotionFileEditor(mMotionEditor, myMotionSceneFile);
-          } else {
-            myFileEditor = null;
-          }
+          myMotionSceneFile = motionScene.mVirtualFile;
           mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
         }
         fireSelectionChanged(Collections.singletonList(mySelection));
+        LayoutPullParsers.saveFileIfNecessary(motionScene.mXmlFile);
       }
     }, facet, myMotionSceneFile, null);
     handleSelectionChanged(designSurfaceSelection, dsSelection);
@@ -359,14 +346,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       }
     }
 
-    return null;
-  }
-
-  @Override
-  public Object getData(@NotNull String dataId) {
-    if (PlatformDataKeys.FILE_EDITOR.is(dataId)) {
-      return myFileEditor;
-    }
     return null;
   }
 
