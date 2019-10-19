@@ -32,6 +32,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.android.facet.getManifestFiles
 import java.io.File
 
 /**
@@ -221,7 +222,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
               }
               nest("by IdeaSourceProviders:") {
                 val sourceProviderManager = SourceProviderManager.getInstance(androidFacet)
-                dumpPathsCore("Manifests", { IdeaSourceProvider.getManifestFiles(androidFacet) }, { it.url })
+                dumpPathsCore("Manifests", { getManifestFiles(androidFacet) }, { it.url })
                 nest("AllIdeaSourceProviders:") { sourceProviderManager.allSourceProviders.forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
                 nest("CurrentTestSourceProviders:") { sourceProviderManager.currentTestSourceProviders.forEach { it.dump() } }

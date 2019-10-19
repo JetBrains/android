@@ -69,6 +69,7 @@ import java.util.Queue;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -188,7 +189,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
           element.accept(new JavaReferenceVisitor(facet, element));
 
           // Check for manifest entries referencing this class (this applies to activities, content providers, etc).
-          GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, IdeaSourceProvider.getManifestFiles(facet));
+          GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, IdeaSourceProviderUtil.getManifestFiles(facet));
 
           ReferencesSearch.search(element, manifestScope).forEach(reference -> {
             PsiElement tag = reference.getElement();
@@ -397,7 +398,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
           if (!(target instanceof PsiTypeParameter) && !(target instanceof SyntheticElement)) {
             VirtualFile source = target.getContainingFile().getVirtualFile();
             for (IdeaSourceProvider sourceProvider : SourceProviderManager.getInstance(myFacet).getCurrentSourceProviders()) {
-              if (IdeaSourceProvider.containsFile(sourceProvider, source)) {
+              if (IdeaSourceProviderUtil.containsFile(sourceProvider, source)) {
                 // This is a local source file, therefore a candidate to be moved
                 if (myClassRefSet.add((PsiClass)target)) {
                   myVisitQueue.add(target);
