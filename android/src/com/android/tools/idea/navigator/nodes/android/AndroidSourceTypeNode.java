@@ -43,6 +43,7 @@ import javax.swing.Icon;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -117,7 +118,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     AndroidFacet androidFacet = getValue();
     assert androidFacet != null;
     for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(androidFacet)) {
-      if (IdeaSourceProvider.containsFile(provider, virtualFile)) {
+      if (IdeaSourceProviderUtil.containsFile(provider, virtualFile)) {
         return provider;
       }
     }

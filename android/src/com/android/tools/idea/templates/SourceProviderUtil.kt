@@ -22,6 +22,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.facet.allSourceFolders
+import org.jetbrains.android.facet.containsFile
 
 /**
  * Returns a list of all source providers that contain, or are contained by, the given file.
@@ -51,7 +52,7 @@ fun getSourceProvidersForFile(
       // Add source providers that contain the file (if any) and any that have files under the given folder
       SourceProviderManager.getInstance(facet).allSourceProviders
         .filter { provider ->
-          IdeaSourceProvider.containsFile(provider, targetFolder) || provider.isContainedBy(targetFolder)
+          containsFile(provider, targetFolder) || provider.isContainedBy(targetFolder)
         }
         .takeUnless { it.isEmpty() }
     }

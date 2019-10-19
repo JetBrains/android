@@ -180,11 +180,11 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);
 
-    assertTrue(IdeaSourceProvider.containsFile(paidFlavorSourceProvider, javaSrcFile));
+    assertTrue(IdeaSourceProviderUtil.containsFile(paidFlavorSourceProvider, javaSrcFile));
 
     VirtualFile javaMainSrcFile = moduleFile.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/");
     assertNotNull(javaMainSrcFile);
 
-    assertFalse(IdeaSourceProvider.containsFile(paidFlavorSourceProvider, javaMainSrcFile));
+    assertFalse(IdeaSourceProviderUtil.containsFile(paidFlavorSourceProvider, javaMainSrcFile));
   }
 }
