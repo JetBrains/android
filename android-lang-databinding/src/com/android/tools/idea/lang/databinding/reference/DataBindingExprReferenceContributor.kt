@@ -207,7 +207,13 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       val getterOrField = psiModelClass.findGetterOrField(fieldText, modelResolvable.isStatic)
       when (getterOrField) {
         is PsiModelMethod -> {
-          return arrayOf(PsiMethodReference(refExpr, getterOrField, PsiMethodReference.Kind.METHOD_CALL))
+          val getterReference = PsiMethodReference(refExpr, getterOrField, PsiMethodReference.Kind.METHOD_CALL)
+          // Find the reference to setter method that has the same pattern and type.
+          // e.g. `String getName()` and `setName(String)`
+          val setterReference = getterOrField.returnType
+            ?.let { type -> psiModelClass.findSetter(fieldText, modelResolvable.isStatic, type) }
+            ?.let { setterMethod -> PsiMethodReference(refExpr, setterMethod, PsiMethodReference.Kind.METHOD_REFERENCE) }
+          return if (setterReference != null) arrayOf(getterReference, setterReference) else arrayOf(getterReference)
         }
         is PsiModelField -> {
           return arrayOf(PsiFieldReference(refExpr, getterOrField))
