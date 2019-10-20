@@ -72,6 +72,7 @@ import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.config.KotlinCompilerVersion;
 
 public class AndroidGradleTests {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTests.class);
@@ -164,6 +165,11 @@ public class AndroidGradleTests {
       String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
       contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
+      contents = replaceRegexGroup(contents, "[a-zA-Z]+\\s*\\(?\\s*['\"]org.jetbrains.kotlin:kotlin[a-zA-Z\\-]*:(.+)['\"]",
+                                   KotlinCompilerVersion.VERSION);
+      // "implementation"(kotlin("stdlib", "1.3.60-eap-25"))
+      contents =
+        replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"", KotlinCompilerVersion.VERSION);
       contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
