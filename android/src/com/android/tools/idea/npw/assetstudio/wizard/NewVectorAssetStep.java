@@ -29,7 +29,6 @@ import com.android.tools.idea.npw.assetstudio.VectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
-import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
@@ -118,7 +117,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private final ObservableBool myHeightHasFocus;
   private final DoubleProperty myWidth = new DoubleValueProperty();
   private final DoubleProperty myHeight = new DoubleValueProperty();
-  private final ObjectProperty<Color> myColor;
+  private final ColorProperty myColor;
   private final IntProperty myOpacityPercent;
   private final BoolProperty myAutoMirrored;
 
@@ -190,7 +189,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myOutputName.set(DEFAULT_OUTPUT_NAME);
     myWidthHasFocus = new HasFocusProperty(myWidthTextField);
     myHeightHasFocus = new HasFocusProperty(myHeightTextField);
-    myColor = ObjectProperty.wrap(new ColorProperty(myColorPanel));
+    myColor = new ColorProperty(myColorPanel);
     myOpacityPercent = new SliderValueProperty(myOpacitySlider);
     myAutoMirrored = new SelectedProperty(myEnableAutoMirroredCheckBox);
 
@@ -293,7 +292,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       myValidatorPanel.registerValidator(heightForValidation, new SizeValidator("Height has to be a positive number"));
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
-        myActiveAssetBindings.bind(ObjectProperty.wrap(activeAsset.color()), myColor);
+        myActiveAssetBindings.bind(activeAsset.color(), myColor);
       }
       myActiveAssetBindings.bind(activeAsset.opacityPercent(), myOpacityPercent);
       myActiveAssetBindings.bind(activeAsset.autoMirrored(), myAutoMirrored);
@@ -374,7 +373,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     state.setChild(CLIPART_ASSET_PROPERTY, myClipartAssetButton.getState());
     File file = myFileBrowser.getAsset().path().getValueOrNull();
     state.set(SOURCE_FILE_PROPERTY, file == null ? getProjectPath() : file.getPath(), getProjectPath());
-    state.set(COLOR_PROPERTY, myColor.get(), DEFAULT_COLOR);
+    state.set(COLOR_PROPERTY, myColor.getValueOrNull(), DEFAULT_COLOR);
     state.set(OPACITY_PERCENT_PROPERTY, myOpacityPercent.get(), 100);
     state.set(AUTO_MIRRORED_PROPERTY, myAutoMirrored.get(), false);
     return state;
@@ -393,7 +392,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         PersistentStateUtil.load(myClipartAssetButton, state.getChild(CLIPART_ASSET_PROPERTY));
         String path = state.get(SOURCE_FILE_PROPERTY, getProjectPath());
         myFileBrowser.getAsset().path().setValue(new File(path));
-        myColor.set(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
+        myColor.setValue(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
         myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, 100));
         myAutoMirrored.set(state.get(AUTO_MIRRORED_PROPERTY, false));
       },
