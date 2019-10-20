@@ -83,6 +83,7 @@ import com.intellij.ui.tabs.newImpl.JBEditorTabs;
 import com.intellij.ui.tabs.newImpl.TabLabel;
 import java.awt.Component;
 import java.awt.Point;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -117,15 +118,14 @@ import org.jetbrains.annotations.Nullable;
  * a different file, etc.
  */
 public class EditorFixture {
-
   /**
-   * Performs simulation of user events on <code>target</code>
+   * Performs simulation of user events on {@code target}.
    */
   final Robot robot;
   private final IdeFrameFixture myFrame;
 
   /**
-   * Constructs a new editor fixture, tied to the given project
+   * Constructs a new editor fixture, tied to the given project.
    */
   EditorFixture(Robot robot, IdeFrameFixture frame) {
     this.robot = robot;
@@ -224,7 +224,7 @@ public class EditorFixture {
    *
    * @param text the text to type at the current editor position
    */
-  public EditorFixture typeText(@NotNull final String text) {
+  public EditorFixture typeText(@NotNull String text) {
     getFocusedEditor();
     robot.typeText(text);
     return this;
@@ -235,7 +235,7 @@ public class EditorFixture {
    *
    * @param text the text to paste at the current editor position
    */
-  public EditorFixture pasteText(@NotNull final String text) {
+  public EditorFixture pasteText(@NotNull String text) {
     getFocusedEditor();
     robot.pasteText(text);
     return this;
@@ -246,7 +246,7 @@ public class EditorFixture {
    *
    * @param text the text to paste at the current editor position
    */
-  public EditorFixture replaceText(@NotNull final String text) {
+  public EditorFixture replaceText(@NotNull String text) {
     selectEditorTab(Tab.EDITOR);
     invokeAction(EditorFixture.EditorAction.SELECT_ALL);
     return pasteText(text);
@@ -259,7 +259,7 @@ public class EditorFixture {
    *
    * @param text the text to enter at the current editor position
    */
-  public EditorFixture enterText(@NotNull final String text) {
+  public EditorFixture enterText(@NotNull String text) {
     getFocusedEditor();
     robot.enterText(text);
     return this;
@@ -274,7 +274,7 @@ public class EditorFixture {
   }
 
   /**
-   * Requests focus in the editor, waits and returns editor component
+   * Requests focus in the editor, waits and returns editor component.
    */
   @NotNull
   private JComponent getFocusedEditor() {
@@ -302,7 +302,7 @@ public class EditorFixture {
    * @throws IllegalArgumentException if {@code regex} does not have exactly one capturing group
    */
   @NotNull
-  public EditorFixture select(String regex) {
+  public EditorFixture select(@NotNull String regex) {
     Matcher matcher = Pattern.compile(regex).matcher(getCurrentFileContents());
     checkArgument(matcher.groupCount() == 1, "must have exactly one capturing group: %s", regex);
     // noinspection ResultOfMethodCallIgnored
@@ -383,7 +383,7 @@ public class EditorFixture {
    *
    * @param tab the tab to switch to
    */
-  public EditorFixture selectEditorTab(@NotNull final Tab tab) {
+  public EditorFixture selectEditorTab(@NotNull Tab tab) {
     String tabName = tab.myTabName;
     Wait.seconds(5).expecting(String.format("find editor tab '%s'", tabName == null ? "<default>" : tabName)).until(
       () -> GuiQuery.getNonNull(() -> {
@@ -400,7 +400,7 @@ public class EditorFixture {
 
           if (tabName == null || tabName.equals(editor.getName())) {
             // Have to use reflection
-            //FileEditorManagerImpl#setSelectedEditor(final FileEditor editor)
+            //FileEditorManagerImpl#setSelectedEditor(FileEditor editor)
             method("setSelectedEditor").withParameterTypes(FileEditor.class).in(manager).invoke(editor);
             return true;
           }
@@ -472,11 +472,11 @@ public class EditorFixture {
    * @param file the file to open
    * @param tab which tab to open initially, if there are multiple editors
    */
-  public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
+  public EditorFixture open(@NotNull VirtualFile file, @NotNull Tab tab) {
     return open(file, tab, Wait.seconds(10));
   }
 
-  public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab, @NotNull Wait waitForFileOpen) {
+  public EditorFixture open(@NotNull VirtualFile file, @NotNull Tab tab, @NotNull Wait waitForFileOpen) {
     robot.waitForIdle(); // Make sure there are no pending open requests
 
     EdtTestUtil.runInEdtAndWait(
@@ -549,13 +549,14 @@ public class EditorFixture {
    * @param relativePath the project-relative path (with /, not File.separator, as the path separator)
    * @param tab which tab to open initially, if there are multiple editors
    */
-  public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab) {
+  public EditorFixture open(@NotNull String relativePath, @NotNull Tab tab) {
     return open(relativePath, tab, Wait.seconds(10));
   }
 
-  public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab, @NotNull Wait waitForFileOpen) {
-    assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
+  public EditorFixture open(@NotNull String relativePath, @NotNull Tab tab, @NotNull Wait waitForFileOpen) {
+    assertFalse("Should use '/' in test relative paths, not '" + File.separator + "'", relativePath.contains("\\"));
     VirtualFile file = myFrame.findFileByRelativePath(relativePath);
+    assertNotNull("Could not find " + relativePath, file);
     return open(file, tab, waitForFileOpen);
   }
 
@@ -565,12 +566,11 @@ public class EditorFixture {
   }
 
   /**
-   * Like {@link #open(String, com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab)} but
-   * always uses the default tab
+   * Like {@link #open(String, Tab)} but always uses the default tab.
    *
    * @param relativePath the project-relative path (with /, not File.separator, as the path separator)
    */
-  public EditorFixture open(@NotNull final String relativePath) {
+  public EditorFixture open(@NotNull String relativePath) {
     return open(relativePath, Tab.DEFAULT);
   }
 
@@ -603,7 +603,7 @@ public class EditorFixture {
   }
 
   @NotNull
-  public EditorFixture newFile(@NotNull Path relativePath, @NotNull final String text) throws IOException {
+  public EditorFixture newFile(@NotNull Path relativePath, @NotNull String text) throws IOException {
     Path projectPath = Paths.get(myFrame.getProject().getBasePath());
     Path filePath = projectPath.resolve(relativePath);
     assert Files.notExists(filePath);
@@ -659,7 +659,7 @@ public class EditorFixture {
    * @return this
    */
   @NotNull
-  public EditorFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
+  public EditorFixture waitForCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
     // Changing Java source level, for example, triggers compilation first; code analysis starts afterward
     waitForBackgroundTasks(robot);
 
