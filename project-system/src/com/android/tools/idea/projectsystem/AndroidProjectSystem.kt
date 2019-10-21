@@ -19,8 +19,10 @@ package com.android.tools.idea.projectsystem
 
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
 import java.nio.file.Path
 
@@ -114,8 +116,13 @@ fun Project.getSyncManager(): ProjectSystemSyncManager {
 }
 
 /**
- * Returns the instance of {@link AndroidModuleSystem} that applies to the given {@link Module}.
+ * Returns the instance of [AndroidModuleSystem] that applies to the given [Module].
  */
 fun Module.getModuleSystem(): AndroidModuleSystem {
   return project.getProjectSystem().getModuleSystem(this)
 }
+
+/**
+ * Returns the instance of [AndroidModuleSystem] that applies to the given [PsiElement], if it can be determined.
+ */
+fun PsiElement.getModuleSystem(): AndroidModuleSystem? = ModuleUtilCore.findModuleForPsiElement(this)?.getModuleSystem()

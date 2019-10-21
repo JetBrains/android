@@ -40,6 +40,7 @@ import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toPathString
+import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -55,6 +56,8 @@ import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
 
@@ -209,5 +212,35 @@ class DefaultModuleSystem(override val module: Module) :
       else -> error("unknown scope type")
     }
     return module.getModuleWithDependenciesAndLibrariesScope(includeTests)
+  }
+
+  private companion object Keys {
+    val usesCompose: Key<Boolean> = Key.create(::usesCompose.qualifiedName)
+    val isRClassTransitive: Key<Boolean> = Key.create(::isRClassTransitive.qualifiedName)
+  }
+
+  override var usesCompose: Boolean by UserData(Keys.usesCompose, false)
+
+  override var isRClassTransitive: Boolean by UserData(Keys.isRClassTransitive, true)
+}
+
+/**
+ * Property delegate that uses the facet's user data to store information.
+ *
+ * During testing, this allows us to enable IDE features which are not supported by JPS builds but can still be tested without relying on
+ * the Gradle model.
+ */
+private class UserData<T>(
+  val key: Key<T>,
+  val defaultValue: T
+) : ReadWriteProperty<DefaultModuleSystem, T> {
+
+  override fun getValue(thisRef: DefaultModuleSystem, property: KProperty<*>): T {
+    return thisRef.module.androidFacet?.getUserData(key) ?: defaultValue
+  }
+
+  override fun setValue(thisRef: DefaultModuleSystem, property: KProperty<*>, value: T) {
+    val facet = thisRef.module.androidFacet ?: error("Not an Android module")
+    facet.putUserData(key, value)
   }
 }
