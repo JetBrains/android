@@ -142,6 +142,10 @@ interface PreviewElementFinder {
 }
 
 internal fun requestBuild(project: Project, module: Module) {
+  if (project.isDisposed || module.isDisposed) {
+    return
+  }
+
   val modules = mutableSetOf(module)
   ModuleUtil.collectModulesDependsOn(module, modules)
   GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
