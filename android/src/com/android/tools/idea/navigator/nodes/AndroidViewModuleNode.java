@@ -14,6 +14,9 @@
 package com.android.tools.idea.navigator.nodes;
 
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -60,8 +63,11 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
   @NotNull
   @Override
   public final Collection<AbstractTreeNode> getChildren() {
+    AndroidProjectSystem projectSystem = ProjectSystemService.getInstance(getProject()).getProjectSystem();
+    AndroidModuleSystem moduleSystem = projectSystem.getModuleSystem(getValue());
     return CollectionsKt.plus(
-      ModuleNodeUtils.createChildModuleNodes(Objects.requireNonNull(getProject()), getValue(), myProjectViewPane, getSettings()),
+      ModuleNodeUtils
+        .createChildModuleNodes(Objects.requireNonNull(getProject()), moduleSystem.getSubmodules(), myProjectViewPane, getSettings()),
       getModuleChildren());
   }
 

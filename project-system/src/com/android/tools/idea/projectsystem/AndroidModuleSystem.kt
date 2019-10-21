@@ -31,7 +31,7 @@ import com.intellij.psi.search.GlobalSearchScope
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
  * contain methods that apply to a specific [Module].
  */
-interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
+interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, ModuleHierarchyProvider {
 
   /** [Module] that this [AndroidModuleSystem] handles. */
   val module: Module

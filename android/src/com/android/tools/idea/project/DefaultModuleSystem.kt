@@ -27,6 +27,7 @@ import com.android.projectmodel.Library
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
 import com.android.tools.idea.projectsystem.CapabilityStatus
@@ -213,6 +214,9 @@ class DefaultModuleSystem(override val module: Module) :
     }
     return module.getModuleWithDependenciesAndLibrariesScope(includeTests)
   }
+
+  override val submodules: Collection<Module>
+    get() = getSubmodules(module.project, module)
 
   private companion object Keys {
     val usesCompose: Key<Boolean> = Key.create(::usesCompose.qualifiedName)
