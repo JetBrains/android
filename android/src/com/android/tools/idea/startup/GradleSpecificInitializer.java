@@ -130,6 +130,7 @@ b/137334921 */
       // Setup JDK and Android SDK if necessary.
       if (setupSdkSilently()) {
         finishSdkSetup();
+        return;
       }
     }
     catch (Exception e) {
