@@ -18,6 +18,8 @@ package com.android.tools.idea.npw.model
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task.Modal
 import com.intellij.openapi.project.Project
@@ -119,6 +121,7 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
     renderRunner { project ->
       object : Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
         override fun run(indicator: ProgressIndicator) {
+          log.info("Generating sources.")
           multiRenderingStarted(myProject)
 
           // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,
@@ -131,6 +134,7 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
         }
 
         override fun onFinished() {
+          log.info("Finishing generating sources.")
           multiRenderingFinished(myProject)
           templateRenderers.forEach(TemplateRenderer::finish)
         }
@@ -152,4 +156,5 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
     fun multiRenderingFinished(project: Project) = project.messageBus.syncPublisher(TEMPLATE_RENDERER_TOPIC).multiRenderingFinished()
   }
 }
+private val log = logger<MultiTemplateRenderer>()
 
