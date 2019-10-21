@@ -301,7 +301,7 @@ public class ScreenViewLayer extends Layer {
                                           double yScaleFactor,
                                           @NotNull ScaleContext ctx) {
     BufferedImage scaledImage = null;
-    if (UIUtil.isJreHiDPI(ctx) && ImageUtils.supportsRetina()) {
+    if (StartupUiUtil.isJreHiDPI(ctx) && ImageUtils.supportsRetina()) {
       scaledImage = getRetinaScaledImage(source, 1 / xScaleFactor, 1 / yScaleFactor, ctx, false);
     }
     if (scaledImage == null) {
