@@ -19,7 +19,6 @@ import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCam
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
@@ -64,6 +63,7 @@ import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
@@ -73,6 +73,7 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -103,13 +104,11 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
 
   private static final File DEFAULT_FOREGROUND_IMAGE = getTemplateImage("drawable-v24", "ic_banner_image.xml");
   private static final BackgroundAssetType DEFAULT_BACKGROUND_ASSET_TYPE = BackgroundAssetType.COLOR;
-  private static final Density DEFAULT_PREVIEW_DENSITY = Density.XHIGH;
   private static final String DEFAULT_OUTPUT_NAME = AndroidIconType.TV_BANNER.toOutputName("");
 
   private static final String BACKGROUND_ASSET_TYPE_PROPERTY = "backgroundAssetType";
   private static final String BACKGROUND_COLOR_PROPERTY = "backgroundColor";
   private static final String GENERATE_LEGACY_ICON_PROPERTY = "generateLegacyIcon";
-  private static final String PREVIEW_DENSITY_PROPERTY = "previewDensity";
   private static final String OUTPUT_NAME_PROPERTY = "outputName";
   private static final String FOREGROUND_LAYER_NAME_PROPERTY = "foregroundLayerName";
   private static final String BACKGROUND_LAYER_NAME_PROPERTY = "backgroundLayerName";
@@ -243,7 +242,6 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
    */
   public ConfigureTvBannerPanel(@NotNull Disposable disposableParent,
                                 @NotNull AndroidFacet facet,
-                                @NotNull AbstractProperty<Density> previewDensity,
                                 @NotNull ValidatorPanel validatorPanel,
                                 @Nullable DrawableRenderer renderer) {
     super(new BorderLayout());
@@ -251,14 +249,18 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
     AndroidVersion buildSdkVersion = androidModuleInfo.getBuildSdkVersion();
     myBuildSdkVersion = buildSdkVersion != null ? buildSdkVersion : new AndroidVersion(26);
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
-    LocalResourceRepository projectResources = repositoryManager.getProjectResources();
-    List<ResourceItem> items = projectResources.getResources(repositoryManager.getNamespace(), ResourceType.STRING, "app_name");
-    ResourceValue resourceValue = !items.isEmpty() ? items.get(0).getResourceValue() : null;
-    String defaultIconText = resourceValue == null || resourceValue.getValue() == null ? "Application Name" : resourceValue.getValue();
-    myForegroundTextAssetEditor.setDefaultText(defaultIconText);
-    TextAsset textAsset = myForegroundTextAssetEditor.getAsset();
-    textAsset.text().set(defaultIconText);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
+      LocalResourceRepository projectResources = repositoryManager.getProjectResources();
+      List<ResourceItem> items = projectResources.getResources(repositoryManager.getNamespace(), ResourceType.STRING, "app_name");
+      ResourceValue resourceValue = !items.isEmpty() ? items.get(0).getResourceValue() : null;
+      String defaultIconText = resourceValue == null || resourceValue.getValue() == null ? "Application Name" : resourceValue.getValue();
+      UIUtil.invokeLaterIfNeeded(() -> {
+        myForegroundTextAssetEditor.setDefaultText(defaultIconText);
+        TextAsset textAsset = myForegroundTextAssetEditor.getAsset();
+        textAsset.text().set(defaultIconText);
+      });
+    });
 
     myIconGenerator = new TvBannerGenerator(facet.getModule().getProject(), androidModuleInfo.getMinSdkVersion().getApiLevel(), renderer);
     myValidatorPanel = validatorPanel;
@@ -328,6 +330,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
       }
     };
 
+    TextAsset textAsset = myForegroundTextAssetEditor.getAsset();
     textAsset.text().addListener(onTextChanged);
     textAsset.fontFamily().addListener(onTextChanged);
 

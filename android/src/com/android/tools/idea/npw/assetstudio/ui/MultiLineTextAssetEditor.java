@@ -115,7 +115,10 @@ public final class MultiLineTextAssetEditor extends JPanel implements AssetCompo
 
   @Override
   public void loadState(@NotNull PersistentState state) {
-    myTextAsset.text().set(state.get(TEXT_PROPERTY, myDefaultText));
+    String text = state.get(TEXT_PROPERTY);
+    if (text != null) {
+      myTextAsset.text().set(text);
+    }
     myTextAsset.fontFamily().set(state.get(FONT_FAMILY_PROPERTY, myTextAsset.defaultFontFamily()));
   }
 }

@@ -222,8 +222,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
           view = new ConfigureIconPanel(this, facet, iconType, minSdkVersion, renderer);
           break;
         case TV_BANNER:
-          view = new ConfigureTvBannerPanel(this, facet,
-                                            myPreviewDensityProperty, myValidatorPanel, renderer);
+          view = new ConfigureTvBannerPanel(this, facet, myValidatorPanel, renderer);
           break;
         default:
           throw new IllegalArgumentException("Invalid icon type");
