@@ -22,7 +22,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
-//import org.jetbrains.android.download.AndroidProfilerDownloader;  // FIXME-ank
+import org.jetbrains.android.download.AndroidProfilerDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +34,8 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.intellij.openapi.util.io.FileUtil.*;
+
+//import org.jetbrains.android.download.AndroidProfilerDownloader;  // FIXME-ank
 
 public class EmbeddedDistributionPaths {
   @NotNull
@@ -94,14 +96,29 @@ public class EmbeddedDistributionPaths {
     if (file.exists()) {
       return file;
     }
-    //AndroidProfilerDownloader.makeSureProfilerIsInPlace(); // FIXME-ank
-    //File dir = AndroidProfilerDownloader.getHostDir(path); // FIXME-ank
-    //if (dir.exists()) { // FIXME-ank
-    //  return dir; // FIXME-ank
-    //} // FIXME-ank
+    AndroidProfilerDownloader.makeSureProfilerIsInPlace();
+    File dir = AndroidProfilerDownloader.getHostDir(path);
+    if (dir.exists()) {
+      return dir;
+    }
     // Development build
     String relativePath = toSystemDependentName("/../../bazel-genfiles/tools/base/profiler/transform/profilers-transform.jar");
     return new File(PathManager.getHomePath() + relativePath);
+  }
+
+  public String findEmbeddedInstaller() {
+    String path = "plugins/android/resources/installer";
+    File file = new File(PathManager.getHomePath(), path);
+    if (file.exists()) {
+      return file.getAbsolutePath();
+    }
+    AndroidProfilerDownloader.makeSureProfilerIsInPlace();
+    File dir = AndroidProfilerDownloader.getHostDir(path);
+    if (dir.exists()) {
+      return dir.getAbsolutePath();
+    }
+      // Development mode
+    return new File(PathManager.getHomePath(), "../../bazel-genfiles/tools/base/deploy/installer/android-installer").getAbsolutePath();
   }
 
   @Nullable

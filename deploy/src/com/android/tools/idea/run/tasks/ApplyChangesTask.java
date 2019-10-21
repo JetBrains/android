@@ -20,11 +20,13 @@ import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 
 public class ApplyChangesTask extends AbstractDeployTask {
 
@@ -33,8 +35,8 @@ public class ApplyChangesTask extends AbstractDeployTask {
 
   public ApplyChangesTask(@NotNull Project project,
                           @NotNull Map<String, List<File>> packages,
-                          boolean fallback) {
-    super(project, packages, fallback);
+                          boolean fallback, Computable<String> installPathProvider) {
+    super(project, packages, fallback, installPathProvider);
   }
 
   @NotNull
