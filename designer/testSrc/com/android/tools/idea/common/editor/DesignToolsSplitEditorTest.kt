@@ -32,9 +32,9 @@ import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 
-class SplitEditorTest : AndroidTestCase() {
+class DesignToolsSplitEditorTest : AndroidTestCase() {
 
-  private lateinit var splitEditor : SplitEditor
+  private lateinit var splitEditor : DesignToolsSplitEditor
   private lateinit var textEditor : TextEditor
   private lateinit var designerEditor : DesignerEditor
 
@@ -55,7 +55,7 @@ class SplitEditorTest : AndroidTestCase() {
     `when`(textEditor.file).thenReturn(mock(VirtualFile::class.java))
     val component = mock(JComponent::class.java)
     `when`(component.getActionForKeyStroke(any(KeyStroke::class.java))).thenCallRealMethod()
-    splitEditor = object : SplitEditor(textEditor, designerEditor, "testEditor", project) {
+    splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, "testEditor", project) {
       override fun getComponent() = component
     }
     CommonUsageTracker.NOP_TRACKER.resetLastTrackedEvent()
@@ -82,15 +82,15 @@ class SplitEditorTest : AndroidTestCase() {
   fun testModeChange() {
     var triggerExplicitly = true
     splitEditor.selectTextMode(triggerExplicitly)
-    assertThat(splitEditor.isTextMode).isTrue()
+    assertThat(splitEditor.isTextMode()).isTrue()
 
     triggerExplicitly = false
     // We change mode even when users don't trigger it explicitly, e.g. when jumping to XML definition
     splitEditor.selectDesignMode(triggerExplicitly)
-    assertThat(splitEditor.isDesignMode).isTrue()
+    assertThat(splitEditor.isDesignMode()).isTrue()
 
     splitEditor.selectSplitMode(triggerExplicitly)
-    assertThat(splitEditor.isSplitMode).isTrue()
+    assertThat(splitEditor.isSplitMode()).isTrue()
   }
 
   fun testFileIsDelegateToTextEditor() {
@@ -100,22 +100,22 @@ class SplitEditorTest : AndroidTestCase() {
 
   fun testKeyboardShortcuts() {
     splitEditor.selectSplitMode(true)
-    val leftKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, SplitEditor.ACTION_SHORTCUT_MODIFIERS)
+    val leftKey = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ACTION_SHORTCUT_MODIFIERS)
     val navigateLeftAction = splitEditor.component.getActionForKeyStroke(leftKey)
     val navigateLeftActionEvent = ActionEvent(splitEditor.component, 0, leftKey.keyChar.toString(), leftKey.modifiers)
 
-    assertThat(splitEditor.isSplitMode).isTrue()
+    assertThat(splitEditor.isSplitMode()).isTrue()
     navigateLeftAction.actionPerformed(navigateLeftActionEvent)
-    assertThat(splitEditor.isTextMode).isTrue()
+    assertThat(splitEditor.isTextMode()).isTrue()
 
     splitEditor.selectSplitMode(true)
-    val rightKey = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SplitEditor.ACTION_SHORTCUT_MODIFIERS)
+    val rightKey = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ACTION_SHORTCUT_MODIFIERS)
     val navigateRightAction = splitEditor.component.getActionForKeyStroke(rightKey)
     val navigateRightActionEvent = ActionEvent(splitEditor.component, 0, rightKey.keyChar.toString(), rightKey.modifiers)
 
-    assertThat(splitEditor.isSplitMode).isTrue()
+    assertThat(splitEditor.isSplitMode()).isTrue()
     navigateRightAction.actionPerformed(navigateRightActionEvent)
-    assertThat(splitEditor.isDesignMode).isTrue()
+    assertThat(splitEditor.isDesignMode()).isTrue()
   }
 
   override fun tearDown() {

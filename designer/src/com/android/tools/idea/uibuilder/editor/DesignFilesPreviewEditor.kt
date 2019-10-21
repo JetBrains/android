@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.editor
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
-import com.android.tools.idea.common.editor.SplitEditor
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
@@ -29,7 +29,6 @@ import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import javax.swing.JComponent
 
 private const val WORKBENCH_NAME = "DESIGN_FILES_PREVIEW_EDITOR"
 
@@ -37,7 +36,7 @@ const val DESIGN_FILES_PREVIEW_EDITOR_ID = "android-preview-designer"
 
 /**
  * [DesignerEditor] containing a [NlDesignSurface] without a border layer and a [WorkBench] without any tool windows. It should be used as
- * the preview portion of [SplitEditor] and to open non-editable [DesignerEditorFileType] files, such as fonts and drawables.
+ * the preview portion of [DesignToolsSplitEditor] and to open non-editable [DesignerEditorFileType] files, such as fonts and drawables.
  */
 class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEditor(file, project) {
 
