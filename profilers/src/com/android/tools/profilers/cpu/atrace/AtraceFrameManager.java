@@ -37,12 +37,7 @@ public class AtraceFrameManager {
   @NotNull
   private final Function<Double, Long> myBootClockSecondsToMonoUs;
 
-  /**
-   * Container to hold UI and thread threads for processing.
-   */
-  @NotNull
-  private final ProcessModel myProcessModel;
-
+  private final int myProcessId;
   private final int myRenderThreadId;
 
   private final List<AtraceFrame> myMainThreadFrames;
@@ -57,14 +52,14 @@ public class AtraceFrameManager {
    */
   public AtraceFrameManager(@NotNull ProcessModel process, @NotNull Function<Double, Long> bootClockSecondsToMonoUs, int renderThreadId) {
     myBootClockSecondsToMonoUs = bootClockSecondsToMonoUs;
-    myProcessModel = process;
+    myProcessId = process.getId();
     myRenderThreadId = renderThreadId;
     myMainThreadFrames =
-      getFramesList(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, myProcessModel.getId(), CpuFramesModel.SLOW_FRAME_RATE_US,
-                    AtraceFrame.FrameThread.MAIN);
+      getFramesList(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, myProcessId, CpuFramesModel.SLOW_FRAME_RATE_US,
+                    AtraceFrame.FrameThread.MAIN, process);
     myRenderThreadFrames =
       getFramesList(AtraceFrameFilterConfig.APP_RENDER_THREAD_FRAME_ID_MPLUS, myRenderThreadId, CpuFramesModel.SLOW_FRAME_RATE_US,
-                    AtraceFrame.FrameThread.RENDER);
+                    AtraceFrame.FrameThread.RENDER, process);
     findAssociatedFrames();
   }
 
@@ -98,9 +93,10 @@ public class AtraceFrameManager {
   private List<AtraceFrame> getFramesList(String identifierRegEx,
                                           int threadId,
                                           long longFrameTimingUs,
-                                          AtraceFrame.FrameThread frameThread) {
+                                          AtraceFrame.FrameThread frameThread,
+                                          ProcessModel processModel) {
     List<AtraceFrame> frames = new ArrayList<>();
-    Optional<ThreadModel> activeThread = myProcessModel.getThreads().stream().filter((thread) -> thread.getId() == threadId).findFirst();
+    Optional<ThreadModel> activeThread = processModel.getThreads().stream().filter((thread) -> thread.getId() == threadId).findFirst();
     if (!activeThread.isPresent()) {
       return frames;
     }
@@ -120,22 +116,17 @@ public class AtraceFrameManager {
    */
   @VisibleForTesting
   List<AtraceFrame> buildFramesList(@NotNull AtraceFrameFilterConfig filter) {
-    if (filter.getThreadId() == myProcessModel.getId() &&
+    if (filter.getThreadId() == myProcessId &&
         filter.getIdentifierRegEx() == AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS &&
-        filter.getLongFrameTimingUs() ==
-        CpuFramesModel.SLOW_FRAME_RATE_US) {
+        filter.getLongFrameTimingUs() == CpuFramesModel.SLOW_FRAME_RATE_US) {
       return myMainThreadFrames;
     }
     if (filter.getThreadId() == myRenderThreadId &&
         filter.getIdentifierRegEx() == AtraceFrameFilterConfig.APP_RENDER_THREAD_FRAME_ID_MPLUS &&
-        filter.getLongFrameTimingUs() ==
-        CpuFramesModel.SLOW_FRAME_RATE_US) {
+        filter.getLongFrameTimingUs() == CpuFramesModel.SLOW_FRAME_RATE_US) {
       return myRenderThreadFrames;
     }
-    return getFramesList(filter.getIdentifierRegEx(), filter.getThreadId(), filter.getLongFrameTimingUs(),
-                         filter.getThreadId() == myProcessModel.getId()
-                         ? AtraceFrame.FrameThread.MAIN
-                         : (filter.getThreadId() == myRenderThreadId ? AtraceFrame.FrameThread.RENDER : AtraceFrame.FrameThread.OTHER));
+    return new ArrayList<>();
   }
 
   /**
