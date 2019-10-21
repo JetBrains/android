@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -99,6 +100,7 @@ class ConstraintSetPanel extends JPanel {
   AbstractAction createConstraint = new AbstractAction("Create Constraint") {
     @Override
     public void actionPerformed(ActionEvent e) {
+      Track.createConstraint();
       ConstraintSetPanelCommands.createConstraint(mSelectedTag, mConstraintSet);
       buildTable();
     }
@@ -116,6 +118,7 @@ class ConstraintSetPanel extends JPanel {
   AbstractAction clearConstraint = new AbstractAction("Clear Constraint") {
     @Override
     public void actionPerformed(ActionEvent e) {
+      Track.clearConstraint();
       ConstraintSetPanelCommands.clearConstraint(mSelectedTag, mConstraintSet);
       buildTable();
     }
@@ -133,12 +136,7 @@ class ConstraintSetPanel extends JPanel {
       ConstraintSetPanelCommands.convertFromSectioned(mSelectedTag, mConstraintSet);
     }
   };
-  AbstractAction limitConstraint = new AbstractAction("Limit constraints to sections") {
-    @Override
-    public void actionPerformed(ActionEvent e) {
 
-    }
-  };
   private String mConstraintSetId;
 
   ConstraintSetPanel() {
@@ -191,6 +189,7 @@ class ConstraintSetPanel extends JPanel {
         if (index == -1) {
           mSelectedTag = null;
           if (mConstraintSet != null) {
+            Track.selectConstraint();
             mListeners
               .notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{mConstraintSet}, 0);
           }
@@ -233,7 +232,6 @@ class ConstraintSetPanel extends JPanel {
       clearConstraint.setEnabled(true);
       moveConstraint.setEnabled(true);
       overrideConstraint.setEnabled(true);
-      limitConstraint.setEnabled(true);
     }
     else {
       createConstraint.setEnabled(true);
@@ -241,7 +239,6 @@ class ConstraintSetPanel extends JPanel {
       clearConstraint.setEnabled(false);
       moveConstraint.setEnabled(false);
       overrideConstraint.setEnabled(false);
-      limitConstraint.setEnabled(false);
     }
   }
 

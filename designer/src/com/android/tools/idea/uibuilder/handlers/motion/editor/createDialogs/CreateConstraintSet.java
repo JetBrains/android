@@ -103,7 +103,7 @@ public class CreateConstraintSet extends BaseCreatePanel {
   @Override
   public MTag create() {
     String id = mId.getText().trim();
-    if (id.length() == 0) {
+    if (id.isEmpty()) {
       showErrorDialog("ConstraintSet must have a valid id");
       return null;
     }

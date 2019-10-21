@@ -37,11 +37,11 @@ public class Track {
   }
 
   public static void createConstraintSet() {
-    // TODO: Don't have it.
+    track(MotionLayoutEditorEventType.CREATE_CONSTRAINT);
   }
 
   public static void motionEditorEdit() {
-    // TODO: Don't have it
+    track(MotionLayoutEditorEventType.UNKNOWN_EVENT_TYPE); // TODO: Better type
   }
 
   public static void createTransition() {
@@ -53,7 +53,7 @@ public class Track {
   }
 
   public static void createOnSwipe() {
-    // TODO: Don't have it
+    track(MotionLayoutEditorEventType.CREATE_ONCLICK);
   }
 
   public static void createKeyCycle() {
@@ -78,6 +78,57 @@ public class Track {
 
   public static void playAnimation() {
     track(MotionLayoutEditorEventType.MOTION_PLAY);
+  }
+
+  public static void animationSpeed() {
+    track(MotionLayoutEditorEventType.MOTION_SPEED);
+
+  }
+
+  public static void animationEnd() {
+    track(MotionLayoutEditorEventType.MOTION_PAUSE);
+  }
+
+  public static void animationStart() {
+    track(MotionLayoutEditorEventType.MOTION_PAUSE);
+  }
+
+  public static void animationDirectionToggle() {
+    track(MotionLayoutEditorEventType.MOTION_DIRETION_TOGGLE);
+  }
+
+  public static void createConstraint() {
+    track(MotionLayoutEditorEventType.CONVERT_TO_CONSTRAINT);
+  }
+
+  public static void clearConstraint() {
+    track(MotionLayoutEditorEventType.CLEAR_CONSTRAINT);
+  }
+
+  public static void selectConstraint() {
+    track(MotionLayoutEditorEventType.CONSTRAINT_TABLE_SELECT);
+  }
+
+  public static void changeLayout() {
+    track(MotionLayoutEditorEventType.TOGGLE_LAYOUT);
+  }
+
+  public static void showConstraintSetTable() {
+    track(MotionLayoutEditorEventType.SHOW_CONSTRAINTSET);
+  }
+
+  public static void transitionSelection() {
+    track(MotionLayoutEditorEventType.SHOW_TIMELINE);
+  }
+
+  public static void showLayoutTable() {
+    track(MotionLayoutEditorEventType.SHOW_LAYOUT);
+  }
+  public static void layoutTableSelect() {
+    track(MotionLayoutEditorEventType.LAYOUT_TABLE_SELECT);
+  }
+  public static void timelineTableSelect() {
+    track(MotionLayoutEditorEventType.TIMELINE_TABLE_SELECT);
   }
 }
 
