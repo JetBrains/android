@@ -453,9 +453,13 @@ private fun getResourceDataType(asset: Asset, psiElement: PsiElement): String {
       return if (prefix.isNotEmpty()) "$prefix ($name)" else name
     }
     // If it's not defined in XML, they are usually referenced as the actual file extension (jpg, png, webp, etc...)
-    psiElement is PsiBinaryFile && psiElement.virtualFile.extension != null -> psiElement.virtualFile.extension?.toUpperCase(Locale.US)
-                                                                               ?: ""
-
+    psiElement is PsiBinaryFile && psiElement.virtualFile.extension != null -> {
+      if (psiElement.virtualFile.name.endsWith(SdkConstants.DOT_9PNG, true)) {
+        "9-Patch"
+      } else {
+        psiElement.virtualFile.extension?.toUpperCase(Locale.US) ?: ""
+      }
+    }
     // Fallback for unsupported types in Drawables and Mip Maps
     resourceType == ResourceType.DRAWABLE || resourceType == ResourceType.MIPMAP -> resourceType.displayName + " File"
     else -> ""
