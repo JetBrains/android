@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
@@ -438,15 +439,20 @@ public class AndroidGradleTests {
     TestGradleSyncListener syncListener = new TestGradleSyncListener();
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, syncListener);
     syncListener.await();
+    syncListener.collectErrors(project);
     return syncListener;
   }
 
   public static void checkSyncStatus(@NotNull TestGradleSyncListener syncListener) {
-    if (!syncListener.success) {
+    if (syncFailed(syncListener)) {
       String cause =
         !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
       TestCase.fail(cause);
     }
+  }
+
+  public static boolean syncFailed(@NotNull TestGradleSyncListener syncListener) {
+    return !syncListener.success || !Strings.isNullOrEmpty(syncListener.failureMessage) || syncListener.hasErrors;
   }
 
   public static void defaultPatchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion,
