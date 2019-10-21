@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.adtui.actions.prettyPrintActions
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.AndroidTestCase
@@ -26,7 +25,7 @@ import java.lang.StringBuilder
 
 class ConfigurationSetMenuActionTest : AndroidTestCase() {
 
-  lateinit var form: VisualizationForm
+  private lateinit var form: VisualizationForm
 
   override fun setUp() {
     super.setUp()
@@ -47,11 +46,7 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
     // The displayed text of dropdown action is the current selected option, which is Pixel Devices in this case.
     val builder = StringBuilder("Pixel Devices\n") // The current selection of dropdown action
     // The options in dropdown menu have  4 spaces as indent
-    builder.append("    Pixel Devices\n")
-    builder.append("    Project Locales\n")
-    if (StudioFlags.NELE_COLOR_BLIND_MODE.get()) {
-      builder.append("    Color Blind Mode\n")
-    }
+    ConfigurationSet.values().filter { it.visible }.forEach { builder.append("    ${it.title}\n") }
 
     val expected = builder.toString()
     assertEquals(expected, actual)

@@ -26,18 +26,28 @@ import icons.StudioIcons
  * Pre-defined Configuration sets for visualization tools.
  */
 @Suppress("unused") // Entries are indirectly used by for-loop.
-enum class ConfigurationSet(val title: String, val modelsProvider: VisualizationModelsProvider, val visible: Boolean = true) {
-  PIXEL_DEVICES("Pixel Devices", PixelDeviceModelsProvider),
-  PROJECT_LOCALES("Project Locales", LocaleModelsProvider),
-  // For more information on math && impl, see go/cbm_simulator
-  COLOR_BLIND_MODE("Color Blind Mode", ColorBlindModeModelsProvider, StudioFlags.NELE_COLOR_BLIND_MODE.get())
+enum class ConfigurationSet(val title: String,
+                            val modelsProviderCreator: (ConfigurationSetListener) -> VisualizationModelsProvider,
+                            val visible: Boolean = true) {
+  PIXEL_DEVICES("Pixel Devices", { PixelDeviceModelsProvider }),
+  PROJECT_LOCALES("Project Locales", { LocaleModelsProvider }),
+  CUSTOM("Custom Configuration Set", { CustomModelsProvider(it) }),
+  COLOR_BLIND_MODE("Color Blind Mode", { ColorBlindModeModelsProvider }, StudioFlags.NELE_COLOR_BLIND_MODE.get()),
 }
 
 interface ConfigurationSetListener {
   /**
-   * Callback when current [ConfigurationSet] is changed.
+   * Callback when selected [ConfigurationSet] is changed. For example, the selected [ConfigurationSet] is changed from
+   * [ConfigurationSet.PIXEL_DEVICES] to [ConfigurationSet.PROJECT_LOCALES].
    */
-  fun onConfigurationSetChanged(newConfigurationSet: ConfigurationSet)
+  fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet)
+
+  /**
+   * Callback when the current [ConfigurationSet] changes the provided [com.android.tools.idea.common.model.NlModel]s. For example,
+   * assuming the current selected [ConfigurationSet] is [ConfigurationSet.CUSTOM], and user add one more configuration. In such case this
+   * callback is triggered because [ConfigurationSet.CUSTOM] now provides one more [com.android.tools.idea.common.model.NlModel].
+   */
+  fun onCurrentConfigurationSetUpdated()
 }
 
 /**
@@ -69,7 +79,7 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
     if (newSet !== currentConfigurationSet) {
       currentConfigurationSet = newSet
       updatePresentation(templatePresentation)
-      listener.onConfigurationSetChanged(newSet)
+      listener.onSelectedConfigurationSetChanged(newSet)
       getChildren(null).map { it as SetConfigurationSetAction }.forEach { it.updatePresentation() }
     }
   }

@@ -100,7 +100,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   private VirtualFile myFile;
   private boolean isActive = false;
   private JComponent myContentPanel;
-  private ActionToolbar myActionToolbar;
+  private JComponent myActionToolbarPanel;
   private JLabel myFileNameLabel;
 
   /**
@@ -122,6 +122,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   private FileEditor myEditor;
 
   @NotNull private ConfigurationSet myCurrentConfigurationSet = ConfigurationSet.PIXEL_DEVICES;
+  private VisualizationModelsProvider myCurrentModelsProvider = myCurrentConfigurationSet.getModelsProviderCreator().invoke(this);
 
   /**
    * {@link CompletableFuture} of the next model load. This is kept so the load can be cancelled.
@@ -183,21 +184,39 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   @NotNull
   private JComponent createToolbarPanel() {
     myFileNameLabel = new JLabel();
-    ActionGroup group = new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet));
+    myActionToolbarPanel = new AdtPrimaryPanel(new BorderLayout());
+    myActionToolbarPanel.addMouseListener(myClickToFocusWindowListener);
+
+    JComponent toolbarRootPanel = new AdtPrimaryPanel(new BorderLayout());
+    toolbarRootPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
+                                                              BorderFactory.createEmptyBorder(0, 6, 0, 0)));
+
+    toolbarRootPanel.add(myFileNameLabel, BorderLayout.WEST);
+    toolbarRootPanel.add(myActionToolbarPanel, BorderLayout.CENTER);
+    toolbarRootPanel.addMouseListener(myClickToFocusWindowListener);
+
+    updateActionToolbar();
+    return toolbarRootPanel;
+  }
+
+  private void updateActionToolbar() {
+    myActionToolbarPanel.removeAll();
+    DefaultActionGroup group = new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet));
+    if (myFile != null) {
+      PsiFile file = PsiManager.getInstance(myProject).findFile(myFile);
+      AndroidFacet facet = file != null ? AndroidFacet.getInstance(file) : null;
+      if (facet != null) {
+        ActionGroup configurationActions = myCurrentModelsProvider.createActions(file, facet);
+        group.addAll(configurationActions);
+      }
+    }
     // Use ActionPlaces.EDITOR_TOOLBAR as place to update the ui when appearance is changed.
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
     // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
-    myActionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true);
-    ActionToolbarUtil.makeToolbarNavigable(myActionToolbar);
-
-    JComponent toolbarPanel = new AdtPrimaryPanel(new BorderLayout());
-    toolbarPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
-                                                              BorderFactory.createEmptyBorder(0, 6, 0, 0)));
-    toolbarPanel.add(myFileNameLabel, BorderLayout.WEST);
-    toolbarPanel.add(myActionToolbar.getComponent(), BorderLayout.CENTER);
-    toolbarPanel.addMouseListener(myClickToFocusWindowListener);
-    myActionToolbar.getComponent().addMouseListener(myClickToFocusWindowListener);
-    return toolbarPanel;
+    ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true);
+    actionToolbar.updateActionsImmediately();
+    ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
+    myActionToolbarPanel.add(actionToolbar.getComponent(), BorderLayout.CENTER);
   }
 
   private void createContentPanel() {
@@ -340,7 +359,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
       .supplyAsync(() -> {
         // Hide the content while adding the models.
         myWorkBench.hideContent();
-        List<NlModel> models = myCurrentConfigurationSet.getModelsProvider().createNlModels(this, file, facet);
+        List<NlModel> models = myCurrentModelsProvider.createNlModels(this, file, facet);
         if (models.isEmpty()) {
           myWorkBench.showLoading("No Device Found");
           return null;
@@ -472,14 +491,27 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   }
 
   @Override
-  public void onConfigurationSetChanged(@NotNull ConfigurationSet newConfigurationSet) {
+  public void onSelectedConfigurationSetChanged(@NotNull ConfigurationSet newConfigurationSet) {
     if (myCurrentConfigurationSet != newConfigurationSet) {
       myCurrentConfigurationSet = newConfigurationSet;
-      updateScreenMode();
-      myActionToolbar.updateActionsImmediately();
-      // Dispose old models and create new models with new configuration set.
-      initNeleModel();
+      myCurrentModelsProvider = newConfigurationSet.getModelsProviderCreator().invoke(this);
+      refresh();
     }
+  }
+
+  @Override
+  public void onCurrentConfigurationSetUpdated() {
+    refresh();
+  }
+
+  /**
+   * Refresh the previews. This recreates the {@link NlModel}s from the current {@link ConfigurationSet}.
+   */
+  private void refresh() {
+    updateScreenMode();
+    updateActionToolbar();
+    // Dispose old models and create new models with new configuration set.
+    initNeleModel();
   }
 
   private NlAnalyticsManager getAnalyticsManager() {
