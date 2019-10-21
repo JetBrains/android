@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
 import com.android.builder.model.BuildType
 import com.android.ide.common.gradle.model.GradleModelConverter
+import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
@@ -440,6 +441,14 @@ class GradleModuleSystem(
   }
 
   override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = GradleTestArtifactSearchScopes.getInstance(module)
+
+  private inline fun <T> readFromAgpFlags(read: (IdeAndroidGradlePluginProjectFlags) -> T): T? {
+    return AndroidModuleModel.get(module)?.androidProject?.agpFlags?.let(read)
+  }
+
+  override val usesCompose: Boolean get() = readFromAgpFlags { it.usesCompose } ?: false
+
+  override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
 
   /**
    * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2].

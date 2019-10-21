@@ -184,6 +184,19 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   /** Returns an [TestArtifactSearchScopes] instance for a given module, if multiple test types are supported. */
   @JvmDefault
   fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = null
+
+  /** Whether the Jetpack Compose feature is enabled for this module. */
+  @JvmDefault
+  val usesCompose: Boolean get() = false
+
+  /**
+   * Whether the R class generated for this module is transitive.
+   *
+   * If it is transitive it will contain all of the resources defined in its transitive dependencies alongside those defined in this
+   * module. If non-transitive it will only contain the resources defined in this module.
+   */
+  @JvmDefault
+  val isRClassTransitive: Boolean get() = true
 }
 
 /**

@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.compose
 
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
@@ -25,6 +27,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
 
   public override fun setUp() {
     super.setUp()
+    (myModule.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.stubComposableAnnotation()
   }
 
