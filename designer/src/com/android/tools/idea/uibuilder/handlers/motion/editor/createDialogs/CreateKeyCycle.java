@@ -201,7 +201,7 @@ public class CreateKeyCycle extends BaseCreateKey {
     }
     keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.KeyCycle.WAVE_PERIOD, (String) mWavePeriod.getText());
     if (waveShape.getSelectedIndex() != 0) {
-      keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.KeyCycle.WAVE_SHAPE, (String) attribute.getSelectedItem());
+      keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.KeyCycle.WAVE_SHAPE, (String) waveShape.getSelectedItem());
     }
     int index = attribute.getSelectedIndex();
     String value =  MotionSceneAttrs.KeyCycleOptionsDefaultValue[index];
