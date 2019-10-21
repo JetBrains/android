@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.lang.databinding.config;
 
-import static com.android.SdkConstants.PREFIX_BINDING_EXPR;
-import static com.android.SdkConstants.PREFIX_TWOWAY_BINDING_EXPR;
-import static com.android.SdkConstants.TAG_LAYOUT;
-
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.lang.databinding.config.DbLanguage;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.InjectedLanguagePlaces;
 import com.intellij.psi.LanguageInjector;
 import com.intellij.psi.PsiLanguageInjectionHost;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTokenType;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
 
 public class DbLanguageInjector implements LanguageInjector {
   @Override
@@ -37,7 +35,8 @@ public class DbLanguageInjector implements LanguageInjector {
       return;
     }
 
-    if (!((XmlFile)host.getContainingFile()).getRootTag().getName().equals(TAG_LAYOUT)) {
+    XmlTag rootTag = ((XmlFile)host.getContainingFile()).getRootTag();
+    if (rootTag != null && !rootTag.getName().equals(TAG_LAYOUT)) {
       return;
     }
 
