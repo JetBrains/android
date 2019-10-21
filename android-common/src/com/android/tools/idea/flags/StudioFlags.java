@@ -84,7 +84,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_EXPERIMENTAL_ACTIVITY_GALLERY = Flag.create(
     NPW, "experimental.activity.gallery", "Show experimental activity gallery",
     "Show experimental activity gallery which contains Kotlin templates passed through plugin in addition to the normal gallery",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(
     NPW, "show.fragment.gallery", "Show fragment gallery",
