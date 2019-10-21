@@ -187,6 +187,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
                                                           myClipartRadioButton, myLocalFileRadioButton);
     myActiveAsset = new ObjectValueProperty<>(myClipartAssetButton.getAsset());
     myOutputName = new TextProperty(myOutputNameTextField);
+    myOutputName.set(DEFAULT_OUTPUT_NAME);
     myWidthHasFocus = new HasFocusProperty(myWidthTextField);
     myHeightHasFocus = new HasFocusProperty(myHeightTextField);
     myColor = ObjectProperty.wrap(new ColorProperty(myColorPanel));
@@ -384,7 +385,10 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     // Load persistent state of controls after dust settles.
     ApplicationManager.getApplication().invokeLater(
       () -> {
-        myOutputName.set(state.get(OUTPUT_NAME_PROPERTY, DEFAULT_OUTPUT_NAME));
+        String name = state.get(OUTPUT_NAME_PROPERTY);
+        if (name != null) {
+          myOutputName.set(name);
+        }
         myAssetSourceType.set(state.get(ASSET_SOURCE_TYPE_PROPERTY, DEFAULT_ASSET_SOURCE_TYPE));
         PersistentStateUtil.load(myClipartAssetButton, state.getChild(CLIPART_ASSET_PROPERTY));
         String path = state.get(SOURCE_FILE_PROPERTY, getProjectPath());
