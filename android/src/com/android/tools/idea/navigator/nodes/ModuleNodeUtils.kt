@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.util.GradleUtil.isRootModuleWithNoSources
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.AndroidProjectViewPane
+import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode
@@ -44,32 +45,9 @@ fun createChildModuleNodes(
   projectViewPane: AndroidProjectViewPane,
   settings: ViewSettings
 ): MutableList<AbstractTreeNode<*>> {
-  val moduleManager = ModuleManager.getInstance(project)
-  val modules = moduleManager.modules
-  val children = ArrayList<AbstractTreeNode<*>>(modules.size)
-  val grouper = moduleManager.getModuleGrouper(null)
-
-  fun Module.groupPath() = grouper.getModuleAsGroupPath(this) ?: grouper.getGroupPath(this)
-
-  fun Module.groupPathIfMatchesParent(): List<String>? {
-    val parentGroupPath = parent?.groupPath() ?: emptyList()
-    val groupPath = groupPath()
-    return groupPath.takeIf { (parent == null || groupPath.size > parentGroupPath.size) && groupPath.startsWith(parentGroupPath) }
-  }
-
-  val modulesWithGroupPaths = modules
-    .filter { !it.isIgnoredRootModule() }
-    .mapNotNull { module -> module.groupPathIfMatchesParent()?.let { groupPath -> module to groupPath } }
-    .sortedBy { it.second.size }  // Ensures parents go before their children.
-
-  val seenParents = mutableSetOf<List<String>>()
-
-  modulesWithGroupPaths.forEach moduleForEach@{ (module, groupPath) ->
-    for (size in 0 until groupPath.size) {
-      if (groupPath.isNotEmpty() && seenParents.contains(groupPath.subList(0, size))) return@moduleForEach
-    }
-    seenParents.add(groupPath)
-
+  val submodules = getSubmodules(project, parent)
+  val children = ArrayList<AbstractTreeNode<*>>(submodules.size)
+  submodules.forEach { module ->
     val apkFacet = ApkFacet.getInstance(module)
     val androidFacet = AndroidFacet.getInstance(module)
     val ndkFacet = NdkFacet.getInstance(module)
@@ -88,11 +66,4 @@ fun createChildModuleNodes(
   }
 
   return children
-}
-
-private fun Module.isIgnoredRootModule() = isRootModuleWithNoSources(this) && ApkFacet.getInstance(this) == null
-
-private fun List<String>.startsWith(prefix: List<String>): Boolean {
-  if (size < prefix.size) return false
-  return (0 until prefix.size).all { index -> this[index] == prefix[index] }
 }
