@@ -19,6 +19,8 @@ import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
+import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task.Modal
@@ -119,26 +121,25 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
       return
     }
     renderRunner { project ->
-      object : Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
-        override fun run(indicator: ProgressIndicator) {
-          log.info("Generating sources.")
-          multiRenderingStarted(myProject)
+      log.info("Generating sources.")
+      multiRenderingStarted(project)
 
-          // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,
-          // we make sure they are properly initialized when doDryRun/render is called bellow.
-          with(templateRenderers) {
-            forEach(TemplateRenderer::init)
-            if (!all(TemplateRenderer::doDryRun)) return
-            forEach(TemplateRenderer::render)
-          }
+      // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,
+      // we make sure they are properly initialized when doDryRun/render is called below.
+      with(templateRenderers) {
+        forEach(TemplateRenderer::init)
+        if (all(TemplateRenderer::doDryRun)) {
+          forEach(TemplateRenderer::render)
         }
+      }
+      log.info("Generate sources completed.")
 
-        override fun onFinished() {
-          log.info("Finishing generating sources.")
-          multiRenderingFinished(myProject)
-          templateRenderers.forEach(TemplateRenderer::finish)
-        }
-      }.queue()
+      TransactionGuard.getInstance().submitTransactionAndWait {
+        // This code needs to run in EDT.
+        log.info("Finishing generating sources.")
+        multiRenderingFinished(project)
+        templateRenderers.forEach(TemplateRenderer::finish)
+      }
     }
   }
 
