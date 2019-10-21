@@ -259,6 +259,9 @@ public class BaseCreatePanel extends JPanel {
   }
 
   String addIdPrefix(String str) {
+    if (str == null) {
+      return null;
+    }
     if (str.startsWith("@+id/") || str.startsWith("@id/")) {
       return str;
     }

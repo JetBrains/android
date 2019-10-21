@@ -219,7 +219,9 @@ class OverviewPanel extends JPanel {
                              mListener.select(mLayout, flag);
                            }
                            else if (mConstraintSetSelected > 0) {
-                             mListener.select(mConstraintSet[mConstraintSetSelected - 1], flag);
+                             if (mConstraintSet.length > mConstraintSetSelected - 1) {
+                               mListener.select(mConstraintSet[mConstraintSetSelected - 1], flag);
+                             }
                            }
                          }
                        }
