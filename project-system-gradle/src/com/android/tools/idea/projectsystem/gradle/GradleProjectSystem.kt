@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -83,4 +84,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   override fun getPsiElementFinders(): List<PsiElementFinder> = myPsiElementFinders
 
   override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
+
+  override val submodules: Collection<Module>
+    get() = getSubmodules(project, null)
 }

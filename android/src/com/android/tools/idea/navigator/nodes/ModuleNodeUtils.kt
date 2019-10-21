@@ -19,7 +19,6 @@ package com.android.tools.idea.navigator.nodes
 
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.util.GradleUtil.isRootModuleWithNoSources
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.AndroidProjectViewPane
 import com.android.tools.idea.navigator.getSubmodules
@@ -27,11 +26,11 @@ import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode
 import com.android.tools.idea.navigator.nodes.other.NonAndroidModuleNode
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.ArrayList
@@ -41,11 +40,10 @@ import java.util.ArrayList
  */
 fun createChildModuleNodes(
   project: Project,
-  parent: Module?,
+  submodules: Collection<Module>,
   projectViewPane: AndroidProjectViewPane,
   settings: ViewSettings
 ): MutableList<AbstractTreeNode<*>> {
-  val submodules = getSubmodules(project, parent)
   val children = ArrayList<AbstractTreeNode<*>>(submodules.size)
   submodules.forEach { module ->
     val apkFacet = ApkFacet.getInstance(module)
@@ -64,6 +62,5 @@ fun createChildModuleNodes(
         children.add(NonAndroidModuleNode(project, module, projectViewPane, settings))
     }
   }
-
   return children
 }
