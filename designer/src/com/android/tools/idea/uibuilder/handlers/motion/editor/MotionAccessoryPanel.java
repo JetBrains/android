@@ -315,7 +315,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
         }
         fireSelectionChanged(Collections.singletonList(mySelection));
-        LayoutPullParsers.saveFileIfNecessary(motionScene.mXmlFile);
+        if (motionScene != null) {
+          LayoutPullParsers.saveFileIfNecessary(motionScene.mXmlFile);
+        }
       }
     }, facet, myMotionSceneFile, null);
     handleSelectionChanged(designSurfaceSelection, dsSelection);

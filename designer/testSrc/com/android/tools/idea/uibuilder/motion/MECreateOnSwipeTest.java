@@ -61,17 +61,17 @@ public class MECreateOnSwipeTest extends BaseMotionEditorTest {
     panel.getAction(motionSceneUi, motionSceneUi);
     panel.access_populateDialog();
     String info = "0,CreatorAccess,\n" +
-      "1,JLabel,CREATE ONSWIPE\n" +
-      "1,JSeparator,\n" +
-      "1,JLabel,In Transition\n" +
-      "1,MEComboBox,base_state->dial,base_state->half_people,half_people->people\n" +
-      "1,JLabel,Drag Direction\n" +
-      "1,MEComboBox,Up,Down,Left,Right\n" +
-      "1,JLabel,Anchor Side\n" +
-      "1,MEComboBox,Top,Left,Bottom,Right\n" +
-      "1,JLabel,Anchor ID\n" +
-      "1,MEComboBox,(none),number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
-      "1,JButton,Add\n";
+                  "1,JLabel,CREATE ONSWIPE\n" +
+                  "1,JSeparator,\n" +
+                  "1,JLabel,In Transition\n" +
+                  "1,MEComboBox,base_state->dial,base_state->half_people,half_people->people\n" +
+                  "1,JLabel,Drag Direction\n" +
+                  "1,MEComboBox,dragUp,dragDown,dragLeft,dragRight\n" +
+                  "1,JLabel,Anchor Side\n" +
+                  "1,MEComboBox,Top,Left,Bottom,Right\n" +
+                  "1,JLabel,Anchor ID\n" +
+                  "1,MEComboBox,(none),number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
+                  "1,JButton,Add\n";
     assertEquals(info, componentFieldsString(panel, 0));
     MTag tag = panel.create();
     String created = "\n" +

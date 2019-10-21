@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 
+import java.util.Locale;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -83,7 +84,7 @@ public class CreateOnSwipe extends BaseCreatePanel {
     add(new JLabel("Drag Direction"), gbc);
     grid(gbc, 0, y++);
     gbc.anchor = GridBagConstraints.CENTER;
-    add(mDragDirection = newComboBox("Up", "Down", "Left", "Right"), gbc);
+    add(mDragDirection = newComboBox("dragUp", "dragDown", "dragLeft", "dragRight"), gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
@@ -108,6 +109,7 @@ public class CreateOnSwipe extends BaseCreatePanel {
     gbc.weighty = 0;
     gbc.weightx = 1;
     gbc.anchor = GridBagConstraints.SOUTHEAST;
+    //noinspection UnusedAssignment This is to maintain the pattern
     grid(gbc, 0, y++, 2, 1);
     JButton ok = new JButton("Add");
     add(ok, gbc);
@@ -176,6 +178,9 @@ public class CreateOnSwipe extends BaseCreatePanel {
     }
     if (mAnchorSide.getSelectedIndex() != 0) {
       String str = (String) mAnchorSide.getSelectedItem();
+      if (str != null) {
+        str = str.toLowerCase(Locale.getDefault());
+      }
       writer.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.OnSwipe.ATTR_TOUCH_ANCHOR_SIDE, str);
     }
 
