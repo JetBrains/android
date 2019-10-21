@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.common.editor.SplitEditor;
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.visual.VisualizationActionManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
@@ -355,7 +354,7 @@ public class NlPreviewManager implements ProjectComponent {
 
   @SuppressWarnings("WeakerAccess") // This method needs to be public as it's used by the Anko DSL preview
   public boolean isApplicableEditor(@NotNull TextEditor textEditor, @Nullable PsiFile file) {
-    if (textEditor instanceof SplitEditor) {
+    if (textEditor instanceof DesignToolsSplitEditor) {
       // Split-editor is not applicable for the preview panel.
       return false;
     }
