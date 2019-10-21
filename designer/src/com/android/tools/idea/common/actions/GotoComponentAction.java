@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.actions;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.idea.common.editor.SplitEditor;
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -59,8 +59,8 @@ public class GotoComponentAction extends DumbAwareAction {
 
     if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
       FileEditor selectedEditor = FileEditorManager.getInstance(mySurface.getProject()).getSelectedEditor();
-      if (selectedEditor instanceof SplitEditor) {
-        SplitEditor splitEditor = (SplitEditor)selectedEditor;
+      if (selectedEditor instanceof DesignToolsSplitEditor) {
+        DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
         if (splitEditor.isDesignMode()) {
           // If we're in design mode, we want to change the split editor mode to XML-only before navigating to the element.
           splitEditor.selectTextMode(false);
