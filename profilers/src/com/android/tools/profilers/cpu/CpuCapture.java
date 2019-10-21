@@ -34,7 +34,12 @@ public class CpuCapture implements ConfigurableDurationData {
   private ClockType myClockType;
 
   @NotNull
-  private final TraceParser myParser;
+  private final Map<CpuThreadInfo, CaptureNode> myCaptureTrees;
+
+  @NotNull
+  private final Range myCaptureRange;
+
+  private final boolean myCaptureSupportsDualClock;
 
   /**
    * ID of the trace used to generate the capture.
@@ -47,21 +52,23 @@ public class CpuCapture implements ConfigurableDurationData {
   private final Cpu.CpuTraceType myType;
 
   public CpuCapture(@NotNull TraceParser parser, long traceId, Cpu.CpuTraceType type) {
-    myParser = parser;
     myTraceId = traceId;
     myType = type;
+
+    myCaptureRange = parser.getRange();
+    myCaptureSupportsDualClock = parser.supportsDualClock();
 
     // Sometimes a capture may fail and return a file that is incomplete. This results in the parser not having any capture trees.
     // If this happens then we don't have any thread info to determine which is the main thread
     // so we throw an error and let the capture pipeline handle this and present a dialog to the user.
-    Map<CpuThreadInfo, CaptureNode> captureTrees = myParser.getCaptureTrees();
-    if (captureTrees.isEmpty()) {
+    myCaptureTrees = parser.getCaptureTrees();
+    if (myCaptureTrees.isEmpty()) {
       throw new IllegalStateException("Trace file contained no CPU data.");
     }
 
     // Try to find the main thread. If there is no actual main thread, we will fall back to the thread with the most information.
     Map.Entry<CpuThreadInfo, CaptureNode> main = null;
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : captureTrees.entrySet()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
       if (entry.getKey().isMainThread()) {
         main = entry;
         break;
@@ -86,37 +93,36 @@ public class CpuCapture implements ConfigurableDurationData {
 
   @NotNull
   public Range getRange() {
-    return myParser.getRange();
+    return myCaptureRange;
   }
 
   @Nullable
   public CaptureNode getCaptureNode(int threadId) {
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myParser.getCaptureTrees().entrySet()) {
-      if (entry.getKey().getId() == threadId) {
-        return entry.getValue();
-      }
-    }
-    return null;
+    return myCaptureTrees.entrySet().stream()
+      .filter(e -> e.getKey().getId() == threadId)
+      .findFirst()
+      .map(Map.Entry::getValue)
+      .orElse(null);
   }
 
   @NotNull
   Set<CpuThreadInfo> getThreads() {
-    return myParser.getCaptureTrees().keySet();
+    return myCaptureTrees.keySet();
   }
 
   // TODO (b/138408053): Remove this when we have a proper selection model.
   @NotNull
   public Collection<CaptureNode> getCaptureNodes() {
-    return myParser.getCaptureTrees().values();
+    return myCaptureTrees.values();
   }
 
   public boolean containsThread(int threadId) {
-    return myParser.getCaptureTrees().keySet().stream().anyMatch(info -> info.getId() == threadId);
+    return getCaptureNode(threadId) != null;
   }
 
   @Override
   public long getDurationUs() {
-    return (long)myParser.getRange().getLength();
+    return (long)getRange().getLength();
   }
 
   @Override
@@ -140,7 +146,7 @@ public class CpuCapture implements ConfigurableDurationData {
     }
     myClockType = clockType;
 
-    for (CaptureNode tree : myParser.getCaptureTrees().values()) {
+    for (CaptureNode tree : getCaptureNodes()) {
       updateClockType(tree, clockType);
     }
   }
@@ -156,7 +162,7 @@ public class CpuCapture implements ConfigurableDurationData {
   }
 
   public boolean isDualClock() {
-    return myParser.supportsDualClock();
+    return myCaptureSupportsDualClock;
   }
 
   public Cpu.CpuTraceType getType() {

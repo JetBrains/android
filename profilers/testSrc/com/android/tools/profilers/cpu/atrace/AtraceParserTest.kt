@@ -146,19 +146,6 @@ class AtraceParserTest {
   }
 
   @Test
-  fun framesEndWithEmptyFrame() {
-    val frameFilter = AtraceFrameFilterConfig(APP_MAIN_THREAD_FRAME_ID_MPLUS, AtraceTestUtils.TEST_PID,
-                                              TimeUnit.MILLISECONDS.toMicros(30));
-    val frames = myParser.getFrames(frameFilter)
-    // Each frame has a empty frame after it for spacing.
-    assertThat(frames).hasSize(122 * 2)
-    for (i in 0 until frames.size step 2) {
-      assertThat(frames[i].value).isNotEqualTo(AtraceFrame.EMPTY)
-      assertThat(frames[i + 1].value).isEqualTo(AtraceFrame.EMPTY)
-    }
-  }
-
-  @Test
   fun getProcessListReturnsProcessList() {
     val headOfListExpected = arrayOf(CpuThreadInfo(1510, "system_server"),
                                      CpuThreadInfo(2652, "splayingbitmaps"),
