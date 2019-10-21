@@ -235,7 +235,7 @@ class ResourceLookupResolverTest {
     val textStyleMaterialBody1 = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material.Body1")
     val titleId = ResourceReference(exampleNS, ResourceType.ID, "title")
     val model = InspectorPropertiesModel()
-    val title = ViewNode(1, "TextView", demo, 30, 60, 300, 100, titleId, "Hello Folks")
+    val title = ViewNode(1, "TextView", demo, 30, 60, 0, 0, 300, 100, titleId, "Hello Folks")
     val textColor = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "", true, demo, title, model)
     val background = InspectorPropertyItem(
       ANDROID_URI, ATTR_BACKGROUND, ATTR_BACKGROUND, Type.DRAWABLE, "", true, demo, title, model)
