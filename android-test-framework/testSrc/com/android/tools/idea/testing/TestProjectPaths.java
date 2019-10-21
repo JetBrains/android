@@ -32,6 +32,7 @@ public final class TestProjectPaths {
   public static final String KOTLIN_MPP = "projects/kotlinMpp";
   public static final String LINT_CUSTOM_CHECKS = "projects/lintCustomChecks";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
+  public static final String LOCAL_AARS_AS_MODULES_PRE30 = "projects/localAarsAsModules_pre30";
   public static final String LOCAL_JARS_AS_MODULES = "projects/localJarsAsModules";
   public static final String MANIFEST_CONFLICT_ATTRIBUTE = "projects/manifestConflict/attribute";
   public static final String MANIFEST_CONFLICT_BUILD_PACKAGE = "projects/manifestConflict/buildPackage";
