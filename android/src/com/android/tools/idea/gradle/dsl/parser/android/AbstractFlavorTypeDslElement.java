@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
@@ -32,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Common base class for {@link BuildTypeDslElement} and {@link ProductFlavorDslElement}.
  */
-public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement {
+public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
   @NotNull
   public static final ImmutableMap<String, String> ktsToModelNameMap = Stream.of(new String[][]{
     {"applicationIdSuffix", FlavorTypeModelImpl.APPLICATION_ID_SUFFIX},
@@ -83,10 +82,6 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     }
   }
 
-  // Stores the method name of the block used in the KTS file. Ex: for the block with the name getByName("release"), methodName will be
-  // getByName.
-  @Nullable
-  private String methodName;
 
   protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
@@ -97,11 +92,16 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     this.methodName = methodName;
   }
 
+  @Nullable
+  private String methodName;
+
+  @Override
   public void setMethodName(String methodName) {
     this.methodName = methodName;
   }
 
   @Nullable
+  @Override
   public String getMethodName() {
     return methodName;
   }
