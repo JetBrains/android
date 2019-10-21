@@ -17,21 +17,22 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class SigningConfigDslElement extends GradleDslBlockElement {
-  // Stores the method name of the block used in the KTS file. Ex: for the block with the name getByName("myConfig"), methodName will be
-  // getByName.
+public final class SigningConfigDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
   @Nullable
   private String methodName;
 
+  @Override
   public void setMethodName(String methodName) {
     this.methodName = methodName;
   }
 
   @Nullable
+  @Override
   public String getMethodName() {
     return  methodName;
   }
