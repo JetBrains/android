@@ -133,7 +133,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       }
 
       void process(GroovyPsiElement e) {
-        parse(e, myDslFile);
+        parsePsi(e, myDslFile);
       }
     }));
   }
@@ -260,29 +260,29 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     return SharedParserUtilsKt.getBlockElement(myDslFile, nameParts, this, parentElement, nameElement);
   }
 
-  private void parse(@NotNull PsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
+  private void parsePsi(@NotNull PsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
     boolean success = false;
     if (psiElement instanceof GrMethodCallExpression) {
-      success = parse((GrMethodCallExpression)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+      success = parseGrMethodCall((GrMethodCallExpression)psiElement, gradleDslFile);
     }
     else if (psiElement instanceof GrAssignmentExpression) {
-      success = parse((GrAssignmentExpression)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+      success = parseGrAssignment((GrAssignmentExpression)psiElement, gradleDslFile);
     }
     else if (psiElement instanceof GrApplicationStatement) {
-      success = parse((GrApplicationStatement)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+      success = parseGrApplication((GrApplicationStatement)psiElement, gradleDslFile);
     }
     else if (psiElement instanceof GrVariableDeclaration) {
-      success = parse((GrVariableDeclaration)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+      success = parseGrVariableDeclaration((GrVariableDeclaration)psiElement, gradleDslFile);
     }
     else if (psiElement instanceof GrReferenceExpression) {
-      success = parse((GrReferenceExpression)psiElement, (GradlePropertiesDslElement)gradleDslFile);
+      success = parseGrReference((GrReferenceExpression)psiElement, gradleDslFile);
     }
     if (!success) {
       gradleDslFile.notification(INCOMPLETE_PARSING).addUnknownElement(psiElement);
     }
   }
 
-  private boolean parse(@NotNull GrReferenceExpression element, @NotNull GradlePropertiesDslElement dslElement) {
+  private boolean parseGrReference(@NotNull GrReferenceExpression element, @NotNull GradlePropertiesDslElement dslElement) {
     GradleNameElement name = GradleNameElement.from(element, this);
 
     if (name.isQualified()) {
@@ -302,7 +302,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     return true;
   }
 
-  private boolean parse(@NotNull GrMethodCallExpression expression, @NotNull GradlePropertiesDslElement dslElement) {
+  private boolean parseGrMethodCall(@NotNull GrMethodCallExpression expression, @NotNull GradlePropertiesDslElement dslElement) {
     GrReferenceExpression referenceExpression = findChildOfType(expression, GrReferenceExpression.class);
     if (referenceExpression == null) {
       return false;
@@ -312,7 +312,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     if (expression.getChildren().length > 1 &&
         referenceExpression.getChildren().length == 1 &&
         referenceExpression.getChildren()[0] instanceof GrMethodCallExpression) {
-      return parse((GrMethodCallExpression)referenceExpression.getChildren()[0], dslElement);
+      return parseGrMethodCall((GrMethodCallExpression)referenceExpression.getChildren()[0], dslElement);
     }
 
     GradleNameElement name = GradleNameElement.from(referenceExpression, this);
@@ -366,41 +366,41 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       return false;
     }
     for (GradlePropertiesDslElement element : blockElements) {
-      parse(closableBlock, element);
+      parseGrClosableBlock(closableBlock, element);
     }
     return true;
   }
 
-  private void parse(@NotNull GrClosableBlock closure, @NotNull final GradlePropertiesDslElement blockElement) {
+  private void parseGrClosableBlock(@NotNull GrClosableBlock closure, @NotNull final GradlePropertiesDslElement blockElement) {
     closure.acceptChildren(new GroovyElementVisitor() {
       @Override
       public void visitMethodCallExpression(@NotNull GrMethodCallExpression methodCallExpression) {
-        parse(methodCallExpression, blockElement);
+        parseGrMethodCall(methodCallExpression, blockElement);
       }
 
       @Override
       public void visitApplicationStatement(@NotNull GrApplicationStatement applicationStatement) {
-        parse(applicationStatement, blockElement);
+        parseGrApplication(applicationStatement, blockElement);
       }
 
       @Override
       public void visitAssignmentExpression(@NotNull GrAssignmentExpression expression) {
-        parse(expression, blockElement);
+        parseGrAssignment(expression, blockElement);
       }
 
       @Override
       public void visitReferenceExpression(@NotNull GrReferenceExpression referenceExpression) {
-        parse(referenceExpression, blockElement);
+        parseGrReference(referenceExpression, blockElement);
       }
 
       @Override
       public void visitVariableDeclaration(@NotNull GrVariableDeclaration variableDeclaration) {
-        parse(variableDeclaration, blockElement);
+        parseGrVariableDeclaration(variableDeclaration, blockElement);
       }
     });
   }
 
-  private boolean parse(@NotNull GrApplicationStatement statement, @NotNull GradlePropertiesDslElement blockElement) {
+  private boolean parseGrApplication(@NotNull GrApplicationStatement statement, @NotNull GradlePropertiesDslElement blockElement) {
     GrReferenceExpression referenceExpression = getChildOfType(statement, GrReferenceExpression.class);
     if (referenceExpression == null) {
       return false;
@@ -500,7 +500,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     return propertyElement;
   }
 
-  private boolean parse(@NotNull GrVariableDeclaration declaration, @NotNull GradlePropertiesDslElement blockElement) {
+  private boolean parseGrVariableDeclaration(@NotNull GrVariableDeclaration declaration, @NotNull GradlePropertiesDslElement blockElement) {
     if (declaration.getVariables().length == 0) {
       return false;
     }
@@ -524,7 +524,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     return true;
   }
 
-  private boolean parse(@NotNull GrAssignmentExpression assignment, @NotNull GradlePropertiesDslElement blockElement) {
+  private boolean parseGrAssignment(@NotNull GrAssignmentExpression assignment, @NotNull GradlePropertiesDslElement blockElement) {
     PsiElement operationToken = assignment.getOperationToken();
     if (!operationToken.getText().equals("=")) {
       return false; // TODO: Add support for other operators like +=.
@@ -691,7 +691,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
                                              @NotNull GrClosableBlock closableBlock,
                                              @NotNull GradleNameElement propertyName) {
     GradleDslClosure closureElement = new GradleDslClosure(parentElement, closableBlock, propertyName);
-    parse(closableBlock, closureElement);
+    parseGrClosableBlock(closableBlock, closureElement);
     return closureElement;
   }
 }
