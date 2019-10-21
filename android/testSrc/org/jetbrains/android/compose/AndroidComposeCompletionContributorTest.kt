@@ -25,15 +25,7 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
 
   public override fun setUp() {
     super.setUp()
-    myFixture.addFileToProject(
-      "src/androidx/compose/Composable.kt",
-      // language=kotlin
-      """
-      package androidx.compose
-
-      annotation class Composable
-      """.trimIndent()
-    )
+    myFixture.stubComposableAnnotation()
   }
 
   fun testSignatures() {
