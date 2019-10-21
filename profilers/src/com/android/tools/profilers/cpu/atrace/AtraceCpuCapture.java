@@ -15,23 +15,49 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
+import com.android.annotations.NonNull;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import trebuchet.model.ProcessModel;
 
 public class AtraceCpuCapture extends CpuCapture {
+  @NonNull
+  private final Map<Integer, List<SeriesData<CpuProfilerStage.ThreadState>>> myThreadStateDataSeries;
 
-  private final AtraceParser myParser;
+  @NonNull
+  private final Map<Integer, List<SeriesData<CpuThreadSliceInfo>>> myCpuThreadSliceInfoStates;
 
-  public AtraceCpuCapture(AtraceParser parser, long traceId) {
+  @NonNull
+  private final List<SeriesData<Long>> myCpuUtilizationSeries;
+
+  private final int myRenderThreadId;
+  private final boolean myIsMissingData;
+
+  @Nullable
+  private final ProcessModel mySurfaceflingerProcessModel;
+
+  @NonNull
+  private final AtraceFrameManager myFrameManager;
+
+  public AtraceCpuCapture(@NonNull AtraceParser parser, @NonNull AtraceFrameManager frameManager, long traceId) {
     super(parser, traceId, Cpu.CpuTraceType.ATRACE);
-    myParser = parser;
+
+    myThreadStateDataSeries = parser.getThreadStateDataSeries();
+    myCpuThreadSliceInfoStates = parser.getCpuThreadSliceInfoStates();
+    myCpuUtilizationSeries = parser.getCpuUtilizationSeries();
+
+    myRenderThreadId = parser.getRenderThreadId();
+    myIsMissingData = parser.isMissingData();
+    mySurfaceflingerProcessModel = parser.getSurfaceflingerProcessModel();
+
+    myFrameManager = frameManager;
   }
 
   /**
@@ -42,7 +68,7 @@ public class AtraceCpuCapture extends CpuCapture {
    */
   @NotNull
   public List<SeriesData<CpuProfilerStage.ThreadState>> getThreadStatesForThread(int threadId) {
-    return myParser.getThreadStateDataSeries().getOrDefault(threadId, new ArrayList<>());
+    return myThreadStateDataSeries.getOrDefault(threadId, new ArrayList<>());
   }
 
   /**
@@ -52,7 +78,7 @@ public class AtraceCpuCapture extends CpuCapture {
    */
   @NotNull
   public List<SeriesData<CpuThreadSliceInfo>> getCpuThreadSliceInfoStates(int cpu) {
-    return myParser.getCpuThreadSliceInfoStates().getOrDefault(cpu, new ArrayList<>());
+    return myCpuThreadSliceInfoStates.getOrDefault(cpu, new ArrayList<>());
   }
 
   /**
@@ -60,35 +86,35 @@ public class AtraceCpuCapture extends CpuCapture {
    */
   @NotNull
   public List<SeriesData<Long>> getCpuUtilizationSeries() {
-    return myParser.getCpuUtilizationSeries();
+    return myCpuUtilizationSeries;
   }
 
   /**
    * @return The number of cores represented by this capture.
    */
   public int getCpuCount() {
-    return myParser.getCpuThreadSliceInfoStates().size();
+    return myCpuThreadSliceInfoStates.size();
   }
 
   /**
    * @return If the capture is potentially missing data due to the capture buffer being a ring buffer.
    */
   public boolean isMissingData() {
-    return myParser.isMissingData();
+    return myIsMissingData;
   }
 
   /**
    * @return Data series of frame perf classes sorted by frame start time.
    */
   public List<SeriesData<AtraceFrame>> getFrames(AtraceFrameFilterConfig filter) {
-    return myParser.getFrames(filter);
+    return myFrameManager.getFrames(filter);
   }
 
   /**
    * @return thread id of thread matching name of the render thread.
    */
   public int getRenderThreadId() {
-    return myParser.getRenderThreadId();
+    return myRenderThreadId;
   }
 
   /**
@@ -97,6 +123,6 @@ public class AtraceCpuCapture extends CpuCapture {
    */
   @Nullable
   public ProcessModel getSurfaceflingerProcessModel() {
-    return myParser.getSurfaceflingerProcessModel();
+    return mySurfaceflingerProcessModel;
   }
 }

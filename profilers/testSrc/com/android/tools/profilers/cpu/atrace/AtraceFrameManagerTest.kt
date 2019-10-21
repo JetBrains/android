@@ -121,4 +121,18 @@ class AtraceFrameManagerTest {
     assertThat(renderThreadFrames[3].associatedFrame).isEqualTo(null)
     assertThat(renderThreadFrames[4].associatedFrame).isEqualTo(mainThreadFrames[3])
   }
+
+  @Test
+  fun framesEndWithEmptyFrame() {
+    val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
+    val frameFilter = AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, TEST_PID,
+                                              TimeUnit.MILLISECONDS.toMicros(30))
+    val frames = frameManager.getFrames(frameFilter)
+    // Each frame has a empty frame after it for spacing.
+    assertThat(frames).hasSize(122 * 2)
+    for (i in 0 until frames.size step 2) {
+      assertThat(frames[i].value).isNotEqualTo(AtraceFrame.EMPTY)
+      assertThat(frames[i + 1].value).isEqualTo(AtraceFrame.EMPTY)
+    }
+  }
 }

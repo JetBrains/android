@@ -16,8 +16,10 @@
 package com.android.tools.profilers.cpu.atrace;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.cpu.CpuFramesModel;
-import com.intellij.util.Function;
+import com.google.common.annotations.VisibleForTesting;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import trebuchet.model.ProcessModel;
 import trebuchet.model.ThreadModel;
@@ -114,10 +116,10 @@ public class AtraceFrameManager {
   }
 
   /**
-   * @return This function return a list of frames that match the given filter.
+   * Returns a list of frames that match the given filter.
    */
-  @NotNull
-  public List<AtraceFrame> buildFramesList(@NotNull AtraceFrameFilterConfig filter) {
+  @VisibleForTesting
+  List<AtraceFrame> buildFramesList(@NotNull AtraceFrameFilterConfig filter) {
     if (filter.getThreadId() == myProcessModel.getId() &&
         filter.getIdentifierRegEx() == AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS &&
         filter.getLongFrameTimingUs() ==
@@ -134,5 +136,38 @@ public class AtraceFrameManager {
                          filter.getThreadId() == myProcessModel.getId()
                          ? AtraceFrame.FrameThread.MAIN
                          : (filter.getThreadId() == myRenderThreadId ? AtraceFrame.FrameThread.RENDER : AtraceFrame.FrameThread.OTHER));
+  }
+
+  /**
+   * Returns a series of frames where gaps between frames are filled with empty frames. This allows the caller to determine the
+   * frame length by looking at the delta between a valid frames series and the empty frame series that follows it. The delta between
+   * an empty frame series and the following frame is idle time between frames.
+   */
+  @NotNull
+  public List<SeriesData<AtraceFrame>> getFrames(AtraceFrameFilterConfig filter) {
+    List<SeriesData<AtraceFrame>> framesSeries = new ArrayList<>();
+    List<AtraceFrame> framesList = buildFramesList(filter);
+    // Look at each frame converting them to series data.
+    // The last frame is handled outside the for loop as we need to add an entry for the frame as well as an entry for the frame ending.
+    // Single frames are handled in the last frame case.
+    for (int i = 1; i < framesList.size(); i++) {
+      AtraceFrame current = framesList.get(i);
+      AtraceFrame past = framesList.get(i - 1);
+      framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(past.getTotalRangeSeconds().getMin()), past));
+
+      // Need to get the time delta between two frames.
+      // If we have a gap then we add an empty frame to signify to the UI that nothing should be rendered.
+      if (past.getTotalRangeSeconds().getMax() < current.getTotalRangeSeconds().getMin()) {
+        framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(past.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
+      }
+    }
+
+    // Always add the last frame, and a null frame following to properly setup the series for the UI.
+    if (!framesList.isEmpty()) {
+      AtraceFrame lastFrame = framesList.get(framesList.size() - 1);
+      framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(lastFrame.getTotalRangeSeconds().getMin()), lastFrame));
+      framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(lastFrame.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
+    }
+    return framesSeries;
   }
 }

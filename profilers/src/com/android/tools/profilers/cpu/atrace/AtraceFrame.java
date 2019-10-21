@@ -18,9 +18,9 @@ package com.android.tools.profilers.cpu.atrace;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.event.EventAction;
-import com.intellij.util.Function;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import trebuchet.model.base.SliceGroup;
 
@@ -156,7 +156,7 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
    */
   @Override
   public long getStartUs() {
-    return myBootClockSecondsToMonoUs.fun(myTotalRangeSeconds.getMin());
+    return myBootClockSecondsToMonoUs.apply(myTotalRangeSeconds.getMin());
   }
 
   /**
@@ -164,7 +164,7 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
    */
   @Override
   public long getEndUs() {
-    return myBootClockSecondsToMonoUs.fun(myTotalRangeSeconds.getMax());
+    return myBootClockSecondsToMonoUs.apply(myTotalRangeSeconds.getMax());
   }
 
   /**
