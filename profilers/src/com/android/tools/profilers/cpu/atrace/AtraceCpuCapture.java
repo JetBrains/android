@@ -40,9 +40,6 @@ public class AtraceCpuCapture extends CpuCapture {
   private final int myRenderThreadId;
   private final boolean myIsMissingData;
 
-  @Nullable
-  private final ProcessModel mySurfaceflingerProcessModel;
-
   @NonNull
   private final AtraceFrameManager myFrameManager;
 
@@ -55,7 +52,6 @@ public class AtraceCpuCapture extends CpuCapture {
 
     myRenderThreadId = parser.getRenderThreadId();
     myIsMissingData = parser.isMissingData();
-    mySurfaceflingerProcessModel = parser.getSurfaceflingerProcessModel();
 
     myFrameManager = frameManager;
   }
@@ -115,14 +111,5 @@ public class AtraceCpuCapture extends CpuCapture {
    */
   public int getRenderThreadId() {
     return myRenderThreadId;
-  }
-
-  /**
-   * @return Trebuchet ProcessModel for the Surfaceflinger process or null if there is no
-   * such process for this capture
-   */
-  @Nullable
-  public ProcessModel getSurfaceflingerProcessModel() {
-    return mySurfaceflingerProcessModel;
   }
 }
