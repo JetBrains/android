@@ -30,7 +30,6 @@ import trebuchet.model.fragments.ProcessModelFragment
 import trebuchet.model.fragments.SliceGroupBuilder
 import trebuchet.task.ImportTask
 import trebuchet.util.PrintlnImportFeedback
-import java.util.concurrent.TimeUnit
 
 class AtraceFrameManagerTest {
   private lateinit var model: Model
@@ -48,23 +47,21 @@ class AtraceFrameManagerTest {
   @Test
   fun filterReturnsFramesOfSameThread() {
     val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
-    val frameFilter = AtraceFrameFilterConfig("Choreographer#doFrame", TEST_PID,
-                                              TimeUnit.MILLISECONDS.toMicros(30))
+    val frameFilter = AtraceFrameFilterConfig("Choreographer#doFrame", TEST_PID, CpuFramesModel.SLOW_FRAME_RATE_US)
     val frames = frameManager.buildFramesList(frameFilter)
     // Validation metrics come from systrace for the same file.
     assertThat(frames).hasSize(122)
-    assertThat(frames[0].perfClass).isEqualTo(AtraceFrame.PerfClass.GOOD)
-    assertThat(frames[1].perfClass).isEqualTo(AtraceFrame.PerfClass.BAD)
+    assertThat(frames.count { it.perfClass == AtraceFrame.PerfClass.GOOD}).isEqualTo(102)
+    assertThat(frames.count { it.perfClass == AtraceFrame.PerfClass.BAD}).isEqualTo(20)
+    assertThat(frames.count { it.perfClass == AtraceFrame.PerfClass.NOT_SET}).isEqualTo(0)
   }
 
   @Test
   fun noMatchingThreadReturnsEmptyList() {
     val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
-    var frameFilter = AtraceFrameFilterConfig("Choreographer#doFrame", 0,
-                                              TimeUnit.MILLISECONDS.toMicros(30))
+    var frameFilter = AtraceFrameFilterConfig("Choreographer#doFrame", 0, CpuFramesModel.SLOW_FRAME_RATE_US)
     assertThat(frameManager.buildFramesList(frameFilter)).hasSize(0)
-    frameFilter = AtraceFrameFilterConfig("TestEventOnValidThread", TEST_PID,
-                                          TimeUnit.MILLISECONDS.toMicros(30))
+    frameFilter = AtraceFrameFilterConfig("TestEventOnValidThread", TEST_PID, CpuFramesModel.SLOW_FRAME_RATE_US)
     assertThat(frameManager.buildFramesList(frameFilter)).hasSize(0)
   }
 
@@ -126,7 +123,7 @@ class AtraceFrameManagerTest {
   fun framesEndWithEmptyFrame() {
     val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
     val frameFilter = AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, TEST_PID,
-                                              TimeUnit.MILLISECONDS.toMicros(30))
+                                              CpuFramesModel.SLOW_FRAME_RATE_US)
     val frames = frameManager.getFrames(frameFilter)
     // Each frame has a empty frame after it for spacing.
     assertThat(frames).hasSize(122 * 2)
