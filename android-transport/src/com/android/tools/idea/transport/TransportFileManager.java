@@ -17,14 +17,7 @@ package com.android.tools.idea.transport;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellOutputReceiver;
-import com.android.ddmlib.MultiLineReceiver;
-import com.android.ddmlib.NullOutputReceiver;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.SyncException;
-import com.android.ddmlib.TimeoutException;
+import com.android.ddmlib.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -35,6 +28,10 @@ import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.messages.MessageBus;
+import org.jetbrains.android.download.AndroidProfilerDownloader;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -44,8 +41,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class TransportFileManager {
   private static class HostFiles {
@@ -123,6 +118,7 @@ public final class TransportFileManager {
     throws AdbCommandRejectedException, IOException, ShellCommandUnresponsiveException, SyncException, TimeoutException {
     // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
     // in AndroidStudioProperties.groovy to package in release.
+    if (!AndroidProfilerDownloader.makeSureProfilerIsInPlace()) return;
     copyFileToDevice(HostFiles.TRANSPORT);
     if (isAtLeastO(myDevice)) {
       copyFileToDevice(HostFiles.PERFA);
