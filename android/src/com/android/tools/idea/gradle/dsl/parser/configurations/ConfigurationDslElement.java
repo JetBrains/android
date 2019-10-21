@@ -15,14 +15,49 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.configurations;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ConfigurationDslElement extends GradleDslBlockElement {
+public class ConfigurationDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
+  @NotNull
+  public static final ImmutableMap<String, String> ktsToModelNameMap = Stream.of(new String[][]{
+    {"isTransitive", ConfigurationModelImpl.TRANSITIVE},
+    {"isVisible", ConfigurationModelImpl.VISIBLE}
+  }).collect(toImmutableMap(data -> data[0], data -> data[1]));
+
+  @NotNull
+  public static final ImmutableMap<String, String> groovyToModelNameMap = Stream.of(new String[][]{
+    {"transitive", ConfigurationModelImpl.TRANSITIVE},
+    {"visible", ConfigurationModelImpl.VISIBLE}
+  }).collect(toImmutableMap(data -> data[0], data -> data[1]));
+
+  @Override
+  @NotNull
+  public ImmutableMap<String, String> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    if (converter instanceof KotlinDslNameConverter) {
+      return ktsToModelNameMap;
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      return groovyToModelNameMap;
+    }
+    else {
+      return super.getExternalToModelMap(converter);
+    }
+  }
+
   private final boolean myHasBraces;
 
   public ConfigurationDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
@@ -34,6 +69,20 @@ public class ConfigurationDslElement extends GradleDslBlockElement {
     super(parent, name);
     setPsiElement(element);
     myHasBraces = hasBraces;
+  }
+
+  private String methodName;
+
+  @Nullable
+  @Override
+  public String getMethodName() {
+    return methodName;
+  }
+
+  @Nullable
+  @Override
+  public void setMethodName(@Nullable String value) {
+    methodName = value;
   }
 
   @Nullable
@@ -49,5 +98,17 @@ public class ConfigurationDslElement extends GradleDslBlockElement {
   @Override
   public boolean isInsignificantIfEmpty() {
     return false;
+  }
+
+  @Override
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    super.addParsedElement(element);
+    maybeRenameElement(element);
+  }
+
+  @Override
+  public void setParsedElement(@NotNull GradleDslElement element) {
+    super.setParsedElement(element);
+    maybeRenameElement(element);
   }
 }
