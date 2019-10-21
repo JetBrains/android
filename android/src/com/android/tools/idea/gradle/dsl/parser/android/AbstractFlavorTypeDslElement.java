@@ -103,18 +103,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
 
   @Nullable
   public String getMethodName() {
-    return  methodName;
-  }
-
-  protected void maybeRenameElement(@NotNull GradleDslElement element) {
-    String name = element.getName();
-    Map<String,String> nameMapper = getExternalToModelMap(element.getDslFile().getParser());
-    if (nameMapper.containsKey(name)) {
-      String newName = nameMapper.get(name);
-      // we rename the GradleNameElement, and not the element directly, because this renaming is not about renaming the property
-      // but about providing a canonical model name for a thing.
-      element.getNameElement().canonize(newName); // NOTYPO
-    }
+    return methodName;
   }
 
   @Override

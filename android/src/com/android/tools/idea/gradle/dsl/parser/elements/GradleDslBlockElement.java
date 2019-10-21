@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,17 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
   @Override
   public boolean isBlockElement() {
     return true;
+  }
+
+  protected void maybeRenameElement(@NotNull GradleDslElement element) {
+    String name = element.getName();
+    Map<String,String> nameMapper = getExternalToModelMap(element.getDslFile().getParser());
+    if (nameMapper.containsKey(name)) {
+      String newName = nameMapper.get(name);
+      // we rename the GradleNameElement, and not the element directly, because this renaming is not about renaming the property
+      // but about providing a canonical model name for a thing.
+      element.getNameElement().canonize(newName); // NOTYPO
+    }
   }
 
   @Override
