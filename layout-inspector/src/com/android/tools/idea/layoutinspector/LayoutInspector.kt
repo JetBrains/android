@@ -170,9 +170,9 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
       val viewId = stringTable[view.viewId]
       val textValue = stringTable[view.textValue]
       val layout = stringTable[view.layout]
-      val x = view.x + (parent?.x ?: 0)
-      val y = view.y + (parent?.y ?: 0)
-      val node = ViewNode(view.drawId, qualifiedName, layout, x, y, view.width, view.height, viewId, textValue)
+      val x = view.x + (parent?.let { it.x - it.scrollX } ?: 0)
+      val y = view.y + (parent?.let { it.y - it.scrollY } ?: 0)
+      val node = ViewNode(view.drawId, qualifiedName, layout, x, y, view.scrollX, view.scrollY, view.width, view.height, viewId, textValue)
       view.subViewList.map { loadView(it, node) }.forEach {
         node.children.add(it)
         it.parent = node
