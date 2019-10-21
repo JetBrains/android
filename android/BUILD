@@ -194,7 +194,6 @@ iml_module(
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/base/build-system/previous-versions:2.2.0.zip",
         "//tools/base/build-system/previous-versions:3.0.0.zip",
         "//tools/base/build-system/previous-versions:3.3.2.zip",
         "//tools/base/build-system/previous-versions:3.5.0.zip",
