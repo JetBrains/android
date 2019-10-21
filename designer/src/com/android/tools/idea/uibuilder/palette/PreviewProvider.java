@@ -48,10 +48,11 @@ import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.IconUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Image;
@@ -105,7 +106,7 @@ public class PreviewProvider implements Disposable {
   public ImageAndDimension createPreview(@NotNull JComponent component, @NotNull Palette.Item item) {
     Dimension size;
     Image image;
-    JBUI.ScaleContext scaleContext = JBUI.ScaleContext.create(component);
+    ScaleContext scaleContext = ScaleContext.create(component);
     Image renderedItem = myDependencyManager.needsLibraryLoad(item) ? null : renderDragImage(item);
 
     if (renderedItem == null) {
@@ -122,7 +123,7 @@ public class PreviewProvider implements Disposable {
     size = new Dimension(width, height);
 
     // Workaround for https://youtrack.jetbrains.com/issue/JRE-224
-    boolean inUserScale = !SystemInfo.isWindows || !UIUtil.isJreHiDPI(component);
+    boolean inUserScale = !SystemInfo.isWindows || !StartupUiUtil.isJreHiDPI(component);
     BufferedImage bufferedImage = ImageUtil.toBufferedImage(image, inUserScale);
 
     return new ImageAndDimension(bufferedImage, size);
