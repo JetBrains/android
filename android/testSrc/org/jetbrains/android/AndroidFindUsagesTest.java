@@ -25,7 +25,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.testFramework.TreeTester;
+import com.intellij.testFramework.TreeNodeTester;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
@@ -1609,6 +1609,6 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                                  null);
     Disposer.register(myFixture.getTestRootDisposable(), usageView);
     usageView.expandAll();
-    return TreeTester.forNode(usageView.getRoot()).withPresenter(usageView::getNodeText).constructTextRepresentation();
+    return TreeNodeTester.forNode(usageView.getRoot()).withPresenter(usageView::getNodeText).constructTextRepresentation();
   }
 }
