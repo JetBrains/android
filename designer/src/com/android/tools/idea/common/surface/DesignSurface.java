@@ -25,7 +25,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
-import com.android.tools.idea.common.editor.SplitEditor;
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
@@ -574,8 +574,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
       FileEditor selectedEditor = FileEditorManager.getInstance(getProject()).getSelectedEditor();
-      if (selectedEditor instanceof SplitEditor) {
-        SplitEditor splitEditor = (SplitEditor)selectedEditor;
+      if (selectedEditor instanceof DesignToolsSplitEditor) {
+        DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
         if (splitEditor.isSplitMode()) {
           // If we're in split mode, we want to select the component in the text editor.
           SceneView sceneView = getSceneView(x, y);
