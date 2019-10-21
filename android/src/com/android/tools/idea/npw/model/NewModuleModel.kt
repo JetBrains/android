@@ -42,6 +42,8 @@ import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
@@ -62,7 +64,11 @@ class ExistingNewProjectModelData(project: Project, override val projectSyncInvo
   override val projectTemplateValues: MutableMap<String, Any> = mutableMapOf()
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
-    renderer(project)
+    object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
+        override fun run(indicator: ProgressIndicator) {
+          renderer(project)
+        }
+    }.queue()
     projectSyncInvoker.syncProject(project)
   }
 
